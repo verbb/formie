@@ -867,6 +867,24 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         }
 
+        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date->format('Y-m-d H:i:s');
+            }
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+            if ($date = DateTimeHelper::toDateTime($value)) {
+                return $date;
+            }
+        }
+
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
