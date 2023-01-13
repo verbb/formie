@@ -16,6 +16,7 @@ export class FormieStripe extends FormiePaymentProvider {
             return;
         }
 
+        this.boundEvents = false;
         this.publishableKey = settings.publishableKey;
         this.billingDetails = settings.billingDetails || {};
         this.hidePostalCode = settings.hidePostalCode || false;
@@ -39,6 +40,7 @@ export class FormieStripe extends FormiePaymentProvider {
                     this.cardElement.destroy();
                     this.cardElement = null;
                     this.stripe = null;
+                    this.boundEvents = false;
 
                     // Remove unique event listeners
                     this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'stripe'));
@@ -50,8 +52,11 @@ export class FormieStripe extends FormiePaymentProvider {
             }
         }, { root: this.$form });
 
-        // Watch for when the input is visible/hidden, in the context of the form
-        observer.observe(this.$input);
+        // Watch for when the input is visible/hidden, in the context of the form. But wait a little to start watching
+        // to prevent double binding when still loading the form, or hidden behind conditions.
+        setTimeout(() => {
+            observer.observe(this.$input);
+        }, 500);
     }
 
     initCardField() {
@@ -75,9 +80,15 @@ export class FormieStripe extends FormiePaymentProvider {
         }
 
         // Attach custom event listeners on the form
-        this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('FormiePaymentStripe3DS', 'stripe'), this.onValidate3DS.bind(this));
+        // Prevent binding multiple times. This can cause multiple payments!
+        if (!this.boundEvents) {
+            console.log('boundEvents');
+            this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
+            this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
+            this.form.addEventListener(this.$form, eventKey('FormiePaymentStripe3DS', 'stripe'), this.onValidate3DS.bind(this));
+
+            this.boundEvents = true;
+        }
     }
 
     mountCard() {
@@ -190,7 +201,9 @@ export class FormieStripe extends FormiePaymentProvider {
 
     onAfterSubmit(e) {
         // Clear the Stripe form
-        this.cardElement.clear();
+        if (this.cardElement) {
+            this.cardElement.clear();
+        }
 
         // Reset all hidden inputs
         this.updateInputs('stripePaymentId', '');
