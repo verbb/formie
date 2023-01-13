@@ -82,6 +82,38 @@ Allows specific placement of a form's JS on the page. Takes the same arguments a
 ```
 
 
+### `craft.formie.renderCss(inline)`
+Renders the Formie base and theme CSS. Useful for SPA or lazy loading, where you load forms on-demand. As such, it should only be included one per page.
+
+```twig
+<head>
+    {{ craft.formie.renderCss() }}
+</head>
+
+<body>
+    <div class="form-wrap">
+        {{ craft.formie.renderForm('contactForm') }}
+    </div>
+</body>
+```
+
+
+### `craft.formie.renderJs(inline)`
+Renders the Formie JavaScript (`formie.js`) file. Useful for SPA or lazy loading, where you load forms on-demand. As such, it should only be included one per page.
+
+```twig
+<head>
+    {{ craft.formie.renderJs() }}
+</head>
+
+<body>
+    <div class="form-wrap">
+        {{ craft.formie.renderForm('contactForm') }}
+    </div>
+</body>
+```
+
+
 ### `craft.formie.getFieldOptions(field)`
 Returns a field's render options from the main options array.
 

@@ -191,6 +191,26 @@ class Formie
     }
 
     /**
+     * Returns the base CSS.
+     *
+     * @return Markup|null
+     */
+    public function renderCss(bool $inline = false): ?Markup
+    {
+        return FormiePlugin::$plugin->getRendering()->renderCss($inline);
+    }
+
+    /**
+     * Returns the base JS.
+     *
+     * @return Markup|null
+     */
+    public function renderJs(bool $inline = false): ?Markup
+    {
+        return FormiePlugin::$plugin->getRendering()->renderJs($inline);
+    }
+
+    /**
      * Gets a field's options from the main options array.
      *
      * @param FormFieldInterface $field

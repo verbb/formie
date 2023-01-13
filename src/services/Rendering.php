@@ -598,6 +598,60 @@ class Rendering extends Component
         return TemplateHelper::raw(implode("\n", $allJsFiles));
     }
 
+    /**
+     * Returns the base CSS.
+     *
+     * @param array $renderOptions
+     * @return Markup|null
+     */
+    public function renderCss(bool $inline = false): ?Markup
+    {
+        $view = Craft::$app->getView();
+        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+
+        $output = [];
+
+        if ($inline) {
+            $output[] = Html::cssFile($cssLayout);
+            $output[] = Html::cssFile($cssTheme);
+        } else {
+            $view->registerCssFile($cssLayout);
+            $view->registerCssFile($cssTheme);
+        }
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    /**
+     * Returns the base JS.
+     *
+     * @param array $renderOptions
+     * @return Markup|null
+     */
+    public function renderJs(bool $inline = false): ?Markup
+    {
+        $view = Craft::$app->getView();
+        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
+
+        $output = [];
+
+        // Add locale definition JS variables
+        $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
+
+        if ($inline) {
+            $output[] = Html::jsFile($jsFile, array_merge(['defer' => true]));
+            $output[] = Html::script($jsString, ['type' => 'text/javascript']);
+        } else {
+            $view->registerJsFile($jsFile, array_merge(['defer' => true]));
+            $view->registerJs($jsString, View::POS_END);
+        }
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
 
     // Private Methods
     // =========================================================================
