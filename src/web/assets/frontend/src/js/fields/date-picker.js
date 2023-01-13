@@ -9,7 +9,7 @@ function attributesPlugin() {
     return function(fp) {
         return {
             onReady() {
-                const excludedAttributes = ['type', 'name'];
+                const excludedAttributes = ['type', 'name', 'value'];
 
                 // Copy all attributes from normal input to `altInput` - except some
                 fp.input.getAttributeNames().forEach(attribute => {
