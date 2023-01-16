@@ -418,7 +418,7 @@ Or, maybe we only want a field required when another field is a certain value.
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
     $event->rules[] = [['field:emailAddress'], 'required', 'when' => function($model) {
         return $model->subscribeMe;
-    }]];
+    }];
 });
 ```
 
