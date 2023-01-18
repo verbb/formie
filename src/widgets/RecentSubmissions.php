@@ -148,12 +148,15 @@ class RecentSubmissions extends Widget
             'widget' => $this,
         ];
 
+        // Postgres won't like querying `*`
+        $formIds = ($this->formIds === '*') ? null : $this->formIds;
+
         if ($this->displayType === 'list') {
-            $variables['submissions'] = Submission::find()->limit($this->limit)->formId($this->formIds)->all();
+            $variables['submissions'] = Submission::find()->limit($this->limit)->formId($formIds)->all();
         }
 
         if ($this->displayType === 'pie') {
-            $forms = Form::find()->id($this->formIds)->all();
+            $forms = Form::find()->id($formIds)->all();
 
             foreach ($forms as $form) {
                 $variables['labels'][] = $form->title;
@@ -162,7 +165,7 @@ class RecentSubmissions extends Widget
         }
 
         if ($this->displayType === 'line') {
-            $forms = Form::find()->id($this->formIds)->all();
+            $forms = Form::find()->id($formIds)->all();
 
             $combinedChartData = [];
             $formTitles = [];
@@ -379,26 +382,43 @@ class RecentSubmissions extends Widget
 
     private function getChartQueryOptionsByInterval(string $interval)
     {
+        if (Craft::$app->getDb()->getIsMysql()) {
+            // The fallback if timezone can't happen in sql is simply just extract the information from the UTC date stored in `dateOrdered`.
+            $timezoneConversionSql = "[[elements.dateCreated]]";
+
+            if (Db::supportsTimeZones()) {
+                $timezoneConversionSql = "CONVERT_TZ([[elements.dateCreated]], 'UTC', '" . Craft::$app->getTimeZone() . "')";
+            } else {
+                Craft::getLogger()->log('For accurate Formie statistics it is recommend to make sure you have the timezones table populated. https://craftcms.com/knowledge-base/populating-mysql-mariadb-timezone-tables', Craft::getLogger()::LEVEL_WARNING, 'formie');
+            }
+        } else {
+            $timezoneConversionSql = "(([[elements.dateCreated]] AT TIME ZONE 'UTC') AT TIME ZONE '" . Craft::$app->getTimeZone() . "')";
+        }
+
         switch ($interval) {
             case 'month':
             {
+                $sqlExpression = "CONCAT(EXTRACT(YEAR FROM " . $timezoneConversionSql . "), '-', EXTRACT(MONTH FROM " . $timezoneConversionSql . "))";
+
                 return [
                     'interval' => 'P1M',
                     'dateKeyFormat' => 'Y-n',
-                    'dateKey' => 'CONCAT(EXTRACT(YEAR FROM [[elements.dateCreated]]), \'-\', EXTRACT(MONTH FROM [[elements.dateCreated]]))',
-                    'groupBy' => 'CONCAT(EXTRACT(YEAR FROM [[elements.dateCreated]]), \'-\', EXTRACT(MONTH FROM [[elements.dateCreated]]))',
-                    'orderBy' => 'CONCAT(EXTRACT(YEAR FROM [[elements.dateCreated]]), \'-\', EXTRACT(MONTH FROM [[elements.dateCreated]])) ASC',
+                    'dateKey' => $sqlExpression,
+                    'groupBy' => $sqlExpression,
+                    'orderBy' => $sqlExpression . ' ASC',
                 ];
                 break;
             }
             case 'day':
             {
+                $sqlExpression = "DATE(" . $timezoneConversionSql . ")";
+
                 return [
                     'interval' => 'P1D',
                     'dateKeyFormat' => 'Y-m-d',
-                    'dateKey' => 'DATE([[elements.dateCreated]])',
-                    'groupBy' => 'DATE([[elements.dateCreated]])',
-                    'orderBy' => 'DATE([[elements.dateCreated]])',
+                    'dateKey' => $sqlExpression,
+                    'groupBy' => $sqlExpression,
+                    'orderBy' => $sqlExpression,
                 ];
                 break;
             }
