@@ -410,8 +410,21 @@ trait FormFieldTrait
     {
         if (!$this->formId) {
             // Try and fetch the form via the UID from the context
+            $uid = $this->getContextUid();
+
+            // Check if this is a nested field, and bubble-up
+            if (strstr($uid, 'formieField:')) {
+                $fieldUid = str_replace('formieField:', '', $uid);
+
+                if ($fieldUid) {
+                    if ($field = Craft::$app->getFields()->getFieldByUid($fieldUid)) {
+                        $uid = $field->getContextUid();
+                    }
+                }
+            }
+
             /* @var Form $form */
-            if ($form = Form::find()->uid($this->getContextUid())->one()) {
+            if ($form = Form::find()->uid($uid)->one()) {
                 $this->formId = $form->id;
 
                 return $this->_form = $form;
