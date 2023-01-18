@@ -934,7 +934,17 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
+        $result = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
+
+        if (!$result) {
+            $message = Craft::t('formie', 'Integration failed to run.');
+
+            Craft::$app->getSession()->setError($message);
+
+            return $this->asJson([
+                'success' => false,
+            ]);
+        }
 
         $message = Craft::t('formie', 'Integration was run successfully.');
 
