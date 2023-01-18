@@ -122,7 +122,10 @@ class Calculations extends FormField implements PreviewableFieldInterface
 
         // Replace `{field.handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
         // and because some characters won't work well with the expressionLanguage parser
-        $formula = str_replace(['.', '{', '}'], ['_', '', ''], $formula);
+        $formula = preg_replace_callback('/({.*?})/', function($matches) {
+            $string = $matches[1] ?? '';
+            return str_replace(['.', '{', '}'], ['_', '', ''], $string);
+        }, $formula);
 
         return $this->_renderedFormula = [
             'formula' => $formula,
