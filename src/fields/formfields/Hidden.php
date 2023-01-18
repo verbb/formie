@@ -135,6 +135,8 @@ class Hidden extends FormField implements PreviewableFieldInterface
                 $value = $this->defaultValue;
             }
 
+            // Prevent users using long-hand Twig `{{` to prevent injection execution
+            $value = str_replace(['{{', '}}'], ['{', '}'], $value);
             $value = Variables::getParsedValue($value, $element);
 
             // Immediately update the value for the element, so integrations use the up-to-date value
