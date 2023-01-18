@@ -246,6 +246,7 @@ trait FormFieldTrait
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $event);
 
         // Raise the same event on the integration class for convenience
+        $integration->init(); // We need to manually trigger `init()` as it doesn't seem to kick off in a queue job
         $integration->trigger($integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
         return $event->value;

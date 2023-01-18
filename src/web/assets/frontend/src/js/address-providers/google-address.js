@@ -108,7 +108,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             this.setFieldValue('[data-address1]', street);
         }
 
-        this.setFieldValue('[data-city]', formData.locality);
+        this.setFieldValue('[data-city]', formData.locality, formData.postal_town);
         this.setFieldValue('[data-zip]', formData.postal_code);
         this.setFieldValue('[data-state]', formData.administrative_area_level_1);
         this.setFieldValue('[data-country]', formData.country);
@@ -169,6 +169,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             subpremise: 'short_name',
             street_number: 'short_name',
             route: 'long_name',
+            postal_town: 'long_name',
             locality: 'long_name',
             administrative_area_level_1: 'short_name',
             country: 'short_name',
@@ -177,9 +178,9 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         /* eslint-enable camelcase */
     }
 
-    setFieldValue(selector, value) {
+    setFieldValue(selector, value, fallback) {
         if (this.$field.querySelector(selector)) {
-            this.$field.querySelector(selector).value = value || '';
+            this.$field.querySelector(selector).value = value || fallback || '';
         }
     }
 }
