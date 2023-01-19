@@ -1,7 +1,7 @@
 {{ hiddenInput(field.getHtmlName(), '') }}
 
 {% fieldtag 'nestedFieldContainer' %}
-    {% if value and value.exists() %}
+    {% if value  %}
         {% for block in value.all() %}
             {{ formieInclude('fields/repeater/_row', {
                 id: block.id ?? 'new' ~ loop.index,
