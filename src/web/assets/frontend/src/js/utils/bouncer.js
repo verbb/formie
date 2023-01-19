@@ -443,7 +443,7 @@ export const Bouncer = function(formElement, options) {
         // }
 
         if (field.type === 'checkbox' || field.type === 'radio') {
-            field = field.closest('[data-field-handle]');
+            field = field.closest('[data-field-handle]').firstChild;
         }
 
         return field;
