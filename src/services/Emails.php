@@ -120,7 +120,7 @@ class Emails extends Component
         if ($notification->sender) {
             try {
                 $sender = Variables::getParsedValue((string)$notification->sender, $submission, $form, $notification);
-                $sender = $this->_getParsedEmails($sender);
+                $sender = $this->_getParsedEmails($sender)[0] ?? null;
 
                 if ($sender) {
                     $newEmail->setSender($sender);
