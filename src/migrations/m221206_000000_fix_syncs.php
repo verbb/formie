@@ -52,10 +52,18 @@ class m221206_000000_fix_syncs extends Migration
 
             foreach ($table->getColumnNames() as $columnName) {
                 if (str_starts_with($columnName, 'field_')) {
-                    // Find a field that matches this
-                    $prefix = explode('_', $columnName)[0] ?? null;
-                    $handle = explode('_', $columnName)[1] ?? null;
-                    $suffix = explode('_', $columnName)[2] ?? null;
+                    // Find a field that matches this. But be careful, because people can use underscores in the field handles.
+                    $columnParts = explode('_', $columnName);
+                    $prefix = $columnParts[0] ?? null;
+                    $handle = $columnParts[1] ?? null;
+                    $suffix = $columnParts[2] ?? null;
+
+                    // If larger than 3, that means the field handle contains an underscore. It's pretty unreliable to determine
+                    // the field handle from this, as it's not guaranteed that the column has a field suffix (older Craft installs)
+                    // So best to just skip this field check, rather than risking deletion.
+                    if (count($columnParts) > 3) {
+                        continue;
+                    }
 
                     $columnField = (new Query())
                         ->select(['id'])
