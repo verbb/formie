@@ -184,7 +184,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
                 throw new InvalidConfigException('Nested field row is missing its owner ID');
             }
 
-            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, ['isIncomplete' => null])) === null) {
+            if (($this->_owner = Craft::$app->getElements()->getElementById($this->ownerId, null, $this->siteId, ['isIncomplete' => null, 'isSpam' => null])) === null) {
                 throw new InvalidConfigException('Invalid owner ID: ' . $this->ownerId);
             }
         }
