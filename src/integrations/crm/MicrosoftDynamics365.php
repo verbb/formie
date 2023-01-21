@@ -440,7 +440,7 @@ class MicrosoftDynamics365 extends Crm
                 'handle' => $handle,
                 'name' => $label,
                 'type' => $this->_convertFieldType($type),
-                'required' => $requiredLevel === 'None' ? false : true,
+                'required' => ($requiredLevel === 'SystemRequired' || $requiredLevel === 'ApplicationRequired'),
             ]);
         }
 
