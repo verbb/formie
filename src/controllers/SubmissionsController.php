@@ -1193,10 +1193,10 @@ class SubmissionsController extends Controller
         $request = Craft::$app->getRequest();
         $value = $request->getParam($name);
 
-        // Special case for `submitAction`, where we don't want just anything passed in
+        // Special case for `submitAction`, where we don't want just anything passed in to change behaviour
         if ($name === 'submitAction') {
             if (!in_array($value, ['submit', 'back', 'save'])) {
-                throw new BadRequestHttpException('Request has invalid param ' . $name);
+                return $default;
             }
         }
 
