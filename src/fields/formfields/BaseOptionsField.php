@@ -32,6 +32,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         getDefaultValue as traitGetDefaultValue;
         defineValueForIntegration as traitDefineValueForIntegration;
         getSettingGqlTypes as traitGetSettingGqlTypes;
+        setPrePopulatedValue as traitSetPrePopulatedValue;
     }
 
 
@@ -322,7 +323,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             return explode(',', $value);
         }
 
-        return parent::setPrePopulatedValue($value);
+        return $this->traitSetPrePopulatedValue($value);
     }
 
 
