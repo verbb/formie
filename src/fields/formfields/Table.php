@@ -16,6 +16,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 use craft\validators\ColorValidator;
@@ -277,7 +278,36 @@ class Table extends CraftTable implements FormFieldInterface
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        $value = parent::normalizeValue($value, $element);
+        // This is the parent `Table::normalizeValue()` function, but we need custom behaviour for date/time cells
+        if (is_string($value) && !empty($value)) {
+            $value = Json::decodeIfJson($value);
+        } elseif ($value === null && $this->isFresh($element)) {
+            $value = array_values($this->defaults ?? []);
+        }
+
+        if (!is_array($value) || empty($this->columns)) {
+            return null;
+        }
+
+        // Normalize the values and make them accessible from both the col IDs and the handles
+        foreach ($value as &$row) {
+            foreach ($this->columns as $colId => $col) {
+                if (array_key_exists($colId, $row)) {
+                    $cellValue = $row[$colId];
+                } elseif ($col['handle'] && array_key_exists($col['handle'], $row)) {
+                    $cellValue = $row[$col['handle']];
+                } else {
+                    $cellValue = null;
+                }
+
+                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+                $row[$colId] = $cellValue;
+                
+                if ($col['handle']) {
+                    $row[$col['handle']] = $cellValue;
+                }
+            }
+        }
 
         // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
         // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
@@ -596,7 +626,7 @@ class Table extends CraftTable implements FormFieldInterface
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
                 $cellValue = $row[$col['handle']] ?? null;
-                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+                $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $values[] = $cellValue;
             }
@@ -617,7 +647,7 @@ class Table extends CraftTable implements FormFieldInterface
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
                 $cellValue = $row[$col['handle']] ?? null;
-                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+                $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $values[$this->getExportLabel($element) . ': ' . ($rowId + 1) . ': ' . $col['heading']] = $cellValue;
             }
@@ -641,7 +671,7 @@ class Table extends CraftTable implements FormFieldInterface
             foreach ($this->columns as $colId => $col) {
                 // Ensure column values are prepped correctly
                 $cellValue = $row[$col['handle']] ?? null;
-                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
+                $cellValue = $this->_normalizeCellValueAsString($col['type'], $cellValue);
 
                 $rowValues .= Html::tag('td', $cellValue);
             }
@@ -698,6 +728,15 @@ class Table extends CraftTable implements FormFieldInterface
         return $validator->validate($value, $error);
     }
 
+    private function _normalizeCellValueAsString(string $type, mixed $value): mixed
+    {
+        return match ($type) {
+            'color' => $value->getHex(),
+            'date', 'time' => DateTimeHelper::toIso8601($value) ?: null,
+            default => $value,
+        };
+    }
+
     /**
      * Normalizes a cell’s value.
      *
@@ -707,10 +746,40 @@ class Table extends CraftTable implements FormFieldInterface
      */
     private function _normalizeCellValue(string $type, mixed $value): mixed
     {
-        return match ($type) {
-            'color' => $value->getHex(),
-            'date', 'time' => DateTimeHelper::toIso8601($value) ?: null,
-            default => $value,
-        };
+        switch ($type) {
+            case 'color':
+                if ($value instanceof ColorData) {
+                    return $value;
+                }
+
+                if (!$value || $value === '#') {
+                    return null;
+                }
+
+                $value = strtolower($value);
+
+                if ($value[0] !== '#') {
+                    $value = '#' . $value;
+                }
+
+                if (strlen($value) === 4) {
+                    $value = '#' . $value[1] . $value[1] . $value[2] . $value[2] . $value[3] . $value[3];
+                }
+
+                return new ColorData($value);
+
+            case 'multiline':
+            case 'singleline':
+                if ($value !== null) {
+                    $value = LitEmoji::shortcodeToUnicode($value);
+                    return trim(preg_replace('/\R/u', "\n", $value));
+                }
+                // no break
+            case 'date':
+            case 'time':
+                return DateTimeHelper::toDateTime($value, false, false) ?: null;
+        }
+
+        return $value;
     }
 }

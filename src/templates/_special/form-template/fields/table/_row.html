@@ -30,11 +30,13 @@
                     name: field.getHtmlName("#{index}[#{colId}]"),
                 }) }}
             {% case 'date' %}
+                {% set rowValue = (row[colId] ?? null) ? (row[colId] | date('Y-m-d', false)) : null %}
+
                 {{ tag('input', {
                     id: rowId,
                     type: 'date',
                     class: 'fui-input',
-                    value: row[colId].format('Y-m-d') ?? '',
+                    value: rowValue,
                     name: field.getHtmlName("#{index}[#{colId}][date]"),
                 }) }}
             {% case 'select' %}
@@ -79,11 +81,13 @@
                     name: field.getHtmlName("#{index}[#{colId}]"),
                 }) }}
             {% case 'time' %}
+                {% set rowValue = (row[colId] ?? null) ? (row[colId] | date('H:i', false)) : null %}
+
                 {{ tag('input', {
                     id: rowId,
                     type: 'time',
                     class: 'fui-input',
-                    value: row[colId].format('H:i') ?? '',
+                    value: rowValue,
                     name: field.getHtmlName("#{index}[#{colId}][time]"),
                 }) }}
             {% case 'url' %}
