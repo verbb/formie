@@ -307,6 +307,22 @@ class SentNotification extends Element
     {
         return true;
     }
+    
+    /**
+     * @inheritdoc
+     */
+    public function canSave(User $user): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function canDelete(User $user): bool
+    {
+        return true;
+    }
 
     /**
      * @inheritDoc
