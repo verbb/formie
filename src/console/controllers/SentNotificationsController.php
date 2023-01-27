@@ -29,9 +29,14 @@ class SentNotificationsController extends Controller
     public ?string $formHandle = null;
 
     /**
-     * @var string|null The form handle(s) to delete sent notifications for. Can be set to multiple comma-separated handles.
+     * @var bool Whether to target all forms, instead of using `formId` or `formHandle` values.
      */
-    public ?string $formHandle = null;
+    public bool $all = false;
+
+    /**
+     * @var bool Whether to hard-delete the sent notification elements.
+     */
+    public bool $hardDelete = false;
 
 
     // Public Methods
@@ -47,6 +52,8 @@ class SentNotificationsController extends Controller
         if ($actionID === 'delete') {
             $options[] = 'formId';
             $options[] = 'formHandle';
+            $options[] = 'all';
+            $options[] = 'hardDelete';
         }
 
         return $options;
@@ -72,7 +79,11 @@ class SentNotificationsController extends Controller
             $formIds = Form::find()->handle($formHandle)->ids();
         }
 
-        if (!$this->formId && !$this->formHandle) {
+        if ($this->all) {
+            $formIds = Form::find()->ids();
+        }
+
+        if (!$this->formId && !$this->formHandle && !$this->all) {
             $this->stderr('You must provide either a --form-id or --form-handle option.' . PHP_EOL, Console::FG_RED);
 
             return ExitCode::UNSPECIFIED_ERROR;
@@ -101,7 +112,7 @@ class SentNotificationsController extends Controller
             $elementsService = Craft::$app->getElements();
 
             foreach (Db::each($query) as $element) {
-                $elementsService->deleteElement($element);
+                $elementsService->deleteElement($element, $this->hardDelete);
 
                 $this->stdout("Deleted sent notification #{$element->id} ..." . PHP_EOL, Console::FG_GREEN);
             }
