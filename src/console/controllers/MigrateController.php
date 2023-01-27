@@ -21,7 +21,7 @@ class MigrateController extends Controller
     /**
      * @var string|null The form handle(s) to migrate. Can be set to multiple comma-separated handles.
      */
-    public $formHandle;
+    public ?string $formHandle = null;
 
 
     // Public Methods

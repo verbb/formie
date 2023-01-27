@@ -20,9 +20,9 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     /**
-     * @var int|null The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
+     * @var string|null The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
      */
-    public ?int $formId = null;
+    public ?string $formId = null;
 
     /**
      * @var string|null The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
@@ -40,9 +40,9 @@ class SubmissionsController extends Controller
     public bool $incompleteOnly = false;
 
     /**
-     * @var int|null The submission ID(s) to use data for. Can be set to multiple comma-separated IDs.
+     * @var string|null The submission ID(s) to use data for. Can be set to multiple comma-separated IDs.
      */
-    public ?int $submissionId = null;
+    public ?string $submissionId = null;
 
     /**
      * @var string|null The handle of the integration to trigger.

@@ -18,14 +18,14 @@ class FormsController extends Controller
     // =========================================================================
 
     /**
-     * @var int|null The form ID(s) to delete. Can be set to multiple comma-separated IDs.
+     * @var string|null The form ID(s) to delete. Can be set to multiple comma-separated IDs.
      */
-    public $formId;
+    public ?string $formId = null;
 
     /**
      * @var string|null The form handle(s) to delete. Can be set to multiple comma-separated handles.
      */
-    public $formHandle;
+    public ?string $formHandle = null;
 
 
     // Public Methods
