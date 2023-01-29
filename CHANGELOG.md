@@ -1,5 +1,54 @@
 # Changelog
 
+## 2.0.21 - 2023-01-30
+
+### Added
+- Added Solspace Calendar Event element integration.
+- Added `enableLargeFieldStorage` plugin setting to allow creating large forms exceeding 100+ fields.
+- Added support for `postal_town` for Google Places address provider, as a fallback when populating City values (useful for UK).
+- Added anonymous support to `save-submission` to edit already existing submissions.
+- Added `craft.formie.renderCss` and `craft.formie.renderJs` to aid with SPA rendering
+- Added spam reason notes to failed Honeypot captchas.
+- Added `—all` and `—hard-delete` options to `formie/sent-notifications/delete` console commands
+
+### Changed
+- Email content referencing single field values now escapes HTML content for all fields.
+- Increased the height of the `textarea` element for Multi-Line Text fields in the control panel when editing Submissions.
+- Integration settings for forms now only return settings for ReCAPTCHA and hCaptcha captchas when querying via GraphQL.
+
+### Fixed
+- Fixed recommended fields being marked as required for Microsoft Dynamics CRM integration.
+- Fixed an error with dashboard widget for Postgres.
+- Fixed a Twig injection vulnerability for Hidden fields.
+- Fixed an issue where `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE` wasn’t being fired in a queue job.
+- Fixed pre-populated date fields not submitting their values correctly with the date picker enabled.
+- Fixed calendar-based Date fields showing duplicate asterisks when a required field.
+- Fixed date parsing for integrations for some formats.
+- Fixed a browser formatting warning for Date fields in some instances.
+- Fixed text limits not working correctly for Rich Text-enabled Multi-Line fields.
+- Fixed an issue where form validation could be skipped in some cases.
+- Fixed Single-Line and Multi-Line Text fields not respecting Content Encryption settings.
+- Fixed an error with reCAPTCHA settings using GraphQL.
+- Fixed `setFieldSettings()` snapshot data persisting beyond the current submission on the front-end.
+- Fixed an issue with MySQL 8 and field handle column lengths.
+- Fixed an error with Honeypot captchas.
+- Fixed an issue with Stripe payments combined with conditions submitting multiple payments in some cases.
+- Fixed compliance for `aria-hidden` for inputs.
+- Fixed lack of error feedback when trigging an integration from a submission in the control panel.
+- Fixed lack of error-handling for Salesforce Lead integrations.
+- Fixed fields inside nested fields (Group, Repeater) not resolving to the parent form correctly.
+- Fixed an error with Calculations fields where the formula contains decimals.
+- Fixed an error when setting the “Sender Email” setting for email notifications.
+- Fixed an issue using `populateFormValues` for Repeater fields.
+- Fixed error message location for Checkboxes and Radio fields.
+- Fixed being unable to delete Sent Submissions from the element index.
+- Fixed Table field Date/Time columns not showing content correctly for saved values (timezone).
+- Fixed an error when pre-populating Radio/Checkboxes/Dropdown fields from query string values.
+- Fixed an error when marking spam form the submissions index when a submission contained a group or repeater field.
+- Fixed an error when `submitAction` was missing from submission requests.
+- Fixed a migration error when pruning synced fields, where the field handle contains underscores.
+- Fixed Page Reload forms not having the correct `redirectUrl` applied when dynamically setting with `form.setSettings()`.
+
 ## 2.0.20 - 2022-12-15
 
 ### Added
