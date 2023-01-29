@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.6.22 - 2023-01-30
+
+### Added
+- Added Solspace Calendar Event element integration.
+- Added `enableLargeFieldStorage` plugin setting to allow creating large forms exceeding 100+ fields.
+- Added support for `postal_town` for Google Places address provider, as a fallback when populating City values (useful for UK).
+
+### Changed
+- Email content referencing single field values now escapes HTML content for all fields.
+- Increased the height of the `textarea` element for Multi-Line Text fields in the control panel when editing Submissions.
+- Integration settings for forms now only return settings for ReCAPTCHA and hCaptcha captchas when querying via GraphQL.
+
+### Fixed
+- Fixed recommended fields being marked as required for Microsoft Dynamics CRM integration.
+- Fixed an error with dashboard widget for Postgres.
+- Fixed a Twig injection vulnerability for Hidden fields.
+- Fixed an issue where `Integration::EVENT_MODIFY_FIELD_MAPPING_VALUE` wasn’t being fired in a queue job.
+- Fixed pre-populated date fields not submitting their values correctly with the date picker enabled.
+- Fixed calendar-based Date fields showing duplicate asterisks when a required field.
+- Fixed date parsing for integrations for some formats.
+- Fixed a browser formatting warning for Date fields in some instances.
+- Fixed text limits not working correctly for Rich Text-enabled Multi-Line fields.
+- Fixed an issue where form validation could be skipped in some cases.
+- Fixed Single-Line and Multi-Line Text fields not respecting Content Encryption settings.
+- Fixed an error with reCAPTCHA settings using GraphQL.
+- Fixed `setFieldSettings()` snapshot data persisting beyond the current submission on the front-end.
+- Fixed an issue with MySQL 8 and field handle column lengths.
+
 ## 1.6.21 - 2022-12-15
 
 ### Changed
