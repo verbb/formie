@@ -51,7 +51,7 @@ export default {
             default: '',
         },
 
-        modelValue: {
+        value: {
             type: String,
             default: '',
         },
@@ -67,7 +67,7 @@ export default {
     },
 
     created() {
-        this.proxyValue = this.modelValue || '';
+        this.proxyValue = this.value || '';
     },
 
     methods: {
