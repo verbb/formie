@@ -150,6 +150,8 @@ class Recaptcha extends Captcha
 
         // Protect against invalid data being sent. No need to log, likely malicious
         if (!$response || !is_string($response)) {
+            $this->spamReason = 'Client-side token missing.';
+
             return false;
         }
 
@@ -177,7 +179,13 @@ class Recaptcha extends Captcha
             }
 
             if (isset($result['score'])) {
-                return ($result['score'] >= $this->minScore);
+                $scoreRating = ($result['score'] >= $this->minScore);
+
+                if (!$scoreRating) {
+                    $this->spamReason = 'Score ' . $result['score'] . ' is below threshold ' . $this->minScore . '.';
+                }
+
+                return $scoreRating;
             }
 
             return $result['tokenProperties']['valid'] ?? false;
@@ -195,11 +203,21 @@ class Recaptcha extends Captcha
         $success = $result['success'] ?? false;
 
         if ($success && isset($result['score'])) {
-            $success = (bool)($result['score'] >= $this->minScore);
+            $scoreRating = ($result['score'] >= $this->minScore);
+
+            if (!$scoreRating) {
+                $this->spamReason = 'Score ' . $result['score'] . ' is below threshold ' . $this->minScore . '.';
+            }
+
+            $success = $scoreRating;
         }
 
-        if (!$success) {
+        if (!$success && !$this->spamReason) {
             $this->spamReason = Json::encode($result);
+        }
+
+        if (!$this->spamReason) {
+            $this->spamReason = 'Captcha validation failed.';
         }
 
         return $success;
