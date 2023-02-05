@@ -85,7 +85,11 @@ class SentNotifications extends Component
         }
 
         if ($sender = $email->getSender()) {
-            $sentNotification->sender = implode(',', array_keys($sender));
+            if (is_array($sender)) {
+                $sentNotification->sender = implode(',', array_keys($sender));
+            } else {
+                $sentNotification->sender = $sender;
+            }
         }
 
         $sentNotification->htmlBody = $email->getHtmlBody();
