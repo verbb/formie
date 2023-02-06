@@ -27,6 +27,8 @@ use GraphQL\Type\Definition\Type;
 use yii\db\Schema;
 use yii\validators\EmailValidator;
 
+use LitEmoji\LitEmoji;
+
 class Table extends CraftTable implements FormFieldInterface
 {
     // Traits
