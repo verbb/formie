@@ -186,6 +186,19 @@ trait FormFieldTrait
         return $value;
     }
 
+    public function getFieldErrors(?ElementInterface $element = null): array
+    {
+        $errorKey = $this->handle;
+
+        if ($parentFied = $this->getParentField()) {
+            if ($parentFied instanceof SubfieldInterface) {
+                $errorKey = $parentFied->handle . '.' . $this->handle;
+            }
+        }
+
+        return $element ? $element->getErrors($errorKey) : [];
+    }
+
     public function getValueAsString(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueAsString($value, $element);

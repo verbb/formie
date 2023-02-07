@@ -48,12 +48,9 @@ trait SubfieldTrait
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError(
-                    $this->handle,
-                    Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp,
-                    ])
-                );
+                $element->addError($this->handle . '.' . $subField, Craft::t('formie', '"{label}" cannot be blank.', [
+                    'label' => $this->$labelProp,
+                ]));
             }
         }
     }
