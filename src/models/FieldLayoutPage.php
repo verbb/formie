@@ -217,8 +217,17 @@ class FieldLayoutPage extends CraftFieldLayoutTab
             $fieldHandles = ArrayHelper::getColumn($this->getCustomFields(), 'handle');
 
             foreach ($submission->getErrors() as $fieldHandle => $submissionError) {
-                if (in_array($fieldHandle, $fieldHandles)) {
-                    $errors[$fieldHandle] = $submissionError;
+                // Watch out for nested field error handles which are `repeater[0].field`
+                if (str_contains($fieldHandle, '.') || str_contains($fieldHandle, '[')) {
+                    // If I was better at regex, this wouldn't be so messy
+                    preg_match('/(.*?)[\.|\[]/', $fieldHandle, $handle);
+                    $handle = $handle[1] ?? null;
+                } else {
+                    $handle = $fieldHandle;
+                }
+
+                if (in_array($handle, $fieldHandles)) {
+                    $errors[$handle] = $submissionError;
                 }
             }
         }
