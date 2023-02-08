@@ -127,6 +127,15 @@ export class FormieRecaptchaV2Invisible {
     }
 
     onValidate(e) {
+        // When not using Formie's theme JS, there's nothing preventing the form from submitting (the theme does).
+        // And when the form is submitting, we can't query DOM elements, so stop early so the normal checks work.
+        if (!this.$form.form.formTheme) {
+            e.preventDefault();
+
+            // Get the submit action from the form hidden input. This is normally taken care of by the theme
+            this.form.submitAction = this.$form.querySelector('[name="submitAction"]').value || 'submit';
+        }
+
         // Don't validate if we're not submitting (going back, saving)
         // Or, if there's no captcha on this page
         if (this.form.submitAction !== 'submit' || this.$placeholder === null) {
