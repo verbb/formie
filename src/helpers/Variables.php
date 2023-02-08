@@ -143,7 +143,7 @@ class Variables
     {
         $originalValue = $value;
 
-        if (!$value) {
+        if ($value === null || $value === '') {
             return '';
         }
 
