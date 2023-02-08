@@ -572,7 +572,7 @@ public function getFrontEndJs(Form $form)
 
 ### Calculations Fields
 
-### The `beforeEvaluate` event
+#### The `beforeEvaluate` event
 The event that is triggered before evaluating the formula.
 
 ```js
@@ -589,7 +589,7 @@ $field.addEventListener('beforeEvaluate', function(e) {
 });
 ```
 
-### The `afterEvaluate` event
+#### The `afterEvaluate` event
 The event that is triggered after evaluating the formula.
 
 ```js
@@ -613,7 +613,7 @@ $field.addEventListener('afterEvaluate', function(e) {
 ### Date Fields
 When using the Date Picker option for date fields, you can access [Flatpickr](https://flatpickr.js.org/) settings, and modify them through JavaScript.
 
-### The `beforeInit` event
+#### The `beforeInit` event
 The event that is triggered before the Flatpickr date picker is initialized.
 
 ```js
@@ -634,7 +634,7 @@ $fields.forEach($field => {
 
 The above example uses the `beforeInit` event to modify the config for Flatpickr. There's event data in the event's `detail` attribute, which you can modify.
 
-### The `afterInit` event
+#### The `afterInit` event
 The event that is triggered after the Flatpickr date picker is initialized.
 
 ```js
@@ -653,7 +653,7 @@ $fields.forEach($field => {
 
 ### Phone Fields
 
-### The `init` event
+#### The `init` event
 The event that is triggered before the phone number library is initialized.
 
 ```js
@@ -673,7 +673,7 @@ $fields.forEach($field => {
 
 ### Repeater Fields
 
-### The `init` event
+#### The `init` event
 The event that is triggered before the repeater field is initialized.
 
 ```js
@@ -688,7 +688,7 @@ $fields.forEach($field => {
 });
 ```
 
-### The `append` event
+#### The `append` event
 The event that is triggered after a new row has been appended to the repeater.
 
 ```js
@@ -707,7 +707,7 @@ $fields.forEach($field => {
 
 ### Table Fields
 
-### The `init` event
+#### The `init` event
 The event that is triggered before the table field is initialized.
 
 ```js
@@ -722,7 +722,7 @@ $fields.forEach($field => {
 });
 ```
 
-### The `append` event
+#### The `append` event
 The event that is triggered after a new row has been appended to the table.
 
 ```js
@@ -742,7 +742,7 @@ $fields.forEach($field => {
 ### Tag Fields
 For Tags element fields, you can access [tagify](https://github.com/yairEO/tagify) settings, and modify them through JavaScript.
 
-### The `beforeInit` event
+#### The `beforeInit` event
 The event that is triggered before tagify is initialized.
 
 ```js
@@ -764,7 +764,7 @@ $fields.forEach($field => {
 
 The above example uses the `beforeInit` event to modify the config for tagify. There's event data in the event's `detail` attribute, which you can modify.
 
-### The `afterInit` event
+#### The `afterInit` event
 The event that is triggered after tagify is initialized.
 
 ```js
