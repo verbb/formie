@@ -781,7 +781,7 @@ class Submission extends Element
                 if ($field->visibility === 'disabled') {
                     $value = $this->getFieldValue($field->handle);
 
-                    if ($field->isEmpty($value)) {
+                    if ($field->isValueEmpty($value, $this)) {
                         $this->setFieldValue($field->handle, $field->defaultValue);
                     }
                 }
