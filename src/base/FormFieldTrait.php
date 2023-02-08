@@ -188,13 +188,22 @@ trait FormFieldTrait
 
     public function getFieldErrors(?ElementInterface $element = null): array
     {
-        $errorKey = $this->handle;
+        $errorKeys = [];
 
-        if ($parentFied = $this->getParentField()) {
-            if ($parentFied instanceof SubfieldInterface) {
-                $errorKey = $parentFied->handle . '.' . $this->handle;
+        $field = $this;
+
+        while ($field) {
+            // Because the element can be either a submission or a nested row, we don't
+            // need to include the parent nested row handle in the error key.
+            if (!($field instanceof NestedFieldInterface)) {
+                // Be sure to prepend parent fields, as we're going deepest outward
+                array_unshift($errorKeys, $field->handle);
             }
+
+            $field = $field->getParentField();
         }
+
+        $errorKey = implode('.', $errorKeys);
 
         return $element ? $element->getErrors($errorKey) : [];
     }

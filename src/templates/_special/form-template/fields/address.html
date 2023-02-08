@@ -9,7 +9,7 @@
                 {% endif %}
 
                 {{ craft.formie.renderField(form, subField, {
-                    element: element ?? null,
+                    element: submission ?? element ?? null,
                     value: value[subField.handle] ?? null,
                     labelExtraContent: labelExtraContent,
                 }) }}
