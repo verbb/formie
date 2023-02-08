@@ -1,6 +1,6 @@
 <template>
     <multiselect
-        v-model="context._value"
+        v-model="proxyValue"
         v-bind="context.attrs"
         :options="options"
         :multiple="true"
@@ -31,15 +31,27 @@ export default {
         },
     },
 
+    data() {
+        return {
+            proxyValue: [],
+        };
+    },
+
     computed: {
         options() {
             return get(this.context.attrs, 'options', {});
         },
     },
 
+    watch: {
+        proxyValue(newValue) {
+            this.context.node.input(newValue);
+        },
+    },
+
     created() {
-        if (!Array.isArray(this.context._value)) {
-            this.context.node.input([]);
+        if (Array.isArray(this.context._value)) {
+            this.proxyValue = this.context._value;
         }
     },
 };
