@@ -44,7 +44,7 @@
 - Fixed being unable to delete Sent Submissions from the element index.
 - Fixed Table field Date/Time columns not showing content correctly for saved values (timezone).
 - Fixed an error when pre-populating Radio/Checkboxes/Dropdown fields from query string values.
-- Fixed an error when marking spam form the submissions index when a submission contained a group or repeater field.
+- Fixed an error when marking spam from the submissions index when a submission contained a group or repeater field.
 - Fixed an error when `submitAction` was missing from submission requests.
 - Fixed a migration error when pruning synced fields, where the field handle contains underscores.
 - Fixed Page Reload forms not having the correct `redirectUrl` applied when dynamically setting with `form.setSettings()`.
