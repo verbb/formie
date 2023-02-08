@@ -568,11 +568,27 @@ export class FormieFormTheme {
         // Show server-side errors for each field
         Object.keys(errors).forEach((handle, index) => {
             const [error] = errors[handle];
-            let $field = this.$form.querySelector(`[name="fields[${handle}]"]`);
+            let selector = handle.split('.');
+            selector = selector.join('][');
+
+            let $field = this.$form.querySelector(`[name="fields[${selector}]"]`);
 
             // Check for multiple fields
             if (!$field) {
-                $field = this.$form.querySelector(`[name="fields[${handle}][]"]`);
+                $field = this.$form.querySelector(`[name="fields[${selector}][]"]`);
+            }
+
+            // Handle Repeater/Groups - a little more complicated to translate `group[0].field.handle`
+            if (!$field && handle.includes('[')) {
+                const blockIndex = handle.match(/\[(.*?)\]/)[1] || null;
+                let regexString = `fields[${handle.replace(/\./g, '][').replace(']]', ']').replace(/\[.*?\]/, '][rows][.*][fields]')}]`;
+                regexString = regexString.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
+
+                const $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
+
+                if ($targets.length && $targets[blockIndex]) {
+                    $field = $targets[blockIndex];
+                }
             }
 
             if ($field) {
@@ -839,6 +855,17 @@ export class FormieFormTheme {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push(payload);
         }
+    }
 
+    querySelectorAllRegex(regex, attributeToSearch) {
+        const output = [];
+
+        for (const element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
+            if (regex.test(element.getAttribute(attributeToSearch))) {
+                output.push(element);
+            }
+        }
+
+        return output;
     }
 }
