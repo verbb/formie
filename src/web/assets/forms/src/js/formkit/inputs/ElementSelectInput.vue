@@ -1,6 +1,6 @@
 <template>
     <div :id="id" class="elementselect">
-        <div class="elements" v-html="defaultValueHtml"></div>
+        <div class="elements" v-html="elementsHtml"></div>
 
         <div class="flex">
             <button type="button" class="btn add icon dashed">{{ selectionLabel }}</button>
@@ -61,9 +61,9 @@ export default {
             return 'dropdown';
         },
 
-        defaultValueHtml() {
+        elementsHtml() {
             if (this.editingField) {
-                return this.editingField.field.defaultValueHtml;
+                return this.editingField.field[`${this.context.id}Html`];
             }
 
             if (this.editingNotification) {
