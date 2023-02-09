@@ -8,7 +8,7 @@
             :value="context._value"
             @input="selectInput"
         >
-            <option value disabled hidden :selected="!context._value">{{ t('formie', 'Select an option') }}</option>
+            <option value :selected="!context._value">{{ t('formie', 'Select an option') }}</option>
 
             <option v-for="(option, j) in getFieldOptions()" :key="j" :value="option.value" :selected="isSelected(context.node, option.value)">
                 {{ option.label }}
