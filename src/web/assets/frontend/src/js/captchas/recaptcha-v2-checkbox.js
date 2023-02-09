@@ -174,7 +174,8 @@ export class FormieRecaptchaV2Checkbox {
         }
 
         const $error = document.createElement('div');
-        $error.className = 'fui-error-message';
+        $error.className = this.form.getClasses('fieldError');
+        $error.setAttribute('data-recaptcha-error', '');
         $error.textContent = t('This field is required.');
 
         this.$placeholder.appendChild($error);
@@ -186,7 +187,7 @@ export class FormieRecaptchaV2Checkbox {
             return;
         }
 
-        const $error = this.$placeholder.querySelector(`.${this.errorMessageClass}`);
+        const $error = this.$placeholder.querySelector('[data-recaptcha-error]');
 
         if ($error) {
             $error.remove();

@@ -404,7 +404,7 @@ export class FormieFormTheme {
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = `${this.alertClass}`;
+            $alert.className = this.alertClass;
             $alert.setAttribute('role', 'alert');
             $alert.innerHTML = text;
 
