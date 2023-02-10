@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\elements\actions;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Json;
 
 class SetSubmissionSpam extends ElementAction
 {
@@ -49,6 +51,8 @@ class SetSubmissionSpam extends ElementAction
             $element->isSpam = $this->spam === 'markSpam';
 
             if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set spam status: {error}', ['error' => Json::encode($element->getErrors())]);
+
                 // Validation error
                 $failCount++;
             }

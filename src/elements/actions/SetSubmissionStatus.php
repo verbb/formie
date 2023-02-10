@@ -9,6 +9,7 @@ use craft\base\ElementAction;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 
 class SetSubmissionStatus extends SetStatus
 {
@@ -57,6 +58,8 @@ class SetSubmissionStatus extends SetStatus
             $element->setStatus($status);
 
             if ($elementsService->saveElement($element) === false) {
+                Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+
                 // Validation error
                 $failCount++;
             }
