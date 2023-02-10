@@ -551,7 +551,7 @@ class Copper extends Crm
 
                 $leadId = $response['id'] ?? '';
 
-                if (!$peopleId) {
+                if (!$leadId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “leadId” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($leadPayload),
