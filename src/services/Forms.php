@@ -778,7 +778,7 @@ class Forms extends Component
             if ($consoleInstance) {
                 $fieldColumns = [];
 
-                foreach ($form->getFields() as $field) {
+                foreach ($form->getCustomFields() as $field) {
                     if ($field::hasContentColumn()) {
                         $fieldColumns[] = ElementHelper::fieldColumnFromField($field);
                     }
