@@ -10,16 +10,4 @@ class DefaultField extends FeedMeDefault
 
     use BaseFieldTrait;
 
-
-    // Public Methods
-    // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function parseField()
-    {
-        $this->beforeParseField();
-    }
-
 }
