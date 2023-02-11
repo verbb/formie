@@ -583,6 +583,13 @@ class Emails extends Component
                 continue;
             }
 
+            // Check if the asset it over 15mb (a reasonable threshold)
+            if (($asset->size / 1000000) > 15) {
+                Formie::log('Not attaching “' . $asset->filename . '” due to large file size: ' . $asset->size . '.');
+
+                continue;
+            }
+
             if ($path) {
                 $message->attach($path, ['fileName' => $asset->filename]);
             }
