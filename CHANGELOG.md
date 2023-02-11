@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.23 - 2023-02-11
+
+### Fixed
+- Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
+
 ## 1.6.22 - 2023-01-30
 
 ### Added
