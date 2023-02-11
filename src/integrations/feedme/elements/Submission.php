@@ -67,12 +67,7 @@ class Submission extends Element
     {
         $this->element = new SubmissionElement();
         $this->element->formId = $settings['elementGroup'][SubmissionElement::class];
-
-        $siteId = Hash::get($settings, 'siteId');
-
-        if ($siteId) {
-            $this->element->siteId = $siteId;
-        }
+        $this->element->siteId = Hash::get($settings, 'siteId') ?: Craft::$app->getSites()->getPrimarySite()->id;
 
         return $this->element;
     }
