@@ -105,6 +105,38 @@ class DuplicateForm extends ElementAction
 
                 $pagesData = $element->getFormConfig()['pages'];
 
+                // Reset page data IDs
+                foreach ($pagesData as $pageKey => $page) {
+                    $pagesData[$pageKey]['id'] = null;
+
+                    $rows = $page['rows'] ?? [];
+
+                    foreach ($rows as $rowKey => $row) {
+                        $pagesData[$pageKey]['rows'][$rowKey]['id'] = null;
+
+                        $fields = $row['fields'] ?? [];
+
+                        foreach ($fields as $fieldKey => $field) {
+                            // Handle Group/Repeater to do the same, but slightly different
+                            if (isset($field['settings']['contentTable'])) {
+                                $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['settings']['contentTable'] = null;
+                            }
+
+                            $nestedRows = $field['rows'] ?? [];
+
+                            foreach ($nestedRows as $nestedRowKey => $nestedRow) {
+                                $nestedFields = $nestedRow['fields'] ?? [];
+
+                                foreach ($nestedFields as $nestedFieldKey => $nestedField) {
+                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['id'] = null;
+                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['columnSuffix'] = null;
+                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['settings']['formId'] = null;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pagesData, Form::class, true);
                 $fieldLayout->id = null;
 

@@ -499,6 +499,8 @@ class Forms extends Component
                     // Take care of new fields, particularly an issue in Postgres, setting the id to `new-4332`.
                     if ($duplicate || str_starts_with($fieldId, 'new')) {
                         $fieldId = null;
+                        $fieldData['columnSuffix'] = null;
+                        $settings['formId'] = null;
                     }
 
                     $fieldConfig = [

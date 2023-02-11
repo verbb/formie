@@ -205,6 +205,7 @@ class ImportExportHelper
                             $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = $existingField->id;
 
                         }
+                        
                         // Handle Group/Repeater to do the same, but slightly different
                         $nestedRows = $field['rows'] ?? [];
 
