@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.0.22 - 2023-02-11
+
+### Added
+- Added logging to spam/status element actions when failed.
+- Added more debugging to reCaptcha integration to provide a reason for failure.
+- Allow field settings component element select to be more than just `defaultValue`.
+
+### Fixed
+- Fixed some field settings (`columnSuffix`, `contentTable`) not being handled properly when duplicating a form.
+- Fixed an error with lead objects for Copper CRM integration.
+- Fixed an error running the `prune-content-table-fields` console command.
+- Fixed being unable to remove “Match Field” setting for some fields.
+- Fixed Recaptcha v2 (checkbox) not using Theme Config classes for its error message.
+- Fixed an issue with HubSpot mapping to a Form, when using checkboxes and other array-like fields.
+- Fixed Phone field “Allowed Countries” values not persisting.
+- Fixed Number fields not allowing `0` as a default value.
+- Fixed Recaptcha not working with Theme JS disabled.
+- Fixed Group/Repeater server-side errors not showing for Ajax-based forms.
+- Fixed an error with disabled fields and validation checks for `isEmpty`.
+- Fixed not showing server-side errors inside Group/Repeater fields.
+- Fixed tabs not showing errors for server-side validation for Group/Repeater fields.
+- Fixed server-side errors not being set correctly for sub-fields.
+- Fixed an error with the Table field and `LitEmoji`.
+- Fixed an error with Sent Notifications, when setting the `sender`.
+- Fixed “Opt-in Field” setting for integrations not persisting correctly.
+- Fixed a type error for `PdfRenderOptionsEvent`.
+- Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
+
 ## 2.0.21 - 2023-01-30
 
 ### Added
