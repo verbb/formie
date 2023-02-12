@@ -271,13 +271,8 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.isSpam', $this->isSpam));
         }
 
-        // As the title is still stored in the main content table we need to manually include it
-        if ($this->title !== null && $this->title !== '') {
-            $this->subQuery
-                ->innerJoin('{{%content}} baseContent', ['and', '[[baseContent.elementId]] = [[elements.id]]'])
-                ->addSelect(['contentId' => 'baseContent.id']);
-
-            $this->subQuery->andWhere(Db::parseParam('baseContent.title', $this->title, '=', true));
+        if ($this->title) {
+            $this->subQuery->andWhere(Db::parseParam('formie_submissions.title', $this->title));
         }
 
         return parent::beforePrepare();
