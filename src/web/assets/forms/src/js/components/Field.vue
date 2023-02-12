@@ -112,7 +112,6 @@
 </template>
 
 <script>
-import Markdown from 'vue3-markdown-it';
 import { Drag, Drop } from '@vendor/vue-drag-drop';
 import { cloneDeep } from 'lodash-es';
 
@@ -124,6 +123,7 @@ import { canDrag } from '@utils/drag-drop';
 import FieldEditModal from '@components/FieldEditModal.vue';
 import FieldPreview from '@components/FieldPreview.vue';
 import FieldDropdown from '@components/FieldDropdown.vue';
+import Markdown from '@components/Markdown.vue';
 
 export default {
     name: 'Field',

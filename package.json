@@ -70,6 +70,7 @@
         "install": "^0.13.0",
         "intl-tel-input": "^17.0.16",
         "locutus": "^2.0.16",
+        "markdown-it": "^13.0.1",
         "md5-hex": "^4.0.0",
         "mobile-drag-drop": "^3.0.0-beta.0",
         "npm": "^8.13.2",
@@ -84,7 +85,6 @@
         "vue-final-modal": "^3.4.3",
         "vue-mitt": "^0.0.1",
         "vue-multiselect": "^3.0.0-alpha.2",
-        "vue3-markdown-it": "^1.0.10",
         "vuedraggable": "^4.1.0"
     }
 }
