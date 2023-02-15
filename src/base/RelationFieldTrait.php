@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\Element as ElementIntegration;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\fields\formfields\Dropdown;
 use verbb\formie\fields\formfields\Checkboxes;
@@ -378,9 +379,16 @@ trait RelationFieldTrait
             return $this->defineValueAsString($value, $element);
         }
 
-        // When an array, assume a collection of IDs
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return $value->ids();
+            // When an array, assume a collection of titles for most integrations, except element integrations
+            if ($integration instanceof ElementIntegration) {
+                return $value->ids();
+            }
+
+            // All other instances should use the title (or title-value)
+            return array_map(function($item) {
+                return $this->_getElementLabel($item);
+            }, $value->all());
         }
 
         // When a number, assume a single ID
