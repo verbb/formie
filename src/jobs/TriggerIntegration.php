@@ -26,14 +26,6 @@ class TriggerIntegration extends BaseJob
     /**
      * @inheritDoc
      */
-    public function getDescription(): string
-    {
-        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function execute($queue)
     {
         $this->setProgress($queue, 0);
@@ -70,5 +62,16 @@ class TriggerIntegration extends BaseJob
         }
 
         $this->setProgress($queue, 1);
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defaultDescription(): string
+    {
+        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
     }
 }
