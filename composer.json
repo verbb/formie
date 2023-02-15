@@ -34,7 +34,7 @@
         "giggsey/libphonenumber-for-php": "^8.12",
         "guzzlehttp/oauth-subscriber": "^0.4.0 || ^0.5.0 || ^0.6.0",
         "html2text/html2text": "^4.3",
-        "league/html-to-markdown": "^4.10",
+        "league/html-to-markdown": "^4.10 || ^5.0",
         "league/oauth1-client": "^1.9",
         "league/oauth2-client": "^2.6.0",
         "league/oauth2-google": "^3.0 || ^4.0",
