@@ -1297,9 +1297,28 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
+            $format = 'c';
+
+            // Check if we're mapping sub-fields
+            if ($fieldKey === 'year') {
+                $format = 'Y';
+            } else if ($fieldKey === 'month') {
+                $format = 'm';
+            } else if ($fieldKey === 'day') {
+                $format = 'd';
+            } else if ($fieldKey === 'hour') {
+                $format = 'H';
+            } else if ($fieldKey === 'minute') {
+                $format = 'i';
+            } else if ($fieldKey === 'second') {
+                $format = 's';
+            } else if ($fieldKey === 'ampm') {
+                $format = 'A';
+            }
+
             if (!$this->getIsTime()) {
                 if ($value instanceof DateTime) {
-                    return $value->format('c');
+                    return $value->format($format);
                 }
 
                 return $value;
