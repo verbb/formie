@@ -138,6 +138,16 @@ export class FormieRepeater {
 
             $row.parentNode.removeChild($row);
 
+            const event = new CustomEvent('remove', {
+                bubbles: true,
+                detail: {
+                    repeater: this,
+                    row: $row,
+                    form: this.$form,
+                },
+            });
+            this.$field.dispatchEvent(event);
+
             this.updateButton();
         }
     }

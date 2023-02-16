@@ -698,6 +698,24 @@ let $fields = document.querySelectorAll('.fui-type-repeater');
 // For each field, bind on the `append` event
 $fields.forEach($field => {
     $field.addEventListener('append', (e) => {
+        let repeaterField = e.detail.repeater;
+        let $row = e.detail.row;
+        let $form = e.detail.form;
+    });
+});
+```
+
+#### The `remove` event
+The event that is triggered after a row has been removed from the repeater.
+
+```js
+// Fetch all Repeater fields
+let $fields = document.querySelectorAll('.fui-type-repeater');
+
+// For each field, bind on the `append` event
+$fields.forEach($field => {
+    $field.addEventListener('remove', (e) => {
+        let repeaterField = e.detail.repeater;
         let $row = e.detail.row;
         let $form = e.detail.form;
     });
@@ -732,6 +750,24 @@ let $fields = document.querySelectorAll('.fui-type-table');
 // For each field, bind on the `append` event
 $fields.forEach($field => {
     $field.addEventListener('append', (e) => {
+        let tableField = e.detail.table;
+        let $row = e.detail.row;
+        let $form = e.detail.form;
+    });
+});
+```
+
+#### The `remove` event
+The event that is triggered after a row has been removed from the table.
+
+```js
+// Fetch all Table fields
+let $fields = document.querySelectorAll('.fui-type-table');
+
+// For each field, bind on the `append` event
+$fields.forEach($field => {
+    $field.addEventListener('remove', (e) => {
+        let tableField = e.detail.table;
         let $row = e.detail.row;
         let $form = e.detail.form;
     });

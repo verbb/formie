@@ -97,6 +97,7 @@ export class FormieTable {
                 const event = new CustomEvent('append', {
                     bubbles: true,
                     detail: {
+                        table: this,
                         row: $newRow,
                         form: this.$form,
                     },
@@ -120,6 +121,16 @@ export class FormieTable {
             }
 
             $row.parentNode.removeChild($row);
+
+            const event = new CustomEvent('remove', {
+                bubbles: true,
+                detail: {
+                    table: this,
+                    row: $row,
+                    form: this.$form,
+                },
+            });
+            this.$field.dispatchEvent(event);
 
             this.updateButton();
         }
