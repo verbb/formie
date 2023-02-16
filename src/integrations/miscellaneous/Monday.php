@@ -4,6 +4,8 @@ namespace verbb\formie\integrations\miscellaneous;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\formfields\Address;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -12,6 +14,8 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+
+use yii\base\Event;
 
 use GuzzleHttp\Client;
 
@@ -41,6 +45,20 @@ class Monday extends Miscellaneous
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // Monday requires the full country name, not the abbreviation for Address - Country fields
+            if ($event->field instanceof Address) {
+                $country = ArrayHelper::firstWhere($event->field->getCountryOptions(), 'value', $event->value);
+
+                $event->value = $country['label'] ?? null;
+            }
+        });
+    }
 
     public function getDescription(): string
     {
