@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -11,6 +13,7 @@ use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
+use yii\base\Event;
 use yii\helpers\Markdown;
 
 abstract class Element extends Integration
@@ -42,6 +45,18 @@ abstract class Element extends Integration
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // For rich-text enabled fields, retain the HTML (safely)
+            if ($event->field instanceof MultiLineText) {
+                $event->value = StringHelper::htmlDecode($event->value);
+            }
+        });
+    }
 
     public function getIconUrl(): string
     {
