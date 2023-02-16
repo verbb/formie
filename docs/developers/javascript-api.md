@@ -618,7 +618,7 @@ The event that is triggered before the Flatpickr date picker is initialized.
 
 ```js
 // Fetch all Date fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-date-time input');
+let $fields = document.querySelectorAll('[data-field-type="date-time"] input');
 
 // For each field, bind on the `beforeInit` event
 $fields.forEach($field => {
@@ -639,7 +639,7 @@ The event that is triggered after the Flatpickr date picker is initialized.
 
 ```js
 // Fetch all Date fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-date-time input');
+let $fields = document.querySelectorAll('[data-field-type="date-time"] input');
 
 // For each field, bind on the `afterInit` event
 $fields.forEach($field => {
@@ -658,7 +658,7 @@ The event that is triggered before the phone number library is initialized.
 
 ```js
 // Fetch all Phone fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-phone input');
+let $fields = document.querySelectorAll('[data-field-type="phone"] input');
 
 // For each field, bind on the `init` event
 $fields.forEach($field => {
@@ -678,7 +678,7 @@ The event that is triggered before the repeater field is initialized.
 
 ```js
 // Fetch all Repeater fields
-let $fields = document.querySelectorAll('.fui-type-repeater');
+let $fields = document.querySelectorAll('[data-field-type="repeater"]');
 
 // For each field, bind on the `init` event
 $fields.forEach($field => {
@@ -693,7 +693,7 @@ The event that is triggered after a new row has been appended to the repeater.
 
 ```js
 // Fetch all Repeater fields
-let $fields = document.querySelectorAll('.fui-type-repeater');
+let $fields = document.querySelectorAll('[data-field-type="repeater"]');
 
 // For each field, bind on the `append` event
 $fields.forEach($field => {
@@ -710,7 +710,7 @@ The event that is triggered after a row has been removed from the repeater.
 
 ```js
 // Fetch all Repeater fields
-let $fields = document.querySelectorAll('.fui-type-repeater');
+let $fields = document.querySelectorAll('[data-field-type="repeater"]');
 
 // For each field, bind on the `append` event
 $fields.forEach($field => {
@@ -730,7 +730,7 @@ The event that is triggered before the table field is initialized.
 
 ```js
 // Fetch all Table fields
-let $fields = document.querySelectorAll('.fui-type-table');
+let $fields = document.querySelectorAll('[data-field-type="table"]');
 
 // For each field, bind on the `init` event
 $fields.forEach($field => {
@@ -745,7 +745,7 @@ The event that is triggered after a new row has been appended to the table.
 
 ```js
 // Fetch all Table fields
-let $fields = document.querySelectorAll('.fui-type-table');
+let $fields = document.querySelectorAll('[data-field-type="table"]');
 
 // For each field, bind on the `append` event
 $fields.forEach($field => {
@@ -762,7 +762,7 @@ The event that is triggered after a row has been removed from the table.
 
 ```js
 // Fetch all Table fields
-let $fields = document.querySelectorAll('.fui-type-table');
+let $fields = document.querySelectorAll('[data-field-type="table"]');
 
 // For each field, bind on the `append` event
 $fields.forEach($field => {
@@ -783,7 +783,7 @@ The event that is triggered before tagify is initialized.
 
 ```js
 // Fetch all Tags fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-tags input');
+let $fields = document.querySelectorAll('[data-field-type="tags"] input');
 
 // For each field, bind on the `beforeInit` event
 $fields.forEach($field => {
@@ -805,7 +805,7 @@ The event that is triggered after tagify is initialized.
 
 ```js
 // Fetch all Tags fields - specifically the input. Events are bound on the input element
-let $fields = document.querySelectorAll('.fui-type-tags input');
+let $fields = document.querySelectorAll('[data-field-type="tags"] input');
 
 // For each field, bind on the `afterInit` event
 $fields.forEach($field => {
