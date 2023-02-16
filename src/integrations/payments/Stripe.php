@@ -363,24 +363,31 @@ class Stripe extends Payment
         $currency = null;
 
         try {
-            // Are we come back from a 3DS verification? Update the payment, skip everything else (already done)
+            // Have we come back from a 3DS verification? Update the payment, skip everything else (already done)
             if ($paymentIntentId) {
                 $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
 
                 if ($paymentIntent) {
-                    $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id);
+                    // Has the user confirmed the 3DS check?
+                    if ($paymentIntent->status === PaymentIntent::STATUS_REQUIRES_CONFIRMATION) {
+                        $paymentIntent->confirm();
 
-                    if ($payment) {
-                        $payment->status = PaymentModel::STATUS_SUCCESS;
-                        $payment->reference = $paymentIntent->id;
-                        $payment->response = $paymentIntent->toArray();
+                        $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id);
 
-                        Formie::$plugin->getPayments()->savePayment($payment);
+                        if ($payment) {
+                            $payment->status = PaymentModel::STATUS_SUCCESS;
+                            $payment->reference = $paymentIntent->id;
+                            $payment->response = $paymentIntent->toArray();
+
+                            Formie::$plugin->getPayments()->savePayment($payment);
+                        } else {
+                            throw new Exception('Unable to find payment by "' . $paymentIntent->id . '".');
+                        }
                     } else {
-                        Integration::error($this, 'Unable to find payment by "' . $paymentIntent->id . '".');
+                        throw new Exception('Unable to confirm payment intent "' . $paymentIntent->status . '".');
                     }
                 } else {
-                    Integration::error($this, 'Unable to find payment intent by "' . $paymentIntentId . '".');
+                    throw new Exception('Unable to find payment intent by "' . $paymentIntentId . '".');
                 }
 
                 return true;
