@@ -335,12 +335,17 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError(
-                    $this->handle,
-                    Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->$labelProp,
-                    ])
-                );
+                $element->addError($this->handle, Craft::t('formie', '"{label}" cannot be blank.', [
+                    'label' => $this->$labelProp,
+                ]));
+            }
+
+            // Validate the postcode separately
+            if ($subField === 'zip' && strlen($fieldValue) > 10) {
+                $element->addError($this->handle, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+                    'label' => $this->$labelProp,
+                    'max' => 10,
+                ]));
             }
         }
     }
