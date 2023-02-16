@@ -294,7 +294,7 @@ class Submissions extends Component
             if ($field instanceof formfields\Payment) {
                 // No need to proceed further if field is conditionally hidden
                 if ($field->isConditionallyHidden($submission)) {
-                    return true;
+                    continue;
                 }
                 
                 if ($paymentIntegration = $field->getPaymentIntegration()) {
