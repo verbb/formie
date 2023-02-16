@@ -90,6 +90,7 @@ class Entry extends Element
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
+                        'sourceType' => get_class($field),
                         'required' => (bool)$field->required,
                     ]);
                 }
@@ -194,6 +195,7 @@ class Entry extends Element
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
+                        'sourceType' => get_class($field),
                     ]);
                 }
             }
