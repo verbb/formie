@@ -28,25 +28,6 @@ class Pipedrive extends Crm
     /**
      * @inheritDoc
      */
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Special handling for phone fields which need to be supplied as an array, but for country dropdown enabled
-            // fields, this will produce an array, but with extra info. Just simplify the value.
-            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && $event->field instanceof Phone) {
-                // Skip when the field is a plain phone number field, or mapping the "number" directly
-                if (is_array($event->value) && isset($event->value['number'])) {
-                    $event->value = [$event->value['number']];
-                }
-            }
-        });
-    }
-
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Pipedrive');
@@ -71,6 +52,22 @@ class Pipedrive extends Crm
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // Special handling for phone fields which need to be supplied as an array, but for country dropdown enabled
+            // fields, this will produce an array, but with extra info. Just simplify the value.
+            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && $event->field instanceof Phone) {
+                // Skip when the field is a plain phone number field, or mapping the "number" directly
+                if (is_array($event->value) && isset($event->value['number'])) {
+                    $event->value = [$event->value['number']];
+                }
+            }
+        });
+    }
 
     public function getDescription(): string
     {
