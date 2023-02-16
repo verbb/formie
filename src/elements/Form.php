@@ -1993,7 +1993,7 @@ class Form extends Element
 
     public function isBeforeSchedule(): bool
     {
-        if ($this->settings->scheduleForm) {
+        if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
         
@@ -2002,7 +2002,7 @@ class Form extends Element
 
     public function isAfterSchedule(): bool
     {
-        if ($this->settings->scheduleForm) {
+        if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
         
