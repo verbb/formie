@@ -16,6 +16,9 @@ use craft\helpers\UrlHelper;
 use yii\base\Event;
 use yii\helpers\Markdown;
 
+use DateTime;
+use DateTimeZone;
+
 abstract class Element extends Integration
 {
     // Static Methods
@@ -54,6 +57,15 @@ abstract class Element extends Integration
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof MultiLineText) {
                 $event->value = StringHelper::htmlDecode($event->value);
+            }
+
+            // For Date fields as a destination, convert to UTC from system time
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+                if ($event->value instanceof DateTime) {
+                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                    $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+                }
             }
         });
     }
