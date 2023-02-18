@@ -1765,6 +1765,66 @@ Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTM
 });
 ```
 
+## Microsoft Dynamics 365 Events
+
+### The `modifyRequiredLevels` event
+The event that is triggered to allow modification of the fields that are marked as required during field mapping in the model.
+
+Microsoft Dynamics 365 has [four AttributeRequiredLevel values](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/reference/attributerequiredlevel). By default `SystemRequired` and `ApplicationRequired` fields will be marked as mandatory in the field mapping model. You can override this, by passing a specific array of values.
+
+You should always provide at minimum `SystemRequired` fields to avoid API errors. `ApplicationRequired` values can technically be bypassed through the API, but will be defined as Business Rules within Microsoft Dynamics 365. You can also do the reverse and also force `Recommended` values, however this will usually require a lot of unnecessary fields to be mapped.
+
+```php
+use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
+use verbb\formie\integrations\crm\MicrosoftDynamics365;
+use yii\base\Event;
+
+Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_REQUIRED_LEVELS, function(MicrosoftDynamics365RequiredLevelsEvent $event) {
+    // Set required level to SystemRequired only
+    $event->requiredLevels = ['SystemRequired'];
+});
+```
+
+### The `modifyTargetSchemas` event
+The event that is triggered to allow modification of the target schemas when populating lookup/relational fields.
+
+Formie populates lookup/relational field values of the common standard entities, but this event gives you a chance to modify the standard entities along with populating any custom entities in the mapping.
+
+Any modifications made to the standard entities such as `systemuser` or `campaign` will be merged and overwritten with the values from the event.
+
+The following additional parameters are available for each entity:
+
+* `limit` - Set the amount of values to return (defaults to 100 if not specifically set)
+* `filter` - Specify a filter to modify the returned values
+* `orderby` - Order the returned values by a specific criteria e.g. `name asc`
+
+When using the `limit` option. Be mindful of the performance impact when refreshing the integration.
+
+```php
+use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
+use verbb\formie\integrations\crm\MicrosoftDynamics365;
+use yii\base\Event;
+
+Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_TARGET_SCHEMAS, function(MicrosoftDynamics365TargetSchemasEvent $event) {
+    $event->targetSchemas = [
+        'systemuser' => [
+            // Filter to modify the returned values
+            'filter' => 'isdisabled eq false and invitestatuscode eq 4 or accessmode eq 4',
+        ],
+        // Set the order to be something more logical for this entity and allow more than 100 values
+        'campaign' => [
+            'orderby' => 'createdon desc',
+            'limit' => '150'
+        ],
+        // A custom entity
+        'ccl1000_enquirytype' => [
+            'entity' => 'ccl1000_enquirytypes',
+            'label' => 'ccl1000_name',
+            'value' => 'ccl1000_enquirytypeid'
+        ]
+    ];
+});
+```
 
 ## Webhook Integration Events
 
@@ -1782,7 +1842,6 @@ Event::on(Zapier::class, Zapier::EVENT_MODIFY_WEBHOOK_PAYLOAD, function(ModifyWe
     // ...
 });
 ```
-
 
 ## Miscellaneous Integration Events
 
