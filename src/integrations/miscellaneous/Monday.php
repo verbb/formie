@@ -55,7 +55,7 @@ class Monday extends Miscellaneous
             if ($event->field instanceof Address) {
                 $country = ArrayHelper::firstWhere($event->field->getCountryOptions(), 'value', $event->value);
 
-                $event->value = $country['label'] ?? null;
+                $event->value = $country['label'] ?? $event->value;
             }
         });
     }
@@ -120,7 +120,7 @@ class Monday extends Miscellaneous
     public function sendPayload(Submission $submission): bool
     {
         try {
-            $fields = $this->_getBoardSettings()->fields ?? [];
+            $fields = $this->_getBoardSettings()['fields'] ?? [];
             $boardValues = $this->getFieldMappingValues($submission, $this->fieldMapping, $fields);
 
             $boardIds = explode(':', $this->boardId);
