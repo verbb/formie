@@ -575,10 +575,8 @@ class MicrosoftDynamics365 extends Crm
         // Reset array keys
         $fields = array_values($fields);
 
-        // Sort alphabetically by label
-        usort($fields, static function($a, $b) {
-            return strcmp($a->name, $b->name);
-        });
+        // Sort by required field and then name
+        ArrayHelper::multisort($fields, ['required', 'name'], [SORT_DESC, SORT_ASC]);
 
         return $fields;
     }
