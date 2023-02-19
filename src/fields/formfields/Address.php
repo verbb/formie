@@ -292,6 +292,34 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
             'instructionsPosition' => AboveInput::class,
         ];
+
+        if ($this->autocompleteEnabled) {
+            $subFields[] = 'autocomplete';
+        }
+
+        /* @var AddressModel $value */
+        $value = $element->getFieldValue($this->handle);
+
+        foreach ($subFields as $subField) {
+            $labelProp = "{$subField}Label";
+            $enabledProp = "{$subField}Enabled";
+            $requiredProp = "{$subField}Required";
+            $fieldValue = $value->$subField ?? '';
+
+            if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
+                $element->addError($this->handle, Craft::t('formie', '"{label}" cannot be blank.', [
+                    'label' => $this->$labelProp,
+                ]));
+            }
+
+            // Validate the postcode separately
+            if ($subField === 'zip' && strlen($fieldValue) > 10) {
+                $element->addError($this->handle, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+                    'label' => $this->$labelProp,
+                    'max' => 10,
+                ]));
+            }
+        }
     }
 
     /**

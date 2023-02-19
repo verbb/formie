@@ -274,6 +274,10 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.isSpam', $this->isSpam));
         }
 
+        if ($this->title) {
+            $this->subQuery->andWhere(Db::parseParam('formie_submissions.title', $this->title));
+        }
+
         return parent::beforePrepare();
     }
 

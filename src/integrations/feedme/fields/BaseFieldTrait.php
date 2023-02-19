@@ -22,5 +22,7 @@ trait BaseFieldTrait
     public function parseField(): mixed
     {
         $this->beforeParseField();
+
+        return parent::parseField();
     }
 }

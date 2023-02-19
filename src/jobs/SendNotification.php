@@ -25,7 +25,7 @@ class SendNotification extends BaseJob
     /**
      * @inheritDoc
      */
-    public function getDescription(): string
+    public function execute($queue)
     {
         $formName = '';
         $notificationName = '';
@@ -101,5 +101,16 @@ class SendNotification extends BaseJob
         }
 
         $this->setProgress($queue, 1);
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritDoc
+     */
+    protected function defaultDescription(): string
+    {
+        return Craft::t('formie', 'Sending form notification.');
     }
 }
