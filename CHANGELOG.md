@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.23 - 2023-02-19
+
+### Added
+- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations
+- Added `IntegrationField::sourceType` for element integrations to track the origin Craft field
+- Added `remove` JS event to Repeater and Table fields
+
+### Changed
+- Changed element fields to use their titles for values with integrations, when used as an array-value, except for Element integrations
+
+### Fixed
+- Fixed element integrations not setting the correct timezone on Date fields.
+- Fixed Stripe payments not working correctly when challenged with a 3DS verification.
+- Fixed an error when a form contained multiple payment fields, combined with conditions.
+- Fixed an error when using scheduled forms with either start/end not provided.
+- Fixed Monday integration when mapping to a Country field from an Address field.
+- Fixed mapping sub-values for Date fields in integrations not formatting correctly.
+- Fixed `league/html-to-markdown:^5.0` dependency.
+- Fixed an error on some installs where Markdown in the field builder caused a fatal error.
+
 ## 2.0.22 - 2023-02-11
 
 ### Added
