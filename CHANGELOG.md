@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.6.24 - 2023-02-19
+
+### Added
+- Added tags support for ActiveCampaign CRM integration for contact objects.
+- Added validation rule for Address field Zip/Postcode length.
+- Added `dateCreated` support for Feed Me importing submissions.
+- Added ability to change queue job description. (thanks @jamesmacwhite).
+
+### Changed
+- Microsoft Dynamics 365 - Order fields in mapping by required status first followed by name ASC. (thanks @jamesmacwhite).
+- Numerous Microsoft Dynamics 365 improvements and updates (see https://github.com/verbb/formie/pull/1263). (thanks @jamesmacwhite).
+
+### Fixed
+- Fixed sent notifications throwing an error for `CC` and `BCC` values.
+- Fixed an error when creating a form from an outdated stencil.
+- Fixed being unable to query Submissions by their `title`.
+- Fixed an error with saving Hidden field content.
+- Fixed Feed Me integration not importing some field types.
+- Fixed being unable to query Submissions by their `title`.
+
+### Removed
+- Remove deprecated `countryRestrict` from Phone field.
+
 ## 1.6.23 - 2023-02-11
 
 ### Fixed
