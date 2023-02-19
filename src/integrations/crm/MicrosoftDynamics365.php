@@ -337,6 +337,12 @@ class MicrosoftDynamics365 extends Crm
             $options['headers']['Prefer'] = 'return=representation';
         }
 
+        // Prevent create when using upsert
+        // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/perform-conditional-operations-using-web-api#prevent-create-in-upsert
+        if ($method === 'PATCH') {
+            $options['headers']['If-Match'] = '*';
+        }
+
         return parent::request($method, $uri, $options);
     }
 
