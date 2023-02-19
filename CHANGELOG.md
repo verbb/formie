@@ -3,12 +3,18 @@
 ## 2.0.23 - 2023-02-19
 
 ### Added
-- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations
-- Added `IntegrationField::sourceType` for element integrations to track the origin Craft field
-- Added `remove` JS event to Repeater and Table fields
+- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+- Added `IntegrationField::sourceType` for element integrations to track the origin Craft field.
+- Added `remove` JS event to Repeater and Table fields.
+- Added tags support for ActiveCampaign CRM integration for contact objects.
+- Added validation rule for Address field Zip/Postcode length.
+- Added `dateCreated` support for Feed Me importing submissions.
+- Added ability to change queue job description. (thanks @jamesmacwhite).
 
 ### Changed
-- Changed element fields to use their titles for values with integrations, when used as an array-value, except for Element integrations
+- Changed element fields to use their titles for values with integrations, when used as an array-value, except for Element integrations.
+- Microsoft Dynamics 365 - Order fields in mapping by required status first followed by name ASC. (thanks @jamesmacwhite).
+- Numerous Microsoft Dynamics 365 improvements and updates (see https://github.com/verbb/formie/pull/1263). (thanks @jamesmacwhite).
 
 ### Fixed
 - Fixed element integrations not setting the correct timezone on Date fields.
@@ -19,6 +25,11 @@
 - Fixed mapping sub-values for Date fields in integrations not formatting correctly.
 - Fixed `league/html-to-markdown:^5.0` dependency.
 - Fixed an error on some installs where Markdown in the field builder caused a fatal error.
+- Fixed sent notifications throwing an error for `CC` and `BCC` values.
+- Fixed an error when creating a form from an outdated stencil.
+- Fixed being unable to query Submissions by their `title`.
+- Fixed an error with saving Hidden field content.
+- Fixed Feed Me integration not importing some field types.
 
 ## 2.0.22 - 2023-02-11
 
@@ -659,7 +670,6 @@
 - Fixed being unable to query Submissions by their `title`.
 - Fixed an error with saving Hidden field content.
 - Fixed Feed Me integration not importing some field types.
-- Fixed being unable to query Submissions by their `title`.
 
 ### Removed
 - Remove deprecated `countryRestrict` from Phone field.
