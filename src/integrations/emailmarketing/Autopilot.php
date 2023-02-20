@@ -214,7 +214,7 @@ class Autopilot extends EmailMarketing
             $unsubscribed = ArrayHelper::remove($fieldValues, 'unsubscribed');
 
             $payload = [
-                'contact' => [
+                'contact' => array_filter([
                     'Email' => $email,
                     'FirstName' => $firstName,
                     'LastName' => $lastName,
@@ -241,7 +241,7 @@ class Autopilot extends EmailMarketing
                     'unsubscribed' => $unsubscribed,
                     '_autopilot_list' => $this->listId,
                     'custom' => $fieldValues,
-                ],
+                ]),
             ];
 
             $response = $this->deliverPayload($submission, 'contact', $payload);
