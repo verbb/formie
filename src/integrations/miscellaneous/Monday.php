@@ -46,20 +46,6 @@ class Monday extends Miscellaneous
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
-
-        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Monday requires the full country name, not the abbreviation for Address - Country fields
-            if ($event->field instanceof Address) {
-                $country = ArrayHelper::firstWhere($event->field->getCountryOptions(), 'value', $event->value);
-
-                $event->value = $country['label'] ?? $event->value;
-            }
-        });
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Monday.');
@@ -294,6 +280,13 @@ class Monday extends Miscellaneous
                 $newColumns[$handle] = [
                     'phone' => $value,
                     'countryShortName' => '',
+                ];
+            } else if ($type === 'country') {
+                $country = ArrayHelper::firstWhere(Address::getCountryOptions(), 'value', $value);
+
+                $newColumns[$handle] = [
+                    'countryCode' => $country['value'] ?? '',
+                    'countryName' => $country['label'] ?? '',
                 ];
             } else if ($type === 'color') {
                 $newColumns[$handle] = [
