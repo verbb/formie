@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.24 - 2023-02-20
+## 2.0.23.1 - 2023-02-20
 
 ### Fixed
 - Fixed an error when running submissions via the queue.
