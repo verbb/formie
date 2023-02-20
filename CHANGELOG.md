@@ -18,7 +18,6 @@
 - Fixed being unable to query Submissions by their `title`.
 - Fixed an error with saving Hidden field content.
 - Fixed Feed Me integration not importing some field types.
-- Fixed being unable to query Submissions by their `title`.
 
 ### Removed
 - Remove deprecated `countryRestrict` from Phone field.
