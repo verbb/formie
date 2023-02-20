@@ -27,25 +27,6 @@ class TriggerIntegration extends BaseJob
     /**
      * @inheritDoc
      */
-    public function execute($queue)
-    {
-        $formName = '';
-
-        if ($submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId)) {
-            if ($form = $submission->getForm()) {
-                $formName = $form->title;
-            }
-        }
-
-        return Craft::t('formie', 'Triggering “{integration}” integration for form “{form}”.', [
-            'form' => $formName,
-            'integration' => $this->integration->getName(),
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function execute($queue): void
     {
         $this->setProgress($queue, 0.25);

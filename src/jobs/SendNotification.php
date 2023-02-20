@@ -25,30 +25,6 @@ class SendNotification extends BaseJob
     /**
      * @inheritDoc
      */
-    public function execute($queue)
-    {
-        $formName = '';
-        $notificationName = '';
-
-        if ($submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId)) {
-            if ($form = $submission->getForm()) {
-                $formName = $form->title;
-            }
-        }
-
-        if ($notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId)) {
-            $notificationName = $notification->name;
-        }
-
-        return Craft::t('formie', 'Sending email notification “{notification}” for form “{form}”.', [
-            'form' => $formName,
-            'notification' => $notificationName,
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function execute($queue): void
     {
         $this->setProgress($queue, 0.25);
