@@ -55,6 +55,10 @@ class SetSubmissionStatus extends SetStatus
         $status = Formie::$plugin->getStatuses()->getStatusById($this->statusId);
 
         foreach ($elements as $element) {
+            // Unfortunately, we need to fetch the submission _again_ to ensure custom fields are grabbed. This is because we can't query
+            // across multiple content tables from the "All Forms" option.
+            $element = Submission::find()->uid($element->uid)->one();
+
             $element->setStatus($status);
 
             if ($elementsService->saveElement($element) === false) {
