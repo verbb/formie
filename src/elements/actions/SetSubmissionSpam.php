@@ -48,6 +48,10 @@ class SetSubmissionSpam extends ElementAction
         $failCount = 0;
 
         foreach ($elements as $element) {
+            // Unfortunately, we need to fetch the submission _again_ to ensure custom fields are grabbed. This is because we can't query
+            // across multiple content tables from the "All Forms" option.
+            $element = Submission::find()->uid($element->uid)->one();
+
             $element->isSpam = $this->spam === 'markSpam';
 
             if ($elementsService->saveElement($element) === false) {
