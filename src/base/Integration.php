@@ -201,7 +201,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Keep track of whether run in the context of a queue job
     private ?JobInterface $_queueJob = null;
-    private bool|string $_enabled = true;
+    private bool|string $_enabled = false;
 
 
     // Public Methods
@@ -233,7 +233,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getEnabled(bool $parse = true): bool|string
     {
         if ($parse) {
-            return App::parseBooleanEnv($this->_enabled) ?? true;
+            return App::parseBooleanEnv($this->_enabled);
         }
 
         return $this->_enabled;
