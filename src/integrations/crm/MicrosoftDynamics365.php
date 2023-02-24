@@ -21,6 +21,8 @@ use TheNetworg\OAuth2\Client\Provider\Azure;
 
 use Throwable;
 
+use GuzzleHttp\Client;
+
 class MicrosoftDynamics365 extends Crm
 {
     // Constants
