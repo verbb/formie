@@ -14,6 +14,7 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 
 use yii\base\Event;
 
@@ -291,6 +292,10 @@ class Monday extends Miscellaneous
             } else if ($type === 'color') {
                 $newColumns[$handle] = [
                     'index' => (int)$value,
+                ];
+            } else if ($type === 'boolean') {
+                $newColumns[$handle] = [
+                    'checked' => StringHelper::toBoolean($value) ? 'true' : 'false',
                 ];
             } else if ($type === 'lookup') {
                 // No supported in API
