@@ -8,7 +8,7 @@
     </div>
 
     {% if payments %}
-        {% set payment = payments[0] %}
+        {% set payment = payments | last %}
 
         <div class="data">
             <h5 class="heading">{{ 'Status' | t('formie') }}</h5>

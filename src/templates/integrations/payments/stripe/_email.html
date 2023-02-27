@@ -10,7 +10,7 @@
 
     {# Get the payment, or subscription #}
     {% if payments %}
-        {% set payment = payments[0] %}
+        {% set payment = payments | last %}
 
         <strong>{{ 'Type' | t }}: </strong>{{ 'Single' | t }}<br>
         <strong>{{ 'Status' | t }}: </strong>{{ payment.status | title | t }}<br>
@@ -20,7 +20,7 @@
     {% endif %}
 
     {% if subscriptions %}
-        {% set subscription = subscriptions[0] %}
+        {% set subscription = subscriptions | last %}
 
         <strong>{{ 'Type' | t }}: </strong>{{ 'Subscription' | t }}<br>
         <strong>{{ 'Status' | t }}: </strong>{{ subscription.getStatus() | title | t }}<br>

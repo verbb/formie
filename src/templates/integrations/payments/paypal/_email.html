@@ -8,7 +8,7 @@
     <strong>{{ 'Provider' | t }}: </strong>{{ integration.displayName() }}<br>
 
     {% if payments %}
-        {% set payment = payments[0] %}
+        {% set payment = payments | last %}
 
         <strong>{{ 'Status' | t }}: </strong>{{ payment.status | title | t }}<br>
         <strong>{{ 'Amount' | t }}: </strong>{{ payment.amount | currency(payment.currency) }} {{ payment.currency | upper }}<br>
