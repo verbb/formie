@@ -75,17 +75,21 @@ class SubmissionExport extends ElementExporter
         // Normalise the columns. Due to repeaters/table fields, some rows might not have the correct columns.
         // We need to have all rows have the same column definitions. 
         // First, find the row with the largest columns to use as our template for all other rows
+        $preppedData = [];
         $counts = array_map('count', $data);
-        $key = array_flip($counts)[max($counts)];
-        $largestRow = $data[$key];
 
-        // Now we have the largest row in columns, normalise all other rows, filling in blanks
-        $keys = array_keys($largestRow);
-        $template = array_fill_keys($keys, '');
+        if ($counts) {
+            $key = array_flip($counts)[max($counts)];
+            $largestRow = $data[$key];
 
-        $preppedData = array_map(function($item) use ($template) {
-            return array_merge($template, $item);
-        }, $data);
+            // Now we have the largest row in columns, normalise all other rows, filling in blanks
+            $keys = array_keys($largestRow);
+            $template = array_fill_keys($keys, '');
+
+            $preppedData = array_map(function($item) use ($template) {
+                return array_merge($template, $item);
+            }, $data);
+        }
 
         // We might have to do some post-processing for CSV's and nested fields like Table/Repeater
         // We want to split the rows of these fields into new lines, which is a bit tedious..
