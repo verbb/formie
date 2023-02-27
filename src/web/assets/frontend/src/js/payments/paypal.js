@@ -135,12 +135,22 @@ export class FormiePayPal extends FormiePaymentProvider {
             onApprove: (data, actions) => {
                 // Authorize the transaction, instead of capturing. This will be done after form submit
                 actions.order.authorize().then((authorization) => {
-                    const authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
+                    try {
+                        const authorizationID = authorization.purchase_units[0].payments.authorizations[0].id;
 
-                    this.updateInputs('paypalOrderId', data.orderID);
-                    this.updateInputs('paypalAuthId', authorizationID);
+                        this.updateInputs('paypalOrderId', data.orderID);
+                        this.updateInputs('paypalAuthId', authorizationID);
 
-                    this.addSuccess(t('Payment authorized. Finalise the form to complete payment.'));
+                        if (!authorizationID) {
+                            this.addError('Missing Authorization ID for approval.');
+                        } else {
+                            this.addSuccess(t('Payment authorized. Finalise the form to complete payment.'));
+                        }
+                    } catch (error) {
+                        console.error(error);
+
+                        this.addError('Unable to authorize payment. Please try again.');
+                    }
                 });
             },
         }).render(this.$input);
