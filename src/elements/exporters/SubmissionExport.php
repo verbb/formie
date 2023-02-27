@@ -107,17 +107,21 @@ class SubmissionExport extends ElementExporter
             // Normalise the columns. Due to repeaters/table fields, some rows might not have the correct columns.
             // We need to have all rows have the same column definitions. 
             // First, find the row with the largest columns to use as our template for all other rows
+            $exportData = [];
             $counts = array_map('count', $data);
-            $key = array_flip($counts)[max($counts)];
-            $largestRow = $data[$key];
+            
+            if ($counts) {
+                $key = array_flip($counts)[max($counts)];
+                $largestRow = $data[$key];
 
-            // Now we have the largest row in columns, normalise all other rows, filling in blanks
-            $keys = array_keys($largestRow);
-            $template = array_fill_keys($keys, '');
+                // Now we have the largest row in columns, normalise all other rows, filling in blanks
+                $keys = array_keys($largestRow);
+                $template = array_fill_keys($keys, '');
 
-            $exportData = array_map(function($item) use ($template) {
-                return array_merge($template, $item);
-            }, $data);
+                $exportData = array_map(function($item) use ($template) {
+                    return array_merge($template, $item);
+                }, $data);
+            }
 
             $event = new ModifySubmissionExportDataEvent([
                 'exportData' => $exportData,
