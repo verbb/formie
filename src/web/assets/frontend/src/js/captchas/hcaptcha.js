@@ -1,4 +1,4 @@
-import { recaptcha as hcaptcha } from './inc/recaptcha';
+import { hcaptcha } from './inc/hcaptcha';
 import { eventKey } from '../utils/utils';
 
 export class FormieHcaptcha {
@@ -16,7 +16,7 @@ export class FormieHcaptcha {
         if (!document.getElementById(this.hCaptchaScriptId)) {
             const $script = document.createElement('script');
             $script.id = this.hCaptchaScriptId;
-            $script.src = `https://js.hcaptcha.com/1/api.js?onload=formieRecaptchaOnLoadCallback&render=explicit&hl=${this.language}`;
+            $script.src = `https://js.hcaptcha.com/1/api.js?onload=formieHcaptchaOnLoadCallback&recaptchacompat=off&render=explicit&hl=${this.language}`;
 
             if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
                 $script.async = true;
