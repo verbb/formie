@@ -156,6 +156,10 @@ class PayPal extends Payment
             $fieldValue = $submission->getFieldValue($field->handle);
             $authId = $fieldValue['paypalAuthId'] ?? null;
 
+            if (!$authId) {
+                throw new Exception('Missing Authorization ID for payment.');
+            }
+
             $response = $this->request('POST', "v2/payments/authorizations/{$authId}/capture");
 
             $payment = new PaymentModel();
