@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.24 - 2023-02-28
+
+### Added
+- Added additional error handling for front-end PayPal transactions.
+
+### Fixed
+- Fixed PayPal payment not showing a useful error when missing required `paypalAuthId` for payment request.
+- Fixed payment integrations not showing the last payment in emails and submissions, if multiple attempts have been made.
+- Fixed an error when exporting submissions when none exist.
+- Fixed a compatibility error with both reCaptcha and hCaptcha enabled.
+- Fixed an error when mapping to boolean fields for Monday integration.
+- Fixed Captcha integrations being all enabled on first install of Formie.
+- Fixed submissions not saving correctly when changing the submission spam state from the “All Forms” option in the control panel.
+- Fixed submissions not saving correctly when changing the submission status from the “All Forms” option in the control panel.
+- Fixed Monday integration when mapping to a Country field from an Address field.
+
 ## 2.0.23.1 - 2023-02-20
 
 ### Fixed
