@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.25 - 2023-02-28
+
+### Added
+- Added pagination support for ActiveCampaign integration fields.
+
+### Changed
+- Changed Microsoft Dynamics 365 `convertFieldType()` function as protected. (thanks @jamesmacwhite).
+
+### Fixed
+- Fix an error when exporting submissions when none exist.
+- Fix Autopilot integration sending empty values for fields.
+
 ## 1.6.24 - 2023-02-19
 
 ### Added
