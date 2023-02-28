@@ -4,8 +4,14 @@
 
 ### Added
 - Added additional error handling for front-end PayPal transactions.
+- Added pagination support for ActiveCampaign integration fields.
+
+### Changed
+- Changed Microsoft Dynamics 365 `convertFieldType()` function as protected. (thanks @jamesmacwhite).
 
 ### Fixed
+- Fixed an error when exporting submissions when none exist.
+- Fixed Autopilot integration sending empty values for fields.
 - Fixed PayPal payment not showing a useful error when missing required `paypalAuthId` for payment request.
 - Fixed payment integrations not showing the last payment in emails and submissions, if multiple attempts have been made.
 - Fixed an error when exporting submissions when none exist.
@@ -682,8 +688,8 @@
 - Changed Microsoft Dynamics 365 `convertFieldType()` function as protected. (thanks @jamesmacwhite).
 
 ### Fixed
-- Fix an error when exporting submissions when none exist.
-- Fix Autopilot integration sending empty values for fields.
+- Fixed an error when exporting submissions when none exist.
+- Fixed Autopilot integration sending empty values for fields.
 
 ## 1.6.24 - 2023-02-19
 
