@@ -508,8 +508,12 @@ class MicrosoftDynamics365 extends Crm
             // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
             // If a field DateTimeBehaviour is set to DateOnly, it will not accept DateTime values ever!
             // https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/behavior-format-date-time-attribute
-            if ($type === 'DateTime' && $dateTimeBehaviourValues[$metadataId] === 'DateOnly') {
-                $type = 'Date';
+            if ($type === 'DateTime') {
+                $dateTimeBehavior = $dateTimeBehaviourValues[$metadataId] ?? null;
+
+                if ($dateTimeBehavior === 'DateOnly') {
+                    $type = 'Date';
+                }
             }
 
             // Index by handle for easy lookup with PickLists
