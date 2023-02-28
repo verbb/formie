@@ -95,13 +95,8 @@ class ActiveCampaign extends Crm
 
         // Populate some options for some values
         try {
-            $response = $this->request('GET', 'dealGroups', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
+            $dealGroups = $this->_getPaginated('dealGroups');
 
-            $dealGroups = $response['dealGroups'] ?? [];
             $dealStages = $response['dealStages'] ?? [];
 
             foreach ($dealGroups as $dealGroup) {
@@ -128,13 +123,7 @@ class ActiveCampaign extends Crm
             }
 
             // Get Contacts fields
-            $response = $this->request('GET', 'fields', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
-
-            $fields = $response['fields'] ?? [];
+            $fields = $this->_getPaginated('fields');
 
             $contactFields = array_merge([
                 new IntegrationField([
@@ -170,13 +159,7 @@ class ActiveCampaign extends Crm
             ]);
 
             // Get Deals fields
-            $response = $this->request('GET', 'dealCustomFieldMeta', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
-
-            $fields = $response['dealCustomFieldMeta'] ?? [];
+            $fields = $this->_getPaginated('dealCustomFieldMeta');
 
             $dealFields = array_merge([
                 new IntegrationField([
@@ -249,13 +232,7 @@ class ActiveCampaign extends Crm
             ], $this->_getCustomFields($fields));
 
             // Get Account fields
-            $response = $this->request('GET', 'accountCustomFieldMeta', [
-                'query' => [
-                    'limit' => 100,
-                ],
-            ]);
-
-            $fields = $response['accountCustomFieldMeta'] ?? [];
+            $fields = $this->_getPaginated('accountCustomFieldMeta');
 
             $accountFields = array_merge([
                 new IntegrationField([

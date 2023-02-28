@@ -376,10 +376,10 @@ class MicrosoftDynamics365 extends Crm
     }
 
 
-    // Private Methods
+    // Protected Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    protected function convertFieldType($fieldType)
     {
         $fieldTypes = [
             'Decimal' => IntegrationField::TYPE_FLOAT,
@@ -489,7 +489,7 @@ class MicrosoftDynamics365 extends Crm
             $fields[$key] = new IntegrationField([
                 'handle' => $handle,
                 'name' => $label,
-                'type' => $this->_convertFieldType($type),
+                'type' => $this->convertFieldType($type),
                 'required' => in_array($requiredLevel, $event->requiredLevels, true),
             ]);
         }
