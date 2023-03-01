@@ -425,7 +425,6 @@ class Zoho extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
-            'jsonobject' => IntegrationField::TYPE_ARRAY,
             'jsonarray' => IntegrationField::TYPE_ARRAY,
             'date' => IntegrationField::TYPE_DATE,
             'datetime' => IntegrationField::TYPE_DATETIME,
