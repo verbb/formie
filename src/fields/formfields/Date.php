@@ -362,7 +362,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'errorMessage' => $this->errorMessage,
                     'defaultValue' => $this->defaultValue,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'inputAttributes' => [
+                    'inputAttributes' => array_merge(($this->inputAttributes ?? []), [
                         [
                             'label' => 'type',
                             'value' => 'date',
@@ -371,7 +371,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                             'label' => 'autocomplete',
                             'value' => 'off',
                         ],
-                    ],
+                    ]),
                 ];
             }
 
