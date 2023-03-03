@@ -11,7 +11,7 @@ export class FormiePayWay extends FormiePaymentProvider {
         this.$input = this.$field.querySelector('[data-fui-payway-button]');
 
         if (!this.$input) {
-            console.error('Unable to find PayPWay placeholder for [data-fui-payway-button]');
+            console.error('Unable to find PayWay placeholder for [data-fui-payway-button]');
 
             return;
         }
@@ -35,9 +35,9 @@ export class FormiePayWay extends FormiePaymentProvider {
     initField() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
-        if (!document.getElementById(this.paypalScriptId)) {
+        if (!document.getElementById(this.paywayScriptId)) {
             const $script = document.createElement('script');
-            $script.id = this.paypalScriptId;
+            $script.id = this.paywayScriptId;
             $script.src = 'https://api.payway.com.au/rest/v1/payway.js';
 
             $script.async = true;
