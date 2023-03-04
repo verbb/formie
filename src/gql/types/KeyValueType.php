@@ -12,6 +12,11 @@ class KeyValueType extends ObjectType
 
     protected function resolve($source, $arguments, $context, ResolveInfo $resolveInfo)
     {
-        return $source[$resolveInfo->fieldName];
+        // Normalize some properties
+        if (is_array($source) && array_key_exists('optgroup', $source) && $resolveInfo->fieldName === 'label') {
+            $resolveInfo->fieldName = 'optgroup';
+        }
+
+        return $source[$resolveInfo->fieldName] ?? null;
     }
 }
