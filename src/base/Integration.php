@@ -192,10 +192,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?string $uid = null;
 
     // Used to retain the referrer URL from submissions
-    public string $referrer = '';
+    public ?string $referrer = '';
 
     // Used to retain the referrer IP from submissions
-    public string $ipAddress = '';
+    public ?string $ipAddress = '';
 
     protected ?Client $_client = null;
 
