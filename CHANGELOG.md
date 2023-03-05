@@ -140,6 +140,7 @@
 - Hidden field "Default Value" now no longer supports full Twig syntax (anything that requires double `{{` brackets). Shorthand (`{`) Twig is still supported.
 
 ## 2.0.20 - 2022-12-15
+> {warning} Webhook integrations have their payload altered. They now no longer group submission/form data in a `json` key, they are instead "flat" values. Your Zapier and custom Webhook endpoints will need to factor in this change.
 
 ### Added
 - Added `data-col-handle` attribute to Table field columns.
