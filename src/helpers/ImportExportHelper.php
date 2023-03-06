@@ -187,6 +187,15 @@ class ImportExportHelper
             }
         }
 
+        // Ensure that the default status exists, just in case there's a project config mismatch
+        if ($form->defaultStatusId) {
+            $status = Formie::$plugin->getStatuses()->getStatusById($form->defaultStatusId);
+
+            if (!$status) {
+                $form->defaultStatusId = Formie::$plugin->getStatuses()->getDefaultStatus()->id;
+            }
+        }
+
         // Check if this is updating an existing form. We want to try and find existing fields
         // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
         /** @noinspection PhpUnusedLocalVariableInspection */
