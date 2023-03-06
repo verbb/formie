@@ -1,0 +1,21 @@
+{# Must include the `id="opayo-credit-card"` #}
+<div id="opayo-credit-card" data-fui-opayo-button></div>
+
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('opayoTokenId') }}">
+<input type="hidden" name="{{ field.getHtmlName('opayoSessionKey') }}">
+<input type="hidden" name="{{ field.getHtmlName('opayo3DSComplete') }}">
+
+
+
+<label for="id1">Name:</label>
+<div><input id="id1" data-card-details="cardholder-name"></div>
+<label for="id2">Card:</label>
+<div><input id="id2" data-card-details="card-number"></div>
+<label for="id3">Expiry:</label>
+<div><input id="id3" data-card-details="expiry-date"></div>
+<label for="id4">CVV:</label>
+<div><input id="id4" data-card-details="security-code"></div>
+<input type="hidden" name="card-identifier">
+
+<div class="iframe-placeholder"></div>

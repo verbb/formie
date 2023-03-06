@@ -143,7 +143,7 @@ export class FormiePaymentProvider {
         const modifyBillingDetailsEvent = new CustomEvent('modifyBillingDetails', {
             bubbles: true,
             detail: {
-                stripe: this,
+                provider: this,
                 billing,
             },
         });

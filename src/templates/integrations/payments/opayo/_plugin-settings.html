@@ -1,0 +1,63 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to your <a href="https://www.opayo.com/" target="_blank">MyOpayo Administrator account</a>.
+1. Click on the **Administrator** tab in the **Password** details section, and check the disclaimer box.
+1. Click the **Create API credentials** button.
+1. Copy the **Vendor Name** from {name} and paste in the **Vendor Name** field below.
+1. Copy the **Integration Key** from {name} and paste in the **Integration Key** field below.
+1. Copy the **Integration Password** from {name} and paste in the **Integration Password** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{{ forms.autosuggestField({
+    label: 'Vendor Name' | t('formie'),
+    instructions: 'Enter your {name} Vendor Name here.' | t('formie', { name: integration.displayName() }),
+    name: 'vendorName',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.vendorName ?? '',
+    warning: macros.configWarning('vendorName', 'formie'),
+    errors: integration.getErrors('vendorName'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Integration Key' | t('formie'),
+    instructions: 'Enter your {name} Integration Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'integrationKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.integrationKey ?? '',
+    warning: macros.configWarning('integrationKey', 'formie'),
+    errors: integration.getErrors('integrationKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Integration Password' | t('formie'),
+    instructions: 'Enter your {name} Integration Password here.' | t('formie', { name: integration.displayName() }),
+    name: 'integrationPassword',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.integrationPassword ?? '',
+    warning: macros.configWarning('integrationPassword', 'formie'),
+    errors: integration.getErrors('integrationPassword'),
+}) }}
+
+{{ forms.booleanMenuField({
+    label: 'Use Sandbox' | t('formie'),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
+    name: 'useSandbox',
+    includeEnvVars: true,
+    value: integration.settings.useSandbox ?? false,
+    warning: macros.configWarning('useSandbox', 'formie'),
+    errors: integration.getErrors('useSandbox'),
+}) }}

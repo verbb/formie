@@ -19,7 +19,7 @@ class PaymentWebhooksController extends Controller
 
     public $enableCsrfValidation = false;
 
-    protected array|bool|int $allowAnonymous = ['process-webhook'];
+    protected array|bool|int $allowAnonymous = ['process-webhook', 'process-callback'];
 
 
     // Public Methods
@@ -43,5 +43,25 @@ class PaymentWebhooksController extends Controller
         }
 
         return $integration->processWebhooks();
+    }
+
+    /**
+     * @param null $handle
+     * @throws BadRequestHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionProcessCallback(): Response
+    {
+        $handle = $this->request->getRequiredParam('handle');
+
+        if (!$integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)) {
+            throw new NotFoundHttpException('Integration not found');
+        }
+
+        if (!($integration instanceof Payment)) {
+            throw new BadRequestHttpException('Invalid integration: ' . $handle);
+        }
+
+        return $integration->processCallbacks();
     }
 }

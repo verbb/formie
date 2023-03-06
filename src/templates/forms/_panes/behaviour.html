@@ -7,8 +7,8 @@
 {% set submitMethod = form.settings.submitMethod ?? 'page-reload' %}
 {% set submitAction = form.settings.submitAction ?? 'message' %}
 
-{# Force Ajax if the form contains a Stripe field, due to 3DS requirements #}
-<div v-if="containsStripeField()">
+{# Force Ajax if the form contains some payment fields, due to 3DS requirements #}
+<div v-if="forcedAjax()">
     {{ forms.selectField({
         label: 'Submission Method' | t('formie'),
         instructions: 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.' | t('formie'),
@@ -19,7 +19,7 @@
             value: 'ajax',
         }],
         value: submitMethod,
-        warning: 'You must use Ajax submissions when using the Stripe payment integration in your form.' | t('formie'),
+        warning: 'You must use Ajax submissions when using some payment integrations in your form.' | t('formie'),
     }) }}
 
     {# Spacing fix #}

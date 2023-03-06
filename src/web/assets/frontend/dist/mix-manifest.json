@@ -27,6 +27,7 @@
     "/js/payments/stripe.js": "/js/payments/stripe.js",
     "/js/payments/paypal.js": "/js/payments/paypal.js",
     "/js/payments/payway.js": "/js/payments/payway.js",
+    "/js/payments/opayo.js": "/js/payments/opayo.js",
     "/css/fields/phone-country.css": "/css/fields/phone-country.css",
     "/css/fields/tags.css": "/css/fields/tags.css",
     "/css/formie-theme.css": "/css/formie-theme.css",
