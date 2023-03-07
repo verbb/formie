@@ -703,6 +703,10 @@ class Opayo extends Payment
         $payload['billingAddress']['postalCode'] = ArrayHelper::remove($address, 'zip');
         $payload['billingAddress']['country'] = ArrayHelper::remove($address, 'country');
 
+        // Testing only
+        // $payload['billingAddress']['address1'] = '88';
+        // $payload['billingAddress']['postalCode'] = '412';
+
         return $payload;
     }
 
