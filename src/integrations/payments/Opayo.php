@@ -3,13 +3,16 @@ namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -19,6 +22,7 @@ use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -38,6 +42,7 @@ class Opayo extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
 
 
     // Static Methods
@@ -113,14 +118,7 @@ class Opayo extends Payment
 
         $this->setField($field);
 
-        $response = $this->request('POST', 'merchant-session-keys', [
-            'json' => ['vendorName' => App::parseEnv($this->vendorName)],
-        ]);
-
-        $merchantSessionKey = $response['merchantSessionKey'] ?? null;
-
         $settings = [
-            'merchantSessionKey' => $merchantSessionKey,
             'useSandbox' => App::parseBooleanEnv($this->useSandbox),
             'currency' => $this->getFieldSetting('currency'),
             'amountType' => $this->getFieldSetting('amountType'),
@@ -165,7 +163,7 @@ class Opayo extends Payment
         $currency = $this->getFieldSetting('currency');
 
         // Capture the authorized payment
-        // try {
+        try {
             $field = $this->getField();
             $fieldValue = $submission->getFieldValue($field->handle);
             $opayoTokenId = $fieldValue['opayoTokenId'] ?? null;
@@ -233,6 +231,13 @@ class Opayo extends Payment
                 Formie::$plugin->getPayments()->savePayment($payment);
 
                 $returnUrl = UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+                $threeDSSessionData = [
+                    'submissionId' => $submission->id,
+                    'fieldId' => $field->id,
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'reference' => $response['transactionId'] ?? '',
+                ];
 
                 // Store the data we need for 3DS against the form, which is added is the Ajax response
                 $submission->getForm()->addFrontEndJsEvents([
@@ -241,7 +246,7 @@ class Opayo extends Payment
                         'acsUrl' => $acsUrl,
                         'creq' => $response['cReq'] ?? '',
                         'returnUrl' => $returnUrl,
-                        'threeDSSessionData' => base64_encode($submission->uid . '__' . ($response['transactionId'] ?? '')),
+                        'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
                     ],
                 ]);
 
@@ -270,38 +275,38 @@ class Opayo extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             $result = true;
-        // } catch (Throwable $e) {
-        //     // Save a different payload to logs
-        //     Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-        //         'message' => $e->getMessage(),
-        //         'file' => $e->getFile(),
-        //         'line' => $e->getLine(),
-        //         'response' => Json::encode($response),
-        //     ]));
+        } catch (Throwable $e) {
+            // Save a different payload to logs
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'response' => Json::encode($response),
+            ]));
 
-        //     Integration::apiError($this, $e, $this->throwApiError);
+            Integration::apiError($this, $e, $this->throwApiError);
 
-        //     $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
             
-        //     $payment = new PaymentModel();
-        //     $payment->integrationId = $this->id;
-        //     $payment->submissionId = $submission->id;
-        //     $payment->fieldId = $field->id;
-        //     $payment->amount = $amount;
-        //     $payment->currency = $currency;
-        //     $payment->status = PaymentModel::STATUS_FAILED;
-        //     $payment->reference = null;
-        //     $payment->response = ['message' => $e->getMessage()];
+            $payment = new PaymentModel();
+            $payment->integrationId = $this->id;
+            $payment->submissionId = $submission->id;
+            $payment->fieldId = $field->id;
+            $payment->amount = $amount;
+            $payment->currency = $currency;
+            $payment->status = PaymentModel::STATUS_FAILED;
+            $payment->reference = null;
+            $payment->response = ['message' => $e->getMessage()];
 
-        //     Formie::$plugin->getPayments()->savePayment($payment);
+            Formie::$plugin->getPayments()->savePayment($payment);
 
-        //     return false;
-        // }
+            return false;
+        }
 
-        // // Allow events to say the response is invalid
-        // if (!$this->afterProcessPayment($submission, $result)) {
-        //     return true;
-        // }
+        // Allow events to say the response is invalid
+        if (!$this->afterProcessPayment($submission, $result)) {
+            return true;
+        }
 
         return $result;
     }
@@ -311,28 +316,46 @@ class Opayo extends Payment
      */
     public function processCallback(): Response
     {
-        $rawData = Craft::$app->getRequest()->getRawBody();
         $request = Craft::$app->getRequest();
-        
         $callbackResponse = Craft::$app->getResponse();
         $callbackResponse->format = Response::FORMAT_RAW;
+
+        // Check to see if we're requesting a merchant session key - the first step
+        if ($request->getParam('merchantSessionKey')) {
+            $callbackResponse->format = Response::FORMAT_JSON;
+
+            $response = $this->request('POST', 'merchant-session-keys', [
+                'json' => ['vendorName' => App::parseEnv($this->vendorName)],
+            ]);
+
+            $callbackResponse->data = [
+                'merchantSessionKey' => $response['merchantSessionKey'] ?? null,
+            ];
+
+            return $callbackResponse;
+        }
+        
         $responseData = [];
 
+        $cres = $request->getParam('cres');
+        $data = $request->getParam('threeDSSessionData');
+
+        if (!$cres || !$data) {
+            Integration::error($this, 'Callback not signed or signing secret not set.');
+            $callbackResponse->data = 'ok';
+
+            return $callbackResponse;
+        }
+
+        // Get the data sent to Opayo
+        $data = Json::decode(base64_decode($data));
+        $submissionId = $data['submissionId'] ?? null;
+        $fieldId = $data['fieldId'] ?? null;
+        $amount = $data['amount'] ?? null;
+        $currency = $data['currency'] ?? null;
+        $transactionId = $data['reference'] ?? null;
+
         try {
-            $cres = $request->getParam('cres');
-            $data = $request->getParam('threeDSSessionData');
-
-            if (!$cres || !$data) {
-                Integration::error($this, 'Callback not signed or signing secret not set.');
-                $callbackResponse->data = 'ok';
-
-                return $callbackResponse;
-            }
-
-            $data = explode('__', base64_decode($data));
-            $submissionUid = $data[0];
-            $transactionId = $data[1];
-
             // Process the 3DS challenge
             $response = $this->request('POST', "transactions/$transactionId/3d-secure-challenge", [
                 'json' => [
@@ -373,15 +396,13 @@ class Opayo extends Payment
             ]));
 
             Integration::apiError($this, $e, $this->throwApiError);
-
-            // $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
-            // $payment->submissionId = $submission->id;
-            // $payment->fieldId = $field->id;
-            // $payment->amount = $amount;
-            // $payment->currency = $currency;
+            $payment->submissionId = $submissionId;
+            $payment->fieldId = $fieldId;
+            $payment->amount = $amount;
+            $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = $transactionId;
             $payment->response = ['message' => $e->getMessage()];
@@ -528,11 +549,106 @@ class Opayo extends Payment
         ];
     }
 
+    public function getFrontEndSubfields($field, $context): array
+    {
+        $subFields = [];
+
+        $rowConfigs = [
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => Craft::t('formie', 'Cardholder Name'),
+                    'required' => true,
+                    'inputAttributes' => [
+                        [
+                            'label' => 'data-opayo-card',
+                            'value' => 'cardholder-name',
+                        ],
+                        [
+                            'label' => 'name',
+                            'value' => false,
+                        ],
+                    ],
+                ],
+            ],
+            [
+                [
+                    'type' => SingleLineText::class,
+                    'name' => Craft::t('formie', 'Card Number'),
+                    'required' => true,
+                    'placeholder' => '•••• •••• •••• ••••',
+                    'inputAttributes' => [
+                        [
+                            'label' => 'data-opayo-card',
+                            'value' => 'card-number',
+                        ],
+                        [
+                            'label' => 'name',
+                            'value' => false,
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => Craft::t('formie', 'Expiry'),
+                    'required' => true,
+                    'placeholder' => 'MMYY',
+                    'inputAttributes' => [
+                        [
+                            'label' => 'data-opayo-card',
+                            'value' => 'expiry-date',
+                        ],
+                        [
+                            'label' => 'name',
+                            'value' => false,
+                        ],
+                    ],
+                ],
+                [
+                    'type' => SingleLineText::class,
+                    'name' => Craft::t('formie', 'CVC'),
+                    'required' => true,
+                    'placeholder' => '•••',
+                    'inputAttributes' => [
+                        [
+                            'label' => 'data-opayo-card',
+                            'value' => 'security-code',
+                        ],
+                        [
+                            'label' => 'name',
+                            'value' => false,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($rowConfigs as $key => $rowConfig) {
+            foreach ($rowConfig as $config) {
+                $subField = Component::createComponent($config, FormFieldInterface::class);
+
+                // Ensure we set the parent field instance to handle the nested nature of subfields
+                $subField->setParentField($field);
+
+                $subFields[$key][] = $subField;
+            }
+        }
+
+        $event = new ModifyFrontEndSubfieldsEvent([
+            'field' => $this,
+            'rows' => $subFields,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
+
+        return $event->rows;
+    }
+
 
     // Private Methods
     // =========================================================================
 
-    private function _getPayload(string $opayoSessionKey, string $opayoTokenId, Submission $submission, string $amount, string $currency): array
+    private function _getPayload(string $opayoSessionKey, string $opayoTokenId, Submission $submission, int $amount, string $currency): array
     {
         $payload = [
             'transactionType' => 'Payment',
@@ -560,6 +676,7 @@ class Opayo extends Payment
 
             $fullName = $this->getMappedFieldValue($billingName, $submission, $integrationField);
         } else {
+            // Values required by API
             $fullName = ['firstName' => 'Customer', 'lastName' => 'Name'];
         }
 
@@ -572,6 +689,7 @@ class Opayo extends Payment
 
             $address = $this->getMappedFieldValue($billingAddress, $submission, $integrationField);
         } else {
+            // Values required by API
             $address = [
                 'address1' => '407 St. John Street',
                 'city' => 'London',
@@ -584,9 +702,6 @@ class Opayo extends Payment
         $payload['billingAddress']['city'] = ArrayHelper::remove($address, 'city');
         $payload['billingAddress']['postalCode'] = ArrayHelper::remove($address, 'zip');
         $payload['billingAddress']['country'] = ArrayHelper::remove($address, 'country');
-
-        $payload['billingAddress']['address1'] = '88';
-        $payload['billingAddress']['postalCode'] = '412';
 
         return $payload;
     }

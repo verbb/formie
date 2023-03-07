@@ -1339,3 +1339,46 @@
   background-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' focusable='false' data-prefix='far' data-icon='times' class='svg-inline--fa fa-times fa-w-10' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='currentColor' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
   background-image: var(--fui-signature-remove-btn-icon-bg-image);
 }
+
+.fui-modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  overflow-y: auto;
+  transition: opacity 100ms linear, visibility 100ms 0s linear;
+  display: flex;
+  align-items: center;
+  visibility: hidden;
+  opacity: 0;
+  will-change: opacity;
+}
+.fui-modal.is-open {
+  visibility: visible;
+  transition: opacity 100ms linear, visibility 0s linear;
+  opacity: 1;
+}
+
+.fui-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 1;
+}
+
+.fui-modal-content {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  padding: 1rem;
+  width: 90%;
+  height: 90%;
+  max-width: 50rem;
+  max-height: 40rem;
+  margin: auto;
+  border-radius: 4px;
+}

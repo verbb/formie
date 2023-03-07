@@ -124,6 +124,20 @@ class Payment extends FormField
     /**
      * @inheritDoc
      */
+    public function getFrontEndSubfields($context): array
+    {
+        $integration = $this->getPaymentIntegration();
+
+        if (!$integration) {
+            return null;
+        }
+
+        return $integration->getFrontEndSubfields($this, $context);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getPaymentIntegration(): ?IntegrationInterface
     {
         if (!$this->paymentIntegration) {

@@ -1,6 +1,6 @@
 import { eventKey } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
-import MicroModal from 'micromodal';
+import { dialog } from '@rynpsc/dialog';
 
 export class FormieOpayo extends FormiePaymentProvider {
     constructor(settings = {}) {
@@ -9,15 +9,7 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.$field = settings.$field;
-        this.$input = this.$field.querySelector('[data-fui-opayo-button]');
 
-        if (!this.$input) {
-            console.error('Unable to find Opayo placeholder for [data-fui-opayo-button]');
-
-            return;
-        }
-
-        this.merchantSessionKey = settings.merchantSessionKey;
         this.useSandbox = settings.useSandbox;
         this.currency = settings.currency;
         this.amountType = settings.amountType;
@@ -25,13 +17,12 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.amountVariable = settings.amountVariable;
         this.opayoScriptId = 'FORMIE_OPAYO_SCRIPT';
 
-        if (!this.merchantSessionKey) {
-            console.error('Missing merchantSessionKey for Opayo.');
-
-            return;
-        }
-
         this.initField();
+
+        // document.querySelector('[data-opayo-card="cardholder-name"]').value = 'CHALLENGE';
+        // document.querySelector('[data-opayo-card="card-number"]').value = '4929000000006';
+        // document.querySelector('[data-opayo-card="expiry-date"]').value = '0126';
+        // document.querySelector('[data-opayo-card="security-code"]').value = '123';
     }
 
     initField() {
@@ -50,14 +41,7 @@ export class FormieOpayo extends FormiePaymentProvider {
             $script.async = true;
             $script.defer = true;
 
-            // Wait until Opayo.js has loaded, then initialize
-            $script.onload = () => {
-                this.mountCard();
-            };
-
             document.body.appendChild($script);
-        } else {
-            this.mountCard();
         }
 
         // Attach custom event listeners on the form
@@ -67,18 +51,6 @@ export class FormieOpayo extends FormiePaymentProvider {
 
         // Listen to events sent from the iframe to complete 3DS challenge
         window.addEventListener('message', this.onMessage.bind(this), false);
-    }
-
-    mountCard() {
-        try {
-            this.provider = sagepayOwnForm({
-                merchantSessionKey: this.merchantSessionKey,
-            });
-        } catch (ex) {
-            console.error(ex);
-
-            this.addError(ex);
-        }
     }
 
     onValidate(e) {
@@ -95,35 +67,74 @@ export class FormieOpayo extends FormiePaymentProvider {
 
         this.removeError();
 
-        const self = this;
-
         try {
-            this.provider.tokeniseCardDetails({
-                cardDetails: {
-                    cardholderName: 'CHALLENGE',
-                    cardNumber: '4929000000006',
-                    expiryDate: '0126',
-                    securityCode: '123',
-                },
+            // Fetch/generate the merchant ID first via an Ajax request
+            const action = this.$form.getAttribute('action');
 
-                onTokenised(result) {
-                    if (result.success) {
-                        // Append an input so it's not namespaced with Twig
-                        self.updateInputs('opayoTokenId', result.cardIdentifier);
-                        self.updateInputs('opayoSessionKey', self.merchantSessionKey);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', action ? action : window.location.href, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.setRequestHeader('Cache-Control', 'no-cache');
 
-                        self.submitHandler.submitForm();
-                    } else {
-                        console.error(result);
+            xhr.ontimeout = () => {
+                self.addError(t('The request timed out.'));
+            };
 
-                        self.addError(result.errors[0].message);
+            xhr.onerror = (e) => {
+                self.addError(t('The request encountered a network error. Please try again.'));
+            };
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+
+                        // Get the data from the client
+                        const cardDetails = {
+                            cardholderName: this.$field.querySelector('[data-opayo-card="cardholder-name"]').value,
+                            cardNumber: this.$field.querySelector('[data-opayo-card="card-number"]').value,
+                            expiryDate: this.$field.querySelector('[data-opayo-card="expiry-date"]').value,
+                            securityCode: this.$field.querySelector('[data-opayo-card="security-code"]').value,
+                        };
+
+                        // With the `merchantSessionKey`, now tokenize the credit card form and trigger submit
+                        sagepayOwnForm({
+                            merchantSessionKey: response.merchantSessionKey,
+                        }).tokeniseCardDetails({
+                            cardDetails,
+
+                            onTokenised: (result) => {
+                                if (result.success) {
+                                    // Append an input so it's not namespaced with Twig
+                                    this.updateInputs('opayoTokenId', result.cardIdentifier);
+                                    this.updateInputs('opayoSessionKey', response.merchantSessionKey);
+
+                                    this.submitHandler.submitForm();
+                                } else {
+                                    console.error(result);
+
+                                    this.addError(result.errors[0].message);
+                                }
+                            },
+                        });
+                    } catch (e) {
+                        this.addError(t('Unable to parse response `{e}`.', { e }));
                     }
-                },
-            });
+                } else {
+                    this.addError(`${xhr.status}: ${xhr.statusText}`);
+                }
+            };
+
+            const data = new FormData();
+            data.append('action', 'formie/payment-webhooks/process-callback');
+            data.append('merchantSessionKey', true);
+
+            xhr.send(data);
         } catch (ex) {
             console.error(ex);
 
-            self.addError(ex);
+            this.addError(ex);
         }
     }
 
@@ -140,11 +151,13 @@ export class FormieOpayo extends FormiePaymentProvider {
     }
 
     onMessage(e) {
-        console.log(e);
-
         // Check this is the correct message
         if (e.data.message !== 'FormiePaymentOpayo3DSResponse') {
             return;
+        }
+
+        if (this.dialog) {
+            this.dialog.close();
         }
 
         this.removeError();
@@ -162,77 +175,65 @@ export class FormieOpayo extends FormiePaymentProvider {
     }
 
     onValidate3DS(e) {
-        const { data } = e.detail;
+        try {
+            const { data } = e.detail;
 
-        // Keep the spinner going for 3DS
-        this.addLoading();
+            // Keep the spinner going for 3DS
+            this.addLoading();
 
-        // MicroModal.init();
+            const dialogId = `fui-opayo-dialog-${(Math.random() + 1).toString(36).substring(7)}`;
 
+            const $dialog = document.createElement('div');
+            $dialog.setAttribute('class', 'fui-modal');
+            $dialog.setAttribute('id', dialogId);
 
-        console.log(data);
+            const $dialogBackdrop = document.createElement('div');
+            $dialogBackdrop.setAttribute('class', 'fui-modal-backdrop');
+            $dialogBackdrop.setAttribute('data-dialog-close', 'dialog');
+            $dialog.appendChild($dialogBackdrop);
 
-        const inputs = `<input type="hidden" name="creq" value="${data.creq}" />
-             <input type="hidden" name="threeDSSessionData" value="${data.threeDSSessionData}" />
-             <input type="hidden" name="MD" value="${this.merchantSessionKey}" />
-             <input type="hidden" name="TermUrl" value="${data.redirectUrl}" />
-             <input type="hidden" name="ThreeDSNotificationURL" value="${data.redirectUrl}" />`;
+            const $dialogContent = document.createElement('div');
+            $dialogContent.setAttribute('class', 'fui-modal-content');
+            $dialog.appendChild($dialogContent);
 
-        const iframe = document.createElement('iframe');
-        const html = `<form action="${data.acsUrl}" method="post">${inputs}</form><script>document.forms[0].submit();</script>`;
+            const $dialogLoading = document.createElement('div');
+            $dialogLoading.setAttribute('class', 'fui-loading fui-loading-large');
+            $dialogLoading.setAttribute('style', '--fui-loading-width: 3rem; --fui-loading-height: 3rem; --fui-loading-border-width: 4px; top: 50%; margin-top: -1.5rem;');
+            $dialogContent.appendChild($dialogLoading);
 
-        document.querySelector('.iframe-placeholder').appendChild(iframe);
+            const $iframe = document.createElement('iframe');
+            $iframe.setAttribute('width', '100%');
+            $iframe.setAttribute('height', '100%');
+            $iframe.setAttribute('style', 'width: 100%; height: 100%; position: relative; z-index: 1;');
 
-        iframe.contentWindow.document.open();
-        iframe.contentWindow.document.write(html);
-        iframe.contentWindow.document.close();
+            const html = `<form action="${data.acsUrl}" method="post">
+                <input type="hidden" name="creq" value="${data.creq}" />
+                <input type="hidden" name="threeDSSessionData" value="${data.threeDSSessionData}" />
+                <input type="hidden" name="MD" value="${this.merchantSessionKey}" />
+                <input type="hidden" name="TermUrl" value="${data.redirectUrl}" />
+                <input type="hidden" name="ThreeDSNotificationURL" value="${data.redirectUrl}" />
+            </form>
+            <script>document.forms[0].submit();</script>`;
 
+            $dialogContent.appendChild($iframe);
+            document.body.appendChild($dialog);
 
-        // const form = document.createElement('form');
-        // form.action = data.acsUrl;
-        // form.method = 'post';
-        // form.innerHTML = `${data.inputs}<p>Please click button below to proceed to 3D secure.</p> <input type="submit" value="Go"/>`;
+            $iframe.contentWindow.document.open();
+            $iframe.contentWindow.document.write(html);
+            $iframe.contentWindow.document.close();
 
-        // document.body.appendChild(form);
+            this.dialog = dialog(dialogId);
 
-        // if (this.form.formTheme) {
-        //     this.form.formTheme.updateFormHash();
-        // }
+            if (this.dialog) {
+                this.dialog.create();
 
-        // form.submit();
+                this.dialog.open();
+            }
+        } catch (ex) {
+            console.error(ex);
 
-
-        // if (data.subscription_id) {
-        //     this.stripe.handleCardPayment(data.client_secret).then((result) => {
-        //         this.removeError();
-
-        //         if (result.error) {
-        //             this.removeLoading();
-
-        //             return this.addError(result.error.message);
-        //         }
-
-        //         // Append an input so it's not namespaced with Twig
-        //         this.updateInputs('stripeSubscriptionId', data.subscription_id);
-
-        //         this.submitHandler.submitForm();
-        //     });
-        // } else {
-        //     this.stripe.handleCardAction(data.client_secret).then((result) => {
-        //         this.removeError();
-
-        //         if (result.error) {
-        //             this.removeLoading();
-
-        //             return this.addError(result.error.message);
-        //         }
-
-        //         // Append an input so it's not namespaced with Twig
-        //         this.updateInputs('stripePaymentIntentId', result.paymentIntent.id);
-
-        //         this.submitHandler.submitForm();
-        //     });
-        // }
+            self.addError(ex);
+        }
     }
 
     onAfterSubmit(e) {
