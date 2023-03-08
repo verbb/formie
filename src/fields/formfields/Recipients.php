@@ -258,6 +258,8 @@ class Recipients extends FormField
         }
 
         if ($this->displayType === 'hidden') {
+            unset($config['options']);
+            
             return new HiddenField($config);
         }
 
