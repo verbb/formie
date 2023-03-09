@@ -144,6 +144,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
+                } else {
+                    // If DateTime cast failed, fall back to empty default
+                    $this->defaultValue = null;
                 }
             } else {
                 $this->defaultValue = null;
@@ -1360,7 +1363,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         $options = [['value' => '', 'label' => '', 'disabled' => true]];
 
-        for ($i = $start; $i <= $end; $i++) { 
+        for ($i = $start; $i <= $end; $i++) {
             $options[] = ['label' => $i, 'value' => $i];
         }
 
