@@ -1,27 +1,19 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
-use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
-use verbb\formie\Formie;
-use verbb\formie\base\Crm;
-use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
-
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
-
 use TheNetworg\OAuth2\Client\Provider\Azure;
+use verbb\formie\base\Crm;
+use verbb\formie\base\Integration;
+use verbb\formie\elements\Submission;
+use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
+use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
+use verbb\formie\Formie;
+use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 class MicrosoftDynamics365 extends Crm
 {
@@ -31,6 +23,7 @@ class MicrosoftDynamics365 extends Crm
     public $clientId;
     public $clientSecret;
     public $apiDomain;
+    public $apiVersion = 'v9.0';
     public $mapToContact = false;
     public $mapToLead = false;
     public $mapToOpportunity = false;
@@ -357,9 +350,10 @@ class MicrosoftDynamics365 extends Crm
 
         $token = $this->getToken();
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
+        $apiVersion = $this->apiVersion;
 
         $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/api/data/v9.0/",
+            'base_uri' => "$url/api/data/$apiVersion/",
             'headers' => [
                 'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
@@ -381,7 +375,7 @@ class MicrosoftDynamics365 extends Crm
 
                 // Then try again, with the new access token
                 $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "$url/api/data/v9.0/",
+                    'base_uri' => "$url/api/data/$apiVersion/",
                     'headers' => [
                         'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
