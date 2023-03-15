@@ -109,6 +109,37 @@ Old | What to do instead
 | `options.id` | `field.getHtmlId(form)`
 | `options.dataId` | `field.getHtmlDataId(form)`
 
+### Form Render Options
+The `formClasses`, `formDataAttributes` and `formAttributes` have now been replaced with [Theme Config](docs:theming/theme-config).
+
+```twig
+{# Formie v1 #}
+{{ craft.formie.renderForm('contactForm', {
+    formClasses: 'some-class',
+    formDataAttributes: {
+        'form-id': 'contact',
+    },
+    formAttributes: {
+        class: ['custom-form', 'another-class'],
+        'data-site-form': true,
+    },
+}) }}
+
+{# Formie v2 #}
+{{ craft.formie.renderForm('contactForm', {
+    themeConfig: {
+        form: {
+            attributes: {
+                'data-site-form': true,
+                'data-form-id': 'contact',
+                'class': ['custom-form', 'another-class', 'some-class'],
+            },
+        },
+    },
+}) }}
+```
+
+
 ### `name` HTML attribute
 Without a correct `name` attribute on inputs, your content will fail to save. Previously, templates used the `field.handle`, but this can lead to complications when used in nested fields such as a Group. This is compounded in Formie v2 where the same fields are also used in sub-field compatible fields like Address and multi-Name fields (for example, where a Single-Line Text is also used).
 
