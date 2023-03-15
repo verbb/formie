@@ -1,27 +1,19 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
-use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
-use verbb\formie\Formie;
-use verbb\formie\base\Crm;
-use verbb\formie\base\Integration;
-use verbb\formie\elements\Form;
-use verbb\formie\elements\Submission;
-use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\models\IntegrationCollection;
-use verbb\formie\models\IntegrationField;
-use verbb\formie\models\IntegrationFormSettings;
-
 use Craft;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
-use craft\web\View;
-
 use TheNetworg\OAuth2\Client\Provider\Azure;
+use verbb\formie\base\Crm;
+use verbb\formie\base\Integration;
+use verbb\formie\elements\Submission;
+use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
+use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
+use verbb\formie\Formie;
+use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 class MicrosoftDynamics365 extends Crm
 {
@@ -369,11 +361,7 @@ class MicrosoftDynamics365 extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'contacts', [
-                'query' => [
-                    '$top' => '1',
-                ],
-            ]);
+            $this->request('GET', 'WhoAmI');
         } catch (\Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
