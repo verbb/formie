@@ -23,6 +23,7 @@ class MicrosoftDynamics365 extends Crm
     public $clientId;
     public $clientSecret;
     public $apiDomain;
+    public $apiVersion = 'v9.0';
     public $mapToContact = false;
     public $mapToLead = false;
     public $mapToOpportunity = false;
@@ -349,9 +350,10 @@ class MicrosoftDynamics365 extends Crm
 
         $token = $this->getToken();
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
+        $apiVersion = $this->apiVersion;
 
         $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/api/data/v9.0/",
+            'base_uri' => "$url/api/data/$apiVersion/",
             'headers' => [
                 'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
@@ -369,7 +371,7 @@ class MicrosoftDynamics365 extends Crm
 
                 // Then try again, with the new access token
                 $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "$url/api/data/v9.0/",
+                    'base_uri' => "$url/api/data/$apiVersion/",
                     'headers' => [
                         'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',

@@ -942,6 +942,8 @@ return [
     'Choose how your form fields should map to your {name} Ticket fields.' => 'Choose how your form fields should map to your {name} Ticket fields.',
     'Domain' => 'Domain',
     'Enter your full {name} Domain here. e.g. `https://example.freshdesk.com`' => 'Enter your full {name} Domain here. e.g. `https://example.freshdesk.com`',
+    'API version' => 'API version',
+    'Set a specific web API version to use with Microsoft Dynamics 365 Web API requests.' => 'Set a specific web API version to use with Microsoft Dynamics 365 Web API requests.',
     'Map to Opportunity' => 'Map to Opportunity',
     'Whether to map form data to {name} Opportunitys.' => 'Whether to map form data to {name} Opportunitys.',
     'Opportunity Field Mapping' => 'Opportunity Field Mapping',

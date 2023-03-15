@@ -42,6 +42,12 @@
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
+
+### Optional: Microsoft Dynamics 365 Web API version
+
+The Microsoft Dynamics 365 Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all Microsoft Dynamics 365 Web API requests will use this API version in the request URI.
+
+For compatibility, the default setting is v9.0. This has been the value used in the Microsoft Dynamics 365 CRM integration prior to this being customisable.
 {% endset %}
 
 <div class="fui-settings-block">
@@ -92,4 +98,18 @@
     value: integration.settings.apiDomain ?? '',
     warning: macros.configWarning('apiDomain', 'formie'),
     errors: integration.getErrors('apiDomain'),
+}) }}
+
+{{ forms.selectField({
+    label: 'API version' | t('formie'),
+    instructions: 'Set a specific web API version to use with Microsoft Dynamics 365 Web API requests.' | t('formie'),
+    name: 'apiVersion',
+    options: [
+        { label: '9.0', value: 'v9.0'},
+        { label: '9.1', value: 'v9.1'},
+        { label: '9.2', value: 'v9.2'}
+    ],
+    value: integration.settings.apiVersion ?? 'v9.0',
+    warning: macros.configWarning('apiVersion', 'formie'),
+    errors: integration.getErrors('apiVersion'),
 }) }}
