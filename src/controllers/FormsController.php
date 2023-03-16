@@ -380,7 +380,7 @@ class FormsController extends Controller
         ];
 
         // Add captchas into the payload
-        $formHandle = $request->getParam('form');
+        $formHandle = $request->getRequiredParam('form');
         $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         // Force fetch captchas because we're dealing with potential ajax forms
         // Normally, this function returns only if the `showAllPages` property is set.
@@ -397,7 +397,7 @@ class FormsController extends Controller
 
     public function actionGetExistingFields(): Response
     {
-        $formId = Craft::$app->getRequest()->getParam('formId');
+        $formId = Craft::$app->getRequest()->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
         $existingFields = Formie::$plugin->getFields()->getExistingFields($form);
@@ -407,7 +407,7 @@ class FormsController extends Controller
 
     public function actionGetExistingNotifications(): Response
     {
-        $formId = Craft::$app->getRequest()->getParam('formId');
+        $formId = Craft::$app->getRequest()->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
         $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
