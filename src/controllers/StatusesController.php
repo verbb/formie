@@ -77,10 +77,10 @@ class StatusesController extends Controller
 
         // Save it
         if (Formie::$plugin->getStatuses()->saveStatus($status)) {
-            Craft::$app->getSession()->setNotice(Craft::t('formie', 'Status saved.'));
+            $this->setSuccessFlash(Craft::t('formie', 'Status saved.'));
             $this->redirectToPostedUrl($status);
         } else {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save status.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save status.'));
         }
 
         Craft::$app->getUrlManager()->setRouteParams(compact('status'));

@@ -106,10 +106,10 @@ class FormTemplatesController extends Controller
                 FileHelper::copyTemplateDirectory('@verbb/formie/templates/_special/form-template', $template->template);
             }
 
-            Craft::$app->getSession()->setNotice(Craft::t('formie', 'Template saved.'));
+            $this->setSuccessFlash(Craft::t('formie', 'Template saved.'));
             $this->redirectToPostedUrl($template);
         } else {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save template.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save template.'));
         }
 
         Craft::$app->getUrlManager()->setRouteParams(compact('template'));

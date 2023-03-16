@@ -210,7 +210,7 @@ class StencilsController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save stencil.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save stencil.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $stencil,
@@ -245,7 +245,7 @@ class StencilsController extends Controller
             ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Stencil saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Stencil saved.'));
 
         return $this->redirectToPostedUrl($stencil);
     }

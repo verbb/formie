@@ -58,7 +58,7 @@ class SupportController extends Controller
         $support->attachments = UploadedFile::getInstancesByName('attachments');
 
         if (!$support->validate()) {
-            Craft::$app->getSession()->setError(Craft::t('app', 'An error occurred.'));
+            $this->setFailFlash(Craft::t('app', 'An error occurred.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'support' => $support,
@@ -250,7 +250,7 @@ class SupportController extends Controller
 
             Formie::error($message);
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'An error occurred.'));
+            $this->setFailFlash(Craft::t('formie', 'An error occurred.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'support' => $support,
@@ -265,7 +265,7 @@ class SupportController extends Controller
             FileHelper::unlink($zipPath);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Support request sent successfully.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Support request sent successfully.'));
 
         return $this->redirectToPostedUrl();
     }

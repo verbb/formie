@@ -94,7 +94,7 @@ class SentNotificationsController extends Controller
         if (!$sentNotification) {
             $error = Craft::t('formie', 'Sent Notification not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -104,7 +104,7 @@ class SentNotificationsController extends Controller
         if (!$emails) {
             $error = Craft::t('formie', 'No recipients provided.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -119,7 +119,7 @@ class SentNotificationsController extends Controller
             if (!(new EmailValidator())->validate($email)) {
                 $error = Craft::t('formie', 'Some Recipients are invalid.');
 
-                Craft::$app->getSession()->setError($error);
+                $this->setFailFlash($error);
 
                 return $this->asFailure($error);
             }
@@ -131,7 +131,7 @@ class SentNotificationsController extends Controller
         if (!Craft::$app->getMailer()->send($newEmail)) {
             $error = Craft::t('formie', 'Notification email could not be sent.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -141,7 +141,7 @@ class SentNotificationsController extends Controller
 
         $message = Craft::t('formie', 'Notification email was resent successfully.');
 
-        Craft::$app->getSession()->setNotice($message);
+        $this->setSuccessFlash($message);
 
         return $this->asJson([
             'success' => true,
@@ -160,7 +160,7 @@ class SentNotificationsController extends Controller
         if (!$ids) {
             $error = Craft::t('formie', 'No Notifications selected.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -172,7 +172,7 @@ class SentNotificationsController extends Controller
         if (!$sentNotifications) {
             $error = Craft::t('formie', 'Sent Notification not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -186,7 +186,7 @@ class SentNotificationsController extends Controller
                 if (!$emails) {
                     $error = Craft::t('formie', 'No recipients provided.');
 
-                    Craft::$app->getSession()->setError($error);
+                    $this->setFailFlash($error);
 
                     return $this->asFailure($error);
                 }
@@ -201,7 +201,7 @@ class SentNotificationsController extends Controller
                     if (!(new EmailValidator())->validate($email)) {
                         $error = Craft::t('formie', 'Some Recipients are invalid.');
 
-                        Craft::$app->getSession()->setError($error);
+                        $this->setFailFlash($error);
 
                         return $this->asFailure($error);
                     }
@@ -214,7 +214,7 @@ class SentNotificationsController extends Controller
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('formie', 'Notification email {id} could not be sent.', ['id' => $sentNotification->id]);
 
-                Craft::$app->getSession()->setError($error);
+                $this->setFailFlash($error);
 
                 return $this->asFailure($error);
             }
@@ -225,7 +225,7 @@ class SentNotificationsController extends Controller
 
         $message = Craft::t('formie', '{count} notification emails resent successfully.', ['count' => count($ids)]);
 
-        Craft::$app->getSession()->setNotice($message);
+        $this->setSuccessFlash($message);
 
         return $this->asJson([
             'success' => true,
@@ -252,7 +252,7 @@ class SentNotificationsController extends Controller
                 return $this->asJson(['success' => false]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('app', 'Couldn’t delete sent notification.'));
+            $this->setFailFlash(Craft::t('app', 'Couldn’t delete sent notification.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'sentNotification' => $sentNotification,
@@ -265,7 +265,7 @@ class SentNotificationsController extends Controller
             return $this->asJson(['success' => true]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('app', 'Sent Notification deleted.'));
+        $this->setSuccessFlash(Craft::t('app', 'Sent Notification deleted.'));
 
         return $this->redirectToPostedUrl($sentNotification);
     }

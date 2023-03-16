@@ -340,7 +340,7 @@ class SubmissionsController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission due to errors.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save submission due to errors.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $submission->getForm(),
@@ -366,7 +366,7 @@ class SubmissionsController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save submission.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save submission.'));
 
             // Send the submission back to the template
             Craft::$app->getUrlManager()->setRouteParams([
@@ -424,7 +424,7 @@ class SubmissionsController extends Controller
             ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Submission saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Submission saved.'));
 
         return $this->redirectToPostedUrl($submission);
     }
@@ -798,7 +798,7 @@ class SubmissionsController extends Controller
                 return $this->asJson(['success' => false]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('app', 'Couldn’t delete submission.'));
+            $this->setFailFlash(Craft::t('app', 'Couldn’t delete submission.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'submission' => $submission,
@@ -811,7 +811,7 @@ class SubmissionsController extends Controller
             return $this->asJson(['success' => true]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('app', 'Submission deleted.'));
+        $this->setSuccessFlash(Craft::t('app', 'Submission deleted.'));
 
         return $this->redirectToPostedUrl($submission);
     }
@@ -858,7 +858,7 @@ class SubmissionsController extends Controller
         if (!$notification) {
             $error = Craft::t('formie', 'Notification not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -866,7 +866,7 @@ class SubmissionsController extends Controller
         if (!$submission) {
             $error = Craft::t('formie', 'Submission not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -875,7 +875,7 @@ class SubmissionsController extends Controller
 
         $message = Craft::t('formie', 'Email Notification was sent successfully.');
 
-        Craft::$app->getSession()->setNotice($message);
+        $this->setSuccessFlash($message);
 
         return $this->asJson([
             'success' => true,
@@ -896,7 +896,7 @@ class SubmissionsController extends Controller
         if (!$submission) {
             $error = Craft::t('formie', 'Submission not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -923,7 +923,7 @@ class SubmissionsController extends Controller
         if (!$resolvedIntegration) {
             $error = Craft::t('formie', 'Integration not found.');
 
-            Craft::$app->getSession()->setError($error);
+            $this->setFailFlash($error);
 
             return $this->asFailure($error);
         }
@@ -933,7 +933,7 @@ class SubmissionsController extends Controller
         if (!$result) {
             $message = Craft::t('formie', 'Integration failed to run.');
 
-            Craft::$app->getSession()->setError($message);
+            $this->setFailFlash($message);
 
             return $this->asJson([
                 'success' => false,
@@ -942,7 +942,7 @@ class SubmissionsController extends Controller
 
         $message = Craft::t('formie', 'Integration was run successfully.');
 
-        Craft::$app->getSession()->setNotice($message);
+        $this->setSuccessFlash($message);
 
         return $this->asJson([
             'success' => true,

@@ -40,7 +40,7 @@ class MigrationsController extends Controller
         $outputs = [];
 
         if (!$forms) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'No forms selected.'));
+            $this->setFailFlash(Craft::t('formie', 'No forms selected.'));
 
             return;
         }
@@ -63,7 +63,7 @@ class MigrationsController extends Controller
             'outputs' => $outputs,
         ]);
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Forms migrated.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Forms migrated.'));
     }
 
     /**
@@ -90,7 +90,7 @@ class MigrationsController extends Controller
         $outputs = [];
 
         if (!$forms) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'No forms selected.'));
+            $this->setFailFlash(Craft::t('formie', 'No forms selected.'));
 
             return;
         }
@@ -113,6 +113,6 @@ class MigrationsController extends Controller
             'outputs' => $outputs,
         ]);
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Forms migrated.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Forms migrated.'));
     }
 }

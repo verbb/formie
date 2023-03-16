@@ -257,7 +257,7 @@ class IntegrationsController extends Controller
 
             // Show an error when connecting to OAuth, instead of just in logs
             $session->setFlash('formie-error', $errorMsg);
-            $session->setError(Craft::t('formie', 'Unable to connect to “{name}”.', [
+            $this->setFailFlash(Craft::t('formie', 'Unable to connect to “{name}”.', [
                 'name' => $integration->name,
             ]));
 
@@ -284,7 +284,7 @@ class IntegrationsController extends Controller
             ]);
         }
 
-        $session->setNotice(Craft::t('formie', '“{name}” disconnected.', [
+        $this->setSuccessFlash(Craft::t('formie', '“{name}” disconnected.', [
             'name' => $integration->name,
         ]));
 
@@ -323,8 +323,6 @@ class IntegrationsController extends Controller
 
     private function _createToken($response, $integration): ?Response
     {
-        $session = Craft::$app->getSession();
-
         $token = new Token();
         $token->type = $integration::class;
 
@@ -359,7 +357,7 @@ class IntegrationsController extends Controller
             ]);
 
             Formie::error($error);
-            $session->setError($error);
+            $this->setFailFlash($error);
 
             return null;
         }
@@ -370,14 +368,14 @@ class IntegrationsController extends Controller
             ]);
 
             Formie::error($error);
-            $session->setError($error);
+            $this->setFailFlash($error);
 
             return null;
         }
 
         $this->_cleanSession();
 
-        $session->setNotice(Craft::t('formie', '“{name}” connected.', [
+        $this->setSuccessFlash(Craft::t('formie', '“{name}” connected.', [
             'name' => $integration->name,
         ]));
 
@@ -386,8 +384,6 @@ class IntegrationsController extends Controller
 
     private function _deleteToken($integration): void
     {
-        $session = Craft::$app->getSession();
-
         // It's okay if this fails. Maybe this token doesn't exist on this environment?
         Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId);
 
@@ -398,7 +394,7 @@ class IntegrationsController extends Controller
             ]);
 
             Formie::error($error);
-            $session->setError($error);
+            $this->setFailFlash($error);
         }
     }
 

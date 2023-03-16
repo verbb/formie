@@ -93,7 +93,7 @@ class SettingsController extends Controller
         $settings->setAttributes($request->getParam('settings'), false);
 
         if (!$settings->validate()) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'settings' => $settings,
@@ -105,7 +105,7 @@ class SettingsController extends Controller
         $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Formie::$plugin, $settings->toArray());
 
         if (!$pluginSettingsSaved) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save settings.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save settings.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'settings' => $settings,
@@ -114,7 +114,7 @@ class SettingsController extends Controller
             return null;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Settings saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
     }

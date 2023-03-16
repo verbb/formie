@@ -50,12 +50,12 @@ class IntegrationSettingsController extends Controller
         }
 
         if ($errors) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save integration settings.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save integration settings.'));
 
             return null;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Integration settings saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Integration settings saved.'));
 
         return $this->redirectToPostedUrl();
     }

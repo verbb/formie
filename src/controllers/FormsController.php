@@ -183,7 +183,7 @@ class FormsController extends Controller
                 return $this->asJson($json);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save form.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -212,7 +212,7 @@ class FormsController extends Controller
             ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Form saved.'));
 
         return $this->redirectToPostedUrl($form);
     }
@@ -287,7 +287,7 @@ class FormsController extends Controller
                 ]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save stencil.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save stencil.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $stencil,
@@ -313,7 +313,7 @@ class FormsController extends Controller
             ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Stencil saved.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Stencil saved.'));
 
         return $this->redirectToPostedUrl($stencil);
     }
@@ -340,7 +340,7 @@ class FormsController extends Controller
                 return $this->asJson(['success' => false]);
             }
 
-            Craft::$app->getSession()->setError(Craft::t('app', 'Couldn’t delete form.'));
+            $this->setFailFlash(Craft::t('app', 'Couldn’t delete form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -349,7 +349,7 @@ class FormsController extends Controller
             return null;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('app', 'Form deleted.'));
+        $this->setSuccessFlash(Craft::t('app', 'Form deleted.'));
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');

@@ -39,7 +39,7 @@ class ImportExportController extends Controller
         $uploadedFile = UploadedFile::getInstanceByName('file');
 
         if (!$uploadedFile) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'An error occurred.'));
+            $this->setFailFlash(Craft::t('formie', 'An error occurred.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'importError' => Craft::t('formie', 'You must upload a file.'),
@@ -172,7 +172,7 @@ class ImportExportController extends Controller
         }
 
         if (!Formie::$plugin->getForms()->saveForm($form)) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Unable to import form.'));
+            $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -182,7 +182,7 @@ class ImportExportController extends Controller
             return null;
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('formie', 'Form imported.'));
+        $this->setSuccessFlash(Craft::t('formie', 'Form imported.'));
 
         return $this->redirectToPostedUrl($form);
     }
@@ -200,7 +200,7 @@ class ImportExportController extends Controller
         $formId = $request->getRequiredParam('formId');
 
         if (!$formId) {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'An error occurred.'));
+            $this->setFailFlash(Craft::t('formie', 'An error occurred.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'exportError' => Craft::t('formie', 'You must select a form.'),

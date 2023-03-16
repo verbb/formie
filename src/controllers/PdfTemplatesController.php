@@ -88,10 +88,10 @@ class PdfTemplatesController extends Controller
 
         // Save it
         if (Formie::$plugin->getPdfTemplates()->saveTemplate($template)) {
-            Craft::$app->getSession()->setNotice(Craft::t('formie', 'Template saved.'));
+            $this->setSuccessFlash(Craft::t('formie', 'Template saved.'));
             $this->redirectToPostedUrl($template);
         } else {
-            Craft::$app->getSession()->setError(Craft::t('formie', 'Couldn’t save template.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn’t save template.'));
         }
 
         Craft::$app->getUrlManager()->setRouteParams(compact('template'));
