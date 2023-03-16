@@ -117,7 +117,7 @@ class IntegrationsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $integrationId = $request->getRequiredParam('id');
 
         Formie::$plugin->getIntegrations()->deleteIntegrationById($integrationId);
@@ -137,7 +137,7 @@ class IntegrationsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $handle = $request->getParam('integration');
 
         if (!$handle) {
@@ -154,7 +154,7 @@ class IntegrationsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $type = $request->getParam('type');
         $integrationId = $request->getParam('id');
 
@@ -184,7 +184,7 @@ class IntegrationsController extends Controller
 
     public function actionConnect(): Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $session = Craft::$app->getSession();
 
         $integrationId = $request->getParam('integrationId');
@@ -269,7 +269,7 @@ class IntegrationsController extends Controller
 
     public function actionDisconnect(): Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $session = Craft::$app->getSession();
 
         $integrationId = $request->getParam('integrationId');
@@ -293,7 +293,7 @@ class IntegrationsController extends Controller
 
     public function actionCallback(): Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $session = Craft::$app->getSession();
 
         $session->set('formie.callback', true);

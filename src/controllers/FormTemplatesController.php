@@ -79,7 +79,7 @@ class FormTemplatesController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $template = new FormTemplate();
         $template->id = $request->getBodyParam('id');
@@ -127,7 +127,7 @@ class FormTemplatesController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
+        $ids = Json::decode($this->request->getRequiredBodyParam('ids'));
 
         if (Formie::$plugin->getFormTemplates()->reorderTemplates($ids)) {
             return $this->asJson(['success' => true]);
@@ -145,7 +145,7 @@ class FormTemplatesController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $templateId = Craft::$app->getRequest()->getRequiredParam('id');
+        $templateId = $this->request->getRequiredParam('id');
 
         if (Formie::$plugin->getFormTemplates()->deleteTemplateById($templateId)) {
             return $this->asJson(['success' => true]);

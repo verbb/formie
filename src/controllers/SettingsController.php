@@ -86,7 +86,7 @@ class SettingsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();

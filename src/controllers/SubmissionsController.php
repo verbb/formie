@@ -204,7 +204,7 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
@@ -438,7 +438,7 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
@@ -711,7 +711,7 @@ class SubmissionsController extends Controller
 
     public function actionSetPage(): Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
@@ -748,7 +748,7 @@ class SubmissionsController extends Controller
     public function actionClearSubmission(): Response
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $handle = $request->getRequiredBodyParam('handle');
 
@@ -780,7 +780,7 @@ class SubmissionsController extends Controller
 
         $this->requirePermission('formie-editSubmissions');
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $submissionId = $request->getRequiredBodyParam('submissionId');
 
         $submission = Submission::find()
@@ -820,7 +820,7 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $view = $this->getView();
 
         $submission = Submission::find()
@@ -846,7 +846,7 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $notificationId = $request->getRequiredParam('notificationId');
         $notification = Formie::$plugin->getNotifications()->getNotificationById($notificationId);
@@ -886,7 +886,7 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $integrationId = $request->getRequiredParam('integrationId');
 
         $submission = Submission::find()
@@ -916,8 +916,8 @@ class SubmissionsController extends Controller
 
             // Add additional useful info for the integration
             // TODO: refactor this to allow integrations access to control this
-            $resolvedIntegration->referrer = Craft::$app->getRequest()->getReferrer();
-            $resolvedIntegration->ipAddress = Craft::$app->getRequest()->getUserIP();
+            $resolvedIntegration->referrer = $this->request->getReferrer();
+            $resolvedIntegration->ipAddress = $this->request->getUserIP();
         }
 
         if (!$resolvedIntegration) {
@@ -977,7 +977,7 @@ class SubmissionsController extends Controller
         }
 
         if ($this->request->getIsPost()) {
-            return Craft::$app->runAction(Craft::$app->getRequest()->getParam('action'));
+            return Craft::$app->runAction($this->request->getParam('action'));
         }
 
         // This is just a preflight request, no need to run the actual query yet
@@ -997,7 +997,7 @@ class SubmissionsController extends Controller
     private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = []): Response
     {
         // Try and get the redirect from the template, as it might've been altered in templates
-        $redirect = Craft::$app->getRequest()->getValidatedBodyParam('redirect');
+        $redirect = $this->request->getValidatedBodyParam('redirect');
 
         // Otherwise, use the form defined
         if (!$redirect) {
@@ -1023,7 +1023,7 @@ class SubmissionsController extends Controller
 
     private function _prepEditSubmissionVariables(array &$variables): void
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         // Get the site
         // ---------------------------------------------------------------------
@@ -1085,7 +1085,7 @@ class SubmissionsController extends Controller
 
     private function _populateSubmission($form, $isIncomplete = true): Submission
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $submissionId = $this->_getTypedParam('submissionId', 'id');
@@ -1184,7 +1184,7 @@ class SubmissionsController extends Controller
      */
     private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $value = $request->getParam($name);
 
         // Special case for `submitAction`, where we don't want just anything passed in to change behaviour

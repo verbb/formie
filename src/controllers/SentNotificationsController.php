@@ -62,7 +62,7 @@ class SentNotificationsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $view = $this->getView();
 
         $sentNotification = SentNotification::find()
@@ -85,7 +85,7 @@ class SentNotificationsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $sentNotification = SentNotification::find()
             ->id($request->getRequiredParam('id'))
@@ -152,7 +152,7 @@ class SentNotificationsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $ids = $request->getRequiredParam('ids');
         $recipientsType = $request->getRequiredParam('recipientsType');
@@ -236,7 +236,7 @@ class SentNotificationsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $sentNotificationId = $request->getRequiredBodyParam('sentNotificationId');
 
         $sentNotification = SentNotification::find()

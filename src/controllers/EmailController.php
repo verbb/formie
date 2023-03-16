@@ -21,7 +21,7 @@ class EmailController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $notification = new Notification();
         $submission = new Submission();
@@ -62,7 +62,7 @@ class EmailController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $notification = new Notification();
         $submission = new Submission();
@@ -89,7 +89,7 @@ class EmailController extends Controller
 
     private function _populateFromPost($notification, $submission): void
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $formId = $request->getParam('formId');
         $handle = $request->getParam('handle');
 

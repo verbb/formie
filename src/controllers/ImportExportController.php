@@ -35,7 +35,7 @@ class ImportExportController extends Controller
 
     public function actionImport(): ?Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $uploadedFile = UploadedFile::getInstanceByName('file');
 
         if (!$uploadedFile) {
@@ -61,7 +61,7 @@ class ImportExportController extends Controller
 
     public function actionImportConfigure($filename): ?Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
 
@@ -133,7 +133,7 @@ class ImportExportController extends Controller
 
     public function actionImportComplete(): ?Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
 
@@ -196,7 +196,7 @@ class ImportExportController extends Controller
 
     public function actionExport(): void
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $formId = $request->getRequiredParam('formId');
 
         if (!$formId) {

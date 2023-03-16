@@ -45,7 +45,7 @@ class SupportController extends Controller
 
         App::maxPowerCaptain();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $plugins = Craft::$app->getPlugins();
         $tempFolder = Craft::$app->getPath()->getTempPath();
         $backupPath = Craft::$app->getPath()->getDbBackupPath();
@@ -75,7 +75,7 @@ class SupportController extends Controller
         $message .= 'Craft ' . Craft::$app->getEditionName() . ' ' . Craft::$app->getVersion() . PHP_EOL;
         $message .= 'Formie: ' . Formie::$plugin->getVersion() . PHP_EOL;
         $message .= 'License: ' . $plugins->getPluginLicenseKey('formie') . ' - ' . $plugins->getPluginLicenseKeyStatus('formie') . PHP_EOL;
-        $message .= 'Domain: ' . Craft::$app->getRequest()->getHostInfo();
+        $message .= 'Domain: ' . $this->request->getHostInfo();
 
         $requestParams = [
             'firstName' => $user->getFriendlyName(),

@@ -34,7 +34,7 @@ class MigrationsController extends Controller
         // Backup!
         Craft::$app->getDb()->backup();
 
-        $formIds = Craft::$app->getRequest()->getParam('formIds');
+        $formIds = $this->request->getParam('formIds');
         $forms = SproutFormsForm::find()->id($formIds)->all();
 
         $outputs = [];
@@ -78,7 +78,7 @@ class MigrationsController extends Controller
         // Backup!
         Craft::$app->getDb()->backup();
 
-        $formIds = Craft::$app->getRequest()->getParam('formIds');
+        $formIds = $this->request->getParam('formIds');
 
         // Handle picking "all"
         if ($formIds === '*') {

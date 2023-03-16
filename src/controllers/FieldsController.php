@@ -45,7 +45,7 @@ class FieldsController extends Controller
         $elements = [];
 
         try {
-            $fieldData = Craft::$app->getRequest()->getParam('field');
+            $fieldData = $this->request->getParam('field');
             $type = $fieldData['type'];
             $fieldSettings = $fieldData['settings'];
 
@@ -69,7 +69,7 @@ class FieldsController extends Controller
 
     public function actionGetPredefinedOptions(): Response
     {
-        $type = Craft::$app->getRequest()->getParam('option');
+        $type = $this->request->getParam('option');
 
         $options = Formie::$plugin->getPredefinedOptions()->getPredefinedOptionsForType($type);
 
@@ -78,8 +78,8 @@ class FieldsController extends Controller
 
     public function actionGetSummaryHtml(): string
     {
-        $fieldId = Craft::$app->getRequest()->getParam('fieldId');
-        $submissionId = Craft::$app->getRequest()->getParam('submissionId');
+        $fieldId = $this->request->getParam('fieldId');
+        $submissionId = $this->request->getParam('submissionId');
 
         if ($submissionId && $fieldId) {
             $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
@@ -98,8 +98,8 @@ class FieldsController extends Controller
 
     public function actionGetSignatureImage(): ?Response
     {
-        $fieldId = Craft::$app->getRequest()->getParam('fieldId');
-        $submissionUid = Craft::$app->getRequest()->getParam('submissionUid');
+        $fieldId = $this->request->getParam('fieldId');
+        $submissionUid = $this->request->getParam('submissionUid');
 
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {

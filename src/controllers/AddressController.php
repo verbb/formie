@@ -42,7 +42,7 @@ class AddressController extends Controller
         // using an un-restricted API key, which is bad seeing as though it's publicly scrape-able.
         $this->requireAcceptsJson();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $guzzleClient = Craft::createGuzzleClient();
 
         try {

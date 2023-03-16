@@ -78,7 +78,7 @@ class EmailTemplatesController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $template = new EmailTemplate();
         $template->id = $request->getBodyParam('id');
@@ -114,7 +114,7 @@ class EmailTemplatesController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
+        $ids = Json::decode($this->request->getRequiredBodyParam('ids'));
 
         if (Formie::$plugin->getEmailTemplates()->reorderTemplates($ids)) {
             return $this->asJson(['success' => true]);
@@ -132,7 +132,7 @@ class EmailTemplatesController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $templateId = (int)Craft::$app->getRequest()->getRequiredParam('id');
+        $templateId = (int)$this->request->getRequiredParam('id');
 
         if (Formie::$plugin->getEmailTemplates()->deleteTemplateById($templateId)) {
             return $this->asJson(['success' => true]);

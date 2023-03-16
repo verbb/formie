@@ -65,7 +65,7 @@ class StatusesController extends Controller
     public function actionSave(): void
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $status = new Status();
         $status->id = $request->getBodyParam('id');
@@ -94,7 +94,7 @@ class StatusesController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $ids = Json::decode(Craft::$app->getRequest()->getRequiredBodyParam('ids'));
+        $ids = Json::decode($this->request->getRequiredBodyParam('ids'));
 
         if (Formie::$plugin->getStatuses()->reorderStatuses($ids)) {
             return $this->asJson(['success' => true]);
@@ -111,7 +111,7 @@ class StatusesController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $statusId = (int)Craft::$app->getRequest()->getRequiredParam('id');
+        $statusId = (int)$this->request->getRequiredParam('id');
 
         if (Formie::$plugin->getStatuses()->deleteStatusById($statusId)) {
             return $this->asJson(['success' => true]);

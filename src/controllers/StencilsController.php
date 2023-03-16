@@ -130,7 +130,7 @@ class StencilsController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $notificationsConfig = null;
         $form = null;
 
@@ -258,7 +258,7 @@ class StencilsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $stencilId = Craft::$app->getRequest()->getRequiredParam('id');
+        $stencilId = $this->request->getRequiredParam('id');
 
         if (Formie::$plugin->getStencils()->deleteStencilById((int)$stencilId)) {
             return $this->asJson(['success' => true]);

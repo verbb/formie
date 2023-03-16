@@ -31,7 +31,7 @@ class IntegrationSettingsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
         $integrationsService = Formie::$plugin->getIntegrations();
 
         $errors = [];

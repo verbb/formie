@@ -15,7 +15,7 @@ class ChartsController extends ElementIndexesController
 
     public function actionGetSubmissionsData(): Response
     {
-        $request = Craft::$app->getRequest();
+        $request = $this->request;
 
         $startDateParam = $request->getRequiredBodyParam('startDate');
         $endDateParam = $request->getRequiredBodyParam('endDate');

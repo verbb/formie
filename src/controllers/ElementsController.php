@@ -30,7 +30,7 @@ class ElementsController extends Controller
 
         $entryTypes = [];
 
-        $sectionId = Craft::$app->getRequest()->getParam('sectionId');
+        $sectionId = $this->request->getParam('sectionId');
 
         if ($sectionId) {
             $entryTypes = Craft::$app->getSections()->getEntryTypesBySectionId($sectionId);

@@ -139,11 +139,10 @@ class FormsController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
         $settings = Formie::$plugin->getSettings();
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
-        $duplicate = (bool)$request->getParam('duplicate');
+        $duplicate = (bool)$this->request->getParam('duplicate');
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
         if (!$form->uid) {
@@ -164,7 +163,7 @@ class FormsController extends Controller
         }
 
         if (!Formie::$plugin->getForms()->saveForm($form)) {
-            if ($request->getAcceptsJson()) {
+            if ($this->request->getAcceptsJson()) {
                 $notifications = $form->getNotifications();
                 $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
@@ -200,7 +199,7 @@ class FormsController extends Controller
         // Check if we need to update the permissions for this user.
         $this->_updateFormPermission($form);
 
-        if ($request->getAcceptsJson()) {
+        if ($this->request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
                 'id' => $form->id,
@@ -226,38 +225,37 @@ class FormsController extends Controller
     public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
-        $request = Craft::$app->getRequest();
 
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
-        $handle = $request->getParam('handle');
+        $handle = $this->request->getParam('handle');
 
         $stencil = new Stencil();
-        $stencil->name = $request->getParam('title');
+        $stencil->name = $this->request->getParam('title');
 
         // Resolve the handle, in case it already exists
         $stencil->handle = HandleHelper::getUniqueHandle($stencilHandles, $handle);
 
-        if ($templateId = $request->getParam('templateId')) {
+        if ($templateId = $this->request->getParam('templateId')) {
             $template = Formie::$plugin->getFormTemplates()->getTemplateById($templateId);
             $stencil->setTemplate($template);
         }
 
-        if ($statusId = $request->getParam('defaultStatusId')) {
+        if ($statusId = $this->request->getParam('defaultStatusId')) {
             $status = Formie::$plugin->getStatuses()->getStatusById($statusId);
             $stencil->setDefaultStatus($status);
         }
 
-        if ($settings = $request->getParam('settings')) {
-            $pages = Json::decode($request->getParam('pages'));
-            $notifications = Json::decode($request->getParam('notifications'));
+        if ($settings = $this->request->getParam('settings')) {
+            $pages = Json::decode($this->request->getParam('pages'));
+            $notifications = Json::decode($this->request->getParam('notifications'));
 
             // Set form data.
             $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
-            $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
-            $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
-            $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
-            $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
+            $stencil->data->userDeletedAction = $this->request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
+            $stencil->data->fileUploadsAction = $this->request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
+            $stencil->data->dataRetention = $this->request->getParam('dataRetention', $stencil->data->dataRetention);
+            $stencil->data->dataRetentionValue = $this->request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
 
             // Build temp form for validation.
             $form = Formie::$plugin->getForms()->buildFormFromPost();
@@ -279,7 +277,7 @@ class FormsController extends Controller
             $config = $stencil->getFormConfig();
             $notifications = ArrayHelper::remove($config, 'notifications', []);
 
-            if ($request->getAcceptsJson()) {
+            if ($this->request->getAcceptsJson()) {
                 return $this->asJson([
                     'id' => $stencil->id,
                     'config' => $config,
@@ -303,7 +301,7 @@ class FormsController extends Controller
         $config = $stencil->getFormConfig();
         $notifications = ArrayHelper::remove($config, 'notifications', []);
 
-        if ($request->getAcceptsJson()) {
+        if ($this->request->getAcceptsJson()) {
             return $this->asJson([
                 'id' => $stencil->id,
                 'config' => $config,
@@ -329,8 +327,7 @@ class FormsController extends Controller
 
         $this->requirePermission('formie-deleteForms');
 
-        $request = Craft::$app->getRequest();
-        $formId = $request->getRequiredBodyParam('formId');
+        $formId = $this->request->getRequiredBodyParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
 
@@ -339,7 +336,7 @@ class FormsController extends Controller
         }
 
         if (!Craft::$app->getElements()->deleteElement($form)) {
-            if ($request->getAcceptsJson()) {
+            if ($this->request->getAcceptsJson()) {
                 return $this->asJson(['success' => false]);
             }
 
@@ -354,8 +351,8 @@ class FormsController extends Controller
 
         Craft::$app->getSession()->setNotice(Craft::t('app', 'Form deleted.'));
 
-        if ($request->getAcceptsJson()) {
-            $url = Craft::$app->getRequest()->getValidatedBodyParam('redirect');
+        if ($this->request->getAcceptsJson()) {
+            $url = $this->request->getValidatedBodyParam('redirect');
             $url = Craft::$app->getView()->renderObjectTemplate($url, $form);
 
             return $this->asJson([
@@ -369,18 +366,16 @@ class FormsController extends Controller
 
     public function actionRefreshTokens(): Response
     {
-        $request = Craft::$app->getRequest();
-
         $params = [
             'csrf' => [
-                'param' => $request->csrfParam,
-                'token' => $request->getCsrfToken(),
-                'input' => '<input type="hidden" name="' . $request->csrfParam . '" value="' . $request->getCsrfToken() . '">',
+                'param' => $this->request->csrfParam,
+                'token' => $this->request->getCsrfToken(),
+                'input' => '<input type="hidden" name="' . $this->request->csrfParam . '" value="' . $this->request->getCsrfToken() . '">',
             ],
         ];
 
         // Add captchas into the payload
-        $formHandle = $request->getRequiredParam('form');
+        $formHandle = $this->request->getRequiredParam('form');
         $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
         // Force fetch captchas because we're dealing with potential ajax forms
         // Normally, this function returns only if the `showAllPages` property is set.
@@ -397,7 +392,7 @@ class FormsController extends Controller
 
     public function actionGetExistingFields(): Response
     {
-        $formId = Craft::$app->getRequest()->getRequiredParam('formId');
+        $formId = $this->request->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
         $existingFields = Formie::$plugin->getFields()->getExistingFields($form);
@@ -407,7 +402,7 @@ class FormsController extends Controller
 
     public function actionGetExistingNotifications(): Response
     {
-        $formId = Craft::$app->getRequest()->getRequiredParam('formId');
+        $formId = $this->request->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
         $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
