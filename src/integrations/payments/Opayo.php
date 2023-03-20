@@ -424,7 +424,9 @@ class Opayo extends Payment
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', '/');
+            $response = $this->request('POST', 'merchant-session-keys', [
+                'json' => ['vendorName' => App::parseEnv($this->vendorName)],
+            ]);
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
