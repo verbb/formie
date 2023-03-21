@@ -17,12 +17,23 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.amountVariable = settings.amountVariable;
         this.opayoScriptId = 'FORMIE_OPAYO_SCRIPT';
 
-        this.initField();
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
 
-        // document.querySelector('[data-opayo-card="cardholder-name"]').value = 'CHALLENGE';
-        // document.querySelector('[data-opayo-card="card-number"]').value = '4929000000006';
-        // document.querySelector('[data-opayo-card="expiry-date"]').value = '0126';
-        // document.querySelector('[data-opayo-card="security-code"]').value = '123';
+    onShow() {
+        // Initialize the field only when it's visible
+        this.initField();
+    }
+
+    onHide() {
+        // Field is hidden, so reset everything
+        this.onAfterSubmit();
+
+        // Remove unique event listeners
+        this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'opayo'));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'opayo'));
+        this.form.removeEventListener(eventKey('FormiePaymentOpayo3DS', 'opayo'));
     }
 
     initField() {
