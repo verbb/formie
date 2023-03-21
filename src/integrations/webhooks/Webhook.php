@@ -78,10 +78,10 @@ class Webhook extends BaseWebhook
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->getClient()->request('POST', $this->getWebhookUrl($webhook, $submission), ['json' => $payload]);
+            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
-            $json = Json::decode($rawResponse);
+            $json = Json::decodeIfJson($rawResponse);
 
             $settings = [
                 'response' => $response,
@@ -111,7 +111,7 @@ class Webhook extends BaseWebhook
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayload($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
 
             if ($response === false) {
                 return true;
