@@ -177,7 +177,7 @@ class Slack extends Miscellaneous
                     ],
                 ];
 
-                $response = $this->getClient()->request('POST', $this->webhook, $payload);
+                $response = $this->deliverPayloadRequest($submission, $this->webhook, $payload);
             } else {
 
                 $channel = null;
