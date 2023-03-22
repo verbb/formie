@@ -399,8 +399,10 @@ class SubmissionsController extends Controller
 
             Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
 
-            if ($form->settings->submitAction == 'message') {
-                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+            if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
+                if ($form->settings->submitAction == 'message') {
+                    Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+                }
 
                 // When reloading the page, provide a `submission` variable to pick up on the finalise submission
                 Craft::$app->getUrlManager()->setRouteParams([
@@ -692,8 +694,10 @@ class SubmissionsController extends Controller
 
         Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
 
-        if ($form->settings->submitAction == 'message') {
-            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+        if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
+            if ($form->settings->submitAction == 'message') {
+                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+            }
 
             // When reloading the page, provide a `submission` variable to pick up on the finalise submission
             Craft::$app->getUrlManager()->setRouteParams([
