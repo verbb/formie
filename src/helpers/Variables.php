@@ -139,7 +139,7 @@ class Variables
      * @return string|null
      * @throws Exception
      */
-    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null): ?string
+    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false): ?string
     {
         $originalValue = $value;
 
@@ -236,8 +236,12 @@ class Variables
             }
         }
 
-        // Populate a collection of fields for "all", "visible" and "with-content"
-        $fieldVariables = self::getFormFieldsVariables($form, $notification, $submission);
+        $fieldVariables = [];
+
+        if ($includeSummary) {
+            // Populate a collection of fields for "all", "visible" and "with-content"
+            $fieldVariables = self::getFormFieldsVariables($form, $notification, $submission);
+        }
 
         // Properly parse field values. There's seemingly performance benefits to doing this separate to the above
         $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));

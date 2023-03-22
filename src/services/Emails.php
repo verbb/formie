@@ -239,7 +239,7 @@ class Emails extends Component
         // Render HTML body
         try {
             // Render the body content for the notification
-            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification);
+            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
 
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw($parsedContent);

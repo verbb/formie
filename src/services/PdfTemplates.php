@@ -321,7 +321,7 @@ class PdfTemplates extends Component
         $form = $submission->getForm();
 
         // Render the body content for the notification
-        $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification);
+        $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
 
         $variables = [
             'submission' => $submission,
