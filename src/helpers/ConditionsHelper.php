@@ -87,9 +87,6 @@ class ConditionsHelper
         $results = [];
         $evaluator = ConditionsHelper::getEvaluator();
 
-        // Fetch the values, serialized for string comparison
-        $serializedFieldValues = ConditionsHelper::getSerializedFieldValues($submission);
-
         foreach ($conditions as $condition) {
             try {
                 // Variables to pass into the evaluator for rules to use
@@ -111,8 +108,11 @@ class ConditionsHelper
 
                     $variables['field'] = ArrayHelper::getValue($submission, $variables['field']);
                 } else {
+                    // Fetch the value, serialized for string comparison
+                    $serializedFieldValue = ConditionsHelper::getSerializedFieldValues($submission, [$variables['field']]);
+
                     // Parse the field handle first to get the submission value
-                    $variables['field'] = ArrayHelper::getValue($serializedFieldValues, $variables['field']);
+                    $variables['field'] = ArrayHelper::getValue($serializedFieldValue, $variables['field']);
                 }
 
                 // Special-case for some fields, that support multiple values (mutli-select, checkboxes)
@@ -177,13 +177,18 @@ class ConditionsHelper
         return in_array(true, $results);
     }
 
-    public static function getSerializedFieldValues(Submission $submission): array
+    public static function getSerializedFieldValues(Submission $submission, array $includedHandles = []): array
     {
         $serializedValues = [];
 
         if ($fieldLayout = $submission->getFieldLayout()) {
             foreach ($fieldLayout->getCustomFields() as $field) {
                 if ($field->getIsCosmetic()) {
+                    continue;
+                }
+
+                // If we only want specific fields, no need to parse them all to improve performance
+                if ($includedHandles && !in_array($field->handle, $includedHandles)) {
                     continue;
                 }
 
