@@ -236,17 +236,10 @@ class Variables
             }
         }
 
-        $fieldHtml = self::getFormFieldsHtml($form, $notification, $submission);
-        $fieldContentHtml = self::getFormFieldsHtml($form, $notification, $submission, true);
-        $fieldVisibleHtml = self::getFormFieldsHtml($form, $notification, $submission, false, true);
+        // Populate a collection of fields for "all", "visible" and "with-content"
+        $fieldVariables = self::getFormFieldsVariables($form, $notification, $submission);
 
-        $fieldVariables = [
-            'allFields' => $fieldHtml,
-            'allContentFields' => $fieldContentHtml,
-            'allVisibleFields' => $fieldVisibleHtml,
-        ];
-
-        // Properly parse field values
+        // Properly parse field values. There's seemingly performance benefits to doing this separate to the above
         $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
 
         // Don't save anything unless we have values
@@ -273,12 +266,16 @@ class Variables
         }
     }
 
-    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false): array|string
+    public static function getFormFieldsVariables(?Form $form, ?Notification $notification, ?Submission $submission): array
     {
-        $fieldItems = $asArray ? [] : '';
+        $data = [
+            'allFields' => [],
+            'allContentFields' => [],
+            'allVisibleFields' => [],
+        ];
 
         if (!$form || !$submission) {
-            return $fieldItems;
+            return $data;
         }
 
         // If a specific notification isn't passed in, use a new instance of one. This is for times where we don't really mind
@@ -301,15 +298,7 @@ class Variables
                 continue;
             }
 
-            if ($excludeHidden && $field->getIsHidden()) {
-                continue;
-            }
-
             $value = $submission->getFieldValue($field->handle);
-
-            if (empty($field->getValueAsString($value, $submission)) && $excludeEmpty) {
-                continue;
-            }
 
             $html = $field->getEmailHtml($submission, $notification, $value);
 
@@ -317,16 +306,23 @@ class Variables
                 continue;
             }
 
-            if ($asArray) {
-                $fieldItems[$field->handle] = (string)$html;
-            } else {
-                $fieldItems .= $html;
+            // Save to "allFields" for all fields
+            $data['allFields'][$field->handle] = (string)$html;
+
+            // Save to "allVisibleFields" only if not hidden
+            if (!$field->getIsHidden()) {
+                $data['allVisibleFields'][$field->handle] = (string)$html;
+            }
+
+            // Save to "allFields" only if it has content
+            if (!empty($field->getValueAsString($value, $submission))) {
+                $data['allContentFields'][$field->handle] = (string)$html;
             }
         }
 
         $view->setTemplateMode($oldTemplateMode);
 
-        return $fieldItems;
+        return $data;
     }
 
 
@@ -495,5 +491,68 @@ class Variables
         }
 
         return null;
+    }
+
+
+    // Deprecated
+    // =========================================================================
+
+    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false): array|string
+    {
+        // Deprecated in favour of a single function to generate all 3 states at once for performance
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Variables `getFormFieldsHtml()` method has been deprecated. Use `getFormFieldsVariables()` instead.');
+
+        $fieldItems = $asArray ? [] : '';
+
+        if (!$form || !$submission) {
+            return $fieldItems;
+        }
+
+        // If a specific notification isn't passed in, use a new instance of one. This is for times where we don't really mind
+        // _which_ notification is used, like when a submission is made on the front-end, with a submit message.
+        if (!$notification) {
+            $notification = new Notification();
+        }
+
+        // Need to switch back to the CP to render our fields email HTML
+        $view = Craft::$app->getView();
+        $oldTemplateMode = $view->getTemplateMode();
+        $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+
+        foreach ($form->getCustomFields() as $field) {
+            if (!$field->includeInEmail) {
+                continue;
+            }
+
+            if ($field->isConditionallyHidden($submission)) {
+                continue;
+            }
+
+            if ($excludeHidden && $field->getIsHidden()) {
+                continue;
+            }
+
+            $value = $submission->getFieldValue($field->handle);
+
+            if (empty($field->getValueAsString($value, $submission)) && $excludeEmpty) {
+                continue;
+            }
+
+            $html = $field->getEmailHtml($submission, $notification, $value);
+
+            if ($html === false) {
+                continue;
+            }
+
+            if ($asArray) {
+                $fieldItems[$field->handle] = (string)$html;
+            } else {
+                $fieldItems .= $html;
+            }
+        }
+
+        $view->setTemplateMode($oldTemplateMode);
+
+        return $fieldItems;
     }
 }
