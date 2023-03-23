@@ -81,7 +81,7 @@ class Submission extends Element
     private $_fieldContext;
     private $_contentTable;
     private $_pagesForField;
-    private $_assetsToDelete;
+    private $_assetsToDelete = [];
 
 
     // Static
