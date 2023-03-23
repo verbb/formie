@@ -52,7 +52,12 @@ class PaymentWebhooksController extends Controller
      */
     public function actionProcessCallback(): Response
     {
-        $handle = $this->request->getRequiredParam('handle');
+        // Query string overrides body param, which we sometimes don't want
+        $handle = $this->request->getBodyParam('handle') ?: $this->request->getParam('handle');
+
+        if (!$handle) {
+            throw new NotFoundHttpException('Integration ' . $handle . ' not found');
+        }
 
         if (!$integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)) {
             throw new NotFoundHttpException('Integration not found');

@@ -119,6 +119,7 @@ class Opayo extends Payment
         $this->setField($field);
 
         $settings = [
+            'handle' => $this->handle,
             'useSandbox' => App::parseBooleanEnv($this->useSandbox),
             'currency' => $this->getFieldSetting('currency'),
             'amountType' => $this->getFieldSetting('amountType'),

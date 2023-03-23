@@ -11,6 +11,7 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.$field = settings.$field;
 
         this.useSandbox = settings.useSandbox;
+        this.integrationHandle = settings.handle;
         this.currency = settings.currency;
         this.amountType = settings.amountType;
         this.amountFixed = settings.amountFixed;
@@ -140,6 +141,7 @@ export class FormieOpayo extends FormiePaymentProvider {
             const data = new FormData();
             data.append('action', 'formie/payment-webhooks/process-callback');
             data.append('merchantSessionKey', true);
+            data.append('handle', this.integrationHandle);
 
             xhr.send(data);
         } catch (ex) {
