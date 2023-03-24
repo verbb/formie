@@ -294,7 +294,7 @@ trait NestedFieldTrait
             }
         }
 
-        return array_merge(...$modules);
+        return $modules;
     }
 
     /**
