@@ -55,6 +55,7 @@ class MicrosoftDynamics365 extends Crm
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $apiDomain = null;
+    public ?string $apiVersion = 'v9.0';
     public bool $mapToContact = false;
     public bool $mapToLead = false;
     public bool $mapToOpportunity = false;
@@ -339,9 +340,10 @@ class MicrosoftDynamics365 extends Crm
         }
 
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
+        $apiVersion = $this->apiVersion;
 
         $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/api/data/v9.0/",
+            'base_uri' => "$url/api/data/$apiVersion/",
             'headers' => [
                 'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                 'Content-Type' => 'application/json',
@@ -351,11 +353,7 @@ class MicrosoftDynamics365 extends Crm
         // Always provide an authenticated client - so check first.
         // We can't always rely on the EOL of the token.
         try {
-            $response = $this->request('GET', 'contacts', [
-                'query' => [
-                    '$top' => '1',
-                ],
-            ]);
+            $this->request('GET', 'WhoAmI');
         } catch (Throwable $e) {
             if ($e->getCode() === 401) {
                 // Force-refresh the token
@@ -363,7 +361,7 @@ class MicrosoftDynamics365 extends Crm
 
                 // Then try again, with the new access token
                 $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "$url/api/data/v9.0/",
+                    'base_uri' => "$url/api/data/$apiVersion/",
                     'headers' => [
                         'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
                         'Content-Type' => 'application/json',
@@ -481,8 +479,12 @@ class MicrosoftDynamics365 extends Crm
             // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
             // If a field DateTimeBehaviour is set to DateOnly, it will not accept DateTime values ever!
             // https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/behavior-format-date-time-attribute
-            if ($type === 'DateTime' && $dateTimeBehaviourValues[$metadataId] === 'DateOnly') {
-                $type = 'Date';
+            if ($type === 'DateTime') {
+                $dateTimeBehavior = $dateTimeBehaviourValues[$metadataId] ?? null;
+
+                if ($dateTimeBehavior === 'DateOnly') {
+                    $type = 'Date';
+                }
             }
 
             // Index by handle for easy lookup with PickLists
