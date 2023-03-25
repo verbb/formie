@@ -1632,8 +1632,10 @@ class Form extends Element
 
     public function applyRenderOptions(array $renderOptions = []): void
     {
-        // Allow a session key to be provided to scope incomplete submission content
-        $this->_sessionKey = $renderOptions['sessionKey'] ?? null;
+        // Allow a session key to be provided to scope incomplete submission content.
+        // Base64 encode it not for security, just so it's not plain text an "obvious".
+        $sessionKey = $renderOptions['sessionKey'] ?? null;
+        $this->setSessionKey(base64_encode($sessionKey));
 
         // Theme options
         $templateConfig = $renderOptions['themeConfig'] ?? [];
@@ -1859,6 +1861,16 @@ class Form extends Element
         }
 
         return $output;
+    }
+
+    public function getSessionKey(): ?string
+    {
+        return $this->_sessionKey;
+    }
+
+    public function setSessionKey(?string $value): void
+    {
+        $this->_sessionKey = $value;
     }
 
     public function setSettings($settings, $updateSnapshot = true): void

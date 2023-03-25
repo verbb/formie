@@ -47,6 +47,10 @@
                 {{ hiddenInput('handle', form.handle) }}
                 {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
 
+                {% if form.getSessionKey() %}
+                    {{ hiddenInput('sessionKey', form.getSessionKey()) }}
+                {% endif %}
+
                 {% if form.getRelations() %}
                     {{ hiddenInput('relations', form.getRelations()) }}
                 {% endif %}

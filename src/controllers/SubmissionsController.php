@@ -133,7 +133,7 @@ class SubmissionsController extends Controller
             }
         }
 
-        $form = Form::find()->handle($formHandle)->one();
+        $form = $this->_getForm($formHandle);
 
         if (!$form) {
             throw new HttpException(404);
@@ -217,7 +217,7 @@ class SubmissionsController extends Controller
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
         /* @var Form $form */
-        $form = Form::find()->handle($handle)->one();
+        $form = $this->_getForm($handle);
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
@@ -455,7 +455,7 @@ class SubmissionsController extends Controller
         Formie::log("Submission triggered for ${handle}.");
 
         /* @var Form $form */
-        $form = Form::find()->handle($handle)->one();
+        $form = $this->_getForm($handle);
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
@@ -723,7 +723,7 @@ class SubmissionsController extends Controller
         $submissionId = $this->_getTypedParam('submissionId', 'id');
 
         /* @var Form $form */
-        $form = Form::find()->handle($handle)->one();
+        $form = $this->_getForm($handle);
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
@@ -757,7 +757,7 @@ class SubmissionsController extends Controller
         $handle = $request->getRequiredBodyParam('handle');
 
         /* @var Form $form */
-        $form = Form::find()->handle($handle)->one();
+        $form = $this->_getForm($handle);
 
         if (!$form) {
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
@@ -1085,6 +1085,19 @@ class SubmissionsController extends Controller
                 'class' => $hasErrors ? 'error' : null,
             ];
         }
+    }
+
+    private function _getForm(string $handle): ?Form
+    {
+        $form = Form::find()->handle($handle)->one();
+
+        if ($form) {
+            if ($sessionKey = $this->_getTypedParam('sessionKey', 'string')) {
+                $form->setSessionKey($sessionKey);
+            }
+        }
+
+        return $form;
     }
 
     private function _populateSubmission($form, $isIncomplete = true): Submission
