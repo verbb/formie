@@ -54,7 +54,7 @@
             <div class="input ltr">
                 <input
                     :id="targetId"
-                    v-model="modelValue.target"
+                    v-model="newWindow"
                     type="checkbox"
                     class="checkbox"
                 >
@@ -123,6 +123,16 @@ export default {
     computed: {
         elementSiteId() {
             return this.field.elementSiteId;
+        },
+
+        newWindow: {
+            get() {
+                return (this.modelValue.target === '_blank');
+            },
+            set(value) {
+                // eslint-disable-next-line vue/no-mutating-props
+                this.modelValue.target = (value ? '_blank' : '');
+            },
         },
     },
 
