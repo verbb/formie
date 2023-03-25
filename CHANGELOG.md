@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.0.25 - 2023-03-25
+
+### Added
+- Added validation checks for some form-related routes and missing form IDs.
+- Added failsafe for custom date default. (thanks @friartuck6000).
+- Added Microsoft Dynamics 365 Web API version to be configurable via settings. (thanks @jamesmacwhite).
+
+### Changed
+- Improve submission performance from the front-end, excluding unnecessary value parsing when not required (`allFields`, etc).
+- Improve performance of saving submissions from the front-end. Particularly for large and complex forms.
+- Improve performance of saving submissions for large forms with many conditions, containing Element, Group and Repeater fields.
+- Update Zapier and Slack to use `Integration::deliverPayloadRequest()` for webhooks.
+- Update references of `setError` and `setNotice` to `setFailFlash` and `setSuccessFlash`.
+- Update references of `Craft::$app->getRequest()` to `$this->request`.
+- Require Dompdf 2.0.3+ to fix vulnerabilities. (thanks @licvido).
+- Webhook integrations now no longer requires a JSON response.
+
+### Fixed
+- Fixed an issue deleting assets when a form contained multiple File Upload fields.
+- Fixed an error when querying a Dropdown with optgroup settings for GraphQL.
+- Fixed lack of error handling for Google Sheets when no OAuth token.
+- Fixed rich text editor link fields not persisting the “Open in new tab” setting for links.
+- Fixed `sessionKey` set on forms not working correctly.
+- Fixed forms set to “Reload” on submission not working correctly.
+- Fixed Repeater/Group fields not having their inner field’s JS initialized correctly.
+- Fixed a log error when using a hidden Recipients field.
+- Fixed a potential issue when importing a form with an incorrect `defaultStatusId`.
+- Fixed an error recording referrer for form submissions.
+- Fixed minor PayWay performance issues.
+- Fixed non-Date Picker Date fields not having their “Input Attributes” setting applied to the date input element.
+- Fixed an error with Zoho when mapping to some fields classified as JSON Objects.
+- Fixed checking the validity of a token use the WhoAmI endpoint for Microsoft Dynamics 365. (thanks @jamesmacwhite).
+- Fixed for #1324 undefined array key for Microsoft Dynamics 365. (thanks @jamesmacwhite).
+
 ## 2.0.24 - 2023-02-28
 
 ### Added
