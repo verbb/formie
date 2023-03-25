@@ -1353,6 +1353,7 @@
   visibility: hidden;
   opacity: 0;
   will-change: opacity;
+  z-index: 10000;
 }
 .fui-modal.is-open {
   visibility: visible;
