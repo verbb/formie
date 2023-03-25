@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.26 - 2023-03-25
+
+### Added
+- Allow Microsoft Dynamics 365 Web API version to be configurable via settings. (thanks @jamesmacwhite).
+
+### Fixed
+- Fix an issue deleting assets when a form contained multiple File Upload fields.
+- Fix an error when querying a Dropdown with optgroup settings for GraphQL.
+- For checking the validity of a token use the WhoAmI endpoint for Microsoft Dynamics 365. (thanks @jamesmacwhite).
+- Fix for #1324 undefined array key for Microsoft Dynamics 365. (thanks @jamesmacwhite).
+- Fix lack of error handling for Google Sheets when no OAuth token.
+
 ## 1.6.25 - 2023-02-28
 
 ### Added
