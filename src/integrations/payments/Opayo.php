@@ -44,6 +44,9 @@ class Opayo extends Payment
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
     public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
 
+    // https://stripe.com/docs/currencies#zero-decimal
+    private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
+
 
     // Static Methods
     // =========================================================================
@@ -62,6 +65,24 @@ class Opayo extends Payment
     public function supportsCallbacks(): bool
     {
         return true;
+    }
+    
+    public static function toOpayoAmount(float $amount, string $currency): float
+    {
+        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
+            return $amount;
+        }
+
+        return ceil($amount * 100);
+    }
+
+    public static function fromOpayoAmount(float $amount, string $currency): float
+    {
+        if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
+            return $amount;
+        }
+
+        return $amount * 0.01;
     }
     
 
@@ -149,6 +170,23 @@ class Opayo extends Payment
     /**
      * @inheritDoc
      */
+    public function getAmount($submission): float
+    {
+        // Ensure the amount is converted to Stripe for zero-decimal currencies
+        return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCurrency($submission): ?string
+    {
+        return (string)$this->getFieldSetting('currency');
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function processPayment(Submission $submission): bool
     {
         $response = null;
@@ -161,7 +199,7 @@ class Opayo extends Payment
 
         // Get the amount from the field, which handles dynamic fields
         $amount = $this->getAmount($submission);
-        $currency = $this->getFieldSetting('currency');
+        $currency = $this->getCurrency($submission);
 
         // Capture the authorized payment
         try {
@@ -223,7 +261,7 @@ class Opayo extends Payment
                 $payment->integrationId = $this->id;
                 $payment->submissionId = $submission->id;
                 $payment->fieldId = $field->id;
-                $payment->amount = $amount;
+                $payment->amount = self::fromOpayoAmount($amount, $currency);
                 $payment->currency = $currency;
                 $payment->reference = $response['transactionId'] ?? '';
                 $payment->response = $response;
@@ -265,7 +303,7 @@ class Opayo extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
-            $payment->amount = $amount;
+            $payment->amount = self::fromOpayoAmount($amount, $currency);
             $payment->currency = $currency;
             $payment->reference = $response['transactionId'] ?? '';
             $payment->response = $response;
@@ -291,7 +329,7 @@ class Opayo extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
-            $payment->amount = $amount;
+            $payment->amount = self::fromOpayoAmount($amount, $currency);
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = null;
@@ -406,7 +444,7 @@ class Opayo extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submissionId;
             $payment->fieldId = $fieldId;
-            $payment->amount = $amount;
+            $payment->amount = self::fromOpayoAmount($amount, $currency);
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = $transactionId;
