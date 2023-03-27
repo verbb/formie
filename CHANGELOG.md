@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.25.1 - 2023-03-27
+
+### Fixed
+- Fix an issue with email notifications “All Fields” values not outputting correctly.
+
 ## 2.0.25 - 2023-03-25
 
 ### Added
