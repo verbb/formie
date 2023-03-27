@@ -273,9 +273,9 @@ class Variables
     public static function getFormFieldsVariables(?Form $form, ?Notification $notification, ?Submission $submission): array
     {
         $data = [
-            'allFields' => [],
-            'allContentFields' => [],
-            'allVisibleFields' => [],
+            'allFields' => '',
+            'allContentFields' => '',
+            'allVisibleFields' => '',
         ];
 
         if (!$form || !$submission) {
@@ -311,16 +311,16 @@ class Variables
             }
 
             // Save to "allFields" for all fields
-            $data['allFields'][$field->handle] = (string)$html;
+            $data['allFields'] .= (string)$html;
 
             // Save to "allVisibleFields" only if not hidden
             if (!$field->getIsHidden()) {
-                $data['allVisibleFields'][$field->handle] = (string)$html;
+                $data['allVisibleFields'] .= (string)$html;
             }
 
             // Save to "allFields" only if it has content
             if (!empty($field->getValueAsString($value, $submission))) {
-                $data['allContentFields'][$field->handle] = (string)$html;
+                $data['allContentFields'] .= (string)$html;
             }
         }
 
