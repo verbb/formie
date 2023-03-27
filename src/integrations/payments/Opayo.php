@@ -257,8 +257,6 @@ class Opayo extends Payment
                 return false;
             }
 
-            Craft::dd($response);
-
             if ($status !== 'Ok') {
                 throw new Exception(StringHelper::titleize($status) . ': ' . $statusDetail);
             }
