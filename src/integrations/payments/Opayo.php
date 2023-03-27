@@ -323,13 +323,19 @@ class Opayo extends Payment
         if ($request->getParam('merchantSessionKey')) {
             $callbackResponse->format = Response::FORMAT_JSON;
 
-            $response = $this->request('POST', 'merchant-session-keys', [
-                'json' => ['vendorName' => App::parseEnv($this->vendorName)],
-            ]);
+            try {
+                $response = $this->request('POST', 'merchant-session-keys', [
+                    'json' => ['vendorName' => App::parseEnv($this->vendorName)],
+                ]);
 
-            $callbackResponse->data = [
-                'merchantSessionKey' => $response['merchantSessionKey'] ?? null,
-            ];
+                $callbackResponse->data = [
+                    'merchantSessionKey' => $response['merchantSessionKey'] ?? null,
+                ];
+            } catch (Throwable $e) {
+                $callbackResponse->data = [
+                    'error' => $e->getMessage(),
+                ];
+            }
 
             return $callbackResponse;
         }
