@@ -185,8 +185,6 @@ export class FormieFormTheme {
                 // Store for later if we're using text spinner
                 this.originalButtonText = this.$submitBtn.textContent.trim();
 
-                console.log(this.$submitBtn);
-
                 // Each submit button can do different things, to store that
                 this.updateSubmitAction(this.$submitBtn.getAttribute('data-submit-action'));
             });

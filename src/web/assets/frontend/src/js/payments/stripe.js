@@ -82,7 +82,6 @@ export class FormieStripe extends FormiePaymentProvider {
         // Attach custom event listeners on the form
         // Prevent binding multiple times. This can cause multiple payments!
         if (!this.boundEvents) {
-            console.log('boundEvents');
             this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
             this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
             this.form.addEventListener(this.$form, eventKey('FormiePaymentStripe3DS', 'stripe'), this.onValidate3DS.bind(this));
