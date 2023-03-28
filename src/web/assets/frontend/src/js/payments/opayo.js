@@ -1,6 +1,7 @@
 import { eventKey } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 import { dialog } from '@rynpsc/dialog';
+import Payment from 'payment';
 
 export class FormieOpayo extends FormiePaymentProvider {
     constructor(settings = {}) {
@@ -63,6 +64,11 @@ export class FormieOpayo extends FormiePaymentProvider {
 
         // Listen to events sent from the iframe to complete 3DS challenge
         window.addEventListener('message', this.onMessage.bind(this), false);
+
+        // Add input masking and validation for some fields
+        Payment.formatCardNumber(this.$field.querySelector('[data-opayo-card="card-number"]'));
+        Payment.formatCardExpiry(this.$field.querySelector('[data-opayo-card="expiry-date"]'));
+        Payment.formatCardCVC(this.$field.querySelector('[data-opayo-card="security-code"]'));
     }
 
     onValidate(e) {
@@ -109,6 +115,10 @@ export class FormieOpayo extends FormiePaymentProvider {
                             expiryDate: this.$field.querySelector('[data-opayo-card="expiry-date"]').value,
                             securityCode: this.$field.querySelector('[data-opayo-card="security-code"]').value,
                         };
+
+                        // Remove formatting
+                        cardDetails.cardNumber = cardDetails.cardNumber.replace(/[\s/]/g, '');
+                        cardDetails.expiryDate = cardDetails.expiryDate.replace(/[\s/]/g, '');
 
                         // With the `merchantSessionKey`, now tokenize the credit card form and trigger submit
                         sagepayOwnForm({
