@@ -47,7 +47,7 @@ export class FormieOpayo extends FormiePaymentProvider {
             if (this.useSandbox) {
                 $script.src = 'https://pi-test.sagepay.com/api/v1/js/sagepay.js';
             } else {
-                $script.src = 'https://pi.sagepay.com/api/v1/js/sagepay.js';
+                $script.src = 'https://pi-live.sagepay.com/api/v1/js/sagepay.js';
             }
 
             $script.async = true;
