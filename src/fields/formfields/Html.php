@@ -60,6 +60,7 @@ class Html extends FormField
     // =========================================================================
 
     public ?string $htmlContent = null;
+    public bool $purifyContent = true;
 
 
     // Public Methods
@@ -91,8 +92,12 @@ class Html extends FormField
         // Add emoji support
         $htmlContent = LitEmoji::shortcodeToUnicode($htmlContent);
 
-        // Ensure we run it all through purifier
-        return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
+        if ($this->purifyContent) {
+            // Ensure we run it all through purifier
+            return HTMLPurifier::process($htmlContent, $this->_getPurifierConfig());
+        }
+
+        return $htmlContent;
     }
 
     /**
@@ -184,6 +189,11 @@ class Html extends FormField
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Purify Content'),
+                'help' => Craft::t('formie', 'Whether to run [HTML Purifier](http://htmlpurifier.org) over the content to prevent malicious or invalid code being included.'),
+                'name' => 'purifyContent',
+            ]),
         ];
     }
 
