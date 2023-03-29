@@ -52,14 +52,17 @@ class RichTextHelper
             'content' => $content,
         ]);
 
-        if ($submission) {
-            $html = Variables::getParsedValue($html, $submission);
-        }
-
         // Strip out paragraphs, replace with `<br>`
         if ($nl2br) {
             $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
             $html = preg_replace('/(<br>)+$/', '', $html);
+        }
+
+        if ($submission) {
+            // Ensure to translate _before_ variables are replaced
+            $html = Craft::t('formie', $html);
+
+            $html = Variables::getParsedValue($html, $submission);
         }
 
         // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
