@@ -1024,10 +1024,6 @@ class Form extends Element
             $this->resetCurrentSubmission();
         } else {
             Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
-
-            if (!$this->getSessionKey()) {
-                $this->setSessionKey($submission->uid);
-            }
         }
 
         $this->_currentSubmission = $submission;
@@ -1058,10 +1054,6 @@ class Form extends Element
     public function setSubmission(?Submission $submission): void
     {
         $this->_editingSubmission = $submission;
-
-        if ($submission && !$this->getSessionKey()) {
-            $this->setSessionKey($submission->uid);
-        }
     }
 
     /**
@@ -1641,8 +1633,9 @@ class Form extends Element
     public function applyRenderOptions(array $renderOptions = []): void
     {
         // Allow a session key to be provided to scope incomplete submission content.
+        // Base64 encode it not for security, just so it's not plain text an "obvious".
         $sessionKey = $renderOptions['sessionKey'] ?? null;
-        $this->setSessionKey($sessionKey);
+        $this->setSessionKey(base64_encode($sessionKey));
 
         // Theme options
         $templateConfig = $renderOptions['themeConfig'] ?? [];
@@ -1877,8 +1870,7 @@ class Form extends Element
 
     public function setSessionKey(?string $value): void
     {
-        // Base64 encode it not for security, just so it's not plain text an "obvious".
-        $this->_sessionKey = base64_encode($value);
+        $this->_sessionKey = $value;
     }
 
     public function setSettings($settings, $updateSnapshot = true): void
