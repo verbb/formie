@@ -95,6 +95,14 @@ class Campaign extends EmailMarketing
             // Fetch our mapped values
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
+            // Ensure we trigger the un-before payload manually, as this isn't the typical API request
+            $endpoint = '';
+            $method = '';
+            
+            if (!$this->beforeSendPayload($submission, $endpoint, $fieldValues, $method)) {
+                return true;
+            }
+
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');
 
