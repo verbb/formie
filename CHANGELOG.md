@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.26 - 2023-04-04
+
+### Added
+- Add “Purify Content” setting for HTML fields to control HTML Purifier.
+
+### Fixed
+- Fix rich text content being unable to be translated.
+- Fix an issue where manipulated submit buttons containing inner elements (such as icons) affected submission behaviour.
+
 ## 2.0.25.1 - 2023-03-27
 
 ### Fixed
