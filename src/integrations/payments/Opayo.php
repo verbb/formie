@@ -36,6 +36,9 @@ use GuzzleHttp\Client;
 use Throwable;
 use Exception;
 
+use CommerceGuys\Addressing\Country\CountryRepository;
+use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
+
 class Opayo extends Payment
 {
     // Constants
@@ -743,14 +746,43 @@ class Opayo extends Payment
             ];
         }
 
-        $payload['billingAddress']['address1'] = ArrayHelper::remove($address, 'address1');
-        $payload['billingAddress']['city'] = ArrayHelper::remove($address, 'city');
-        $payload['billingAddress']['postalCode'] = ArrayHelper::remove($address, 'zip');
-        $payload['billingAddress']['country'] = ArrayHelper::remove($address, 'country');
-
         // Testing only
         // $payload['billingAddress']['address1'] = '88';
         // $payload['billingAddress']['postalCode'] = '412';
+
+        $payload['billingAddress']['address1'] = ArrayHelper::remove($address, 'address1');
+        $payload['billingAddress']['city'] = ArrayHelper::remove($address, 'city');
+        $payload['billingAddress']['postalCode'] = ArrayHelper::remove($address, 'zip');
+        $payload['billingAddress']['state'] = ArrayHelper::remove($address, 'state');
+        $payload['billingAddress']['country'] = ArrayHelper::remove($address, 'country');
+
+        // All values need to be handled a little bit...
+        $payload['billingAddress']['address1'] = substr($payload['billingAddress']['address1'], 0, 20);
+        $payload['billingAddress']['city'] = substr($payload['billingAddress']['city'], 0, 20);
+        $payload['billingAddress']['postalCode'] = substr($payload['billingAddress']['postalCode'], 0, 8);
+
+        // If mapping the country, we need to convert from full-text to abbreviation
+        if ($payload['billingAddress']['country'] && strlen($payload['billingAddress']['country']) > 3) {
+            $countryRepository = new CountryRepository();
+
+            foreach ($countryRepository->getAll() as $country) {
+                if ($country->getName() === $payload['billingAddress']['country']) {
+                    $payload['billingAddress']['country'] = $country->getCountryCode();
+                }
+            }
+        }
+
+        // If mapping the state, we need to convert from full-text to abbreviation
+        if ($payload['billingAddress']['state'] && strlen($payload['billingAddress']['state']) > 3) {
+            $subdivisionRepository = new SubdivisionRepository();
+            $states = $subdivisionRepository->getAll([$payload['billingAddress']['country']]);
+
+            foreach ($states as $state) {
+                if ($state->getName() === $payload['billingAddress']['state']) {
+                    $payload['billingAddress']['state'] = $state->getCode();
+                }
+            }
+        }
 
         return $payload;
     }
