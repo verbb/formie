@@ -784,6 +784,12 @@ class Opayo extends Payment
             }
         }
 
+        // State is only required for US addresses, and will likely throw errors for other countries
+        // https://www.opayo.co.uk/support/error-codes/3130-%C2%A0-billingstate-value-too-long
+        if ($payload['billingAddress']['country'] !== 'US') {
+            unset($payload['billingAddress']['state']);
+        }
+
         return $payload;
     }
 
