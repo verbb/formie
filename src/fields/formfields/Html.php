@@ -75,7 +75,7 @@ class Html extends FormField
     {
         // Add emoji support when generating the field config for the form builder.
         // Otherwise, the shortcodes will be shown after saving and refreshing the form builder.
-        $this->htmlContent = LitEmoji::shortcodeToUnicode($this->htmlContent);
+        $this->htmlContent = LitEmoji::shortcodeToUnicode((string)$this->htmlContent);
 
         return parent::getSavedFieldConfig();
     }
@@ -90,7 +90,7 @@ class Html extends FormField
         }
 
         // Add emoji support
-        $htmlContent = LitEmoji::shortcodeToUnicode($htmlContent);
+        $htmlContent = LitEmoji::shortcodeToUnicode((string)$htmlContent);
 
         if ($this->purifyContent) {
             // Ensure we run it all through purifier
