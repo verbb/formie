@@ -129,7 +129,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
             mounted() {
                 this.$nextTick().then(() => {
-                    Craft.initUiElements();
+                    Craft.initUiElements(this.$el.parentNode);
                 });
             },
 
