@@ -57,7 +57,7 @@ return [
         'pdfPaperOrientation' => 'portrait',
 
         // Theme
-        'themeConfig' = [],
+        'themeConfig' => [],
     ]
 ];
 ```
