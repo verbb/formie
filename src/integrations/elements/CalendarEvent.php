@@ -44,7 +44,7 @@ class CalendarEvent extends Element
     /**
      * @inheritDoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
 
