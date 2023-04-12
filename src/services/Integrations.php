@@ -87,6 +87,7 @@ class Integrations extends Component
             captchas\Duplicate::class,
             captchas\Honeypot::class,
             captchas\Javascript::class,
+            captchas\FriendlyCaptcha::class,
         ];
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {

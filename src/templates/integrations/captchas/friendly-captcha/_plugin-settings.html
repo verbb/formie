@@ -1,0 +1,20 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.autosuggestField({
+    label: 'Site Key' | t('formie'),
+    name: 'siteKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.siteKey ?? '',
+    warning: macros.configWarning('siteKey', 'formie'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Secret Key' | t('formie'),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+}) }}

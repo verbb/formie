@@ -24,6 +24,7 @@
     "/js/captchas/recaptcha-enterprise.js": "/js/captchas/recaptcha-enterprise.js",
     "/js/captchas/javascript.js": "/js/captchas/javascript.js",
     "/js/captchas/hcaptcha.js": "/js/captchas/hcaptcha.js",
+    "/js/captchas/friendly-captcha.js": "/js/captchas/friendly-captcha.js",
     "/js/payments/stripe.js": "/js/payments/stripe.js",
     "/js/payments/paypal.js": "/js/payments/paypal.js",
     "/js/payments/payway.js": "/js/payments/payway.js",
