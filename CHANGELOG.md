@@ -5,6 +5,7 @@
 ### Added
 - Added support for Opayo payment integration.
 - Added support for Friendly Captcha captcha integration.
+- Added support for Cloudflare Turnstile captcha integration.
 - Added support for pagination of tags for ActiveCampaign integration. (thanks @martinleveille).
 
 ### Changed

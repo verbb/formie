@@ -1,0 +1,46 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.autosuggestField({
+    label: 'Site Key' | t('formie'),
+    name: 'siteKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.siteKey ?? '',
+    warning: macros.configWarning('siteKey', 'formie'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Secret Key' | t('formie'),
+    name: 'secretKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.secretKey ?? '',
+    warning: macros.configWarning('secretKey', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Script Loading Method' | t('formie'),
+    instructions: 'Select the `defer` and `async` attributes to use in the script tag when rendering.' | t('formie'),
+    name: 'scriptLoadingMethod',
+    value: integration.settings.scriptLoadingMethod ?? 'asyncDefer',
+    options: [
+        {
+            value: 'none',
+            label: 'None' | t('formie'),
+        },
+        {
+            value: 'asyncDefer',
+            label: 'Async & Defer' | t('formie'),
+        },
+        {
+            value: 'async',
+            label: 'Async' | t('formie'),
+        },
+        {
+            value: 'defer',
+            label: 'Defer' | t('formie'),
+        },
+    ],
+    warning: macros.configWarning('scriptLoadingMethod', 'formie'),
+}) }}
