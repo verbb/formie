@@ -6,6 +6,8 @@ Option | Description
 `fieldNamespace` | Set the namespace used by all fields. This is `fields` by default.
 `sessionKey` | Set a unique key used for session-tracking of incomplete submissions.
 `themeConfig` | Set the [Theme Config](docs:theming/theme-config) used for the form.
+`renderCss` | Whether to render the forms' CSS automatically.
+`renderJs` | Whether to render the forms' JS automatically.
 
 ## Session Key
 Setting the `sessionKey` when rendering a form gives you to opportunity to set a scope for the form's submission. When a user fills out a form, and submits the page, their data is either saved as a complete submission (single-page forms) or their data is saved as an incomplete submission (multi-page forms). In addition, we also store the current submisson in the users' session, so that if they navigate away, or even close their browser, their content won't be lost.
