@@ -1,6 +1,6 @@
 {% if not integration.hasValidSettings() %}
     <p class="warning with-icon">
-        {{ 'Please provide the site and secret keys for hCaptcha in [Settings]({link}).' | t('formie', { link: cpUrl('formie/settings/captchas#tab-hcaptcha') }) | md | striptags('<a>') | raw }}
+        {{ 'Please provide the site and secret keys for Friendly Captcha in [Settings]({link}).' | t('formie', { link: cpUrl('formie/settings/captchas#tab-friendly-captcha') }) | md | striptags('<a>') | raw }}
     </p>
 
     {% css %}
