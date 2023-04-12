@@ -1,18 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added support for Opayo payment integration.
+- Added support for Friendly Captcha captcha integration.
+- Added support for pagination of tags for ActiveCampaign integration. (thanks @martinleveille).
+
+### Changed
+- Payment fields now implement a `PaymentModel`, allowing access to the payment info in email notifications.
+- Improve payment fields to only initialize when in view for the current page.
+
+### Fixed
+- Fixed Solspace Calendar element integration.
+- Fixed an error when trying to delete newly created statuses.
+- Fixed an error when trying to mark a submission as spam/non-spam from an element action.
+- Fixed “Default Status” menu button not working for forms.
+- Fixed emoji support for HTML field.
+- Fixed Campaign integration not enforcing the opt-in setting.
+- Fixed payment fields in email notifications not outputting HTML.
+- Fixed PayWay field preview in the form builder.
+- Fixed global alert being shown for 3DS redirection for some payment integrations.
+- Fixed a potential issue when importing a form with an incorrect `defaultStatusId`.
+- Fixed an error recording referrer for form submissions.
+
 ## 2.0.26 - 2023-04-04
 
 ### Added
-- Add “Purify Content” setting for HTML fields to control HTML Purifier.
+- Added “Purify Content” setting for HTML fields to control HTML Purifier.
 
 ### Fixed
-- Fix rich text content being unable to be translated.
-- Fix an issue where manipulated submit buttons containing inner elements (such as icons) affected submission behaviour.
+- Fixed rich text content being unable to be translated.
+- Fixed an issue where manipulated submit buttons containing inner elements (such as icons) affected submission behaviour.
 
 ## 2.0.25.1 - 2023-03-27
 
 ### Fixed
-- Fix an issue with email notifications “All Fields” values not outputting correctly.
+- Fixed an issue with email notifications “All Fields” values not outputting correctly.
 
 ## 2.0.25 - 2023-03-25
 
