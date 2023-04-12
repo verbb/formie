@@ -116,7 +116,7 @@ class Status extends Model
      */
     public function canDelete(): bool
     {
-        return !$this->isDefault && !Submission::find()->trashed(null)->status($this)->one();
+        return !$this->isDefault && !Submission::find()->trashed(null)->status($this->handle)->one();
     }
 
     /**
