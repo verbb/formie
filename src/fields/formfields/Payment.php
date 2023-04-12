@@ -9,6 +9,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
+use verbb\formie\models\PaymentField as PaymentFieldModel;
 use verbb\formie\options\Currencies;
 
 use Craft;
@@ -74,6 +75,24 @@ class Payment extends FormField
     /**
      * @inheritDoc
      */
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        $value = parent::normalizeValue($value, $element);
+        $value = Json::decodeIfJson($value);
+
+        if ($value instanceof PaymentFieldModel) {
+            return $value;
+        }
+
+        $model = ($value) ? new PaymentFieldModel($value) : new PaymentFieldModel();
+        $model->setElement($element);
+
+        return $model;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/input', [
@@ -119,6 +138,20 @@ class Payment extends FormField
         }
 
         return $integration->getFrontEndJsVariables($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndSubfields($context): array
+    {
+        $integration = $this->getPaymentIntegration();
+
+        if (!$integration) {
+            return null;
+        }
+
+        return $integration->getFrontEndSubfields($this, $context);
     }
 
     /**

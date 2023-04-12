@@ -543,6 +543,9 @@ export class FormieFormTheme {
 
         // Check if there's any events in the response back, and fire them
         if (data.events && Array.isArray(data.events)) {
+            // An error message may be shown in some cases (for 3D secure) so remove the form-global level error notice.
+            this.removeFormAlert();
+
             data.events.forEach((eventData) => {
                 this.$form.dispatchEvent(new CustomEvent(eventData.event, {
                     bubbles: true,

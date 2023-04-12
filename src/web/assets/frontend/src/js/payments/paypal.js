@@ -38,7 +38,21 @@ export class FormiePayPal extends FormiePaymentProvider {
             return;
         }
 
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
+
+    onShow() {
+        // Initialize the field only when it's visible
         this.initField();
+    }
+
+    onHide() {
+        // Field is hidden, so reset everything
+        this.onAfterSubmit();
+
+        // Remove unique event listeners
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'paypal'));
     }
 
     getScriptUrl() {

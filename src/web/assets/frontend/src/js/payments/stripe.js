@@ -29,34 +29,29 @@ export class FormieStripe extends FormiePaymentProvider {
             return;
         }
 
-        // Only initialize the field if it's visible. Use `IntersectionObserver` to check when visible
-        // and also when hidden (navigating to other pages) to destroy it. Otherwise, Stripe elements
-        // will listen to page submit events and validate, preventing from going back a page.
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].intersectionRatio == 0) {
-                // Field is hidden, do reset everything
-                if (this.cardElement) {
-                    // Kill off Stripe items
-                    this.cardElement.destroy();
-                    this.cardElement = null;
-                    this.stripe = null;
-                    this.boundEvents = false;
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
 
-                    // Remove unique event listeners
-                    this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'stripe'));
-                    this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'stripe'));
-                    this.form.removeEventListener(eventKey('FormiePaymentStripe3DS', 'stripe'));
-                }
-            } else {
-                this.initCardField();
-            }
-        }, { root: this.$form });
+    onShow() {
+        // Initialize the field only when it's visible
+        this.initCardField();
+    }
 
-        // Watch for when the input is visible/hidden, in the context of the form. But wait a little to start watching
-        // to prevent double binding when still loading the form, or hidden behind conditions.
-        setTimeout(() => {
-            observer.observe(this.$input);
-        }, 500);
+    onHide() {
+        // Field is hidden, so reset everything
+        if (this.cardElement) {
+            // Kill off Stripe items
+            this.cardElement.destroy();
+            this.cardElement = null;
+            this.stripe = null;
+            this.boundEvents = false;
+
+            // Remove unique event listeners
+            this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'stripe'));
+            this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'stripe'));
+            this.form.removeEventListener(eventKey('FormiePaymentStripe3DS', 'stripe'));
+        }
     }
 
     initCardField() {

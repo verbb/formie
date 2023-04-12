@@ -454,6 +454,8 @@ class Variables
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof formfields\Signature) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\Payment) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
         }
 
         return $values;
