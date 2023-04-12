@@ -57,15 +57,17 @@ class SetSubmissionStatus extends SetStatus
         foreach ($elements as $element) {
             // Unfortunately, we need to fetch the submission _again_ to ensure custom fields are grabbed. This is because we can't query
             // across multiple content tables from the "All Forms" option.
-            $element = Submission::find()->uid($element->uid)->one();
+            $element = Submission::find()->uid($element->uid)->isSpam(null)->isIncomplete(null)->one();
 
-            $element->setStatus($status);
+            if ($element) {
+                $element->setStatus($status);
 
-            if ($elementsService->saveElement($element) === false) {
-                Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
+                if ($elementsService->saveElement($element) === false) {
+                    Formie::error('Unable to set status: {error}', ['error' => Json::encode($element->getErrors())]);
 
-                // Validation error
-                $failCount++;
+                    // Validation error
+                    $failCount++;
+                }
             }
         }
 
