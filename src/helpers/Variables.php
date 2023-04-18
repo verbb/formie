@@ -143,12 +143,13 @@ class Variables
     {
         $originalValue = $value;
 
-        if ($value === null || $value === '') {
+        if ($value === null || $value === '' || is_array($value)) {
             return '';
         }
 
-        if (is_array($value)) {
-            return '';
+        // Check if we need to even process any variables for this value
+        if (is_string($value) && !str_contains($value, '{')) {
+            return $value;
         }
 
         // Try and get the form from the submission if not set
