@@ -15,7 +15,9 @@ use craft\helpers\StringHelper;
 
 use Throwable;
 
-class DuplicateForm extends ElementAction
+use craft\elements\actions\Duplicate;
+
+class DuplicateForm extends Duplicate
 {
     // Properties
     // =========================================================================
@@ -101,6 +103,7 @@ class DuplicateForm extends ElementAction
                 $form->dateUpdated = null;
                 $form->title = $element->title . ' ' . Craft::t('formie', 'Copy');
                 $form->handle = HandleHelper::getUniqueHandle($formHandles, $element->handle);
+                $form->settings = clone $element->settings;
                 $form->settings->setForm($form);
 
                 $pagesData = $element->getFormConfig()['pages'];

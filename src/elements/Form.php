@@ -419,6 +419,14 @@ class Form extends Element
     }
 
     /**
+     * @inheritdoc
+     */
+    public function canDuplicate(User $user): bool
+    {
+        return true;
+    }
+
+    /**
      * @return FieldLayout
      * @throws InvalidConfigException
      */
