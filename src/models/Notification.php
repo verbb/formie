@@ -190,7 +190,7 @@ class Notification extends Model
             }
         }
 
-        // Otherwise, fall bacl on the default Formie templates.
+        // Otherwise, fall back on the default Formie templates.
         // Find the first available, resolved template in potential multiple components
         foreach ($components as $component) {
             $templatePath = 'formie/_special/email-template' . DIRECTORY_SEPARATOR . $component;

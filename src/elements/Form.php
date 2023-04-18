@@ -1308,7 +1308,7 @@ class Form extends Element
             }
         }
 
-        // Otherwise, fall bacl on the default Formie templates.
+        // Otherwise, fall back on the default Formie templates.
         // Find the first available, resolved template in potential multiple components
         foreach ($components as $component) {
             $templatePath = 'formie/_special/form-template' . DIRECTORY_SEPARATOR . $component;
