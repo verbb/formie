@@ -1319,6 +1319,9 @@ class Form extends Element
             $paths = [
                 $templatePath . '.html',
                 $templatePath . DIRECTORY_SEPARATOR . 'index.html',
+
+                // Also include searching the component path itself, for custom fields that don't resolve to Formie
+                $component,
             ];
 
             foreach ($paths as $path) {
