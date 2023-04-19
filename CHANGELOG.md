@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.27.1 - 2023-04-20
+
+### Fixed
+- Fixed Group fields (and their inner fields) not working when used as source of conditions.
+
 ## 2.0.27 - 2023-04-19
 
 ### Added
