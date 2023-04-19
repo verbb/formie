@@ -115,6 +115,7 @@ trait FormFieldTrait
     private array $_themeConfig = [];
     private ?FormFieldInterface $_parentField = null;
     private string $_namespace = 'fields';
+    private ?string $_customNamespace = null;
 
 
     // Public Methods
@@ -1010,11 +1011,11 @@ trait FormFieldTrait
         /* @var Settings $pluginSettings */
         $pluginSettings = Formie::$plugin->getSettings();
 
-        $fieldNamespace = $renderOptions['fieldNamespace'] ?? null;
+        $this->_customNamespace = $renderOptions['fieldNamespace'] ?? null;
 
         // Allow the use of falsey namespaces
-        if ($fieldNamespace !== null) {
-            $this->setNamespace($fieldNamespace);
+        if ($this->_customNamespace !== null) {
+            $this->setNamespace($this->_customNamespace);
         }
 
         $templateConfig = $renderOptions['themeConfig'] ?? [];
@@ -1088,7 +1089,10 @@ trait FormFieldTrait
             $conditionSettings = $this->getConditions();
             $conditions = $conditionSettings['conditions'] ?? [];
 
-            $namespace = $this->getNamespace();
+            // Ensure that any custom namespace provided in render options works. 
+            // Note we can't use `this->_namespace` or any of the `namespace()` functions which will be incorrect
+            // when referencing nested fields that use sibling conditions.
+            $namespace = $this->_customNamespace ?? 'fields';
 
             // Prep the conditions for JS
             foreach ($conditions as &$condition) {
