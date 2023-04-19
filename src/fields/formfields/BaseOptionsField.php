@@ -247,7 +247,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         // Convert labels that contain emojis
         foreach ($this->options as &$option) {
             if (isset($option['label'])) {
-                $option['label'] = LitEmoji::unicodeToShortcode($option['label']);
+                $option['label'] = LitEmoji::unicodeToShortcode((string)$option['label']);
             }
         }
 
@@ -335,7 +335,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         foreach ($this->options as &$option) {
             // Decode any emoji's in options
             if (isset($option['label'])) {
-                $option['label'] = LitEmoji::shortcodeToUnicode($option['label']);
+                $option['label'] = LitEmoji::shortcodeToUnicode((string)$option['label']);
                 $option['label'] = trim(preg_replace('/\R/u', "\n", $option['label']));
             }
         }

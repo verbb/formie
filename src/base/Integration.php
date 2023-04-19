@@ -926,7 +926,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Add support for emoji in cached content
         $data = Json::encode($this->cache);
-        $data = LitEmoji::unicodeToShortcode($data);
+        $data = LitEmoji::unicodeToShortcode((string)$data);
 
         // Direct DB update to keep it out of PC, plus speed
         Craft::$app->getDb()->createCommand()

@@ -773,7 +773,7 @@ class Table extends CraftTable implements FormFieldInterface
             case 'multiline':
             case 'singleline':
                 if ($value !== null) {
-                    $value = LitEmoji::shortcodeToUnicode($value);
+                    $value = LitEmoji::shortcodeToUnicode((string)$value);
                     return trim(preg_replace('/\R/u', "\n", $value));
                 }
                 // no break

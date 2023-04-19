@@ -116,7 +116,7 @@ class Html extends FormField
     public function beforeSave(bool $isNew): bool
     {
         // Add emoji support to HTML content
-        $this->htmlContent = LitEmoji::unicodeToShortcode($this->htmlContent);
+        $this->htmlContent = LitEmoji::unicodeToShortcode((string)$this->htmlContent);
 
         return parent::beforeSave($isNew);
     }

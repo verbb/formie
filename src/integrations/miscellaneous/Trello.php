@@ -134,13 +134,13 @@ class Trello extends Miscellaneous
                 foreach ($allLists as $list) {
                     $lists[] = [
                         'id' => $list['id'],
-                        'name' => LitEmoji::unicodeToShortcode($list['name']),
+                        'name' => LitEmoji::unicodeToShortcode((string)$list['name']),
                     ];
                 }
 
                 $boards[$board['id']] = [
                     'id' => $board['id'],
-                    'name' => LitEmoji::unicodeToShortcode($board['name']),
+                    'name' => LitEmoji::unicodeToShortcode((string)$board['name']),
                     'lists' => $lists,
                 ];
             }
@@ -162,12 +162,12 @@ class Trello extends Miscellaneous
 
         // Parse any Emoji's in board/list titles from the saved cache
         foreach ($boards as $boardKey => $board) {
-            $boards[$boardKey]['name'] = LitEmoji::shortcodeToUnicode($board['name']);
+            $boards[$boardKey]['name'] = LitEmoji::shortcodeToUnicode((string)$board['name']);
 
             $lists = $board['lists'] ?? [];
 
             foreach ($lists as $listKey => $list) {
-                $boards[$boardKey]['lists'][$listKey]['name'] = LitEmoji::shortcodeToUnicode($list['name']);
+                $boards[$boardKey]['lists'][$listKey]['name'] = LitEmoji::shortcodeToUnicode((string)$list['name']);
             }
         }
 
