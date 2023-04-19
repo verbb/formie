@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.27 - 2023-04-19
 
 ### Added
 - Added support for Opayo payment integration.
@@ -11,6 +11,8 @@
 ### Changed
 - Payment fields now implement a `PaymentModel`, allowing access to the payment info in email notifications.
 - Improve payment fields to only initialize when in view for the current page.
+- Improve variable-parsing performance by checking if the provided value contains any variables to parse.
+- Improve edit checks for form/submissions which affected element index actions like duplication.
 
 ### Fixed
 - Fixed Solspace Calendar element integration.
@@ -24,6 +26,11 @@
 - Fixed global alert being shown for 3DS redirection for some payment integrations.
 - Fixed a potential issue when importing a form with an incorrect `defaultStatusId`.
 - Fixed an error recording referrer for form submissions.
+- Fixed Group fields (and their inner fields) not working when used as source of conditions.
+- Fixed conditions not working correctly for custom `fieldNamespace`.
+- Fixed form settings not being retained when using the Duplicate element action.
+- Fixed custom fields not resolving their form/email notification templates correctly.
+- Fixed Table Date/Time columns not setting the correct timezone for Element integrations.
 
 ## 2.0.26 - 2023-04-04
 
