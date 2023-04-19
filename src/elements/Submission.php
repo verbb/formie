@@ -23,9 +23,10 @@ use verbb\formie\records\Submission as SubmissionRecord;
 use Craft;
 use craft\base\Element;
 use craft\base\FieldInterface;
+use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
-use craft\elements\User;
+use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Cp;
 use craft\helpers\Db;
@@ -180,13 +181,10 @@ class Submission extends Element
     {
         $forms = Form::find()->all();
 
-        $ids = self::_getAvailableFormIds();
-
         $sources = [
             [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'criteria' => ['formId' => $ids],
                 'defaultSort' => ['formie_submissions.title', 'desc'],
             ],
         ];
@@ -194,14 +192,6 @@ class Submission extends Element
         $sources[] = ['heading' => Craft::t('formie', 'Forms')];
 
         foreach ($forms as $form) {
-            if (is_array($ids)) {
-                if (!in_array($form->id, $ids)) {
-                    continue;
-                }
-            } else if ($ids === 0) {
-                continue;
-            }
-
             /* @var Form $form */
             $key = "form:{$form->id}";
 
@@ -217,6 +207,30 @@ class Submission extends Element
         }
 
         return $sources;
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    protected static function indexElements(ElementQueryInterface $elementQuery, ?string $sourceKey): array
+    {
+        $userSession = Craft::$app->getUser();
+        $elements = $elementQuery->all();
+
+        // Filter out any elements the user doesn't have access to view
+        // Can the user edit _every_ submission?
+        if (!$userSession->checkPermission('formie-editSubmissions')) {
+            // Find all UIDs the user has permission to
+            foreach ($elements as $key => $element) {
+                $form = $element->getForm();
+
+                if ($form && !$userSession->checkPermission('formie-manageSubmission:' . $form->uid)) {
+                    unset($elements[$key]);
+                }
+            }
+        }
+
+        return array_values($elements);
     }
 
     /**
@@ -336,22 +350,6 @@ class Submission extends Element
                 'attribute' => 'dateUpdated',
             ],
         ];
-    }
-
-    private static function _getAvailableFormIds(): int|array
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        $submissions = Formie::$plugin->getSubmissions()->getEditableSubmissions($currentUser);
-        $editableIds = ArrayHelper::getColumn($submissions, 'id');
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
     }
 
     // Properties
