@@ -181,6 +181,11 @@ class ConditionsHelper
     {
         $serializedValues = [];
 
+        // Some handles will be complex, so only grab the first portion as the field handle
+        $handles = array_filter(array_map(function($item) {
+            return explode('.', $item)[0] ?? null;
+        }, $includedHandles));
+
         if ($fieldLayout = $submission->getFieldLayout()) {
             foreach ($fieldLayout->getCustomFields() as $field) {
                 if ($field->getIsCosmetic()) {
@@ -188,7 +193,7 @@ class ConditionsHelper
                 }
 
                 // If we only want specific fields, no need to parse them all to improve performance
-                if ($includedHandles && !in_array($field->handle, $includedHandles)) {
+                if ($handles && !in_array($field->handle, $handles)) {
                     continue;
                 }
 
