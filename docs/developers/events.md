@@ -1648,8 +1648,7 @@ Event::on(Integrations::class, Integrations::EVENT_AFTER_DELETE_INTEGRATION, fun
 
 
 ## Integration Payload Events
-
-The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+The below events are examples using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
 
 ### The `beforeSendPayload` event
 The event that is triggered before an integration sends its payload.
