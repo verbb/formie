@@ -260,9 +260,14 @@ class MigrateFreeform extends Migration
 
                         case freeformfields\EmailField::class:
                             $value = $field->getValue();
-                            if (!empty($value)) {
+
+                            // Handle older Freeform installs storing emails as array
+                            if (is_array($value)) {
                                 $submission->setFieldValue($handle, $value[0]);
+                            } else {
+                                $submission->setFieldValue($handle, $value);
                             }
+                            
                             break;
 
                         default:
