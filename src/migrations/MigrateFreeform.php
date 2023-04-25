@@ -471,7 +471,7 @@ class MigrateFreeform extends Migration
             }
 
             // Migrate any hidden fields excluded from the layout.
-            foreach ($this->_freeformForm->getLayout()->getCustomFields() as $field) {
+            foreach ($this->_freeformForm->getLayout()->getFields() as $field) {
                 if ($field->getPageIndex() != $pageIndex) {
                     continue;
                 }
