@@ -1,3 +1,4 @@
+import { t } from './utils/utils';
 import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {

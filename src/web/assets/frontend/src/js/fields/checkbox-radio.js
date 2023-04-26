@@ -1,4 +1,4 @@
-import { eventKey } from '../utils/utils';
+import { t, eventKey } from '../utils/utils';
 
 export class FormieCheckboxRadio {
     constructor(settings = {}) {

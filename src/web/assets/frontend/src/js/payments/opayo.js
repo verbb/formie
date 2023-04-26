@@ -1,4 +1,4 @@
-import { eventKey } from '../utils/utils';
+import { t, eventKey } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 import { dialog } from '@rynpsc/dialog';
 import Payment from 'payment';

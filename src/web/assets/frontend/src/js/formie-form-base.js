@@ -1,4 +1,4 @@
-const globals = require('./utils/globals');
+import { t } from './utils/utils';
 
 import { FormieFormTheme } from './formie-form-theme';
 

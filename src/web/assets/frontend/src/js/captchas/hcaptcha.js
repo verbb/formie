@@ -1,5 +1,5 @@
 import { hcaptcha } from './inc/hcaptcha';
-import { eventKey } from '../utils/utils';
+import { t, eventKey } from '../utils/utils';
 
 export class FormieHcaptcha {
     constructor(settings = {}) {

@@ -1,5 +1,5 @@
 import { recaptcha } from './inc/recaptcha';
-import { eventKey } from '../utils/utils';
+import { t, eventKey } from '../utils/utils';
 
 export class FormieRecaptchaV2Invisible {
     constructor(settings = {}) {

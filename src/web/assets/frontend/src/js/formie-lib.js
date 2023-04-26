@@ -1,5 +1,4 @@
-const globals = require('./utils/globals');
-import { isEmpty } from './utils/utils';
+import { t, isEmpty } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 

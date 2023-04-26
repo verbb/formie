@@ -1,3 +1,4 @@
+import './utils/polyfills';
 import { Formie } from './formie-lib';
 
 // This should only be used when initializing Formie from the browser. When initializing with JS directly

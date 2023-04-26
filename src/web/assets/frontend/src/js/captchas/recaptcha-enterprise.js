@@ -1,5 +1,5 @@
 import { recaptchaEnterprise as recaptcha } from './inc/recaptcha';
-import { eventKey } from '../utils/utils';
+import { t, eventKey } from '../utils/utils';
 
 export class FormieRecaptchaEnterprise {
     constructor(settings = {}) {
