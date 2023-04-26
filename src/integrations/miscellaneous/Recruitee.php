@@ -155,7 +155,7 @@ class Recruitee extends Miscellaneous
                     return true;
                 }
 
-                $candidateId = $response['id'] ?? '';
+                $candidateId = $response['candidate']['id'] ?? '';
 
                 if (!$candidateId) {
                     Integration::error($this, Craft::t('formie', 'Missing return “candidateId” {response}. Sent payload {payload}', [
