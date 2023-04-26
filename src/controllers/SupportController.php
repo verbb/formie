@@ -51,10 +51,25 @@ class SupportController extends Controller
         $backupPath = Craft::$app->getPath()->getDbBackupPath();
         $user = Craft::$app->getUser()->getIdentity();
 
+        $fromEmail = $request->getParam('fromEmail');
+        $formId = $request->getParam('formId');
+        $message = $request->getParam('message');
+
+        if (!$fromEmail || !$formId || !$message) {
+            $error = Craft::t('formie', 'Please provide all the required fields.');
+            $this->setFailFlash($error);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'error' => $error,
+            ]);
+
+            return null;
+        }
+
         $support = new Support();
-        $support->fromEmail = $request->getParam('fromEmail');
-        $support->formId = $request->getParam('formId');
-        $support->message = trim($request->getParam('message'));
+        $support->fromEmail = $fromEmail;
+        $support->formId = (int)$formId;
+        $support->message = trim($message);
         $support->attachments = UploadedFile::getInstancesByName('attachments');
 
         if (!$support->validate()) {
