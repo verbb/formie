@@ -1,7 +1,7 @@
 # Form Templates
 Form templates allow you to create custom templates for the rendering the form, page, rows and fields that Formie creates. It also provides a means to control any CSS and JS used in the front-end templates. Each [Form](docs:developers/form), can be assigned a form template, so you can have multiple form templates for a variety of different requirements.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-templates.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-templates.png" />
 
 By default, Formie comes with a set of front-end templates for your form, which also include CSS and JS. This is designed for the vast majority of cases where a functional and visually appealing form needs to be rendered on the page. For any form template, you can enable or disable the following:
 

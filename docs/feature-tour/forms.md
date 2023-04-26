@@ -8,7 +8,7 @@ Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog
 ## Form Builder
 The form builder is a powerful and intuitive drag-and-drop interface to allow you to quickly build a form. To get started, drag a field from the right-hand sidebar onto the left-hand pane. A large dropzone will appear for new forms as a prompt to where to drop the field. For forms with existing fields, light blue dropzones will appear suggesting where to place a field.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-form-builder.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-form-builder.png" />
 
 Fields can be laid out in a series of columns and rows. For more complex forms, you can create additional pages, splitting fields over multiple pages. Fields can also be dragged-and-dropped to other pages.
 

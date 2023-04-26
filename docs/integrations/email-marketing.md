@@ -3,7 +3,7 @@ Email Marketing integrations are one of the provided integrations with Formie, a
 
 Formie uses Craft‘s Queue system to send data to third-party providers. When a submission is successful a job is added to the queue so that it can be processed asynchronously.
 
-<img src="https://verbb.io/uploads/plugins/formie/email-marketing.png" />
+<img src="https://verbb.imgix.net/plugins/formie/email-marketing.png" />
 
 You can create Email Marketing integrations by going to **Formie** → **Settings** → **Email Marketing**. You can pick from a list of providers Formie supports, and provide details for connecting to their respective APIs. You can also create multiple Email Marketing integrations, in case you need to connect to multiple, different providers.
 
@@ -11,7 +11,7 @@ You can also test the connection to the APIs, to ensure that your site and Formi
 
 Once created, enabled and connected, these integrations will be available to configure in your forms.
 
-<img src="https://verbb.io/uploads/plugins/formie/email-marketing-form.png" />
+<img src="https://verbb.imgix.net/plugins/formie/email-marketing-form.png" />
 
 ## Opt-in Field
 You can nominate a field in your form to enforce opt-in behaviour. This means that data will only be sent if the nominated field provides a “truthy” value. For instance, it‘s common to provide an Agree field for users to tick to say they want to sign up to your newsletter. In this case, you would add an Agree field to your form, and select that as the **Opt-in Field**.
