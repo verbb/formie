@@ -1,7 +1,7 @@
 # Email Notifications
 Email notifications are an important part of any form, to both notify the user their submission has been received, and to notify admins of their submission, so they can action.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-email-notification.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-email-notification.png" />
 
 Each notification is form-specific, and you can create as many notifications as required. There are a number of fields for a notification:
 
@@ -71,7 +71,7 @@ The content of an email notification can be previewed in the "Preview" tab, when
 
 Dummy content will be generated for fields.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-email-preview.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-email-preview.png" />
 
 ## Send Test Email
 Emails can be sent as a test to a nominated email. This will essentially send the content as shown in the Email Preview to the email address, and is considerably useful for testing email deliverability and other issues.
@@ -79,7 +79,7 @@ Emails can be sent as a test to a nominated email. This will essentially send th
 ## Conditions
 Email notifications can also have set conditions on whether they send or not. Through the conditions' builder, you can create complex rules for each of your email notifications.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-notification-conditions.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-notification-conditions.png" />
 
 First, it's a matter of choosing whether you want these sets of rules to "Send" or "Not Send" the email notification. For example, you might like to only send an email notification if the users' email isn't for a number of domain names.
 

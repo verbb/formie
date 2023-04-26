@@ -1,7 +1,7 @@
 # Conditions
 Conditional handling is a powerful feature of Formie, allowing you to hide fields based on certain conditional values, skip pages entirely, or send Email Notifications based on submission content.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-notification-conditions.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-notification-conditions.png" />
 
 Fields, Pages and Email Notifications all use the same conditions builder, so they share very similar functionality.
 

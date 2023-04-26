@@ -3,7 +3,7 @@ Fields are arguably the core of a form, providing users the means to input actua
 
 Each field varies by its type, allowing for different functionality and behaviour depending on the field.
 
-<img src="https://verbb.io/uploads/plugins/formie/formie-address.png" />
+<img src="https://verbb.imgix.net/plugins/formie/formie-address.png" />
 
 :::tip
 Looking for custom fields? Developers can create their own custom fields to extend the functionality of Formie. Read the [Custom Field](docs:developers/custom-field) docs for more.

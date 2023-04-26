@@ -2,11 +2,11 @@
 
 > Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
 
-<img width="500" src="https://verbb.io/uploads/plugins/formie/formie-social-card.png?v=1">
+<img width="500" src="https://verbb.imgix.net/plugins/formie/formie-social-card.png?v=1">
 
 Formie is a Craft CMS plugin for creating user-friendly forms that your content editors will love. With over 30 fields available, a drag-and-drop form builder, multi-page support, and more!
 
-<img width="800" src="https://verbb.io/uploads/plugins/formie/formie-form-builder.png" style="box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-radius: 4px; border: 1px solid rgba(0,0,0,0.12);">
+<img width="800" src="https://verbb.imgix.net/plugins/formie/formie-form-builder.png" style="box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-radius: 4px; border: 1px solid rgba(0,0,0,0.12);">
 
 ## Features
 - Drag-and-drop form builder, with support for columns.
