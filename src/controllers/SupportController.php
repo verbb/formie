@@ -132,7 +132,6 @@ class SupportController extends Controller
             if (is_dir($logPath)) {
                 try {
                     $logFiles = FileHelper::findFiles($logPath, [
-                        'only' => ['formie.log*'],
                         'recursive' => false,
                     ]);
                 } catch (ErrorException $e) {
@@ -140,7 +139,9 @@ class SupportController extends Controller
                 }
 
                 foreach ($logFiles as $logFile) {
-                    $zip->addFile($logFile, 'logs/' . pathinfo($logFile, PATHINFO_BASENAME));
+                    if (str_contains($logFile, 'formie-')) {
+                        $zip->addFile($logFile, 'logs/' . pathinfo($logFile, PATHINFO_BASENAME));
+                    }
                 }
             }
 
