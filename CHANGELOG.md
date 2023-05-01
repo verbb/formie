@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.28 - 2023-05-02
+
+### Changed
+- Updated front-end JS to only use ES6 modules for some utilities.
+
+### Fixed
+- Fixed Entry element integration not assigning the correct default author.
+- Fixed Formie log files not being attached to support requests.
+- Fixed an error with Recruitee integration and the payload response check.
+- Fixed validation handling for support requests.
+- Fixed an error with migrating newer Freeform submissions with email fields.
+- Fixed incorrect submissions being shown when restricting with user permissions.
+- Fixed an error when migrating Freeform.
+- Fixed an error when processing HTML content in some instances.
+
 ## 2.0.27.1 - 2023-04-20
 
 ### Fixed
