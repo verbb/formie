@@ -220,6 +220,10 @@ class Entry extends Element
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;
 
+            if ($this->defaultAuthorId) {
+                $entry->authorId = $this->defaultAuthorId;
+            }
+
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
 
             // Filter null values
