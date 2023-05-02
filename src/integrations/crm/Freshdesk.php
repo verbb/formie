@@ -375,29 +375,35 @@ class Freshdesk extends Crm
                     $body = Json::decode((string)$e->getResponse()->getBody());
 
                     // Check number of errors; if more than one, we can't update anyway
-                    if (count($body->errors) === 1) {
-                        $err = $body->errors[0];
+                    $errors = $body['errors'] ?? [];
+
+                    if (count($errors) === 1) {
+                        $err = $errors[0] ?? null;
+                        $errField = $err['field'] ?? null;
+                        $errCode = $err['code'] ?? null;
+                        $contactId = $err['additional_info']['user_id'] ?? null;
 
                         // Now check that the sole error is actually due to existing contact
-                        if ($err->field === 'email' && $err->code === 'duplicate_value') {
+                        if ($errField === 'email' && $errCode === 'duplicate_value') {
                             try {
-                                $updateResponse = $this->deliverPayload(
-                                    $submission,
-                                    "contacts/{$err->additional_info->user_id}",
-                                    $contactPayload,
-                                    'PUT'
-                                );
+                                $updateResponse = $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
 
                                 if ($updateResponse === false) {
                                     return true;
                                 }
                             } catch (Throwable $e) {
                                 // If fails to update, most likely an agent and can safely ignore exception
+                                Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                    'message' => $e->getMessage(),
+                                    'response' => Json::encode($response),
+                                    'payload' => Json::encode($contactPayload),
+                                ]), true);
                             }
                         }
+                    } else {
+                        // Throw the exception again to bubble up to main exception handler
+                        throw $e;
                     }
-                } catch (Throwable $e) {
-                    // For now, we don't care about an existing contact
                 }
             }
 
