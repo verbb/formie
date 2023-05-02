@@ -193,9 +193,6 @@ For element fields (Entries, Categories, Tags, Users, Products, Variants), you c
 ?entries_field[]=1234&entries_field[]=5678
 ```
 
-### Element Fields
-For element fields (Entries, Categories, Tags, Users, Products, Variants), you can either supply a single value, or an array of values - but all must be the ID of the elements you want to populate.
-
 :::tip
 You can also alter this behaviour using [events](docs:developers/events) if your URL params have specific needs. For example, if you wanted to use a URL param like `entries=2242,1101` to handle multiple items.
 :::
