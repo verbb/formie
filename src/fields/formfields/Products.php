@@ -460,4 +460,26 @@ class Products extends CommerceProducts implements FormFieldInterface
 
         return $this->traitDefineHtmlTag($key, $context);
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function setPrePopulatedValue($value)
+    {
+        $ids = [];
+
+        // Normalize setting from query param.
+        // TODO: move to `RelationTrait` or reorganise into an extended RelationField.
+        // Otherwise, breaking change for custom element relation fields.
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        foreach ($value as $id) {
+            $ids[] = ['id' => $id];
+        }
+
+        return $ids;
+    }
 }

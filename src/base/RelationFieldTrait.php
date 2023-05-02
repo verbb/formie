@@ -323,6 +323,10 @@ trait RelationFieldTrait
         return $options;
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     /**
      * Returns the sources that should be available to choose from within the field's settings
      *
@@ -336,10 +340,6 @@ trait RelationFieldTrait
             fn($s) => $s['type'] !== ElementSources::TYPE_HEADING
         );
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
