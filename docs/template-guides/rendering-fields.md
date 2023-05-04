@@ -68,7 +68,7 @@ The previous examples have just covered rendering fields in a form in a simple m
     {{ hiddenInput('handle', form.handle) }}
 
     {% for page in form.getPages() %}
-        <div class="fui-page" id="{{ form.formId }}-p-{{ page.id }}" data-index="0" data-id="{{ page.id }}" data-fui-page>
+        <div class="fui-page" data-id="{{ page.id }}">
             {% for row in page.getRows() %}
                 <div class="fui-row fui-page-row">
                     {% for field in row.fields %}
