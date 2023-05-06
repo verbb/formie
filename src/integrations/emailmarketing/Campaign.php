@@ -4,6 +4,9 @@ namespace verbb\formie\integrations\emailmarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\formfields\Table;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -12,6 +15,9 @@ use Craft;
 use craft\fields;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
+
+use yii\base\Event;
 
 use putyourlightson\campaign\Campaign as CampaignPlugin;
 use putyourlightson\campaign\elements\ContactElement;
@@ -20,6 +26,8 @@ use putyourlightson\campaign\models\PendingContactModel;
 use putyourlightson\campaign\records\MailingListRecord;
 use putyourlightson\campaign\records\MailingListTypeRecord;
 
+use DateTime;
+use DateTimeZone;
 use Throwable;
 
 class Campaign extends EmailMarketing
@@ -43,6 +51,45 @@ class Campaign extends EmailMarketing
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // For rich-text enabled fields, retain the HTML (safely)
+            if ($event->field instanceof MultiLineText) {
+                $event->value = StringHelper::htmlDecode($event->value);
+            }
+
+            // For Date fields as a destination, convert to UTC from system time
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+                if ($event->value instanceof DateTime) {
+                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                    $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+                }
+            }
+
+            // Element fields should map 1-for-1, but not as arrays of titles
+            if ($event->field instanceof fields\BaseRelationField) {
+                $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
+            }
+
+            // For Table fields with Date/Time destination columns, convert to UTC from system time
+            if ($event->field instanceof Table) {
+                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                foreach ($event->value as $rowKey => $row) {
+                    foreach ($row as $colKey => $column) {
+                        if (is_array($column) && isset($column['date'])) {
+                            $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     public function getDescription(): string
     {
@@ -179,11 +226,15 @@ class Campaign extends EmailMarketing
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
+            fields\Assets::class => IntegrationField::TYPE_ARRAY,
+            fields\Categories::class => IntegrationField::TYPE_ARRAY,
             fields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
-            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            fields\Date::class => IntegrationField::TYPE_DATECLASS,
             fields\Entries::class => IntegrationField::TYPE_ARRAY,
+            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
             fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
             fields\Number::class => IntegrationField::TYPE_FLOAT,
+            fields\Table::class => IntegrationField::TYPE_ARRAY,
             fields\Tags::class => IntegrationField::TYPE_ARRAY,
             fields\Users::class => IntegrationField::TYPE_ARRAY,
         ];
