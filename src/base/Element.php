@@ -69,6 +69,11 @@ abstract class Element extends Integration
                 }
             }
 
+            // Element fields should map 1-for-1
+            if ($event->field instanceof fields\BaseRelationField) {
+                $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
+            }
+
             // For Table fields with Date/Time destination columns, convert to UTC from system time
             if ($event->field instanceof Table) {
                 $timezone = new DateTimeZone(Craft::$app->getTimeZone());
