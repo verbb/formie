@@ -65,6 +65,7 @@ class SubmissionExport extends ElementExporter
             $attributes = [
                 'id' => Craft::t('site', 'ID'),
                 'formId' => Craft::t('site', 'Form ID'),
+                'formName' => Craft::t('site', 'Form Name'),
                 'userId' => Craft::t('site', 'User ID'),
                 'ipAddress' => Craft::t('site', 'IP Address'),
                 'isIncomplete' => Craft::t('site', 'Is Incomplete?'),
@@ -83,13 +84,18 @@ class SubmissionExport extends ElementExporter
             $query->with($eagerLoadableFields);
 
             foreach ($query->each() as $element) {
-                // Fetch the attributes for the element
-                $values = $element->toArray(array_keys($attributes));
+                // We want to grab some more values than just the attributes produced from `toArray`
+                $elementValues = array_merge($element->toArray(), [
+                    'formName' => $element->getForm()->title ?? '',
+                ]);
 
-                // Convert values to strings
-                $values = array_map(function($item) {
-                    return (string)$item;
-                }, $values);
+                // Fetch the attributes for the element
+                $values = [];
+
+                foreach ($attributes as $attr => $label) {
+                    // Convert values to strings
+                    $values[] = (string)($elementValues[$attr] ?? null);
+                }
 
                 $row = array_combine(array_values($attributes), $values);
 
