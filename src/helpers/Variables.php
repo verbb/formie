@@ -43,6 +43,7 @@ class Variables
             ['label' => Craft::t('formie', 'Form Name'), 'value' => '{formName}'],
             ['label' => Craft::t('formie', 'Submission CP URL'), 'value' => '{submissionUrl}'],
             ['label' => Craft::t('formie', 'Submission ID'), 'value' => '{submissionId}'],
+            ['label' => Craft::t('formie', 'Submission UID'), 'value' => '{submissionUid}'],
             ['label' => Craft::t('formie', 'Submission Date'), 'value' => '{submissionDate}'],
         ];
     }
@@ -207,6 +208,7 @@ class Variables
                 'formName' => $formName,
                 'submissionUrl' => $submission->cpEditUrl ?? '',
                 'submissionId' => $submission->id ?? null,
+                'submissionUid' => $submission->uid ?? null,
                 'submissionDate' => $dateCreated ? $dateCreated->format('Y-m-d H:i:s') : null,
 
                 'siteName' => $siteName,
