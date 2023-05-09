@@ -290,11 +290,16 @@ trait NestedFieldTrait
         // Check for any nested fields
         foreach ($this->getCustomFields() as $field) {
             if ($js = $field->getFrontEndJsModules()) {
+                // Normalise for processing. Fields can have multiple modules
+                if (!isset($js[0])) {
+                    $js = [$js];
+                }
+                
                 $modules[] = $js;
             }
         }
 
-        return $modules;
+        return array_merge(...$modules);
     }
 
     /**
