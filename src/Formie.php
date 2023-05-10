@@ -458,16 +458,16 @@ class Formie extends Plugin
         }
 
         if (class_exists(FeedMeElements::class)) {
-            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $e) {
-                $e->elements[] = FeedMeSubmission::class;
+            Event::on(FeedMeElements::class, FeedMeElements::EVENT_REGISTER_FEED_ME_ELEMENTS, function(RegisterFeedMeElementsEvent $event) {
+                $event->elements[] = FeedMeSubmission::class;
             });
         }
 
         if (class_exists(FeedMeFields::class)) {
-            Event::on(FeedMeFields::class, FeedMeFields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $e) {
+            Event::on(FeedMeFields::class, FeedMeFields::EVENT_REGISTER_FEED_ME_FIELDS, function(RegisterFeedMeFieldsEvent $event) {
                 $fields = Formie::$plugin->getFields()->getRegisteredFormieFields();
 
-                $e->fields = array_merge($e->fields, $fields);
+                $event->fields = array_merge($event->fields, $fields);
             });
         }
     }
@@ -533,28 +533,28 @@ class Formie extends Plugin
 
     private function _registerElementExports(): void
     {
-        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $e) {
+        Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
             // Remove defaults, but allow third-party ones
-            foreach ($e->exporters as $key => $exporter) {
+            foreach ($event->exporters as $key => $exporter) {
                 if ($exporter === Raw::class) {
-                    unset($e->exporters[$key]);
+                    unset($event->exporters[$key]);
                 }
 
                 if ($exporter === Expanded::class) {
-                    unset($e->exporters[$key]);
+                    unset($event->exporters[$key]);
                 }
             }
 
-            $e->exporters = array_values($e->exporters);
+            $event->exporters = array_values($event->exporters);
 
-            $e->exporters[] = SubmissionExport::class;
+            $event->exporters[] = SubmissionExport::class;
         });
     }
 
     private function _registerTemplateRoots(): void
     {
-        Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $e) {
-            $e->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
+        Event::on(View::class, View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS, function(RegisterTemplateRootsEvent $event) {
+            $event->roots[$this->id] = $this->getBasePath() . DIRECTORY_SEPARATOR . 'templates/_special';
         });
     }
 
@@ -571,8 +571,8 @@ class Formie extends Plugin
             return;
         }
 
-        Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $e) {
-            $e->actions['formie-forms'] = [
+        Event::on(ResaveController::class, ConsoleController::EVENT_DEFINE_ACTIONS, function(DefineConsoleActionsEvent $event) {
+            $event->actions['formie-forms'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
                     
@@ -582,7 +582,7 @@ class Formie extends Plugin
                 'helpSummary' => 'Re-saves Formie forms.',
             ];
 
-            $e->actions['formie-submissions'] = [
+            $event->actions['formie-submissions'] = [
                 'action' => function(): int {
                     $controller = Craft::$app->controller;
 
