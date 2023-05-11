@@ -171,7 +171,6 @@ class Mailchimp extends EmailMarketing
 
             $payload = [
                 'email_address' => $email,
-                'status' => $this->useDoubleOptIn ? 'pending' : 'subscribed',
                 'status_if_new' => $this->useDoubleOptIn ? 'pending' : 'subscribed',
             ];
 
