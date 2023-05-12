@@ -565,7 +565,7 @@ class MicrosoftDynamics365 extends Crm
         return $fields;
     }
 
-    private function _getEntityOwnerOptions($entityName, $fields): void
+    private function _getEntityOwnerOptions($entity, $fields): void
     {
         // Get all the fields that are relational
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
