@@ -15,6 +15,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
 use craft\db\Migration;
@@ -546,8 +547,10 @@ class MigrateFreeform extends Migration
                 $newField = new formfields\Agree();
                 $this->_applyFieldDefaults($newField);
 
+                $description = (new Renderer)->render('<p>' . $field->getLabel() . '</p>');
+
                 $newField->defaultValue = $field->isChecked();
-                $newField->description = $field->getLabel();
+                $newField->description = $description;
                 $newField->checkedValue = $field->getValue();
                 $newField->uncheckedValue = Craft::t('app', 'No');
                 break;
