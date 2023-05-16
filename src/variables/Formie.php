@@ -109,7 +109,7 @@ class Formie
      * @throws \yii\base\Exception
      * @throws InvalidConfigException
      */
-    public function renderForm(Form|string $form, array $renderOptions = []): ?Markup
+    public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $renderOptions);
     }
@@ -127,7 +127,7 @@ class Formie
      * @throws SyntaxError
      * @throws \yii\base\Exception
      */
-    public function renderPage(Form|string $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }
@@ -144,7 +144,7 @@ class Formie
      * @throws SyntaxError
      * @throws \yii\base\Exception
      */
-    public function renderField(Form|string $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
+    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $renderOptions);
     }
@@ -161,7 +161,7 @@ class Formie
      * @throws \yii\base\Exception
      * @throws InvalidConfigException
      */
-    public function registerAssets(Form|string $form, array $renderOptions = []): void
+    public function registerAssets(Form|string|null $form, array $renderOptions = []): void
     {
         FormiePlugin::$plugin->getRendering()->registerAssets($form, $renderOptions);
     }
@@ -173,7 +173,7 @@ class Formie
      * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderFormCss(Form|string $form, array $renderOptions = []): ?Markup
+    public function renderFormCss(Form|string|null $form, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $renderOptions);
     }
@@ -185,7 +185,7 @@ class Formie
      * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderFormJs(Form|string $form, array $renderOptions = []): ?Markup
+    public function renderFormJs(Form|string|null $form, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $renderOptions);
     }
