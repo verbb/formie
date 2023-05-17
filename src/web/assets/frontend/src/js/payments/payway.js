@@ -65,7 +65,10 @@ export class FormiePayWay extends FormiePaymentProvider {
 
             document.body.appendChild($script);
         } else {
-            this.mountCard();
+            // Ensure that PayWay has been loaded and ready to use
+            ensureVariable('payway').then(() => {
+                this.mountCard();
+            });
         }
 
         // Attach custom event listeners on the form

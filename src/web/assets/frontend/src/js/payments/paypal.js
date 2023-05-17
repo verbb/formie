@@ -83,7 +83,10 @@ export class FormiePayPal extends FormiePaymentProvider {
 
             document.body.appendChild($script);
         } else {
-            this.renderButton();
+            // Ensure that PayPal has been loaded and ready to use
+            ensureVariable('paypal').then(() => {
+                this.renderButton();
+            });
         }
 
         // Attach custom event listeners on the form

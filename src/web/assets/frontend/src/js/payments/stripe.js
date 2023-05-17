@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, ensureVariable } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 
 export class FormieStripe extends FormiePaymentProvider {
@@ -71,7 +71,10 @@ export class FormieStripe extends FormiePaymentProvider {
 
             document.body.appendChild($script);
         } else {
-            this.mountCard();
+            // Ensure that Stripe has been loaded and ready to use
+            ensureVariable('Stripe').then(() => {
+                this.mountCard();
+            });
         }
 
         // Attach custom event listeners on the form
