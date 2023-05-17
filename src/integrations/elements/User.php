@@ -218,6 +218,11 @@ class User extends Element
                 // If this a Password field?
                 if ($passwordField instanceof Password) {
                     $hashedPassword = ArrayHelper::remove($attributeValues, 'newPassword');
+
+                    // If this is **not** being run via the queue, the password won't be serialized and hashed yet, so ensure it's hashed
+                    if (Craft::$app->getRequest()->getIsSiteRequest()) {
+                        $hashedPassword = Craft::$app->getSecurity()->hashPassword($hashedPassword);
+                    }
                 }
             }
 
