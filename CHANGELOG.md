@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.0.29 - 2023-05-18
+
+### Added
+- Added “Form Name” to submission export.
+- Added “Submission UID” as an option for variable pickers.
+- Added proper loading checks for payment field providers (Stripe, PayWay, PayPal).
+
+### Changed
+- Payment integrations can now register `htmlTag` for Theme Config.
+
+### Fixed
+- Fixed an error when previewing Email Notifications containing a Payment field.
+- Fixed Stripe payment field not honouring Theme Config settings for `fieldInput`.
+- Fixed incorrect API url for Pardot integration.
+- Fixed User element integration not working correctly with Password fields and non-queue running processing.
+- Fixed render function types for `null` forms.
+- Fixed an issue migrating Checkbox fields from Freeform forms.
+- Fixed Mailchimp integration and setting existing contacts with `status = pending` when double-opt-in is enabled.
+- Fixed Repeater/Group fields not having their inner field’s JS initialized correctly (for multi-line rich text).
+- Fixed Campaign integration not mapping certain fields (Table, Date, Element) correctly.
+- Fixed Element integrations not mapping Element fields correctly.
+- Fixed Freshdesk integration for existing contact handling.
+- Fixed an error when populating element field values with limits.
+
 ## 2.0.28 - 2023-05-02
 
 ### Changed
