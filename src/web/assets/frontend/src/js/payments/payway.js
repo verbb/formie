@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, ensureVariable } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 
 export class FormiePayWay extends FormiePaymentProvider {
