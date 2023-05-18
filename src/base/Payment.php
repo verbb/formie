@@ -9,6 +9,7 @@ use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -381,6 +382,11 @@ abstract class Payment extends Integration
             return ArrayHelper::getValue($providerSettings, $setting, $default);
         }
 
+        return null;
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
         return null;
     }
 

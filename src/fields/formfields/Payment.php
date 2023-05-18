@@ -269,6 +269,17 @@ class Payment extends FormField
         ];
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        $integration = $this->getPaymentIntegration();
+
+        if (!$integration) {
+            return null;
+        }
+
+        return $integration->defineHtmlTag($key, $context) ?? parent::defineHtmlTag($key, $context);
+    }
+
 
     // Protected Methods
     // =========================================================================
