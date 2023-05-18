@@ -12,6 +12,7 @@ use verbb\formie\fields\formfields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\Plan;
@@ -895,6 +896,22 @@ class Stripe extends Payment
                 'name' => 'hideIcon',
             ]),
         ];
+    }
+
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'fieldInput') {
+            // Extend the Single-Line Text field for sane defaults
+            $textField = new formfields\SingleLineText();
+            $textFieldAttributes = $textField->defineHtmlTag($key, $context)->attributes;
+
+            return new HtmlTag('div', [
+                'class' => $textFieldAttributes['class'] ?? [],
+                'data-fui-stripe-elements' => true,
+            ]);
+        }
+
+        return null;
     }
 
 

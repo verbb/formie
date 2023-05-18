@@ -1,7 +1,6 @@
-{{ tag('div', {
-    class: 'fui-input',
-    'data-fui-stripe-elements': true,
-}) }}
+{% set form = renderOptions.form %}
+
+{{ fieldtag('fieldInput') }}
 
 {# Include so that error messages are shown with `formie-theme.js` for server-side errors (3DS) #}
 <input type="hidden" name="{{ field.getHtmlName() }}">
