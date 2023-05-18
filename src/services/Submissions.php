@@ -752,6 +752,11 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $faker->randomDigit;
 
                     break;
+                case formfields\Payment::class:
+                    // Payment fields can't really be previewed without real payment data
+                    $fieldContent[$field->handle] = [];
+
+                    break;
                 case formfields\Phone::class:
                     if ($field->countryEnabled) {
                         $number = $faker->e164PhoneNumber;
