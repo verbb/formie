@@ -1203,7 +1203,7 @@ class Form extends Element
      * @throws LoaderError
      * @throws SyntaxError
      */
-    public function getRedirectUrl(bool $checkLastPage = true): string
+    public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
     {
         $request = Craft::$app->getRequest();
         $url = '';
@@ -1226,7 +1226,7 @@ class Form extends Element
         }
 
         // Add any query params to the URL automatically (think utm)
-        if ($url && $request->getIsSiteRequest()) {
+        if ($url && $request->getIsSiteRequest() && $includeQueryString) {
             $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
         }
 
