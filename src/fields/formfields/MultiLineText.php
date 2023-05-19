@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 
 use Craft;
@@ -13,8 +14,6 @@ use craft\base\PreviewableFieldInterface;
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
-
-use LitEmoji\LitEmoji;
 
 class MultiLineText extends FormField implements PreviewableFieldInterface
 {
@@ -87,7 +86,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
-            $value = LitEmoji::entitiesToUnicode($value);
+            $value = StringHelper::entitiesToEmoji((string)$value);
         }
 
         $value = $value !== '' ? $value : null;
@@ -102,8 +101,8 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     {
         if ($value !== null) {
             // Save as HTML entities (e.g. `&#x1F525;`) so we can use that in JS to determine length.
-            // Saving as a shortcode is too tricky to detemine the same length in JS.
-            $value = LitEmoji::encodeHtml($value);
+            // Saving as a shortcode is too tricky to determine the same length in JS.
+            $value = StringHelper::encodeHtml((string)$value);
         }
 
         return parent::serializeValue($value, $element);

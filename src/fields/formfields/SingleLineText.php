@@ -4,15 +4,13 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
-use craft\helpers\StringHelper;
-
-use LitEmoji\LitEmoji;
 
 class SingleLineText extends FormField implements PreviewableFieldInterface
 {
@@ -75,7 +73,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
-            $value = LitEmoji::entitiesToUnicode($value);
+            $value = StringHelper::entitiesToEmoji((string)$value);
         }
 
         $value = $value !== '' ? $value : null;
@@ -90,8 +88,8 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     {
         if ($value !== null) {
             // Save as HTML entities (e.g. `&#x1F525;`) so we can use that in JS to determine length.
-            // Saving as a shortcode is too tricky to detemine the same length in JS.
-            $value = LitEmoji::encodeHtml($value);
+            // Saving as a shortcode is too tricky to determine the same length in JS.
+            $value = StringHelper::encodeHtml((string)$value);
         }
 
         return parent::serializeValue($value, $element);
@@ -143,7 +141,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $count = strlen(LitEmoji::encodeHtml($value));
+        $count = strlen(StringHelper::encodeHtml((string)$value));
 
         if ($count < $min) {
             $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} characters.', [
@@ -170,7 +168,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $count = strlen(LitEmoji::encodeHtml($value));
+        $count = strlen(StringHelper::encodeHtml((string)$value));
 
         if ($count > $max) {
             $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} characters.', [

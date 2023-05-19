@@ -4,6 +4,7 @@ namespace verbb\formie\elements;
 use verbb\formie\Formie;
 use verbb\formie\elements\actions\ResendNotifications;
 use verbb\formie\elements\db\SentNotificationQuery;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\records\SentNotification as SentNotificationRecord;
 
@@ -23,8 +24,6 @@ use craft\helpers\UrlHelper;
 use yii\base\Model;
 
 use Exception;
-
-use LitEmoji\LitEmoji;
 
 class SentNotification extends Element
 {
@@ -409,8 +408,8 @@ class SentNotification extends Element
         $record->dateUpdated = $this->dateUpdated;
 
         // Ensure we take care of any emoji's in content
-        $record->body = LitEmoji::encodeHtml($record->body);
-        $record->htmlBody = LitEmoji::encodeHtml($record->htmlBody);
+        $record->body = StringHelper::encodeHtml((string)$record->body);
+        $record->htmlBody = StringHelper::encodeHtml((string)$record->htmlBody);
 
         $record->save(false);
 

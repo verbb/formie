@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\HtmlTag;
 
@@ -26,8 +27,6 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 use yii\validators\EmailValidator;
-
-use LitEmoji\LitEmoji;
 
 class Table extends CraftTable implements FormFieldInterface
 {
@@ -773,7 +772,7 @@ class Table extends CraftTable implements FormFieldInterface
             case 'multiline':
             case 'singleline':
                 if ($value !== null) {
-                    $value = LitEmoji::shortcodeToUnicode((string)$value);
+                    $value = StringHelper::shortcodesToEmoji((string)$value);
                     return trim(preg_replace('/\R/u', "\n", $value));
                 }
                 // no break

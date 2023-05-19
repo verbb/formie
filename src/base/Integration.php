@@ -9,6 +9,7 @@ use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\formfields\Agree;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Token;
@@ -20,7 +21,6 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\queue\JobInterface;
 use craft\validators\HandleValidator;
@@ -35,8 +35,6 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
 use Throwable;
-
-use LitEmoji\LitEmoji;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
@@ -343,7 +341,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $settings = $this->getCache('settings') ?: [];
 
             // Add support for emoji in cached content
-            $settings = Json::decode(LitEmoji::shortcodeToUnicode(Json::encode($settings)));
+            $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
 
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
@@ -926,7 +924,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Add support for emoji in cached content
         $data = Json::encode($this->cache);
-        $data = LitEmoji::unicodeToShortcode((string)$data);
+        $data = StringHelper::emojiToShortcodes((string)$data);
 
         // Direct DB update to keep it out of PC, plus speed
         Craft::$app->getDb()->createCommand()

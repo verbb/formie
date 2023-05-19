@@ -5,6 +5,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -21,8 +22,6 @@ use GuzzleHttp\Subscriber\Oauth\Oauth1;
 use GuzzleHttp\Client;
 
 use Throwable;
-
-use LitEmoji\LitEmoji;
 
 class Trello extends Miscellaneous
 {
@@ -134,13 +133,13 @@ class Trello extends Miscellaneous
                 foreach ($allLists as $list) {
                     $lists[] = [
                         'id' => $list['id'],
-                        'name' => LitEmoji::unicodeToShortcode((string)$list['name']),
+                        'name' => StringHelper::emojiToShortcodes((string)$list['name']),
                     ];
                 }
 
                 $boards[$board['id']] = [
                     'id' => $board['id'],
-                    'name' => LitEmoji::unicodeToShortcode((string)$board['name']),
+                    'name' => StringHelper::emojiToShortcodes((string)$board['name']),
                     'lists' => $lists,
                 ];
             }
@@ -162,12 +161,12 @@ class Trello extends Miscellaneous
 
         // Parse any Emoji's in board/list titles from the saved cache
         foreach ($boards as $boardKey => $board) {
-            $boards[$boardKey]['name'] = LitEmoji::shortcodeToUnicode((string)$board['name']);
+            $boards[$boardKey]['name'] = StringHelper::shortcodesToEmoji((string)$board['name']);
 
             $lists = $board['lists'] ?? [];
 
             foreach ($lists as $listKey => $list) {
-                $boards[$boardKey]['lists'][$listKey]['name'] = LitEmoji::shortcodeToUnicode((string)$list['name']);
+                $boards[$boardKey]['lists'][$listKey]['name'] = StringHelper::shortcodesToEmoji((string)$list['name']);
             }
         }
 

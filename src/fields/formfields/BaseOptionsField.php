@@ -4,6 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 
 use Craft;
@@ -18,8 +19,6 @@ use yii\db\Schema;
 use GraphQL\Type\Definition\Type;
 
 use Throwable;
-
-use LitEmoji\LitEmoji;
 
 abstract class BaseOptionsField extends CraftBaseOptionsField
 {
@@ -247,7 +246,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         // Convert labels that contain emojis
         foreach ($this->options as &$option) {
             if (isset($option['label'])) {
-                $option['label'] = LitEmoji::unicodeToShortcode((string)$option['label']);
+                $option['label'] = StringHelper::emojiToShortcodes((string)$option['label']);
             }
         }
 
@@ -335,7 +334,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         foreach ($this->options as &$option) {
             // Decode any emoji's in options
             if (isset($option['label'])) {
-                $option['label'] = LitEmoji::shortcodeToUnicode((string)$option['label']);
+                $option['label'] = StringHelper::shortcodesToEmoji((string)$option['label']);
                 $option['label'] = trim(preg_replace('/\R/u', "\n", $option['label']));
             }
         }
