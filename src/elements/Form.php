@@ -321,6 +321,7 @@ class Form extends Element
     private array $_relations = [];
     private array $_populatedFieldValues = [];
     private array $_frontEndJsEvents = [];
+    private ?string $_redirectUrl = null;
 
     // Render Options
     private array $_themeConfig = [];
@@ -1195,6 +1196,12 @@ class Form extends Element
         return ArrayHelper::where($this->getNotifications(), 'enabled', true);
     }
 
+
+    public function setRedirectUrl(string $value): void
+    {
+        $this->_redirectUrl = $value;
+    }
+
     /**
      * Gets the form's redirect URL.
      *
@@ -1213,6 +1220,11 @@ class Form extends Element
             if ($checkLastPage && !$this->isLastPage()) {
                 return $url;
             }
+        }
+
+        // Allow specific override of redirect URL, likely from templates
+        if ($this->_redirectUrl) {
+            return $this->_redirectUrl;
         }
 
         // Allow settings to statically set the redirect URL (from templates)
