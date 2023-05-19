@@ -15,6 +15,7 @@ use verbb\formie\positions\Hidden;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
@@ -27,7 +28,7 @@ use ReflectionProperty;
 
 use GraphQL\Type\Definition\Type;
 
-class Recipients extends FormField
+class Recipients extends FormField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -382,6 +383,28 @@ class Recipients extends FormField
         }
 
         return $value;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    {
+        if (in_array($this->displayType, ['dropdown', 'radio'])) {
+            return $value->value ? Craft::t('site', (string)$value->label) : '';
+        } else if ($this->displayType === 'checkboxes') {
+            $labels = [];
+
+            foreach ($value as $option) {
+                if ($option->value) {
+                    $labels[] = Craft::t('site', $option->label);
+                }
+            }
+
+            return implode(', ', $labels);
+        }
+
+        return parent::getTableAttributeHtml($value, $element);
     }
 
     /**
