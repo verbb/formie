@@ -104,7 +104,7 @@ class CalendarEvent extends Element
             $fields = [];
 
             if ($fieldLayout = $calendar->getFieldLayout()) {
-                foreach ($fieldLayout->getFields() as $field) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
                     $fields[] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
@@ -241,7 +241,7 @@ class CalendarEvent extends Element
 
         foreach ($calendars as $calendar) {
             if ($fieldLayout = $calendar->getFieldLayout()) {
-                foreach ($fieldLayout->getFields() as $field) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
                     if (!$this->fieldCanBeUniqueId($field)) {
                         continue;
                     }
