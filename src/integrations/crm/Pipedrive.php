@@ -148,13 +148,8 @@ class Pipedrive extends Crm
                 ]),
             ]);
 
-            // Get Lead fields
-            $leadFields = [
-                new IntegrationField([
-                    'handle' => 'title',
-                    'name' => Craft::t('formie', 'Title'),
-                    'required' => true,
-                ]),
+            // Get Lead fields - uses the same custom fields as deals
+            $leadFields = array_merge($this->_getCustomFields($fields, ['currency', 'probability', 'stage_id', 'label', 'status']), [
                 new IntegrationField([
                     'handle' => 'owner_id',
                     'name' => Craft::t('formie', 'Owner ID'),
@@ -163,11 +158,7 @@ class Pipedrive extends Crm
                     'handle' => 'note',
                     'name' => Craft::t('formie', 'Note'),
                 ]),
-                new IntegrationField([
-                    'handle' => 'value',
-                    'name' => Craft::t('formie', 'Value'),
-                ]),
-            ];
+            ]);
 
             // Get Organization fields
             $response = $this->request('GET', 'organizationFields');
