@@ -18,6 +18,7 @@ use craft\fields\BaseRelationField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\SingleOptionsFieldData;
 use craft\helpers\App;
+use craft\web\twig\variables\CraftVariable;
 
 use DateTime;
 use DateTimeZone;
@@ -207,6 +208,10 @@ class Variables
                 'systemEmail' => $systemEmail,
                 'systemReplyTo' => $systemReplyTo,
                 'systemName' => $systemName,
+                'craft' => new CraftVariable(),
+                'currentSite' => $site,
+                'currentUser' => $currentUser,
+                'siteUrl' => $site->getBaseUrl(),
 
                 'timestamp' => $now->format('Y-m-d H:i:s'),
                 'dateUs' => $now->format('m/d/Y'),
