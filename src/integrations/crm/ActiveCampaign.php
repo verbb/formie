@@ -322,8 +322,7 @@ class ActiveCampaign extends Crm
 
                     if ($tags) {
                         // Find all the tags first
-                        $response = $this->request('GET', 'tags');
-                        $existingTags = $response['tags'] ?? [];
+                        $existingTags = $this->_getPaginated('tags');
                         $tagIds = [];
 
                         // Process each tag
