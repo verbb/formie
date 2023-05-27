@@ -7,6 +7,7 @@ use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -15,7 +16,6 @@ use verbb\formie\models\IntegrationResponse;
 use Craft;
 use craft\base\Element as CraftElement;
 use craft\elements\User;
-use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -280,7 +280,7 @@ class CalendarEvent extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $attributeValues = $this->filterNullValues($attributeValues);
+                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
             }
 
             foreach ($attributeValues as $eventFieldHandle => $fieldValue) {
@@ -298,7 +298,7 @@ class CalendarEvent extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $fieldValues = $this->filterNullValues($fieldValues);
+                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
             }
 
             $event->setFieldValues($fieldValues);
