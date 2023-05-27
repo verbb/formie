@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.30 - 2023-05-27
+
+### Added
+- Add `form.setRedirectUrl()`.
+- Add support for Recipients field to be shown in element indexes for submissions.
+- Add `includeQueryString` parameter to `form.getRedirectUrl()`.
+- Add `craft`, `currentSite`, `currentUser` and `siteUrl` to available dynamic variables
+
+### Changed
+- Update Pipedrive integration with lead custom fields.
+- Update Litemoji to handle some multi-byte strings.
+- Ensure events are still triggered if the integration is creating a Draft. (thanks @taylordaughtry).
+- Element integrations now factor in fetching existing elements of any status.
+
+### Fixed
+- Fix an error with Solspace Calender integration.
+- Remove `inline-template` warning from Solspace Calendar integration.
+- Fix ActiveCampaign Email Marketing integration not using pagination for tags. (thanks @jimirobaer).
+
 ## 2.0.29 - 2023-05-18
 
 ### Added
