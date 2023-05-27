@@ -15,6 +15,7 @@ use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\App;
 use craft\models\Site;
+use craft\web\twig\variables\CraftVariable;
 
 use yii\web\IdentityInterface;
 
@@ -215,6 +216,10 @@ class Variables
                 'systemEmail' => $systemEmail,
                 'systemReplyTo' => $systemReplyTo,
                 'systemName' => $systemName,
+                'craft' => new CraftVariable(),
+                'currentSite' => $site,
+                'currentUser' => $currentUser,
+                'siteUrl' => $site->getBaseUrl(),
 
                 'timestamp' => $now->format('Y-m-d H:i:s'),
                 'dateUs' => $now->format('m/d/Y'),

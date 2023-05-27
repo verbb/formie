@@ -826,6 +826,18 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.27 - 2023-05-27
+
+### Added
+- Add `craft`, `currentSite`, `currentUser` and `siteUrl` to available dynamic variables
+
+### Changed
+- Ensure events are still triggered if the integration is creating a Draft. (thanks @taylordaughtry).
+- Element integrations now factor in fetching existing elements of any status.
+
+### Fixed
+- Fix ActiveCampaign Email Marketing integration not using pagination for tags. (thanks @jimirobaer).
+
 ## 1.6.26 - 2023-03-25
 
 ### Added

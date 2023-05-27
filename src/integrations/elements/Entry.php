@@ -277,9 +277,13 @@ class Entry extends Element
 
                         return false;
                     }
+
+                    $this->afterSendPayload($submission, '', $entry, '', []);
                 } else {
                     // Otherwise, create a new draft on the entry
-                    Craft::$app->getDrafts()->createDraft($entry, $authorId);
+                    $draft = Craft::$app->getDrafts()->createDraft($entry, $authorId);
+
+                    $this->afterSendPayload($submission, '', $entry, '', ['draft' => $draft]);
                 }
 
                 return true;
