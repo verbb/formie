@@ -79,7 +79,7 @@ class User extends Element
         foreach ($userFieldLayout->getCustomFieldElements() as $fieldElement) {
             $fields[] = new IntegrationField([
                 'handle' => $fieldElement->field->handle,
-                'name' => $fieldElement->name,
+                'name' => $fieldElement->label,
                 'type' => $this->getFieldTypeForField(get_class($fieldElement->field)),
                 'required' => (bool)$fieldElement->required,
             ]);
