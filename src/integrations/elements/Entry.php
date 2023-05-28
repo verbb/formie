@@ -85,13 +85,13 @@ class Entry extends Element
             foreach ($section->getEntryTypes() as $entryType) {
                 $fields = [];
 
-                foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
+                foreach ($entryType->getFieldLayout()->getCustomFieldElements() as $fieldElement) {
                     $fields[] = new IntegrationField([
-                        'handle' => $field->handle,
-                        'name' => $field->name,
-                        'type' => $this->getFieldTypeForField(get_class($field)),
-                        'sourceType' => get_class($field),
-                        'required' => (bool)$field->required,
+                        'handle' => $fieldElement->handle,
+                        'name' => $fieldElement->name,
+                        'type' => $this->getFieldTypeForField(get_class($fieldElement->field)),
+                        'sourceType' => get_class($fieldElement->field),
+                        'required' => (bool)$fieldElement->required,
                     ]);
                 }
 
