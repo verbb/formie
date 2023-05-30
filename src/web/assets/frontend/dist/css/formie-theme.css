@@ -494,6 +494,10 @@
   margin: var(--fui-btn-margin);
 }
 
+.fui-btn * {
+  pointer-events: none;
+}
+
 .fui-submit {
   color: #fff;
   color: var(--fui-submit-btn-color);
