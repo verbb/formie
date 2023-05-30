@@ -1399,8 +1399,8 @@ class Form extends Element
                 'accept-charset' => 'utf-8',
                 'data' => [
                     'fui-form' => $this->getConfigJson(),
-                    'submit-method' => $this->settings->submitMethod ?: false,
-                    'submit-action' => $this->settings->submitAction ?: false,
+                    'form-submit-method' => $this->settings->submitMethod ?: false,
+                    'form-submit-action' => $this->settings->submitAction ?: false,
                     'loading-indicator' => $this->settings->loadingIndicator ?: false,
                     'loading-text' => $this->settings->loadingIndicatorText ?: false,
                     'redirect' => $this->getRedirectUrl() ?: false,
