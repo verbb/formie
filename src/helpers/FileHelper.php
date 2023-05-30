@@ -7,9 +7,17 @@ use craft\helpers\FileHelper as CraftFileHelper;
 use craft\helpers\StringHelper;
 
 use Throwable;
+use verbb\formie\events\TemplatesPathEvent;
+use yii\base\Event;
 
 class FileHelper
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_SITE_TEMPLATES_PATH = 'siteTemplatesPath';
+
+
     // Static Methods
     // =========================================================================
 
@@ -48,12 +56,18 @@ class FileHelper
     {
         $templatesPath = Craft::$app->getPath()->getSiteTemplatesPath();
 
-        $basePaths = [$templatesPath];
+        $event = new TemplatesPathEvent([
+            'paths' => [$templatesPath],
+        ]);
+
+        Event::trigger(static::class, static::EVENT_SITE_TEMPLATES_PATH, $event);
+
+        $basePaths = $event->paths;
 
         // Should we be looking for a localized version of the template?
         foreach (Craft::$app->getSites()->getAllSites() as $site) {
             $sitePath = $templatesPath . DIRECTORY_SEPARATOR . $site->handle;
-            
+
             if (is_dir($sitePath)) {
                 $basePaths[] = $sitePath;
             }
