@@ -178,16 +178,13 @@ export class FormieFormTheme {
             this.form.addEventListener($submitBtn, 'click', (e) => {
                 this.$submitBtn = e.target;
 
-                // Check if the button has been manipulated to add inner content.
-                if (!this.$submitBtn.getAttribute('data-submit-action')) {
-                    this.$submitBtn = e.target.closest('[data-submit-action]');
-                }
-
                 // Store for later if we're using text spinner
                 this.originalButtonText = this.$submitBtn.textContent.trim();
 
+                const submitAction = this.$submitBtn.getAttribute('data-submit-action') || 'submit';
+
                 // Each submit button can do different things, to store that
-                this.updateSubmitAction(this.$submitBtn.getAttribute('data-submit-action'));
+                this.updateSubmitAction(submitAction);
             });
         });
 
