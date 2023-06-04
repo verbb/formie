@@ -288,6 +288,9 @@ class CalendarEvent extends Element
                     if (isset($fieldValue[0])) {
                         $event->authorId = $fieldValue[0] ?? null;
                     }
+                } else if (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
+                    // Calendar expects dates as Carbon object, not DateTime
+                    $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', DateHelper::UTC);
                 } else {
                     $event->{$eventFieldHandle} = $fieldValue;
                 }
