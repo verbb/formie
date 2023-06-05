@@ -512,7 +512,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'handle' => 'day',
                     'placeholder' => $this->dayPlaceholder,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->_generateOptions(1, 31),
+                    'options' => $this->_generateOptions(1, 31, $this->dayPlaceholder),
                 ],
                 'H' => [
                     'type' => Dropdown::class,
@@ -520,7 +520,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->_generateOptions(0, 23),
+                    'options' => $this->_generateOptions(0, 23, $this->hourPlaceholder),
                 ],
                 'h' => [
                     'type' => Dropdown::class,
@@ -528,7 +528,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'handle' => 'hour',
                     'placeholder' => $this->hourPlaceholder,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->_generateOptions(0, 12),
+                    'options' => $this->_generateOptions(0, 12, $this->hourPlaceholder),
                 ],
                 'i' => [
                     'type' => Dropdown::class,
@@ -536,7 +536,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'handle' => 'minute',
                     'placeholder' => $this->minutePlaceholder,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->_generateOptions(1, 59),
+                    'options' => $this->_generateOptions(1, 59, $this->minutePlaceholder),
                 ],
                 's' => [
                     'type' => Dropdown::class,
@@ -544,7 +544,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'handle' => 'second',
                     'placeholder' => $this->secondPlaceholder,
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->_generateOptions(1, 59),
+                    'options' => $this->_generateOptions(1, 59, $this->secondPlaceholder),
                 ],
                 'A' => [
                     'type' => Dropdown::class,
@@ -1359,9 +1359,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      *
      * @return array
      */
-    private function _generateOptions($start, $end)
+    private function _generateOptions(int $start, int $end, ?string $placeholder = null): array
     {
-        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+        $options = [['value' => '', 'label' => $placeholder, 'disabled' => true]];
 
         for ($i = $start; $i <= $end; $i++) {
             $options[] = ['label' => $i, 'value' => $i];
@@ -1377,7 +1377,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
      */
     private function _getMonthOptions(): array
     {
-        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+        $options = [['value' => '', 'label' => $this->monthPlaceholder, 'disabled' => true]];
 
         foreach (Craft::$app->getLocale()->getMonthNames() as $index => $monthName) {
             $options[] = ['value' => $index + 1, 'label' => $monthName];
@@ -1398,7 +1398,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         $minYear = $year - $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
 
-        $options = [['value' => '', 'label' => '', 'disabled' => true]];
+        $options = [['value' => '', 'label' => $this->yearPlaceholder, 'disabled' => true]];
 
         for ($y = $minYear; $y < $maxYear; $y++) {
             $options[] = ['value' => $y, 'label' => $y];
