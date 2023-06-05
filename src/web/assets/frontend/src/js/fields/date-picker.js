@@ -77,6 +77,14 @@ export class FormieDatePicker {
                     this.form.formTheme.updateFormHash();
                 }
             },
+            onChange: (selectedDates, dateStr, instance) => {
+                // Trigger an input event on the field, otherwise will throw validation errors when on-focus
+                // https://github.com/verbb/formie/issues/1460
+                instance.altInput.dispatchEvent(new Event('input', {
+                    bubbles: true,
+                    cancelable: true,
+                }));
+            },
         };
 
         // Include time for time-only and datetime
