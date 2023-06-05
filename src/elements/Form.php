@@ -2309,10 +2309,7 @@ class Form extends Element
     protected function tableAttributeHtml(string $attribute): string
     {
         return match ($attribute) {
-            'usageCount' => (new Query())
-                ->from([Table::RELATIONS])
-                ->where(['targetId' => $this->id])
-                ->count(),
+            'usageCount' => count(Formie::$plugin->getForms()->getFormUsage($this)),
             default => parent::tableAttributeHtml($attribute),
         };
     }
