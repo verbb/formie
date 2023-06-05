@@ -212,8 +212,8 @@ export default {
                     children: [
                         {
                             $formkit: 'select',
-                            label: Craft.t('formie', 'Submit Buttons Position'),
-                            help: Craft.t('formie', 'How the submit buttons should be positioned.'),
+                            label: Craft.t('formie', 'Form Buttons Position'),
+                            help: Craft.t('formie', 'How the form buttons should be positioned.'),
                             name: 'buttonsPosition',
                             id: 'buttonsPosition',
                             key: 'buttonsPosition',
@@ -237,7 +237,7 @@ export default {
                             inputClass: 'text fullwidth',
                             autocomplete: 'off',
                             label: Craft.t('formie', 'CSS Classes'),
-                            help: Craft.t('formie', 'Add classes that will be output on submit button container.'),
+                            help: Craft.t('formie', 'Add classes that will be output on the form buttons container.'),
                             name: 'cssClasses',
                             id: 'cssClasses',
                             key: 'cssClasses',
@@ -245,7 +245,7 @@ export default {
                         {
                             $formkit: 'table',
                             label: Craft.t('formie', 'Container Attributes'),
-                            help: Craft.t('formie', 'Add attributes to be outputted on this submit button’s container.'),
+                            help: Craft.t('formie', 'Add attributes to be output on the form buttons container.'),
                             validation: 'min:0',
                             generateValue: false,
                             name: 'containerAttributes',
@@ -271,7 +271,7 @@ export default {
                         {
                             $formkit: 'table',
                             label: Craft.t('formie', 'Input Attributes'),
-                            help: Craft.t('formie', 'Add attributes to be outputted on this submit button’s input.'),
+                            help: Craft.t('formie', 'Add attributes to be output on the form buttons `input` elements.'),
                             validation: 'min:0',
                             generateValue: false,
                             name: 'inputAttributes',
