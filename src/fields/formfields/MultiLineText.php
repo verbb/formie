@@ -111,6 +111,136 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     /**
      * @inheritDoc
      */
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+
+        if ($this->limit) {
+            if ($this->minType === 'characters') {
+                $rules[] = [$this->handle, 'validateMinCharacters', 'skipOnEmpty' => false];
+            }
+
+            if ($this->maxType === 'characters') {
+                $rules[] = 'validateMaxCharacters';
+            }
+
+            if ($this->minType === 'words') {
+                $rules[] = [$this->handle, 'validateMinWords', 'skipOnEmpty' => false];
+            }
+
+            if ($this->maxType === 'words') {
+                $rules[] = 'validateMaxWords';
+            }
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Validates the minimum number of characters.
+     *
+     * @param ElementInterface $element
+     * @throws InvalidFieldException
+     */
+    public function validateMinCharacters(ElementInterface $element): void
+    {
+        $min = (int)($this->min ?? 0);
+
+        if (!$min) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->handle);
+
+        // Convert multibyte text to HTML entities, so we can properly check string length
+        // exactly as it'll be saved in the database.
+        $count = strlen(StringHelper::encodeHtml((string)$value));
+
+        if ($count < $min) {
+            $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} characters.', [
+                'limit' => $min,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the maximum number of characters.
+     *
+     * @param ElementInterface $element
+     * @throws InvalidFieldException
+     */
+    public function validateMaxCharacters(ElementInterface $element): void
+    {
+        $max = (int)($this->max ?? 0);
+
+        if (!$max) {
+            return;
+        }
+
+        $value = (string)$element->getFieldValue($this->handle);
+
+        // Convert multibyte text to HTML entities, so we can properly check string length
+        // exactly as it'll be saved in the database.
+        $count = strlen(StringHelper::encodeHtml((string)$value));
+
+        if ($count > $max) {
+            $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} characters.', [
+                'limit' => $max,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the minimum number of words.
+     *
+     * @param ElementInterface $element
+     * @throws InvalidFieldException
+     */
+    public function validateMinWords(ElementInterface $element): void
+    {
+        $min = (int)($this->min ?? 0);
+
+        if (!$min) {
+            return;
+        }
+
+        $value = $element->getFieldValue($this->handle);
+        $count = count(explode(' ', $value));
+
+        if ($count > $min) {
+            $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} words.', [
+                'limit' => $min,
+            ]));
+        }
+    }
+
+    /**
+     * Validates the maximum number of words.
+     *
+     * @param ElementInterface $element
+     * @throws InvalidFieldException
+     */
+    public function validateMaxWords(ElementInterface $element): void
+    {
+        $max = (int)($this->max ?? 0);
+
+        if (!$max) {
+            return;
+        }
+
+        $value = $element->getFieldValue($this->handle);
+        $count = count(explode(' ', $value));
+
+        if ($count > $max) {
+            $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} words.', [
+                'limit' => $max,
+            ]));
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         $form = null;
