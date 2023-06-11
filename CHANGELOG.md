@@ -16,7 +16,7 @@
 - Fixed dropdown and input Date fields not working correctly with validation.
 - Fixed Date field dropdowns not showing the defined placeholder.
 - Fixed “Form Usage” number in form element index.
-- Fixed an error with Solspace Calender integration.
+- Fixed an error with Solspace Calendar integration.
 - Fixed an issue where captchas weren’t working with custom-rendered buttons missing the `data-submit-action` attribute.
 
 ## 2.0.30 - 2023-05-27
