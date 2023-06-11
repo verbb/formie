@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.31 - 2023-06-12
+
+### Added
+- Added `pointer-events: none;` to inner elements added to `.fui-btn` elements, which can prevent event-binding of submit buttons correctly.
+
+### Changed
+- Updated submit buttons instruction text for form builder.
+- Changed `data-submit-method` and `data-submit-action` to  `data-form-submit-method` and `data-form-submit-action` on the `<form>` attribute.
+
+### Fixed
+- Fixed filtering Sent Notifications by failed status not working.
+- Fixed min/max character validation for Multi-Line Text fields.
+- Fixed an issue where Date field datepickers would show a validation error when picking a date and “Validate When Typing” was enabled.
+- Fixed dropdown and input Date fields not working correctly with validation.
+- Fixed Date field dropdowns not showing the defined placeholder.
+- Fixed “Form Usage” number in form element index.
+- Fixed an error with Solspace Calender integration.
+- Fixed an issue where captchas weren’t working with custom-rendered buttons missing the `data-submit-action` attribute.
+
 ## 2.0.30 - 2023-05-27
 
 ### Added
