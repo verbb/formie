@@ -73,7 +73,7 @@ class SentNotifications extends Component
         $sentNotification->fromName = $fromName;
 
         // Store state and any errors
-        $sentNotification->success = $success;
+        $sentNotification->success = (bool)$success;
         $sentNotification->message = $error;
 
         if ($cc = $email->getCc()) {

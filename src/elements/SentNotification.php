@@ -267,7 +267,7 @@ class SentNotification extends Element
     public ?string $body = null;
     public ?string $htmlBody = null;
     public ?array $info = null;
-    public ?string $success = null;
+    public bool $success = false;
     public ?string $message = null;
 
     private ?Form $_form = null;
