@@ -93,14 +93,14 @@ class ActiveCampaign extends Crm
         try {
             $dealGroups = $this->_getPaginated('dealGroups');
 
-            $dealStages = $response['dealStages'] ?? [];
-
             foreach ($dealGroups as $dealGroup) {
                 $dealGroupOptions[] = [
                     'label' => $dealGroup['title'],
                     'value' => $dealGroup['id'],
                 ];
             }
+
+            $dealStages = $this->_getPaginated('dealStages');
 
             foreach ($dealStages as $dealStage) {
                 $dealStageOptions[] = [
