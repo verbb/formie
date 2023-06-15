@@ -340,10 +340,21 @@ class HubSpot extends Crm
                         continue;
                     }
 
-                    $formPayload['fields'][] = [
-                        'name' => $key,
-                        'value' => $value,
-                    ];
+                    // If multiple checkboxes option is chosen, map the value to seperate [name, value] options
+                    // instead of returning the value as an array
+                    if (is_array($value)) {
+                        foreach ($value as $item) {
+                            $formPayload['fields'][] = [
+                                'name' => $key,
+                                'value' => $item,
+                            ];
+                        }
+                    } else {
+                        $formPayload['fields'][] = [
+                            'name' => $key,
+                            'value' => $value,
+                        ];
+                    }
                 }
 
                 // Setup Hubspot's context
