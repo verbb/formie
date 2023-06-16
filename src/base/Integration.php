@@ -599,7 +599,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 }
             } else {
                 // Otherwise, might have passed in a direct, static value. But ensure they're typecasted properly
-                $fieldValues[$tag] = self::convertValueForIntegration($fieldKey, $integrationField);
+                $fieldValues[$tag] = static::convertValueForIntegration($fieldKey, $integrationField);
             }
         }
 

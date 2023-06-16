@@ -32,7 +32,17 @@ class HubSpot extends Crm
     {
         return Craft::t('formie', 'HubSpot');
     }
-    
+
+    public static function convertValueForIntegration($value, $integrationField): mixed
+    {
+        // If setting checkboxes values to a static value, ensure it's sent as a single value.
+        // This won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            return $value;
+        }
+
+        return parent::convertValueForIntegration($value, $integrationField);
+    }
 
     // Properties
     // =========================================================================
