@@ -540,7 +540,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('textarea', array_merge([
+            return new HtmlTag('textarea', [
                 'id' => $id,
                 'class' => [
                     'fui-input',
@@ -558,7 +558,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                     'max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldLimit') {

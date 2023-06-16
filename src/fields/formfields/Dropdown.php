@@ -270,7 +270,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
             $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
             $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
 
-            return new HtmlTag('select', array_merge([
+            return new HtmlTag('select', [
                 'id' => $id,
                 'class' => [
                     'fui-select',
@@ -283,7 +283,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                     'fui-id' => $dataId,
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         return parent::defineHtmlTag($key, $context);

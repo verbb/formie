@@ -292,7 +292,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         }
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'checkbox',
                 'id' => $id,
                 'class' => 'fui-input fui-checkbox-input',
@@ -303,7 +303,7 @@ class Agree extends FormField implements PreviewableFieldInterface
                     'fui-input-type' => 'agree',
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldOptionLabel') {

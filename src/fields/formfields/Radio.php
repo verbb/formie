@@ -255,7 +255,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
             $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
             $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
 
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'radio',
                 'id' => $id,
                 'class' => 'fui-input fui-radio-input',
@@ -265,7 +265,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
                     'fui-id' => $dataId,
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldOptionLabel') {

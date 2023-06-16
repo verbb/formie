@@ -441,7 +441,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'text',
                 'id' => $id,
                 'class' => [
@@ -460,7 +460,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
                     'max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldLimit') {

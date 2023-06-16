@@ -610,7 +610,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'text',
                 'id' => $id,
                 'class' => [
@@ -625,7 +625,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         return parent::defineHtmlTag($key, $context);

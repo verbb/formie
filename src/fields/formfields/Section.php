@@ -186,14 +186,14 @@ class Section extends FormField
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldSection') {
-            return new HtmlTag('hr', array_merge([
+            return new HtmlTag('hr', [
                 'class' => 'fui-hr',
                 'style' => [
                     'border-top-style' => $this->borderStyle ? $this->borderStyle : false,
                     'border-top-width' => $this->borderWidth ? $this->borderWidth . 'px' : false,
                     'border-top-color' => $this->borderColor ? $this->borderColor : false,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         return parent::defineHtmlTag($key, $context);

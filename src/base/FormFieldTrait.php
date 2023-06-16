@@ -777,7 +777,7 @@ trait FormFieldTrait
             $instructionsPosition = $context['instructionsPosition'] ?? null;
             $containerAttributes = $this->getContainerAttributes() ?? [];
 
-            return new HtmlTag('div', array_merge([
+            return new HtmlTag('div', [
                 'class' => [
                     'fui-field',
                     'fui-type-' . StringHelper::toKebabCase($this->displayName()),
@@ -796,7 +796,7 @@ trait FormFieldTrait
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
                 ],
-            ], $containerAttributes), $this->cssClasses);
+            ], $containerAttributes, $this->cssClasses);
         }
 
         if ($key === 'fieldContainer') {

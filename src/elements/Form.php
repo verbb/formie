@@ -1537,12 +1537,12 @@ class Form extends Element
             $page = $context['page'] ?? null;
             $containerAttributes = $page->settings->getContainerAttributes() ?? [];
 
-            return new HtmlTag('div', array_merge([
+            return new HtmlTag('div', [
                 'class' => [
                     'fui-btn-wrapper',
                     "fui-btn-{$page->settings->buttonsPosition}",
                 ],
-            ], $containerAttributes), $page->settings->cssClasses);
+            ], $containerAttributes, $page->settings->cssClasses);
         }
 
         if ($key === 'buttonContainer') {
@@ -1564,7 +1564,7 @@ class Form extends Element
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
             $nextPage = $this->getNextPage($page);
 
-            return new HtmlTag('button', array_merge([
+            return new HtmlTag('button', [
                 'class' => [
                     'fui-btn fui-submit',
                     $nextPage ? 'fui-next' : false,
@@ -1572,7 +1572,7 @@ class Form extends Element
                 'type' => 'submit',
                 'data-submit-action' => 'submit',
                 'data-field-conditions' => $page->settings->getConditionsJson(),
-            ], $inputAttributes));
+            ], $inputAttributes);
         }
 
         if ($key === 'saveButton') {
@@ -1580,25 +1580,25 @@ class Form extends Element
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
             $saveButtonStyle = $page->settings->saveButtonStyle ?? 'link';
             
-            return new HtmlTag('button', array_merge([
+            return new HtmlTag('button', [
                 'class' => [
                     'fui-btn fui-save',
                     $saveButtonStyle === 'button' ? 'fui-submit' : 'fui-btn-link',
                 ],
                 'type' => 'submit',
                 'data-submit-action' => 'save',
-            ], $inputAttributes));
+            ], $inputAttributes);
         }
 
         if ($key === 'backButton') {
             $page = $context['page'] ?? null;
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
 
-            return new HtmlTag('button', array_merge([
+            return new HtmlTag('button', [
                 'class' => 'fui-btn fui-prev',
                 'type' => 'submit',
                 'data-submit-action' => 'back',
-            ], $inputAttributes));
+            ], $inputAttributes);
         }
 
         if ($key === 'progressWrapper') {

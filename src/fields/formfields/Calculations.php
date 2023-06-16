@@ -255,7 +255,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'text',
                 'id' => $id,
                 'class' => 'fui-input',
@@ -268,7 +268,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
         
         return parent::defineHtmlTag($key, $context);

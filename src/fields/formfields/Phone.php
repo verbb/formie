@@ -377,7 +377,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             $id = $this->getHtmlId($form, '');
             $dataId = $this->getHtmlDataId($form, 'number');
 
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'tel',
                 'id' => $id,
                 'class' => [
@@ -393,11 +393,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldCountryInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'hidden',
                 'id' => $this->getHtmlId($form, 'country'),
                 'name' => $this->getHtmlName('country'),
@@ -405,7 +405,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                     'fui-id' => $this->getHtmlDataId($form, 'country'),
                     'country' => true,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
         
         return parent::defineHtmlTag($key, $context);

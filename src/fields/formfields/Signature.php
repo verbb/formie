@@ -207,10 +207,10 @@ class Signature extends FormField implements PreviewableFieldInterface
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'hidden',
                 'name' => $this->getHtmlName(),
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldCanvas') {

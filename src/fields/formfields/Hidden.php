@@ -302,14 +302,14 @@ class Hidden extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'hidden',
                 'id' => $id,
                 'name' => $this->getHtmlName(),
                 'data' => [
                     'fui-id' => $dataId,
                 ],
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         return parent::defineHtmlTag($key, $context);

@@ -572,7 +572,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $limitFiles = $this->limitFiles ?? 0;
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'file',
                 'id' => $id,
                 'class' => [
@@ -590,7 +590,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldSummary') {

@@ -300,7 +300,7 @@ class Email extends FormField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', array_merge([
+            return new HtmlTag('input', [
                 'type' => 'email',
                 'id' => $id,
                 'class' => [
@@ -316,7 +316,7 @@ class Email extends FormField implements PreviewableFieldInterface
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes()));
+            ], $this->getInputAttributes());
         }
 
         return parent::defineHtmlTag($key, $context);
