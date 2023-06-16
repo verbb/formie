@@ -502,9 +502,11 @@ class ActiveCampaign extends Crm
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
+            'dropdown' => IntegrationField::TYPE_ARRAY,
             'multiselect' => IntegrationField::TYPE_ARRAY,
             'checkbox' => IntegrationField::TYPE_ARRAY,
             'date' => IntegrationField::TYPE_DATETIME,
+            'datetime' => IntegrationField::TYPE_DATETIME,
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
@@ -522,7 +524,10 @@ class ActiveCampaign extends Crm
             'dropdown',
             'radio',
             'date',
-            // 'checkbox',
+            'datetime',
+            'checkbox',
+            'currency',
+            'number',
             // 'listbox',
         ];
 
