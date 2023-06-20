@@ -141,7 +141,12 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $count = strlen(StringHelper::encodeHtml((string)$value));
+        $string = StringHelper::encodeHtml((string)$value);
+
+        // Replace newline and tab characters to compare
+        $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
+
+        $count = StringHelper::count($string);
 
         if ($count < $min) {
             $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} characters.', [
@@ -168,7 +173,12 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $count = strlen(StringHelper::encodeHtml((string)$value));
+        $string = StringHelper::encodeHtml((string)$value);
+
+        // Replace newline and tab characters to compare
+        $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
+
+        $count = StringHelper::count($string);
 
         if ($count > $max) {
             $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} characters.', [
