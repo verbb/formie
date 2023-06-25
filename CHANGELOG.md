@@ -3,19 +3,19 @@
 ## 1.6.28 - 2023-06-25
 
 ### Fixed
-- Fix Deal Stages options not being populates for Active Campaign integration.
+- Fixed Deal Stages options not being populates for Active Campaign integration.
 
 ## 1.6.27 - 2023-05-27
 
 ### Added
-- Add `craft`, `currentSite`, `currentUser` and `siteUrl` to available dynamic variables
+- Added `craft`, `currentSite`, `currentUser` and `siteUrl` to available dynamic variables
 
 ### Changed
 - Ensure events are still triggered if the integration is creating a Draft. (thanks @taylordaughtry).
 - Element integrations now factor in fetching existing elements of any status.
 
 ### Fixed
-- Fix ActiveCampaign Email Marketing integration not using pagination for tags. (thanks @jimirobaer).
+- Fixed ActiveCampaign Email Marketing integration not using pagination for tags. (thanks @jimirobaer).
 
 ## 1.6.26 - 2023-03-25
 
