@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.28 - 2023-06-25
+
+### Fixed
+- Fix Deal Stages options not being populates for Active Campaign integration.
+
 ## 1.6.27 - 2023-05-27
 
 ### Added
