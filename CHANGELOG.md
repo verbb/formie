@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.32 - 2023-06-25
+
+### Added
+- Added Money, Number and Date Time field support for ActiveCampaign CRM integration.
+
+### Fixed
+- Fixed min/max character limit server-side validation when containing newlines.
+- Fixed Deal Stages options not being populates for Active Campaign integration.
+- Fixed HubSpot integration with static values mapped to a Checkbox field in HubSpot.
+- Fixed classes defined in “Input Attributes” for field settings not working correctly with Theme Config and `resetClass`.
+- Fixed an issue with reCAPTCHA v2 Checkbox when not using Formie’s JS theme.
+
 ## 2.0.31 - 2023-06-12
 
 ### Added
