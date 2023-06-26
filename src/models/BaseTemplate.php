@@ -88,18 +88,21 @@ abstract class BaseTemplate extends Model
                 $oldTemplatesPath = $view->getTemplatesPath();
                 $view->setTemplatesPath($templatesPath);
 
-                // Check how to validate templates
-                if ($this->hasSingleTemplate) {
-                    if (!$view->doesTemplateExist($this->$attribute)) {
+                // Check if we need to validate templates. Allow power users to handle form template path checks on their own
+                if (Formie::getInstance()->getSettings()->validateCustomTemplates) {
+                    // Check how to validate templates
+                    if ($this->hasSingleTemplate) {
+                        if (!$view->doesTemplateExist($this->$attribute)) {
+                            // Check for the template across multiple base paths
+                            if (!FileHelper::doesSitePathExist($this->$attribute)) {
+                                $validator->addError($this, $attribute, Craft::t('formie', 'The template does not exist.'));
+                            }
+                        }
+                    } else {
                         // Check for the template across multiple base paths
                         if (!FileHelper::doesSitePathExist($this->$attribute)) {
-                            $validator->addError($this, $attribute, Craft::t('formie', 'The template does not exist.'));
+                            $validator->addError($this, $attribute, Craft::t('formie', 'The template directory does not exist.'));
                         }
-                    }
-                } else {
-                    // Check for the template across multiple base paths
-                    if (!FileHelper::doesSitePathExist($this->$attribute)) {
-                        $validator->addError($this, $attribute, Craft::t('formie', 'The template directory does not exist.'));
                     }
                 }
 

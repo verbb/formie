@@ -28,6 +28,7 @@ class Settings extends Model
     public string $defaultPage = 'forms';
 
     // Forms
+    public bool $validateCustomTemplates = true; // Allow power users to handle form template path checks on their own
     public string $defaultFormTemplate = '';
     public string $defaultEmailTemplate = '';
     public bool $enableUnloadWarning = true;
