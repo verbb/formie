@@ -42,7 +42,7 @@
     </td>
 </tr>
 
-{% for subfield in field.fieldLayout.fields %}
+{% for subfield in field.getFieldLayout().getCustomFields() %}
     {% set nameLabel = subfield.name %}
     {% set instructionsHandle = handle ~ '[' ~ subfield.handle ~ ']' %}
 
