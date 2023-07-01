@@ -13,7 +13,7 @@ Attribute | Description
 `status` | The status this submission is set to.
 `userId` | The user ID of the user that created the submission (if enabled on the form).
 `user` | The [User](https://docs.craftcms.com/api/v3/craft-elements-user.html) that created the submission (if enabled on the form).
-`originSiteId` | The site ID this submission was made on.
+`siteId` | The site ID this submission was made on.
 `snapshot` | The saved snapshot of data used when calling `setFieldSettings()` during render.
 `ipAddress` | If set to capture IP addresses, this will be the IP address of the submitter.
 `isIncomplete` | For multi-page forms, this will show whether the submission is partially completed.
