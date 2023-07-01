@@ -337,6 +337,11 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
                 $option['label'] = StringHelper::shortcodesToEmoji((string)$option['label']);
                 $option['label'] = trim(preg_replace('/\R/u', "\n", $option['label']));
             }
+
+            // Ensure that we always cast the value as a string, to handle integers throwing compare error checks in Twig
+            if (isset($option['value'])) {
+                $option['value'] = (string)$option['value'];
+            }
         }
     }
 }
