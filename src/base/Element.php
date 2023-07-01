@@ -4,7 +4,11 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\formfields\Table;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\fields;
@@ -13,7 +17,11 @@ use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
+use yii\base\Event;
 use yii\helpers\Markdown;
+
+use DateTime;
+use DateTimeZone;
 
 abstract class Element extends Integration implements IntegrationInterface
 {
@@ -49,6 +57,45 @@ abstract class Element extends Integration implements IntegrationInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // For rich-text enabled fields, retain the HTML (safely)
+            if ($event->field instanceof MultiLineText) {
+                $event->value = StringHelper::htmlDecode($event->value);
+            }
+
+            // For Date fields as a destination, convert to UTC from system time
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
+                if ($event->value instanceof DateTime) {
+                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                    $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+                }
+            }
+
+            // Element fields should map 1-for-1
+            if ($event->field instanceof fields\BaseRelationField) {
+                $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
+            }
+
+            // For Table fields with Date/Time destination columns, convert to UTC from system time
+            if ($event->field instanceof Table) {
+                $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                foreach ($event->value as $rowKey => $row) {
+                    foreach ($row as $colKey => $column) {
+                        if (is_array($column) && isset($column['date'])) {
+                            $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
+                        }
+                    }
+                }
+            }
+        });
+    }
 
     /**
      * @inheritDoc
