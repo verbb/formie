@@ -506,8 +506,10 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 | `defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 | `limit`| `Boolean` | Whether the field should limit content.
-| `limitType`| `String!` | The field’s limiting type. Either `characters` or `words`.
-| `limitAmount`| `Int!` | The field’s number of characters/words to limit, based on `limitType`.
+| `minType`| `String!` | The field’s minimum text type. Either `characters` or `words`.
+| `min`| `Int!` | The field’s minimum number of characters/words to limit, based on `minType`.
+| `maxType`| `String!` | The field’s maximum text type. Either `characters` or `words`.
+| `max`| `Int!` | The field’s maximum number of characters/words, based on `maxType`.
 | `useRichText` | `Boolean` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
 | `richTextButtons` | `[String]!` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
@@ -629,8 +631,10 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `placeholder` | `String` | The text that will be shown if the field doesn’t have a value.
 | `defaultValue` | `String` | Entering a default value will place the value in the field when it loads.
 | `limit`| `Boolean` | Whether to limit the content of this field.
-| `limitType`| `String!` | The field’s limiting type. Either `characters` or `words`.
-| `limitAmount`| `Int!` | The field’s number of characters/words to limit, based on `limitType`.
+| `minType`| `String!` | The field’s minimum text type. Either `characters` or `words`.
+| `min`| `Int!` | The field’s minimum number of characters/words to limit, based on `minType`.
+| `maxType`| `String!` | The field’s maximum text type. Either `characters` or `words`.
+| `max`| `Int!` | The field’s maximum number of characters/words, based on `maxType`.
 
 
 #### Table
