@@ -7,7 +7,7 @@
     {% set render = not showDrafts and element.isDraft() ? false : render %}
     {% set render = not showRevisions and element.isRevision() ? false : render %}
 
-    {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
+    {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
         {# Add a check here to ensure there's a valid owner (`getOwner()` will throw a hard-error) #}
         {% set owner = craft.app.getElements().getElementById(element.ownerId, null, element.siteId) %}
         {% set ownerField = craft.app.getFields().getFieldById(element.fieldId) %}
