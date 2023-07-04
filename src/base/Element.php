@@ -66,6 +66,8 @@ abstract class Element extends Integration implements IntegrationInterface
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof MultiLineText) {
                 $event->value = StringHelper::htmlDecode($event->value);
+            if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
+                $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
             }
 
             // For Date fields as a destination, convert to UTC from system time
