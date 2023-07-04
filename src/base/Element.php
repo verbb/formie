@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\fields\formfields\Table;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -64,8 +65,6 @@ abstract class Element extends Integration implements IntegrationInterface
 
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             // For rich-text enabled fields, retain the HTML (safely)
-            if ($event->field instanceof MultiLineText) {
-                $event->value = StringHelper::htmlDecode($event->value);
             if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
                 $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
             }
