@@ -13,7 +13,7 @@
             "enableConditions":false,
             "enabled":true,
             "formId":null,
-            "from":"{field.emailAddress}",
+            "from":null,
             "fromName":null,
             "id":"new981-8077",
             "name":"Admin Notification",
