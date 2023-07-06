@@ -270,6 +270,24 @@ Old | What to do instead
 | `multiple` | `multi`
 
 
+### Multi-Line Text
+The following properties have been removed.
+
+Old | What to do instead
+--- | ---
+| `limitType` | `maxType`
+| `limitAmount` | `max`
+
+
+### Single-Line Text
+The following properties have been removed.
+
+Old | What to do instead
+--- | ---
+| `limitType` | `maxType`
+| `limitAmount` | `max`
+
+
 ## Integrations
 For custom integrations, there are some required changes.
 
