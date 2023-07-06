@@ -84,8 +84,8 @@ class HubSpot extends Crm
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             // Special handling for single checkbox boolean fields for HubSpot
             if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-                // HubSpot needs this as a string value.
-                $event->value = ($event->value === true) ? 'true' : 'false';
+                // HubSpot needs this as a string value (also check if already cast).
+                $event->value = ($event->value === true || $event->value === 'true') ? 'true' : 'false';
             }
 
             // Special handling for arrays for checkboxes
