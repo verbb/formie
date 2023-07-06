@@ -256,8 +256,10 @@ Setting | Description
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 `limit` | Whether to limit the content of this field.
-`limitType` | The field’s limiting type. Either `characters` or `words`.
-`limitAmount` | The field’s number of characters/words to limit, based on `limitType`.
+`minType`| The field’s minimum text type. Either `characters` or `words`.
+`min`| The field’s minimum number of characters/words to limit, based on `minType`.
+`maxType`| The field’s maximum text type. Either `characters` or `words`.
+`max`| The field’s maximum number of characters/words, based on `maxType`.
 `useRichText` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
 `richTextButtons` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
 
@@ -394,8 +396,10 @@ Setting | Description
 `placeholder` | The text that will be shown if the field doesn’t have a value.
 `defaultValue` | Entering a default value will place the value in the field when it loads.
 `limit` | Whether to limit the content of this field.
-`limitType` | The field’s limiting type. Either `characters` or `words`.
-`limitAmount` | The field’s number of characters/words to limit, based on `limitType`.
+`minType`| The field’s minimum text type. Either `characters` or `words`.
+`min`| The field’s minimum number of characters/words to limit, based on `minType`.
+`maxType`| The field’s maximum text type. Either `characters` or `words`.
+`max`| The field’s maximum number of characters/words, based on `maxType`.
 
 
 ### Table
