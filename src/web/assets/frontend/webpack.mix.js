@@ -61,8 +61,6 @@ mix.setPublicPath('dist');
 
 mix.clean();
 
-mix.sourceMaps();
-
 mix.webpackConfig({
     stats: {
         children: true
