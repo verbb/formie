@@ -10,7 +10,7 @@
         "cp": "cd ./src/web/assets/cp && vite build --watch",
         "cp-build": "cd ./src/web/assets/cp && vite build",
         "frontend": "cd ./src/web/assets/frontend && npx mix watch",
-        "frontend-build": "cd ./src/web/assets/frontend && npx mix"
+        "frontend-build": "cd ./src/web/assets/frontend && npx mix --production"
     },
     "devDependencies": {
         "@pixelandtonic/craftui": "~0.3.8",
