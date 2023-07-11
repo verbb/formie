@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.33 - 2023-07-11
+
+### Added
+- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+- Added support for Single-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+
+### Fixed
+- Fixed Element integrations mapping to Multi-Line text fields with single quotes being encoded.
+- Fixed a type error with Solspace Calendar integration.
+
 ## 2.0.32 - 2023-06-25
 
 ### Added
@@ -856,6 +866,16 @@
 - Removed `enableGatsbyCompatibility` plugin setting, as it's no longer needed.
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
+
+## 1.6.29 - 2023-07-11
+
+### Added
+- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+- Added support for Single-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+
+### Fixed
+- Fixed Element integrations mapping to Multi-Line text fields with single quotes being encoded.
+- Fixed a type error with Solspace Calendar integration.
 
 ## 1.6.28 - 2023-06-25
 
