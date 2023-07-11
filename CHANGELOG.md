@@ -9,6 +9,13 @@
 ### Fixed
 - Fixed Element integrations mapping to Multi-Line text fields with single quotes being encoded.
 - Fixed a type error with Solspace Calendar integration.
+- Fixed front-end JS/CSS assets not being minified correctly.
+- Fixed HubSpot integration and Agree fields (and other boolean types) not correctly casting to true/false.
+- Fixed Contact Form stencil’s admin Email Notification from using the users’ email address as the “From” value, to improve email deliverability.
+- Fixed an error with form usage and Super Table fields.
+- Fixed an error for options fields (Dropdown, Checkboxes, Radio Buttons) when options were numbers.
+- Fixed an error when mapping fields with Feed Me submissions and Repeater/Group fields.
+- Fixed some fields not working on the form builder (Vizy, Icon Picker).
 
 ## 2.0.32 - 2023-06-25
 
