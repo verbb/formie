@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6.29 - 2023-07-11
+
+### Added
+- Added support for Multi-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+- Added support for Single-Line Text fields retaining their HTML when mapped to text fields in Craft for Element integrations.
+
+### Fixed
+- Fixed Element integrations mapping to Multi-Line text fields with single quotes being encoded.
+- Fixed a type error with Solspace Calendar integration.
+
 ## 1.6.28 - 2023-06-25
 
 ### Fixed
