@@ -78,6 +78,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public bool $allowMultipleSources = false;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -112,8 +113,15 @@ class Variants extends CommerceVariants implements FormFieldInterface
      */
     public function getFieldDefaults(): array
     {
+        $productType = null;
+        $productTypes = Commerce::getInstance()->getProductTypes()->getAllProductTypes();
+
+        if (!empty($productTypes)) {
+            $productType = 'productType:' . ArrayHelper::firstValue($productTypes)->uid;
+        }
+
         return [
-            'source' => '*',
+            'source' => $productType,
             'placeholder' => Craft::t('formie', 'Select a variant'),
             'labelSource' => 'title',
             'orderBy' => 'title ASC',
