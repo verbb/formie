@@ -99,9 +99,6 @@ class Calculations extends FormField implements PreviewableFieldInterface
         // Take the tiptap-stored formula and turn it into something JS will understand.
         $formula = RichTextHelper::getHtmlContent($this->formula);
 
-        // Dissallow tags
-        $formula = strip_tags($formula);
-
         // Grab all the variables used in the formula
         $variables = [];
 
