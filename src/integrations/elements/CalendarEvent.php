@@ -218,35 +218,37 @@ class CalendarEvent extends Element
      */
     public function getUpdateAttributes()
     {
-        $attributes = [
-            new IntegrationField([
-                'name' => Craft::t('app', 'ID'),
-                'handle' => 'id',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Title'),
-                'handle' => 'title',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Slug'),
-                'handle' => 'slug',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Site'),
-                'handle' => 'site',
-            ]),
-        ];
+        $attributes = [];
 
         $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
 
         foreach ($calendars as $calendar) {
+            $attributes[$calendar->id] = [
+                new IntegrationField([
+                    'name' => Craft::t('app', 'ID'),
+                    'handle' => 'id',
+                ]),
+                new IntegrationField([
+                    'name' => Craft::t('app', 'Title'),
+                    'handle' => 'title',
+                ]),
+                new IntegrationField([
+                    'name' => Craft::t('app', 'Slug'),
+                    'handle' => 'slug',
+                ]),
+                new IntegrationField([
+                    'name' => Craft::t('app', 'Site'),
+                    'handle' => 'site',
+                ]),
+            ];
+
             if ($fieldLayout = $calendar->getFieldLayout()) {
                 foreach ($fieldLayout->getCustomFields() as $field) {
                     if (!$this->fieldCanBeUniqueId($field)) {
                         continue;
                     }
 
-                    $attributes[] = new IntegrationField([
+                    $attributes[$calendar->id][] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
@@ -272,7 +274,7 @@ class CalendarEvent extends Element
         try {
             $calendar = Calendar::getInstance()->calendars->getCalendarById($this->calendarId);
 
-            $event = $this->getElementForPayload(EventElement::class, $submission);
+            $event = $this->getElementForPayload(EventElement::class, $this->calendarId, $submission);
             $event->siteId = $submission->siteId;
             $event->calendarId = $calendar->id;
 

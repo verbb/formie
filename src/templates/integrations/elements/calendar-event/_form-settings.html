@@ -5,7 +5,7 @@
 {% set calendarId = form.settings.integrations[handle].calendarId ?? '' %}
 
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ calendarId }}">
-    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, getCollectionFields }">
         <div class="field">
             <div class="heading">
                 <label id="sourceId-label" for="sourceId" class="required">{{ 'Calender' | t('formie') }}</label>
@@ -76,35 +76,37 @@
                 ${ error }
             </li>
         </ul>
+
+        <div style="margin-bottom: 24px;" v-pre>
+            {{ forms.lightswitchField({
+                label: 'Overwrite Content' | t('formie'),
+                instructions: 'Whether to overwrite existing content, even if empty values are provided.' | t('formie'),
+                name: 'overwriteValues',
+                on: form.settings.integrations[handle].overwriteValues ?? false,
+            }) }}
+
+            {% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
+
+            {{ forms.lightswitchField({
+                label: 'Update Events' | t('formie'),
+                instructions: 'Whether this integration should update an existing event if found, or always create a new event. ' | t('formie'),
+                id: 'updateElement',
+                name: 'updateElement',
+                on: updateElement,
+                toggle: 'update-element',
+            }) }}
+        </div>
+
+        <div id="update-element" class="{% if not updateElement %}hidden{% endif %}" style="margin-bottom: 24px;">
+            <integration-field-mapping
+                label="{{ 'Update Element Mapping' | t('formie') }}"
+                instructions="{{ 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.' | t('formie') }}"
+                name-label="{{ integration.displayName() }}"
+                id="update-element-mapping"
+                name="updateElementMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.updateElementMapping')"
+                :rows="getCollectionFields(sourceId, {{ integration.getUpdateAttributes() | json_encode }})"
+            ></integration-field-mapping>
+        </div>
     </template>
 </integration-form-settings>
-
-{{ forms.lightswitchField({
-    label: 'Overwrite Content' | t('formie'),
-    instructions: 'Whether to overwrite existing content, even if empty values are provided.' | t('formie'),
-    name: 'overwriteValues',
-    on: form.settings.integrations[handle].overwriteValues ?? false,
-}) }}
-
-{% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
-
-{{ forms.lightswitchField({
-    label: 'Update Events' | t('formie'),
-    instructions: 'Whether this integration should update an existing event if found, or always create a new event. ' | t('formie'),
-    id: 'updateElement',
-    name: 'updateElement',
-    on: updateElement,
-    toggle: 'update-element',
-}) }}
-
-<div id="update-element" class="{% if not updateElement %}hidden{% endif %}">
-    <integration-field-mapping
-        label="{{ 'Update Element Mapping' | t('formie') }}"
-        instructions="{{ 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.' | t('formie') }}"
-        name-label="{{ integration.displayName() }}"
-        id="update-element-mapping"
-        name="updateElementMapping"
-        :value="get(form, 'settings.integrations.{{ handle }}.updateElementMapping')"
-        :rows="{{ integration.getUpdateAttributes() | json_encode }}"
-    ></integration-field-mapping>
-</div>

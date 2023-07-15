@@ -186,12 +186,15 @@ abstract class Element extends Integration
         return false;
     }
 
-    protected function getElementForPayload($elementType, $submission)
+    protected function getElementForPayload($elementType, $identifier, $submission)
     {
         $element = new $elementType();
 
+        // Pick from the available update attributes, depending on the identifier picked (e.g. `entryTypeId`, etc).
+        $updateAttributes = $this->getUpdateAttributes()[$identifier] ?? [];
+
         // Check if configuring update, and find an existing element, depending on mapping
-        $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $this->getUpdateAttributes());
+        $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $updateAttributes);
         $updateElementValues = array_filter($updateElementValues);
 
         if ($updateElementValues) {

@@ -1,6 +1,7 @@
 <template>
     <slot
-        v-if="mounted" v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get="get" :is-empty="isEmpty"
+        v-if="mounted" v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get-collection-fields="getCollectionFields" :get="get"
+        :is-empty="isEmpty"
         :refresh="refresh"
     ></slot>
 </template>
@@ -119,6 +120,10 @@ export default {
             }
 
             return fields;
+        },
+
+        getCollectionFields(sourceId, collection) {
+            return get(collection, sourceId, []);
         },
 
         refresh(payloadParams = {}) {

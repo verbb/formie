@@ -159,24 +159,7 @@ class Entry extends Element
 
     public function getUpdateAttributes(): array
     {
-        $attributes = [
-            new IntegrationField([
-                'name' => Craft::t('app', 'ID'),
-                'handle' => 'id',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Title'),
-                'handle' => 'title',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Slug'),
-                'handle' => 'slug',
-            ]),
-            new IntegrationField([
-                'name' => Craft::t('app', 'Site'),
-                'handle' => 'site',
-            ]),
-        ];
+        $attributes = [];
 
         $sections = Craft::$app->getSections()->getAllSections();
 
@@ -186,12 +169,31 @@ class Entry extends Element
             }
 
             foreach ($section->getEntryTypes() as $entryType) {
+                $attributes[$entryType->id] = [
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'ID'),
+                        'handle' => 'id',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Title'),
+                        'handle' => 'title',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Slug'),
+                        'handle' => 'slug',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Site'),
+                        'handle' => 'site',
+                    ]),
+                ];
+
                 foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
                     if (!$this->fieldCanBeUniqueId($field)) {
                         continue;
                     }
 
-                    $attributes[] = new IntegrationField([
+                    $attributes[$entryType->id][] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
@@ -215,7 +217,7 @@ class Entry extends Element
         try {
             $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
 
-            $entry = $this->getElementForPayload(EntryElement::class, $submission);
+            $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeId, $submission);
             $entry->siteId = $submission->siteId;
             $entry->typeId = $entryType->id;
             $entry->sectionId = $entryType->sectionId;

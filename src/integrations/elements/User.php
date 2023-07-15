@@ -132,7 +132,9 @@ class User extends Element
 
     public function getUpdateAttributes(): array
     {
-        $attributes = [
+        $attributes = [];
+
+        $attributes['users'] = [
             new IntegrationField([
                 'name' => Craft::t('app', 'ID'),
                 'handle' => 'id',
@@ -162,7 +164,7 @@ class User extends Element
                 continue;
             }
 
-            $attributes[] = new IntegrationField([
+            $attributes['users'][] = new IntegrationField([
                 'handle' => $field->handle,
                 'name' => $field->name,
                 'type' => $this->getFieldTypeForField(get_class($field)),
@@ -178,7 +180,7 @@ class User extends Element
         try {
             $generalConfig = Craft::$app->getConfig()->getGeneral();
 
-            $user = $this->getElementForPayload(UserElement::class, $submission);
+            $user = $this->getElementForPayload(UserElement::class, 'users', $submission);
 
             // If a new user, set as pending
             if (!$user->id) {
