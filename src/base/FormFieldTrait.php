@@ -13,6 +13,7 @@ use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\fields\formfields\Hidden;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
@@ -27,7 +28,6 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 use craft\web\twig\TemplateLoaderException;
 
@@ -1213,7 +1213,7 @@ trait FormFieldTrait
     protected function defineValueAsString($value, ElementInterface $element = null)
     {
         // Escape any HTML in field content for good measure
-        return StringHelper::escape((string)$value);
+        return StringHelper::cleanString((string)$value);
     }
 
     /**
