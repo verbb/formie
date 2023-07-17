@@ -1,8 +1,9 @@
 <?php
+
 namespace verbb\formie\elements\db;
 
 use verbb\formie\models\FormTemplate;
-
+use verbb\formie\elements\Form;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
@@ -14,6 +15,7 @@ class FormQuery extends ElementQuery
 
     public mixed $handle = null;
     public mixed $templateId = null;
+    public mixed $formStatus = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
@@ -50,6 +52,23 @@ class FormQuery extends ElementQuery
         return $this;
     }
 
+    public function status(array|string|null $value): static
+    {
+        $this->formStatus = $value;
+
+        return $this;
+    }
+
+
+    protected function statusCondition(string $status): mixed
+    {
+        if (in_array($status, FORM::STATUSES, true)) {
+            return ['formie_forms.formStatus' => $status];
+        }
+
+        return [];
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -60,6 +79,7 @@ class FormQuery extends ElementQuery
 
         $this->query->select([
             'formie_forms.id',
+            'formie_forms.formStatus',
             'formie_forms.handle',
             'formie_forms.fieldContentTable',
             'formie_forms.settings',
@@ -81,6 +101,10 @@ class FormQuery extends ElementQuery
 
         if ($this->templateId) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
+        }
+
+        if ($this->formStatus) {
+            $this->subQuery->andWhere(Db::parseParam('formie_forms.formStatus', $this->formStatus));
         }
 
         return parent::beforePrepare();

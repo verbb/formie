@@ -17,6 +17,27 @@
 
 <hr>
 
+{{ forms.selectField({
+    label: 'Status' | t('formie'),
+    instructions: 'What is the current status of this form' | t('formie'),
+    id: 'status',
+    name: 'status',
+    required: true,
+    options: [
+        {
+            label: 'Active' | t('formie'),
+            value: 'active',
+        },
+        {
+            label: 'Inactive' | t('formie'),
+            value: 'inactive',
+        },
+    ],
+    value: form.getFormStatus(),
+}) }}
+
+<hr>
+
 <h2>{{ 'Submissions' | t('formie') }}</h2>
 
 {{ forms.hidden({

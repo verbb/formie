@@ -1,4 +1,5 @@
 <?php
+
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
@@ -214,7 +215,7 @@ class Forms extends Component
                 foreach ($captchas as $captcha) {
                     // Check to see if we have any data already applied from a stencil
                     $integrationEnabled = $form->settings->integrations[$captcha->handle]['enabled'] ?? null;
-                    
+
                     if ($captcha->getEnabled() && $integrationEnabled === null) {
                         $form->settings->integrations[$captcha->handle]['enabled'] = true;
                     }
@@ -261,7 +262,7 @@ class Forms extends Component
             $transaction->rollBack();
 
             $form->addErrors(['general' => $e->getMessage()]);
-            
+
             Formie::error('Unable to save form “' . $form->handle . '”: ' . $e->getMessage());
 
             return false;
@@ -380,6 +381,7 @@ class Forms extends Component
         $request = Craft::$app->getRequest();
         $formId = $request->getParam('formId');
         $siteId = $request->getParam('siteId');
+        $status = $request->getParam('status');
         $duplicate = (bool)$request->getParam('duplicate');
 
         if ($formId) {
@@ -406,6 +408,7 @@ class Forms extends Component
         }
 
         $form->siteId = $siteId ?? $form->siteId;
+        $form->setFormStatus($status ?? $form->getFormStatus());
         $form->handle = $request->getParam('handle', $form->handle);
         $form->templateId = \verbb\formie\helpers\StringHelper::toId($request->getParam('templateId', $form->templateId));
         $form->defaultStatusId = \verbb\formie\helpers\StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));

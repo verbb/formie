@@ -1,0 +1,9 @@
+<div class="btn menubtn">{{ 'Set status' | t('app') }}</div>
+<div class="menu">
+    <ul>
+        {% for status in statuses %}
+            {% set color = status == 'active' ? 'green' : 'white' %}
+        <li><a class="formsubmit" data-param="formStatus" data-value="{{ status }}"><span class="status {{ color }}"></span> {{ status }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
