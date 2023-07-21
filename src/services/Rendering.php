@@ -468,7 +468,8 @@ class Rendering extends Component
                     if ($field->visibility === 'disabled') {
                         $disabledValues[$key] = $value;
                     }
-
+                    
+                    // Ensure that the field has a chance to populate the default value correctly
                     $field->populateValue($value);
 
                     // If forcing, set the value every time this is called

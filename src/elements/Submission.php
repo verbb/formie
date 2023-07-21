@@ -784,7 +784,7 @@ class Submission extends Element
                     $value = $this->getFieldValue($field->handle);
 
                     if ($field->isValueEmpty($value, $this)) {
-                        $this->setFieldValue($field->handle, $field->defaultValue);
+                        $this->setFieldValue($field->handle, $field->getDefaultValue());
                     }
                 }
             }
