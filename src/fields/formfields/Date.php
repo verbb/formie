@@ -764,6 +764,10 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public function getDefaultDate(): ?string
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
+        if ($this->defaultValue instanceof DateTime) {
+            return $this->defaultValue->format('c');
+        }
+        
         return $this->defaultValue;
     }
 
