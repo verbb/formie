@@ -685,8 +685,14 @@ class MigrateFreeform extends Migration
                 $newField = new formfields\Number();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->min = $field->getMinValue();
-                $newField->max = $field->getMaxValue();
+                if ($min = $field->getMinValue()) {
+                    $newField->min = $min;
+                }
+
+                if ($max = $field->getMaxValue()) {
+                    $newField->max = $max;
+                }
+
                 $newField->decimals = $field->getDecimalCount();
                 break;
 
