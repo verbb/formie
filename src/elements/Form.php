@@ -1421,6 +1421,7 @@ class Form extends Element
                     'fui-alert-' . $this->settings->errorMessagePosition,
                 ],
                 'role' => 'alert',
+                'data-fui-alert' => true,
             ]);
         }
 
@@ -1431,6 +1432,7 @@ class Form extends Element
                     'fui-alert-' . $this->settings->submitActionMessagePosition,
                 ],
                 'role' => 'alert',
+                'data-fui-alert' => true,
             ]);
         }
 

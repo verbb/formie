@@ -409,6 +409,7 @@ export class FormieFormTheme {
             $alert = document.createElement('div');
             $alert.className = this.alertClass;
             $alert.setAttribute('role', 'alert');
+            $alert.setAttribute('data-fui-alert', 'true');
             $alert.innerHTML = text;
 
             // For error notices, we have potential special handling on position
