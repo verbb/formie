@@ -436,6 +436,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | `datePickerOptions` | `Boolean` | A collection of options for the Flatpickr datepicker.
 | `minDate` | `DateTime` | The minimum allowed date.
 | `maxDate` | `DateTime` | The maximum allowed date.
+| `availableDaysOfWeek` | `String` | A JSON string of available days of the week enabled.
 
 
 #### Dropdown

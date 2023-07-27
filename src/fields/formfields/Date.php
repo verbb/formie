@@ -1230,6 +1230,30 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'name' => 'datePickerOptions',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
             ],
+            'availableDaysOfWeek' => [
+                'name' => 'availableDaysOfWeek',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $values = [];
+                    $options = $field->getWeekDayNamesOptions();
+
+                    if (is_array($field->availableDaysOfWeek)) {
+                        foreach ($field->availableDaysOfWeek as $number) {
+                            $values[] = $options[$number]['label'] ?? null;
+                        }
+                    }
+
+                    if ($field->availableDaysOfWeek === '*') {
+                        foreach ($options as $option) {
+                            if ($option['value'] != '*') {
+                                $values[] = $option['label'];
+                            }
+                        }
+                    }
+
+                    return Json::encode($values);
+                },
+            ],
         ]);
     }
 
