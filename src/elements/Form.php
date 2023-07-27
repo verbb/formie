@@ -1658,7 +1658,8 @@ class Form extends Element
         if ($templateConfig) {
             $this->setThemeConfig($templateConfig);
         } else if ($pluginConfig) {
-            $this->setThemeConfig($pluginConfig);
+            // Pass in an empty array, because we already merge in plugin settings config
+            $this->setThemeConfig([]);
         }
     }
 
