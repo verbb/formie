@@ -28,10 +28,12 @@ class MicrosoftDynamics365 extends Crm
     public $mapToLead = false;
     public $mapToOpportunity = false;
     public $mapToAccount = false;
+    public $mapToIncident = false;
     public $contactFieldMapping;
     public $leadFieldMapping;
     public $opportunityFieldMapping;
     public $accountFieldMapping;
+    public $incidentFieldMapping;
 
     private $_entityOptions = [];
 
@@ -134,6 +136,7 @@ class MicrosoftDynamics365 extends Crm
         $lead = $this->getFormSettingValue('lead');
         $opportunity = $this->getFormSettingValue('opportunity');
         $account = $this->getFormSettingValue('account');
+        $incident = $this->getFormSettingValue('incident');
 
         // Validate the following when saving form settings
         $rules[] = [['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
@@ -152,6 +155,10 @@ class MicrosoftDynamics365 extends Crm
             return $model->enabled && $model->mapToAccount;
         }, 'on' => [Integration::SCENARIO_FORM]];
 
+        $rules[] = [['incidentFieldMapping'], 'validateFieldMapping', 'params' => $incident, 'when' => function($model) {
+            return $model->enabled && $model->mapToIncident;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
         return $rules;
     }
 
@@ -167,12 +174,14 @@ class MicrosoftDynamics365 extends Crm
             $leadFields = $this->_getEntityFields('lead');
             $opportunityFields = $this->_getEntityFields('opportunity');
             $accountFields = $this->_getEntityFields('account');
+            $incidentFields = $this->_getEntityFields('incident');
 
             $settings = [
                 'contact' => $contactFields,
                 'lead' => $leadFields,
                 'opportunity' => $opportunityFields,
                 'account' => $accountFields,
+                'incident' => $incidentFields,
             ];
         } catch (\Throwable $e) {
             Integration::apiError($this, $e);
@@ -191,11 +200,13 @@ class MicrosoftDynamics365 extends Crm
             $leadValues = $this->getFieldMappingValues($submission, $this->leadFieldMapping, 'lead');
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
             $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
+            $incidentValues = $this->getFieldMappingValues($submission, $this->incidentFieldMapping, 'incident');
 
             $contactId = null;
             $leadId = null;
             $opportunityId = null;
             $accountId = null;
+            $incidentId = null;
 
             if ($this->mapToContact) {
                 $contactPayload = $contactValues;
@@ -292,6 +303,32 @@ class MicrosoftDynamics365 extends Crm
                     Integration::error($this, Craft::t('formie', 'Missing return opportunityid {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($opportunityPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
+
+            if ($this->mapToIncident) {
+                $incidentPayload = $incidentValues;
+
+                if ($incidentId) {
+                    $incidentPayload['parentaccountid@odata.bind'] = $this->_formatLookupValue('contacts', $incidentId);
+                }
+
+                $response = $this->deliverPayload($submission, 'incidents?$select=incidentid', $incidentPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $incidentId = $response['incidentid'] ?? '';
+
+
+                if (!$incidentId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return incidentid {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($incidentPayload),
                     ]), true);
 
                     return false;
@@ -624,6 +661,11 @@ class MicrosoftDynamics365 extends Crm
                 'entity' => 'leads',
                 'label' => 'fullname',
                 'value' => 'leadid',
+            ],
+            'incident' => [
+                'entity' => 'incidents',
+                'label' => 'fullname',
+                'value' => 'incidentid',
             ],
             'transactioncurrency' => [
                 'entity' => 'transactioncurrencies',
