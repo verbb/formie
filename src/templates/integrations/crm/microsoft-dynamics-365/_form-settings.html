@@ -154,7 +154,7 @@
                 id="incident-field-mapping"
                 name="incidentFieldMapping"
                 :value="get(form, 'settings.integrations.{{ handle }}.incidentFieldMapping')"
-                :rows="get(settings, 'account')"
+                :rows="get(settings, 'incident')"
             ></integration-field-mapping>
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.incidentFieldMapping'))" class="errors" v-cloak>

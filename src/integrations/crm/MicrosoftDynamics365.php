@@ -312,8 +312,8 @@ class MicrosoftDynamics365 extends Crm
             if ($this->mapToIncident) {
                 $incidentPayload = $incidentValues;
 
-                if ($incidentId) {
-                    $incidentPayload['parentaccountid@odata.bind'] = $this->_formatLookupValue('contacts', $incidentId);
+                if ($contactId) {
+                    $incidentPayload['customerid_contact@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
                 }
 
                 $response = $this->deliverPayload($submission, 'incidents?$select=incidentid', $incidentPayload);
@@ -323,7 +323,6 @@ class MicrosoftDynamics365 extends Crm
                 }
 
                 $incidentId = $response['incidentid'] ?? '';
-
 
                 if (!$incidentId) {
                     Integration::error($this, Craft::t('formie', 'Missing return incidentid {response}. Sent payload {payload}', [
@@ -664,7 +663,7 @@ class MicrosoftDynamics365 extends Crm
             ],
             'incident' => [
                 'entity' => 'incidents',
-                'label' => 'fullname',
+                'label' => 'title',
                 'value' => 'incidentid',
             ],
             'transactioncurrency' => [
