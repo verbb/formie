@@ -123,11 +123,13 @@ abstract class Captcha extends Integration
         return $value;
     }
 
-    protected function getRequestParam($name)
+    protected function getRequestParam($name, $allowEmptyString = false)
     {
         // Handle the traditional param, as a POST param
         if ($param = Craft::$app->getRequest()->getParam($name)) {
-            return $param;
+            if ($allowEmptyString || $param) {
+                return $param;
+            }
         }
 
         // Handle the param being set in a GQL mutation
@@ -135,7 +137,9 @@ abstract class Captcha extends Integration
             $paramName = $param['name'] ?? null;
 
             if ($paramName === $name) {
-                return $param['value'] ?? null;
+                if ($allowEmptyString || $param) {
+                    return $param['value'] ?? null;
+                }
             }
         }
 

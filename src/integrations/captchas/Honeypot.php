@@ -63,8 +63,7 @@ class Honeypot extends Captcha
         }
 
         // If the honeypot param has been stripped out of the request altogether
-        // Don't use `getRequestParam()` as we want to check for strict `null`
-        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME) === null) {
+        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME, true) === null) {
             $this->spamReason = Craft::t('formie', 'Honeypot param missing: {v}.', ['v' => self::HONEYPOT_INPUT_NAME]);
 
             return false;
