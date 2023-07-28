@@ -140,10 +140,11 @@ class SubmissionsController extends Controller
         }
 
         // User must have at least one of these permissions to edit (all, or the specific form)
+        $submissionViewPermission = Craft::$app->getUser()->checkPermission('formie-viewSubmissions');
         $submissionsPermission = Craft::$app->getUser()->checkPermission('formie-editSubmissions');
         $submissionPermission = Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid);
 
-        if (!$submissionsPermission && !$submissionPermission) {
+        if (!$submissionViewPermission && !$submissionsPermission && !$submissionPermission) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
