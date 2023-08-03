@@ -19,6 +19,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -1235,7 +1236,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'type' => Type::string(),
                 'resolve' => function($field) {
                     $values = [];
-                    $options = $field->getWeekDayNamesOptions();
+                    $options = ArrayHelper::index($field->getWeekDayNamesOptions(), 'value');
 
                     if (is_array($field->availableDaysOfWeek)) {
                         foreach ($field->availableDaysOfWeek as $number) {
