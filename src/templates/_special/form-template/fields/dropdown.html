@@ -29,7 +29,7 @@
             {% if field.multiple %}
                 {% set selected = option.value is defined and option.value in value %}
             {% else %}
-                {% set selected = option.value is defined and option.value == value %}
+                {% set selected = option.value is defined and ('' ~ option.value) == ('' ~ value) %}
             {% endif %}
 
             <option value="{{ option.value }}" {{ selected ? 'selected' }}>{{ option.label | t }}</option>
