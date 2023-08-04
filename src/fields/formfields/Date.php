@@ -32,6 +32,7 @@ use yii\base\Event;
 use yii\db\Schema;
 
 use DateTime;
+use DateTimeZone;
 
 class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
 {
@@ -766,6 +767,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
         if ($this->defaultValue instanceof DateTime) {
+            // Strip off timezone info, it's not applicable here
+            $this->defaultValue = new DateTime($this->defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
+
             return $this->defaultValue->format('c');
         }
         
@@ -1212,7 +1216,16 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    return (string)$field->defaultValue;
+                    $defaultValue = $field->defaultValue;
+
+                    if ($defaultValue instanceof DateTime) {
+                        // Strip off timezone info, it's not applicable here
+                        $defaultValue = new DateTime($defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
+
+                        return $defaultValue->format('c');
+                    }
+
+                    return $defaultValue;
                 },
             ],
             'defaultDate' => [
@@ -1222,10 +1235,30 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             'minDate' => [
                 'name' => 'minDate',
                 'type' => DateTimeType::getType(),
+                'resolve' => function($field) {
+                    if ($field->minDate instanceof DateTime) {
+                        // Strip off timezone info, it's not applicable here
+                        $field->minDate = new DateTime($field->minDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
+
+                        return $field->minDate->format('c');
+                    }
+
+                    return $field->minDate;
+                },
             ],
             'maxDate' => [
                 'name' => 'maxDate',
                 'type' => DateTimeType::getType(),
+                'resolve' => function($field) {
+                    if ($field->maxDate instanceof DateTime) {
+                        // Strip off timezone info, it's not applicable here
+                        $field->maxDate = new DateTime($field->maxDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
+
+                        return $field->maxDate->format('c');
+                    }
+
+                    return $field->maxDate;
+                },
             ],
             'datePickerOptions' => [
                 'name' => 'datePickerOptions',
