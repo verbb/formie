@@ -267,7 +267,7 @@ class SubmissionsController extends Controller
 
             // If we're going back, and want to  navigate without saving
             if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
-                $nextPage = $form->getPreviousPage(null, $submission);
+                $nextPage = $form->getPreviousPage(null, $submission, true);
 
                 // Update the current page to reflect the next page
                 $form->setCurrentPage($nextPage);
@@ -303,7 +303,7 @@ class SubmissionsController extends Controller
             if (is_numeric($goToPageId)) {
                 $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
             } else if ($submitAction === 'back') {
-                $nextPage = $form->getPreviousPage(null, $submission);
+                $nextPage = $form->getPreviousPage(null, $submission, true);
             } else if ($submitAction === 'save') {
                 $nextPage = $form->getCurrentPage();
             } else {
@@ -472,7 +472,7 @@ class SubmissionsController extends Controller
 
         // If we're going back, and want to  navigate without saving
         if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
-            $nextPage = $form->getPreviousPage(null, $submission);
+            $nextPage = $form->getPreviousPage(null, $submission, true);
 
             // Update the current page to reflect the next page
             $form->setCurrentPage($nextPage);
@@ -508,7 +508,7 @@ class SubmissionsController extends Controller
         if (is_numeric($goToPageId)) {
             $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         } else if ($submitAction === 'back') {
-            $nextPage = $form->getPreviousPage(null, $submission);
+            $nextPage = $form->getPreviousPage(null, $submission, true);
         } else if ($submitAction === 'save') {
             $nextPage = $form->getCurrentPage();
         } else {

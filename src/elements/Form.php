@@ -792,7 +792,7 @@ class Form extends Element
      *
      * @param FieldLayoutPage|null $currentPage
      */
-    public function getPreviousPage(FieldLayoutPage $currentPage = null, $submission = null): ?FieldLayoutPage
+    public function getPreviousPage(FieldLayoutPage $currentPage = null, Submission $submission = null, bool $defaultToFirst = false): ?FieldLayoutPage
     {
         $pages = $this->getPages();
 
@@ -814,7 +814,12 @@ class Form extends Element
         // Handle if the next page should be conditionally skipped
         if ($prev && $submission && $prev->isConditionallyHidden($submission)) {
             // Call again to get the next non-hidden page.
-            $prev = $this->getPreviousPage($prev, $submission);
+            $prev = $this->getPreviousPage($prev, $submission, $defaultToFirst);
+        }
+
+        // Check to see if we've gone past the first page
+        if (!$prev && $defaultToFirst) {
+            return $pages[0] ?? null;
         }
 
         return $prev ?: null;
