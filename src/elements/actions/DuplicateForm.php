@@ -92,7 +92,9 @@ class DuplicateForm extends Duplicate
 
             try {
                 $form = new Form();
-                $form->setAttributes($element->getAttributes(), true);
+
+                // Get all public properties and apply
+                Craft::configure($form, get_object_vars($element));
 
                 $form->id = null;
                 $form->uid = null;
