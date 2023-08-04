@@ -470,17 +470,24 @@ trait RelationFieldTrait
 
     private function _elementToArray($element)
     {
-        // Get the attributes for the element
-        $reflection = new \ReflectionClass(get_class($element));
+        // Get all public properties
+        $array = get_object_vars($element);
 
-        $attributes = array_map(function($prop) {
-            return $prop->name;
-        }, $reflection->getProperties(\ReflectionProperty::IS_PUBLIC));
-
-        $array = $element->getAttributes($attributes);
+        // Add in some useful extras
+        $array['url'] = $element->getUrl();
+        $array['link'] = $element->getLink();
+        $array['uriFormat'] = $element->getUriFormat();
+        $array['isHomepage'] = $element->getIsHomepage();
+        $array['uiLabel'] = $element->getUiLabel();
+        $array['cpEditUrl'] = $element->getCpEditUrl();
+        $array['postEditUrl'] = $element->getPostEditUrl();
+        $array['cpRevisionsUrl'] = $element->getCpRevisionsUrl();
+        $array['status'] = $element->getStatus();
 
         // Get the custom fields
         $array = array_merge($array, $element->serializedFieldValues);
+
+        ksort($array);
 
         return Json::decode(Json::encode($array));
     }
