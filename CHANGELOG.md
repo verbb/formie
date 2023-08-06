@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.30 - 2023-08-06
+
+### Added
+- Added “Incident” object to Microsoft Dynamics 365 CRM integration.
+
+### Fixed
+- Fixed Dropdown field templates when using numbers as values for options.
+- Fixed submit/error messages not falling back on Twig-defined values with `form.setSettings`.
+
 ## 1.6.29 - 2023-07-11
 
 ### Added
