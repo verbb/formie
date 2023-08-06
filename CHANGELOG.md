@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.0.34 - 2023-08-06
+
+### Added
+- Added “Incident” object to Microsoft Dynamics 365 CRM integration.
+- Added a flag to getRequestParam to distinguish empty string from null.
+- Added `Date::availableDaysOfWeek` for GraphQL.
+- Added `data-fui-alert` attribute to alerts.
+
+### Changed
+- Switch Formie JS to use `[data-fui-alert]` instead of `[role="alert"]` to target alerts
+
+### Fixed
+- Fixed Dropdown field templates when using numbers as values for options.
+- Fixed submit/error messages not falling back on Twig-defined values with `form.setSettings`.
+- Fixed a GraphQL error for the default value for Date fields.
+- Fixed disabled element fields not having their default values set correctly.
+- Fixed an migration error for Freeform and Number fields.
+- Fixed Variants fields not persisting their “Source” setting.
+- Fixed an issue with the Calculations field with special characters.
+- Fixed Element Integrations not updating their “Update Entries” values refresh when changing the element group.
+- Fixed some characters (quotes) being encoded for field values, causing issues for integration values and email notifications.
+- Fixed Webhook payloads not including URL and some other properties for Element and File Upload fields.
+- Fixed being able to navigate back further than the first page in submission flow.
+- Fixed Date field settings returning incorrect timezone information when querying via GQL.
+- Fixed an issue when duplicating forms, not all settings were being duplicated.
+- Fixed `Date::availableDaysOfWeek` for GraphQL.
+- Fixed view submission permissions.
+- Fixed an issue with theme config when only set in `formie.php` config and using `resetClass`.
+- Fixed an issue with submission editing and submission limit setting.
+- Fixed an issue with Honeypot captchas for GraphQL.
+
 ## 2.0.33 - 2023-07-11
 
 ### Added
