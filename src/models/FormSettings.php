@@ -187,7 +187,9 @@ class FormSettings extends Model
 
     public function getSubmitActionMessage($submission = null): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->submitActionMessage, $submission));
+        $message = ($this->_getHtmlContent($this->submitActionMessage, $submission) ?: $this->submitActionMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getSubmitActionMessageHtml(): string
@@ -197,7 +199,9 @@ class FormSettings extends Model
 
     public function getErrorMessage(): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->errorMessage));
+        $message = ($this->_getHtmlContent($this->errorMessage) ?: $this->errorMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getErrorMessageHtml(): string
@@ -207,7 +211,9 @@ class FormSettings extends Model
 
     public function getRequireUserMessage(): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->requireUserMessage));
+        $message = ($this->_getHtmlContent($this->requireUserMessage) ?: $this->requireUserMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getRequireUserMessageHtml(): string
@@ -217,7 +223,9 @@ class FormSettings extends Model
 
     public function getScheduleFormPendingMessage(): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->scheduleFormPendingMessage));
+        $message = ($this->_getHtmlContent($this->scheduleFormPendingMessage) ?: $this->scheduleFormPendingMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getScheduleFormPendingMessageHtml(): string
@@ -227,7 +235,9 @@ class FormSettings extends Model
 
     public function getScheduleFormExpiredMessage(): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->scheduleFormExpiredMessage));
+        $message = ($this->_getHtmlContent($this->scheduleFormExpiredMessage) ?: $this->scheduleFormExpiredMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getScheduleFormExpiredMessageHtml(): string
@@ -237,7 +247,9 @@ class FormSettings extends Model
 
     public function getLimitSubmissionsMessage(): string
     {
-        return Craft::t('formie', $this->_getHtmlContent($this->limitSubmissionsMessage));
+        $message = ($this->_getHtmlContent($this->limitSubmissionsMessage) ?: $this->limitSubmissionsMessage);
+
+        return Craft::t('formie', $message);
     }
 
     public function getLimitSubmissionsMessageHtml(): string

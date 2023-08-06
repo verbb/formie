@@ -6,6 +6,7 @@
 {% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}
+{% set mapToIncident = form.settings.integrations[handle].mapToIncident ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -131,6 +132,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.accountFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Incident' | t('formie'),
+            instructions: 'Whether to map form data to {name} Incident.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToIncident',
+            name: 'mapToIncident',
+            on: mapToIncident,
+            toggle: 'map-to-incident',
+        }) }}
+
+        <div id="map-to-incident" class="{{ not mapToIncident ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Incident Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Incident fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="incident-field-mapping"
+                name="incidentFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.incidentFieldMapping')"
+                :rows="get(settings, 'incident')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.incidentFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.incidentFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
