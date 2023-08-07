@@ -126,20 +126,19 @@ abstract class Captcha extends Integration
     protected function getRequestParam($name, $allowEmptyString = false)
     {
         // Handle the traditional param, as a POST param
-        if ($param = Craft::$app->getRequest()->getParam($name)) {
-            if ($allowEmptyString || $param) {
-                return $param;
-            }
+        $param = Craft::$app->getRequest()->getParam($name);
+
+        if ($allowEmptyString || $param) {
+            return $param;
         }
 
         // Handle the param being set in a GQL mutation
-        if ($param = Craft::$app->getRequest()->getParam('variables.' . $this->getGqlHandle())) {
-            $paramName = $param['name'] ?? null;
+        $param = Craft::$app->getRequest()->getParam('variables.' . $this->getGqlHandle());
+        $paramName = $param['name'] ?? null;
 
-            if ($paramName === $name) {
-                if ($allowEmptyString || $param) {
-                    return $param['value'] ?? null;
-                }
+        if ($paramName === $name) {
+            if ($allowEmptyString || $param) {
+                return $param['value'] ?? null;
             }
         }
 
