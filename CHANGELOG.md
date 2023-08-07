@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.34.1 - 2023-08-08
+
+### Fixed
+- Fixed an issue with Honeypot Captcha not working, due to change in 2.0.34.
+
 ## 2.0.34 - 2023-08-06
 
 ### Added
