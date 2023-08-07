@@ -15,6 +15,8 @@ use craft\i18n\Locale;
 
 use GraphQL\Type\Definition\Type;
 
+use yii\db\Schema;
+
 use Throwable;
 
 class Number extends FormField implements PreviewableFieldInterface
@@ -89,7 +91,8 @@ class Number extends FormField implements PreviewableFieldInterface
      */
     public function getContentColumnType(): string
     {
-        return Db::getNumericalColumnType($this->min, $this->max, $this->decimals);
+        // Don't use integer columns, so we can handle large numbers as strings
+        return Schema::TYPE_TEXT;
     }
 
     /**
@@ -101,6 +104,7 @@ class Number extends FormField implements PreviewableFieldInterface
             if ($this->defaultValue !== null && $this->isFresh($element)) {
                 return $this->defaultValue;
             }
+            
             return null;
         }
 
@@ -111,15 +115,6 @@ class Number extends FormField implements PreviewableFieldInterface
 
         if ($value === '') {
             return null;
-        }
-
-        if (is_string($value) && is_numeric($value)) {
-            if ((int)$value == $value) {
-                return (int)$value;
-            }
-            if ((float)$value == $value) {
-                return (float)$value;
-            }
         }
 
         return $value;
