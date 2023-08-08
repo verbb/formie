@@ -161,7 +161,7 @@ class Recaptcha extends Captcha
         $projectId = App::parseEnv($this->projectId);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1beta1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,
