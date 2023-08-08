@@ -113,13 +113,6 @@ export class FormieTurnstile {
 
             // // Update the placeholder with our ID, in case we need to re-render it
             this.$placeholder.setAttribute('data-turnstile-id', id);
-
-            // Add a `tabindex` attribute to the iframe to prevent tabbing-to
-            const iframe = this.$placeholder.querySelector('iframe');
-
-            if (iframe) {
-                iframe.setAttribute('tabindex', '-1');
-            }
         });
     }
 
