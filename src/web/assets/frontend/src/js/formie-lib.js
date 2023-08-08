@@ -58,6 +58,12 @@ export class Formie {
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
+            // Check if we've already loaded scripts for this form
+            if (document.querySelector(`[data-fui-scripts="${formConfig.formId}"]`)) {
+                console.warn(`Formie scripts already loaded for form #${formConfig.formId}`);
+                return;
+            }
+
             // Create a container to add these items to, so we can destroy them later
             form.$registeredJs = document.createElement('div');
             form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formId);
