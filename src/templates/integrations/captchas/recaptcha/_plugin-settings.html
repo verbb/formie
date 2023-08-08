@@ -53,6 +53,7 @@
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
     {{ forms.autosuggestField({
         label: 'Project ID' | t('formie'),
+        instructions: 'Your Google Cloud project ID.' | t('formie'),
         name: 'projectId',
         suggestEnvVars: true,
         value: integration.settings.projectId ?? '',
