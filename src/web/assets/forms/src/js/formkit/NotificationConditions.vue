@@ -350,6 +350,8 @@ export default {
                                 value: `{${field.handle}.${subfield.handle}}`,
                             });
                         });
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater') {
+                        // No support yet
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
