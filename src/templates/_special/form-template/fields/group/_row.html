@@ -12,8 +12,13 @@
                     {# Tell child fields about this parent, so that namespacing works #}
                     {% do field.setParentField(groupField, "rows[#{id}][fields]") %}
                 
+                    {# Important to always use a NestedFieldRow as the element, otherwise will use #}
+                    {# the Submission element, which will fetch content from fields outside of a Group #}
                     {{ craft.formie.renderField(form, field, {
-                        element: block ?? null,
+                        element: block ?? create({
+                            class: 'verbb\\formie\\elements\\NestedFieldRow',
+                            fieldId: groupField.id,
+                        }),
                     }) }}
                 {% endfor %}
             {% endfieldtag %}
