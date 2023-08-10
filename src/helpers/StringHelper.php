@@ -5,6 +5,8 @@ use craft\helpers\StringHelper as CraftStringHelper;
 
 use LitEmoji\LitEmoji;
 
+use voku\helper\AntiXSS;
+
 class StringHelper extends CraftStringHelper
 {
     // Static Methods
@@ -50,5 +52,10 @@ class StringHelper extends CraftStringHelper
     public static function encodeHtml(string $str): string
     {
         return LitEmoji::encodeHtml($str);
+    }
+
+    public static function cleanString(string $str): string
+    {
+        return (new AntiXSS())->xss_clean((string)$str);
     }
 }

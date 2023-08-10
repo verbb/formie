@@ -43,7 +43,8 @@
         "stripe/stripe-php": "^7.0",
         "symfony/expression-language": "^5.3.0",
         "thenetworg/oauth2-azure": "^2.0",
-        "verbb/base": "^2.0.0"
+        "verbb/base": "^2.0.0",
+        "voku/anti-xss": "^4.1"
     },
     "autoload": {
         "psr-4": {
