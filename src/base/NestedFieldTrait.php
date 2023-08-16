@@ -712,6 +712,7 @@ trait NestedFieldTrait
                     }
                 } else {
                     $values[$key . ': ' . $field->name] = $valueForExport;
+                }
             }
         }
 
