@@ -151,7 +151,7 @@ class Pardot extends Crm
             $prospectAccountOptions = [];
 
             foreach ($prospectAccounts as $prospectAccount) {
-                $accountOptions[] = [
+                $prospectAccountOptions[] = [
                     'label' => $prospectAccount['name'],
                     'value' => $prospectAccount['id'],
                 ];
