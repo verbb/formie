@@ -157,6 +157,18 @@ class Pardot extends Crm
                 ];
             }
 
+            $response = $this->request('GET', 'list/version/4/do/query');
+            $lists = $response['result']['list'] ?? [];
+
+            $listsOptions = [];
+
+            foreach ($lists as $list) {
+                $listsOptions[] = [
+                    'label' => $list['name'],
+                    'value' => $list['id'],
+                ];
+            }
+
             $booleanOptions = [
                 [
                     'label' => Craft::t('formie', 'Yes'),
@@ -169,6 +181,14 @@ class Pardot extends Crm
             ];
 
             $prospectFields = array_merge([
+                new IntegrationField([
+                    'handle' => 'list_id',
+                    'name' => Craft::t('formie', 'Segmentation List'),
+                    'options' => [
+                        'label' => Craft::t('formie', 'Lists'),
+                        'options' => $listsOptions,
+                    ],
+                ]),
                 new IntegrationField([
                     'handle' => 'salutation',
                     'name' => Craft::t('formie', 'Salutation'),
@@ -387,6 +407,9 @@ class Pardot extends Crm
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
 
             if ($this->mapToProspect) {
+                // Remove a segmented list ID, if picked
+                $listId = ArrayHelper::remove($prospectValues, 'list_id');
+
                 $prospectPayload = $this->_prepPayload($prospectValues);
 
                 // It'd be great to use `upsert/email/{email}` but that always creates a new prospect - useless!!
@@ -420,6 +443,18 @@ class Pardot extends Crm
                     ]), true);
 
                     return false;
+                }
+
+                // If there was a segmented list to add the prospect to...
+                if ($listId) {
+                    try {
+                        $this->deliverPayload($submission, "listMembership/version/4/do/create/list_id/{$listId}/{$prospectId}", [
+                            'list_id' => $listId,
+                            'prospect_id' => $prospectId,
+                        ], 'POST', 'form_params');
+                    } catch (Throwable $e) {
+                        // An error will indicate they're already part of the list, so ignore
+                    }
                 }
             }
 
