@@ -705,6 +705,7 @@ class MigrateSproutForms extends Migration
                 $newField->limit = $field->limit;
                 $newField->source = $field->source;
                 $newField->sources = $field->sources;
+                break;
             case sproutfields\Url::class:
                 break;
                 $newField = new formfields\SingleLineText();
