@@ -722,7 +722,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($normalized) {
             // Update the value on the model to the DateTime object
-            $model->$attribute = $value;
+            // $model->$attribute = $value;
         }
     }
 
