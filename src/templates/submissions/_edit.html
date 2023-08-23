@@ -227,7 +227,7 @@
 
 {% set notifications = form.getNotifications() %}
 
-{% if notifications and not isNew %}
+{% if notifications and not isNew and not submission.isSpam %}
     <div id="meta-details" class="meta">
         <div class="field">
             <div class="heading">
@@ -249,7 +249,7 @@
     {% endif %}
 {% endfor %}
 
-{% if integrations and not isNew %}
+{% if integrations and not isNew and not submission.isSpam %}
     <div id="meta-details" class="meta">
         {% set integrationsField %}
             <div>
