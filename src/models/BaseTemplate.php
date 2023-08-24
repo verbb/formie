@@ -89,7 +89,7 @@ abstract class BaseTemplate extends Model
                 $view->setTemplatesPath($templatesPath);
 
                 // Check if we need to validate templates. Allow power users to handle form template path checks on their own
-                if (Formie::getInstance()->getSettings()->validateCustomTemplates) {
+                if (Formie::$plugin->getSettings()->validateCustomTemplates) {
                     // Check how to validate templates
                     if ($this->hasSingleTemplate) {
                         if (!$view->doesTemplateExist($this->$attribute)) {
