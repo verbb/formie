@@ -1245,9 +1245,6 @@ class Form extends Element
         // Add any query params to the URL automatically (think utm)
         if ($url && $request->getIsSiteRequest() && $includeQueryString) {
             $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
-
-            // Fix for https://github.com/craftcms/cms/issues/12796
-            $url = str_replace(['%7B', '%7D'], ['{', '}'], $url);
         }
 
         return $url;
