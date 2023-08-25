@@ -627,6 +627,10 @@ Follow the below steps to connect to the Salesforce API.
         - **Access and manage your data (api)**
         - **Allow access to your unique identifier (openid)**.
         - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
+    - These may also appear named as the following:
+        - **Manage user data via APIs (api)**
+        - **Access unique user identifiers (openid)**
+        - **Perform requests at any time (refresh_token, offline_access)**
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.

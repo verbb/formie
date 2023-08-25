@@ -112,6 +112,26 @@ class Salesforce extends Crm
     /**
      * @inheritDoc
      */
+    public function getOauthScope(): array
+    {
+        return [
+            'api',
+            'openid',
+            'refresh_token',
+            'offline_access',
+        ];
+    }
+
+    public function getOauthProviderConfig(): array
+    {
+        return array_merge(parent::getOauthProviderConfig(), [
+            'scopeSeparator' => ' ',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function oauthCallback(): ?array
     {
         // In some instances (service users) we might want to use the insecure password grant
