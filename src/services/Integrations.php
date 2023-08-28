@@ -152,6 +152,7 @@ class Integrations extends Component
             // crm\MethodCrm::class,
             crm\MicrosoftDynamics365::class,
             // crm\NetSuite::class,
+            crm\OneCrm::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
             crm\Pipeliner::class,
