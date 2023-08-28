@@ -92,7 +92,7 @@ abstract class Element extends Integration
 
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/elements/{$handle}.svg", true);
     }
@@ -102,7 +102,7 @@ abstract class Element extends Integration
      */
     public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -111,7 +111,7 @@ abstract class Element extends Integration
 
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", [
             'integration' => $this,

@@ -228,6 +228,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->handle ?? '';
     }
 
+    public function getClassHandle()
+    {
+        return StringHelper::toKebabCase(static::displayName());
+    }
+
     public function getEnabled(bool $parse = true): bool|string
     {
         if ($parse) {

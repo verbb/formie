@@ -34,7 +34,7 @@ abstract class Crm extends Integration
 
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/crm/{$handle}.svg", true);
     }
@@ -44,7 +44,7 @@ abstract class Crm extends Integration
      */
     public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_plugin-settings", [
             'integration' => $this,
@@ -53,7 +53,7 @@ abstract class Crm extends Integration
 
     public function getFormSettingsHtml($form): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_form-settings", [
             'integration' => $this,

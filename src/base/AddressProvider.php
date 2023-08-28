@@ -41,7 +41,7 @@ abstract class AddressProvider extends Integration
 
     public function getIconUrl(): string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/addressproviders/{$handle}.svg", true);
     }
@@ -51,7 +51,7 @@ abstract class AddressProvider extends Integration
      */
     public function getSettingsHtml(): ?string
     {
-        $handle = StringHelper::toKebabCase(static::displayName());
+        $handle = $this->getClassHandle();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", [
             'integration' => $this,
