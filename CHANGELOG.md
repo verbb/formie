@@ -910,6 +910,16 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.31 - 2023-08-31
+
+### Changed
+- Map an account to lead data using `parentaccountid` or `customerid_account` for Dynamics 365 integration.
+- Exporting submissions now use each fields' Name instead of Handle.
+
+### Fixed
+- Fixed some characters (quotes) being encoded for field values, causing issues for integration values and email notifications.
+- Fixed being able to send email notifications and trigger integrations for spam submissions in the control panel.
+
 ## 1.6.30 - 2023-08-06
 
 ### Added

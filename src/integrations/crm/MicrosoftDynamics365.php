@@ -250,8 +250,17 @@ class MicrosoftDynamics365 extends Crm
                 $leadPayload = $leadValues;
 
                 if ($contactId) {
-                    $leadPayload['parentcontactid@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
-                    $leadPayload['customerid_contact@odata.bind'] = $this->_formatLookupValue('contacts', $contactId);
+                    $contactLookupValue = $this->_formatLookupValue('contacts', $contactId);
+
+                    $leadPayload['parentcontactid@odata.bind'] = $contactLookupValue;
+                    $leadPayload['customerid_contact@odata.bind'] = $contactLookupValue;
+                }
+
+                if ($accountId) {
+                    $accountLookupValue = $this->_formatLookupValue('accounts', $accountId);
+
+                    $leadPayload['parentaccountid@odata.bind'] = $accountLookupValue;
+                    $leadPayload['customerid_account@odata.bind'] = $accountLookupValue;
                 }
 
                 $response = $this->deliverPayload($submission, 'leads?$select=leadid', $leadPayload);
