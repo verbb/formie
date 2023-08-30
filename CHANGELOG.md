@@ -1,5 +1,33 @@
 # Changelog
 
+## 2.0.35 - 2023-08-31
+
+### Added
+- Added 1CRM integration.
+- Added support for Checkboxes fields with Calculations variables.
+- Added `Integration::getClassHandle()`.
+- Added support for Segmented Lists for Pardot CRM integration.
+
+### Changed
+- Map an account to lead data using `parentaccountid` or `customerid_account` for Dynamics 365 integration.
+- Changed Number fields to use `TEXT` columns for their content, to allow large numbers to be used.
+- Updated reCAPTCHA Enterprise endpoint to address deprecation.
+
+### Fixed
+- Fixed being able to send email notifications and trigger integrations for spam submissions in the control panel.
+- Fixed Salesforce integration not working for production without “Use Credentials” enabled.
+- Fixed ActiveCampaign integration dropdown field values not working correctly.
+- Fixed an error when normalizing Date field values.
+- Fixed Pardot integration and prospect accounts.
+- Fixed an error with Sprout Forms migration.
+- Fixed being able to select Repeater fields for field conditions.
+- Fixed Group and Repeater fields having content populated from outer fields with the same field handles as inner fields.
+- Improved submission content filtering potential XSS payloads.
+- Fixed lightswitch UI on Craft 4.4.16+.
+- Fixed `tabindex` removal on captchas, preventing good accessibility to keyboard navigate into captchas.
+- Fixed Formie JS binding multiple times when calling `endBody()` in Twig manually.
+- Fixed Agree field description not correctly enforced as required.
+
 ## 2.0.34.1 - 2023-08-08
 
 ### Fixed
