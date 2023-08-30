@@ -8,7 +8,7 @@
 
 ### Fixed
 - Fixed some characters (quotes) being encoded for field values, causing issues for integration values and email notifications.
-- Fix being able to send email notifications and trigger integrations for spam submissions in the control panel.
+- Fixed being able to send email notifications and trigger integrations for spam submissions in the control panel.
 
 ## 1.6.30 - 2023-08-06
 
