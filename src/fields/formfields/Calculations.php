@@ -310,6 +310,14 @@ class Calculations extends FormField implements PreviewableFieldInterface
 
             $inputNames[] = $fieldHandle;
 
+            if ($field instanceof Checkboxes) {
+                return [
+                    'handle' => Html::getInputNameAttribute($inputNames),
+                    'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace) . '[]',
+                    'type' => get_class($field),
+                ];
+            }
+
             return [
                 'handle' => Html::getInputNameAttribute($inputNames),
                 'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace),

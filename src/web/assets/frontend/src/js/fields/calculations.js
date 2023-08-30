@@ -93,9 +93,16 @@ export class FormieCalculations {
                 if (type === 'verbb\\formie\\fields\\formfields\\Number') {
                     variables[variableKey] = Number($target.value);
                 } else if (type === 'verbb\\formie\\fields\\formfields\\Radio') {
-                    // Radio is the only (at the moment) multiple-enabled field
                     if ($target.checked) {
                         variables[variableKey] = $target.value;
+                    }
+                } else if (type === 'verbb\\formie\\fields\\formfields\\Checkboxes') {
+                    if ($target.checked) {
+                        if (!Array.isArray(variables[variableKey])) {
+                            variables[variableKey] = [];
+                        }
+
+                        variables[variableKey].push($target.value);
                     }
                 } else {
                     variables[variableKey] = $target.value;
@@ -190,7 +197,13 @@ export class FormieCalculations {
     formatVariables(variables) {
         if (this.formatting === 'number') {
             Object.keys(variables).forEach((index) => {
-                variables[index] = Number(variables[index]);
+                if (Array.isArray(variables[index])) {
+                    variables[index].forEach((i, j) => {
+                        variables[index][j] = Number(variables[index][j]);
+                    });
+                } else {
+                    variables[index] = Number(variables[index]);
+                }
             });
         }
 
@@ -199,6 +212,11 @@ export class FormieCalculations {
 
     formatValue(value) {
         if (this.formatting === 'number') {
+            // TODO: allow handling of array values more thatn just sum (e.g. 1,2,3)
+            if (Array.isArray(value)) {
+                value = value.reduce((partialSum, a) => { return partialSum + a; }, 0);
+            }
+
             // Assume no rounding if not providing decimals, but formatting as number
             if (this.decimals) {
                 value = Number(value).toFixed(this.decimals);

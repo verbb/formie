@@ -95,7 +95,9 @@ export default {
         },
 
         calculationsVariables() {
-            return this.$store.getters['form/plainTextFields'](false);
+            return this.$store.getters['form/plainTextFields'](false, [
+                'verbb\\formie\\fields\\formfields\\Checkboxes',
+            ]);
         },
 
         allowSource() {

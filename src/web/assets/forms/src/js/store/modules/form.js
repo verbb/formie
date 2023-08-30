@@ -529,7 +529,7 @@ const getters = {
     },
 
     plainTextFields: (state, getters) => {
-        return (includeGeneral = false) => {
+        return (includeGeneral = false, extra = []) => {
             // TODO refactor this, probably server-side
             const allowedTypes = [
                 'verbb\\formie\\fields\\formfields\\Date',
@@ -544,6 +544,8 @@ const getters = {
 
                 // Some fields that's values have __toString implemented.
                 'verbb\\formie\\fields\\formfields\\Name',
+
+                ...extra,
             ];
 
             let fields = [
