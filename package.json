@@ -69,6 +69,7 @@
         "floating-vue": "^2.0.0-beta.17",
         "formdata-polyfill": "^4.0.10",
         "friendly-challenge": "^0.9.11",
+        "hostic-dom": "^0.8.7",
         "install": "^0.13.0",
         "intl-tel-input": "^17.0.16",
         "locutus": "^2.0.16",

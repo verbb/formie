@@ -200,7 +200,7 @@ class Agree extends FormField implements PreviewableFieldInterface
                 'label' => Craft::t('formie', 'Description'),
                 'help' => Craft::t('formie', 'The description for the field. This will be shown next to the checkbox.'),
                 'name' => 'description',
-                'validation' => 'required',
+                'validation' => 'requiredRichText',
                 'required' => true,
             ], RichTextHelper::getRichTextConfig('fields.agree'))),
             SchemaHelper::textField([
