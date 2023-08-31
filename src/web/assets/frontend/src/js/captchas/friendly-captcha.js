@@ -8,10 +8,13 @@ export class FormieFriendlyCaptcha {
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
 
-        this.$placeholder = this.$form.querySelector('[data-friendly-captcha-placeholder]');
+        // We can have multiple captchas per form, so store them and render only when we need
+        this.$placeholders = this.$form.querySelectorAll('[data-friendly-captcha-placeholder]');
 
-        if (!this.$placeholder) {
-            console.error('Unable to find Friendly Captcha placeholder for [data-friendly-captcha-placeholder]');
+        if (!this.$placeholders) {
+            console.error('Unable to find any Friendly Captcha placeholders for [data-friendly-captcha-placeholder]');
+
+            return;
         }
 
         // Render the captcha for just this page
@@ -23,6 +26,42 @@ export class FormieFriendlyCaptcha {
     }
 
     renderCaptcha() {
+        this.$placeholder = null;
+
+        // Get the active page
+        let $currentPage = null;
+
+        // Find the current page, from Formie's JS
+        if (this.$form.form.formTheme) {
+            // eslint-disable-next-line
+            $currentPage = this.$form.form.formTheme.$currentPage;
+        }
+
+        const { hasMultiplePages } = this.$form.form.settings;
+
+        // Get the current page's captcha - find the first placeholder that's non-invisible
+        this.$placeholders.forEach(($placeholder) => {
+            if ($currentPage && $currentPage.contains($placeholder)) {
+                this.$placeholder = $placeholder;
+            }
+        });
+
+        // If a single-page form, get the first placeholder
+        if (!hasMultiplePages && this.$placeholder === null) {
+            // eslint-disable-next-line
+            this.$placeholder = this.$placeholders[0];
+        }
+
+        if (this.$placeholder === null) {
+            // This is okay in some instances - notably for multi-page forms where the captcha
+            // should only be shown on the last step. But its nice to log this anyway.
+            if ($currentPage === null) {
+                console.log('Unable to find Friendly Captcha placeholder for [data-friendly-captcha-placeholder]');
+            }
+
+            return;
+        }
+
         // Remove any existing token input
         const $token = this.$form.querySelector('[name="frc-captcha-solution"]');
 
