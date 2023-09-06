@@ -363,6 +363,16 @@ class Rendering extends Component
             'Invalid country code',
             'Too short',
             'Too long',
+
+            // PayPal
+            'Missing Authorization ID for approval.',
+            'Payment authorized. Finalise the form to complete payment.',
+            'Unable to authorize payment. Please try again.',
+
+            // Opayo
+            'The request timed out.',
+            'The request encountered a network error. Please try again.',
+
         ]);
     }
 
