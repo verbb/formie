@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\Formie;
 use verbb\formie\helpers\FileHelper;
 
 use Craft;
