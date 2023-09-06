@@ -22,8 +22,27 @@
 {% set bodyClass = 'fui-body fui-submission' %}
 {% set selectedSubnavItem = 'submissions' %}
 {% set saveShortcutRedirect = '{cpEditUrl}' %}
+{% set selectedSiteId = submission.siteId %}
+{% set selectedSiteHandle = craft.app.request.getParam('site') %}
+
+{% if selectedSiteHandle %}
+    {% set selectedSite = craft.app.sites.getSiteByHandle(selectedSiteHandle) %}
+
+    {% if selectedSite %}
+        {% set selectedSiteId = selectedSite.id %}
+    {% endif %}
+{% endif %}
 
 {% hook 'formie.cp.submissions.edit' %}
+
+{% block contextMenu %}
+    {% if craft.app.getIsMultiSite() %}
+        {% include '_elements/sitemenu' with {
+            selectedSiteId: selectedSiteId,
+            urlFormat: "formie/submissions/#{form.handle}/#{craft.app.request.getSegment(4)}?site={handle}"
+        } %}
+    {% endif %}
+{% endblock %}
 
 {% block actionButton %}
 
@@ -83,7 +102,7 @@
         {% endif %}
 
         {% if craft.app.getIsMultiSite() %}
-            <input type="hidden" name="siteId" value="{{ submission.siteId }}">
+            <input type="hidden" name="siteId" value="{{ selectedSiteId }}">
         {% endif %}
 
         <div id="fields">
