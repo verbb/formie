@@ -102,7 +102,7 @@ class Number extends FormField implements PreviewableFieldInterface
     {
         if ($value === null) {
             if ($this->defaultValue !== null && $this->isFresh($element)) {
-                return $this->defaultValue;
+                return (string)$this->defaultValue;
             }
             
             return null;
@@ -117,7 +117,7 @@ class Number extends FormField implements PreviewableFieldInterface
             return null;
         }
 
-        return $value;
+        return (string)$value;
     }
 
     /**
@@ -128,6 +128,7 @@ class Number extends FormField implements PreviewableFieldInterface
         // If decimals is 0 (or null, empty for whatever reason), don't run this
         if ($value !== null && $this->decimals) {
             $decimalSeparator = Craft::$app->getLocale()->getNumberSymbol(Locale::SYMBOL_DECIMAL_SEPARATOR);
+            
             try {
                 $value = number_format($value, $this->decimals, $decimalSeparator, '');
             } catch (Throwable $e) {
