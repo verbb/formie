@@ -38,6 +38,11 @@ class Sendinblue extends EmailMarketing
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle()
+    {
+        return 'sendinblue';
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Sendinblue lists to grow your audience for campaigns.');
