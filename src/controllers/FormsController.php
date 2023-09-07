@@ -163,6 +163,8 @@ class FormsController extends Controller
         }
 
         if (!Formie::$plugin->getForms()->saveForm($form)) {
+            Formie::error(Craft::t('app', 'Couldn’t save form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]));
+
             if ($this->request->getAcceptsJson()) {
                 $notifications = $form->getNotifications();
                 $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
@@ -171,7 +173,7 @@ class FormsController extends Controller
                     'success' => false,
                     'id' => $form->id,
                     'notifications' => $notificationsConfig,
-                    'errors' => $form->getErrors(),
+                    'errors' => $form->getConsolidatedErrors(),
                     'fieldLayoutId' => $form->fieldLayoutId,
                 ];
 
@@ -187,7 +189,7 @@ class FormsController extends Controller
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
-                'errors' => $form->getErrors(),
+                'errors' => $form->getConsolidatedErrors(),
             ]);
 
             return null;
