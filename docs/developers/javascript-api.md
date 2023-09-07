@@ -817,3 +817,71 @@ $fields.forEach($field => {
 });
 ```
 
+## JavaScript for Payment Fields
+
+### Stripe
+When using the Payment field with Stripe, you can access the [Card Options](https://stripe.com/docs/js/elements_object/create_element?type=card) settings, and modify them through JavaScript.
+
+#### The `beforeInit` event
+The event that is triggered before the Stripe card elements component is initialized.
+
+```js
+// Fetch all Payment fields (be sure to check if this is Stripe)
+let $fields = document.querySelectorAll('[data-field-type="payment"]');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let stripeField = e.detail.stripe;
+        let options = e.detail.options;
+
+        // Modify any Stripe options
+        e.detail.options.locale = 'de';
+    });
+});
+```
+
+
+### PayPal
+When using the Payment field with PayPal, you can access the [Button Options](https://developer.paypal.com/sdk/js/reference/) settings, and modify them through JavaScript.
+
+#### The `beforeInit` event
+The event that is triggered before the PayPal Button component is initialized.
+
+```js
+// Fetch all Payment fields (be sure to check if this is Stripe)
+let $fields = document.querySelectorAll('[data-field-type="payment"]');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let payPalField = e.detail.payPal;
+        let options = e.detail.options;
+
+        // Modify any Stripe options
+        e.detail.options.style.layout = 'vertical';
+    });
+});
+```
+
+#### The `onApprove` event
+The event that is triggered when PayPal has approved (but not processed) your transaction.
+
+```js
+// Fetch all Payment fields (be sure to check if this is Stripe)
+let $fields = document.querySelectorAll('[data-field-type="payment"]');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('onApprove', (e) => {
+        let payPalField = e.detail.payPal;
+        let data = e.detail.data;
+        let actions = e.detail.actions;
+        let authorization = e.detail.authorization;
+
+        // Return false to prevent error/success messages showing
+        return false;
+    });
+});
+```
+

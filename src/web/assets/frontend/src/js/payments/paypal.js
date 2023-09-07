@@ -111,7 +111,7 @@ export class FormiePayPal extends FormiePaymentProvider {
     }
 
     renderButton() {
-        paypal.Buttons({
+        const options = {
             env: this.useSandbox ? 'sandbox' : 'production',
             style: this.getStyleSettings(),
             createOrder: (data, actions) => {
@@ -158,6 +158,22 @@ export class FormiePayPal extends FormiePaymentProvider {
                         this.updateInputs('paypalOrderId', data.orderID);
                         this.updateInputs('paypalAuthId', authorizationID);
 
+                        // Emit an event when approved
+                        const onApproveEvent = new CustomEvent('onApprove', {
+                            bubbles: true,
+                            detail: {
+                                payPal: this,
+                                data,
+                                actions,
+                                authorization,
+                            },
+                        });
+
+                        // Allow events to bail before showing a message (commonly to auto-submit)
+                        if (!this.$field.dispatchEvent(onApproveEvent)) {
+                            return;
+                        }
+
                         if (!authorizationID) {
                             this.addError(t('Missing Authorization ID for approval.'));
                         } else {
@@ -170,7 +186,20 @@ export class FormiePayPal extends FormiePaymentProvider {
                     }
                 });
             },
-        }).render(this.$input);
+        };
+
+        // Emit an "beforeInit" event. This can directly modify the `options` param
+        const beforeInitEvent = new CustomEvent('beforeInit', {
+            bubbles: true,
+            detail: {
+                payPal: this,
+                options,
+            },
+        });
+
+        this.$field.dispatchEvent(beforeInitEvent);
+
+        paypal.Buttons(options).render(this.$input);
     }
 
     onAfterSubmit(e) {
