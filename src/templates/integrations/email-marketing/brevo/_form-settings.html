@@ -1,0 +1,66 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set listId = form.settings.integrations[handle].listId ?? '' %}
+
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ listId }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+        <div class="field">
+            <div class="heading">
+                <label id="sourceId-label" for="sourceId" class="required">{{ 'List' | t('formie') }}</label>
+
+                <div class="instructions">
+                    <p>{{ 'Select your {name} list to create contacts on.' | t('formie', { name: integration.displayName() }) }}</p>
+                </div>
+            </div>
+
+            <div class="input ltr">
+                <div class="select">
+                    <select :value="sourceId" @input="input('sourceId', $event.target.value)" name="listId" required>
+                        <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                        <option v-for="(option, index) in get(settings, 'lists')" :key="index" :value="option.id">${ option.name }</option>
+                    </select>
+                </div>
+
+                <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh"></button>
+            </div>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.listId'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.listId')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        <integration-field-mapping
+            label="{{ 'Field Mapping' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.displayName() }) }}"
+            id="field-mapping"
+            name-label="{{ integration.displayName() }}"
+            name="fieldMapping"
+            :value="get(form, 'settings.integrations.{{ handle }}.fieldMapping')"
+            :rows="getSourceFields('lists')"
+        ></integration-field-mapping>
+
+        <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping'))" class="errors" v-cloak>
+            <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.fieldMapping')" :key="index">
+                ${ error }
+            </li>
+        </ul>
+    </template>
+</integration-form-settings>

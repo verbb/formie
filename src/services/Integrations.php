@@ -110,6 +110,7 @@ class Integrations extends Component
             emailmarketing\Autopilot::class,
             emailmarketing\AWeber::class,
             emailmarketing\Benchmark::class,
+            emailmarketing\Brevo::class,
             emailmarketing\CampaignMonitor::class,
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
