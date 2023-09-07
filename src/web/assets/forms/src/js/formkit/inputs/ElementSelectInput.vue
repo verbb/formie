@@ -1,6 +1,6 @@
 <template>
     <div :id="id" class="elementselect">
-        <div class="elements" v-html="elementsHtml"></div>
+        <div ref="elements" class="elements" v-html="elementsHtml"></div>
 
         <div class="flex">
             <button type="button" class="btn add icon dashed">{{ selectionLabel }}</button>
@@ -24,6 +24,7 @@ export default {
         return {
             id: `element-${Craft.randomString(10)}`,
             modal: null,
+            elementsHtml: '',
         };
     },
 
@@ -60,18 +61,6 @@ export default {
 
             return 'dropdown';
         },
-
-        elementsHtml() {
-            if (this.editingField) {
-                return this.editingField.field[`${this.context.id}Html`];
-            }
-
-            if (this.editingNotification) {
-                return this.editingNotification.notification.attachAssetsHtml;
-            }
-
-            return '';
-        },
     },
 
     watch: {
@@ -94,6 +83,14 @@ export default {
     created() {
         if (!this.context._value) {
             this.context.node.input([]);
+        }
+
+        if (this.editingField) {
+            this.elementsHtml = this.editingField.field[`${this.context.id}Html`];
+        }
+
+        if (this.editingNotification) {
+            this.elementsHtml = this.editingNotification.notification.attachAssetsHtml;
         }
     },
 
@@ -147,6 +144,16 @@ export default {
             this.domToModel();
         },
 
+        setElementsHtml($html) {
+            if (this.editingField) {
+                this.editingField.field[`${this.context.id}Html`] = $html;
+            }
+
+            if (this.editingNotification) {
+                this.editingNotification.notification.attachAssetsHtml = $html;
+            }
+        },
+
         domToModel() {
             const elements = [];
 
@@ -155,6 +162,18 @@ export default {
             });
 
             this.context.node.input(elements);
+
+            // Store the HTML of the element select, globally. This is because next time we open a modal
+            // the component will have its HTML reset, where it actually has a value. Super-gross.
+            // Provide a slight delay to ensure the DOM is ready
+            setTimeout(() => {
+                const $elements = $(this.$refs.elements).clone();
+
+                // There's a `visibility: hidden` added to elements that we want to remove
+                $elements.find('.element').removeAttr('style');
+
+                this.setElementsHtml($elements.html());
+            }, 200);
         },
     },
 };
