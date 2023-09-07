@@ -849,7 +849,7 @@ When using the Payment field with PayPal, you can access the [Button Options](ht
 The event that is triggered before the PayPal Button component is initialized.
 
 ```js
-// Fetch all Payment fields (be sure to check if this is Stripe)
+// Fetch all Payment fields (be sure to check if this is PayPal)
 let $fields = document.querySelectorAll('[data-field-type="payment"]');
 
 // For each field, bind on the `beforeInit` event
@@ -858,7 +858,7 @@ $fields.forEach($field => {
         let payPalField = e.detail.payPal;
         let options = e.detail.options;
 
-        // Modify any Stripe options
+        // Modify any PayPal options
         e.detail.options.style.layout = 'vertical';
     });
 });
@@ -868,10 +868,10 @@ $fields.forEach($field => {
 The event that is triggered when PayPal has approved (but not processed) your transaction.
 
 ```js
-// Fetch all Payment fields (be sure to check if this is Stripe)
+// Fetch all Payment fields (be sure to check if this is PayPal)
 let $fields = document.querySelectorAll('[data-field-type="payment"]');
 
-// For each field, bind on the `beforeInit` event
+// For each field, bind on the `onApprove` event
 $fields.forEach($field => {
     $field.addEventListener('onApprove', (e) => {
         let payPalField = e.detail.payPal;
