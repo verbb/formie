@@ -153,4 +153,19 @@ class ArrayHelper extends CraftArrayHelper
             unset($curMerge);
         }
     }
+
+    public static function arrayFilterRecursive(array $array)
+    {
+        if (!is_array($array)) {
+            return $array;
+        }
+
+        foreach ($array as $key => $item) {
+            if (is_array($item)) {
+                $array[$key] = self::arrayFilterRecursive($item);
+            }
+        }
+
+        return array_filter($array);
+    }
 }

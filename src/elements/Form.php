@@ -8,6 +8,7 @@ use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\gql\interfaces\FieldInterface;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -27,7 +28,6 @@ use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 use craft\helpers\StringHelper;
@@ -308,6 +308,16 @@ class Form extends Element
         ];
 
         return $behaviors;
+    }
+
+    public function getConsolidatedErrors()
+    {
+        $errors = [
+            $this->getErrors(),
+            $this->_findErrors($this->getFormConfig()),
+        ];
+
+        return array_values(ArrayHelper::arrayFilterRecursive(array_merge(...$errors)));
     }
 
     /**
@@ -1839,5 +1849,20 @@ class Form extends Element
         }
 
         return [];
+    }
+
+    private function _findErrors($array, &$errors = [])
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $this->_findErrors($value, $errors);
+            }
+
+            if ($key === 'errors') {
+                $errors[] = $value;
+            }
+        }
+
+        return $errors;
     }
 }
