@@ -26,7 +26,7 @@ class Sendinblue extends EmailMarketing
      */
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Sendinblue');
+        return Craft::t('formie', 'Sendinblue (Legacy)');
     }
 
     // Properties
@@ -89,6 +89,8 @@ class Sendinblue extends EmailMarketing
 
     public function sendPayload(Submission $submission): bool
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The Sendinblue integration has been deprecated. Use the Brevo integration instead.');
+
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
