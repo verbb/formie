@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.32 - 2023-08-31
+
+### Added
+- Added consolidated errors when saving forms in the control panel.
+
+### Fixed
+- Fixed being unable to choose which site a submission is saved in, when editing a submission from the control panel.
+
 ## 1.6.31 - 2023-08-31
 
 ### Changed
