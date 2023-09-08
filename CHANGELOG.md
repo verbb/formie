@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.36 - 2023-09-08
+
+### Added
+- Added consolidated errors when saving forms in the control panel.
+- Added `beforeInit` and `onApprove` JS events for PayPal.
+- Added Brevo email marketing integration (to replace Sendinblue).
+
+### Fixed
+- Fixed being unable to choose which site a submission is saved in, when editing a submission from the control panel.
+- Fixed element select fields not retaining their values before being saved for the form builder.
+- Fixed Number field not correctly typed in GraphQL mutations.
+- Fixed being unable to choose which site a submission is saved in, when editing a submission from the control panel.
+- Fixed missing translations for Opayo and PayPal’s front-end JS.
+- Fixed an error when creating custom templates.
+- Fixed Friendly Captcha not working correctly for multi-page forms.
+
+### Deprecated
+- Deprecated the Sendinblue integration. Please use the Brevo integration instead.
+
 ## 2.0.35 - 2023-08-31
 
 ### Added
