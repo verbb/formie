@@ -1260,6 +1260,9 @@ class Form extends Element
             $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
         }
 
+        // Handle any UTF characters defined in the URL and encode them properly
+        $url = utf8_encode($url);
+
         return $url;
     }
 
