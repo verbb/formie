@@ -202,7 +202,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             }
 
             $label = (string)$option['label'];
-            $value = (string)$option['value'];
+            $value = (string)($option['value'] ?? '');
 
             if (isset($labels[$optgroup][$label])) {
                 $option['hasDuplicateLabels'] = true;
