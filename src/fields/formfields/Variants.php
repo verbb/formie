@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\formfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
@@ -73,6 +74,16 @@ class Variants extends CommerceVariants implements FormFieldInterface
         return 'formie/_formfields/variants/icon.svg';
     }
 
+    /**
+     * @inheritdoc
+     */
+    public static function getRequiredPlugins(): array
+    {
+        return [
+            ['handle' => 'commerce', 'version' => '4.0.0'],
+        ];
+    }
+
 
     // Properties
     // =========================================================================
@@ -87,6 +98,12 @@ class Variants extends CommerceVariants implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        // Enforce any required plugin before creating the field
+        Formie::$plugin->getFields()->checkRequiredPlugin($this);
+    }
 
     public function getSavedFieldConfig(): array
     {

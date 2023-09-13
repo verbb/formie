@@ -83,6 +83,14 @@ trait FormFieldTrait
         return '';
     }
 
+    /**
+     * @inheritdoc
+     */
+    public static function getRequiredPlugins(): array
+    {
+        return [];
+    }
+
 
     // Properties
     // =========================================================================
