@@ -1011,7 +1011,7 @@ mutation saveSubmission($groupField:contactForm_groupField_FormieGroupInput) {
 mutation saveSubmission($repeaterField:contactForm_repeaterField_FormieRepeaterInput) {
     save_contactForm_Submission(repeaterField: $repeaterField) {
         repeaterField {
-            rows: {
+            rows {
                 field1: field1
                 field2: field2
             }
