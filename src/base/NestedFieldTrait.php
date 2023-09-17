@@ -787,6 +787,7 @@ trait NestedFieldTrait
         if (isset($value['rows']) || isset($value['sortOrder'])) {
             $newRowData = $value['rows'] ?? [];
             $newSortOrder = $value['sortOrder'] ?? array_keys($oldRowsById);
+
             if ($baseRowFieldNamespace) {
                 $baseRowFieldNamespace .= '.rows';
             }

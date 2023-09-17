@@ -63,6 +63,7 @@ class FileUploadInputType extends InputObjectType
      */
     public static function normalizeValue($values)
     {
+        $assetIds = [];
         $newValues = [];
 
         foreach ($values as $key => $value) {
@@ -91,22 +92,29 @@ class FileUploadInputType extends InputObjectType
                             throw new UserError('Invalid file data provided.');
                         }
 
-                        $newValues['filename'][$key] = 'Uploaded_file.' . $extension;
+                        $newValues[$key]['filename'] = 'Uploaded_file.' . $extension;
                     } else {
-                        $newValues['filename'][$key] = AssetsHelper::prepareAssetName($value['filename']);
+                        $newValues[$key]['filename'] = AssetsHelper::prepareAssetName($value['filename']);
                     }
 
-                    $newValues['data'][$key] = $dataString;
+                    $newValues[$key]['type'] = 'data';
+                    $newValues[$key]['data'] = $fileData;
                 } else {
                     throw new UserError('Invalid file data provided');
                 }
             }
 
             if (!empty($value['assetId'])) {
-                $newValues[] = $value['assetId'];
+                $assetIds[] = $value['assetId'];
             }
         }
 
-        return $newValues;
+        // If supplying a list of Asset IDs, just return. We don't need to normalize any further
+        if ($assetIds) {
+            return $assetIds;
+        }
+
+        // Save under `mutationData` so we can handle normalization easier for GQL-specific stuff
+        return ['mutationData' => $newValues];
     }
 }

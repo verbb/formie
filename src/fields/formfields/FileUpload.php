@@ -19,12 +19,16 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Asset;
+use craft\events\LocateUploadedFilesEvent;
 use craft\fields\Assets as CraftAssets;
 use craft\helpers\Assets;
+use craft\helpers\FileHelper;
 use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\models\Volume;
 use craft\web\UploadedFile;
+
+use yii\base\Event;
 
 use GraphQL\Type\Definition\Type;
 
@@ -85,6 +89,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
     private array $_assetsToDelete = [];
+    private array $_uploadedDataFiles = [];
 
 
     // Public Methods
@@ -98,6 +103,17 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         // For Assets field compatibility - we always use a single upload location
         $this->restrictedLocationSource = $this->uploadLocationSource;
         $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
+
+        // Whenever we have GQL mutation data, handle that processing a little differently
+        Event::on(CraftAssets::class, CraftAssets::EVENT_LOCATE_UPLOADED_FILES, function(LocateUploadedFilesEvent $event) {
+            if ($paramName = $this->requestParamName($event->element)) {
+                $data = $this->_uploadedDataFiles[$paramName] ?? [];
+
+                foreach ($data as $uploadedDataFile) {
+                    $event->files[] = $uploadedDataFile;
+                }
+            }
+        });
     }
 
     /**
@@ -110,6 +126,25 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
 
         return parent::beforeSave($isNew);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        // For GQL mutations, we need a little extra handling here, because the Assets field doesn't support multiple data-encoded items
+        // and there's issues when using Repeater > File fields (https://github.com/verbb/formie/issues/1419) we handle things ourselves.
+        if (is_array($value) && isset($value['mutationData'])) {
+            if ($paramName = $this->requestParamName($element)) {
+                // Save for later, in the format `fields.repeater.rows.new2.fields.file`.
+                $this->_uploadedDataFiles[$paramName] = $value['mutationData'];
+            }
+
+            unset($value['mutationData']);
+        }
+
+        return parent::normalizeValue($value, $element);
     }
 
     /**

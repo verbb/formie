@@ -171,7 +171,13 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     public function getFieldLayout(): ?FieldLayout
     {
-        return $this->_getField()->getFieldLayout();
+        return $this->getField()->getFieldLayout();
+    }
+
+    public function getField(): NestedFieldInterface
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return Craft::$app->getFields()->getFieldById($this->fieldId);
     }
 
     /**
@@ -202,7 +208,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     public function getContentTable(): string
     {
-        return $this->_getField()->contentTable;
+        return $this->getField()->contentTable;
     }
 
     /**
@@ -218,7 +224,7 @@ class NestedFieldRow extends Element implements BlockElementInterface
      */
     public function getFieldContext(): string
     {
-        return $this->_getField()->getFormFieldContext();
+        return $this->getField()->getFormFieldContext();
     }
 
     /**
@@ -320,18 +326,5 @@ class NestedFieldRow extends Element implements BlockElementInterface
         $rules[] = [['fieldId', 'ownerId', 'sortOrder'], 'number', 'integerOnly' => true];
 
         return $rules;
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Returns the nested field.
-     */
-    private function _getField(): NestedFieldInterface
-    {
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
-        return Craft::$app->getFields()->getFieldById($this->fieldId);
     }
 }
