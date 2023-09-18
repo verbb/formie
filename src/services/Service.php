@@ -74,7 +74,11 @@ class Service extends Component
      */
     public function isPluginInstalledAndEnabled($plugin)
     {
-        return Craft::$app->getPlugins()->isPluginInstalled($plugin) && Craft::$app->getPlugins()->isPluginEnabled($plugin);
+        $pluginsService = Craft::$app->getPlugins();
+
+        // Ensure that we check if initialized, installed and enabled. 
+        // The plugin might be installed but disabled, or installed and enabled, but missing plugin files.
+        return $pluginsService->isPluginInstalled($plugin) && $pluginsService->isPluginEnabled($plugin) && $pluginsService->getPlugin($plugin);
     }
 
     /**
