@@ -104,7 +104,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
             foreach ($this->options() as $option) {
                 if (!empty($option['isDefault'])) {
-                    $value[] = $option['value'];
+                    $value[] = $option['value'] ?? '';
                 }
             }
 

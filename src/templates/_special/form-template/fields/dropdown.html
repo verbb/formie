@@ -32,7 +32,7 @@
                 {% set selected = option.value is defined and ('' ~ option.value) == ('' ~ value) %}
             {% endif %}
 
-            <option value="{{ option.value }}" {{ selected ? 'selected' }}>{{ option.label | t }}</option>
+            <option value="{{ option.value ?? '' }}" {{ selected ? 'selected' }}>{{ option.label | t }}</option>
         {% endif %}
     {% endfor %}
 
