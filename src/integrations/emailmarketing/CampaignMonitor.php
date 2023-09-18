@@ -79,6 +79,10 @@ class CampaignMonitor extends EmailMarketing
                         'handle' => 'Name',
                         'name' => Craft::t('formie', 'Name'),
                     ]),
+                    new IntegrationField([
+                        'handle' => 'MobileNumber',
+                        'name' => Craft::t('formie', 'Mobile Number'),
+                    ]),
                 ], $this->_getCustomFields($fields));
 
                 $settings['lists'][] = new IntegrationCollection([
@@ -102,6 +106,7 @@ class CampaignMonitor extends EmailMarketing
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'Email');
             $name = ArrayHelper::remove($fieldValues, 'Name');
+            $mobileNumber = ArrayHelper::remove($fieldValues, 'MobileNumber');
 
             // Format custom fields
             $customFields = [];
@@ -130,6 +135,10 @@ class CampaignMonitor extends EmailMarketing
                 'RestartSubscriptionBasedAutoresponders' => true,
                 'ConsentToTrack' => 'Yes',
             ];
+
+            if ($mobileNumber) {
+                $payload['MobileNumber'] = $mobileNumber;
+            }
 
             $response = $this->deliverPayload($submission, "subscribers/{$this->listId}.json", $payload);
 
