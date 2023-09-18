@@ -128,7 +128,7 @@ abstract class Captcha extends Integration
         // Handle the traditional param, as a POST param
         $param = Craft::$app->getRequest()->getParam($name);
 
-        if ($allowEmptyString || $param) {
+        if (($allowEmptyString && $param === '') || $param) {
             return $param;
         }
 
@@ -137,7 +137,7 @@ abstract class Captcha extends Integration
         $paramName = $param['name'] ?? null;
 
         if ($paramName === $name) {
-            if ($allowEmptyString || $param) {
+            if (($allowEmptyString && $param === '') || $param) {
                 return $param['value'] ?? null;
             }
         }
