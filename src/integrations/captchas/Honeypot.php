@@ -39,15 +39,27 @@ class Honeypot extends Captcha
      */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
-        $uniqueId = uniqid(self::HONEYPOT_INPUT_NAME, false);
+        $sessionKey = $this->getSessionKey($form, $page);
+
         $label = Craft::t('formie', 'Leave this field blank');
 
-        $output = '<div id="' . $uniqueId . '_wrapper" style="display:none;">';
-        $output .= '<label for="' . $uniqueId . '">' . $label . '</label>';
-        $output .= '<input type="text" id="' . $uniqueId . '" name="' . self::HONEYPOT_INPUT_NAME . '" style="display:none;" />';
+        $output = '<div id="' . $sessionKey . '_wrapper" style="display:none;">';
+        $output .= '<label for="' . $sessionKey . '">' . $label . '</label>';
+        $output .= '<input type="text" id="' . $sessionKey . '" name="' . self::HONEYPOT_INPUT_NAME . '" style="display:none;" />';
         $output .= '</div>';
 
         return $output;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRefreshJsVariables(Form $form, $page = null): array
+    {
+        return [
+            'formId' => $form->getFormId(),
+            'sessionKey' => self::HONEYPOT_INPUT_NAME,
+        ];
     }
 
     /**
@@ -70,6 +82,27 @@ class Honeypot extends Captcha
         }
 
         return true;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function getSessionKey($form, $page = null): string
+    {
+        // Default the page to the last page, if not set.
+        if (!$page) {
+            $pages = $form->getPages();
+            $page = $pages[count($pages) - 1] ?? $page;
+        }
+
+        $array = array_filter([
+            self::HONEYPOT_INPUT_NAME . '_',
+            $form->id,
+            $page->id ?? null,
+        ]);
+
+        return implode('', $array);
     }
 
 }
