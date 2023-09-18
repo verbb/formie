@@ -42,4 +42,20 @@ class Snaptcha extends Captcha
         return '<input type="hidden" name="' . $fieldName . '" value="' . $fieldValue . '">';
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function getRefreshJsVariables(Form $form, $page = null): array
+    {
+        $model = new SnaptchaModel();
+        $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
+        $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
+
+        return [
+            'formId' => $form->getFormId(),
+            'sessionKey' => $fieldName,
+            'value' => $fieldValue,
+        ];
+    }
+
 }

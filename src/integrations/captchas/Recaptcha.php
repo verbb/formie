@@ -144,6 +144,18 @@ class Recaptcha extends Captcha
     /**
      * @inheritDoc
      */
+    public function getRefreshJsVariables(Form $form, $page = null): array
+    {
+        return [
+            'formId' => $form->getFormId(),
+            'sessionKey' => 'siteKey',
+            'value' => App::parseEnv($this->siteKey),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function validateSubmission(Submission $submission): bool
     {
         $response = $this->getRequestParam('g-recaptcha-response');
