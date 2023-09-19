@@ -322,6 +322,7 @@ class Form extends Element
     private array $_populatedFieldValues = [];
     private array $_frontEndJsEvents = [];
     private ?string $_redirectUrl = null;
+    private ?string $_actionUrl = null;
 
     // Render Options
     private array $_themeConfig = [];
@@ -1084,11 +1085,22 @@ class Form extends Element
      */
     public function getActionUrl(): string
     {
+        // In case people want to use `setSubmission()` but not change the endpoint so integrations will fire.
+        if ($this->_actionUrl) {
+            return $this->_actionUrl;
+        }
+
         if ($this->isEditingSubmission()) {
             return 'formie/submissions/save-submission';
         }
 
         return 'formie/submissions/submit';
+    }
+
+    public function setActionUrl(string $url): void
+    {
+        // In case people want to use `setSubmission()` but not change the endpoint so integrations will fire.
+        $this->_actionUrl = $url;
     }
 
     public function getRelations(): string
