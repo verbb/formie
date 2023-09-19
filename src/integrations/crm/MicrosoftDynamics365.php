@@ -67,6 +67,7 @@ class MicrosoftDynamics365 extends Crm
     public ?array $incidentFieldMapping = null;
 
     private array $_entityOptions = [];
+    private array $_systemUsers = [];
 
 
     // Public Methods
@@ -602,6 +603,16 @@ class MicrosoftDynamics365 extends Crm
         // This can be for multiple entities, so have some cache.
         $this->_getEntityOwnerOptions($entity, $fields);
 
+        // Add a list of system users for "Created By"
+        $fields['createdby'] = new IntegrationField([
+            'handle' => 'createdby',
+            'name' => Craft::t('formie', 'Created By'),
+            'options' => [
+                'label' => Craft::t('formie', 'Created By'),
+                'options' => $this->_getSystemUsersOptions(),
+            ],
+        ]);
+
         // Reset array keys
         $fields = array_values($fields);
 
@@ -801,5 +812,27 @@ class MicrosoftDynamics365 extends Crm
         }
 
         return $path;
+    }
+
+    private function _getSystemUsersOptions(): array
+    {
+        if ($this->_systemUsers) {
+            return $this->_systemUsers;
+        }
+
+        $response = $this->request('GET', 'systemusers', [
+            'query' => [
+                '$top' => '100',
+                '$select' => 'fullname,systemuserid,applicationid',
+                '$orderby' => 'fullname',
+                '$filter' => 'applicationid eq null',
+            ]
+        ]);
+
+        foreach (($response['value'] ?? []) as $user) {
+            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => $user['systemuserid']];
+        }
+
+        return $this->_systemUsers;
     }
 }
