@@ -324,6 +324,7 @@ class PdfTemplates extends Component
         $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
 
         $variables = [
+            'form' => $form,
             'submission' => $submission,
             'notification' => $notification,
             'contentHtml' => Template::raw($parsedContent),
