@@ -1,5 +1,5 @@
 # Formie plugin for Craft CMS
-<img width="500" src="https://verbb.imgix.net/plugins/formie/formie-social-card.png?v=1">
+<img width="500" src="https://verbb.imgix.net/plugins/formie/formie-social-card.png?v=2">
 
 > Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
 
