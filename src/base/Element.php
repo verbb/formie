@@ -130,6 +130,19 @@ abstract class Element extends Integration
         return $this->fetchFormSettings();
     }
 
+    public static function convertValueForIntegration($value, $integrationField): mixed
+    {
+        // Won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            // Mostly for when mapping a Submission ID to a Formie Submission field. Probably needs a refactor?
+            if (!is_array($value)) {
+                return [$value];
+            }
+        }
+
+        return parent::convertValueForIntegration($value, $integrationField);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -150,6 +163,10 @@ abstract class Element extends Integration
             fields\Tags::class => IntegrationField::TYPE_ARRAY,
             fields\Users::class => IntegrationField::TYPE_ARRAY,
         ];
+
+        if (is_a($fieldClass, fields\BaseRelationField::class, true) || is_subclass_of($fieldClass, fields\BaseRelationField::class, true)) {
+            return IntegrationField::TYPE_ARRAY;
+        }
 
         return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
     }

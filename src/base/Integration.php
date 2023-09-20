@@ -754,7 +754,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             if (StringHelper::startsWith($mappedFieldValue, '{submission:')) {
                 $mappedFieldValue = str_replace(['{submission:', '}'], ['', ''], $mappedFieldValue);
 
-                return $submission->$mappedFieldValue;
+                // Ensure the submission value is typecasted properly.
+                return static::convertValueForIntegration($submission->$mappedFieldValue, $integrationField);
             }
 
             // Get information about the fields we're mapping to. The field key/handle will be different
