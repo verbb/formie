@@ -1260,7 +1260,7 @@ class Form extends Element
         $request = Craft::$app->getRequest();
         $url = '';
 
-        // We don't want to show the redirect URL on unfinished mutli-page forms, so check first
+        // We don't want to show the redirect URL on unfinished multi-page forms, so check first
         if ($this->settings->submitMethod == 'page-reload') {
             if ($checkLastPage && !$this->isLastPage()) {
                 return $url;

@@ -689,7 +689,14 @@ class SubmissionsController extends Controller
         }
 
         if (!empty($nextPage)) {
-            // Refresh, there's still more pages to complete
+            // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
+            // URL, which is set for every page (commonly the first one, once a submission is available)
+            if ($settings->pageRedirectUrl) {
+                $url = $this->getView()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
+
+                return $this->redirect($url);
+            }
+
             return $this->refresh();
         }
 

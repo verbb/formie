@@ -79,6 +79,7 @@ class FormSettings extends Model
 
     // Other
     public ?string $redirectUrl = null;
+    public ?string $pageRedirectUrl = null;
     public ?string $defaultEmailTemplateId = null;
 
     // Private (template-only)
