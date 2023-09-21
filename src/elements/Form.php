@@ -34,6 +34,7 @@ use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\elements\actions\Delete;
+use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
@@ -217,6 +218,20 @@ class Form extends Element
         ];
 
         return $actions;
+    }
+
+    public static function actions(string $source): array
+    {
+        $actions = parent::actions($source);
+
+        // Remove some actions Craft adds by default
+        foreach ($actions as $key => $action) {
+            if (is_array($action) && isset($action['type']) && ($action['type'] === Edit::class || is_subclass_of($action['type'], Edit::class))) {
+                    unset($actions[$key]);
+            }
+        }
+
+        return array_values($actions);
     }
 
     /**
