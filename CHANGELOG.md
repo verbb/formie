@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.0.37 - 2023-09-25
+
+### Added
+- Added “Created By” field mapping for Dynamics 365 CRM integration.
+- Added `Field::getRequiredPlugins()` to better support plugin-dependant fields.
+- Added Honeypot value for GraphQL queries.
+- Added `siteKey` values for supported Captchas for GraphQL queries.
+- Added “Mobile Number” to Campaign Monitor integration.
+- Added `form.setActionUrl()`.
+- Added `FormSettings::pageRedirectUrl` to allow setting the redirect URL for every page submission.
+
+### Changed
+- Updated `isPluginInstalledAndEnabled` check.
+- Updated `stripe/stripe-php` dependency to align with Craft Commerce.
+
+### Fixed
+- Fixed Dropdown field throwing errors after changing options from being an `optgroup`.
+- Fixed an error when toggling Dropdown field options from using an optgroup to a default.
+- Fixed an error when setting cookie values for a Hidden field, and not dealing with encoded values properly.
+- Fixed showing “Edit Form” element action when viewing forms.
+- Fixed mapping a Formie Submission field to the Submission ID for Element integrations.
+- Fixed `form` not being available for PDF templates.
+- Fixed an issue with Honeypot Captcha and GraphQL mutations.
+- Fixed File Upload fields in Repeater fields not working correctly with GraphQL mutations.
+- Fixed redirect URL value when the URL contained certain UTF characters.
+
 ## 2.0.36 - 2023-09-08
 
 ### Added
