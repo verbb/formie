@@ -957,6 +957,19 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.33 - 2023-09-25
+
+### Added
+- Added “Created By” field mapping for Dynamics 365 CRM integration.
+- Added `Field::getRequiredPlugins()` to better support plugin-dependant fields.
+
+### Changed
+- Updated `isPluginInstalledAndEnabled` check.
+
+### Fixed
+- Fixed Dropdown field throwing errors after changing options from being an `optgroup`.
+- Fixed an error when toggling Dropdown field options from using an optgroup to a default.
+
 ## 1.6.32 - 2023-08-31
 
 ### Added
