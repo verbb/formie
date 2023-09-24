@@ -1,5 +1,7 @@
 import { t, eventKey } from '../utils/utils';
 
+import Cookies from 'js-cookie';
+
 export class FormieHidden {
     constructor(settings = {}) {
         this.$form = settings.$form;
@@ -17,7 +19,7 @@ export class FormieHidden {
 
     initHiddenField() {
         // Populate the input with the cookie value.
-        const cookieValue = this.getCookie(this.cookieName);
+        const cookieValue = Cookies.get(this.cookieName);
 
         if (cookieValue) {
             this.$input.value = cookieValue;
@@ -26,14 +28,6 @@ export class FormieHidden {
         // Update the form hash, so we don't get change warnings
         if (this.form.formTheme) {
             this.form.formTheme.updateFormHash();
-        }
-    }
-
-    getCookie(name) {
-        const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-
-        if (match) {
-            return match[2];
         }
     }
 }
