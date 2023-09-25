@@ -363,6 +363,10 @@ class User extends Element
         foreach ($attributes as $userFieldHandle => $fieldValue) {
             // Special handling for photo - must be an asset. Actually provided as an Asset ID.
             if ($userFieldHandle === 'photo') {
+                if (is_array($fieldValue)) {
+                    $fieldValue = $fieldValue[0] ?? null;
+                }
+
                 // If explicitly null, that's okay, we might be overwriting values
                 if ($fieldValue !== null) {
                     // Fetch the asset, if it exists
