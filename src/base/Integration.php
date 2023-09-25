@@ -236,7 +236,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getEnabled(bool $parse = true): bool|string
     {
         if ($parse) {
-            return App::parseBooleanEnv($this->_enabled);
+            return App::parseBooleanEnv($this->_enabled) ?? false;
         }
 
         return $this->_enabled;
