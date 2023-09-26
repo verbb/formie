@@ -1,5 +1,5 @@
 # Events
-Formie provides a multitude of events for extending its functionality. Modules and plugins can register event listeners, typically in their `init()` methods, to modify Formie’s behavior.
+Formie provides a collection of events for extending its functionality. Modules and plugins can register event listeners, typically in their `init()` methods, to modify Formie’s behavior.
 
 ## Form Events
 
