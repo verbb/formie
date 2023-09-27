@@ -643,9 +643,9 @@ class Form extends Element
         ]);
     }
 
-    public function getFormId(): string
+    public function getFormId(bool $useCache = true): string
     {
-        if ($this->_formId) {
+        if ($this->_formId && $useCache) {
             return $this->_formId;
         }
 

@@ -72,6 +72,9 @@ class Rendering extends Component
             return null;
         }
 
+        // Give the form a unique ID for each render, to help with multiple renders of the same form
+        $form->setFormId($form->getFormId(false));
+
         // Fire a 'modifyFormRenderOptions' event
         $event = new ModifyFormRenderOptionsEvent([
             'form' => $form,
