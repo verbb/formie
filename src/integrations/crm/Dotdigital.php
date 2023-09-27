@@ -219,7 +219,7 @@ class Dotdigital extends Crm
                         return true;
                     }
 
-                    $contactId = $response['contact']['id'] ?? '';
+                    $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
                         Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
