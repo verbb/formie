@@ -734,7 +734,7 @@ class SubmissionsController extends Controller
         $form = $this->_getForm($handle);
 
         if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
+            throw new BadRequestHttpException("No form exists with the handle `$handle`.");
         }
 
         // Check if we're editing a submission
@@ -759,16 +759,20 @@ class SubmissionsController extends Controller
 
     public function actionClearSubmission(): Response
     {
-        $this->requirePostRequest();
         $request = $this->request;
 
-        $handle = $request->getRequiredBodyParam('handle');
+        // Ensure we validate some params here to prevent potential malicious-ness
+        $handle = $this->_getTypedParam('handle', 'string');
+        $redirect = $this->_getTypedParam('redirect', 'string');
+
+        // Ensure the redirect passed is validated, otherwise fallback to referer
+        $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: $request->referrer;
 
         /* @var Form $form */
         $form = $this->_getForm($handle);
 
         if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
+            throw new BadRequestHttpException("No form exists with the handle `$handle`.");
         }
 
         // Delete the currently saved page
@@ -777,13 +781,7 @@ class SubmissionsController extends Controller
         // Delete the incomplete submission we've been using
         $form->resetCurrentSubmission();
 
-        if ($request->getAcceptsJson()) {
-            return $this->asJson([
-                'success' => true,
-            ]);
-        }
-
-        return $this->redirectToPostedUrl();
+        return $this->redirect($redirect);
     }
 
     public function actionDeleteSubmission(): ?Response
