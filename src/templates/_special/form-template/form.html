@@ -63,6 +63,10 @@
                     {{ hiddenInput('submissionId', submission.id) }}
                 {% endif %}
 
+                {% if form.isEditingSubmission() %}
+                    {{ hiddenInput('editingSubmission', true) }}
+                {% endif %}
+
                 {% if form.getRedirectUrl() %}
                     {{ redirectInput(form.getRedirectUrl()) }}
                 {% endif %}

@@ -1113,6 +1113,7 @@ class SubmissionsController extends Controller
         $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
+        $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
         $submissionId = $this->_getTypedParam('submissionId', 'id');
         $siteId = $this->_getTypedParam('siteId', 'id');
         $userParam = $request->getParam('user');
@@ -1158,6 +1159,11 @@ class SubmissionsController extends Controller
         }
 
         $this->_setTitle($submission, $form);
+
+        // If we're editing a submission, ensure we set our flag
+        if ($editingSubmission) {
+            $form->setSubmission($submission);
+        }
 
         return $submission;
     }
