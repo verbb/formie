@@ -1003,6 +1003,7 @@ class Form extends Element
             $this->resetSnapshotData();
         }
 
+        // If we have a current submission in the session, use that
         if ($this->_currentSubmission) {
             return $this->_currentSubmission;
         }
@@ -1105,7 +1106,8 @@ class Form extends Element
             return $this->_actionUrl;
         }
 
-        if ($this->isEditingSubmission()) {
+        // If editing a submission, assume we're saving, not submitting. Unless this is an incomplete submission
+        if ($this->isEditingSubmission() && !$this->_editingSubmission->isIncomplete) {
             return 'formie/submissions/save-submission';
         }
 
