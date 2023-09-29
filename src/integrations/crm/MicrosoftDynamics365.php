@@ -848,7 +848,7 @@ class MicrosoftDynamics365 extends Crm
                 '$top' => '100',
                 '$select' => 'fullname,systemuserid,applicationid',
                 '$orderby' => 'fullname',
-                '$filter' => 'applicationid eq null',
+                '$filter' => 'applicationid eq null and invitestatuscode eq 4 and isdisabled eq false',
             ]
         ]);
 
