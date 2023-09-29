@@ -43,6 +43,10 @@ Let's take a look at some examples in action.
 </script>
 ```
 
+:::warning
+Please ensure that this script is output **after** the `craft.formie.renderForm()` tag. It should also be output for ever form render, and not just once for the page. This ensures multiple forms on a page work correctly.
+:::
+
 Here, we've combined rendering the form as we normally would, with some extra JavaScript. While this entire code will be cached and served exactly the same to each visitor, the JavaScript will be executed when the page is loaded. The above script makes a `GET` call to our `actions/formie/forms/refresh-tokens` controller action, which returns a collection of useful token information - part of which is a fresh CSRF token. 
 
 We use this to inject and replace the cached CSRF token (which is completely invalid now), after which the form will submit as expected. It's a little extra work to get things working with a static cached page, but it's worth it for significant performance gains!
