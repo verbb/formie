@@ -746,10 +746,11 @@ class MicrosoftDynamics365 extends Crm
                 // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
                 $response = $this->request('GET', $targetSchema['entity'], [
                     'query' => [
-                        '$top' => $targetSchema['limit'] ?? '100',
-                        '$select' => implode(',', $select),
+                        '$expand' => $targetSchema['expand'] ?? null,
+                        '$filter' => $targetSchema['filter'] ?? null,
                         '$orderby' => $targetSchema['orderby'] ?? null,
-                        '$filter' => $targetSchema['filter'] ?? null
+                        '$select' => implode(',', $select),
+                        '$top' => $targetSchema['limit'] ?? '100'
                     ],
                 ]);
 
