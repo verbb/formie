@@ -853,7 +853,7 @@ class MicrosoftDynamics365 extends Crm
         ]);
 
         foreach (($response['value'] ?? []) as $user) {
-            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => $user['systemuserid']];
+            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => 'systemusers(' . $user['systemuserid'] . ')'];
         }
 
         return $this->_systemUsers;
