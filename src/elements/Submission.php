@@ -1064,6 +1064,36 @@ class Submission extends Element
         parent::beforeDelete();
     }
 
+    public function afterValidate(): void
+    {
+        parent::afterValidate();
+
+        // For server-side validation, swap out the error message if a custom one is defined
+        if (($fieldLayout = $this->getFieldLayout()) && ($errors = $this->getErrors())) {
+            $customErrorMessages = [];
+            $layoutElements = $fieldLayout->getVisibleCustomFieldElements($this);
+
+            foreach ($layoutElements as $layoutElement) {
+                $field = $layoutElement->getField();
+
+                if ($field->errorMessage) {
+                    $customErrorMessages[$field->handle] = $field->errorMessage;
+                }
+            }
+
+            if ($customErrorMessages) {
+                foreach ($errors as $errorKey => $error) {
+                    $customError = $customErrorMessages[$errorKey] ?? null;
+
+                    if ($customError) {
+                        $this->clearErrors($errorKey);
+                        $this->addError($errorKey, $customError);
+                    }
+                }
+            }
+        }
+    }
+
 
     // Protected methods
     // =========================================================================
