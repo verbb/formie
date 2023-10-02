@@ -43,6 +43,16 @@ export function createTurnstile() {
             this.wait().then(() => { return window.turnstile.reset(widgetId); });
         },
 
+        remove(widgetId) {
+            if (typeof widgetId === 'undefined') {
+                return;
+            }
+
+            this.assertLoaded();
+
+            this.wait().then(() => { return window.turnstile.remove(widgetId); });
+        },
+
         execute(widgetId) {
             if (typeof widgetId === 'undefined') {
                 return;

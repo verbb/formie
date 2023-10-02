@@ -97,7 +97,12 @@ export class FormieTurnstile {
         if (currentTurnstileId !== null) {
             this.turnstileId = currentTurnstileId;
 
-            turnstile.reset(this.turnstileId);
+            turnstile.remove(this.turnstileId);
+
+            // Clear the submit handler (as this has been re-rendered after a successful Ajax submission)
+            // as Turnstile will verify on-render and will auto-submit the form again. Because in `onVerify`
+            // we have a submit handler, the form will try and submit itself, which we don't want.
+            this.submitHandler = null;
         }
 
         // Render the turnstile
