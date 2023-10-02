@@ -285,7 +285,8 @@ export class FormieFormTheme {
         const formData = new FormData(this.$form);
 
         // Exlcude some params from the hash, that are programatically changed
-        const excludedItems = ['g-recaptcha-response', 'h-captcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK', 'submitAction'];
+        // TODO, allow some form of registration for captchas.
+        const excludedItems = ['g-recaptcha-response', 'h-captcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK', 'cf-turnstile-response', 'submitAction'];
 
         for (const pair of formData.entries()) {
             const isExcluded = excludedItems.filter((item) => { return pair[0].startsWith(item); });
