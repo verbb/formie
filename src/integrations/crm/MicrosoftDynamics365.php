@@ -55,6 +55,9 @@ class MicrosoftDynamics365 extends Crm
     public ?string $clientId = null;
     public ?string $clientSecret = null;
     public ?string $apiDomain = null;
+    public bool $impersonateUser = false;
+    public string $impersonateHeader = 'CallerObjectId';
+    public ?string $impersonateUserId = null;
     public ?string $apiVersion = 'v9.0';
     public bool $mapToContact = false;
     public bool $mapToLead = false;
@@ -158,6 +161,10 @@ class MicrosoftDynamics365 extends Crm
                 return $model->enabled && $model->mapToIncident;
             }, 'on' => [Integration::SCENARIO_FORM]
         ];
+
+        $rules[] = ['impersonateUserId', 'required', 'when' => function($model) {
+            return $model->impersonateUser;
+        }];
 
         return $rules;
     }
@@ -364,6 +371,11 @@ class MicrosoftDynamics365 extends Crm
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#prefer-headers
         if ($method === 'POST' || $method === 'PATCH') {
             $options['headers']['Prefer'] = 'return=representation';
+        }
+
+        // Impersonate user when creating records if enabled
+        if ($this->impersonateUser && $method === 'POST') {
+            $options['headers'][$this->impersonateHeader] = $this->impersonateUserId;
         }
 
         // Prevent create when using upsert

@@ -476,11 +476,31 @@ Ensure you have Azure administrator access or an Azure administrator is able to 
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
 
-### Optional: Microsoft Dynamics 365 Web API version
+### Optional: Web API version
 
 The Microsoft Dynamics 365 Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all Microsoft Dynamics 365 Web API requests will use this API version in the request URI.
 
 For compatibility, the default setting is v9.0. This has been the value used in the Microsoft Dynamics 365 CRM integration prior to this being customisable.
+
+### Optional: Impersonate user
+
+When CRM records are created through Formie the user context of the account used to authenticate the OAuth connection is used (this is different to the application user). Depending on requirements, you may wish to override this. The easiest option is to authenticate under the account you wish to have records created by as, however this may not always be possible.
+
+Using <a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/impersonate-another-user-web-api#how-to-impersonate-a-user" target="_blank">user impersonation</a> you can set another systemuser context instead without changing the OAuth connection.
+
+**Impersonation settings:**
+
+* Impersonate user - Toggle the entire feature on or off.
+* Impersonate header - This sets the HTTP header to either `CallerObjectId` or `MSCRMCallerID`. Depending on your environment one or the other will need to be used relative to the user ID provided.
+* Impersonate User ID - This is the GUID of a valid systemuser within your Microsoft Dynamics 365 CRM.
+
+When enabled this will be applied to all Microsoft Dynamics 365 CRM enabled forms.
+
+By setting the impersonate HTTP header, this will also populate the Created By (delegate) field to the actual user context to provide a more accurate audit trail.
+
+If you want to selectively control the "Created" By value on records per form, use the Created By field in the mapping.
+
+**Note:** The impersonate user feature is set via a HTTP header on POST requests which will override any Created By field mapping that is set.
 
 ## Pardot
 Follow the below steps to connect to the Pardot API.
