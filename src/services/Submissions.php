@@ -290,7 +290,10 @@ class Submissions extends Component
      */
     public function processPayments(Submission $submission): bool
     {
-        foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
+        // Check for fields within Group/Repeaters
+        $fields = Formie::$plugin->getFields()->getFieldsForForm($submission->getForm());
+
+        foreach ($fields as $field) {
             if ($field instanceof formfields\Payment) {
                 // No need to proceed further if field is conditionally hidden
                 if ($field->isConditionallyHidden($submission)) {

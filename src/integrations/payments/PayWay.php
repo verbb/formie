@@ -151,7 +151,7 @@ class PayWay extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $submission->getFieldValue($field->handle);
+            $fieldValue = $this->getPaymentFieldValue($submission);
             $paywayTokenId = $fieldValue['paywayTokenId'] ?? null;
 
             if (!$paywayTokenId || !is_string($paywayTokenId)) {
@@ -225,7 +225,7 @@ class PayWay extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;

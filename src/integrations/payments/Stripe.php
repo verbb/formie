@@ -207,7 +207,7 @@ class Stripe extends Payment
         $payload = [];
 
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->handle);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $subscriptionId = $fieldValue['stripeSubscriptionId'] ?? null; 
 
         try {
@@ -246,7 +246,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -322,7 +322,7 @@ class Stripe extends Payment
                     ]);
 
                     // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                    $submission->addError($field->handle, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                    $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                     return false;
                 }
@@ -339,7 +339,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -356,7 +356,7 @@ class Stripe extends Payment
         $payload = [];
 
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->handle);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
         $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null;
 
@@ -461,7 +461,7 @@ class Stripe extends Payment
                 ]);
 
                 // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $submission->addError($field->handle, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                 return false;
             }
@@ -482,7 +482,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $submission->addError($field->handle, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, Craft::t('formie', $payment->message));
 
             return false;
         } catch (StripeException\ApiErrorException $e) {
@@ -502,7 +502,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $submission->addError($field->handle, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, Craft::t('formie', $payment->message));
 
             return false;
         } catch (Throwable $e) {
@@ -517,7 +517,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -1238,7 +1238,7 @@ class Stripe extends Payment
     {
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->handle);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
 
         // Create base-level customer data with the payload from the front-end

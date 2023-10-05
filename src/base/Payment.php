@@ -8,8 +8,10 @@ use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -400,6 +402,39 @@ abstract class Payment extends Integration
     protected function getIntegrationHandle(): string
     {
         return StringHelper::toKebabCase(static::displayName());
+    }
+    
+    /**
+     * @inheritDoc
+     */
+    protected function getPaymentFieldValue(Submission $submission): array
+    {
+        if ($field = $this->getField()) {
+            // Find the field in the submission. Take note to check for nested fields. The format will be either `fieldHandle` or `group[fieldHandle]
+            $fieldHandle = Html::getInputNameAttribute($field->getFullHandle());
+
+            // Lookup the field value, ensuring we return an array with what we need.
+            return $this->getMappedFieldValue($fieldHandle, $submission, new IntegrationField([
+                'type' => IntegrationField::TYPE_ARRAY,
+            ]));
+        }
+
+        return [];
+    }
+
+    protected function addFieldError(Submission $submission, string $message): void
+    {
+        if ($field = $this->getField()) {
+            $handle = [];
+
+            if ($parentField = $field->getParentField()) {
+                $handle[] = $parentField->handle . '[0]';
+            }
+
+            $handle[] = $field->handle;
+
+            $submission->addError(implode('.', $handle),  $message);
+        }
     }
 
     /**

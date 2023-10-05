@@ -481,7 +481,7 @@ trait FormFieldTrait
     {
         // Return the `id` attribute for the field, including parent fields
         // `fui-contactForm-xpvgyvsp-singleName` or `fui-contactForm-xpvgyvsp-multiName-firstName`
-        $ids = [$form->getFormId(), ...$this->_getFullNamespace(), $this->handle, $extra];
+        $ids = [$form->getFormId(), ...$this->getFullNamespace(), $this->handle, $extra];
 
         return Html::getInputIdAttribute(array_filter($ids));
     }
@@ -490,7 +490,7 @@ trait FormFieldTrait
     {
         // Return the `data-id` attribute for the field, including parent fields
         // `contactForm-singleName` or `contactForm-multiName-firstName`
-        $ids = [$form->handle, ...$this->_getFullHandle(), $extra];
+        $ids = [$form->handle, ...$this->getFullHandle(), $extra];
 
         return implode('-', array_filter($ids));
     }
@@ -499,7 +499,7 @@ trait FormFieldTrait
     {
         // Return the `name` attribute for the field, including parent fields
         // `fields[singleName]` or `fields[multiName][firstName]`
-        $names = [...$this->_getFullNamespace(), $this->handle, $extra];
+        $names = [...$this->getFullNamespace(), $this->handle, $extra];
 
         return Html::getInputNameAttribute(array_filter($names));
     }
@@ -1358,6 +1358,40 @@ trait FormFieldTrait
         return $this->name;
     }
 
+    public function getFullHandle()
+    {
+        $handles = [];
+
+        // Get the namespace for each field, including parent fields
+        $field = $this;
+
+        while ($field) {
+            // Be sure to prepend parent fields, as we're going deepest outward
+            array_unshift($handles, $field->handle);
+
+            $field = $field->getParentField();
+        }
+
+        return $handles;
+    }
+
+    public function getFullNamespace()
+    {
+        $names = [];
+
+        // Get the namespace for each field, including parent fields
+        $field = $this;
+
+        while ($field) {
+            // Be sure to prepend parent fields, as we're going deepest outward
+            array_unshift($names, $field->getNamespace());
+
+            $field = $field->getParentField();
+        }
+
+        return $names;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -1551,39 +1585,5 @@ trait FormFieldTrait
         }
 
         return array_values(array_unique(array_merge(...$reservedWords)));
-    }
-
-    private function _getFullHandle()
-    {
-        $handles = [];
-
-        // Get the namespace for each field, including parent fields
-        $field = $this;
-
-        while ($field) {
-            // Be sure to prepend parent fields, as we're going deepest outward
-            array_unshift($handles, $field->handle);
-
-            $field = $field->getParentField();
-        }
-
-        return $handles;
-    }
-
-    private function _getFullNamespace()
-    {
-        $names = [];
-
-        // Get the namespace for each field, including parent fields
-        $field = $this;
-
-        while ($field) {
-            // Be sure to prepend parent fields, as we're going deepest outward
-            array_unshift($names, $field->getNamespace());
-
-            $field = $field->getParentField();
-        }
-
-        return $names;
     }
 }

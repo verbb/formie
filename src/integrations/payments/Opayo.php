@@ -207,7 +207,7 @@ class Opayo extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $submission->getFieldValue($field->handle);
+            $fieldValue = $this->getPaymentFieldValue($submission);
             $opayoTokenId = $fieldValue['opayoTokenId'] ?? null;
             $opayoSessionKey = $fieldValue['opayoSessionKey'] ?? null;
             $opayo3DSComplete = $fieldValue['opayo3DSComplete'] ?? null;
@@ -293,7 +293,7 @@ class Opayo extends Payment
                 ]);
 
                 // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $submission->addError($field->handle, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                 return false;
             }
@@ -326,7 +326,7 @@ class Opayo extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;

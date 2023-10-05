@@ -1098,6 +1098,30 @@ class Fields extends Component
         );
     }
 
+    public function getFieldsForForm(Form $form): array
+    {
+        $fields = [];
+
+        if ($fieldLayout =$form->getFormFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                $fields[] = $field;
+
+                // Include any nested fields at the top-level
+                if ($field instanceof NestedFieldInterface) {
+                    if ($nestedFieldLayout = $field->getFieldLayout()) {
+                        foreach ($nestedFieldLayout->getCustomFields() as $nestedField) {
+                            $nestedField->setParentField($field);
+
+                            $fields[] = $nestedField;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $fields;
+    }
+
 
     // Private Methods
     // =========================================================================
