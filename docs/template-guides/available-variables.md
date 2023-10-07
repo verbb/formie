@@ -87,7 +87,7 @@ Renders the Formie base and theme CSS. Useful for SPA or lazy loading, where you
 
 ```twig
 <head>
-    {{ craft.formie.renderCss() }}
+    {{ craft.formie.renderCss(true) }}
 </head>
 
 <body>
@@ -103,7 +103,7 @@ Renders the Formie JavaScript (`formie.js`) file. Useful for SPA or lazy loading
 
 ```twig
 <head>
-    {{ craft.formie.renderJs() }}
+    {{ craft.formie.renderJs(true) }}
 </head>
 
 <body>
