@@ -109,7 +109,7 @@ class Insightly extends Crm
                 ]),
                 new IntegrationField([
                     'handle' => 'SOCIAL_LINKEDIN',
-                    'name' => Craft::t('formie', 'Social (Linked.in)'),
+                    'name' => Craft::t('formie', 'Social (LinkedIn)'),
                 ]),
                 new IntegrationField([
                     'handle' => 'SOCIAL_FACEBOOK',

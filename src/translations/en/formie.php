@@ -341,7 +341,7 @@ return [
     'Contact ID' => 'Contact ID',
     'Salutation' => 'Salutation',
     'Owner User ID' => 'Owner User ID',
-    'Social (Linked.in)' => 'Social (Linked.in)',
+    'Social (LinkedIn)' => 'Social (LinkedIn)',
     'Social (Facebook)' => 'Social (Facebook)',
     'Social (Twitter)' => 'Social (Twitter)',
     'Date of Birth' => 'Date of Birth',
