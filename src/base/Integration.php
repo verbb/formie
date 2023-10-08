@@ -12,6 +12,7 @@ use verbb\formie\fields\formfields\Agree;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\Phone;
 use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
@@ -170,6 +171,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
             return StringHelper::toBoolean($value);
+        }
+
+        if ($integrationField->getType() === IntegrationField::TYPE_PHONE) {
+            return Phone::toPhoneString($value);
         }
 
         // Return the string representation of it by default (also default for integration fields)
