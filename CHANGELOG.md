@@ -1009,6 +1009,15 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.34 - 2023-10-08
+
+### Added
+- Added support for expand parameter on target schemas for Microsoft Dynamics 365 CRM. (thanks @jamesmacwhite).
+
+### Fixed
+- Fixed an issue with Dynamics 365 and Created By value.
+- Fixed query restrictions for system users for Microsoft Dynamics 365 integration.
+
 ## 1.6.33 - 2023-09-25
 
 ### Added
