@@ -3,7 +3,7 @@
 ## 1.6.34 - 2023-10-08
 
 ### Added
-- Add support for expand parameter on target schemas for Microsoft Dynamics 365 CRM. (thanks @jamesmacwhite).
+- Added support for expand parameter on target schemas for Microsoft Dynamics 365 CRM. (thanks @jamesmacwhite).
 
 ### Fixed
 - Fixed an issue with Dynamics 365 and Created By value.
