@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.0.38 - 2023-10-08
+
+### Added
+- Added better support for editing submissions.
+- Added “Consent To Track” and “Consent To Send SMS” to Campaign Monitor integration.
+- Added Phone integration field type, for formatting phone numbers sent to integrations.
+- Added support for expand parameter on target schemas for Microsoft Dynamics 365 CRM. (thanks @jamesmacwhite).
+
+### Changed
+- Changed references for `Linked.in` to `LinkedIn`.
+- Calling `craft.formie.renderForm()` now sets a unique `formId` to assist with rendering the same form multiple times to retain JS functionality.
+- Clearing a current submission can now be done without a POST request.
+
+### Fixed
+- Fixed an issue with Dynamics 365 and Created By value.
+- Fixed query restrictions for system users for Microsoft Dynamics 365 integration.
+- Fixed payment fields not working within Group fields.
+- Fixed Turnstile captcha firing form submissions multiple times for Ajax based forms.
+- Fixed Turnstile captcha triggering unload warnings.
+- Fixed custom error messages for fields not being used for server-side errors.
+- Fixed DotDigital CRM Integration response when updating the address book.
+- Fixed an error with JS binding to the same form rendered multiple times.
+- Fixed `actionUrl` not taking into account incomplete editing submissions.
+- Fixed an error for some integrations and an invalid enabled state.
+- Fixed an error processing User element integrations and user profile.
+
 ## 2.0.37 - 2023-09-25
 
 ### Added
