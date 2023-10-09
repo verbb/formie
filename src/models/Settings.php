@@ -7,6 +7,7 @@ use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\Model;
+use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 
 use yii\validators\EmailValidator;
@@ -160,6 +161,15 @@ class Settings extends Model
         }
 
         return false;
+    }
+
+    public function getSecurityKey(): string
+    {
+        if ($securityKey = App::env('FORMIE_SECURITY_KEY')) {
+            return $securityKey;
+        }
+
+        return Craft::$app->getConfig()->getGeneral()->securityKey;
     }
 
     /**
