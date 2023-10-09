@@ -619,6 +619,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                 ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                'autocomplete' => 'name',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
