@@ -44,6 +44,20 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Normalize values when changing from optgroup
+        if (array_key_exists('options', $config) && is_array($config['options'])) {
+            foreach ($config['options'] as $key => $option) {
+                if (!isset($option['optgroup'])) {
+                    $config['options'][$key]['value'] = $option['value'] ?? '';
+                }
+            }
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritDoc
      */
@@ -120,9 +134,9 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
             foreach ($this->options() as $option) {
                 if (!isset($option['optgroup'])) {
-                    $options[] = new OptionData($option['label'], $option['value'], false, true);
-                    $optionValues[] = (string)$option['value'];
-                    $optionLabels[] = (string)$option['label'];
+                    $options[] = new OptionData($option['label'], ($option['value'] ?? ''), false, true);
+                    $optionValues[] = (string)($option['value'] ?? '');
+                    $optionLabels[] = (string)($option['label'] ?? '');
                 }
             }
 
@@ -176,7 +190,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
                 continue;
             }
 
-            $label = (string)$option['label'];
+            $label = (string)($option['label'] ?? '');
             $value = (string)($option['value'] ?? '');
 
             if (isset($labels[$optgroup][$label])) {
