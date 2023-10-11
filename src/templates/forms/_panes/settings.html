@@ -19,23 +19,28 @@
 
 <h2>{{ 'Submissions' | t('formie') }}</h2>
 
+{% set defaultStatus = form.defaultStatus ?? null %}
+{% set defaultStatusId = form.defaultStatus.id ?? null %}
+
 {{ forms.hidden({
     id: 'defaultStatusId',
     name: 'defaultStatusId',
-    value: form.defaultStatus.id ?? null
+    value: defaultStatusId,
 }) }}
 
 {% set statusField %}
     <div>
         <a id="status-menu-btn" class="btn menu-toggle menubtn-custom" href="javascript:;">
-            <span class="status {{ form.defaultStatus.color }}"></span>{{ form.defaultStatus.name }}
+            {% if defaultStatus %}
+                <span class="status {{ defaultStatus.color }}"></span>{{ defaultStatus.name }}
+            {% endif %}
         </a>
 
         <div class="menu">
             <ul class="padded">
                 {% for status in craft.formie.statuses %}
                     <li>
-                        <a data-val="{{ status.id }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if form.defaultStatus.id == status.id %}class="sel"{% endif %} href="javascript:;">
+                        <a data-val="{{ status.id }}" data-label="{{ status.name }}" data-color="{{ status.color }}" {% if defaultStatusId == status.id %}class="sel"{% endif %} href="javascript:;">
                             <span class="status {{ status.color }}"></span>{{ status.name }}
                         </a>
                     </li>
