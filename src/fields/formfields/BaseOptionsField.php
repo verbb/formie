@@ -70,6 +70,9 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             }
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 

@@ -69,6 +69,9 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             unset($config['limitAmount']);
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 

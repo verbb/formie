@@ -183,6 +183,9 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             unset($config['enableAutocomplete']);
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 

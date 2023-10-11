@@ -1487,11 +1487,7 @@ trait FormFieldTrait
         return $this->defineValueAsString($value, $element);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private static function normalizeConfig(array &$config = [])
+    protected static function normalizeConfig(array &$config = [])
     {
         // Normalise the config from Formie v1 to v2. This is a bit more reliable than a migration
         // updating all field settings, as the presence of these properties in field classes that don't
@@ -1548,6 +1544,10 @@ trait FormFieldTrait
             }
         }
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     /**
      * Returns the kebab-case name of the field class.

@@ -65,6 +65,9 @@ class Number extends FormField implements PreviewableFieldInterface
             }
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 

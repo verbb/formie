@@ -132,6 +132,9 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 

@@ -65,6 +65,9 @@ class Agree extends FormField implements PreviewableFieldInterface
             unset($config['descriptionHtml']);
         }
 
+        // Config normalization
+        self::normalizeConfig($config);
+
         parent::__construct($config);
     }
 
