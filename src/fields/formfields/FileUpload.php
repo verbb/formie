@@ -121,6 +121,23 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function beforeSave(bool $isNew): bool
     {
+        // Fix a FormKit issue (more than anything). When the Select input has a value that isn't in the options, the first
+        // option is selected, but the value doesn't change. Check in with later FormKit versions which probably have this fixed
+        $parts = explode(':', $this->uploadLocationSource, 2);
+        $volumeUid = $parts[1] ?? null;
+
+        if ($volumeUid && !Craft::$app->getVolumes()->getVolumeByUid($volumeUid)) {
+            $volumeUid = null;
+        }
+
+        if (!$volumeUid) {
+            $volumeUid = $this->getSourceOptions()[0]['value'] ?? null;
+
+            if ($volumeUid) {
+                $this->uploadLocationSource = $volumeUid;
+            }
+        }
+
         // For Assets field compatibility - we always use a single upload location
         $this->restrictedLocationSource = $this->uploadLocationSource;
         $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
