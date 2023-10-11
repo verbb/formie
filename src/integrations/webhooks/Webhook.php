@@ -149,4 +149,11 @@ class Webhook extends BaseWebhook
 
         return $this->_client = Craft::createGuzzleClient($options);
     }
+
+    public function allowedGqlSettings(): array
+    {
+        return [
+            'webhook' => $this->webhook,
+        ];
+    }
 }
