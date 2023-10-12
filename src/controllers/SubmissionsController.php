@@ -726,9 +726,9 @@ class SubmissionsController extends Controller
         $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $pageId = $this->_getTypedParam('pageId', 'id');
-        $submissionId = $this->_getTypedParam('submissionId', 'id');
+        $handle = $this->_getTypedParam('handle', 'string', null, false);
+        $pageId = $this->_getTypedParam('pageId', 'id', null, false);
+        $submissionId = $this->_getTypedParam('submissionId', 'id', null, false);
 
         /* @var Form $form */
         $form = $this->_getForm($handle);
@@ -762,8 +762,8 @@ class SubmissionsController extends Controller
         $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $redirect = $this->_getTypedParam('redirect', 'string');
+        $handle = $this->_getTypedParam('handle', 'string', null, false);
+        $redirect = $this->_getTypedParam('redirect', 'string', null, false);
 
         // Ensure the redirect passed is validated, otherwise fallback to referer
         $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: $request->referrer;
@@ -1211,10 +1211,15 @@ class SubmissionsController extends Controller
      * @return mixed The parameter value.
      * @throws BadRequestHttpException if the request is not the valid type
      */
-    private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
+    private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
     {
         $request = $this->request;
-        $value = $request->getBodyParam($name);
+
+        if ($bodyParam) {
+            $value = $request->getBodyParam($name);
+        } else {
+            $value = $request->getParam($name);
+        }
 
         // Special case for `submitAction`, where we don't want just anything passed in to change behaviour
         if ($name === 'submitAction') {
