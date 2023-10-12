@@ -249,13 +249,13 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getParam('title') ?: $submission->title;
-        $submission->statusId = $request->getParam('statusId', $submission->statusId);
-        $submission->isSpam = (bool)$request->getParam('isSpam', $submission->isSpam);
+        $submission->title = $request->getBodyParam('title') ?: $submission->title;
+        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
+        $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
 
         // Save the submission
-        if ($request->getParam('saveAction') === 'draft') {
+        if ($request->getBodyParam('saveAction') === 'draft') {
             $submission->setScenario(Element::SCENARIO_ESSENTIALS);
         }
 
@@ -1114,7 +1114,7 @@ class SubmissionsController extends Controller
         $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
         $submissionId = $this->_getTypedParam('submissionId', 'id');
         $siteId = $this->_getTypedParam('siteId', 'id');
-        $userParam = $request->getParam('user');
+        $userParam = $request->getBodyParam('user');
 
         if ($submissionId) {
             // Allow fetching spammed submissions for multistep forms, where it has been flagged as spam
@@ -1214,7 +1214,7 @@ class SubmissionsController extends Controller
     private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
     {
         $request = $this->request;
-        $value = $request->getParam($name);
+        $value = $request->getBodyParam($name);
 
         // Special case for `submitAction`, where we don't want just anything passed in to change behaviour
         if ($name === 'submitAction') {
