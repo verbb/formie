@@ -1286,7 +1286,15 @@ class Form extends Element
 
         // Add any query params to the URL automatically (think utm)
         if ($url && $request->getIsSiteRequest() && $includeQueryString) {
-            $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
+            // But only add query strings if they don't override any set for the redirect URL already
+            // For example, the request URL might be `submissionId=12` but the redirect is `submissionId={id}`
+            // we wouldn't want to overwrite the latter with the former. Specifically set URLs take precedence.
+            $requestParams = $request->getQueryStringWithoutPath();
+            $urlParams = explode('?', $url)[1] ?? '';
+
+            // UrlHelper will take care of normalization. The important bit is to override request params if
+            // there's any duplication.
+            $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
         }
 
         // Handle any UTF characters defined in the URL and encode them properly
