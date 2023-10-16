@@ -94,11 +94,11 @@ class Emails extends Component
         $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
-            $newEmail->setFrom($fromEmail);
-        }
-
-        if ($fromName && $fromEmail) {
-            $newEmail->setFrom([$fromEmail => $fromName]);
+            if ($fromName) {
+                $newEmail->setFrom([$fromEmail => $fromName]);
+            } else {
+                $newEmail->setFrom($fromEmail);
+            }
         }
 
         // To:
