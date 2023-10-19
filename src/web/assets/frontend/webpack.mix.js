@@ -80,7 +80,7 @@ if (mix.inProduction()) {
     mix.polyfill({
         enabled: true,
         useBuiltIns: 'usage', // Only add a polyfill when a feature is used
-        targets: false, // "false" makes the config use .browserslistrc file
+        targets: 'defaults',
         corejs: 3,
         debug: false, // "true" to check which polyfills are being used
     });
