@@ -87,6 +87,14 @@ class Form extends Element
     /**
      * @inheritDoc
      */
+    public static function trackChanges(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public static function hasTitles(): bool
     {
         return true;
