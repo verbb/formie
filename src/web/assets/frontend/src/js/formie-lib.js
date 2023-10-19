@@ -60,14 +60,25 @@ export class Formie {
         if (registeredJs.length) {
             // Check if we've already loaded scripts for this form
             if (document.querySelector(`[data-fui-scripts="${formConfig.formHashId}"]`)) {
-                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}`);
-                return;
+                // The only reason why we'd stop here, is if we've set a flag on the DOM element that JS has already been bound.
+                // In the case of Vue, we'll call `Formie.initForms()` again, but for the new VDOM elements. We want to re-init
+                // based on thi new DOM. In all other cases, we want to prevent double-binding things.
+                if ($form.hasRegisteredJs) {
+                    console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}`);
+                    return;
+                }
+                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}, but form element was uninitialized. Re-initializing now.`);
+
             }
 
             // Create a container to add these items to, so we can destroy them later
             form.$registeredJs = document.createElement('div');
             form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formHashId);
             document.body.appendChild(form.$registeredJs);
+
+            // Set a flag on the actual form element to prevent re-binding multiple times. Important to bind this on the DOM element
+            // as that will be the thing to be overwritten (see Vue behaviour).
+            $form.hasRegisteredJs = true;
 
             // Create a `<script>` for each registered JS
             registeredJs.forEach((config) => {
