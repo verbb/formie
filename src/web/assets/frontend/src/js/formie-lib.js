@@ -225,7 +225,7 @@ export class Formie {
         }
 
         // Delete it from the factory
-        delete this.forms[index];
+        this.forms.splice(index, 1);
     }
 
     refreshForCache(formHashId, callback) {
