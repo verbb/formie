@@ -60,25 +60,15 @@ export class Formie {
         if (registeredJs.length) {
             // Check if we've already loaded scripts for this form
             if (document.querySelector(`[data-fui-scripts="${formConfig.formHashId}"]`)) {
-                // The only reason why we'd stop here, is if we've set a flag on the DOM element that JS has already been bound.
-                // In the case of Vue, we'll call `Formie.initForms()` again, but for the new VDOM elements. We want to re-init
-                // based on thi new DOM. In all other cases, we want to prevent double-binding things.
-                if ($form.hasRegisteredJs) {
-                    console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}`);
-                    return;
-                }
-                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}, but form element was uninitialized. Re-initializing now.`);
+                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}.`);
 
+                return;
             }
 
             // Create a container to add these items to, so we can destroy them later
             form.$registeredJs = document.createElement('div');
             form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formHashId);
             document.body.appendChild(form.$registeredJs);
-
-            // Set a flag on the actual form element to prevent re-binding multiple times. Important to bind this on the DOM element
-            // as that will be the thing to be overwritten (see Vue behaviour).
-            $form.hasRegisteredJs = true;
 
             // Create a `<script>` for each registered JS
             registeredJs.forEach((config) => {
@@ -194,10 +184,18 @@ export class Formie {
         });
     }
 
-    destroyForm($form) {
-        const form = this.getForm($form);
+    destroyForm(form) {
+        let $form;
 
-        if (!form) {
+        // Allow passing in a DOM element, or a FormieBaseForm object
+        if (form instanceof FormieFormBase) {
+            $form = form.$form;
+        } else {
+            $form = form;
+            form = this.getForm($form);
+        }
+
+        if (!form || !$form) {
             return;
         }
 
@@ -211,6 +209,9 @@ export class Formie {
         if (form.$registeredJs && form.$registeredJs.parentNode) {
             form.$registeredJs.parentNode.removeChild(form.$registeredJs);
         }
+
+        // Trigger an event (before events are removed)
+        form.formDestroy();
 
         // Remove all event listeners attached to this form
         if (!isEmpty(form.listeners)) {

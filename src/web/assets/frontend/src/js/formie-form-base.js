@@ -123,6 +123,13 @@ export class FormieFormBase {
         }));
     }
 
+    formDestroy(data = {}) {
+        this.$form.dispatchEvent(new CustomEvent('onFormieDestroy', {
+            bubbles: true,
+            detail: data,
+        }));
+    }
+
     registerFieldEvents($element) {
         const $wrappers = $element.querySelectorAll('[data-field-type]');
 
@@ -187,7 +194,11 @@ export class FormieFormBase {
         const eventInfo = this.listeners[event] || {};
 
         if (eventInfo && eventInfo.element && eventInfo.func) {
-            eventInfo.element.removeEventListener(event.split('.')[0], eventInfo.func);
+            const eventName = event.split('.')[0];
+
+            delete eventInfo.element[`fui-event-${eventName}`];
+
+            eventInfo.element.removeEventListener(eventName, eventInfo.func);
             delete this.listeners[event];
         }
     }
