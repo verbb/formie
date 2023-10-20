@@ -123,8 +123,15 @@ class Rendering extends Component
             $output = TemplateHelper::raw($output . $css);
         }
 
+        // Some attributes are JS-render related
+        $jsAttributes = [];
+
+        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
+            $jsAttributes['data-manual-init'] = true;
+        }
+
         if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs && $renderJs) {
-            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS);
+            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS, false, $jsAttributes);
 
             $output = TemplateHelper::raw($output . $js);
         }
@@ -620,7 +627,7 @@ class Rendering extends Component
      * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderCss(bool $inline = false): ?Markup
+    public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
@@ -646,7 +653,7 @@ class Rendering extends Component
      * @param array $renderOptions
      * @return Markup|null
      */
-    public function renderJs(bool $inline = false): ?Markup
+    public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
@@ -657,11 +664,18 @@ class Rendering extends Component
         // Add locale definition JS variables
         $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
+        // Some attributes are JS-render related
+        $jsAttributes = [];
+
+        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
+            $jsAttributes['data-manual-init'] = true;
+        }
+
         if ($inline) {
-            $output[] = Html::jsFile($jsFile, array_merge(['defer' => true]));
+            $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $jsAttributes));
             $output[] = Html::script($jsString, ['type' => 'text/javascript']);
         } else {
-            $view->registerJsFile($jsFile, array_merge(['defer' => true]));
+            $view->registerJsFile($jsFile, array_merge(['defer' => true], $jsAttributes));
             $view->registerJs($jsString, View::POS_END);
         }
 
