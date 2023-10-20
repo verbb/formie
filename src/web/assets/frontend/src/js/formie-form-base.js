@@ -169,8 +169,18 @@ export class FormieFormBase {
 
     addEventListener(element, event, func) {
         this.listeners[event] = { element, func };
+        const eventName = event.split('.')[0];
 
-        element.addEventListener(event.split('.')[0], this.listeners[event].func);
+        // Prevent binding the same event multiple times on an element
+        if (element[`fui-event-${eventName}`]) {
+            // console.warn(`Tried to bind "${eventName}" multiple times to %o.`, element);
+            return;
+        }
+
+        // Record the event against the element to prevent double-binding
+        element[`fui-event-${eventName}`] = true;
+
+        element.addEventListener(eventName, this.listeners[event].func);
     }
 
     removeEventListener(event) {
