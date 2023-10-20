@@ -41,6 +41,13 @@ export class Formie {
             return;
         }
 
+        // Check if we are initializing a form multiple times
+        const initializeForm = this.getFormByHashId(formConfig.formHashId);
+
+        if (initializeForm) {
+            this.destroyForm(initializeForm);
+        }
+
         // See if we need to init additional, conditional JS (field, captchas, etc)
         const registeredJs = formConfig.registeredJs || [];
 
