@@ -1,8 +1,11 @@
+import { FormieCaptchaProvider } from './captcha-provider';
 import { recaptcha } from './inc/recaptcha';
 import { t, eventKey } from '../utils/utils';
 
-export class FormieRecaptchaV2Invisible {
+export class FormieRecaptchaV2Invisible extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -47,7 +50,6 @@ export class FormieRecaptchaV2Invisible {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaV2Invisible'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaV2Invisible'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'RecaptchaV2Invisible'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -93,19 +95,8 @@ export class FormieRecaptchaV2Invisible {
             $token.remove();
         }
 
-        // Check if we actually need to re-render this, or just refresh it...
-        const currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
-
-        if (currentRecaptchaId !== null) {
-            this.recaptchaId = currentRecaptchaId;
-
-            recaptcha.reset(this.recaptchaId);
-
-            return;
-        }
-
         // Render the recaptcha
-        recaptcha.render(this.$placeholder, {
+        recaptcha.render(this.createInput(), {
             sitekey: this.siteKey,
             badge: this.badge,
             size: 'invisible',
@@ -114,9 +105,6 @@ export class FormieRecaptchaV2Invisible {
             'error-callback': this.onError.bind(this),
         }, (id) => {
             this.recaptchaId = id;
-
-            // Update the placeholder with our ID, in case we need to re-render it
-            this.$placeholder.setAttribute('data-recaptcha-id', id);
         });
     }
 
@@ -177,15 +165,6 @@ export class FormieRecaptchaV2Invisible {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load');
-    }
-
-    onDestroy() {
-        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
-        const div = document.createElement('div');
-        div.setAttribute('data-recaptcha-placeholder', true);
-        div.setAttribute('class', 'formie-recaptcha-placeholder');
-
-        this.$placeholder.replaceWith(div);
     }
 }
 

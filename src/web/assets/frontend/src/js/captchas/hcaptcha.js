@@ -1,8 +1,11 @@
+import { FormieCaptchaProvider } from './captcha-provider';
 import { hcaptcha } from './inc/hcaptcha';
 import { t, eventKey } from '../utils/utils';
 
-export class FormieHcaptcha {
+export class FormieHcaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -47,7 +50,6 @@ export class FormieHcaptcha {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Hcaptcha'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'Hcaptcha'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'Hcaptcha'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -94,19 +96,8 @@ export class FormieHcaptcha {
             $token.remove();
         }
 
-        // Check if we actually need to re-render this, or just refresh it...
-        const currentHcaptchaId = this.$placeholder.getAttribute('data-hcaptcha-id');
-
-        if (currentHcaptchaId !== null) {
-            this.hcaptchaId = currentHcaptchaId;
-
-            hcaptcha.reset(this.hcaptchaId);
-
-            return;
-        }
-
-        // Render the hCaptcha
-        hcaptcha.render(this.$placeholder, {
+        // Render the captcha inside the placeholder
+        hcaptcha.render(this.createInput(), {
             sitekey: this.siteKey,
             size: this.size,
             callback: this.onVerify.bind(this),
@@ -116,9 +107,6 @@ export class FormieHcaptcha {
             'close-callback': this.onClose.bind(this),
         }, (id) => {
             this.hcaptchaId = id;
-
-            // Update the placeholder with our ID, in case we need to re-render it
-            this.$placeholder.setAttribute('data-hcaptcha-id', id);
         });
     }
 
@@ -190,15 +178,6 @@ export class FormieHcaptcha {
         if (this.$form.form.formTheme) {
             this.$form.form.formTheme.removeLoading();
         }
-    }
-
-    onDestroy() {
-        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
-        const div = document.createElement('div');
-        div.setAttribute('data-hcaptcha-placeholder', true);
-        div.setAttribute('class', 'formie-hcaptcha-placeholder');
-
-        this.$placeholder.replaceWith(div);
     }
 }
 

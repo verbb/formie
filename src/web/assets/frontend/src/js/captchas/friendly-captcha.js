@@ -1,9 +1,12 @@
 import { WidgetInstance } from 'friendly-challenge';
 
+import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey } from '../utils/utils';
 
-export class FormieFriendlyCaptcha {
+export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -23,7 +26,6 @@ export class FormieFriendlyCaptcha {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'FriendlyCaptcha'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'FriendlyCaptcha'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'FriendlyCaptcha'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -74,8 +76,8 @@ export class FormieFriendlyCaptcha {
             this.widget.reset();
         }
 
-        // Render the captcha
-        this.widget = new WidgetInstance(this.$placeholder, {
+        // Render the captcha inside the placeholder
+        this.widget = new WidgetInstance(this.createInput(), {
             sitekey: this.siteKey,
             startMode: 'none',
             doneCallback: this.onVerify.bind(this),
@@ -141,15 +143,6 @@ export class FormieFriendlyCaptcha {
 
     onError(error) {
         console.error('Friendly Captcha was unable to load');
-    }
-
-    onDestroy() {
-        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
-        const div = document.createElement('div');
-        div.setAttribute('data-friendly-captcha-placeholder', true);
-        div.setAttribute('class', 'formie-friendly-captcha-placeholder');
-
-        this.$placeholder.replaceWith(div);
     }
 }
 

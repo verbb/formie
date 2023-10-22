@@ -1,8 +1,11 @@
+import { FormieCaptchaProvider } from './captcha-provider';
 import { turnstile } from './inc/turnstile';
 import { t, eventKey } from '../utils/utils';
 
-export class FormieTurnstile {
+export class FormieTurnstile extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -45,7 +48,6 @@ export class FormieTurnstile {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Turnstile'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'Turnstile'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'Turnstile'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -92,22 +94,13 @@ export class FormieTurnstile {
             $token.remove();
         }
 
-        // Check if we actually need to re-render this, or just refresh it...
-        const currentTurnstileId = this.$placeholder.getAttribute('data-turnstile-id');
-
-        if (currentTurnstileId !== null) {
-            this.turnstileId = currentTurnstileId;
-
-            turnstile.remove(this.turnstileId);
-
-            // Clear the submit handler (as this has been re-rendered after a successful Ajax submission)
-            // as Turnstile will verify on-render and will auto-submit the form again. Because in `onVerify`
-            // we have a submit handler, the form will try and submit itself, which we don't want.
-            this.submitHandler = null;
-        }
+        // Clear the submit handler (as this has been re-rendered after a successful Ajax submission)
+        // as Turnstile will verify on-render and will auto-submit the form again. Because in `onVerify`
+        // we have a submit handler, the form will try and submit itself, which we don't want.
+        this.submitHandler = null;
 
         // Render the turnstile
-        turnstile.render(this.$placeholder, {
+        turnstile.render(this.createInput(), {
             sitekey: this.siteKey,
             callback: this.onVerify.bind(this),
             'expired-callback': this.onExpired.bind(this),
@@ -116,9 +109,6 @@ export class FormieTurnstile {
             'close-callback': this.onClose.bind(this),
         }, (id) => {
             this.turnstileId = id;
-
-            // // Update the placeholder with our ID, in case we need to re-render it
-            this.$placeholder.setAttribute('data-turnstile-id', id);
         });
     }
 
@@ -190,15 +180,6 @@ export class FormieTurnstile {
         if (this.$form.form.formTheme) {
             this.$form.form.formTheme.removeLoading();
         }
-    }
-
-    onDestroy() {
-        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
-        const div = document.createElement('div');
-        div.setAttribute('data-turnstile-placeholder', true);
-        div.setAttribute('class', 'formie-turnstile-placeholder');
-
-        this.$placeholder.replaceWith(div);
     }
 }
 
