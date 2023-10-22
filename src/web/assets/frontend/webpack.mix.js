@@ -38,6 +38,7 @@ mix.js('./src/js/captchas/recaptcha-v2-invisible.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v3.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-enterprise.js', 'js/captchas');
 mix.js('./src/js/captchas/javascript.js', 'js/captchas');
+mix.js('./src/js/captchas/duplicate.js', 'js/captchas');
 mix.js('./src/js/captchas/hcaptcha.js', 'js/captchas');
 mix.js('./src/js/captchas/friendly-captcha.js', 'js/captchas');
 mix.js('./src/js/captchas/turnstile.js', 'js/captchas');
