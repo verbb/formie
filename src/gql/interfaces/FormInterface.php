@@ -145,7 +145,7 @@ class FormInterface extends Element
                     $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($source);
 
                     foreach ($captchas as $captcha) {
-                        if ($jsVariables = $captcha->getRefreshJsVariables($source)) {
+                        if ($jsVariables = $captcha->getGqlVariables($source)) {
                             $values[] = [
                                 'handle' => $captcha->getGqlHandle(),
                                 'name' => $jsVariables['sessionKey'] ?? '',

@@ -61,6 +61,11 @@ class Honeypot extends Captcha
             'sessionKey' => self::HONEYPOT_INPUT_NAME,
         ];
     }
+    
+    public function getGqlVariables(Form $form, $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
+    }
 
     /**
      * @inheritDoc

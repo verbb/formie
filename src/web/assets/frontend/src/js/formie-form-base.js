@@ -114,6 +114,9 @@ export class FormieFormBase {
             bubbles: true,
             detail: data,
         }));
+
+        // Ensure that once completed, we re-fetch the captcha value, which will have expired
+        Formie.refreshFormTokens(this);
     }
 
     formSubmitError(data = {}) {

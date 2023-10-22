@@ -85,7 +85,7 @@ class FriendlyCaptcha extends Captcha
     /**
      * @inheritDoc
      */
-    public function getRefreshJsVariables(Form $form, $page = null): array
+    public function getGqlVariables(Form $form, $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

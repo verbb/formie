@@ -115,6 +115,11 @@ class Javascript extends Captcha
             'value' => $value,
         ];
     }
+    
+    public function getGqlVariables(Form $form, $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
+    }
 
     /**
      * @inheritDoc

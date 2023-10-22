@@ -90,6 +90,11 @@ abstract class Captcha extends Integration
         return null;
     }
 
+    public function getGqlVariables(Form $form, $page = null): ?array
+    {
+        return null;
+    }
+
     /**
      * Validates the submission.
      *
