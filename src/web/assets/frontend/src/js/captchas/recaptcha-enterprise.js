@@ -47,6 +47,7 @@ export class FormieRecaptchaEnterprise {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaEnterprise'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaEnterprise'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'RecaptchaEnterprise'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -175,6 +176,15 @@ export class FormieRecaptchaEnterprise {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load');
+    }
+
+    onDestroy() {
+        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
+        const div = document.createElement('div');
+        div.setAttribute('data-recaptcha-placeholder', true);
+        div.setAttribute('class', 'formie-recaptcha-placeholder');
+
+        this.$placeholder.replaceWith(div);
     }
 }
 

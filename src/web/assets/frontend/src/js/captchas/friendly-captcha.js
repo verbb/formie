@@ -23,6 +23,7 @@ export class FormieFriendlyCaptcha {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'FriendlyCaptcha'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'FriendlyCaptcha'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'FriendlyCaptcha'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -140,6 +141,15 @@ export class FormieFriendlyCaptcha {
 
     onError(error) {
         console.error('Friendly Captcha was unable to load');
+    }
+
+    onDestroy() {
+        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
+        const div = document.createElement('div');
+        div.setAttribute('data-friendly-captcha-placeholder', true);
+        div.setAttribute('class', 'formie-friendly-captcha-placeholder');
+
+        this.$placeholder.replaceWith(div);
     }
 }
 

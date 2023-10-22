@@ -45,6 +45,7 @@ export class FormieTurnstile {
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Turnstile'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'Turnstile'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'Turnstile'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -189,6 +190,15 @@ export class FormieTurnstile {
         if (this.$form.form.formTheme) {
             this.$form.form.formTheme.removeLoading();
         }
+    }
+
+    onDestroy() {
+        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
+        const div = document.createElement('div');
+        div.setAttribute('data-turnstile-placeholder', true);
+        div.setAttribute('class', 'formie-turnstile-placeholder');
+
+        this.$placeholder.replaceWith(div);
     }
 }
 

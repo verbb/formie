@@ -50,6 +50,7 @@ export class FormieRecaptchaV2Checkbox {
         this.form.addEventListener(this.$form, eventKey('onBeforeFormieSubmit', 'RecaptchaV2'), this.onBeforeSubmit.bind(this));
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaV2'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaV2'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieDestroy', 'RecaptchaV2'), this.onDestroy.bind(this));
     }
 
     renderCaptcha() {
@@ -200,6 +201,15 @@ export class FormieRecaptchaV2Checkbox {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load');
+    }
+
+    onDestroy() {
+        // Remove and re-create the original DIV so that we can re-bind to it if initializing it multiple times.
+        const div = document.createElement('div');
+        div.setAttribute('data-recaptcha-placeholder', true);
+        div.setAttribute('class', 'formie-recaptcha-placeholder');
+
+        this.$placeholder.replaceWith(div);
     }
 }
 

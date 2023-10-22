@@ -29,7 +29,7 @@ export class Formie {
         }));
     }
 
-    initForm($form, formConfig = {}) {
+    async initForm($form, formConfig = {}) {
         if (isEmpty(formConfig)) {
             // Initialize the form class with the `data-fui-form` param on the form
             formConfig = JSON.parse($form.getAttribute('data-fui-form'));
@@ -45,7 +45,8 @@ export class Formie {
         const initializeForm = this.getFormByHashId(formConfig.formHashId);
 
         if (initializeForm) {
-            this.destroyForm(initializeForm);
+            // Wait until the form is destroyed first before initializing again
+            await this.destroyForm(initializeForm);
         }
 
         // See if we need to init additional, conditional JS (field, captchas, etc)
@@ -191,7 +192,7 @@ export class Formie {
         });
     }
 
-    destroyForm(form) {
+    async destroyForm(form) {
         let $form;
 
         // Allow passing in a DOM element, or a FormieBaseForm object
@@ -218,7 +219,9 @@ export class Formie {
         }
 
         // Trigger an event (before events are removed)
-        form.formDestroy();
+        form.formDestroy({
+            form,
+        });
 
         // Remove all event listeners attached to this form
         if (!isEmpty(form.listeners)) {
