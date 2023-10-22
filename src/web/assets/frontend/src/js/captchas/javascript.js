@@ -1,4 +1,5 @@
 import { FormieCaptchaProvider } from './captcha-provider';
+import { eventKey } from '../utils/utils';
 
 export class FormieJSCaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
@@ -26,6 +27,8 @@ export class FormieJSCaptcha extends FormieCaptchaProvider {
         }
 
         this.createInput();
+
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'JsCaptcha'), this.onAfterSubmit.bind(this));
     }
 
     createInput() {
@@ -38,6 +41,11 @@ export class FormieJSCaptcha extends FormieCaptchaProvider {
         $input.value = this.value;
 
         this.$placeholder.appendChild($input);
+    }
+
+    onAfterSubmit(e) {
+        // Ensure that once completed, we re-fetch the captcha value, which will have expired
+        Formie.refreshFormTokens(this.form);
     }
 }
 
