@@ -33,6 +33,7 @@ class Brevo extends EmailMarketing
     // =========================================================================
 
     public ?string $apiKey = null;
+    public bool $useDoubleOptIn = false;
 
 
     // Public Methods
@@ -105,7 +106,9 @@ class Brevo extends EmailMarketing
                 $payload['attributes'] = $fieldValues;
             }
 
-            $response = $this->deliverPayload($submission, 'contacts', $payload);
+            $endpoint = ($this->useDoubleOptIn) ? 'contacts/doubleOptinConfirmation' : 'contacts';
+
+            $response = $this->deliverPayload($submission, $endpoint, $payload);
 
             if ($response === false) {
                 return true;

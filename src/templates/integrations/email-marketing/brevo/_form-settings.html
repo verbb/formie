@@ -64,3 +64,11 @@
         </ul>
     </template>
 </integration-form-settings>
+
+{{ forms.lightswitchField({
+    label: 'Use Double Opt in' | t('formie'),
+    instructions: 'Whether to use double opt-in, which will send the user a confirmation email before they‘re added to the list.' | t('formie'),
+    id: 'useDoubleOptIn',
+    name: 'useDoubleOptIn',
+    on: form.settings.integrations[handle].useDoubleOptIn ?? false,
+}) }}
