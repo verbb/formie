@@ -21,12 +21,6 @@
     }
 }
 
-// Fix to ensure that any nested elements don't trigger JS events themselves. We just want
-// events to be fired on the outer button (think `<span>` elements inside `<button>`).
-.fui-btn * {
-    pointer-events: none;
-}
-
 .fui-submit {
     color: var(--fui-submit-btn-color);
     background-color: var(--fui-submit-btn-bg-color, var(--fui-primary-color));
