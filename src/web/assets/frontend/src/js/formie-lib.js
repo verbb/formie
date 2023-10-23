@@ -1,4 +1,4 @@
-import { t, isEmpty } from './utils/utils';
+import { t, isEmpty, waitForElement } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
@@ -277,15 +277,20 @@ export class Formie {
                 // Update any captchas
                 if (result.captchas) {
                     Object.entries(result.captchas).forEach(([key, value]) => {
-                        const $captchaInput = $form.querySelector(`input[name="${value.sessionKey}"]`);
-
-                        if ($captchaInput) {
+                        // In some cases, the captcha input might not have loaded yet, as some are dynamically created
+                        // (see Duplicate and JS captchas). So wait for the element to exist first
+                        waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
                             $captchaInput.value = value.value;
 
                             console.log(`${formHashId}: Refreshed "${key}" captcha input.`);
-                        } else {
-                            console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
-                        }
+                        });
+
+                        // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
+                        setTimeout(() => {
+                            if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
+                                console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
+                            }
+                        }, 10000);
                     });
                 }
 
