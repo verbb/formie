@@ -84,11 +84,11 @@ class Emails extends Component
         $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
-            $newEmail->setFrom($fromEmail);
-        }
-
-        if ($fromName && $fromEmail) {
-            $newEmail->setFrom([$fromEmail => $fromName]);
+            if ($fromName) {
+                $newEmail->setFrom([$fromEmail => $fromName]);
+            } else {
+                $newEmail->setFrom($fromEmail);
+            }
         }
 
         // To:
@@ -185,8 +185,14 @@ class Emails extends Component
                 $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
                 $replyTo = $this->_getParsedEmails($replyTo);
 
+                $replyToName = Variables::getParsedValue((string)$notification->replyToName, $submission, $form, $notification);
+
                 if ($replyTo) {
-                    $newEmail->setReplyTo($replyTo);
+                    if ($replyToName) {
+                        $newEmail->setReplyTo([$replyTo[0] => $replyToName]);
+                    } else {
+                        $newEmail->setReplyTo($replyTo);
+                    }
                 }
             } catch (Throwable $e) {
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
@@ -532,7 +538,9 @@ class Emails extends Component
             $emailsEnv[] = trim(App::parseEnv(trim($email)));
         }
 
-        return array_filter($emailsEnv);
+        $emailsEnv = array_filter($emailsEnv);
+
+        return array_values($emailsEnv);
     }
 
     private function _getAssetsForSubmission($element): array

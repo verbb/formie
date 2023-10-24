@@ -1009,6 +1009,17 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.35 - 2023-10-25
+
+### Added
+- Added “Reply-To Name” setting for email notifications.
+- Added “Webhook URL” as setting for Webhook integration when querying via GraphQL.
+- Added `autocomplete=“name”` to single Name fields.
+
+### Fixed
+- Fixed a PHP 8 deprecation notice.
+- Fixed an error for Dropdown fields when toggling between options being an optgroup and not.
+
 ## 1.6.34 - 2023-10-08
 
 ### Added

@@ -590,10 +590,16 @@ class Notifications extends Component
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'From Email'),
-                'help' => Craft::t('formie', 'The email address the notification email will be sent from. Leave empty to use the default email address'),
+                'help' => Craft::t('formie', 'The email address the notification email will be sent from. Leave empty to use the default email address for your site.'),
                 'name' => 'from',
                 'validation' => '?emailOrVariable',
                 'variables' => 'emailVariables',
+            ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Reply-To Name'),
+                'help' => Craft::t('formie', 'The name to be used as the reply to for the notification email.'),
+                'name' => 'replyToName',
+                'variables' => 'plainTextVariables',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Reply-To Email'),
