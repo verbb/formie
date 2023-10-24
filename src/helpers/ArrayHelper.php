@@ -20,7 +20,7 @@ class ArrayHelper extends CraftArrayHelper
      * @param bool $trim_all trim ALL whitespace from string
      * @return  string  imploded array
      */
-    public static function recursiveImplode(string $glue = ',', array $array, bool $include_keys = false, bool $trim_all = false): string
+    public static function recursiveImplode(array $array, string $glue = ',', bool $include_keys = false, bool $trim_all = false): string
     {
         $glued_string = '';
 

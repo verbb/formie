@@ -96,7 +96,7 @@ class ConditionsHelper
                 ];
 
                 // Protect against empty conditions
-                if (!trim(ArrayHelper::recursiveImplode('', $variables))) {
+                if (!trim(ArrayHelper::recursiveImplode($variables, ''))) {
                     continue;
                 }
 
@@ -129,7 +129,7 @@ class ConditionsHelper
                     } else if ($condition['condition'] === '!=') {
                         $condition['condition'] = 'notContains';
                     } else {
-                        $variables['field'] = ArrayHelper::recursiveImplode(' ', $variables['field']);
+                        $variables['field'] = ArrayHelper::recursiveImplode($variables['field'], ' ');
                     }
                 }
 
@@ -149,7 +149,7 @@ class ConditionsHelper
                 }
             } catch (Throwable $e) {
                 Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
-                    'rule' => trim(ArrayHelper::recursiveImplode('', $condition)),
+                    'rule' => trim(ArrayHelper::recursiveImplode($condition, '')),
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),

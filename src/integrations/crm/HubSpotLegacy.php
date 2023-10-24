@@ -72,7 +72,7 @@ class HubSpotLegacy extends Crm
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
                 if (is_array($event->value)) {
                     $event->value = array_filter($event->value);
-                    $event->value = ArrayHelper::recursiveImplode(';', $event->value);
+                    $event->value = ArrayHelper::recursiveImplode($event->value, ';');
                     $event->value = str_replace('&nbsp;', ' ', $event->value);
                 }
             }

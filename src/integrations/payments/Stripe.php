@@ -1137,7 +1137,7 @@ class Stripe extends Payment
         ];
 
         // Create a unique ID for this form+field+payload. Only used internally, but prevents creating duplicate plans (which throws an error)
-        $payload['id'] = ArrayHelper::recursiveImplode('_', array_merge(['formie', $submission->getForm()->handle, $field->handle], $payload));
+        $payload['id'] = ArrayHelper::recursiveImplode(array_merge(['formie', $submission->getForm()->handle, $field->handle], $payload), '_');
 
         // Generate a nice name for the price description based on the payload. Added after the ID is generated based on the payload
         $payload['nickname'] = implode(' ', [
