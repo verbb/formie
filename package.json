@@ -82,6 +82,7 @@
         "pell": "^1.0.6",
         "places.js": "^1.19.0",
         "qs": "^6.11.0",
+        "rollup-plugin-copy": "^3.5.0",
         "sanitize-html": "^2.7.0",
         "signature_pad": "^4.0.5",
         "sortablejs": "^1.15.0",
