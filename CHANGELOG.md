@@ -1,5 +1,50 @@
 # Changelog
 
+## 2.0.39 - 2023-10-25
+
+### Added
+- Added “Reply-To Name” setting for email notifications.
+- Added “Webhook URL” as setting for Webhook integration when querying via GraphQL.
+- Added `autocomplete=“name”` to single Name fields.
+- Added language options to Friendly Captcha.
+- Added double-optin setting for Brevo integration.
+- Added checks to Formie JS to protect against multiple-initialization of the same form.
+- Added better handling for destroying an initialize form in JS.
+- Added `initJs` to render options for forms, to prevent auto-initializing of Formie’s JS.
+- Added `Formie.refreshForCache` to simpiify statically-cached forms and token refreshing.
+- Added missing `{startTag}{num}{endTag}` non-plural translation strings.
+- Added “Reply-To Name” setting for email notifications.
+- Added `FORMIE_SECURITY_KEY` .env variable (based off `CRAFT_SECURITY_KEY` or `SECURITY_KEY` for maintaining a separate key for encrypting field values.
+- Added “Webhook URL” as setting for Webhook integration when querying via GraphQL.
+
+### Changed
+- Move `.fui-btn *` CSS rule from theme to base CSS to handle inner elements of buttons not triggering the correct submit behaviour
+- Ajax-based forms now automatically fetch tokens (CSRF, captchas) after a successful form is submitted
+- Implement `Element::trackChanges()` for Blitz compatibility
+
+### Fixed
+- Fixed a PHP 8 deprecation notice.
+- Fixed an error for Dropdown fields when toggling between options being an optgroup and not.
+- Fixed widget charts for line/pie charts.
+- Fixed an error when creating dashboard widgets for submissions.
+- Fixed Friendly Captcha triggering unload warnings.
+- Fixed Friendly Captcha styles.
+- Fixed Duplicate captcha not refreshing its value for Ajax forms, after a successful submission.
+- Fixed JavaScript captcha not refreshing its token after a successful submission, and trying to submit again without a page refresh.
+- Fixed captcha behaviour to handle multiple initializations.
+- Fixed captcha integrations with initializing Formie’s JS multiple times.
+- Fixed race condition for refreshing captcha tokens when the captchas hadn’t been initialized yet.
+- Fixed JS `destroyForm()` not removing the form from the factory collection correctly.
+- Fixed multiple event bindings for some JS elements.
+- Fixed spam email notifications throwing an error in the queue when trying to send (if enabled to do so).
+- Fixed dynamically `redirectUrl` having any query params overwritten if the same query param was on the current URL.
+- Fixed submissions using query string params for populating some properties when they shouldn’t.
+- Fixed some fields not having their settings normalized.
+- Fixed an error when editing a form and invalid default status.
+- Fixed an error with File Upload fields and an invalid Upload Location set.
+- Fixed File Upload fields not working correctly for Repeater or Group fields, when the only nested field.
+- Fixed double-initialization checks for Formie’s JS, causing incorrect behaviour with a race condition with JS frameworks.
+
 ## 2.0.38 - 2023-10-08
 
 ### Added
