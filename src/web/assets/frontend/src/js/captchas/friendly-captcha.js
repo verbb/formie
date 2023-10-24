@@ -10,6 +10,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
+        this.language = settings.language;
 
         // We can have multiple captchas per form, so store them and render only when we need
         this.$placeholders = this.$form.querySelectorAll('[data-friendly-captcha-placeholder]');
@@ -80,6 +81,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.widget = new WidgetInstance(this.createInput(), {
             sitekey: this.siteKey,
             startMode: 'none',
+            language: this.language,
             doneCallback: this.onVerify.bind(this),
             errorCallback: this.onError.bind(this),
         });
