@@ -62,8 +62,8 @@ export default {
 
     configResolved(resolvedConfig) {
         config = resolvedConfig;
-        inputPath = path.join(config.root, 'img/favicons');
-        outputPath = path.join(path.resolve(config.root, config.build.outDir), 'img/favicons');
+        inputPath = path.join(config.root, 'src/js/vendor');
+        outputPath = path.join(path.resolve(config.root, config.build.outDir), 'js/vendor');
     },
 
     async writeBundle(options, bundle) {
@@ -79,7 +79,7 @@ export default {
             return;
         }
 
-        const filter = /\.(xml|ico|webmanifest)$/i;
+        const filter = /\.(xml|ico|webmanifest|js)$/i;
 
         files = files.filter((file) => {
             return filter.test(file);

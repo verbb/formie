@@ -7,7 +7,6 @@ import EslintPlugin from 'vite-plugin-eslint';
 // Rollup Plugins
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import AnalyzePlugin from 'rollup-plugin-analyzer';
-import copy from 'rollup-plugin-copy'
 
 // Custom (for the moment)
 import ImageminCopy from './src/vite-plugins/imagemin-copy';
@@ -35,6 +34,7 @@ export default ({ command }) => ({
     plugins: [
         // Custom plugins (for the moment)
         ImageminCopy,
+        StaticCopy,
 
         // Keep JS looking good with eslint
         // https://github.com/gxmari007/vite-plugin-eslint
@@ -65,20 +65,6 @@ export default ({ command }) => ({
                 path.resolve('./node_modules'),
             ],
         }),
-
-        copy({
-            targets: [
-                {
-                    src: [
-                        'src/js/vendor/Chart.bundle.min.js',
-                        'src/js/vendor/moment-with-locales.min.js',
-                        'src/js/vendor/chartjs-adapter-moment.min.js',
-                        'src/js/vendor/deepmerge.min.js',
-                    ],
-                    dest: 'dist/js/vendor',
-                },
-            ]
-        })
     ],
 
     resolve: {
