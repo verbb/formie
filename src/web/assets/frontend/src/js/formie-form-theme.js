@@ -291,6 +291,7 @@ export class FormieFormTheme {
             'h-captcha-response',
             'CRAFT_CSRF_TOKEN',
             '__JSCHK',
+            '__DUP',
             'cf-turnstile-response',
             'frc-captcha-solution',
             'submitAction',
