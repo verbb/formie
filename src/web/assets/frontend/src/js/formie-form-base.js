@@ -181,15 +181,6 @@ export class FormieFormBase {
         this.listeners[event] = { element, func };
         const eventName = event.split('.')[0];
 
-        // Prevent binding the same event multiple times on an element
-        if (element[`fui-event-${eventName}`]) {
-            // console.warn(`Tried to bind "${eventName}" multiple times to %o.`, element);
-            return;
-        }
-
-        // Record the event against the element to prevent double-binding
-        element[`fui-event-${eventName}`] = true;
-
         element.addEventListener(eventName, this.listeners[event].func);
     }
 
@@ -198,8 +189,6 @@ export class FormieFormBase {
 
         if (eventInfo && eventInfo.element && eventInfo.func) {
             const eventName = event.split('.')[0];
-
-            delete eventInfo.element[`fui-event-${eventName}`];
 
             eventInfo.element.removeEventListener(eventName, eventInfo.func);
             delete this.listeners[event];
