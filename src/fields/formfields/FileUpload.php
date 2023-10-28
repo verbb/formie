@@ -601,6 +601,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 $elementService->saveElement($asset);
             }
         }
+
+        // Remove any uploaded files, now they've been dealt with
+        $this->_uploadedDataFiles = [];
     }
 
     /**
