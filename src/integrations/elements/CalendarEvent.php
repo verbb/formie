@@ -104,12 +104,12 @@ class CalendarEvent extends Element
             $fields = [];
 
             if ($fieldLayout = $calendar->getFieldLayout()) {
-                foreach ($fieldLayout->getCustomFields() as $field) {
+                foreach ($fieldLayout->getCustomFieldElements() as $fieldElement) {
                     $fields[] = new IntegrationField([
-                        'handle' => $field->handle,
-                        'name' => $field->name,
-                        'type' => $this->getFieldTypeForField(get_class($field)),
-                        'required' => (bool)$field->required,
+                        'handle' => $fieldElement->field->handle,
+                        'name' => $fieldElement->label,
+                        'type' => $this->getFieldTypeForField(get_class($fieldElement->field)),
+                        'required' => (bool)$fieldElement->required,
                     ]);
                 }
             }

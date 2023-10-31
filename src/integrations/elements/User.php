@@ -76,12 +76,12 @@ class User extends Element
 
         $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
 
-        foreach ($userFieldLayout->getCustomFields() as $field) {
+        foreach ($userFieldLayout->getCustomFieldElements() as $fieldElement) {
             $fields[] = new IntegrationField([
-                'handle' => $field->handle,
-                'name' => $field->name,
-                'type' => $this->getFieldTypeForField(get_class($field)),
-                'required' => (bool)$field->required,
+                'handle' => $fieldElement->field->handle,
+                'name' => $fieldElement->label,
+                'type' => $this->getFieldTypeForField(get_class($fieldElement->field)),
+                'required' => (bool)$fieldElement->required,
             ]);
         }
 
