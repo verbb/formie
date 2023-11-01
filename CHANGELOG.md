@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.40 - 2023-11-02
+
+### Changed
+- Updated Brevo integration to include `templateId` and `redirectionUrl` for Double-Optin.
+
+### Fixed
+- Fixed GraphQL mutations for multiple File Upload fields.
+- Fixed honeypot captcha trigger unload warnings when using cache-busting JS.
+- Fixed GraphQL mutations for multiple File Upload fields.
+- Fixed an error with binding events to JS multiple times not working correctly when required (for conditions).
+- Fixed Duplicate captcha causing unload warnings.
+
 ## 2.0.39 - 2023-10-25
 
 ### Added
