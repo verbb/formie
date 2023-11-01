@@ -106,11 +106,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Whenever we have GQL mutation data, handle that processing a little differently
         Event::on(CraftAssets::class, CraftAssets::EVENT_LOCATE_UPLOADED_FILES, function(LocateUploadedFilesEvent $event) {
-            if ($paramName = $this->requestParamName($event->element)) {
-                $data = $this->_uploadedDataFiles[$paramName] ?? [];
-
-                foreach ($data as $uploadedDataFile) {
-                    $event->files[] = $uploadedDataFile;
+            // Ensure that we only listen to the event on _this_ field to prevent issues with other fields in the form
+            if ($event->sender->handle === $this->handle) {
+                if ($paramName = $this->requestParamName($event->element)) {
+                    $event->files = $this->_uploadedDataFiles[$paramName] ?? [];
                 }
             }
         });
