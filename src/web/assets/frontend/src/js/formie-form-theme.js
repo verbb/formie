@@ -292,6 +292,7 @@ export class FormieFormTheme {
             'CRAFT_CSRF_TOKEN',
             '__JSCHK',
             '__DUP',
+            'beesknees',
             'cf-turnstile-response',
             'frc-captcha-solution',
             'submitAction',
