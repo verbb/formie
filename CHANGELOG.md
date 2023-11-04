@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.41 - 2023-11-05
+
+### Changed
+- Changed checkbox checked state to use `checked` not `checked=“true”`.
+
+### Fixed
+- Fixed PDF template filename format not persisting when saved.
+- Fixed Checkboxes not being reset after submitting a form.
+- Fixed Table field not normalizing cell values properly.
+- Fixed an error with File Upload fields introduced in 2.0.40.
+
 ## 2.0.40 - 2023-11-02
 
 ### Changed
