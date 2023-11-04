@@ -109,7 +109,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             // Ensure that we only listen to the event on _this_ field to prevent issues with other fields in the form
             if ($event->sender->handle === $this->handle) {
                 if ($paramName = $this->requestParamName($event->element)) {
-                    $event->files = $this->_uploadedDataFiles[$paramName] ?? [];
+                    $event->files = $this->_uploadedDataFiles[$paramName] ?? $event->files ?? [];
                 }
             }
         });
