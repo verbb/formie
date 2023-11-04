@@ -1151,8 +1151,8 @@ class SubmissionsController extends Controller
             }
 
             // Allow a `user` override (when editing a submission through the CP)
-            if ($request->getIsCpRequest() && $user = $userParam) {
-                $submission->userId = $user[0] ?? null;
+            if ($request->getIsCpRequest() && $userParam) {
+                $submission->userId = $userParam[0] ?? null;
             }
         }
 
