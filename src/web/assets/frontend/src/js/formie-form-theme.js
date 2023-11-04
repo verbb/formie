@@ -651,7 +651,7 @@ export class FormieFormTheme {
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
                 // Reset values if in a new tab. No need when in the same tab.
-                this.$form.reset();
+                this.resetForm();
 
                 window.open(data.redirectUrl, '_blank');
             } else {
@@ -711,7 +711,7 @@ export class FormieFormTheme {
         }
 
         // Reset values regardless, for the moment
-        this.$form.reset();
+        this.resetForm();
 
         // Remove the submission ID input in case we want to go again
         this.removeHiddenInput('submissionId');
@@ -754,6 +754,15 @@ export class FormieFormTheme {
         }
 
         $input.setAttribute('value', value);
+    }
+
+    resetForm() {
+        // `$form.reset()` will do most, but programatically setting `checked` for checkboxes won't be cleared
+        this.$form.reset();
+
+        this.$form.querySelectorAll('[type="checkbox"]').forEach(($checkbox) => {
+            $checkbox.removeAttribute('checked');
+        });
     }
 
     removeHiddenInput(name) {
