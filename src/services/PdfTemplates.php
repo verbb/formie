@@ -472,6 +472,7 @@ class PdfTemplates extends Component
                 'name',
                 'handle',
                 'template',
+                'filenameFormat',
                 'sortOrder',
                 'dateDeleted',
                 'uid',
