@@ -28,7 +28,7 @@ export class FormieCheckboxRadio {
                         });
                     }
 
-                    e.target.setAttribute('checked', true);
+                    e.target.setAttribute('checked', '');
                 } else {
                     e.target.removeAttribute('checked');
                 }
