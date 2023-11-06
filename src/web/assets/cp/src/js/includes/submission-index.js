@@ -11,15 +11,17 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.on('selectSource', $.proxy(this, 'updateButton'));
         this.on('selectSite', $.proxy(this, 'updateButton'));
 
-        this.base(elementType, $container, settings);
-
-        this.settings.criteria = {
+        settings.criteria = {
             isIncomplete: false,
             isSpam: false,
         };
 
-        // Find the settings menubtn, and add a new option to it
-        var $menubtn = this.$statusMenuBtn.menubtn().data('menubtn');
+        // Find the settings menubtn, and add a new option to it. A little extra work as this needs to be done before
+        // the parent `BaseElementIndex::init()`.
+        var $main = $container.find('.main');
+        var $toolbar = $container.find('#toolbar:first');
+        var $statusMenuBtn = $toolbar.find('.statusmenubtn:first');
+        var $menubtn = $statusMenuBtn.menubtn().data('menubtn');
 
         if ($menubtn) {
             var $incomplete = $('<li><a data-incomplete><span class="icon" data-icon="draft"></span> ' + Craft.t('formie', 'Incomplete') + '</a></li>');
@@ -36,6 +38,8 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             // Hijack the event
             $menubtn.menu.on('optionselect', $.proxy(this, '_handleStatusChange'));
         }
+
+        this.base(elementType, $container, settings);
     },
 
     afterInit() {
