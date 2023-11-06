@@ -266,7 +266,7 @@ export class Formie {
                     if ($csrfInput) {
                         $csrfInput.value = result.csrf.token;
 
-                        console.log(`${formHashId}: Refreshed CSRF input.`);
+                        console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
                     } else {
                         console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
                     }
@@ -280,9 +280,11 @@ export class Formie {
                         // In some cases, the captcha input might not have loaded yet, as some are dynamically created
                         // (see Duplicate and JS captchas). So wait for the element to exist first
                         waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
-                            $captchaInput.value = value.value;
+                            if (value.value) {
+                                $captchaInput.value = value.value;
 
-                            console.log(`${formHashId}: Refreshed "${key}" captcha input.`);
+                                console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                            }
                         });
 
                         // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
