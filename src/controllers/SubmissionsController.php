@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
 
@@ -938,9 +939,9 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        $result = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
+        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
 
-        if (!$result) {
+        if (($response instanceof IntegrationResponse) && !$response->success) {
             $message = Craft::t('formie', 'Integration failed to run.');
 
             $this->setFailFlash($message);
