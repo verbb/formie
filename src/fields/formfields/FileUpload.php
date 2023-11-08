@@ -276,8 +276,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
-                'size' => $this->sizeMinLimit,
+            $element->addError($this->handle, Craft::t('formie', 'File must be larger than {filesize} MB.', [
+                'filesize' => $this->sizeMinLimit,
             ]));
         }
     }
@@ -303,8 +303,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
-                'size' => $this->sizeLimit,
+            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {filesize} MB.', [
+                'filesize' => $this->sizeLimit,
             ]));
         }
     }

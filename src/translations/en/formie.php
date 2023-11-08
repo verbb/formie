@@ -1687,7 +1687,7 @@ return [
     'Equatorial Guinea' => 'Equatorial Guinea',
     'South Carolina' => 'South Carolina',
     'Profile' => 'Profile',
-    'File must be smaller than {size} MB.' => 'File must be smaller than {size} MB.',
+    'File must be smaller than {filesize} MB.' => 'File must be smaller than {filesize} MB.',
     'Maltese' => 'Maltese',
     'Esperanto' => 'Esperanto',
     '(GDPR) {text}' => '(GDPR) {text}',
