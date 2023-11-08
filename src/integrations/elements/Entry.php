@@ -83,17 +83,7 @@ class Entry extends Element
             }
 
             foreach ($section->getEntryTypes() as $entryType) {
-                $fields = [];
-
-                foreach ($entryType->getFieldLayout()->getCustomFields() as $field) {
-                    $fields[] = new IntegrationField([
-                        'handle' => $field->handle,
-                        'name' => $field->name,
-                        'type' => $this->getFieldTypeForField(get_class($field)),
-                        'sourceType' => get_class($field),
-                        'required' => (bool)$field->required,
-                    ]);
-                }
+                $fields = $this->getFieldLayoutFields($entryType->getFieldLayout());
 
                 $customFields[$section->name][] = new IntegrationCollection([
                     'id' => $entryType->id,
