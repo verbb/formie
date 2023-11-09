@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.42 - 2023-11-09
+
+### Added
+- Added `Element::EVENT_MODIFY_ELEMENT_FIELDS` event for element integrations.
+
+### Fixed
+- Fixed incorrect File Upload validation translation message for min/max filesize.
+- Fixed lack of proper check for integration response when manually triggering an integration from a submission in the control panel.
+- Fixed Honeypot captcha when refreshing cached tokens and improve logging.
+
 ## 2.0.41 - 2023-11-05
 
 ### Changed
