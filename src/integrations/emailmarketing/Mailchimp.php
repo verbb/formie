@@ -105,26 +105,26 @@ class Mailchimp extends EmailMarketing
                     $response = $this->request('GET', 'lists/' . $list['id'] . '/interest-categories/' . $category['id'] . '/interests');
                     $interests = $response['interests'] ?? [];
 
-                    $opts = [];
-
                     foreach ($interests as $interest) {
-                        $opts[] = [
-                            'label' => $interest['name'],
+                        $options[] = [
+                            'label' => Craft::t('formie', '{title} - {name}', ['title' => $category['title'], 'name' => $interest['name']]),
                             'value' => $interest['id'],
                         ];
                     }
-
-                    $options[] = [
-                        'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
-                        'options' => $opts,
-                    ];
                 }
 
-                $listFields[] = new IntegrationField([
-                    'handle' => 'interestCategories',
-                    'name' => Craft::t('formie', 'Interest Categories'),
-                    'options' => $options,
-                ]);
+                if ($options) {
+                    $options = [
+                        'label' => Craft::t('formie', 'Interest Categories'),
+                        'options' => $options,
+                    ];
+
+                    $listFields[] = new IntegrationField([
+                        'handle' => 'interestCategories',
+                        'name' => Craft::t('formie', 'Interest Categories'),
+                        'options' => $options,
+                    ]);
+                }
 
                 // Fetch marketing permissions
                 $response = $this->request('GET', 'lists/' . $list['id'] . '/members', [
