@@ -114,21 +114,17 @@ class Mailchimp extends EmailMarketing
                         ];
                     }
 
-                    if ($opts) {
-                        $options[] = [
-                            'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
-                            'options' => $opts,
-                        ];
-                    }
+                    $options[] = [
+                        'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
+                        'options' => $opts,
+                    ];
                 }
 
-                if ($options) {
-                    $listFields[] = new IntegrationField([
-                        'handle' => 'interestCategories',
-                        'name' => Craft::t('formie', 'Interest Categories'),
-                        'options' => $options,
-                    ]);
-                }
+                $listFields[] = new IntegrationField([
+                    'handle' => 'interestCategories',
+                    'name' => Craft::t('formie', 'Interest Categories'),
+                    'options' => $options,
+                ]);
 
                 // Fetch marketing permissions
                 $response = $this->request('GET', 'lists/' . $list['id'] . '/members', [
