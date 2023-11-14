@@ -114,10 +114,12 @@ class Mailchimp extends EmailMarketing
                         ];
                     }
 
-                    $options[] = [
-                        'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
-                        'options' => $opts,
-                    ];
+                    if ($opts) {
+                        $options[] = [
+                            'label' => Craft::t('formie', 'Category - {title}', ['title' => $category['title']]),
+                            'options' => $opts,
+                        ];
+                    }
                 }
 
                 if ($options) {
