@@ -19,22 +19,13 @@ class Phone extends Field implements FieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var string
-     */
     public static string $class = PhoneField::class;
-    /**
-     * @var string
-     */
     public static string $name = 'Phone';
 
 
     // Templates
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/phone';
@@ -44,9 +35,6 @@ class Phone extends Field implements FieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function parseField(): mixed
     {
         $this->beforeParseField();

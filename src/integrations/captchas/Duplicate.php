@@ -34,9 +34,6 @@ class Duplicate extends Captcha
         return Craft::t('formie', 'Check for duplicate submissions, where bots might be submitting multiple times.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -50,9 +47,6 @@ class Duplicate extends Captcha
         return '<input type="hidden" name="' . $sessionKey . '" value="' . $value . '" />';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRefreshJsVariables(Form $form, $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -68,9 +62,6 @@ class Duplicate extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
         $sessionKey = $this->getSessionKey($submission->form);

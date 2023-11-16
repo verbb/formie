@@ -23,9 +23,6 @@ class Capsule extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Capsule');
@@ -50,41 +47,6 @@ class Capsule extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Capsule customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        $people = $this->getFormSettingValue('people');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $task = $this->getFormSettingValue('task');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
-                return $model->enabled && $model->mapToPeople;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
-                return $model->enabled && $model->mapToTask;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -451,6 +413,42 @@ class Capsule extends Crm
                 'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $people = $this->getFormSettingValue('people');
+        $opportunity = $this->getFormSettingValue('opportunity');
+        $task = $this->getFormSettingValue('task');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
+                return $model->enabled && $model->mapToPeople;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
+                return $model->enabled && $model->mapToTask;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

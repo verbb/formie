@@ -16,9 +16,6 @@ class StatesCanada extends PredefinedOption
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'States (Canada)');

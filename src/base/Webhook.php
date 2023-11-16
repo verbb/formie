@@ -33,6 +33,11 @@ abstract class Webhook extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/webhooks/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -40,9 +45,6 @@ abstract class Webhook extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/webhooks/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -60,11 +62,6 @@ abstract class Webhook extends Integration
             'integration' => $this,
             'form' => $form,
         ]);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/webhooks/edit/' . $this->id);
     }
 
 

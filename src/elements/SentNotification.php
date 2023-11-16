@@ -36,41 +36,26 @@ class SentNotification extends Element
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Sent Notification');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function pluralDisplayName(): string
     {
         return Craft::t('formie', 'Sent Notifications');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function find(): SentNotificationQuery
     {
         return new SentNotificationQuery(static::class);
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function hasStatuses(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function statuses(): array
     {
         return [
@@ -79,9 +64,6 @@ class SentNotification extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSources(string $context = null): array
     {
         $forms = Form::find()->all();
@@ -125,9 +107,6 @@ class SentNotification extends Element
         return $sources;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineActions(string $source = null): array
     {
         $elementsService = Craft::$app->getElements();
@@ -154,9 +133,6 @@ class SentNotification extends Element
         return $actions;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -172,9 +148,6 @@ class SentNotification extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         $attributes = [];
@@ -191,17 +164,11 @@ class SentNotification extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected static function defineSearchableAttributes(): array
     {
         return ['to', 'subject'];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -278,9 +245,6 @@ class SentNotification extends Element
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -290,49 +254,26 @@ class SentNotification extends Element
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function __toString(): string
     {
         return $this->dateCreated->format('M j, Y H:i:s A');
     }
     
-    /**
-     * @inheritdoc
-     */
     public function canView(User $user): bool
     {
         return true;
     }
     
-    /**
-     * @inheritdoc
-     */
     public function canSave(User $user): bool
     {
         return false;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function canDelete(User $user): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getCpEditUrl(): ?string
-    {
-        return UrlHelper::cpUrl('formie/sent-notifications/edit/' . $this->id);
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getStatus(): ?string
     {
         if (!$this->success) {
@@ -369,9 +310,6 @@ class SentNotification extends Element
         return $this->_notification;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterSave(bool $isNew): void
     {
         if (!$isNew) {
@@ -416,12 +354,9 @@ class SentNotification extends Element
     }
 
 
-    // Protected methods
+    // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function tableAttributeHtml(string $attribute): string
     {
         return match ($attribute) {
@@ -437,5 +372,10 @@ class SentNotification extends Element
             'status' => '<span class="status ' . $this->status . '"></span>',
             default => parent::tableAttributeHtml($attribute),
         };
+    }
+
+    protected function cpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/sent-notifications/edit/' . $this->id);
     }
 }

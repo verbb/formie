@@ -25,9 +25,6 @@ class Pipedrive extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Pipedrive');
@@ -72,55 +69,6 @@ class Pipedrive extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pipedrive customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        $person = $this->getFormSettingValue('person');
-        $deal = $this->getFormSettingValue('deal');
-        $lead = $this->getFormSettingValue('lead');
-        $organization = $this->getFormSettingValue('organization');
-        $note = $this->getFormSettingValue('note');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
-                return $model->enabled && $model->mapToPerson;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-                return $model->enabled && $model->mapToDeal;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-                return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['organizationFieldMapping'], 'validateFieldMapping', 'params' => $organization, 'when' => function($model) {
-                return $model->enabled && $model->mapToOrganization;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['noteFieldMapping'], 'validateFieldMapping', 'params' => $note, 'when' => function($model) {
-                return $model->enabled && $model->mapToNote;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -447,6 +395,56 @@ class Pipedrive extends Crm
             'base_uri' => 'https://api.pipedrive.com/v1/',
             'query' => ['api_token' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $person = $this->getFormSettingValue('person');
+        $deal = $this->getFormSettingValue('deal');
+        $lead = $this->getFormSettingValue('lead');
+        $organization = $this->getFormSettingValue('organization');
+        $note = $this->getFormSettingValue('note');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['personFieldMapping'], 'validateFieldMapping', 'params' => $person, 'when' => function($model) {
+                return $model->enabled && $model->mapToPerson;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['organizationFieldMapping'], 'validateFieldMapping', 'params' => $organization, 'when' => function($model) {
+                return $model->enabled && $model->mapToOrganization;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['noteFieldMapping'], 'validateFieldMapping', 'params' => $note, 'when' => function($model) {
+                return $model->enabled && $model->mapToNote;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

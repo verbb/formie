@@ -21,9 +21,6 @@ class ConvertKit extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'ConvertKit');
@@ -43,18 +40,6 @@ class ConvertKit extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your ConvertKit lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'apiSecret'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -160,5 +145,18 @@ class ConvertKit extends EmailMarketing
             'base_uri' => 'https://api.convertkit.com/v3/',
             'query' => ['api_secret' => App::parseEnv($this->apiSecret)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'apiSecret'], 'required'];
+
+        return $rules;
     }
 }

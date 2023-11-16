@@ -46,60 +46,26 @@ class Plans extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all plans.
-     *
-     * @return Plan[]
-     */
     public function getAllPlans(): array
     {
         return $this->_plans()->all();
     }
 
-    /**
-     * Returns a plan identified by its ID.
-     *
-     * @param int $id
-     * @return Plan|null
-     */
     public function getPlanById(int $id): ?Plan
     {
         return $this->_plans()->firstWhere('id', $id);
     }
 
-    /**
-     * Returns a plan identified by its reference.
-     *
-     * @param string $reference
-     * @return Plan|null
-     */
     public function getPlanByReference(string $reference): ?Plan
     {
         return $this->_plans()->firstWhere('reference', $reference);
     }
 
-    /**
-     * Returns a plan identified by its UID.
-     *
-     * @param string $uid
-     * @return Plan|null
-     */
     public function getPlanByUid(string $uid): ?Plan
     {
         return $this->_plans()->firstWhere('uid', $uid, true);
     }
 
-    /**
-     * Saves the plan.
-     *
-     * @param Plan $plan
-     * @param bool $runValidation
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function savePlan(Plan $plan, bool $runValidation = true): bool
     {
         $isNewPlan = !(bool)$plan->id;
@@ -155,13 +121,6 @@ class Plans extends Component
         return true;
     }
 
-    /**
-     * Delete a plan by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deletePlanById(int $id): bool
     {
         $plan = $this->getPlanById($id);
@@ -173,12 +132,6 @@ class Plans extends Component
         return $this->deletePlan($plan);
     }
 
-    /**
-     * Deletes a plan.
-     *
-     * @param Plan $plan The plan
-     * @return bool Whether the plan was deleted successfully
-     */
     public function deletePlan(Plan $plan): bool
     {
         // Fire a 'beforeDeletePlan' event
@@ -205,12 +158,6 @@ class Plans extends Component
         return true;
     }
 
-    /**
-     * Archive a subscription plan by its id.
-     *
-     * @param int $id The id
-     * @throws InvalidConfigException
-     */
     public function archivePlanById(int $id): bool
     {
         $plan = $this->getPlanById($id);
@@ -236,11 +183,6 @@ class Plans extends Component
     // Private Methods
     // =========================================================================
     
-    /**
-     * Returns a memoizable array of all plans.
-     *
-     * @return MemoizableArray<Plan>
-     */
     private function _plans(): MemoizableArray
     {
         if (!isset($this->_plans)) {
@@ -256,12 +198,6 @@ class Plans extends Component
         return $this->_plans;
     }
 
-    /**
-     * Returns a Query object prepped for retrieving plans.
-     *
-     * @param bool $withTrashed
-     * @return Query
-     */
     private function _createPlansQuery(): Query
     {
         return (new Query())
@@ -283,13 +219,6 @@ class Plans extends Component
             ->from(['{{%formie_payments_plans}}']);
     }
 
-    /**
-     * Gets a plan record by its ID, or a new plan record
-     * if it wasn't provided or was not found.
-     *
-     * @param int|string|null $id
-     * @return PlanRecord
-     */
     private function _getPlanRecord(int|string|null $id): PlanRecord
     {
         /** @var PlanRecord $plan */

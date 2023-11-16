@@ -44,71 +44,31 @@ class Payments extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all payments.
-     *
-     * @return Payment[]
-     */
     public function getAllPayments(): array
     {
         return $this->_payments()->all();
     }
 
-    /**
-     * Returns a payment identified by its ID.
-     *
-     * @param int $id
-     * @return Payment|null
-     */
     public function getPaymentById(int $id): ?Payment
     {
         return $this->_payments()->firstWhere('id', $id);
     }
 
-    /**
-     * Returns a payment identified by its reference.
-     *
-     * @param string $reference
-     * @return Payment|null
-     */
     public function getPaymentByReference(string $reference): ?Payment
     {
         return $this->_payments()->firstWhere('reference', $reference);
     }
 
-    /**
-     * Returns a payment identified by its submission ID.
-     *
-     * @param Submission $submission
-     * @return Payment|null
-     */
     public function getSubmissionPayments(Submission $submission): array
     {
         return $this->_payments()->where('submissionId', $submission->id)->all();
     }
 
-    /**
-     * Returns a payment identified by its UID.
-     *
-     * @param string $uid
-     * @return Payment|null
-     */
     public function getPaymentByUid(string $uid): ?Payment
     {
         return $this->_payments()->firstWhere('uid', $uid, true);
     }
 
-    /**
-     * Saves the payment.
-     *
-     * @param Payment $payment
-     * @param bool $runValidation
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function savePayment(Payment $payment, bool $runValidation = true): bool
     {
         $isNewPayment = !(bool)$payment->id;
@@ -168,13 +128,6 @@ class Payments extends Component
         return true;
     }
 
-    /**
-     * Delete a payment by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deletePaymentById(int $id): bool
     {
         $payment = $this->getPaymentById($id);
@@ -186,12 +139,6 @@ class Payments extends Component
         return $this->deletePayment($payment);
     }
 
-    /**
-     * Deletes a payment.
-     *
-     * @param Payment $payment The payment
-     * @return bool Whether the payment was deleted successfully
-     */
     public function deletePayment(Payment $payment): bool
     {
         // Fire a 'beforeDeletePayment' event
@@ -222,11 +169,6 @@ class Payments extends Component
     // Private Methods
     // =========================================================================
     
-    /**
-     * Returns a memoizable array of all payments.
-     *
-     * @return MemoizableArray<Payment>
-     */
     private function _payments(): MemoizableArray
     {
         if (!isset($this->_payments)) {
@@ -242,12 +184,6 @@ class Payments extends Component
         return $this->_payments;
     }
 
-    /**
-     * Returns a Query object prepped for retrieving payments.
-     *
-     * @param bool $withTrashed
-     * @return Query
-     */
     private function _createPaymentsQuery(): Query
     {
         return (new Query())
@@ -273,13 +209,6 @@ class Payments extends Component
             ->from(['{{%formie_payments}}']);
     }
 
-    /**
-     * Gets a payment record by its ID, or a new payment record
-     * if it wasn't provided or was not found.
-     *
-     * @param int|string|null $id
-     * @return PaymentRecord
-     */
     private function _getPaymentRecord(int|string|null $id): PaymentRecord
     {
         /** @var PaymentRecord $payment */

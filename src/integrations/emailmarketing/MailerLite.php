@@ -22,9 +22,6 @@ class MailerLite extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'MailerLite');
@@ -42,18 +39,6 @@ class MailerLite extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your MailerLite lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -152,6 +137,19 @@ class MailerLite extends EmailMarketing
             'base_uri' => 'https://api.mailerlite.com/api/v2/',
             'headers' => ['X-MailerLite-ApiKey' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 
 

@@ -25,9 +25,6 @@ class EmailTemplatesController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return Response
-     */
     public function actionIndex(): Response
     {
         $emailTemplates = Formie::$plugin->getEmailTemplates()->getAllTemplates();
@@ -35,12 +32,6 @@ class EmailTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/email-templates', compact('emailTemplates'));
     }
 
-    /**
-     * @param int|null $id
-     * @param EmailTemplate|null $template
-     * @return Response
-     * @throws HttpException
-     */
     public function actionEdit(int $id = null, EmailTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
@@ -66,14 +57,6 @@ class EmailTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/email-templates/_edit', $variables);
     }
 
-    /**
-     * @throws MissingComponentException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws BadRequestHttpException
-     * @throws ServerErrorHttpException
-     */
     public function actionSave(): void
     {
         $this->requirePostRequest();
@@ -102,14 +85,6 @@ class EmailTemplatesController extends Controller
         Craft::$app->getUrlManager()->setRouteParams(compact('template'));
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function actionReorder(): Response
     {
         $this->requirePostRequest();
@@ -123,11 +98,6 @@ class EmailTemplatesController extends Controller
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder templates.')]);
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws Throwable
-     */
     public function actionDelete(): Response
     {
         $this->requireAcceptsJson();

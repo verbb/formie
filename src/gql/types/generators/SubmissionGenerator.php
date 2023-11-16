@@ -18,9 +18,6 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null): array
     {
         $forms = Formie::$plugin->getForms()->getAllForms();
@@ -40,9 +37,6 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
         return $gqlTypes;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function generateType(mixed $context): mixed
     {
         $typeName = Submission::gqlTypeNameByContext($context);

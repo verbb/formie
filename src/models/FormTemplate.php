@@ -36,32 +36,16 @@ class FormTemplate extends BaseTemplate
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the CP URL for editing the template.
-     *
-     * @return string
-     */
-    public function getCpEditUrl(): string
+    public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/settings/form-templates/edit/' . $this->id);
     }
 
-    /**
-     * Returns true if the template is allowed to be deleted.
-     *
-     * @return bool
-     */
     public function canDelete(): bool
     {
         return !Form::find()->trashed(null)->template($this)->one();
     }
 
-    /**
-     * Returns the template's field layout.
-     *
-     * @return FieldLayout
-     * @noinspection PhpDocMissingThrowsInspection
-     */
     public function getFieldLayout(): FieldLayout
     {
         if ($this->_fieldLayout !== null) {
@@ -74,11 +58,6 @@ class FormTemplate extends BaseTemplate
         return $this->_fieldLayout = $behavior->getFieldLayout();
     }
 
-    /**
-     * Sets the template's field layout.
-     *
-     * @param FieldLayout $fieldLayout
-     */
     public function setFieldLayout(FieldLayout $fieldLayout): void
     {
         /** @var FieldLayoutBehavior $behavior */
@@ -88,26 +67,6 @@ class FormTemplate extends BaseTemplate
         $this->_fieldLayout = $fieldLayout;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function behaviors(): array
-    {
-        $behaviors = parent::behaviors();
-
-        $behaviors['fieldLayout'] = [
-            'class' => FieldLayoutBehavior::class,
-            'elementType' => Form::class,
-        ];
-
-        return $behaviors;
-    }
-
-    /**
-     * Returns the template’s config.
-     *
-     * @return array
-     */
     public function getConfig(): array
     {
         $config = [
@@ -133,11 +92,24 @@ class FormTemplate extends BaseTemplate
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
+
+    // Protected Methods
+    // =========================================================================
+
     protected function getRecordClass(): string
     {
         return FormTemplateRecord::class;
+    }
+
+    protected function defineBehaviors(): array
+    {
+        $behaviors = parent::defineBehaviors();
+
+        $behaviors['fieldLayout'] = [
+            'class' => FieldLayoutBehavior::class,
+            'elementType' => Form::class,
+        ];
+
+        return $behaviors;
     }
 }

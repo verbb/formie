@@ -67,26 +67,12 @@ class Submissions extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns a submission by its ID.
-     *
-     * @param int $id
-     * @param string|null $siteId
-     * @return Submission|null
-     */
     public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
     {
         /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
     }
 
-    /**
-     * Executed before a submission has been saved.
-     *
-     * @param Submission $submission
-     * @param string $submitAction
-     * @see SubmissionsController::actionSubmit()
-     */
     public function onBeforeSubmission(Submission $submission, string $submitAction = 'submit'): void
     {
         $event = new SubmissionEvent([
@@ -105,14 +91,6 @@ class Submissions extends Component
         $this->trigger(self::EVENT_BEFORE_SUBMISSION, $event);
     }
 
-    /**
-     * Executed after a submission has been saved.
-     *
-     * @param bool $success whether the submission was successful
-     * @param Submission $submission
-     * @param string $submitAction
-     * @see SubmissionsController::actionSubmit()
-     */
     public function onAfterSubmission(bool $success, Submission $submission, string $submitAction = 'submit'): void
     {
         /* @var Settings $settings */
@@ -169,11 +147,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Sends enabled notifications for a submission.
-     *
-     * @param Submission $submission
-     */
     public function sendNotifications(Submission $submission): void
     {
         /* @var Settings $settings */
@@ -200,14 +173,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Sends a notification email. Normally called from the queue job.
-     *
-     * @param Notification $notification
-     * @param Submission $submission
-     * @param null $queueJob
-     * @return array|bool
-     */
     public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
     {
         // Fire a 'beforeSendNotification' event
@@ -224,11 +189,6 @@ class Submissions extends Component
         return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
     }
 
-    /**
-     * Triggers any enabled integrations.
-     *
-     * @param Submission $submission
-     */
     public function triggerIntegrations(Submission $submission): void
     {
         /* @var Settings $settings */
@@ -259,13 +219,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Triggers an integration's payload to be sent. Normally called from the queue job.
-     *
-     * @param Integration $integration
-     * @param Submission $submission
-     * @return bool|IntegrationResponse
-     */
     public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
     {
         // Fire a 'beforeTriggerIntegration' event
@@ -283,11 +236,6 @@ class Submissions extends Component
         return $integration->sendPayLoad($event->submission);
     }
 
-    /**
-     * Processes any payment fields for a submission.
-     *
-     * @param Submission $submission
-     */
     public function processPayments(Submission $submission): bool
     {
         foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
@@ -317,9 +265,6 @@ class Submissions extends Component
         return true;
     }
 
-    /**
-     * Deletes incomplete submissions older than the configured interval.
-     */
     public function pruneIncompleteSubmissions($consoleInstance = null): void
     {
         /* @var Settings $settings */
@@ -382,9 +327,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Deletes submissions older than the form data retention settings.
-     */
     public function pruneDataRetentionSubmissions($consoleInstance = null): void
     {
         // Find all the forms with data retention settings
@@ -472,9 +414,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Defining a summary of content owned by a user(s), before they are deleted.
-     */
     public function defineUserSubmissions(DefineUserContentSummaryEvent $event): void
     {
         $userIds = Craft::$app->getRequest()->getRequiredBodyParam('userId');
@@ -491,9 +430,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Deletes any submissions related to a user.
-     */
     public function deleteUserSubmissions(Event $event): void
     {
         /** @var User $user */
@@ -530,9 +466,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Restores any submissions related to a user.
-     */
     public function restoreUserSubmissions(Event $event): void
     {
         /** @var User $user */
@@ -555,12 +488,6 @@ class Submissions extends Component
         }
     }
 
-    /**
-     * Performs spam checks on a submission.
-     *
-     * @param Submission $submission
-     * @throws Exception
-     */
     public function spamChecks(Submission $submission): void
     {
         /* @var Settings $settings */
@@ -620,11 +547,6 @@ class Submissions extends Component
         $this->trigger(self::EVENT_AFTER_SPAM_CHECK, $event);
     }
 
-    /**
-     * Logs spam to the Formie log.
-     *
-     * @param Submission $submission
-     */
     public function logSpam(Submission $submission): void
     {
         $fieldValues = $submission->getSerializedFieldValues();
@@ -839,12 +761,6 @@ class Submissions extends Component
         return $submissions;
     }
 
-    /**
-     * Converts a multiline string to an array.
-     *
-     * @param $string
-     * @return array
-     */
     private function _getArrayFromMultiline($string): array
     {
         $array = [];
@@ -856,12 +772,6 @@ class Submissions extends Component
         return array_filter($array);
     }
 
-    /**
-     * Converts a field value to a string.
-     *
-     * @param $submission
-     * @return string
-     */
     private function _getContentAsString($submission): string
     {
         $fieldValues = [];

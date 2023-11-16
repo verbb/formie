@@ -14,9 +14,6 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null): array
     {
         return [static::generateType($context)];
@@ -27,9 +24,6 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
         return 'FieldOption';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function generateType(mixed $context = null): mixed
     {
         $typeName = self::getName($context);

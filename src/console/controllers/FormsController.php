@@ -17,23 +17,13 @@ class FormsController extends Controller
     // Properties
     // =========================================================================
 
-    /**
-     * @var string|null The form ID(s) to delete. Can be set to multiple comma-separated IDs.
-     */
     public ?string $formId = null;
-
-    /**
-     * @var string|null The form handle(s) to delete. Can be set to multiple comma-separated handles.
-     */
     public ?string $formHandle = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID)
     {
         $options = parent::options($actionID);
@@ -46,12 +36,6 @@ class FormsController extends Controller
         return $options;
     }
 
-    /**
-     * Deletes all forms.
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionDelete(): int
     {
         $formIds = null;

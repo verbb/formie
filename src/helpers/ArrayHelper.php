@@ -8,18 +8,6 @@ class ArrayHelper extends CraftArrayHelper
     // Static Methods
     // =========================================================================
 
-    /**
-     * Recursively implodes an array with optional key inclusion
-     *
-     * Example of $include_keys output: key, value, key, value, key, value
-     *
-     * @access  public
-     * @param array $array multi-dimensional array to recursively implode
-     * @param string $glue value that glues elements together
-     * @param bool $include_keys include keys before their values
-     * @param bool $trim_all trim ALL whitespace from string
-     * @return  string  imploded array
-     */
     public static function recursiveImplode(string $glue = ',', array $array, bool $include_keys = false, bool $trim_all = false): string
     {
         $glued_string = '';

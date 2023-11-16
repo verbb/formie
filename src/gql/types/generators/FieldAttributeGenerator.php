@@ -12,9 +12,6 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null): array
     {
         return [static::generateType($context)];
@@ -25,9 +22,6 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
         return 'FieldAttribute';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function generateType(mixed $context = null): mixed
     {
         $typeName = self::getName($context);

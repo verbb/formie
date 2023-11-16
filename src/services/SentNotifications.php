@@ -146,9 +146,6 @@ class SentNotifications extends Component
         return $info;
     }
 
-    /**
-     * Deletes sent notifications older than the configured interval.
-     */
     public function pruneSentNotifications(): void
     {
         /* @var Settings $settings */

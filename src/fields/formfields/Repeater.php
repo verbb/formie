@@ -39,17 +39,11 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Repeater');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/repeater/icon.svg';
@@ -229,9 +223,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -246,9 +237,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -265,9 +253,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -278,9 +263,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -298,17 +280,11 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return RepeaterInputType::getType($this);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlType(): array|Type
     {
         $typeName = ($this->getForm()->handle ?? '') . '_' . $this->handle . '_FormieRepeaterField';
@@ -426,13 +402,11 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
         $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
+        
         return $rules;
     }
 }

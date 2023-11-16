@@ -22,9 +22,6 @@ class Insightly extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Insightly');
@@ -47,34 +44,6 @@ class Insightly extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Insightly customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-        $lead = $this->getFormSettingValue('lead');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-                return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -334,6 +303,35 @@ class Insightly extends Crm
             'base_uri' => 'https://api.insightly.com/v3.1/',
             'auth' => [App::parseEnv($this->apiKey), ''],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+        $lead = $this->getFormSettingValue('lead');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

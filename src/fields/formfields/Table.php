@@ -42,17 +42,11 @@ class Table extends CraftTable implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Table');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/table/icon.svg';
@@ -62,23 +56,8 @@ class Table extends CraftTable implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
     public bool $searchable = true;
-
-    /**
-     * Override the default columns from Craft's table field. We don't want default
-     * columns, and we don't want an object syntax of `col1`, which is tricky in our current
-     * Vue setup. Maybe one day...
-     *
-     * @var array
-     */
     public array $columns = [];
-
-    /**
-     * @var bool
-     */
     public bool $static = false;
 
 
@@ -117,9 +96,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -198,9 +174,6 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
@@ -253,9 +226,6 @@ class Table extends CraftTable implements FormFieldInterface
         return $settings;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         $settings = $this->getSettings();
@@ -323,17 +293,11 @@ class Table extends CraftTable implements FormFieldInterface
         return $value;
     }
 
-    /**
-     * @return bool whether minRows was set
-     */
     public function hasMinRows(): bool
     {
         return (bool)$this->minRows;
     }
 
-    /**
-     * @return bool whether maxRows was set
-     */
     public function hasMaxRows(): bool
     {
         return (bool)$this->maxRows;
@@ -361,9 +325,6 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -425,9 +386,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -462,9 +420,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -475,9 +430,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -605,9 +557,6 @@ class Table extends CraftTable implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -695,14 +644,6 @@ class Table extends CraftTable implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    /**
-     * Validates a cell’s value.
-     *
-     * @param string $type The cell type
-     * @param mixed $value The cell value
-     * @param string|null &$error The error text to set on the element
-     * @return bool Whether the value is valid
-     */
     private function _validateCellValue(string $type, mixed $value, string &$error = null): bool
     {
         if ($value === null || $value === '') {
@@ -738,13 +679,6 @@ class Table extends CraftTable implements FormFieldInterface
         };
     }
 
-    /**
-     * Normalizes a cell’s value.
-     *
-     * @param string $type The cell type
-     * @param mixed $value The cell value
-     * @return mixed
-     */
     private function _normalizeCellValue(string $type, mixed $value): mixed
     {
         switch ($type) {

@@ -27,9 +27,6 @@ class SharpSpring extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'SharpSpring');
@@ -54,27 +51,6 @@ class SharpSpring extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your SharpSpring customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['accountId', 'secretKey'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -282,6 +258,28 @@ class SharpSpring extends Crm
                 'secretKey' => App::parseEnv($this->secretKey),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['accountId', 'secretKey'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

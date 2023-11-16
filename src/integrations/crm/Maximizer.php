@@ -22,9 +22,6 @@ class Maximizer extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Maximizer');
@@ -52,34 +49,6 @@ class Maximizer extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Maximizer customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['username', 'password', 'webAccessUrl', 'databaseId', 'vendorId', 'appKey'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-        $opportunity = $this->getFormSettingValue('opportunity');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -272,6 +241,35 @@ class Maximizer extends Crm
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['username', 'password', 'webAccessUrl', 'databaseId', 'vendorId', 'appKey'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+        $opportunity = $this->getFormSettingValue('opportunity');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
 
@@ -288,9 +286,6 @@ class Maximizer extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    // /**
-    //  * @inheritDoc
-    //  */
     private function _getCustomFields($fields, $parentFieldKey = '', $parentField = []): array
     {
         $customFields = [];

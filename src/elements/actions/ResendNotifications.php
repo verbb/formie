@@ -10,17 +10,11 @@ class ResendNotifications extends ElementAction
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerLabel(): string
     {
         return Craft::t('formie', 'Bulk Resend');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerHtml(): ?string
     {
         $type = Json::encode(static::class);

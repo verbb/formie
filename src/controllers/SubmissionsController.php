@@ -41,6 +41,7 @@ class SubmissionsController extends Controller
 
     // Protected Properties
     // =========================================================================
+
     protected array|bool|int $allowAnonymous = [
         'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
@@ -59,9 +60,6 @@ class SubmissionsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
@@ -82,12 +80,6 @@ class SubmissionsController extends Controller
         return parent::beforeAction($action);
     }
 
-    /**
-     * Shows all the submissions in a list.
-     *
-     * @return Response
-     * @throws InvalidConfigException
-     */
     public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
@@ -97,19 +89,6 @@ class SubmissionsController extends Controller
         return $this->renderTemplate('formie/submissions/index', []);
     }
 
-    /**
-     * Edits a submission.
-     *
-     * @param string $formHandle
-     * @param int|null $submissionId
-     * @param Submission|null $submission
-     * @param string|null $site
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
-     * @throws HttpException
-     * @throws SiteNotFoundException
-     */
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
         $sitesService = Craft::$app->getSites();
@@ -196,11 +175,6 @@ class SubmissionsController extends Controller
         return $this->renderTemplate('formie/submissions/_edit', $variables);
     }
 
-    /**
-     * Saves a submission.
-     *
-     * @throws Throwable
-     */
     public function actionSaveSubmission(): ?Response
     {
         $this->requirePostRequest();
@@ -432,11 +406,6 @@ class SubmissionsController extends Controller
         return $this->redirectToPostedUrl($submission);
     }
 
-    /**
-     * Submits and saves a form submission.
-     *
-     * @throws Throwable
-     */
     public function actionSubmit(): ?Response
     {
         $this->requirePostRequest();
@@ -959,9 +928,6 @@ class SubmissionsController extends Controller
         ]);
     }
 
-    /**
-     * Provides CORS support for when making a form submission.
-     */
     public function actionApi(): Response
     {
         // Add CORS headers
@@ -1201,16 +1167,6 @@ class SubmissionsController extends Controller
         }
     }
 
-    /**
-     * Returns the named parameter value from either GET or the request body, or bails on the request with a 400 error
-     * if that parameter doesn’t exist anywhere, or if it isn't of the specified type.
-     *
-     * @param string $name The parameter name.
-     * @param string $type The parameter type to be enforced.
-     * @param mixed $default The default value to return if invalid.
-     * @return mixed The parameter value.
-     * @throws BadRequestHttpException if the request is not the valid type
-     */
     private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
     {
         $request = $this->request;

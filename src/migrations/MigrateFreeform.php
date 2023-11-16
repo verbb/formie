@@ -39,9 +39,6 @@ use Solspace\Freeform\Fields\SubmitField;
 use yii\base\InvalidConfigException;
 use verbb\formie\models\Settings;
 
-/**
- * Migrates Freeform forms, notifications and submissions.
- */
 class MigrateFreeform extends Migration
 {
     // Constants
@@ -67,9 +64,6 @@ class MigrateFreeform extends Migration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
@@ -84,9 +78,6 @@ class MigrateFreeform extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         return false;
@@ -400,11 +391,6 @@ class MigrateFreeform extends Migration
         }
     }
 
-    /**
-     * @param FormModel $form
-     * @return FieldLayout
-     * @noinspection PhpDocMissingThrowsInspection
-     */
     private function _buildFieldLayout(FormModel $form): FieldLayout
     {
         $fieldLayout = new FieldLayout(['type' => Form::class]);
@@ -534,11 +520,6 @@ class MigrateFreeform extends Migration
         return $fieldLayout;
     }
 
-    /**
-     * @param FieldInterface $field
-     * @return FormFieldInterface|null
-     * @throws InvalidConfigException
-     */
     private function _mapField(FieldInterface $field): ?FormFieldInterface
     {
         switch (get_class($field)) {
@@ -851,10 +832,6 @@ class MigrateFreeform extends Migration
         Craft::configure($field, $defaults);
     }
 
-    /**
-     * @param Option[] $options
-     * @return array
-     */
     private function _mapOptions(array $options): array
     {
         if (!$options) {

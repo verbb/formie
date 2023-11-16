@@ -21,9 +21,6 @@ class ActiveCampaign extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'ActiveCampaign');
@@ -49,41 +46,6 @@ class ActiveCampaign extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your ActiveCampaign customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'apiUrl'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-        $deal = $this->getFormSettingValue('deal');
-        $account = $this->getFormSettingValue('account');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
-                return $model->enabled && $model->mapToDeal;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-                return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -493,6 +455,42 @@ class ActiveCampaign extends Crm
             'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
             'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'apiUrl'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+        $deal = $this->getFormSettingValue('deal');
+        $account = $this->getFormSettingValue('account');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
+                return $model->enabled && $model->mapToDeal;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

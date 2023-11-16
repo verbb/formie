@@ -8,17 +8,11 @@ use Twig\TokenParser\AbstractTokenParser;
 
 class FieldTagTokenParser extends AbstractTokenParser
 {
-    /**
-     * @inheritdoc
-     */
     public function getTag(): string
     {
         return 'fieldtag';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function parse(Token $token): FieldTagNode
     {
         $lineno = $token->getLine();

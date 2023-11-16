@@ -14,12 +14,6 @@ class AddressInputType extends InputObjectType
     // Static Methods
     // =========================================================================
 
-    /**
-     * Create the type for an address field.
-     *
-     * @param AddressField $context
-     * @return bool|mixed
-     */
     public static function getType(AddressField $context): mixed
     {
         /** @var AddressField $context */
@@ -54,12 +48,6 @@ class AddressInputType extends InputObjectType
         ]));
     }
 
-    /**
-     * Normalize GraphQL input data to what Formie expects.
-     *
-     * @param $value
-     * @return mixed
-     */
     public static function normalizeValue($value): mixed
     {
         if (!empty($value['name'])) {

@@ -22,11 +22,6 @@ class Phone extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the formatted phone number.
-     *
-     * @return string
-     */
     public function __toString()
     {
         if ($this->hasCountryCode) {

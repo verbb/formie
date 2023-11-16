@@ -17,41 +17,26 @@ class Submissions extends BaseRelationField
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Submissions (Formie)');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function elementType(): string
     {
         return Submission::class;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function defaultSelectionLabel(): string
     {
         return Craft::t('formie', 'Add a submission');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function valueType(): string
     {
         return SubmissionQuery::class;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlType(): array|Type
     {
         return [

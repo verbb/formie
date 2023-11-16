@@ -29,9 +29,6 @@ class GoogleSheets extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Google Sheets');
@@ -118,21 +115,6 @@ class GoogleSheets extends Miscellaneous
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Google Sheets.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
-
-        // Validate the following when saving form settings
-        $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -268,5 +250,21 @@ class GoogleSheets extends Miscellaneous
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
+
+        // Validate the following when saving form settings
+        $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
     }
 }

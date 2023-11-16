@@ -40,19 +40,16 @@ class Status extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         return $this->getDisplayName();
     }
 
-    /**
-     * Gets the display name for the status.
-     *
-     * @return string
-     */
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/statuses/edit/' . $this->id);
+    }
+
     public function getDisplayName(): string
     {
         if ($this->dateDeleted !== null) {
@@ -62,10 +59,37 @@ class Status extends Model
         return $this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
+    public function getLabelHtml(): string
+    {
+        return Html::tag('span', Html::tag('span', '', [
+                'class' => ['status', $this->color],
+            ]) . $this->getDisplayName(), [
+            'class' => 'formieStatusLabel',
+        ]);
+    }
+
+    public function canDelete(): bool
+    {
+        return !$this->isDefault && !Submission::find()->trashed(null)->status($this->handle)->one();
+    }
+
+    public function getConfig(): array
+    {
+        return [
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'color' => $this->color,
+            'description' => $this->description,
+            'sortOrder' => $this->sortOrder,
+            'isDefault' => (bool)$this->isDefault,
+        ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
     {
         $rules = parent::defineRules();
 
@@ -83,56 +107,5 @@ class Status extends Model
         ];
 
         return $rules;
-    }
-
-    /**
-     * Returns the CP URL for editing the status.
-     *
-     * @return string
-     */
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/statuses/edit/' . $this->id);
-    }
-
-    /**
-     * Gets the status HTML label.
-     *
-     * @return string
-     */
-    public function getLabelHtml(): string
-    {
-        return Html::tag('span', Html::tag('span', '', [
-                'class' => ['status', $this->color],
-            ]) . $this->getDisplayName(), [
-            'class' => 'formieStatusLabel',
-        ]);
-    }
-
-    /**
-     * Returns true if the status is allowed to be deleted.
-     *
-     * @return bool
-     */
-    public function canDelete(): bool
-    {
-        return !$this->isDefault && !Submission::find()->trashed(null)->status($this->handle)->one();
-    }
-
-    /**
-     * Returns the template’s config.
-     *
-     * @return array
-     */
-    public function getConfig(): array
-    {
-        return [
-            'name' => $this->name,
-            'handle' => $this->handle,
-            'color' => $this->color,
-            'description' => $this->description,
-            'sortOrder' => $this->sortOrder,
-            'isDefault' => (bool)$this->isDefault,
-        ];
     }
 }

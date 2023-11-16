@@ -21,9 +21,6 @@ class Name extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         if ($this->isMultiple) {
@@ -33,11 +30,6 @@ class Name extends Model
         return (string)$this->name;
     }
 
-    /**
-     * Returns a concatenated string of name parts.
-     *
-     * @return string
-     */
     public function getName(): string
     {
         if (!$this->isMultiple) {
@@ -52,11 +44,6 @@ class Name extends Model
         return implode(' ', $name);
     }
 
-    /**
-     * Returns a concatenated string of name parts.
-     *
-     * @return string
-     */
     public function getFullName(): string
     {
         if (!$this->isMultiple) {

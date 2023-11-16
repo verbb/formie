@@ -24,9 +24,6 @@ class AddressController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function beforeAction($action): bool
     {
         if ($action->id === 'google-places-geocode') {

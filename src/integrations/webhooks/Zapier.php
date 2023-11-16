@@ -24,9 +24,6 @@ class Zapier extends Webhook
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Zapier');
@@ -45,18 +42,6 @@ class Zapier extends Webhook
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Zapier.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -118,5 +103,18 @@ class Zapier extends Webhook
         }
 
         return $this->_client = Craft::createGuzzleClient();
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
     }
 }

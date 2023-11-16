@@ -16,17 +16,11 @@ class Summary extends FormField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Summary');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/summary/icon.svg';
@@ -49,9 +43,6 @@ class Summary extends FormField
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return false;
@@ -69,9 +60,6 @@ class Summary extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/preview', [
@@ -79,9 +67,6 @@ class Summary extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
@@ -98,18 +83,12 @@ class Summary extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
         $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

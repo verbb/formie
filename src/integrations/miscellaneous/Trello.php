@@ -33,9 +33,6 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Trello');
@@ -95,21 +92,6 @@ class Trello extends Miscellaneous
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Trello.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        // Validate the following when saving form settings
-        $rules[] = [['boardId', 'listId', 'cardName', 'cardDescription'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -238,6 +220,22 @@ class Trello extends Miscellaneous
         ]);
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
+
+        // Validate the following when saving form settings
+        $rules[] = [['boardId', 'listId', 'cardName', 'cardDescription'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
     }
 
 

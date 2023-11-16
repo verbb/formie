@@ -20,9 +20,6 @@ class VCita extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'vCita');
@@ -43,27 +40,6 @@ class VCita extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your vCita customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        $client = $this->getFormSettingValue('client');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
-                return $model->enabled && $model->mapToClient;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -209,6 +185,28 @@ class VCita extends Crm
                 'Content-Type' => 'application/json',
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $client = $this->getFormSettingValue('client');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
+                return $model->enabled && $model->mapToClient;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

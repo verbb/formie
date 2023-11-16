@@ -34,9 +34,6 @@ class Pardot extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Pardot');
@@ -89,40 +86,6 @@ class Pardot extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret', 'businessUnitId'], 'required'];
-
-        $prospect = $this->getFormSettingValue('prospect');
-        $opportunity = $this->getFormSettingValue('opportunity');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
-                return $model->enabled && $model->mapToProspect;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['endpointUrl'], 'required', 'when' => function($model) {
-                return $model->enabled && $model->enableFormHandler;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -596,6 +559,41 @@ class Pardot extends Crm
         $this->trigger(self::EVENT_MODIFY_FORM_HANDLER_PAYLOAD, $event);
 
         return $event->payload;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret', 'businessUnitId'], 'required'];
+
+        $prospect = $this->getFormSettingValue('prospect');
+        $opportunity = $this->getFormSettingValue('opportunity');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
+                return $model->enabled && $model->mapToProspect;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['endpointUrl'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->enableFormHandler;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

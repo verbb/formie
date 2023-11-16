@@ -37,12 +37,6 @@ class FormsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * Shows all the forms in a list.
-     *
-     * @return Response
-     * @throws ForbiddenHttpException
-     */
     public function actionIndex(): Response
     {
         $this->requirePermission('formie-viewForms');
@@ -50,13 +44,6 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/index', []);
     }
 
-    /**
-     * Creates a new form with a pretty interface.
-     *
-     * @param Form|null $form
-     * @return Response
-     * @throws ForbiddenHttpException
-     */
     public function actionNew(Form $form = null): Response
     {
         $this->requirePermission('formie-createForms');
@@ -78,28 +65,9 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/_new', $variables);
     }
 
-    /**
-     * Renders the main form builder interface.
-     *
-     * @param int|null $formId
-     * @param string|null $siteHandle
-     * @param Form|null $form
-     * @return Response
-     * @throws ForbiddenHttpException
-     * @throws NotFoundHttpException
-     * @throws Throwable
-     */
     public function actionEdit(int $formId = null, string $siteHandle = null, Form $form = null): Response
     {
         $variables = compact('formId', 'form');
-
-        if ($siteHandle !== null) {
-            $variables['site'] = Craft::$app->getSites()->getSiteByHandle($siteHandle);
-
-            if (!$variables['site']) {
-                throw new NotFoundHttpException('Invalid site handle: ' . $siteHandle);
-            }
-        }
 
         $this->requirePermission('formie-viewForms');
 
@@ -131,17 +99,14 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/_edit', $variables);
     }
 
-    /**
-     * Saves a form.
-     *
-     * @throws Throwable
-     */
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+
         $settings = Formie::$plugin->getSettings();
 
         $form = Formie::$plugin->getForms()->buildFormFromPost();
+
         $duplicate = (bool)$this->request->getParam('duplicate');
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
@@ -219,11 +184,6 @@ class FormsController extends Controller
         return $this->redirectToPostedUrl($form);
     }
 
-    /**
-     * Creates a new Stencil from a form.
-     *
-     * @throws Throwable
-     */
     public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
@@ -320,9 +280,6 @@ class FormsController extends Controller
         return $this->redirectToPostedUrl($stencil);
     }
 
-    /**
-     * @throws Throwable
-     */
     public function actionDeleteForm(): ?Response
     {
         $this->requirePostRequest();

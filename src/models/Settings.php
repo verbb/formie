@@ -162,9 +162,6 @@ class Settings extends Model
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

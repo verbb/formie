@@ -21,9 +21,6 @@ class GetResponse extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'GetResponse');
@@ -41,18 +38,6 @@ class GetResponse extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your GetResponse lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -171,6 +156,19 @@ class GetResponse extends EmailMarketing
             'base_uri' => 'https://api.getresponse.com/v3/',
             'headers' => ['X-Auth-Token' => 'api-key ' . App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 
 

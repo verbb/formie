@@ -17,11 +17,9 @@ use GraphQL\Type\Definition\Type;
 
 class FileUploadInputType extends InputObjectType
 {
-    /**
-     * Create the type for a file upload field.
-     *
-     * @return bool|mixed
-     */
+    // Static Methods
+    // =========================================================================
+
     public static function getType($context)
     {
         $typeName = 'FileUploadInput';
@@ -55,12 +53,6 @@ class FileUploadInputType extends InputObjectType
         return Type::listOf($argumentType);
     }
 
-    /**
-     * Normalize GraphQL input data to what Formie expects.
-     *
-     * @param $value
-     * @return mixed
-     */
     public static function normalizeValue($values)
     {
         $assetIds = [];

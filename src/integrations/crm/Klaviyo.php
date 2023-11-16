@@ -19,9 +19,6 @@ class Klaviyo extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Klaviyo');
@@ -43,27 +40,6 @@ class Klaviyo extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Klaviyo customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
-
-        $profile = $this->getFormSettingValue('profile');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['profileFieldMapping'], 'validateFieldMapping', 'params' => $profile, 'when' => function($model) {
-                return $model->enabled && $model->mapToProfile;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -174,5 +150,27 @@ class Klaviyo extends Crm
                 'api_key' => App::parseEnv($this->privateApiKey),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
+
+        $profile = $this->getFormSettingValue('profile');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['profileFieldMapping'], 'validateFieldMapping', 'params' => $profile, 'when' => function($model) {
+                return $model->enabled && $model->mapToProfile;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 }

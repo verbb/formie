@@ -26,6 +26,7 @@ class IntegrationsController extends Controller
 
     public const EVENT_AFTER_OAUTH_CALLBACK = 'afterOauthCallback';
 
+
     // Properties
     // =========================================================================
 
@@ -36,14 +37,7 @@ class IntegrationsController extends Controller
 
     // Public Methods
     // =========================================================================
-    /**
-     * Saves an integration.
-     *
-     * @return Response|null
-     * @throws BadRequestHttpException
-     * @throws Throwable
-     * @throws UnknownPropertyException
-     */
+
     public function actionSaveIntegration(): ?Response
     {
         $savedIntegration = null;
@@ -96,9 +90,6 @@ class IntegrationsController extends Controller
         return $this->redirectToPostedUrl($integration);
     }
 
-    /**
-     * Reorders integrations.
-     */
     public function actionReorderIntegrations(): Response
     {
         $this->requirePostRequest();
@@ -110,9 +101,6 @@ class IntegrationsController extends Controller
         return $this->asJson(['success' => true]);
     }
 
-    /**
-     * Deletes an integration.
-     */
     public function actionDeleteIntegration(): Response
     {
         $this->requirePostRequest();

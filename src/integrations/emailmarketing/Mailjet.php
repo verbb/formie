@@ -25,37 +25,16 @@ class Mailjet extends EmailMarketing
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Mailjet');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Mailjet lists to grow your audience for campaigns.');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'secretKey'], 'required'];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function fetchFormSettings()
     {
         $settings = [];
@@ -98,9 +77,6 @@ class Mailjet extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -132,9 +108,6 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -154,9 +127,6 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getClient()
     {
         if ($this->_client) {
@@ -170,12 +140,22 @@ class Mailjet extends EmailMarketing
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'secretKey'], 'required'];
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -189,9 +169,6 @@ class Mailjet extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];

@@ -40,9 +40,6 @@ class MicrosoftDynamics365 extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Microsoft Dynamics 365');
@@ -111,55 +108,6 @@ class MicrosoftDynamics365 extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Microsoft Dynamics 365 customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-        $lead = $this->getFormSettingValue('lead');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $account = $this->getFormSettingValue('account');
-        $incident = $this->getFormSettingValue('incident');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-                return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-                return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['incidentFieldMapping'], 'validateFieldMapping', 'params' => $incident, 'when' => function($model) {
-                return $model->enabled && $model->mapToIncident;
-            }, 'on' => [Integration::SCENARIO_FORM]
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -425,6 +373,52 @@ class MicrosoftDynamics365 extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+        $lead = $this->getFormSettingValue('lead');
+        $opportunity = $this->getFormSettingValue('opportunity');
+        $account = $this->getFormSettingValue('account');
+        $incident = $this->getFormSettingValue('incident');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['incidentFieldMapping'], 'validateFieldMapping', 'params' => $incident, 'when' => function($model) {
+                return $model->enabled && $model->mapToIncident;
+            }, 'on' => [Integration::SCENARIO_FORM]
+        ];
+
+        return $rules;
+    }
+
     protected function convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -440,6 +434,10 @@ class MicrosoftDynamics365 extends Crm
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _getEntityFields($entity): array
     {
@@ -785,25 +783,11 @@ class MicrosoftDynamics365 extends Crm
         }
     }
 
-    /**
-     * Formats lookup values as entityname(GUID)
-     *
-     * @param $entity
-     * @param $value
-     * @return string
-     */
     private function _formatLookupValue($entity, $value): string
     {
         return $entity . '(' . $value . ')';
     }
 
-    /**
-     * Format EntityDefintions uri request path
-     *
-     * @param $entity
-     * @param $type
-     * @return string
-     */
     private function _getEntityDefinitionsUri($entity, $type = null): string
     {
         $path = "EntityDefinitions(LogicalName='$entity')";

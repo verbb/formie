@@ -29,9 +29,6 @@ class AWeber extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'AWeber');
@@ -97,18 +94,6 @@ class AWeber extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your AWeber lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -222,9 +207,6 @@ class AWeber extends EmailMarketing
         return true;
     }
 
-    /**
-     * @throws IntegrationException
-     */
     public function getClient(): Client
     {
         if ($this->_client) {
@@ -266,5 +248,18 @@ class AWeber extends EmailMarketing
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
+
+        return $rules;
     }
 }

@@ -22,26 +22,17 @@ class DuplicateForm extends Duplicate
     // Properties
     // =========================================================================
 
-    /**
-     * @var string|null The message that should be shown after the elements get deleted
-     */
     public ?string $successMessage = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerLabel(): string
     {
         return Craft::t('app', 'Duplicate');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function performAction(ElementQueryInterface $query): bool
     {
         $elements = $query->all();
@@ -65,14 +56,6 @@ class DuplicateForm extends Duplicate
         return true;
     }
 
-    /**
-     * @param ElementQueryInterface $query
-     * @param ElementInterface[] $elements
-     * @param int[] $duplicatedElementIds
-     * @param int $successCount
-     * @param int $failCount
-     * @param ElementInterface|null $newParent
-     */
     private function _duplicateElements(ElementQueryInterface $query, array $elements, int &$successCount, int &$failCount): void
     {
         $elementsService = Craft::$app->getElements();

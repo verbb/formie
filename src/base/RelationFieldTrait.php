@@ -190,9 +190,6 @@ trait RelationFieldTrait
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeFieldConfig(): array
     {
         // Use all the same settings from this field, but remove any invalid ones
@@ -238,9 +235,6 @@ trait RelationFieldTrait
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();
@@ -327,11 +321,6 @@ trait RelationFieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * Returns the sources that should be available to choose from within the field's settings
-     *
-     * @return array
-     */
     protected function availableSources(): array
     {
         // Include disabled sources, for the moment. We might tighten this up to checking if "All entries" is disabled.
@@ -436,13 +425,6 @@ trait RelationFieldTrait
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a clone of the element query value, prepped to include disabled and cross-site elements.
-     *
-     * @param ElementQueryInterface $query
-     * @param ElementInterface|null $element
-     * @return ElementQueryInterface
-     */
     private function _all(ElementQueryInterface $query, ?ElementInterface $element = null): ElementQueryInterface
     {
         $clone = clone $query;

@@ -67,9 +67,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function isSelectable(): bool
     {
         return false;
@@ -205,9 +202,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function scenarios(): array
     {
         $scenarios = parent::scenarios();
@@ -252,9 +246,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         return '';
@@ -792,8 +783,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // =========================================================================
 
     /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

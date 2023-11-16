@@ -53,49 +53,21 @@ abstract class Captcha extends Integration
         ]);
     }
 
-    /**
-     * Returns the frontend HTML.
-     *
-     * @param Form $form
-     * @param null $page
-     * @return string
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return '';
     }
 
-    /**
-     * Returns the front-end JS.
-     *
-     * @param Form $form
-     * @param null $page
-     * @return array|null
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         return null;
     }
 
-    /**
-     * Some captchas require tokens to be refreshed for static caching. You should return any
-     * variables used in `getFrontEndJsVariables()` here for the refresh-token action to return.
-     *
-     * @param Form $form
-     * @param null $page
-     * @return array|null
-     */
     public function getRefreshJsVariables(Form $form, $page = null): ?array
     {
         return null;
     }
 
-    /**
-     * Validates the submission.
-     *
-     * @param Submission $submission
-     * @return bool
-     */
     public function validateSubmission(Submission $submission): bool
     {
         return true;

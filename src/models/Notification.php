@@ -63,9 +63,6 @@ class Notification extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -90,50 +87,16 @@ class Notification extends Model
         }
     }
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         return (string)$this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['name', 'subject'], 'required'];
-        $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender'], 'string'];
-        $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
-
-        $rules[] = [
-            ['to'], 'required', 'when' => function($model) {
-                return $model->recipients === self::RECIPIENTS_EMAIL;
-            },
-        ];
-
-        return $rules;
-    }
-
-    /**
-     * Parses the JSON content and renders it as HTML.
-     *
-     * @return string
-     */
     public function getParsedContent(): string
     {
         return RichTextHelper::getHtmlContent($this->content, null, false);
     }
 
-    /**
-     * Returns the notification's recipients.
-     *
-     * @param $submission
-     * @return string
-     */
     public function getToEmail($submission): ?string
     {
         if ($this->recipients === self::RECIPIENTS_EMAIL) {
@@ -159,15 +122,6 @@ class Notification extends Model
         return null;
     }
 
-    /**
-     * Returns the template path for an email component.
-     *
-     * @param array|string $components can be 'form', 'page' or ['field1', 'field2'].
-     * @param array $variables any variables to use with `$view->renderTemplate()`.
-     * @return string
-     * @throws Exception
-     * @throws LoaderError
-     */
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
@@ -216,11 +170,6 @@ class Notification extends Model
         return '';
     }
 
-    /**
-     * Returns the notification's template, or null if not set.
-     *
-     * @return EmailTemplate|null
-     */
     public function getTemplate(): ?EmailTemplate
     {
         if (!$this->_template) {
@@ -234,11 +183,6 @@ class Notification extends Model
         return $this->_template;
     }
 
-    /**
-     * Sets the email template.
-     *
-     * @param EmailTemplate|null $template
-     */
     public function setTemplate(?EmailTemplate $template): void
     {
         if ($template) {
@@ -249,11 +193,6 @@ class Notification extends Model
         }
     }
 
-    /**
-     * Returns the notification's PDF template, or null if not set.
-     *
-     * @return PdfTemplate|null
-     */
     public function getPdfTemplate(): ?PdfTemplate
     {
         if (!$this->_pdfTemplate) {
@@ -267,11 +206,6 @@ class Notification extends Model
         return $this->_pdfTemplate;
     }
 
-    /**
-     * Sets the PDF template.
-     *
-     * @param PdfTemplate|null $template
-     */
     public function setPdfTemplate(?PdfTemplate $template): void
     {
         if ($template) {
@@ -299,5 +233,26 @@ class Notification extends Model
         $settings = Formie::$plugin->getSettings();
 
         return Craft::t('formie', $settings->emptyValuePlaceholder);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['name', 'subject'], 'required'];
+        $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender'], 'string'];
+        $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
+
+        $rules[] = [
+            ['to'], 'required', 'when' => function($model) {
+                return $model->recipients === self::RECIPIENTS_EMAIL;
+            },
+        ];
+
+        return $rules;
     }
 }

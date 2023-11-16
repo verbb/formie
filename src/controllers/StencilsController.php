@@ -26,9 +26,6 @@ class StencilsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return Response
-     */
     public function actionIndex(): Response
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
@@ -36,12 +33,6 @@ class StencilsController extends Controller
         return $this->renderTemplate('formie/settings/stencils', compact('stencils'));
     }
 
-    /**
-     * Creates a new stencil with a pretty interface.
-     *
-     * @param Stencil|null $stencil
-     * @return Response|null
-     */
     public function actionNew(Stencil $stencil = null): ?Response
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
@@ -60,13 +51,6 @@ class StencilsController extends Controller
         return $this->renderTemplate('formie/settings/stencils/_new', $variables);
     }
 
-    /**
-     * @param int|null $id
-     * @param Stencil|null $stencil
-     * @return Response
-     * @throws HttpException
-     * @throws InvalidConfigException
-     */
     public function actionEdit(int $id = null, Stencil $stencil = null): Response
     {
         $variables = compact('id', 'stencil');
@@ -123,10 +107,6 @@ class StencilsController extends Controller
         return $this->renderTemplate('formie/settings/stencils/_edit', $variables);
     }
 
-    /**
-     * @return Response|null
-     * @throws Throwable
-     */
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
@@ -250,10 +230,6 @@ class StencilsController extends Controller
         return $this->redirectToPostedUrl($stencil);
     }
 
-    /**
-     * @return Response
-     * @throws Throwable
-     */
     public function actionDelete(): Response
     {
         $this->requireAcceptsJson();

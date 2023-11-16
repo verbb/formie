@@ -34,9 +34,6 @@ class Honeypot extends Captcha
         return Craft::t('formie', 'Check for bots that auto-fill forms, by providing an additional hidden field that should be left blank.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -51,9 +48,6 @@ class Honeypot extends Captcha
         return $output;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRefreshJsVariables(Form $form, $page = null): array
     {
         return [
@@ -62,9 +56,6 @@ class Honeypot extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
         // The honeypot field must be left blank

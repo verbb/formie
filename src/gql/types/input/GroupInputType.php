@@ -12,12 +12,6 @@ class GroupInputType extends InputObjectType
     // Static Methods
     // =========================================================================
 
-    /**
-     * Create the type for a Group form field
-     *
-     * @param GroupField $context
-     * @return bool|mixed
-     */
     public static function getType(GroupField $context): mixed
     {
         /** @var GroupField $context */
@@ -45,12 +39,6 @@ class GroupInputType extends InputObjectType
         ]));
     }
 
-    /**
-     * Normalize input data to what Formie expects.
-     *
-     * @param $value
-     * @return mixed
-     */
     public static function normalizeValue(mixed $value): mixed
     {
         return [

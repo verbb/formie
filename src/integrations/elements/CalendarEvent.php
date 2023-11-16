@@ -41,9 +41,6 @@ class CalendarEvent extends Element
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -56,44 +53,16 @@ class CalendarEvent extends Element
         });
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Calendar Event');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create Solspace Calendar Event elements.');
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        // Validate the following when saving form settings
-        $rules[] = [['calendarId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        $fields = $this->_getCalendarSettings()->fields ?? [];
-
-        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-            return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function fetchFormSettings()
     {
         $customFields = [];
@@ -127,9 +96,6 @@ class CalendarEvent extends Element
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementAttributes()
     {
         return [
@@ -213,9 +179,6 @@ class CalendarEvent extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUpdateAttributes()
     {
         $attributes = [];
@@ -260,9 +223,6 @@ class CalendarEvent extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission)
     {
         if (!$this->calendarId) {
@@ -355,9 +315,6 @@ class CalendarEvent extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthor($form)
     {
         $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
@@ -374,12 +331,29 @@ class CalendarEvent extends Element
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        // Validate the following when saving form settings
+        $rules[] = [['calendarId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        $fields = $this->_getCalendarSettings()->fields ?? [];
+
+        $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+            return $model->enabled;
+        }, 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getCalendarSettings()
     {
         $calendars = $this->getFormSettingValue('elements');

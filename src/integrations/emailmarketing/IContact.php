@@ -21,9 +21,6 @@ class IContact extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'iContact');
@@ -45,18 +42,6 @@ class IContact extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your iContact lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['appId', 'password', 'username', 'accountId', 'clientFolderId'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -247,6 +232,19 @@ class IContact extends EmailMarketing
                 'API-Password' => App::parseEnv($this->password),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['appId', 'password', 'username', 'accountId', 'clientFolderId'], 'required'];
+
+        return $rules;
     }
 
 

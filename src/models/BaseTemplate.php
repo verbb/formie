@@ -40,19 +40,11 @@ abstract class BaseTemplate extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         return $this->getDisplayName();
     }
 
-    /**
-     * Gets the display name for the template.
-     *
-     * @return string
-     */
     public function getDisplayName(): string
     {
         if ($this->dateDeleted !== null) {
@@ -62,10 +54,11 @@ abstract class BaseTemplate extends Model
         return $this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
     {
         $rules = parent::defineRules();
 
@@ -114,10 +107,5 @@ abstract class BaseTemplate extends Model
         return $rules;
     }
 
-    /**
-     * Returns the class of the template active record.
-     *
-     * @return string
-     */
     abstract protected function getRecordClass(): string;
 }

@@ -23,9 +23,6 @@ class Address extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         if ($this->autocomplete) {

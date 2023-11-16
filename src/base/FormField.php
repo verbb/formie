@@ -23,18 +23,12 @@ abstract class FormField extends Field implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
     public bool $searchable = true;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __set($name, $value)
     {
         // Prevent deprecated (removed) model attributes from killing things, particularly when migrating to actually
@@ -51,9 +45,6 @@ abstract class FormField extends Field implements FormFieldInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
@@ -63,9 +54,6 @@ abstract class FormField extends Field implements FormFieldInterface
         return parent::getContentColumnType();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementValidationRules(): array
     {
         // These are already populated with base Field rules
@@ -76,9 +64,6 @@ abstract class FormField extends Field implements FormFieldInterface
     // Protected
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         // These are already populated with base Field rules

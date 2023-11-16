@@ -18,9 +18,6 @@ class StatusesController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return Response
-     */
     public function actionIndex(): Response
     {
         $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
@@ -28,12 +25,6 @@ class StatusesController extends Controller
         return $this->renderTemplate('formie/settings/statuses', compact('statuses'));
     }
 
-    /**
-     * @param int|null $id
-     * @param Status|null $status
-     * @return Response
-     * @throws HttpException
-     */
     public function actionEdit(int $id = null, Status $status = null): Response
     {
         $variables = compact('id', 'status');
@@ -59,9 +50,6 @@ class StatusesController extends Controller
         return $this->renderTemplate('formie/settings/statuses/_edit', $variables);
     }
 
-    /**
-     * @throws Throwable
-     */
     public function actionSave(): void
     {
         $this->requirePostRequest();
@@ -86,10 +74,6 @@ class StatusesController extends Controller
         Craft::$app->getUrlManager()->setRouteParams(compact('status'));
     }
 
-    /**
-     * @return Response
-     * @throws Throwable
-     */
     public function actionReorder(): Response
     {
         $this->requirePostRequest();
@@ -103,10 +87,6 @@ class StatusesController extends Controller
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder statuses.')]);
     }
 
-    /**
-     * @return Response
-     * @throws Throwable
-     */
     public function actionDelete(): Response
     {
         $this->requireAcceptsJson();

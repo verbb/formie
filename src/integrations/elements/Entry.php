@@ -24,9 +24,6 @@ class Entry extends Element
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Entry');
@@ -47,28 +44,6 @@ class Entry extends Element
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create Entry elements.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        // Validate the following when saving form settings
-        $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        // Find the field for the entry type - a little trickier due to nested in sections
-        $fields = $this->_getEntryTypeSettings()->fields ?? [];
-
-        $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-                return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -342,6 +317,29 @@ class Entry extends Element
         }
 
         return [Craft::$app->getUser()->getIdentity()];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        // Validate the following when saving form settings
+        $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        // Find the field for the entry type - a little trickier due to nested in sections
+        $fields = $this->_getEntryTypeSettings()->fields ?? [];
+
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

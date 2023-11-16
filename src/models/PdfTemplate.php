@@ -19,33 +19,11 @@ class PdfTemplate extends BaseTemplate
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = ['template', 'required'];
-
-        return $rules;
-    }
-
-    /**
-     * Returns the CP URL for editing the template.
-     *
-     * @return string
-     */
-    public function getCpEditUrl(): string
+    public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/settings/pdf-templates/edit/' . $this->id);
     }
 
-    /**
-     * Returns true if the template is allowed to be deleted.
-     *
-     * @return bool
-     */
     public function canDelete(): bool
     {
         $notifications = Formie::$plugin->getNotifications()->getAllNotifications();
@@ -54,11 +32,6 @@ class PdfTemplate extends BaseTemplate
         return !$notification;
     }
 
-    /**
-     * Returns the template’s config.
-     *
-     * @return array
-     */
     public function getConfig(): array
     {
         return [
@@ -73,5 +46,18 @@ class PdfTemplate extends BaseTemplate
     protected function getRecordClass(): string
     {
         return PdfTemplateRecord::class;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = ['template', 'required'];
+
+        return $rules;
     }
 }

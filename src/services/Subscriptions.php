@@ -51,71 +51,31 @@ class Subscriptions extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all subscriptions.
-     *
-     * @return Subscription[]
-     */
     public function getAllSubscriptions(): array
     {
         return $this->_subscriptions()->all();
     }
 
-    /**
-     * Returns a subscription identified by its ID.
-     *
-     * @param int $id
-     * @return Subscription|null
-     */
     public function getSubscriptionById(int $id): ?Subscription
     {
         return $this->_subscriptions()->firstWhere('id', $id);
     }
 
-    /**
-     * Returns a subscription identified by its reference.
-     *
-     * @param string $reference
-     * @return Subscription|null
-     */
     public function getSubscriptionByReference(string $reference): ?Subscription
     {
         return $this->_subscriptions()->firstWhere('reference', $reference);
     }
 
-    /**
-     * Returns a subscription identified by its submission ID.
-     *
-     * @param submission $submission
-     * @return Subscription|null
-     */
     public function getSubmissionSubscriptions(Submission $submission): array
     {
         return $this->_subscriptions()->where('submissionId', $submission->id)->all();
     }
 
-    /**
-     * Returns a subscription identified by its UID.
-     *
-     * @param string $uid
-     * @return Subscription|null
-     */
     public function getSubscriptionByUid(string $uid): ?Subscription
     {
         return $this->_subscriptions()->firstWhere('uid', $uid, true);
     }
 
-    /**
-     * Saves the subscription.
-     *
-     * @param Subscription $subscription
-     * @param bool $runValidation
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function saveSubscription(Subscription $subscription, bool $runValidation = true): bool
     {
         $isNewSubscription = !(bool)$subscription->id;
@@ -178,13 +138,6 @@ class Subscriptions extends Component
         return true;
     }
 
-    /**
-     * Delete a subscription by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteSubscriptionById(int $id): bool
     {
         $subscription = $this->getSubscriptionById($id);
@@ -196,12 +149,6 @@ class Subscriptions extends Component
         return $this->deleteSubscription($subscription);
     }
 
-    /**
-     * Deletes a subscription.
-     *
-     * @param Subscription $subscription The subscription
-     * @return bool Whether the subscription was deleted successfully
-     */
     public function deleteSubscription(Subscription $subscription): bool
     {
         // Fire a 'beforeDeleteSubscription' event
@@ -228,16 +175,6 @@ class Subscriptions extends Component
         return true;
     }
 
-    /**
-     * Expire a subscription.
-     *
-     * @param Subscription $subscription subscription to expire
-     * @param DateTime|null $dateTime expiry date time
-     * @return bool whether successfully expired subscription
-     * @throws ElementNotFoundException
-     * @throws Exception
-     * @throws Throwable if cannot expire subscription
-     */
     public function expireSubscription(Subscription $subscription, DateTime $dateTime = null): bool
     {
         $subscription->isExpired = true;
@@ -259,13 +196,6 @@ class Subscriptions extends Component
         return true;
     }
 
-    /**
-     * Update a subscription.
-     *
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws Exception
-     */
     public function updateSubscription(Subscription $subscription): bool
     {
         if ($this->hasEventHandlers(self::EVENT_BEFORE_UPDATE_SUBSCRIPTION)) {
@@ -277,13 +207,6 @@ class Subscriptions extends Component
         return $this->saveSubscription($subscription);
     }
 
-    /**
-     * Receive a payment for a subscription
-     *
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws Exception
-     */
     public function receivePayment(Subscription $subscription, DateTime $paidUntil): bool
     {
         if ($this->hasEventHandlers(self::EVENT_RECEIVE_SUBSCRIPTION_PAYMENT)) {
@@ -301,11 +224,6 @@ class Subscriptions extends Component
     // Private Methods
     // =========================================================================
     
-    /**
-     * Returns a memoizable array of all subscriptions.
-     *
-     * @return MemoizableArray<Subscription>
-     */
     private function _subscriptions(): MemoizableArray
     {
         if (!isset($this->_subscriptions)) {
@@ -321,12 +239,6 @@ class Subscriptions extends Component
         return $this->_subscriptions;
     }
 
-    /**
-     * Returns a Query object prepped for retrieving subscriptions.
-     *
-     * @param bool $withTrashed
-     * @return Query
-     */
     private function _createSubscriptionsQuery(): Query
     {
         return (new Query())
@@ -355,13 +267,6 @@ class Subscriptions extends Component
             ->from(['{{%formie_payments_subscriptions}}']);
     }
 
-    /**
-     * Gets a subscription record by its ID, or a new subscription record
-     * if it wasn't provided or was not found.
-     *
-     * @param int|string|null $id
-     * @return SubscriptionRecord
-     */
     private function _getSubscriptionRecord(int|string|null $id): SubscriptionRecord
     {
         /** @var SubscriptionRecord $subscription */

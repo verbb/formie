@@ -53,17 +53,11 @@ class Users extends CraftUsers implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Users');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/users/icon.svg';
@@ -83,9 +77,6 @@ class Users extends CraftUsers implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Config normalization
@@ -138,9 +129,6 @@ class Users extends CraftUsers implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/users/preview', [
@@ -148,9 +136,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -162,9 +147,6 @@ class Users extends CraftUsers implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -173,11 +155,6 @@ class Users extends CraftUsers implements FormFieldInterface
         return $this->traitGetEmailHtml($submission, $notification, $value, $renderOptions);
     }
 
-    /**
-     * Returns the list of selectable users.
-     *
-     * @return ElementQueryInterface
-     */
     public function getElementsQuery(): ElementQueryInterface
     {
         $query = User::find();
@@ -295,9 +272,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -336,9 +310,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -381,9 +352,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -410,9 +378,6 @@ class Users extends CraftUsers implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

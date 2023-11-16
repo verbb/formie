@@ -69,17 +69,11 @@ class RecentSubmissions extends Widget
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Recent Form Submissions');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function icon(): string
     {
         return Craft::getAlias('@verbb/formie/icon-mask.svg');
@@ -102,9 +96,6 @@ class RecentSubmissions extends Widget
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -120,27 +111,11 @@ class RecentSubmissions extends Widget
         }
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getTitle(): string
     {
         return $this->title ?: static::displayName();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function rules(): array
-    {
-        return [
-            [['formIds'], 'required'],
-        ];
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getBodyHtml(): ?string
     {
         $view = Craft::$app->getView();
@@ -212,9 +187,6 @@ class RecentSubmissions extends Widget
         return $view->renderTemplate('formie/widgets/submissions/body', $variables);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSettingsHtml(): string
     {
         $id = 'recent-submissions' . StringHelper::randomString();
@@ -232,6 +204,17 @@ class RecentSubmissions extends Widget
             'widget' => $this,
             'formOptions' => $formOptions,
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        return [
+            [['formIds'], 'required'],
+        ];
     }
 
 

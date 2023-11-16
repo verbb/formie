@@ -19,9 +19,6 @@ class Mercury extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Mercury');
@@ -50,45 +47,9 @@ class Mercury extends Crm
         return Craft::t('formie', 'Manage your Mercury customers by providing important information on their conversion on your site.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseUat(): string
     {
         return App::parseBooleanEnv($this->useUat);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'apiToken'], 'required'];
-
-        // Require URLs for public Volumes.
-        if ($this->getUseUat()) {
-            $rules[] = [['uatKey', 'uatToken'], 'required'];
-        }
-
-        $contact = $this->getFormSettingValue('contact');
-        $opportunity = $this->getFormSettingValue('opportunity');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -475,6 +436,40 @@ class Mercury extends Crm
                 'x-api-key' => $apiKey,
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'apiToken'], 'required'];
+
+        // Require URLs for public Volumes.
+        if ($this->getUseUat()) {
+            $rules[] = [['uatKey', 'uatToken'], 'required'];
+        }
+
+        $contact = $this->getFormSettingValue('contact');
+        $opportunity = $this->getFormSettingValue('opportunity');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

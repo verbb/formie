@@ -28,11 +28,6 @@ class SyncField extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the field.
-     *
-     * @return FormFieldInterface|null
-     */
     public function getField(): ?FormFieldInterface
     {
         if (!$this->_field) {
@@ -42,11 +37,6 @@ class SyncField extends Model
         return $this->_field;
     }
 
-    /**
-     * Sets the field.
-     *
-     * @param FormFieldInterface $field
-     */
     public function setField(FormFieldInterface $field): void
     {
         /* @var FormField $field */
@@ -54,11 +44,6 @@ class SyncField extends Model
         $this->_field = $field;
     }
 
-    /**
-     * Returns the reference.
-     *
-     * @return Sync|null
-     */
     public function getSync(): ?Sync
     {
         if (!$this->_sync) {
@@ -68,11 +53,6 @@ class SyncField extends Model
         return $this->_sync;
     }
 
-    /**
-     * Sets the sync.
-     *
-     * @param Sync $sync
-     */
     public function setSync(Sync $sync): void
     {
         $this->syncId = $sync->id;

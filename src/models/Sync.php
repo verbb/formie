@@ -27,11 +27,6 @@ class Sync extends Model
         $this->getCustomFields();
     }
 
-    /**
-     * Returns this sync's fields.
-     *
-     * @return SyncField[]
-     */
     public function getCustomFields(): array
     {
         if (!$this->_fields) {
@@ -41,21 +36,11 @@ class Sync extends Model
         return $this->_fields;
     }
 
-    /**
-     * Returns whether the sync contains any fields.
-     *
-     * @return bool
-     */
     public function hasFields(): bool
     {
         return count($this->getCustomFields()) > 1;
     }
 
-    /**
-     * Adds a field to this sync.
-     *
-     * @param FormFieldInterface $field
-     */
     public function addField(FormFieldInterface $field): void
     {
         /* @var FormField $field */

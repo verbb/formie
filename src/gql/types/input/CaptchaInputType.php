@@ -8,11 +8,6 @@ use GraphQL\Type\Definition\Type;
 
 class CaptchaInputType extends InputObjectType
 {
-    /**
-     * Create the type for a name field.
-     *
-     * @return bool|mixed
-     */
     public static function getType(): mixed
     {
         $typeName = 'FormieCaptchaInput';

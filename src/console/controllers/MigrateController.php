@@ -18,18 +18,12 @@ class MigrateController extends Controller
     // Properties
     // =========================================================================
 
-    /**
-     * @var string|null The form handle(s) to migrate. Can be set to multiple comma-separated handles.
-     */
     public ?string $formHandle = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID)
     {
         $options = parent::options($actionID);
@@ -39,12 +33,6 @@ class MigrateController extends Controller
         return $options;
     }
 
-    /**
-     * Migrates Sprout Forms forms, notifications and submissions.
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionMigrateSproutForms(): int
     {
         $formIds = SproutFormsForm::find()->ids();
@@ -66,12 +54,6 @@ class MigrateController extends Controller
         return ExitCode::OK;
     }
 
-    /**
-     * Migrates Freeform forms, notifications and submissions.
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionMigrateFreeform(): int
     {
         $formIds = Freeform::getInstance()->forms->getAllFormIds();

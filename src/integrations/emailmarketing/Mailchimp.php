@@ -22,9 +22,6 @@ class Mailchimp extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Mailchimp');
@@ -44,18 +41,6 @@ class Mailchimp extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Mailchimp lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -279,6 +264,19 @@ class Mailchimp extends EmailMarketing
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
+    }
+
+
     // Private Methods
     // =========================================================================
 
@@ -342,12 +340,6 @@ class Mailchimp extends EmailMarketing
         return $customFields;
     }
 
-    /**
-     * Returns a list of existing contact tags.
-     *
-     * @param string $emailHash
-     * @return string[]
-     */
     private function _getExistingTags(string $emailHash): array
     {
         $response = $this->request('GET', "lists/{$this->listId}/members/{$emailHash}/tags");

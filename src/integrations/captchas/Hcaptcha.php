@@ -39,9 +39,6 @@ class Hcaptcha extends Captcha
         return Craft::t('formie', 'hCaptcha is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative. Find out more via [hCaptcha](https://www.hcaptcha.com/).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_plugin-settings', [
@@ -58,9 +55,6 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
@@ -69,9 +63,6 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
@@ -94,9 +85,6 @@ class Hcaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRefreshJsVariables(Form $form, $page = null): array
     {
         return [
@@ -106,9 +94,6 @@ class Hcaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
         $response = $this->getRequestParam('h-captcha-response');

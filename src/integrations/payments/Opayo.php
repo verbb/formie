@@ -54,17 +54,11 @@ class Opayo extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Opayo');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function supportsCallbacks(): bool
     {
         return true;
@@ -106,17 +100,11 @@ class Opayo extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with Opayo.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml($field, $renderOptions): string
     {
         if (!$this->hasValidSettings()) {
@@ -131,9 +119,6 @@ class Opayo extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -158,38 +143,17 @@ class Opayo extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['vendorName', 'integrationKey', 'integrationPassword'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getAmount($submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCurrency($submission): ?string
     {
         return (string)$this->getFieldSetting('currency');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $response = null;
@@ -351,9 +315,6 @@ class Opayo extends Payment
         return $result;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function processCallback(): Response
     {
         $request = Craft::$app->getRequest();
@@ -464,9 +425,6 @@ class Opayo extends Payment
         return $callbackResponse;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -497,9 +455,6 @@ class Opayo extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -556,9 +511,6 @@ class Opayo extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -690,6 +642,19 @@ class Opayo extends Payment
         Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
 
         return $event->rows;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['vendorName', 'integrationKey', 'integrationPassword'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
     }
 
 

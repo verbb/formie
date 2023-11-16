@@ -30,9 +30,6 @@ class Snaptcha extends Captcha
         return Craft::t('formie', 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $model = new SnaptchaModel();
@@ -42,9 +39,6 @@ class Snaptcha extends Captcha
         return '<input type="hidden" name="' . $fieldName . '" value="' . $fieldValue . '">';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRefreshJsVariables(Form $form, $page = null): array
     {
         $model = new SnaptchaModel();

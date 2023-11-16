@@ -22,9 +22,6 @@ class ActiveCampaign extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'ActiveCampaign');
@@ -43,18 +40,6 @@ class ActiveCampaign extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your ActiveCampaign lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'apiUrl'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -240,6 +225,19 @@ class ActiveCampaign extends EmailMarketing
             'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
             'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'apiUrl'], 'required'];
+
+        return $rules;
     }
 
 

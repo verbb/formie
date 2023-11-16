@@ -143,9 +143,6 @@ class FormSettings extends Model
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -283,24 +280,11 @@ class FormSettings extends Model
         return $enabledIntegrations;
     }
 
-    /**
-     * Gets the form's redirect URL.
-     *
-     * @param bool $checkLastPage
-     * @return String
-     * @throws LoaderError
-     * @throws SyntaxError
-     */
     public function getFormRedirectUrl(bool $checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
     }
 
-    /**
-     * Gets the form's redirect entry, or null if not set.
-     *
-     * @return Entry|null
-     */
     public function getRedirectEntry(): ?Entry
     {
         return $this->getForm()->getRedirectEntry();

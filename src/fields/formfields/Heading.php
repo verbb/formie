@@ -13,17 +13,11 @@ class Heading extends FormField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Heading');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/heading/icon.svg';
@@ -52,9 +46,6 @@ class Heading extends FormField
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return false;
@@ -82,9 +73,6 @@ class Heading extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/preview', [
@@ -92,9 +80,6 @@ class Heading extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -117,9 +102,6 @@ class Heading extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -152,9 +134,6 @@ class Heading extends FormField
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -18,33 +18,15 @@ class SentNotificationsController extends Controller
     // Properties
     // =========================================================================
 
-    /**
-     * @var string|null The form ID(s) to delete sent notifications for. Can be set to multiple comma-separated IDs.
-     */
     public ?string $formId = null;
-
-    /**
-     * @var string|null The form handle(s) to delete sent notifications for. Can be set to multiple comma-separated handles.
-     */
     public ?string $formHandle = null;
-
-    /**
-     * @var bool Whether to target all forms, instead of using `formId` or `formHandle` values.
-     */
     public bool $all = false;
-
-    /**
-     * @var bool Whether to hard-delete the sent notification elements.
-     */
     public bool $hardDelete = false;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID)
     {
         $options = parent::options($actionID);
@@ -59,12 +41,6 @@ class SentNotificationsController extends Controller
         return $options;
     }
 
-    /**
-     * Deletes all sent notifications.
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionDelete(): int
     {
         $formIds = null;

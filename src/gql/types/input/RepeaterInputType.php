@@ -14,12 +14,6 @@ class RepeaterInputType extends InputObjectType
     // Static Methods
     // =========================================================================
 
-    /**
-     * Create the type for a Repeater form field
-     *
-     * @param RepeaterField $context
-     * @return bool|mixed
-     */
     public static function getType(RepeaterField $context): mixed
     {
         /** @var RepeaterField $context */
@@ -59,12 +53,6 @@ class RepeaterInputType extends InputObjectType
         ]));
     }
 
-    /**
-     * Normalize input data to what Formie expects.
-     *
-     * @param $value
-     * @return mixed
-     */
     public static function normalizeValue($value): mixed
     {
         $preparedRows = [];

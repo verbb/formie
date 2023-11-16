@@ -56,17 +56,11 @@ class Stripe extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Stripe');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function supportsWebhooks(): bool
     {
         return true;
@@ -104,17 +98,11 @@ class Stripe extends Payment
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Provide payment capabilities for your forms with Stripe.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -141,38 +129,17 @@ class Stripe extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['publishableKey', 'secretKey'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getAmount($submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $result = false;
@@ -198,9 +165,6 @@ class Stripe extends Payment
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processSubscriptionPayment(Submission $submission): bool
     {
         $response = [];
@@ -347,9 +311,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processSinglePayment(Submission $submission): bool
     {
         $response = [];
@@ -525,9 +486,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function processWebhook(): Response
     {
         $rawData = Craft::$app->getRequest()->getRawBody();
@@ -593,9 +551,6 @@ class Stripe extends Payment
         return $response;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function cancelSubscription($reference, $params = [])
     {
         try {
@@ -627,9 +582,6 @@ class Stripe extends Payment
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -643,9 +595,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getStripe(): StripeClient
     {
         if ($this->_stripe) {
@@ -660,9 +609,6 @@ class Stripe extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -796,9 +742,6 @@ class Stripe extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -879,9 +822,6 @@ class Stripe extends Payment
     }
 
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -918,12 +858,15 @@ class Stripe extends Payment
     // Protected Methods
     // =========================================================================
 
-    /**
-     * Handle a created invoice.
-     *
-     * @param array $data
-     * @throws StripeException\ApiErrorException
-     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['publishableKey', 'secretKey'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
+    }
+
     protected function handleInvoiceCreated(array $data): void
     {
         $stripeInvoice = $data['data']['object'];
@@ -936,12 +879,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * Handle a successful invoice payment event.
-     *
-     * @param array $data
-     * @throws Throwable if something went wrong when processing the invoice
-     */
     protected function handleInvoiceSucceeded(array $data): void
     {
         $stripeInvoice = $data['data']['object'];
@@ -972,14 +909,6 @@ class Stripe extends Payment
         Formie::$plugin->getSubscriptions()->receivePayment($subscription, $nextPaymentDate);
     }
 
-    /**
-     * Handle a failed invoice by updating the subscription data for the subscription it failed.
-     *
-     * @param array $data
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws \yii\base\Exception
-     */
     protected function handleInvoiceFailed(array $data): void
     {
         $stripeInvoice = $data['data']['object'];
@@ -1008,12 +937,6 @@ class Stripe extends Payment
         Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
     }
 
-    /**
-     * Handle a deleted plan.
-     *
-     * @param array $data
-     * @throws InvalidConfigException If plan not available
-     */
     protected function handlePlanDeleted(array $data): void
     {
         $reference = $data['data']['object']['id'];
@@ -1027,34 +950,16 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * Handle a updated plan.
-     *
-     * @param array $data
-     * @throws InvalidConfigException If plan not available
-     */
     protected function handlePlanUpdated(array $data): void
     {
         // Nothing for now
     }
 
-    /**
-     * Handle a created subscription.
-     *
-     * @param array $data
-     * @throws Throwable
-     */
     protected function handleSubscriptionCreated(array $data): void
     {
         // Nothing for now
     }
 
-    /**
-     * Handle an expired subscription.
-     *
-     * @param array $data
-     * @throws Throwable
-     */
     protected function handleSubscriptionExpired(array $data): void
     {
         $stripeSubscription = $data['data']['object'];
@@ -1070,12 +975,6 @@ class Stripe extends Payment
         Formie::$plugin->getSubscriptions()->expireSubscription($subscription);
     }
 
-    /**
-     * Handle an updated subscription.
-     *
-     * @param array $data
-     * @throws Throwable
-     */
     protected function handleSubscriptionUpdated(array $data): void
     {
         $stripeSubscription = $data['data']['object'];
@@ -1112,9 +1011,6 @@ class Stripe extends Payment
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getOrCreatePlan(Submission $submission): mixed
     {
         $field = $this->getField();
@@ -1157,9 +1053,6 @@ class Stripe extends Payment
         return $plan;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getPlan($planId)
     {
         try {
@@ -1192,9 +1085,6 @@ class Stripe extends Payment
         }
     }
     
-    /**
-     * @inheritDoc
-     */
     private function _createPlan($payload)
     {
         try {
@@ -1231,9 +1121,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getCustomer(Submission $submission)
     {
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
@@ -1296,9 +1183,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
         $field = $this->getField();
@@ -1332,12 +1216,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * Set the various status properties on a Subscription by the subscription data set on it.
-     *
-     * @param Subscription $subscription
-     * @throws \Exception
-     */
     private function _setSubscriptionStatusData(Subscription $subscription): void
     {
         $data = $subscription->subscriptionData;

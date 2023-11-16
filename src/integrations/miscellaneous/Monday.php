@@ -27,9 +27,6 @@ class Monday extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Monday');
@@ -50,27 +47,6 @@ class Monday extends Miscellaneous
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Monday.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        $fields = $this->_getBoardSettings()->fields ?? [];
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-                return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -208,6 +184,28 @@ class Monday extends Miscellaneous
                 'Content-Type' => 'application/json',
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $fields = $this->_getBoardSettings()->fields ?? [];
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

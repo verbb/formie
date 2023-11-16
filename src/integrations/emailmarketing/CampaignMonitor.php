@@ -21,9 +21,6 @@ class CampaignMonitor extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Campaign Monitor');
@@ -43,18 +40,6 @@ class CampaignMonitor extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Campaign Monitor lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'clientId'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -190,6 +175,19 @@ class CampaignMonitor extends EmailMarketing
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
             'auth' => [App::parseEnv($this->apiKey), 'formie'],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'clientId'], 'required'];
+
+        return $rules;
     }
 
 

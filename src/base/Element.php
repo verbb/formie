@@ -90,6 +90,11 @@ abstract class Element extends Integration
         });
     }
 
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -97,9 +102,6 @@ abstract class Element extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/elements/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -117,11 +119,6 @@ abstract class Element extends Integration
             'integration' => $this,
             'form' => $form,
         ]);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
     }
 
     public function getFormSettings($useCache = true): IntegrationFormSettings|bool

@@ -47,25 +47,16 @@ trait FormFieldTrait
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function getFrontEndInputTemplatePath(): string
     {
         return 'fields/' . static::_getKebabName();
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getEmailTemplatePath(): string
     {
         return 'fields/' . static::_getKebabName();
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIcon(): string
     {
         if (static::getSvgIconPath()) {
@@ -75,17 +66,11 @@ trait FormFieldTrait
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return '';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getRequiredPlugins(): array
     {
         return [];
@@ -916,9 +901,6 @@ trait FormFieldTrait
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContainerAttributes(): array
     {
         if (!$this->containerAttributes) {
@@ -928,9 +910,6 @@ trait FormFieldTrait
         return ArrayHelper::map($this->containerAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputAttributes(): array
     {
         if (!$this->inputAttributes) {
@@ -940,9 +919,6 @@ trait FormFieldTrait
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getNamespace(): string
     {
         return $this->_namespace;
@@ -953,9 +929,6 @@ trait FormFieldTrait
         $this->_namespace = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getParentField(): ?FormFieldInterface
     {
         return $this->_parentField;
@@ -976,9 +949,6 @@ trait FormFieldTrait
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup
     {
         if (!static::getFrontEndInputTemplatePath()) {
@@ -991,9 +961,6 @@ trait FormFieldTrait
         return Template::raw($html);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         // Check to see if we're overriding the field
@@ -1175,9 +1142,6 @@ trait FormFieldTrait
         return $isFieldHidden || $isPageHidden;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
@@ -1186,9 +1150,6 @@ trait FormFieldTrait
         return Template::raw($html);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array
     {
         return [
@@ -1201,41 +1162,26 @@ trait FormFieldTrait
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterCreateField(array $data): void
     {
 
@@ -1362,9 +1308,6 @@ trait FormFieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -1404,9 +1347,6 @@ trait FormFieldTrait
         return $rules;
     }
     
-    /**
-     * @inheritDoc
-     */
     protected function setPrePopulatedValue($value)
     {
         return $value;
@@ -1515,11 +1455,6 @@ trait FormFieldTrait
         }
     }
 
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
     private static function _getKebabName(): string
     {
         $classNameParts = explode('\\', static::class);

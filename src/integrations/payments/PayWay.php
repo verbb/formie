@@ -43,9 +43,6 @@ class PayWay extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Westpac PayWay');
@@ -68,17 +65,11 @@ class PayWay extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with Westpac PayWay.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml($field, $renderOptions): string
     {
         if (!$this->hasValidSettings()) {
@@ -93,9 +84,6 @@ class PayWay extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -119,21 +107,6 @@ class PayWay extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $response = null;
@@ -250,9 +223,6 @@ class PayWay extends Payment
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -278,9 +248,6 @@ class PayWay extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -341,9 +308,15 @@ class PayWay extends Payment
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
+    }
+
     protected function getIntegrationHandle(): string
     {
         return 'payway';

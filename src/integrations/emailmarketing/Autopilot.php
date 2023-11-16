@@ -22,9 +22,6 @@ class Autopilot extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Autopilot');
@@ -43,18 +40,6 @@ class Autopilot extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Autopilot lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -292,6 +277,19 @@ class Autopilot extends EmailMarketing
             'base_uri' => 'https://api2.autopilothq.com/v1/',
             'headers' => ['autopilotapikey' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 
 

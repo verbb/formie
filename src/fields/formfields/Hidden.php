@@ -25,17 +25,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Hidden Field');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/hidden-field/icon.svg';
@@ -162,9 +156,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/preview', [
@@ -187,9 +178,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
@@ -213,9 +201,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -265,9 +250,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -279,9 +261,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

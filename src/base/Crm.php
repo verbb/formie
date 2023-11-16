@@ -39,9 +39,6 @@ abstract class Crm extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/crm/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -59,11 +56,6 @@ abstract class Crm extends Integration
             'integration' => $this,
             'form' => $form,
         ]);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
@@ -113,11 +105,13 @@ abstract class Crm extends Integration
         return $event->isValid;
     }
 
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 }

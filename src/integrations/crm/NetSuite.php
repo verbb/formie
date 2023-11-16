@@ -17,9 +17,6 @@ class NetSuite extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'NetSuite');
@@ -38,18 +35,6 @@ class NetSuite extends Crm
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your NetSuite customers by providing important information on their conversion on your site.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): array
@@ -101,5 +86,18 @@ class NetSuite extends Crm
             'base_uri' => '',
             'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 }

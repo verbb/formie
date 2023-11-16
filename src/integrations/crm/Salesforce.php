@@ -30,9 +30,6 @@ class Salesforce extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Salesforce');
@@ -93,25 +90,16 @@ class Salesforce extends Crm
         return App::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseSandbox(): string
     {
         return App::parseBooleanEnv($this->useSandbox);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseCredentials(): string
     {
         return App::parseBooleanEnv($this->useCredentials);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -129,9 +117,6 @@ class Salesforce extends Crm
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthCallback(): ?array
     {
         // In some instances (service users) we might want to use the insecure password grant
@@ -177,55 +162,6 @@ class Salesforce extends Crm
     public function extraAttributes(): array
     {
         return ['apiDomain'];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        $contact = $this->getFormSettingValue('contact');
-        $lead = $this->getFormSettingValue('lead');
-        $opportunity = $this->getFormSettingValue('opportunity');
-        $account = $this->getFormSettingValue('account');
-        $case = $this->getFormSettingValue('case');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
-                return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
-                return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['caseFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
-                return $model->enabled && $model->mapToCase;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -591,6 +527,56 @@ class Salesforce extends Crm
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
+
+        $contact = $this->getFormSettingValue('contact');
+        $lead = $this->getFormSettingValue('lead');
+        $opportunity = $this->getFormSettingValue('opportunity');
+        $account = $this->getFormSettingValue('account');
+        $case = $this->getFormSettingValue('case');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
+                return $model->enabled && $model->mapToLead;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
+                return $model->enabled && $model->mapToAccount;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['caseFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
+                return $model->enabled && $model->mapToCase;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

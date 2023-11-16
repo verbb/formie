@@ -24,17 +24,11 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Agree');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/agree/icon.svg';
@@ -55,9 +49,6 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Moved to a private variable in 2.0.3 due to infinite loop issue. TODO: remove at next breakpoint
@@ -68,9 +59,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         parent::__construct($config);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function attributes()
     {
         $names = parent::attributes();
@@ -85,25 +73,16 @@ class Agree extends FormField implements PreviewableFieldInterface
         return $names;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentColumnType(): string
     {
         return Schema::TYPE_BOOLEAN;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         return (bool)$value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
         // Default to yii\validators\Validator::isEmpty()'s behavior
@@ -131,9 +110,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         return $this->defaultValue;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -144,9 +120,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/input', [
@@ -156,9 +129,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/preview', [
@@ -189,9 +159,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -225,9 +192,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -246,9 +210,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -258,9 +219,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

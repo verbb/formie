@@ -13,13 +13,6 @@ class FileHelper
     // Static Methods
     // =========================================================================
 
-    /**
-     * Copies template files from one directory to another.
-     *
-     * @param string $from
-     * @param string $to
-     * @return bool
-     */
     public static function copyTemplateDirectory(string $from, string $to): bool
     {
         $from = App::parseEnv($from);

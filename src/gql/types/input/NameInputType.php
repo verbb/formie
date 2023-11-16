@@ -14,12 +14,6 @@ class NameInputType extends InputObjectType
     // Static Methods
     // =========================================================================
 
-    /**
-     * Create the type for a name field.
-     *
-     * @param NameField $context
-     * @return bool|mixed
-     */
     public static function getType(NameField $context): mixed
     {
         /** @var NameField $context */
@@ -61,12 +55,6 @@ class NameInputType extends InputObjectType
         ]));
     }
 
-    /**
-     * Normalize GraphQL input data to what Formie expects.
-     *
-     * @param $value
-     * @return mixed
-     */
     public static function normalizeValue($value): mixed
     {
         if (!empty($value['name'])) {

@@ -48,27 +48,16 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Name');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/name/icon.svg';
     }
 
-    /**
-     * Returns a list of available prefixes.
-     *
-     * @return array[]
-     */
     public static function getPrefixOptions(): array
     {
         $options = [
@@ -355,9 +344,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateRequiredFields(ElementInterface $element): void
     {
         if (!$this->useMultipleFields) {
@@ -380,9 +366,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
@@ -400,9 +383,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $fields = [
@@ -482,9 +462,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $fields;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $fields = [
@@ -538,9 +515,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $fields;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -554,9 +528,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -575,9 +546,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         if ($this->useMultipleFields) {
@@ -635,9 +603,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

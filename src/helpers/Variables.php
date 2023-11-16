@@ -29,11 +29,6 @@ class Variables
     // Static Methods
     // =========================================================================
 
-    /**
-     * Returns a list of form variables.
-     *
-     * @return array
-     */
     public static function getFormVariables(): array
     {
         return [
@@ -49,11 +44,6 @@ class Variables
         ];
     }
 
-    /**
-     * Returns a list of email variables.
-     *
-     * @return array
-     */
     public static function getEmailVariables(): array
     {
         return [
@@ -63,11 +53,6 @@ class Variables
         ];
     }
 
-    /**
-     * Returns a list of general variables.
-     *
-     * @return array
-     */
     public static function getGeneralVariables(): array
     {
         return [
@@ -82,11 +67,6 @@ class Variables
         ];
     }
 
-    /**
-     * Returns a list of users variables.
-     *
-     * @return array
-     */
     public static function getUsersVariables(): array
     {
         return [
@@ -101,11 +81,6 @@ class Variables
         ];
     }
 
-    /**
-     * Returns a list of all available variables.
-     *
-     * @return array
-     */
     public static function getVariables(): array
     {
         return array_merge(
@@ -116,11 +91,6 @@ class Variables
         );
     }
 
-    /**
-     * Returns a list of all available variables.
-     *
-     * @return array
-     */
     public static function getVariablesArray(): array
     {
         return [
@@ -131,16 +101,6 @@ class Variables
         ];
     }
 
-    /**
-     * Renders and returns an object template, or null if it fails.
-     *
-     * @param string $value
-     * @param Submission|null $submission
-     * @param Form|null $form
-     * @param Notification|null $notification
-     * @return string|null
-     * @throws Exception
-     */
     public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false): ?string
     {
         $originalValue = $value;

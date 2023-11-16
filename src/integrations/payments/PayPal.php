@@ -37,9 +37,6 @@ class PayPal extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'PayPal');
@@ -62,17 +59,11 @@ class PayPal extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with PayPal.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml($field, $renderOptions): string
     {
         if (!$this->hasValidSettings()) {
@@ -87,9 +78,6 @@ class PayPal extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -121,21 +109,6 @@ class PayPal extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $response = null;
@@ -211,9 +184,6 @@ class PayPal extends Payment
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -260,9 +230,6 @@ class PayPal extends Payment
         ], $options));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -319,9 +286,6 @@ class PayPal extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -360,9 +324,6 @@ class PayPal extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -447,9 +408,15 @@ class PayPal extends Payment
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
+    }
+
     protected function getIntegrationHandle(): string
     {
         return 'paypal';

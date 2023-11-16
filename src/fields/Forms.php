@@ -17,33 +17,21 @@ class Forms extends BaseRelationField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Forms (Formie)');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function elementType(): string
     {
         return Form::class;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function defaultSelectionLabel(): string
     {
         return Craft::t('formie', 'Add a form');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function valueType(): string
     {
         return FormQuery::class;
@@ -53,9 +41,6 @@ class Forms extends BaseRelationField
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlType(): array|Type
     {
         return [

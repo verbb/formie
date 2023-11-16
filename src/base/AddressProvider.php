@@ -46,9 +46,6 @@ abstract class AddressProvider extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/addressproviders/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -58,28 +55,18 @@ abstract class AddressProvider extends Integration
         ]);
     }
 
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
-    }
-
-    /**
-     * Returns the frontend HTML.
-     *
-     * @param $field
-     * @param $renderOptions
-     * @return string
-     */
     public function getFrontEndHtml($field, array $renderOptions = []): string
     {
         return '';
     }
 
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
     }
 }

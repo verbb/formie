@@ -23,9 +23,6 @@ class SubmissionMutation extends Mutation
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function getMutations(): array
     {
         $mutationList = [];
@@ -69,13 +66,6 @@ class SubmissionMutation extends Mutation
         return $mutationList;
     }
 
-    /**
-     * Create the per-form save mutation.
-     *
-     * @param Form $form
-     * @return array
-     * @throws InvalidConfigException
-     */
     public static function createSaveMutation(Form $form): array
     {
         $mutationName = Submission::gqlMutationNameByContext($form);

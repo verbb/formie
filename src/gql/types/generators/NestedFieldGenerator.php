@@ -14,17 +14,11 @@ class NestedFieldGenerator extends Generator implements GeneratorInterface, Sing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null): array
     {
         return [static::generateType($context)];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function generateType(mixed $context): mixed
     {
         $typeName = $context::gqlTypeNameByContext($context);

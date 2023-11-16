@@ -25,9 +25,6 @@ class User extends Element
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'User');
@@ -49,24 +46,6 @@ class User extends Element
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create User elements.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
-
-        $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-                return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -352,6 +331,25 @@ class User extends Element
         }
 
         return $userGroups;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $fields = $this->getFormSettingValue('elements')[0]->fields ?? [];
+
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

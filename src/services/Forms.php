@@ -43,34 +43,16 @@ class Forms extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns a form by its ID.
-     *
-     * @param int $id
-     * @param int|null $siteId
-     * @return Form|null
-     */
     public function getFormById(int $id, int $siteId = null): ?Form
     {
         return Form::find()->id($id)->siteId($siteId)->one();
     }
 
-    /**
-     * Returns a form by its handle.
-     *
-     * @param string $handle
-     * @param int|null $siteId
-     * @return Form|null
-     */
     public function getFormByHandle(string $handle, int $siteId = null): ?Form
     {
         return Form::find()->handle($handle)->siteId($siteId)->one();
     }
 
-    /**
-     * Returns all active forms.
-     *
-     * @return Form[]
      */
     public function getAllForms(): array
     {
@@ -84,14 +66,6 @@ class Forms extends Component
         return ($result) ? new Form($result) : null;
     }
 
-    /**
-     * Saves a form.
-     *
-     * @param Form $form
-     * @param bool $runValidation
-     * @return bool
-     * @throws Throwable
-     */
     public function saveForm(Form $form, bool $runValidation = true): bool
     {
         if ($runValidation && !$form->validate()) {

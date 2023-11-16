@@ -72,49 +72,31 @@ class Stencil extends Model
         parent::__construct($config);
     }
 
-    /**
-     * @return string
-     */
     public function __toString()
     {
         return $this->getDisplayName();
     }
 
-    /**
-     * Returns the stencil name.
-     *
-     * @return string
-     */
     public function getTitle(): string
     {
         return $this->name;
     }
 
-    /**
-     * Sets the stencil name.
-     *
-     * @param string $value
-     */
     public function setTitle(string $value): void
     {
         $this->name = $value;
     }
 
-    /**
-     * Returns the form settings.
-     *
-     * @return FormSettings
-     */
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/stencils/edit/' . $this->id);
+    }
+
     public function getSettings(): FormSettings
     {
         return $this->data->settings;
     }
 
-    /**
-     * Sets the form settings.
-     *
-     * @param array|string|FormSettings $settings
-     */
     public function setSettings(FormSettings|array|string $settings): void
     {
         if ($settings instanceof FormSettings) {
@@ -125,11 +107,6 @@ class Stencil extends Model
         }
     }
 
-    /**
-     * Gets the display name for the status.
-     *
-     * @return string
-     */
     public function getDisplayName(): string
     {
         if ($this->dateDeleted !== null) {
@@ -139,44 +116,6 @@ class Stencil extends Model
         return $this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['name', 'handle'], 'required'];
-        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        $rules[] = [
-            ['handle'],
-            HandleValidator::class,
-            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
-        ];
-        $rules[] = [
-            ['handle'],
-            UniqueValidator::class,
-            'targetClass' => StencilRecord::class,
-        ];
-
-        return $rules;
-    }
-
-    /**
-     * Returns the CP URL for editing the stencil.
-     *
-     * @return string
-     */
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/stencils/edit/' . $this->id);
-    }
-
-    /**
-     * Returns the stencils' config for form builder.
-     *
-     * @return array
-     */
     public function getFormConfig(): array
     {
         return ArrayHelper::merge($this->data->getAttributes(), [
@@ -188,15 +127,6 @@ class Stencil extends Model
         ]);
     }
 
-    /**
-     * Returns the stencils' config for project config.
-     *
-     * @return array
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function getConfig(): array
     {
         $data = $this->data->getAttributes();
@@ -246,11 +176,6 @@ class Stencil extends Model
         ];
     }
 
-    /**
-     * Returns the form's template, or null if not set.
-     *
-     * @return FormTemplate|null
-     */
     public function getTemplate(): ?FormTemplate
     {
         if (!$this->_template) {
@@ -264,11 +189,6 @@ class Stencil extends Model
         return $this->_template;
     }
 
-    /**
-     * Sets the form template.
-     *
-     * @param FormTemplate|null $template
-     */
     public function setTemplate(?FormTemplate $template): void
     {
         if ($template) {
@@ -279,11 +199,6 @@ class Stencil extends Model
         }
     }
 
-    /**
-     * Gets the stencil's redirect entry, or null if not set.
-     *
-     * @return Entry|null
-     */
     public function getRedirectEntry(): ?Entry
     {
         if (!$this->submitActionEntryId) {
@@ -299,15 +214,6 @@ class Stencil extends Model
         return $this->_submitActionEntry;
     }
 
-    /**
-     * Returns the default status for a form.
-     *
-     * @return Status
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function getDefaultStatus(): Status
     {
         if (!$this->_defaultStatus) {
@@ -322,7 +228,7 @@ class Stencil extends Model
         if ($this->_defaultStatus === null) {
             // But check for admin changes, as it's a project config setting change to make.
             if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                $projectConfig = Craft::$app->projectConfig;
+                $projectConfig = Craft::$app->getProjectConfig();
 
                 // Maybe the project config didn't get applied? Check for existing values
                 // This can likely be removed later, as this fix is already in place when installing Formie
@@ -352,11 +258,6 @@ class Stencil extends Model
         return $this->_defaultStatus;
     }
 
-    /**
-     * Sets the default status.
-     *
-     * @param Status|null $status
-     */
     public function setDefaultStatus(?Status $status): void
     {
         if ($status) {
@@ -367,11 +268,6 @@ class Stencil extends Model
         }
     }
 
-    /**
-     * Returns a collection of notification models, from their serialized data.
-     *
-     * @return array
-     */
     public function getNotifications(): array
     {
         $notificationsData = $this->data->notifications ?? [];
@@ -387,5 +283,29 @@ class Stencil extends Model
         }
 
         return [];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['name', 'handle'], 'required'];
+        $rules[] = [['name', 'handle'], 'string', 'max' => 255];
+        $rules[] = [
+            ['handle'],
+            HandleValidator::class,
+            'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
+        ];
+        $rules[] = [
+            ['handle'],
+            UniqueValidator::class,
+            'targetClass' => StencilRecord::class,
+        ];
+
+        return $rules;
     }
 }

@@ -15,25 +15,16 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function valueType(): string
     {
         return MultiOptionsFieldData::class;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Checkboxes');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/checkboxes/icon.svg';
@@ -88,9 +79,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
@@ -100,9 +88,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/preview', [
@@ -118,9 +103,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -163,9 +145,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -200,9 +179,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -222,9 +198,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -314,9 +287,6 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Checkbox Options');

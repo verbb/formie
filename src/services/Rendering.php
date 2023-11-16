@@ -54,17 +54,6 @@ class Rendering extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Renders and returns a form's HTML.
-     *
-     * @param Form|string|null $form
-     * @param array $renderOptions
-     * @return Markup|null
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws LoaderError
-     * @throws MissingComponentException
-     */
     public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
@@ -132,17 +121,6 @@ class Rendering extends Component
         return $output;
     }
 
-    /**
-     * Renders and returns a form page's HTML.
-     *
-     * @param Form|string|null $form
-     * @param FieldLayoutPage|null $page
-     * @param array $renderOptions
-     * @return Markup|null
-     * @throws Exception
-     * @throws LoaderError
-     * @throws MissingComponentException
-     */
     public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
@@ -173,17 +151,6 @@ class Rendering extends Component
         return TemplateHelper::raw($event->html);
     }
 
-    /**
-     * @param Form|string|null $form
-     * @param FormFieldInterface|string $field
-     * @param array $renderOptions
-     * @return Markup|null
-     * @throws Exception
-     * @throws LoaderError
-     * @throws MissingComponentException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
@@ -225,21 +192,6 @@ class Rendering extends Component
         return TemplateHelper::raw($event->html);
     }
 
-    /**
-     * Registers a form's assets (CSS/JS), to be output to the page, as per the form template
-     * settings. This should be used for cached forms, as their assets will not be output
-     * when inside a cache tag. See `renderFormJs` and `renderFormCss` for more controlled output.
-     *
-     * @param string|Form $form
-     * @param array $renderOptions
-     * @return void
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws LoaderError
-     * @throws MissingComponentException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function registerAssets(Form|string|null $form, array $renderOptions = []): void
     {
         // So we can easily re-use code, we just call the `renderForm` function
@@ -248,18 +200,6 @@ class Rendering extends Component
         $this->renderForm($form, $renderOptions);
     }
 
-    /**
-     * Render the assets for a given form. Depending on the form template settings, this will
-     * either add the JS/CSS to the head/footer of the page, or directly return the CSS/JS strings
-     * for use when manually calling this function through render variable tags.
-     *
-     * @param Form|string $form
-     * @param string|null $type
-     * @param bool $forceInline
-     * @param array $attributes
-     * @return Markup|null
-     * @throws InvalidConfigException
-     */
     public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
     {
         // Allow an empty form to fail silently
@@ -379,15 +319,6 @@ class Rendering extends Component
         ]);
     }
 
-    /**
-     * Returns the template path for a form component.
-     *
-     * @param Form $form
-     * @param string $component can be 'form', 'page' or 'field'.
-     * @return string
-     * @throws Exception
-     * @throws LoaderError
-     */
     public function getFormComponentTemplatePath(Form $form, string $component): string
     {
         $view = Craft::$app->getView();
@@ -409,15 +340,6 @@ class Rendering extends Component
         return $templatePath;
     }
 
-    /**
-     * Returns the template path for an email component.
-     *
-     * @param Notification|null $notification
-     * @param string $component can be 'form', 'page' or 'field'.
-     * @return string
-     * @throws Exception
-     * @throws LoaderError
-     */
     public function getEmailComponentTemplatePath(?Notification $notification, string $component): string
     {
         $view = Craft::$app->getView();
@@ -502,11 +424,6 @@ class Rendering extends Component
         }
     }
 
-    /**
-     * Starts a buffer for any files registered with `View::registerJsFile()` or `View::registerCssFile()`.
-     *
-     * @return void
-     */
     public function startFileBuffer($type, $view): void
     {
         // Save any currently queued tags into a new buffer, and reset the active queue
@@ -514,11 +431,6 @@ class Rendering extends Component
         $view->$type = [];
     }
 
-    /**
-     * Clears and ends a file buffer, returning whatever files were registered while the buffer was active.
-     *
-     * @return array|false The files that were registered in the active buffer, grouped by position, or `false` if there isn’t one
-     */
     public function clearFileBuffer($type, $view): bool|array
     {
         if (empty($this->_filesBuffers[$type])) {
@@ -530,20 +442,6 @@ class Rendering extends Component
         return $bufferedFiles;
     }
 
-    /**
-     * Returns the JS/CSS for the rendering of a form. This will include buffering any JS/CSS files
-     * This is also done in a single function to capture both CSS/JS files which are only registered once per request
-     *
-     * @param string|Form|null $form
-     * @param array $renderOptions
-     * @return void
-     * @throws Exception
-     * @throws InvalidConfigException
-     * @throws LoaderError
-     * @throws MissingComponentException
-     * @throws RuntimeError
-     * @throws SyntaxError
-     */
     public function renderFormCssJs(Form|string|null $form, array $renderOptions = []): void
     {
         // Don't re-render the form multiple times if it's already rendered
@@ -574,13 +472,6 @@ class Rendering extends Component
         $this->_jsFiles = array_filter($this->_jsFiles);
     }
 
-    /**
-     * Returns the CSS for the rendering of a form. This will include buffering any CSS files
-     *
-     * @param string|Form|null $form
-     * @param array $renderOptions
-     * @return Markup
-     */
     public function renderFormCss(Form|string|null $form, array $renderOptions = []): Markup
     {
         $this->renderFormCssJs($form, $renderOptions);
@@ -588,13 +479,6 @@ class Rendering extends Component
         return TemplateHelper::raw(implode("\n", $this->_cssFiles));
     }
 
-    /**
-     * Returns the JS for the rendering of a form. This will include buffering any JS files
-     *
-     * @param string|Form|null $form
-     * @param array $renderOptions
-     * @return Markup
-     */
     public function renderFormJs(Form|string|null $form, array $renderOptions = []): Markup
     {
         $this->renderFormCssJs($form, $renderOptions);
@@ -612,12 +496,6 @@ class Rendering extends Component
         return TemplateHelper::raw(implode("\n", $allJsFiles));
     }
 
-    /**
-     * Returns the base CSS.
-     *
-     * @param array $renderOptions
-     * @return Markup|null
-     */
     public function renderCss(bool $inline = false): ?Markup
     {
         $view = Craft::$app->getView();
@@ -638,12 +516,6 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    /**
-     * Returns the base JS.
-     *
-     * @param array $renderOptions
-     * @return Markup|null
-     */
     public function renderJs(bool $inline = false): ?Markup
     {
         $view = Craft::$app->getView();

@@ -22,9 +22,6 @@ class Moosend extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Moosend');
@@ -42,18 +39,6 @@ class Moosend extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Moosend lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -178,5 +163,18 @@ class Moosend extends EmailMarketing
             'base_uri' => 'http://api.moosend.com/v3/',
             'query' => ['apikey' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 }

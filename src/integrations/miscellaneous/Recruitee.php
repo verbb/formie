@@ -22,9 +22,6 @@ class Recruitee extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Recruitee');
@@ -46,27 +43,6 @@ class Recruitee extends Miscellaneous
     public function getDescription(): string
     {
         return Craft::t('formie', 'Apply for Recruitee job offers.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'subdomain'], 'required'];
-
-        $candidate = $this->getFormSettingValue('candidate');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['candidateFieldMapping'], 'validateFieldMapping', 'params' => $candidate, 'when' => function($model) {
-                return $model->enabled && $model->mapToCandidate;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -199,6 +175,28 @@ class Recruitee extends Miscellaneous
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => "https://{$subdomain}.recruitee.com/api/",
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'subdomain'], 'required'];
+
+        $candidate = $this->getFormSettingValue('candidate');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['candidateFieldMapping'], 'validateFieldMapping', 'params' => $candidate, 'when' => function($model) {
+                return $model->enabled && $model->mapToCandidate;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

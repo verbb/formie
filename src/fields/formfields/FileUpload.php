@@ -52,17 +52,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'File Upload');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/file-upload/icon.svg';
@@ -72,9 +66,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
     public bool $searchable = true;
     public ?string $sizeLimit = null;
     public ?string $sizeMinLimit = null;
@@ -95,9 +86,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         // For Assets field compatibility - we always use a single upload location
@@ -116,9 +104,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         });
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         // For Assets field compatibility - we always use a single upload location
@@ -128,9 +113,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return parent::beforeSave($isNew);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // For GQL mutations, we need a little extra handling here, because the Assets field doesn't support multiple data-encoded items
@@ -147,9 +129,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return parent::normalizeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getValue(ElementInterface $element): mixed
     {
         $values = [];
@@ -161,9 +140,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         return [
@@ -172,9 +148,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         /* @var Settings $settings */
@@ -198,9 +171,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -220,11 +190,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $rules;
     }
 
-    /**
-     * Validates number of files selected.
-     *
-     * @param ElementInterface $element
-     */
     public function validateFileLimit(ElementInterface $element): void
     {
         $fileLimit = (int)($this->limitFiles ?? 1);
@@ -239,11 +204,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
     }
 
-    /**
-     * Validates the files to make sure they are over the allowed min file size.
-     *
-     * @param ElementInterface $element
-     */
     public function validateMinFileSize(ElementInterface $element): void
     {
         $filenames = [];
@@ -266,11 +226,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
     }
 
-    /**
-     * Validates the files to make sure they are under the allowed max file size.
-     *
-     * @param ElementInterface $element
-     */
     public function validateMaxFileSize(ElementInterface $element): void
     {
         $filenames = [];
@@ -293,9 +248,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/file-upload/preview', [
@@ -303,12 +255,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ]);
     }
 
-    /**
-     * Returns a comma separated list of allowed file extensions
-     * that are allowed to be uploaded.
-     *
-     * @return string|null
-     */
     public function getAccept(): ?string
     {
         if (!$this->restrictFiles) {
@@ -333,9 +279,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getVolumeOptions()
     {
         $volumes = [];
@@ -359,9 +302,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -394,9 +334,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
@@ -463,9 +400,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -476,9 +410,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -497,9 +428,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
     {
         // For Assets field compatibility - we always use a single upload location
@@ -543,9 +471,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
         parent::afterElementSave($element, $isNew);
@@ -586,9 +511,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return FileUploadInputType::getType($this);
@@ -736,12 +658,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return round($size, $precision) . ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][$i];
     }
 
-    /**
-     * Returns any files that were uploaded to the field.
-     *
-     * @param ElementInterface $element
-     * @return array
-     */
     private function _getUploadedFiles(ElementInterface $element): array
     {
         $uploadedFiles = [];

@@ -22,11 +22,6 @@ class MigrationsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @throws MissingComponentException
-     * @throws ShellCommandException
-     * @throws Exception
-     */
     public function actionSproutForms(): void
     {
         App::maxPowerCaptain();
@@ -66,11 +61,6 @@ class MigrationsController extends Controller
         $this->setSuccessFlash(Craft::t('formie', 'Forms migrated.'));
     }
 
-    /**
-     * @throws MissingComponentException
-     * @throws ShellCommandException
-     * @throws Exception
-     */
     public function actionFreeform(): void
     {
         App::maxPowerCaptain();

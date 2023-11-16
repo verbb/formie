@@ -67,11 +67,6 @@ class Integrations extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all registered integrations.
-     *
-     * @return array
-     */
     public function getAllIntegrationTypes(): array
     {
         $addressProviders = [
@@ -217,13 +212,6 @@ class Integrations extends Component
         return $this->getAllIntegrationTypes()[$type] ?? [];
     }
 
-    /**
-     * Returns all integrations.
-     *
-     * @return array
-     * @throws UnknownPropertyException
-     * @throws InvalidConfigException
-     */
     public function getAllIntegrations(): array
     {
         return $this->_integrations()->all();
@@ -248,64 +236,26 @@ class Integrations extends Component
         return $this->_integrationsByType[$type];
     }
 
-    /**
-     * Returns an integration by its ID.
-     *
-     * @param int $integrationId
-     * @return IntegrationInterface|null
-     * @throws InvalidConfigException
-     * @throws UnknownPropertyException
-     */
     public function getIntegrationById(int $integrationId): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'id', $integrationId);
     }
 
-    /**
-     * Returns an integration by its UID.
-     *
-     * @param string $integrationUid
-     * @return IntegrationInterface|null
-     * @throws InvalidConfigException
-     * @throws UnknownPropertyException
-     */
     public function getIntegrationByUid(string $integrationUid): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'uid', $integrationUid);
     }
 
-    /**
-     * Returns an integration by its handle.
-     *
-     * @param string $handle
-     * @return IntegrationInterface|null
-     * @throws InvalidConfigException
-     * @throws UnknownPropertyException
-     */
     public function getIntegrationByHandle(string $handle): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'handle', $handle, true);
     }
 
-    /**
-     * Returns an integration by its tokenId.
-     *
-     * @param $tokenId
-     * @return IntegrationInterface|null
-     * @throws InvalidConfigException
-     * @throws UnknownPropertyException
-     */
     public function getIntegrationByTokenId($tokenId): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'tokenId', $tokenId);
     }
 
-    /**
-     * Returns the field layout config for the given integration.
-     *
-     * @param IntegrationInterface $integration
-     * @return array
-     */
     public function createIntegrationConfig(IntegrationInterface $integration): array
     {
         return [
@@ -321,14 +271,6 @@ class Integrations extends Component
         ];
     }
 
-    /**
-     * Creates or updates an integration.
-     *
-     * @param IntegrationInterface $integration the integration to be saved.
-     * @param bool $runValidation Whether the integration should be validated
-     * @return bool Whether the integration was saved successfully
-     * @throws Throwable
-     */
     public function saveIntegration(IntegrationInterface $integration, bool $runValidation = true): bool
     {
         $isNewIntegration = $integration->getIsNew();
@@ -381,13 +323,6 @@ class Integrations extends Component
             ->execute();
     }
 
-    /**
-     * Handle integration change
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     * @throws Exception
-     */
     public function handleChangedIntegration(ConfigEvent $event): void
     {
         $integrationUid = $event->tokenMatches[0];
@@ -452,13 +387,6 @@ class Integrations extends Component
         }
     }
 
-    /**
-     * Reorders integrations.
-     *
-     * @param array $integrationIds
-     * @return bool
-     * @throws Throwable
-     */
     public function reorderIntegrations(array $integrationIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
@@ -475,14 +403,6 @@ class Integrations extends Component
         return true;
     }
 
-    /**
-     * Creates an integration with a given config.
-     *
-     * @param mixed $config The integration’s class name, or its config, with a `type` value and optionally a `settings` value
-     * @return IntegrationInterface The integration
-     * @throws UnknownPropertyException
-     * @throws InvalidConfigException
-     */
     public function createIntegration(mixed $config): IntegrationInterface
     {
         if (is_string($config)) {
@@ -508,13 +428,6 @@ class Integrations extends Component
         return $integration;
     }
 
-    /**
-     * Deletes an integration by its ID.
-     *
-     * @param int $integrationId
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteIntegrationById(int $integrationId): bool
     {
         $integration = $this->getIntegrationById($integrationId);
@@ -526,13 +439,6 @@ class Integrations extends Component
         return $this->deleteIntegration($integration);
     }
 
-    /**
-     * Deletes an integration.
-     *
-     * @param IntegrationInterface $integration The integration to delete
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteIntegration(IntegrationInterface $integration): bool
     {
         // Fire a 'beforeDeleteIntegration' event
@@ -551,13 +457,6 @@ class Integrations extends Component
         return true;
     }
 
-    /**
-     * Handle integration getting deleted
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     * @throws Exception
-     */
     public function handleDeletedIntegration(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
@@ -625,14 +524,6 @@ class Integrations extends Component
         return $grouped;
     }
 
-    /**
-     * Returns all enabled integrations for the provided form.
-     *
-     * @param Form $form
-     * @return array
-     * @throws InvalidConfigException
-     * @throws UnknownPropertyException
-     */
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
         $enabledIntegrations = [];
@@ -697,25 +588,11 @@ class Integrations extends Component
         return $grouped;
     }
 
-    /**
-     * Returns a captcha by its handle.
-     *
-     * @param string $handle
-     * @return IntegrationInterface|null
-     */
     public function getCaptchaByHandle(string $handle): ?IntegrationInterface
     {
         return ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
     }
 
-    /**
-     * Returns all enabled captchas for the provided form.
-     *
-     * @param Form $form
-     * @param FieldLayoutPage|null $page
-     * @param bool $force
-     * @return array
-     */
     public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, bool $force = false): array
     {
         $captchas = [];
@@ -752,13 +629,6 @@ class Integrations extends Component
         return $captchas;
     }
 
-    /**
-     * Returns CAPTCHA HTML for the provided form.
-     *
-     * @param Form $form
-     * @param FieldLayoutPage|null $page
-     * @return string
-     */
     public function getCaptchasHtmlForForm(Form $form, FieldLayoutPage $page = null): string
     {
         $html = '';
@@ -772,12 +642,6 @@ class Integrations extends Component
         return $html;
     }
 
-    /**
-     * Saves a captcha.
-     *
-     * @param Integration $integration
-     * @return bool
-     */
     public function saveCaptcha(Integration $integration): bool
     {
         /* @var Settings $settings */
@@ -824,11 +688,6 @@ class Integrations extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a memoizable array of all integrations.
-     *
-     * @return MemoizableArray<Integration>
-     */
     private function _integrations(): MemoizableArray
     {
         if (!isset($this->_integrations)) {
@@ -844,11 +703,6 @@ class Integrations extends Component
         return $this->_integrations;
     }
 
-    /**
-     * Returns a DbCommand object prepped for retrieving integrations.
-     *
-     * @return Query
-     */
     private function _createIntegrationQuery(): Query
     {
         return (new Query())
@@ -871,13 +725,6 @@ class Integrations extends Component
             ->orderBy(['sortOrder' => SORT_ASC]);
     }
 
-    /**
-     * Gets an integration's record by uid.
-     *
-     * @param string $uid
-     * @param bool $withTrashed Whether to include trashed integrations in search
-     * @return IntegrationRecord
-     */
     private function _getIntegrationRecord(string $uid, bool $withTrashed = false): IntegrationRecord
     {
         $query = $withTrashed ? IntegrationRecord::findWithTrashed() : IntegrationRecord::find();

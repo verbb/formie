@@ -77,11 +77,6 @@ class SettingsController extends Controller
         return $this->renderTemplate('formie/settings/spam', compact('settings'));
     }
 
-    /**
-     * @return Response|null
-     * @throws MissingComponentException
-     * @throws BadRequestHttpException
-     */
     public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();

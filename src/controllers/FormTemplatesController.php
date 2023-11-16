@@ -26,9 +26,6 @@ class FormTemplatesController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return Response
-     */
     public function actionIndex(): Response
     {
         $formTemplates = Formie::$plugin->getFormTemplates()->getAllTemplates();
@@ -36,12 +33,6 @@ class FormTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/form-templates', compact('formTemplates'));
     }
 
-    /**
-     * @param int|null $id
-     * @param FormTemplate|null $template
-     * @return Response
-     * @throws HttpException
-     */
     public function actionEdit(int $id = null, FormTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
@@ -67,14 +58,6 @@ class FormTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/form-templates/_edit', $variables);
     }
 
-    /**
-     * @throws MissingComponentException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws BadRequestHttpException
-     * @throws ServerErrorHttpException
-     */
     public function actionSave(): void
     {
         $this->requirePostRequest();
@@ -115,14 +98,6 @@ class FormTemplatesController extends Controller
         Craft::$app->getUrlManager()->setRouteParams(compact('template'));
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function actionReorder(): Response
     {
         $this->requirePostRequest();
@@ -136,11 +111,6 @@ class FormTemplatesController extends Controller
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder templates.')]);
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws Throwable
-     */
     public function actionDelete(): Response
     {
         $this->requireAcceptsJson();

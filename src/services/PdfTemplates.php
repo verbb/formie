@@ -58,59 +58,26 @@ class PdfTemplates extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all templates.
-     *
-     * @return PdfTemplate[]
-     */
     public function getAllTemplates(bool $withTrashed = false): array
     {
         return $this->_templates()->all();
     }
 
-    /**
-     * Returns a template identified by its ID.
-     *
-     * @param int $id
-     * @return PdfTemplate|null
-     */
     public function getTemplateById(int $id): ?PdfTemplate
     {
         return $this->_templates()->firstWhere('id', $id);
     }
 
-    /**
-     * Returns a template identified by its handle.
-     *
-     * @param string $handle
-     * @return PdfTemplate|null
-     */
     public function getTemplateByHandle(string $handle): ?PdfTemplate
     {
         return $this->_templates()->firstWhere('handle', $handle, true);
     }
 
-    /**
-     * Returns a template identified by its UID.
-     *
-     * @param string $uid
-     * @return PdfTemplate|null
-     */
     public function getTemplateByUid(string $uid): ?PdfTemplate
     {
         return $this->_templates()->firstWhere('uid', $uid, true);
     }
 
-    /**
-     * Saves templates in a new order by the list of template IDs.
-     *
-     * @param int[] $ids
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function reorderTemplates(array $ids): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
@@ -127,17 +94,6 @@ class PdfTemplates extends Component
         return true;
     }
 
-    /**
-     * Saves the template.
-     *
-     * @param PdfTemplate $template
-     * @param bool $runValidation
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function saveTemplate(PdfTemplate $template, bool $runValidation = true): bool
     {
         $isNewTemplate = !(bool)$template->id;
@@ -184,12 +140,6 @@ class PdfTemplates extends Component
         return true;
     }
 
-    /**
-     * Handle template change.
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleChangedTemplate(ConfigEvent $event): void
     {
         $templateUid = $event->tokenMatches[0];
@@ -231,13 +181,6 @@ class PdfTemplates extends Component
         }
     }
 
-    /**
-     * Delete a template by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteTemplateById(int $id): bool
     {
         $template = $this->getTemplateById($id);
@@ -249,12 +192,6 @@ class PdfTemplates extends Component
         return $this->deleteTemplate($template);
     }
 
-    /**
-     * Deletes a pdf template.
-     *
-     * @param PdfTemplate $template The pdf template
-     * @return bool Whether the pdf template was deleted successfully
-     */
     public function deleteTemplate(PdfTemplate $template): bool
     {
         // Fire a 'beforeDeletePdfTemplate' event
@@ -268,12 +205,6 @@ class PdfTemplates extends Component
         return true;
     }
 
-    /**
-     * Handle template being deleted
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleDeletedTemplate(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
@@ -434,15 +365,9 @@ class PdfTemplates extends Component
     }
 
 
-
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a memoizable array of all templates.
-     *
-     * @return MemoizableArray<EmailTemplate>
-     */
     private function _templates(): MemoizableArray
     {
         if (!isset($this->_templates)) {
@@ -458,12 +383,6 @@ class PdfTemplates extends Component
         return $this->_templates;
     }
 
-    /**
-     * Returns a Query object prepped for retrieving templates.
-     *
-     * @param bool $withTrashed
-     * @return Query
-     */
     private function _createTemplatesQuery(): Query
     {
         $query = (new Query())
@@ -483,13 +402,6 @@ class PdfTemplates extends Component
         return $query;
     }
 
-    /**
-     * Gets a template's record by uid.
-     *
-     * @param string $uid
-     * @param bool $withTrashed Whether to include trashed templates in search
-     * @return TemplateRecord
-     */
     private function _getTemplateRecord(string $uid, bool $withTrashed = false): TemplateRecord
     {
         $query = $withTrashed ? TemplateRecord::findWithTrashed() : TemplateRecord::find();

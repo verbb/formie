@@ -41,9 +41,6 @@ use barrelstrength\sproutbaseemail\SproutBaseEmail;
 use barrelstrength\sproutforms\SproutForms;
 use verbb\formie\models\Settings;
 
-/**
- * Migrates Sprout Forms forms, notifications and submissions.
- */
 class MigrateSproutForms extends Migration
 {
     // Constants
@@ -69,9 +66,6 @@ class MigrateSproutForms extends Migration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
@@ -87,9 +81,6 @@ class MigrateSproutForms extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         return false;
@@ -417,10 +408,6 @@ class MigrateSproutForms extends Migration
         }
     }
 
-    /**
-     * @param SproutFormsForm $form
-     * @return FieldLayout
-     */
     private function _buildFieldLayout(SproutFormsForm $form): FieldLayout
     {
         $fieldLayout = new FieldLayout(['type' => Form::class]);
@@ -495,10 +482,6 @@ class MigrateSproutForms extends Migration
         return $fieldLayout;
     }
 
-    /**
-     * @param FieldInterface $field
-     * @return FormFieldInterface|null
-     */
     private function _mapField(FieldInterface $field): ?FormFieldInterface
     {
         switch (get_class($field)) {

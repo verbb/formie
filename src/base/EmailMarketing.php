@@ -33,6 +33,11 @@ abstract class EmailMarketing extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -40,9 +45,6 @@ abstract class EmailMarketing extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/emailmarketing/{$handle}.svg", true);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -60,32 +62,6 @@ abstract class EmailMarketing extends Integration
             'integration' => $this,
             'form' => $form,
         ]);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        // Validate the following when saving form settings
-        $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        $fields = $this->_getListSettings()->fields ?? [];
-
-        $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-                return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
@@ -131,12 +107,31 @@ abstract class EmailMarketing extends Integration
         return $event->isValid;
     }
 
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        // Validate the following when saving form settings
+        $rules[] = [['listId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        $fields = $this->_getListSettings()->fields ?? [];
+
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

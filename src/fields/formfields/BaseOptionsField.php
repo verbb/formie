@@ -38,30 +38,14 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     // Properties
     // =========================================================================
 
-    /**
-     * @var bool
-     */
     public bool $searchable = true;
-
-    /**
-     * @var string|null vertical or horizontal layout
-     */
     public ?string $layout = null;
-
-    /**
-     * @var bool Whether this field should use multiple values. Note this only effects
-     * the `name` attribute when rendering, forcing to use `handle[]` instead of `handle`.
-     * This is currently only enforced by element fields which need array data.
-     */
     public bool $hasMultiNamespace = false;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -75,9 +59,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         $this->_normalizeOptions();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
@@ -96,9 +77,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return $this->traitGetSavedFieldConfig();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getValue(ElementInterface $element): mixed
     {
         $value = $element->getFieldValue($this->handle);
@@ -226,17 +204,11 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedSettings(): array
     {
         return $this->getSettings();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         // Fix an error with migrating from Freeform/Sprout where the default value is set.

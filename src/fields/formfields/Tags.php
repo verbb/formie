@@ -60,17 +60,11 @@ class Tags extends CraftTags implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Tags');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/tags/icon.svg';
@@ -90,9 +84,6 @@ class Tags extends CraftTags implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Config normalization
@@ -213,9 +204,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
@@ -223,9 +211,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -234,9 +219,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();
@@ -276,9 +258,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->traitGetDisplayTypeValue();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -295,9 +274,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @return Tag[]
-     */
     public function getTags(): array
     {
         if ($group = $this->_getTagGroup()) {
@@ -316,9 +292,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();
@@ -326,11 +299,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
-    /**
-     * Returns the list of selectable tags.
-     *
-     * @return ElementQueryInterface
-     */
     public function getElementsQuery(): ElementQueryInterface
     {
         $query = Tag::find();
@@ -432,9 +400,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -472,9 +437,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -511,9 +473,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -534,9 +493,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -581,11 +537,6 @@ class Tags extends CraftTags implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns the tag group associated with this field.
-     *
-     * @return TagGroup|null
-     */
     private function _getTagGroup(): ?TagGroup
     {
         if ($this->_tagGroup !== null) {
@@ -601,11 +552,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return null;
     }
 
-    /**
-     * Returns the tag group ID this field is associated with.
-     *
-     * @return string|int|null
-     */
     private function _getTagGroupId(): string|int|null
     {
         if (!preg_match('/^taggroup:(([0-9a-f\-]+))$/', $this->source, $matches)) {

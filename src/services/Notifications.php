@@ -49,46 +49,21 @@ class Notifications extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all notifications.
-     *
-     * @return Notification[]
-     */
     public function getAllNotifications(): array
     {
         return $this->_notifications()->all();
     }
 
-    /**
-     * Returns all notifications for a form.
-     *
-     * @param Form $form
-     * @return Notification[]
-     */
     public function getFormNotifications(Form $form): array
     {
         return $this->_notifications()->where('formId', $form->id)->all();
     }
 
-    /**
-     * Returns a form notification by its ID.
-     *
-     * @param int $id
-     * @return Notification|null
-     */
     public function getNotificationById(int $id): ?Notification
     {
         return $this->_notifications()->firstWhere('id', $id);
     }
 
-    /**
-     * Saves a notification.
-     *
-     * @param Notification $notification
-     * @param bool $runValidation
-     * @return bool
-     * @throws Throwable
-     */
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
     {
         $isNewNotification = !(bool)$notification->id;
@@ -155,13 +130,6 @@ class Notifications extends Component
         return true;
     }
 
-    /**
-     * Deletes a notification by its ID.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteNotificationById(int $id): bool
     {
         $notification = $this->getNotificationById($id);
@@ -173,13 +141,6 @@ class Notifications extends Component
         return $this->deleteNotification($notification);
     }
 
-    /**
-     * Deletes a notification.
-     *
-     * @param Notification $notification
-     * @return bool
-     * @throws Exception
-     */
     public function deleteNotification(Notification $notification): bool
     {
         // Fire a 'beforeDeleteNotification' event
@@ -203,11 +164,6 @@ class Notifications extends Component
         return true;
     }
 
-    /**
-     * Builds an array of notifications from POST data.
-     *
-     * @return Notification[]
-     */
     public function buildNotificationsFromPost(): array
     {
         $request = Craft::$app->getRequest();
@@ -253,16 +209,6 @@ class Notifications extends Component
         return $notifications;
     }
 
-    /**
-     * Gets the config for an array of notifications.
-     *
-     * @param Notification[] $notifications
-     * @return mixed
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws \yii\base\Exception
-     */
     public function getNotificationsConfig(array $notifications): mixed
     {
         $notificationsConfig = [];
@@ -294,16 +240,6 @@ class Notifications extends Component
         return $notificationsConfig;
     }
 
-    /**
-     * Returns an array of existing form notifications.
-     *
-     * @param Form|Stencil|null $excludeForm
-     * @return array
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws \yii\base\Exception
-     */
     public function getExistingNotifications(Form|Stencil $excludeForm = null): array
     {
         if ($this->_existingNotifications !== null) {
@@ -408,14 +344,6 @@ class Notifications extends Component
         return $this->_existingNotifications = $event->notifications;
     }
 
-    /**
-     * Returns whether the notification has passed conditional evaluation. A `true` result means the notification
-     * should be sent, whilst a `false` result means the notification should not send.
-     *
-     * @param $notification
-     * @param Submission $submission
-     * @return bool
-     */
     public function evaluateConditions($notification, Submission $submission): bool
     {
         if ($notification->enableConditions) {
@@ -437,11 +365,6 @@ class Notifications extends Component
         return true;
     }
 
-    /**
-     * Returns the notifications settings schema.
-     *
-     * @return array
-     */
     public function getNotificationsSchema(): array
     {
         $user = Craft::$app->getUser();
@@ -506,11 +429,6 @@ class Notifications extends Component
         ];
     }
 
-    /**
-     * Defines the content settings schema.
-     *
-     * @return array
-     */
     public function defineContentSchema(): array
     {
         return [
@@ -574,11 +492,6 @@ class Notifications extends Component
         ];
     }
 
-    /**
-     * Defines the advanced settings schema.
-     *
-     * @return array
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -641,11 +554,6 @@ class Notifications extends Component
         ];
     }
 
-    /**
-     * Defines the templates settings schema.
-     *
-     * @return array
-     */
     public function defineTemplatesSchema(): array
     {
         $emailTemplates = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
@@ -682,11 +590,6 @@ class Notifications extends Component
         ];
     }
 
-    /**
-     * Defines the templates preview schema.
-     *
-     * @return array
-     */
     public function definePreviewSchema(): array
     {
         return [
@@ -705,11 +608,6 @@ class Notifications extends Component
         ];
     }
 
-    /**
-     * Defines the templates conditions schema.
-     *
-     * @return array
-     */
     public function defineConditionsSchema(): array
     {
         return [
@@ -730,11 +628,6 @@ class Notifications extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a memoizable array of all notifications.
-     *
-     * @return MemoizableArray<Notification>
-     */
     private function _notifications(): MemoizableArray
     {
         if (!isset($this->_notifications)) {
@@ -750,11 +643,6 @@ class Notifications extends Component
         return $this->_notifications;
     }
 
-    /**
-     * Returns a query prepped for querying notifications.
-     *
-     * @return Query
-     */
     private function _createNotificationsQuery(): Query
     {
         return (new Query())
@@ -788,13 +676,6 @@ class Notifications extends Component
             ->from(['{{%formie_notifications}}']);
     }
 
-    /**
-     * Gets a notification record by its ID, or a new notification record
-     * if it wasn't provided or was not found.
-     *
-     * @param int|string|null $id
-     * @return NotificationRecord
-     */
     private function _getNotificationRecord(int|string|null $id): NotificationRecord
     {
         /** @var NotificationRecord $notification */

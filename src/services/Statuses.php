@@ -45,22 +45,11 @@ class Statuses extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all submission statuses.
-     *
-     * @return Status[]
-     */
     public function getAllStatuses(): array
     {
         return $this->_statuses()->all();
     }
 
-    /**
-     * Returns all submission statuses as an array for use in
-     * element `statuses`.
-     *
-     * @return array
-     */
     public function getStatusesArray(): array
     {
         $statuses = [];
@@ -74,59 +63,26 @@ class Statuses extends Component
         return $statuses;
     }
 
-    /**
-     * Gets a single status by its ID.
-     *
-     * @param int $id
-     * @return Status|null
-     */
     public function getStatusById(int $id): ?Status
     {
         return $this->_statuses()->firstWhere('id', $id);
     }
 
-    /**
-     * Gets a single status by its handle.
-     *
-     * @param string $handle
-     * @return Status|null
-     */
     public function getStatusByHandle(string $handle): ?Status
     {
         return $this->_statuses()->firstWhere('handle', $handle, true);
     }
 
-    /**
-     * Returns a status identified by its UID.
-     *
-     * @param string $uid
-     * @return Status|null
-     */
     public function getStatusByUid(string $uid): ?Status
     {
         return $this->_statuses()->firstWhere('uid', $uid, true);
     }
 
-    /**
-     * Gets the default status.
-     *
-     * @return Status|null
-     */
     public function getDefaultStatus(): ?Status
     {
         return $this->_statuses()->firstWhere('isDefault', true);
     }
 
-    /**
-     * Saves statuses in a new order by the list of status IDs.
-     *
-     * @param int[] $statusIds
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function reorderStatuses(array $statusIds): bool
     {
         $projectConfig = Craft::$app->getProjectConfig();
@@ -143,9 +99,6 @@ class Statuses extends Component
         return true;
     }
 
-    /**
-     * @return array
-     */
     public function getSubmissionCountByStatus(): array
     {
         $countGroupedByStatusId = (new Query())
@@ -175,17 +128,6 @@ class Statuses extends Component
         return $countGroupedByStatusId;
     }
 
-    /**
-     * Saves the status.
-     *
-     * @param Status $status
-     * @param bool $runValidation
-     * @return bool
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function saveStatus(Status $status, bool $runValidation = true): bool
     {
         $isNewStatus = !(bool)$status->id;
@@ -232,12 +174,6 @@ class Statuses extends Component
         return true;
     }
 
-    /**
-     * Handle status change.
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleChangedStatus(ConfigEvent $event): void
     {
         $statusUid = $event->tokenMatches[0];
@@ -280,13 +216,6 @@ class Statuses extends Component
         }
     }
 
-    /**
-     * Delete a status by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteStatusById(int $id): bool
     {
         $status = $this->getStatusById($id);
@@ -298,12 +227,6 @@ class Statuses extends Component
         return $this->deleteStatus($status);
     }
 
-    /**
-     * Deletes a status.
-     *
-     * @param Status $status The status
-     * @return bool Whether the status was deleted successfully
-     */
     public function deleteStatus(Status $status): bool
     {
         // Can't delete the default status
@@ -323,12 +246,6 @@ class Statuses extends Component
         return true;
     }
 
-    /**
-     * Handle status being deleted
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleDeletedStatus(ConfigEvent $event): void
     {
         $uid = $event->tokenMatches[0];
@@ -371,11 +288,6 @@ class Statuses extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a memoizable array of all statuses.
-     *
-     * @return MemoizableArray<Status>
-     */
     private function _statuses(): MemoizableArray
     {
         if (!isset($this->_statuses)) {
@@ -391,11 +303,6 @@ class Statuses extends Component
         return $this->_statuses;
     }
 
-    /**
-     * Returns a Query object prepped for retrieving statuses.
-     *
-     * @return Query
-     */
     private function _createStatusesQuery(): Query
     {
         $query = (new Query())
@@ -417,13 +324,6 @@ class Statuses extends Component
         return $query;
     }
 
-    /**
-     * Gets a status record by uid.
-     *
-     * @param string $uid
-     * @param bool $withTrashed Whether to include trashed statuses in search
-     * @return StatusRecord
-     */
     private function _getStatusRecord(string $uid, bool $withTrashed = false): StatusRecord
     {
         $query = $withTrashed ? StatusRecord::findWithTrashed() : StatusRecord::find();

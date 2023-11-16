@@ -20,33 +20,21 @@ class Payment extends ActiveRecord
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getIntegration(): ActiveQueryInterface
     {
         return $this->hasOne(Integration::class, ['id' => 'integrationId']);
     }
 
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getSubmission(): ActiveQueryInterface
     {
         return $this->hasOne(Submission::class, ['id' => 'submissionId']);
     }
 
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getField(): ActiveQueryInterface
     {
         return $this->hasOne(Field::class, ['id' => 'fieldId']);
     }
 
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getSubscription(): ActiveQueryInterface
     {
         return $this->hasOne(Subscription::class, ['id' => 'subscriptionId']);

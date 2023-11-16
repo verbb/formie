@@ -21,9 +21,6 @@ class Klaviyo extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Klaviyo');
@@ -42,18 +39,6 @@ class Klaviyo extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Klaviyo lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -184,5 +169,18 @@ class Klaviyo extends EmailMarketing
                 'api_key' => App::parseEnv($this->privateApiKey),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
+
+        return $rules;
     }
 }

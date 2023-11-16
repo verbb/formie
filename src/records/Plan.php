@@ -19,9 +19,6 @@ class Plan extends ActiveRecord
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return ActiveQueryInterface
-     */
     public function getIntegration(): ActiveQueryInterface
     {
         return $this->hasOne(Integration::class, ['id' => 'integrationId']);

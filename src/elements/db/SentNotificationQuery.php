@@ -22,12 +22,6 @@ class SentNotificationQuery extends ElementQuery
     // Public Methods
     // =========================================================================
 
-    /**
-     * Sets the [[formId]] property.
-     *
-     * @param string|Form|null $value The property value
-     * @return static self reference
-     */
     public function form(Form|string|null $value): static
     {
         if ($value instanceof Form) {
@@ -45,12 +39,6 @@ class SentNotificationQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[formId]] property.
-     *
-     * @param int
-     * @return static self reference
-     */
     public function formId($value): static
     {
         $this->formId = $value;
@@ -58,9 +46,6 @@ class SentNotificationQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Narrows the query results based on the notification’s statuses.
-     */
     public function status(array|string|null $value): static
     {
         return parent::status($value);
@@ -70,9 +55,6 @@ class SentNotificationQuery extends ElementQuery
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('formie_sentnotifications');
@@ -108,9 +90,6 @@ class SentNotificationQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function statusCondition(string $status): mixed
     {
         return match ($status) {

@@ -19,9 +19,6 @@ class IntegrationFormSettings extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function __construct($collections = [])
     {
         parent::__construct();
@@ -59,11 +56,6 @@ class IntegrationFormSettings extends Model
         $this->collections = $this->classFromArray($serialized);
     }
 
-    /**
-     * @param mixed $data
-     * @return array|mixed
-     * @throws InvalidConfigException
-     */
     private function classToArray(mixed $data): mixed
     {
         if (is_object($data)) {
@@ -97,11 +89,6 @@ class IntegrationFormSettings extends Model
         return $data;
     }
 
-    /**
-     * @param array $data
-     * @return mixed
-     * @throws InvalidConfigException
-     */
     private function classFromArray(mixed $data): mixed
     {
         if (!is_array($data)) {

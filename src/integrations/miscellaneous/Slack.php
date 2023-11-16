@@ -36,9 +36,6 @@ class Slack extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Slack');
@@ -102,39 +99,6 @@ class Slack extends Miscellaneous
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to Slack.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        // Validate the following when saving form settings
-        $rules[] = [['channelType', 'message'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        $rules[] = [
-            ['userId'], 'required', 'when' => function($model) {
-                return $model->enabled && $model->channelType === self::TYPE_DM;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['channelId'], 'required', 'when' => function($model) {
-                return $model->enabled && $model->channelType === self::TYPE_PUBLIC;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['webhook'], 'required', 'when' => function($model) {
-                return $model->enabled && $model->channelType === self::TYPE_WEBHOOK;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -266,6 +230,40 @@ class Slack extends Miscellaneous
         }
 
         return $this->_client;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['clientId', 'clientSecret'], 'required'];
+
+        // Validate the following when saving form settings
+        $rules[] = [['channelType', 'message'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        $rules[] = [
+            ['userId'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->channelType === self::TYPE_DM;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['channelId'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->channelType === self::TYPE_PUBLIC;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['webhook'], 'required', 'when' => function($model) {
+                return $model->enabled && $model->channelType === self::TYPE_WEBHOOK;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
     }
 
 

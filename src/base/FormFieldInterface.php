@@ -159,102 +159,16 @@ interface FormFieldInterface extends ComponentInterface
      * @return array
      */
     public function getContainerAttributes(): array;
-
-    /**
-     * Returns custom input attributes.
-     *
-     * @return array
-     */
     public function getInputAttributes(): array;
-
-    /**
-     * Returns the preview HTML for rendering in the form builder.
-     *
-     * @return string
-     */
     public function getPreviewInputHtml(): string;
-
-    /**
-     * Returns an array of options that will be passed into the render function.
-     *
-     * @param Form $form
-     * @param mixed $value
-     * @param array|null $renderOptions
-     * @return array
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array;
-
-    /**
-     * Returns the frontend input HTML.
-     *
-     * @param Form $form
-     * @param mixed $value
-     * @param array|null $renderOptions
-     * @return Markup
-     */
     public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup;
-
-    /**
-     * Returns an array of options that will be passed into the render function.
-     *
-     * @param Submission $submission
-     * @param Notification $notification
-     * @param mixed $value
-     * @param array $renderOptions
-     * @return array
-     */
     public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array;
-
-    /**
-     * Gets the email HTML for this field.
-     *
-     * @param Submission $submission
-     * @param Notification $notification
-     * @param mixed $value
-     * @param array|null $renderOptions
-     * @return string|bool|null
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool;
-
-    /**
-     * Returns the namespace for this field.
-     *
-     * @return string
-     */
     public function getNamespace(): string;
-
-    /**
-     * Returns the general schema for the field.
-     *
-     * @return array
-     */
     public function defineGeneralSchema(): array;
-
-    /**
-     * Returns the settings schema for the field.
-     *
-     * @return array
-     */
     public function defineSettingsSchema(): array;
-
-    /**
-     * Returns the appearance schema for the field.
-     *
-     * @return array
-     */
     public function defineAppearanceSchema(): array;
-
-    /**
-     * Returns the advanced schema for the field.
-     *
-     * @return array
-     */
     public function defineAdvancedSchema(): array;
-
-    /**
-     * Called after a field is created.
-     *
-     * @param array $data
-     */
     public function afterCreateField(array $data);
 }

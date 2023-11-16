@@ -31,17 +31,11 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Group');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/group/icon.svg';
@@ -55,9 +49,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return false;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return ($context->getForm()->handle ?? '') . '_' . $context->handle . '_FormieGroupField';
@@ -67,9 +58,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -95,9 +83,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
@@ -139,9 +124,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -149,9 +131,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -162,9 +141,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -182,17 +158,11 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return GroupInputType::getType($this);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlType(): array|Type
     {
         $typeArray = NestedFieldGenerator::generateTypes($this);

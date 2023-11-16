@@ -25,11 +25,6 @@ class PaymentWebhooksController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @param null $handle
-     * @throws BadRequestHttpException
-     * @throws NotFoundHttpException
-     */
     public function actionProcessWebhook(): Response
     {
         $handle = $this->request->getRequiredParam('handle');
@@ -45,11 +40,6 @@ class PaymentWebhooksController extends Controller
         return $integration->processWebhooks();
     }
 
-    /**
-     * @param null $handle
-     * @throws BadRequestHttpException
-     * @throws NotFoundHttpException
-     */
     public function actionProcessCallback(): Response
     {
         // Query string overrides body param, which we sometimes don't want

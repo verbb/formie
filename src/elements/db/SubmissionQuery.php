@@ -33,12 +33,6 @@ class SubmissionQuery extends ElementQuery
     // Public Methods
     // =========================================================================
 
-    /**
-     * Sets the [[formId]] property.
-     *
-     * @param string|Form|null $value The property value
-     * @return static self reference
-     */
     public function form(Form|array|string|null $value): static
     {
         if ($value instanceof Form) {
@@ -58,12 +52,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[formId]] property.
-     *
-     * @param int
-     * @return static self reference
-     */
     public function formId($value): static
     {
         $this->formId = $value;
@@ -71,12 +59,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[statusId]] property.
-     *
-     * @param array|string|null $value
-     * @return static self reference
-     */
     public function status(array|string|null $value): static
     {
         if ($value instanceof Status) {
@@ -94,12 +76,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[statusId]] property.
-     *
-     * @param int
-     * @return static self reference
-     */
     public function statusId($value): static
     {
         $this->statusId = $value;
@@ -107,12 +83,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[userId]] property.
-     *
-     * @param string|User|null $value
-     * @return static self reference
-     */
     public function user(string|User|null $value): static
     {
         if ($value instanceof User) {
@@ -127,12 +97,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[userId]] property.
-     *
-     * @param int
-     * @return static self reference
-     */
     public function userId($value): static
     {
         $this->userId = $value;
@@ -140,33 +104,18 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * Sets the [[isIncomplete]] property.
-     *
-     * @param bool|null $value
-     * @return static self reference
-     */
     public function isIncomplete(?bool $value): static
     {
         $this->isIncomplete = $value;
         return $this;
     }
 
-    /**
-     * Sets the [[isSpam]] property.
-     *
-     * @param bool|null $value
-     * @return static self reference
-     */
     public function isSpam(?bool $value): static
     {
         $this->isSpam = $value;
         return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function anyStatus(): static
     {
         parent::status(null);
@@ -180,9 +129,6 @@ class SubmissionQuery extends ElementQuery
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function beforePrepare(): bool
     {
         if ($this->formId !== null && empty($this->formId)) {
@@ -281,9 +227,6 @@ class SubmissionQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function customFields(): array
     {
         // This method won't get called if $this->formId isn't set to a single int
@@ -301,9 +244,6 @@ class SubmissionQuery extends ElementQuery
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function statusCondition(string $status): mixed
     {
         // Could potentially use a join in the main sub-query to not have another query,

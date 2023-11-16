@@ -20,11 +20,6 @@ class Phone extends Component
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns a list of countries and their extensions.
-     *
-     * @return mixed
-     */
     public function getCountries(): mixed
     {
         $locale = Craft::$app->getLocale()->getLanguageID();

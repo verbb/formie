@@ -29,9 +29,6 @@ class ConstantContact extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Constant Contact');
@@ -92,18 +89,6 @@ class ConstantContact extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Constant Contact lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'appSecret'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -264,6 +249,20 @@ class ConstantContact extends EmailMarketing
 
         return $this->_client;
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'appSecret'], 'required'];
+
+        return $rules;
+    }
+
 
 
     // Private Methods

@@ -25,9 +25,6 @@ class SubmissionExport extends ElementExporter
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Default');
@@ -37,17 +34,11 @@ class SubmissionExport extends ElementExporter
     // Public Methods
     // =========================================================================
     
-    /**
-     * @inheritdoc
-     */
     public function getFilename(): string
     {
         return 'formie-submissions-' . (new DateTime())->format('Y-m-d-H-i');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function export(ElementQueryInterface $query): array
     {
         try {

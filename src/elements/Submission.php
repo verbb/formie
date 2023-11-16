@@ -60,33 +60,21 @@ class Submission extends Element
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Submission');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function refHandle(): ?string
     {
         return 'submission';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasContent(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasTitles(): bool
     {
         // We cannot have titles because the element index for All Forms doesn't seem
@@ -95,65 +83,41 @@ class Submission extends Element
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasStatuses(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function isLocalized(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function find(): SubmissionQuery
     {
         return new SubmissionQuery(static::class);
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Submission';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function gqlScopesByContext(mixed $context): array
     {
         return ['formieSubmissions.' . $context->uid];
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function gqlMutationNameByContext(mixed $context): string
     {
         return 'save_' . $context->handle . '_Submission';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function statuses(): array
     {
         return Formie::$plugin->getStatuses()->getStatusesArray();
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
         $contentService = Craft::$app->getContent();
@@ -174,9 +138,6 @@ class Submission extends Element
         return $map;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSources(string $context = null): array
     {
         $forms = Form::find()->all();
@@ -220,9 +181,6 @@ class Submission extends Element
         return $sources;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineActions(string $source = null): array
     {
         $elementsService = Craft::$app->getElements();
@@ -254,9 +212,6 @@ class Submission extends Element
         return $actions;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected static function defineFieldLayouts(string $source): array
     {
         $fieldLayouts = [];
@@ -270,9 +225,6 @@ class Submission extends Element
         return $fieldLayouts;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -289,9 +241,6 @@ class Submission extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         $attributes = [];
@@ -307,17 +256,11 @@ class Submission extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected static function defineSearchableAttributes(): array
     {
         return ['title'];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -384,41 +327,26 @@ class Submission extends Element
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __toString(): string
     {
         return (string)$this->title;
     }
     
-    /**
-     * @inheritdoc
-     */
     public function canView(User $user): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function canDelete(User $user): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getStatus(): ?string
     {
         return $this->getStatusModel(true)->handle ?? null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
         $validates = parent::validate($attributeNames, $clearErrors);
@@ -446,9 +374,6 @@ class Submission extends Element
         return $validates;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSupportedSites(): array
     {
         // Only support the site the submission is being made on
@@ -457,17 +382,11 @@ class Submission extends Element
         return [$siteId];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getIsDraft(): bool
     {
         return $this->isIncomplete;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldLayout(): ?FieldLayout
     {
         if (!$this->_fieldLayout && $form = $this->getForm()) {
@@ -477,9 +396,6 @@ class Submission extends Element
         return $this->_fieldLayout;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldContext(): string
     {
         if (!$this->_fieldContext && $this->getFormRecord()) {
@@ -489,9 +405,6 @@ class Submission extends Element
         return $this->_fieldContext;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentTable(): string
     {
         if (!$this->_contentTable && $this->getFormRecord()) {
@@ -501,9 +414,6 @@ class Submission extends Element
         return $this->_contentTable;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): ?string
     {
         $form = $this->getForm();
@@ -540,9 +450,6 @@ class Submission extends Element
         }
     }
 
-    /**
-     * Gets the submission's form.
-     */
     public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
@@ -561,9 +468,6 @@ class Submission extends Element
         return $this->_form;
     }
 
-    /**
-     * Sets teh submission's form.
-     */
     public function setForm(Form $form): void
     {
         $this->_form = $form;
@@ -615,12 +519,6 @@ class Submission extends Element
         }
     }
 
-    /**
-     * Returns a field by its handle.
-     *
-     * @param string $handle
-     * @return FormFieldInterface|null
-     */
     public function getFieldByHandle(string $handle): ?FormFieldInterface
     {
         if ($fieldLayout = $this->getFieldLayout()) {
@@ -630,11 +528,6 @@ class Submission extends Element
         return null;
     }
 
-    /**
-     * Gets the submission's status model.
-     *
-     * @return Status
-     */
     public function getStatusModel(): Status
     {
         if (!$this->_status && $this->statusId) {
@@ -652,20 +545,12 @@ class Submission extends Element
         return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
     }
 
-    /**
-     * Sets the submission's status.
-     */
     public function setStatus(Status $status): void
     {
         $this->_status = $status;
         $this->statusId = $status->id;
     }
 
-    /**
-     * Returns the user who created the submission.
-     *
-     * @return User|null
-     */
     public function getUser(): ?User
     {
         if (!$this->userId) {
@@ -679,20 +564,12 @@ class Submission extends Element
         return $this->_user = Craft::$app->getUsers()->getUserById($this->userId);
     }
 
-    /**
-     * Sets the submission's user.
-     */
     public function setUser(User $user): void
     {
         $this->_user = $user;
         $this->userId = $user->id;
     }
 
-    /**
-     * Returns any payments integration HTML, shown when editing a submission in the control panel.
-     *
-     * @return array
-     */
     public function getPaymentSummaryHtml(): ?Markup
     {
         $html = '';
@@ -717,29 +594,16 @@ class Submission extends Element
         return Template::raw($html);
     }
 
-    /**
-     * Returns any payments made for the submission.
-     *
-     * @return array
-     */
     public function getPayments(): ?array
     {
         return Formie::$plugin->getPayments()->getSubmissionPayments($this);
     }
 
-    /**
-     * Returns any subscriptions made for the submission.
-     *
-     * @return array
-     */
     public function getSubscriptions(): ?array
     {
         return Formie::$plugin->getSubscriptions()->getSubmissionSubscriptions($this);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function setFieldValuesFromRequest(string $paramNamespace = ''): void
     {
         // A little extra work here to handle visibly disabled fields
@@ -791,13 +655,6 @@ class Submission extends Element
         }
     }
 
-    /**
-     * Returns all field values.
-     *
-     * @param FieldLayoutPage|null
-     * @return array
-     * @throws InvalidConfigException
-     */
     public function getValues($page): array
     {
         $values = [];
@@ -917,17 +774,11 @@ class Submission extends Element
         return Formie::$plugin->getRelations()->getRelations($this);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this->getForm());
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSpamCaptcha(): ?Captcha
     {
         if ($this->spamClass) {
@@ -943,9 +794,6 @@ class Submission extends Element
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */
@@ -978,9 +826,6 @@ class Submission extends Element
         return parent::beforeSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterSave(bool $isNew): void
     {
         // Get the node record
@@ -1016,9 +861,6 @@ class Submission extends Element
         parent::afterSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeDelete(): bool
     {
         $form = $this->getForm();
@@ -1045,9 +887,6 @@ class Submission extends Element
         return parent::beforeDelete();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterDelete(): void
     {
         $elementsService = Craft::$app->getElements();
@@ -1095,12 +934,9 @@ class Submission extends Element
     }
 
 
-    // Protected methods
+    // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -1130,9 +966,6 @@ class Submission extends Element
     }
 
 
-    /**
-     * @inheritDoc
-     */
     protected function tableAttributeHtml(string $attribute): string
     {
         switch ($attribute) {

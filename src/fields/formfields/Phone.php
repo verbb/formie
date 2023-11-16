@@ -33,27 +33,16 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Phone Number');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/phone/icon.svg';
     }
 
-    /**
-     * Returns a list of countries and their extensions.
-     *
-     * @return array
-     */
     public static function getCountryOptions(): array
     {
         return Formie::$plugin->getPhone()->getCountries();
@@ -200,9 +189,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateRequiredFields(ElementInterface $element): void
     {
         if ($this->required) {
@@ -241,9 +227,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
@@ -266,9 +249,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -312,9 +292,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -333,9 +310,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -346,9 +320,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

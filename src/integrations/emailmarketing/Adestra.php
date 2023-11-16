@@ -20,9 +20,6 @@ class Adestra extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Adestra');
@@ -43,18 +40,6 @@ class Adestra extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your Adestra lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'workspaceId', 'coreTableId'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -163,5 +148,18 @@ class Adestra extends EmailMarketing
                 'Authorization' => 'TOKEN ' . App::parseEnv($this->apiKey),
             ],
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'workspaceId', 'coreTableId'], 'required'];
+
+        return $rules;
     }
 }

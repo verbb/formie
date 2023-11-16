@@ -24,9 +24,6 @@ class Webhook extends BaseWebhook
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Webhook');
@@ -45,18 +42,6 @@ class Webhook extends BaseWebhook
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to any URL you provide.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -148,5 +133,18 @@ class Webhook extends BaseWebhook
         }
 
         return $this->_client = Craft::createGuzzleClient($options);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+
+        return $rules;
     }
 }

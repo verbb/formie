@@ -17,17 +17,11 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Single-line Text');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/single-line-text/icon.svg';
@@ -95,9 +89,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -123,12 +114,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    /**
-     * Validates the minimum number of characters.
-     *
-     * @param ElementInterface $element
-     * @throws InvalidFieldException
-     */
     public function validateMinCharacters(ElementInterface $element): void
     {
         $min = (int)($this->min ?? 0);
@@ -155,12 +140,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * Validates the maximum number of characters.
-     *
-     * @param ElementInterface $element
-     * @throws InvalidFieldException
-     */
     public function validateMaxCharacters(ElementInterface $element): void
     {
         $max = (int)($this->max ?? 0);
@@ -187,12 +166,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * Validates the minimum number of words.
-     *
-     * @param ElementInterface $element
-     * @throws InvalidFieldException
-     */
     public function validateMinWords(ElementInterface $element): void
     {
         $min = (int)($this->min ?? 0);
@@ -211,12 +184,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * Validates the maximum number of words.
-     *
-     * @param ElementInterface $element
-     * @throws InvalidFieldException
-     */
     public function validateMaxWords(ElementInterface $element): void
     {
         $max = (int)($this->max ?? 0);
@@ -247,9 +214,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/preview', [
@@ -301,9 +265,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -407,9 +368,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -420,9 +378,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -487,9 +442,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -23,9 +23,6 @@ class EmailOctopus extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'EmailOctopus');
@@ -43,18 +40,6 @@ class EmailOctopus extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your EmailOctopus lists to grow your audience for campaigns.');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -167,6 +152,19 @@ class EmailOctopus extends EmailMarketing
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://emailoctopus.com/api/1.5/',
         ]);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
     }
 
 

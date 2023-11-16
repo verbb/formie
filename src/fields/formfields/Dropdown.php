@@ -15,17 +15,11 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Dropdown');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/dropdown/icon.svg';
@@ -43,9 +37,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         // Mirror to native `multi` attribute
@@ -54,9 +45,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         parent::init();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -87,9 +75,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         return array_merge($options, $this->options);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
@@ -100,9 +85,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
@@ -110,9 +92,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedSettings(): array
     {
         $settings = parent::getSavedSettings();
@@ -205,9 +184,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -226,9 +202,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -239,9 +212,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -293,9 +263,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Dropdown Options');

@@ -33,17 +33,11 @@ class Recipients extends FormField implements PreviewableFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Recipients');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/recipients/icon.svg';
@@ -171,9 +165,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/preview', [
@@ -181,9 +172,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
@@ -216,9 +204,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
@@ -229,9 +214,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         // Use all the same settings from this field, but remove any invalid ones
@@ -338,9 +320,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFakeValue($value)
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
@@ -407,9 +386,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return parent::getTableAttributeHtml($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -457,9 +433,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -478,9 +451,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -491,9 +461,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -523,9 +490,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         if ($this->displayType === 'checkboxes') {

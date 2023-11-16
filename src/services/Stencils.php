@@ -40,21 +40,12 @@ class Stencils extends Component
     // Private Properties
     // =========================================================================
 
-    /**
-     * @var Stencil[]
-     */
     private ?array $_stencils = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all stencils.
-     *
-     * @param bool $withTrashed
-     * @return Stencil[]
-     */
     public function getAllStencils(bool $withTrashed = false): array
     {
         // Get the caches items if we have them cached, and the request is for non-trashed items
@@ -72,11 +63,6 @@ class Stencils extends Component
         return $this->_stencils = $stencils;
     }
 
-    /**
-     * Returns the stencils as an array for using in a select box.
-     *
-     * @return array
-     */
     public function getStencilArray(): array
     {
         $stencils = [];
@@ -91,47 +77,21 @@ class Stencils extends Component
         return $stencils;
     }
 
-    /**
-     * Gets a single stencil by its ID.
-     *
-     * @param int $id
-     * @return Stencil|null
-     */
     public function getStencilById(int $id): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'id', $id);
     }
 
-    /**
-     * Gets a single stencil by its handle.
-     *
-     * @param string $handle
-     * @return Stencil|null
-     */
     public function getStencilByHandle(string $handle): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'handle', $handle, false);
     }
 
-    /**
-     * Returns a stencil identified by its UID.
-     *
-     * @param string $uid
-     * @return Stencil|null
-     */
     public function getStencilByUid(string $uid): ?Stencil
     {
         return ArrayHelper::firstWhere($this->getAllStencils(), 'uid', $uid, false);
     }
 
-    /**
-     * Saves the stencil.
-     *
-     * @param Stencil $stencil
-     * @param bool $runValidation
-     * @return bool
-     * @throws Throwable
-     */
     public function saveStencil(Stencil $stencil, bool $runValidation = true): bool
     {
         $isNewStencil = !$stencil->id;
@@ -193,12 +153,6 @@ class Stencils extends Component
         return true;
     }
 
-    /**
-     * Handle stencil change.
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleChangedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
@@ -278,13 +232,6 @@ class Stencils extends Component
         }
     }
 
-    /**
-     * Delete a stencil by its id.
-     *
-     * @param int $id
-     * @return bool
-     * @throws Throwable
-     */
     public function deleteStencilById(int $id): bool
     {
         $stencil = $this->getStencilById($id);
@@ -296,12 +243,6 @@ class Stencils extends Component
         return $this->deleteStencil($stencil);
     }
 
-    /**
-     * Deletes a stencil.
-     *
-     * @param Stencil $stencil The stencil
-     * @return bool Whether the stencil was deleted successfully
-     */
     public function deleteStencil(Stencil $stencil): bool
     {
         // Fire a 'beforeDeleteStencil' event
@@ -315,12 +256,6 @@ class Stencils extends Component
         return true;
     }
 
-    /**
-     * Handle stencil being deleted
-     *
-     * @param ConfigEvent $event
-     * @throws Throwable
-     */
     public function handleDeletedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
@@ -355,16 +290,6 @@ class Stencils extends Component
         }
     }
 
-    /**
-     * Applies a stencil to a form.
-     *
-     * @param Form $form
-     * @param Stencil $stencil
-     * @throws ErrorException
-     * @throws \yii\base\Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function applyStencil(Form $form, Stencil $stencil): void
     {
         $form->settings = $stencil->data->settings;
@@ -403,12 +328,6 @@ class Stencils extends Component
     // Private Methods
     // =========================================================================
 
-    /**
-     * Returns a Query object prepped for retrieving stencils.
-     *
-     * @param bool $withTrashed
-     * @return Query
-     */
     private function _createStencilsQuery(bool $withTrashed = false): Query
     {
         $query = (new Query())
@@ -433,12 +352,6 @@ class Stencils extends Component
         return $query;
     }
 
-    /**
-     * Gets a stencil record by uid.
-     *
-     * @param string $uid
-     * @return StencilRecord
-     */
     private function _getStencilsRecord(string $uid): StencilRecord
     {
         /** @var StencilRecord $stencil */

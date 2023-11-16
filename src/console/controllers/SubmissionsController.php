@@ -19,48 +19,18 @@ class SubmissionsController extends Controller
     // Properties
     // =========================================================================
 
-    /**
-     * @var string|null The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
-     */
     public ?string $formId = null;
-
-    /**
-     * @var string|null The form handle(s) to delete submissions from. Can be set to multiple comma-separated handles.
-     */
     public ?string $formHandle = null;
-
-    /**
-     * @var bool Whether to delete only spam submissions.
-     */
     public bool $spamOnly = false;
-
-    /**
-     * @var bool Whether to delete only incomplete submissions.
-     */
     public bool $incompleteOnly = false;
-
-    /**
-     * @var string|null The submission ID(s) to use data for. Can be set to multiple comma-separated IDs.
-     */
     public ?string $submissionId = null;
-
-    /**
-     * @var string|null The handle of the integration to trigger.
-     */
     public ?string $integration = null;
-
-    /**
-     * @var int|null The ID of the notification to trigger.
-     */
     public ?int $notificationId = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID): array
     {
         $options = parent::options($actionID);
@@ -85,12 +55,6 @@ class SubmissionsController extends Controller
         return $options;
     }
 
-    /**
-     * Deletes all submissions.
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionDelete(): int
     {
         $formIds = null;
@@ -157,12 +121,6 @@ class SubmissionsController extends Controller
         return ExitCode::OK;
     }
 
-    /**
-     * Triggers an integration for a submission
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionRunIntegration(): int
     {
         if (!$this->submissionId) {
@@ -214,12 +172,6 @@ class SubmissionsController extends Controller
         return ExitCode::OK;
     }
 
-    /**
-     * Sends a noification for a submission
-     *
-     * @return int
-     * @throws Throwable
-     */
     public function actionSendNotification(): int
     {
         if (!$this->submissionId) {

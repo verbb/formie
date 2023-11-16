@@ -24,9 +24,6 @@ class PdfTemplatesController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @return Response
-     */
     public function actionIndex(): Response
     {
         $pdfTemplates = Formie::$plugin->getPdfTemplates()->getAllTemplates();
@@ -34,12 +31,6 @@ class PdfTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/pdf-templates', compact('pdfTemplates'));
     }
 
-    /**
-     * @param int|null $id
-     * @param PdfTemplate|null $template
-     * @return Response
-     * @throws HttpException
-     */
     public function actionEdit(int $id = null, PdfTemplate $template = null): Response
     {
         $variables = compact('id', 'template');
@@ -65,14 +56,6 @@ class PdfTemplatesController extends Controller
         return $this->renderTemplate('formie/settings/pdf-templates/_edit', $variables);
     }
 
-    /**
-     * @throws MissingComponentException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws BadRequestHttpException
-     * @throws ServerErrorHttpException
-     */
     public function actionSave(): void
     {
         $this->requirePostRequest();
@@ -97,14 +80,6 @@ class PdfTemplatesController extends Controller
         Craft::$app->getUrlManager()->setRouteParams(compact('template'));
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws ErrorException
-     * @throws Exception
-     * @throws NotSupportedException
-     * @throws ServerErrorHttpException
-     */
     public function actionReorder(): Response
     {
         $this->requirePostRequest();
@@ -118,11 +93,6 @@ class PdfTemplatesController extends Controller
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t reorder templates.')]);
     }
 
-    /**
-     * @return Response
-     * @throws BadRequestHttpException
-     * @throws Throwable
-     */
     public function actionDelete(): Response
     {
         $this->requireAcceptsJson();
