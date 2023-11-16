@@ -48,6 +48,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return Formie::$plugin->getPhone()->getCountries();
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_STRING;
+    }
+
 
     // Properties
     // =========================================================================
@@ -62,23 +67,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        if ($this->countryEnabled) {
-            return Schema::TYPE_TEXT;
-        }
-
-        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
-            return Schema::TYPE_TEXT;
-        }
-
-        return Schema::TYPE_STRING;
-    }
-
-    public function hasSubfields(): bool
+    public function hasSubFields(): bool
     {
         if ($this->countryEnabled) {
             return true;
@@ -87,10 +76,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
@@ -113,10 +99,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return $phone;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value instanceof PhoneModel) {
             $value = Json::encode($value);
@@ -215,10 +198,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
             'name' => $this->handle,
@@ -260,7 +240,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
             SchemaHelper::toggleBlock([
@@ -281,7 +261,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
                 ]),
                 SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Country Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => 'countryDefaultValue',
                     'options' => array_merge(
                         [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],

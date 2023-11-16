@@ -4,7 +4,9 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\web\assets\forms\FormsAsset;
 
-class Plugin
+use verbb\base\helpers\Plugin as BasePlugin;
+
+class Plugin extends BasePlugin
 {
     // Static Methods
     // =========================================================================

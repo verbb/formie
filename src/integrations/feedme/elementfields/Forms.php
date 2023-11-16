@@ -68,7 +68,7 @@ class Forms extends Field implements FieldInterface
             $columnName = $match;
 
             if (Craft::$app->getFields()->getFieldByHandle($match)) {
-                $columnName = Craft::$app->getFields()->oldFieldColumnPrefix . $match;
+                $columnName = $match;
             }
 
             $query = FormElement::find();

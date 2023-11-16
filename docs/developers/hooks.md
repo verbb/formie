@@ -4,7 +4,7 @@ Hooks give you the means to insert your own Twig template code into Formie's tem
 Hooks are purely for inserting new content, and cannot be used to prevent something already existing in the Formie template from rendering. To do this, read our [theming](docs:theming) guide.
 
 ## Form
-[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/form.html).
+[View this template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/form.html).
 
 Hook | Description
 --- | ---
@@ -25,7 +25,7 @@ Craft::$app->getView()->hook('formie.form.start', function(array &$context) {
 
 
 ## Page
-[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/page.html#L09-L41).
+[View this template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/page.html#L09-L41).
 
 Hook | Description
 --- | ---
@@ -46,7 +46,7 @@ Craft::$app->getView()->hook('formie.page.start', function(array &$context) {
 
 
 ## Buttons
-[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/page.html#L38-L92).
+[View this template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/page.html#L38-L92).
 
 Hook | Description
 --- | ---
@@ -73,7 +73,7 @@ Craft::$app->getView()->hook('formie.buttons.before', function(array &$context) 
 
 
 ## Field
-[View this template](https://github.com/verbb/formie/blob/craft-4/src/templates/_special/form-template/field.html).
+[View this template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/field.html).
 
 Hook | Description
 --- | ---

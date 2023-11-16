@@ -41,14 +41,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return 'formie/_formfields/group/icon.svg';
     }
 
-    /**
-     * @inheritdoc
-     */
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return ($context->getForm()->handle ?? '') . '_' . $context->handle . '_FormieGroupField';
@@ -71,10 +63,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/input', [
             'name' => $this->handle,

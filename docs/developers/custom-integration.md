@@ -764,7 +764,7 @@ For example - let's consider mapping to Entry elements. There are multiple secti
 ```php
 $customFields = [];
 
-$sections = Craft::$app->getSections()->getAllSections();
+$sections = Craft::$app->getEntries()->getAllSections();
 
 foreach ($sections as $section) {
     if ($section->type === 'single') {

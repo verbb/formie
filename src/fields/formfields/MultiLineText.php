@@ -30,6 +30,11 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/multi-line-text/icon.svg';
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -65,19 +70,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
         parent::__construct($config);
     }
-
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_TEXT;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value !== null) {
             $value = StringHelper::entitiesToEmoji((string)$value);
@@ -88,10 +81,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return parent::normalizeValue($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value !== null) {
             // Save as HTML entities (e.g. `&#x1F525;`) so we can use that in JS to determine length.
@@ -215,10 +205,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $form = null;
 
@@ -341,7 +328,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::textareaField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'rows' => '3',
             ]),

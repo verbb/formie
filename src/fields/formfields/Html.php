@@ -40,11 +40,6 @@ class Html extends FormField
         return 'formie/_formfields/html/icon.svg';
     }
 
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
 
     // Properties
     // =========================================================================
@@ -105,7 +100,7 @@ class Html extends FormField
         return parent::beforeSave($isNew);
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
             'name' => $this->handle,

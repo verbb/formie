@@ -71,6 +71,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return DateTimeHelper::toDateTime($value, false, false);
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_DATETIME;
+    }
+
 
     // Properties
     // =========================================================================
@@ -155,18 +160,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        if ($this->getIsTime()) {
-            return Schema::TYPE_TIME;
-        }
-
-        return Schema::TYPE_DATETIME;
-    }
-
     public function hasSubfields(): bool
     {
         return $this->displayType !== 'calendar';
@@ -198,10 +191,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->timeFormat;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if ($value && $this->getIsDateTime()) {
             return Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
@@ -226,10 +216,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->normalizeValue($defaultValue);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if (!$value || $value instanceof DateTime) {
             return $value;
@@ -720,7 +707,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->includeTime && $this->includeDate;
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/input', [
             'name' => $this->handle,
@@ -881,7 +868,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             ]),
             SchemaHelper::dateField([
                 'label' => Craft::t('formie', 'Default Date/Time'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'if' => '$get(defaultOption).value == date',
             ]),

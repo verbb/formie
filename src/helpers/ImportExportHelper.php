@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
@@ -37,7 +38,7 @@ class ImportExportHelper
             ->one();
 
         // Remove attributes we won't need
-        foreach (['id', 'fieldContentTable', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+        foreach (['id', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
             ArrayHelper::remove($data, $key);
         }
 
@@ -338,7 +339,7 @@ class ImportExportHelper
                     // This will throw an error for Commerce, where the extended class doesn't exist.
                     // Which unfortunately means we can't use `class_exists()` because it's the extended
                     // class that doesn't exist, and that can't be caught for some reason.
-                    if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+                    if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
                         unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
                     } else if (!class_exists($type)) {
                         // Check if the class doesn't exist

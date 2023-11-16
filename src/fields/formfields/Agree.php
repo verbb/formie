@@ -34,6 +34,11 @@ class Agree extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/agree/icon.svg';
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_BOOLEAN;
+    }
+
 
     // Properties
     // =========================================================================
@@ -59,7 +64,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         parent::__construct($config);
     }
 
-    public function attributes()
+    public function attributes(): array
     {
         $names = parent::attributes();
         
@@ -73,12 +78,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         return $names;
     }
 
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_BOOLEAN;
-    }
-
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         return (bool)$value;
     }
@@ -120,7 +120,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/input', [
             'name' => $this->handle,

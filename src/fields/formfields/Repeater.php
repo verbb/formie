@@ -49,14 +49,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return 'formie/_formfields/repeater/icon.svg';
     }
 
-    /**
-     * @inheritdoc
-     */
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
 
     // Properties
     // =========================================================================
@@ -69,9 +61,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -126,10 +115,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $view = Craft::$app->getView();
 
@@ -152,9 +138,6 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ]);;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [

@@ -249,11 +249,11 @@ If your form contains File Upload fields, you'll need to set the `<form>` elemen
 Without this, file uploads will not work.
 
 ### What's Not Covered
-Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of submission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-4/src/templates/_special).
+Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of submission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special).
 
 ### Next Steps
 The above is a quick guide to the basics, but be warned that you'll be required to keep an eye on Formie's templates and development, in order to keep up with any core changes for your templates. We highly recommend you test your template code to ensure Formie's JavaScript works with your HTML markup as well, particularly for things like Captchas.
 
 :::tip
-Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-4/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
+Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
 :::

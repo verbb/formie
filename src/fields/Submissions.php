@@ -8,6 +8,7 @@ use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\resolvers\SubmissionResolver;
 
 use Craft;
+use craft\elements\ElementCollection;
 use craft\fields\BaseRelationField;
 
 use GraphQL\Type\Definition\Type;
@@ -32,9 +33,9 @@ class Submissions extends BaseRelationField
         return Craft::t('formie', 'Add a submission');
     }
 
-    public static function valueType(): string
+    public static function phpType(): string
     {
-        return SubmissionQuery::class;
+        return sprintf('\\%s|\\%s<\\%s>', SubmissionQuery::class, ElementCollection::class, Submission::class);
     }
 
     public function getContentGqlType(): array|Type

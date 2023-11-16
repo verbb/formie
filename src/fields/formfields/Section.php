@@ -27,14 +27,6 @@ class Section extends FormField
         return 'formie/_formfields/section/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
 
     // Properties
     // =========================================================================
@@ -69,10 +61,7 @@ class Section extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/input', [
             'name' => $this->handle,

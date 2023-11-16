@@ -2,7 +2,7 @@
     "name": "verbb/formie",
     "description": "The most user-friendly forms plugin for Craft.",
     "type": "craft-plugin",
-    "version": "2.0.37",
+    "version": "3.0.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -25,9 +25,9 @@
         }
     ],
     "require": {
-        "php": "^8.0.2",
+        "php": "^8.2",
         "commerceguys/addressing": "^1.2",
-        "craftcms/cms": "^4.3.2",
+        "craftcms/cms": "^5.0.0-alpha.1",
         "dompdf/dompdf": "^1.0.2 || ^2.0.3",
         "ezyang/htmlpurifier": "^4.13",
         "fakerphp/faker": "^1.9.1",
@@ -39,22 +39,22 @@
         "league/oauth2-client": "^2.6.0",
         "league/oauth2-google": "^3.0 || ^4.0",
         "moneyphp/money": "^4.0",
-        "nystudio107/craft-plugin-vite": "^4.0.0-beta.4",
+        "nystudio107/craft-plugin-vite": "dev-develop-v5 as 5.0.0-beta.1",
         "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0",
         "symfony/expression-language": "^5.3.0",
         "thenetworg/oauth2-azure": "^2.0",
-        "verbb/base": "^2.0.0",
+        "verbb/base": "^3.0.0-beta.1",
         "voku/anti-xss": "^4.1"
     },
     "autoload": {
         "psr-4": {
-          "verbb\\formie\\": "src/"
+            "verbb\\formie\\": "src/"
         }
     },
     "extra": {
         "name": "Formie",
         "handle": "formie",
-        "changelogUrl": "https://raw.githubusercontent.com/verbb/formie/craft-4/CHANGELOG.md",
+        "changelogUrl": "https://raw.githubusercontent.com/verbb/formie/craft-5/CHANGELOG.md",
         "class": "verbb\\formie\\Formie"
     }
 }

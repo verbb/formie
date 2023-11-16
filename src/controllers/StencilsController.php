@@ -220,7 +220,7 @@ class StencilsController extends Controller
                 'notifications' => $notificationsConfig,
                 'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
                 'fieldLayoutId' => $form->fieldLayoutId,
-                'redirect' => ($duplicate) ? $stencil->cpEditUrl : null,
+                'redirect' => ($duplicate) ? $stencil->getCpEditUrl() : null,
                 'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
             ]);
         }

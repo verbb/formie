@@ -84,27 +84,12 @@ class Hidden extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getContentColumnType(): string
-    {
-        if ($this->columnType) {
-            return $this->columnType;
-        }
-
-        return parent::getContentColumnType();
-    }
-
     public function getIsHidden(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
@@ -144,10 +129,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/input', [
             'name' => $this->handle,
@@ -230,7 +212,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variables' => 'plainTextVariables',
                 'if' => '$get(defaultOption).value == custom',

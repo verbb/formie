@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\Plugin;
 
 use Craft;
 use craft\web\Controller;
@@ -19,7 +20,7 @@ class ElementsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $sections = Craft::$app->getSections()->getAllSections();
+        $sections = Craft::$app->getEntries()->getAllSections();
 
         return $this->asJson(['success' => true, 'sections' => $sections]);
     }
@@ -33,7 +34,7 @@ class ElementsController extends Controller
         $sectionId = $this->request->getParam('sectionId');
 
         if ($sectionId) {
-            $entryTypes = Craft::$app->getSections()->getEntryTypesBySectionId($sectionId);
+            $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
         }
 
         return $this->asJson(['success' => true, 'entryTypes' => $entryTypes]);
@@ -63,7 +64,7 @@ class ElementsController extends Controller
 
         $productTypes = [];
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+        if (Plugin::isPluginInstalledAndEnabled('commerce')) {
             $productTypes = Commerce::getInstance()->getProductTypes()->getAllProductTypes();
 
             // Reset keys so it's an array

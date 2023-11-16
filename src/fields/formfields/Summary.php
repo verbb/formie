@@ -26,14 +26,6 @@ class Summary extends FormField
         return 'formie/_formfields/summary/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
 
     // Public Methods
     // =========================================================================
@@ -48,10 +40,7 @@ class Summary extends FormField
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/input', [
             'name' => $this->handle,

@@ -47,7 +47,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/calculations/input', [
             'name' => $this->handle,

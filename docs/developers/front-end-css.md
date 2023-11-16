@@ -46,7 +46,7 @@ Here, we have split the rendering of the form to firstly the CSS, then the HTML 
 Rather than ditching the entire theme CSS, or overriding through your own CSS definitions, you can use [CSS Variables](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties) to override just what you require. For almost every opinionated style, Formie has a CSS Variable for you to use.
 
 :::tip
-For a full list of available variables, refer to the [CSS Variables](https://github.com/verbb/formie/blob/craft-4/src/web/assets/frontend/src/scss/_variables.scss).
+For a full list of available variables, refer to the [CSS Variables](https://github.com/verbb/formie/blob/craft-5/src/web/assets/frontend/src/scss/_variables.scss).
 :::
 
 A classic example would be to use the Formie Theme CSS, but change the submit button colour, and some input styles. You could achieve this with the following CSS (either inline or in your own stylesheets).

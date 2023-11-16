@@ -113,7 +113,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return parent::beforeSave($isNew);
     }
 
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // For GQL mutations, we need a little extra handling here, because the Assets field doesn't support multiple data-encoded items
         // and there's issues when using Repeater > File fields (https://github.com/verbb/formie/issues/1419) we handle things ourselves.

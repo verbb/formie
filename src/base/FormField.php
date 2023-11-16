@@ -20,6 +20,19 @@ abstract class FormField extends Field implements FormFieldInterface
     }
 
 
+    // Static Methods
+    // =========================================================================
+
+    public static function dbType(): string
+    {
+        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
+            return Schema::TYPE_TEXT;
+        }
+
+        return parent::dbType();
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -41,17 +54,8 @@ abstract class FormField extends Field implements FormFieldInterface
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-        }
-    }
-
-    public function getContentColumnType(): string
-    {
-        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
-            return Schema::TYPE_TEXT;
             ]);
         }
-
-        return parent::getContentColumnType();
     }
 
     public function getElementValidationRules(): array

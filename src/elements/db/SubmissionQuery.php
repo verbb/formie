@@ -137,9 +137,6 @@ class SubmissionQuery extends ElementQuery
 
         $this->joinElementTable('formie_submissions');
 
-        // Figure out which content table to use
-        $this->contentTable = null;
-
         if (!$this->formId) {
             $formIds = [];
             $subQuery = null;
@@ -176,10 +173,6 @@ class SubmissionQuery extends ElementQuery
             if ($formIds) {
                 $this->formId = count($formIds) === 1 ? $formIds[0] : $formIds;
             }
-        }
-
-        if ($this->formId && is_numeric($this->formId) && $form = Formie::$plugin->getForms()->getFormById($this->formId)) {
-            $this->contentTable = $form->fieldContentTable;
         }
 
         $this->query->select([

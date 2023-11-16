@@ -34,6 +34,12 @@ class Number extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/number/icon.svg';
     }
 
+    public static function dbType(): string
+    {
+        // Don't use integer columns, so we can handle large numbers as strings
+        return Schema::TYPE_TEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -74,19 +80,7 @@ class Number extends FormField implements PreviewableFieldInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        // Don't use integer columns, so we can handle large numbers as strings
-        return Schema::TYPE_TEXT;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value === null) {
             if ($this->defaultValue !== null && $this->isFresh($element)) {
@@ -108,10 +102,7 @@ class Number extends FormField implements PreviewableFieldInterface
         return (string)$value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // If decimals is 0 (or null, empty for whatever reason), don't run this
         if ($value !== null && $this->decimals) {
@@ -149,7 +140,7 @@ class Number extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
         ];

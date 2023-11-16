@@ -27,7 +27,11 @@ class Support extends Model
         ];
     }
 
-    public function rules(): array
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
     {
         return [
             [['fromEmail', 'formId', 'message'], 'required'],

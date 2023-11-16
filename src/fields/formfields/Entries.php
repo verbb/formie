@@ -249,7 +249,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 $sectionId = $source['criteria']['sectionId'] ?? null;
 
                 if ($sectionId && !is_array($sectionId)) {
-                    $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($sectionId);
+                    $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
 
                     foreach ($entryTypes as $entryType) {
                         $options[] = [
@@ -286,7 +286,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 $sectionId = $source['criteria']['sectionId'] ?? null;
 
                 if ($sectionId && !is_array($sectionId)) {
-                    $entryTypes = Craft::$app->sections->getEntryTypesBySectionId($sectionId);
+                    $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
 
                     foreach ($entryTypes as $entryType) {
                         $fields = $this->getStringCustomFieldOptions($entryType->getCustomFields());

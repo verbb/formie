@@ -35,6 +35,19 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
     }
 
 
+    // Static Methods
+    // =========================================================================
+
+    public static function dbType(): string
+    {
+        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
+            return Schema::TYPE_TEXT;
+        }
+        
+        return parent::dbType();
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -59,14 +72,6 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         $this->_normalizeOptions();
     }
 
-    public function getContentColumnType(): string
-    {
-        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
-            return Schema::TYPE_TEXT;
-        }
-        
-        return parent::getContentColumnType();
-    }
 
     public function getSavedFieldConfig(): array
     {

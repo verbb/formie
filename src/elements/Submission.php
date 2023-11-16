@@ -70,11 +70,6 @@ class Submission extends Element
         return 'submission';
     }
 
-    public static function hasContent(): bool
-    {
-        return true;
-    }
-
     public static function hasTitles(): bool
     {
         // We cannot have titles because the element index for All Forms doesn't seem
@@ -120,20 +115,20 @@ class Submission extends Element
 
     public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
-        $contentService = Craft::$app->getContent();
-        $originalFieldContext = $contentService->fieldContext;
+        $fieldsService = Craft::$app->getFields();
+        $originalFieldContext = $fieldsService->fieldContext;
 
         $submission = $sourceElements[0] ?? null;
 
         // Ensure we setup the correct content table before fetching the eager-loading map.
         // This is particular helps resolve element fields' content.
         if ($submission && $submission instanceof self) {
-            $contentService->fieldContext = $submission->getFieldContext();
+            $fieldsService->fieldContext = $submission->getFieldContext();
         }
 
         $map = parent::eagerLoadingMap($sourceElements, $handle);
 
-        $contentService->fieldContext = $originalFieldContext;
+        $fieldsService->fieldContext = $originalFieldContext;
 
         return $map;
     }
@@ -212,7 +207,7 @@ class Submission extends Element
         return $actions;
     }
 
-    protected static function defineFieldLayouts(string $source): array
+    protected static function defineFieldLayouts(?string $source): array
     {
         $fieldLayouts = [];
 
@@ -396,49 +391,6 @@ class Submission extends Element
         return $this->_fieldLayout;
     }
 
-    public function getFieldContext(): string
-    {
-        if (!$this->_fieldContext && $this->getFormRecord()) {
-            $this->_fieldContext = "formie:{$this->getFormRecord()->uid}";
-        }
-
-        return $this->_fieldContext;
-    }
-
-    public function getContentTable(): string
-    {
-        if (!$this->_contentTable && $this->getFormRecord()) {
-            $this->_contentTable = $this->getFormRecord()->fieldContentTable;
-        }
-
-        return $this->_contentTable;
-    }
-
-    public function getCpEditUrl(): ?string
-    {
-        $form = $this->getForm();
-
-        if (!$form) {
-            return '';
-        }
-
-        $path = "formie/submissions/$form->handle";
-
-        if ($this->id) {
-            $path .= "/$this->id";
-        } else {
-            $path .= '/new';
-        }
-
-        $params = [];
-
-        if (Craft::$app->getIsMultiSite()) {
-            $params['site'] = $this->getSite()->handle;
-        }
-
-        return UrlHelper::cpUrl($path, $params);
-    }
-
     public function updateTitle($form): void
     {
         if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
@@ -495,21 +447,6 @@ class Submission extends Element
         if ($formSettings) {
             $form->settings->setAttributes($formSettings, false);
         }
-    }
-
-    public function getFormRecord(): ?Form
-    {
-        if ($this->formId) {
-            if ($form = Formie::$plugin->getForms()->getFormRecord($this->formId)) {
-                return $form;
-            }
-        }
-
-        if ($this->_form) {
-            return $this->_form;
-        }
-
-        return null;
     }
 
     public function getFormName(): ?string
@@ -966,43 +903,67 @@ class Submission extends Element
     }
 
 
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
-        switch ($attribute) {
-            case 'form':
-                $form = $this->getForm();
+        if ($attribute == 'form') {
+            $form = $this->getForm();
 
-                return $form->title ?? '';
-            case 'userId':
-                $user = $this->getUser();
-                return $user ? Cp::elementHtml($user) : '';
-            case 'status':
-                $status = $this->getStatusModel(true);
-                
-                return Html::tag('span', Html::tag('span', '', [
-                        'class' => array_filter([
-                            'status',
-                            $status->handle ?? null,
-                            $status->color ?? null,
-                        ]),
-                    ]) . ($status->name ?? null), [
-                    'style' => [
-                        'display' => 'flex',
-                        'align-items' => 'center',
-                    ],
+            return $form->title ?? '';
+        } else if ($attribute == 'userId') {
+            $user = $this->getUser();
+            return $user ? Cp::elementChipHtml($user) : '';
+        } else if ($attribute == 'status') {
+            $status = $this->getStatusModel(true);
+
+            return Html::tag('span', Html::tag('span', '', [
+                    'class' => array_filter([
+                        'status',
+                        $status->handle ?? null,
+                        $status->color ?? null,
+                    ]),
+                ]) . ($status->name ?? null), [
+                'style' => [
+                    'display' => 'flex',
+                    'align-items' => 'center',
+                ],
+            ]);
+        } else if ($attribute == 'sendNotification') {
+            if (($form = $this->getForm()) && $form->getNotifications()) {
+                return Html::a(Craft::t('formie', 'Send'), '#', [
+                    'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
+                    'data-id' => $this->id,
+                    'title' => Craft::t('formie', 'Send'),
                 ]);
-            case 'sendNotification':
-                if (($form = $this->getForm()) && $form->getNotifications()) {
-                    return Html::a(Craft::t('formie', 'Send'), '#', [
-                        'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
-                        'data-id' => $this->id,
-                        'title' => Craft::t('formie', 'Send'),
-                    ]);
-                }
+            }
 
-                return '';
-            default:
-                return parent::tableAttributeHtml($attribute);
+            return '';
         }
+
+        return parent::attributeHtml($attribute);
+    }
+
+    protected function cpEditUrl(): ?string
+    {
+        $form = $this->getForm();
+
+        if (!$form) {
+            return '';
+        }
+
+        $path = "formie/submissions/$form->handle";
+
+        if ($this->id) {
+            $path .= "/$this->id";
+        } else {
+            $path .= '/new';
+        }
+
+        $params = [];
+
+        if (Craft::$app->getIsMultiSite()) {
+            $params['site'] = $this->getSite()->handle;
+        }
+
+        return UrlHelper::cpUrl($path, $params);
     }
 }

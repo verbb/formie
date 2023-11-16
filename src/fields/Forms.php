@@ -8,6 +8,7 @@ use verbb\formie\gql\interfaces\FormInterface;
 use verbb\formie\gql\resolvers\FormResolver;
 
 use Craft;
+use craft\elements\ElementCollection;
 use craft\fields\BaseRelationField;
 
 use GraphQL\Type\Definition\Type;
@@ -32,9 +33,9 @@ class Forms extends BaseRelationField
         return Craft::t('formie', 'Add a form');
     }
 
-    public static function valueType(): string
+    public static function phpType(): string
     {
-        return FormQuery::class;
+        return sprintf('\\%s|\\%s<\\%s>', FormQuery::class, ElementCollection::class, Form::class);
     }
 
 

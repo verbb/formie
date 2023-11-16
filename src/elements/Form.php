@@ -83,11 +83,6 @@ class Form extends Element
         return true;
     }
 
-    public static function hasContent(): bool
-    {
-        return true;
-    }
-
     public static function isLocalized(): bool
     {
         return false;
@@ -152,7 +147,7 @@ class Form extends Element
         return array_values($elements);
     }
 
-    protected static function defineFieldLayouts(string $source): array
+    protected static function defineFieldLayouts(?string $source): array
     {
         if (self::$_layoutsByType !== null) {
             return self::$_layoutsByType;

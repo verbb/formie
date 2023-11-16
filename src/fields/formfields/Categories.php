@@ -81,7 +81,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // The default Craft Categories field behaviour is pretty odd. It'll select all child categories in the same branch
         // which is completely not what we want. We just want to save the categories we pick - is that too much to ask?!

@@ -357,7 +357,7 @@ class SentNotification extends Element
     // Protected Methods
     // =========================================================================
 
-    protected function tableAttributeHtml(string $attribute): string
+    protected function attributeHtml(string $attribute): string
     {
         return match ($attribute) {
             'form' => $this->getForm()->title ?? '-',
@@ -370,7 +370,7 @@ class SentNotification extends Element
             ]),
             'preview' => $this->body ? StringHelper::safeTruncate($this->body, 50) : '',
             'status' => '<span class="status ' . $this->status . '"></span>',
-            default => parent::tableAttributeHtml($attribute),
+            default => parent::attributeHtml($attribute),
         };
     }
 

@@ -15,9 +15,9 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    public static function valueType(): string
+    public static function phpType(): string
     {
-        return MultiOptionsFieldData::class;
+        return sprintf('\\%s', MultiOptionsFieldData::class);
     }
 
     public static function displayName(): string
@@ -79,7 +79,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         return $options;
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
             'name' => $this->handle,

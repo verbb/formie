@@ -52,6 +52,11 @@ class Table extends CraftTable implements FormFieldInterface
         return 'formie/_formfields/table/icon.svg';
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -78,18 +83,7 @@ class Table extends CraftTable implements FormFieldInterface
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_TEXT;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'addRowLabel' => Craft::t('formie', 'Add row'),
@@ -115,10 +109,7 @@ class Table extends CraftTable implements FormFieldInterface
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         /** @var Element $element */
         if (empty($this->columns)) {
@@ -192,10 +183,7 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSavedSettings(): array
+    public function getFormBuilderSettings(): array
     {
         $settings = $this->getSettings();
 
@@ -244,10 +232,7 @@ class Table extends CraftTable implements FormFieldInterface
         return parent::beforeSave($isNew);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // This is the parent `Table::normalizeValue()` function, but we need custom behaviour for date/time cells
         if (is_string($value) && !empty($value)) {

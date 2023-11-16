@@ -9,6 +9,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\integrations\addressproviders;
 use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
@@ -86,7 +87,7 @@ class Integrations extends Component
             captchas\Javascript::class,
         ];
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {
+        if (Plugin::isPluginInstalledAndEnabled('snaptcha')) {
             $captchas[] = captchas\Snaptcha::class;
         }
 
@@ -95,7 +96,7 @@ class Integrations extends Component
             elements\User::class,
         ];
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('calendar')) {
+        if (Plugin::isPluginInstalledAndEnabled('calendar')) {
             $elements[] = elements\CalendarEvent::class;
         }
 
@@ -124,7 +125,7 @@ class Integrations extends Component
             emailmarketing\Sendinblue::class,
         ];
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('campaign')) {
+        if (Plugin::isPluginInstalledAndEnabled('campaign')) {
             $emailMarketing[] = emailmarketing\Campaign::class;
         }
 

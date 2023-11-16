@@ -25,9 +25,9 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         return 'formie/_formfields/radio/icon.svg';
     }
 
-    public static function valueType(): string
+    public static function phpType(): string
     {
-        return SingleOptionFieldData::class;
+        return sprintf('\\%s', SingleOptionFieldData::class);
     }
 
 
@@ -66,10 +66,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/input', [
             'name' => $this->handle,

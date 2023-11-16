@@ -72,6 +72,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $countries;
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -162,22 +167,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
-    {
-        // Config normalization
-        if (array_key_exists('enableAutocomplete', $config)) {
-            unset($config['enableAutocomplete']);
-        }
-
-        parent::__construct($config);
-    }
-
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_TEXT;
-    }
-
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
@@ -193,7 +183,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return new AddressModel();
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value instanceof AddressModel) {
             $value = Json::encode($value);
@@ -579,7 +569,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
             'name' => $this->handle,

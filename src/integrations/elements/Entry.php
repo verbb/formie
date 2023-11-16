@@ -50,7 +50,7 @@ class Entry extends Element
     {
         $customFields = [];
 
-        $sections = Craft::$app->getSections()->getAllSections();
+        $sections = Craft::$app->getEntries()->getAllSections();
 
         foreach ($sections as $section) {
             if ($section->type === 'single') {
@@ -136,7 +136,7 @@ class Entry extends Element
     {
         $attributes = [];
 
-        $sections = Craft::$app->getSections()->getAllSections();
+        $sections = Craft::$app->getEntries()->getAllSections();
 
         foreach ($sections as $section) {
             if ($section->type === 'single') {
@@ -190,7 +190,7 @@ class Entry extends Element
         }
 
         try {
-            $entryType = Craft::$app->getSections()->getEntryTypeById($this->entryTypeId);
+            $entryType = Craft::$app->getEntries()->getEntryTypeById($this->entryTypeId);
 
             $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeId, $submission);
             $entry->siteId = $submission->siteId;

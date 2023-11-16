@@ -150,8 +150,6 @@ class SubmissionExport extends ElementExporter
         }
 
         if ($row = $this->_getContentRow($element)) {
-            $element->contentId = $row['id'];
-
             if ($element->hasTitles() && isset($row['title'])) {
                 $element->title = $row['title'];
             }
@@ -159,7 +157,7 @@ class SubmissionExport extends ElementExporter
             if ($fieldLayout = $element->getFieldLayout()) {
                 foreach ($fieldLayout->getCustomFields() as $field) {
                     if ($field::hasContentColumn()) {
-                        $type = $field->getContentColumnType();
+                        $type = $field->dbType();
 
                         if (is_array($type)) {
                             $value = [];
@@ -187,7 +185,6 @@ class SubmissionExport extends ElementExporter
         }
 
         $contentTable = $element->getContentTable();
-        $fieldColumnPrefix = $element->getFieldColumnPrefix();
 
         $row = (new Query())
             ->from([$contentTable])
@@ -196,25 +193,6 @@ class SubmissionExport extends ElementExporter
                 'siteId' => $element->siteId,
             ])
             ->one();
-
-        if ($row) {
-            $row = $this->_removeColumnPrefixesFromRow($row, $fieldColumnPrefix);
-        }
-
-        return $row;
-    }
-
-    private function _removeColumnPrefixesFromRow(array $row, $fieldColumnPrefix): array
-    {
-        foreach ($row as $column => $value) {
-            if (strpos($column, $fieldColumnPrefix) === 0) {
-                $fieldHandle = substr($column, strlen($fieldColumnPrefix));
-                $row[$fieldHandle] = $value;
-                unset($row[$column]);
-            } elseif (!in_array($column, ['id', 'elementId', 'title', 'dateCreated', 'dateUpdated', 'uid', 'siteId'], true)) {
-                unset($row[$column]);
-            }
-        }
 
         return $row;
     }

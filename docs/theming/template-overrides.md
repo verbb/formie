@@ -40,7 +40,7 @@ We're using the `.html` extension here for clarity. You can use `.twig` or whate
 Let's start with the top-level templates.
 
 :::tip
-Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-4/src/templates/_special) - they'll be the most up to date.
+Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special) - they'll be the most up to date.
 :::
 
 ## Overriding Form Templates

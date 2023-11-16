@@ -40,7 +40,7 @@ class MissingField extends FormField implements MissingComponentInterface
     // Public Methods
     // =========================================================================
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $error = $this->errorMessage ?? "Unable to find component class '{$this->expectedType}'.";
 

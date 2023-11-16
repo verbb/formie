@@ -103,7 +103,6 @@ class Email extends FormField implements PreviewableFieldInterface
         $value = trim($value);
 
         // Use a DB lookup for performance
-        $fieldHandle = $element->fieldColumnPrefix . $this->handle;
         $contentTable = $element->contentTable;
 
         if ($this->columnSuffix) {
@@ -139,7 +138,7 @@ class Email extends FormField implements PreviewableFieldInterface
         }
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/email/input', [
             'name' => $this->handle,
@@ -181,7 +180,7 @@ class Email extends FormField implements PreviewableFieldInterface
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variables' => 'userVariables',
             ]),

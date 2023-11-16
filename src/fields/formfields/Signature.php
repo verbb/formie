@@ -30,6 +30,11 @@ class Signature extends FormField implements PreviewableFieldInterface
         return 'formie/_formfields/signature/icon.svg';
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_MEDIUMTEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -42,18 +47,7 @@ class Signature extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_MEDIUMTEXT;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Html::tag('img', null, ['src' => $value]);
     }

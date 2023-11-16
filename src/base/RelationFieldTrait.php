@@ -104,7 +104,7 @@ trait RelationFieldTrait
             $size = (isset($context['viewMode']) && $context['viewMode'] === 'thumbs') ? Cp::ELEMENT_SIZE_LARGE : Cp::ELEMENT_SIZE_SMALL;
         }
 
-        return TemplateHelper::raw(Cp::elementHtml(
+        return TemplateHelper::raw(Cp::elementChipHtml(
             $context['element'],
             $context['context'] ?? 'index',
             $size,
@@ -117,10 +117,7 @@ trait RelationFieldTrait
         ));
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         /** @var Element|null $element */
         if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {

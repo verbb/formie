@@ -192,7 +192,7 @@ class RichTextHelper
     private static function _getSectionSources(): array
     {
         $sources = [];
-        $sections = Craft::$app->getSections()->getAllSections();
+        $sections = Craft::$app->getEntries()->getAllSections();
         $showSingles = false;
 
         $sites = Craft::$app->getSites()->getAllSites();

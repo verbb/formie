@@ -50,10 +50,7 @@ class Password extends FormField implements PreviewableFieldInterface
         return $isValueEmpty;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // Only save the password as a hash
         if ($value) {
@@ -66,10 +63,7 @@ class Password extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {

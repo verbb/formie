@@ -664,7 +664,7 @@ return [
     'Today‘s Date/Time' => 'Today‘s Date/Time',
     'Specific Date/Time' => 'Specific Date/Time',
     'Default Date/Time' => 'Default Date/Time',
-    'Entering a default value will place the value in the field when it loads.' => 'Entering a default value will place the value in the field when it loads.',
+    'Set a default value for the field when it doesn’t have a value.' => 'Set a default value for the field when it doesn’t have a value.',
     'New Template' => 'New Template',
     'What this template will be called in the control panel.' => 'What this template will be called in the control panel.',
     'How you’ll refer to this template in the templates.' => 'How you’ll refer to this template in the templates.',
@@ -1499,7 +1499,7 @@ return [
     'formie_failed_notification_body' => "An email notification for the form “{{ form.title }}” has failed to send.\n\n" .
         "The error response was recorded: {{ emailResponse | json_encode }}.\n\n" .
         "To review it please log into your control panel.\n\n" .
-        "{{ submission.cpEditUrl }}",
+        "{{ submission.getCpEditUrl() }}",
     'South America' => 'South America',
     'Easy' => 'Easy',
     'Lingala' => 'Lingala',

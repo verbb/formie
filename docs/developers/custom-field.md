@@ -299,7 +299,7 @@ public function getPreviewInputHtml(): string
     ]);
 }
 
-public function getInputHtml($value, ElementInterface $element = null): string
+protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
 {
     return Craft::$app->getView()->renderTemplate('my-module/my-field/input', [
         'name' => $this->handle,

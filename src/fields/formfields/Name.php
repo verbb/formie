@@ -79,6 +79,11 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->options;
     }
 
+    public static function dbType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
 
     // Properties
     // =========================================================================
@@ -125,14 +130,6 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function getContentColumnType(): string
-    {
-        return Schema::TYPE_TEXT;
-    }
-
     public function hasSubfields(): bool
     {
         if ($this->useMultipleFields) {
@@ -142,10 +139,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
@@ -160,10 +154,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $value;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value instanceof NameModel) {
             $value = Json::encode($value);
@@ -353,10 +344,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         $this->subfieldValidateRequiredFields($element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/input', [
             'name' => $this->handle,
@@ -400,7 +388,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'variables' => 'userVariables',
                 'if' => '$get(useMultipleFields).value != true',
@@ -429,7 +417,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             if ($nestedField['handle'] === 'prefix') {
                 $subfields[] = SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'options' => array_merge(
                         [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
@@ -439,7 +427,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             } else {
                 $subfields[] = SchemaHelper::variableTextField([
                     'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'variables' => 'userVariables',
                 ]);

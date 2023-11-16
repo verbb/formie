@@ -23,19 +23,11 @@ class Heading extends FormField
         return 'formie/_formfields/heading/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function hasContentColumn(): bool
-    {
-        return false;
-    }
-
 
     // Properties
     // =========================================================================
 
-    public ?string $headingSize = null;
+    public ?string $headingSize = 'h2';
 
 
     // Public Methods
@@ -61,10 +53,7 @@ class Heading extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/input', [
             'name' => $this->handle,

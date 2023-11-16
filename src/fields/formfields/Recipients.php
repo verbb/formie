@@ -60,10 +60,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $this->displayType === 'hidden';
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
 
@@ -131,10 +128,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         // If the values are being saved as option field data, save them instead as "plain" values.
         // These will also be normalised already, so dealing with real values.
@@ -152,10 +146,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
             'name' => $this->handle,
@@ -364,10 +355,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
             return $value->value ? Craft::t('site', (string)$value->label) : '';
@@ -383,7 +371,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
             return implode(', ', $labels);
         }
 
-        return parent::getTableAttributeHtml($value, $element);
+        return parent::getPreviewHtml($value, $element);
     }
 
     public function defineGeneralSchema(): array

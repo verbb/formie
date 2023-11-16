@@ -75,7 +75,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         return array_merge($options, $this->options);
     }
 
-    public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
             'name' => $this->handle,
