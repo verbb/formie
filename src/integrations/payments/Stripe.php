@@ -1326,7 +1326,7 @@ class Stripe extends Payment
                 $value = trim($option['value']);
 
                 if ($label && $value) {
-                    $payload['metadata'][$label] = $value;
+                    $payload['metadata'][$label] = Variables::getParsedValue($value, $submission, $submission->getForm());
                 }
             }
         }
