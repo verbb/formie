@@ -37,13 +37,13 @@
 
         <div v-else-if="field.settings.displayType === 'dropdowns'">
             <div class="fui-row">
-                <div v-for="subfield in fields" :key="subfield.char" class="fui-col-auto">
+                <div v-for="subField in fields" :key="subField.char" class="fui-col-auto">
                     <div class="fui-field-preview">
-                        <label class="fui-field-label">{{ subfield.label }}</label>
+                        <label class="fui-field-label">{{ subField.label }}</label>
 
                         <select class="fui-field-select">
                             <option value="" selected>
-                                {{ subfield.value !== null ? subfield.value : subfield.placeholder }}
+                                {{ subField.value !== null ? subField.value : subField.placeholder }}
                             </option>
                         </select>
                     </div>
@@ -53,11 +53,11 @@
 
         <div v-else-if="field.settings.displayType === 'inputs'">
             <div class="fui-row">
-                <div v-for="subfield in fields" :key="subfield.char" class="fui-col-auto">
+                <div v-for="subField in fields" :key="subField.char" class="fui-col-auto">
                     <div class="fui-field-preview">
-                        <label class="fui-field-label">{{ subfield.label }}</label>
+                        <label class="fui-field-label">{{ subField.label }}</label>
 
-                        <input type="text" class="fui-field-input" :placeholder="subfield.placeholder" :value="subfield.value !== null ? subfield.value : subfield.placeholder">
+                        <input type="text" class="fui-field-input" :placeholder="subField.placeholder" :value="subField.value !== null ? subField.value : subField.placeholder">
                     </div>
                 </div>
             </div>

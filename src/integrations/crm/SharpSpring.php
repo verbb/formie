@@ -4,7 +4,7 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
-use verbb\formie\base\SubfieldInterface;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Group;
@@ -349,7 +349,7 @@ class SharpSpring extends Crm
 
             $rawValue = $element->getFieldValue($field->handle);
 
-            if ($field instanceof SubfieldInterface) {
+            if ($field instanceof SubFieldInterface) {
                 $value = $field->getValueAsJson($rawValue, $element);
 
                 if (is_array($value)) {

@@ -3,7 +3,7 @@ namespace verbb\formie\events;
 
 use yii\base\Event;
 
-class ModifyFrontEndSubfieldsEvent extends Event
+class ModifyFrontEndSubFieldsEvent extends Event
 {
     // Properties
     // =========================================================================

@@ -387,11 +387,11 @@ class Variables
                     $values["{$prefix}{$field->handle}.{$k}"] = $formattedValue;
                 }
             }
-        } else if ($field instanceof SubFieldInterface && $field->hasSubfields()) {
-            foreach ($field->getSubFieldOptions() as $subfield) {
-                $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
+        } else if ($field instanceof SubFieldInterface && $field->hasSubFields()) {
+            foreach ($field->getSubFieldOptions() as $subField) {
+                $handle = "{$prefix}{$field->handle}.{$subField['handle']}";
 
-                $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
+                $values[$handle] = $submissionValue[$subField['handle']] ?? '';
             }
         } else if ($field instanceof formfields\Group) {
             if ($submissionValue && $row = $submissionValue->one()) {

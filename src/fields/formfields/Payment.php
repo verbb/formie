@@ -119,10 +119,7 @@ class Payment extends FormField
         return $integration->getFrontEndJsVariables($this);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFrontEndSubfields($context): array
+    public function getFrontEndSubFields($context): array
     {
         $integration = $this->getPaymentIntegration();
 
@@ -130,7 +127,7 @@ class Payment extends FormField
             return null;
         }
 
-        return $integration->getFrontEndSubfields($this, $context);
+        return $integration->getFrontEndSubFields($this, $context);
     }
 
     public function getPaymentIntegration(): ?IntegrationInterface

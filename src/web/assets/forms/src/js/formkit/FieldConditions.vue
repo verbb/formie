@@ -226,8 +226,8 @@ export default {
 
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
-                    options = field.subfield.settings.options || [];
-                    testField = field.subfield;
+                    options = field.subField.settings.options || [];
+                    testField = field.subField;
                 }
 
                 // Only allow picking for 'is' and 'is not'
@@ -260,8 +260,8 @@ export default {
 
                 // Check for group/repeater fields
                 if (field.field.supportsNested) {
-                    options = field.subfield.settings.options || [];
-                    testField = field.subfield;
+                    options = field.subField.settings.options || [];
+                    testField = field.subField;
                 }
 
                 // Important to make sure we don't edit the original options, so make un-reactive
@@ -374,14 +374,14 @@ export default {
 
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
-                    if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach((subfield) => {
+                    if (field.subFieldOptions && field.hasSubFields) {
+                        field.subFieldOptions.forEach((subField) => {
                             customFields.push({
                                 field,
-                                subfield,
+                                subField,
                                 type: field.type,
-                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
-                                value: `{${field.handle}.${subfield.handle}}`,
+                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                value: `{${field.handle}.${subField.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater') {
@@ -389,13 +389,13 @@ export default {
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
-                            row.fields.forEach((subfield) => {
+                            row.fields.forEach((subField) => {
                                 customFields.push({
                                     field,
-                                    subfield,
+                                    subField,
                                     type: field.type,
-                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
-                                    value: `{${field.handle}.rows.new1.fields.${subfield.handle}}`,
+                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                    value: `{${field.handle}.rows.new1.fields.${subField.handle}}`,
                                 });
                             });
                         });

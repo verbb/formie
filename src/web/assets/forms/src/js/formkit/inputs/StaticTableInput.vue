@@ -119,11 +119,11 @@ export default {
                     // Don't show a nested field on its own
                     options.push({ label: truncate(field.label, { length: 60 }), value: `{${field.handle}}` });
 
-                    if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach((subfield) => {
+                    if (field.subFieldOptions && field.hasSubFields) {
+                        field.subFieldOptions.forEach((subField) => {
                             options.push({
-                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
-                                value: `{${field.handle}[${subfield.handle}]}`,
+                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                value: `{${field.handle}[${subField.handle}]}`,
                             });
                         });
                     }
@@ -131,17 +131,17 @@ export default {
                     // Is this a repeater or field that supports nesting?
                     if (toBoolean(field.supportsNested) && field.rows) {
                         field.rows.forEach((row) => {
-                            row.fields.forEach((subfield) => {
+                            row.fields.forEach((subField) => {
                                 options.push({
-                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}`,
-                                    value: `{${field.handle}[${subfield.handle}]}`,
+                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                    value: `{${field.handle}[${subField.handle}]}`,
                                 });
 
-                                if (subfield.subfieldOptions && subfield.hasSubfields) {
-                                    subfield.subfieldOptions.forEach((subsubfield) => {
+                                if (subField.subFieldOptions && subField.hasSubFields) {
+                                    subField.subFieldOptions.forEach((subsubField) => {
                                         options.push({
-                                            label: `${truncate(field.label, { length: 60 })}: ${truncate(subfield.label, { length: 60 })}: ${truncate(subsubfield.label, { length: 60 })}`,
-                                            value: `{${field.handle}[${subfield.handle}[${subsubfield.handle}]]}`,
+                                            label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}: ${truncate(subsubField.label, { length: 60 })}`,
+                                            value: `{${field.handle}[${subField.handle}[${subsubField.handle}]]}`,
                                         });
                                     });
                                 }

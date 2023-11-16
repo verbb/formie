@@ -2,7 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\base\SubfieldInterface;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
@@ -274,7 +274,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 return $this->_getFieldVariable($fieldKey, $field, $inputNames);
             }
 
-            if ($field instanceof SubfieldInterface) {
+            if ($field instanceof SubFieldInterface) {
                 $inputNames = array_merge($inputNames, [$fieldHandle, $fieldKey]);
 
                 return [

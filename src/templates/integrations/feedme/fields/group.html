@@ -42,18 +42,18 @@
     </td>
 </tr>
 
-{% for subfield in field.getFieldLayout().getCustomFields() %}
-    {% set nameLabel = subfield.name %}
-    {% set instructionsHandle = handle ~ '[' ~ subfield.handle ~ ']' %}
+{% for subField in field.getFieldLayout().getCustomFields() %}
+    {% set nameLabel = subField.name %}
+    {% set instructionsHandle = handle ~ '[' ~ subField.handle ~ ']' %}
 
-    {% set parentPath = prefixPath | merge ([ 'fields', subfield.handle ]) %}
+    {% set parentPath = prefixPath | merge ([ 'fields', subField.handle ]) %}
 
-    {% set fieldClass = craft.feedme.fields.getRegisteredField(className(subfield)) %}
+    {% set fieldClass = craft.feedme.fields.getRegisteredField(className(subField)) %}
     {% set template = fieldClass.getMappingTemplate() %}
 
     {% include template ignore missing with {
-        field: subfield,
-        handle: subfield.handle,
+        field: subField,
+        handle: subField.handle,
         path: parentPath,
     } %}
 {% endfor %}

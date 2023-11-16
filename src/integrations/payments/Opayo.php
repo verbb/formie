@@ -7,7 +7,7 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -45,7 +45,7 @@ class Opayo extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubFields';
 
     // https://stripe.com/docs/currencies#zero-decimal
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
@@ -549,7 +549,7 @@ class Opayo extends Payment
         ];
     }
 
-    public function getFrontEndSubfields($field, $context): array
+    public function getFrontEndSubFields($field, $context): array
     {
         $subFields = [];
 
@@ -634,7 +634,7 @@ class Opayo extends Payment
             }
         }
 
-        $event = new ModifyFrontEndSubfieldsEvent([
+        $event = new ModifyFrontEndSubFieldsEvent([
             'field' => $this,
             'rows' => $subFields,
         ]);

@@ -95,7 +95,7 @@
                                 "prefixDefaultValue":"",
                                 "prefixEnabled":false,
                                 "prefixLabel":"Prefix",
-                                "subfieldLabelPosition":"",
+                                "subFieldLabelPosition":"",
                                 "useMultipleFields":true,
                                 "visibility":""
                             },

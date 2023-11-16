@@ -126,7 +126,7 @@ class Formie
         // A hard error will be thrown if the position class doesn't exist
         try {
             /* @var PositionInterface $position */
-            $position = $subfield && $field->hasSubfields() ? $field->subfieldLabelPosition : $field->labelPosition;
+            $position = $subField && $field->hasSubFields() ? $field->subFieldLabelPosition : $field->labelPosition;
             $position = $position ?: $form->settings->defaultLabelPosition;
 
             if (!$position::supports($field) && $fallback = $position::fallback($field)) {

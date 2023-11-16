@@ -450,11 +450,11 @@ const getters = {
                     if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                     // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
-                            row.fields.forEach((subfield) => {
-                                if (allowedTypes.includes(subfield.type)) {
+                            row.fields.forEach((subField) => {
+                                if (allowedTypes.includes(subField.type)) {
                                     fields.push({
-                                        label: `${field.label}: ${subfield.label}`,
-                                        value: `{field.${field.handle}.${subfield.handle}}`,
+                                        label: `${field.label}: ${subField.label}`,
+                                        value: `{field.${field.handle}.${subField.handle}}`,
                                     });
                                 }
                             });
@@ -501,11 +501,11 @@ const getters = {
                     if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                     // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
-                            row.fields.forEach((subfield) => {
-                                if (allowedTypes.includes(subfield.type)) {
+                            row.fields.forEach((subField) => {
+                                if (allowedTypes.includes(subField.type)) {
                                     fields.push({
-                                        label: `${field.label}: ${subfield.label}`,
-                                        value: `{field.${field.handle}.${subfield.handle}}`,
+                                        label: `${field.label}: ${subField.label}`,
+                                        value: `{field.${field.handle}.${subField.handle}}`,
                                     });
                                 }
                             });
@@ -555,22 +555,22 @@ const getters = {
             getters.fields.forEach((field) => {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
-                    if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach((subfield) => {
+                    if (field.subFieldOptions && field.hasSubFields) {
+                        field.subFieldOptions.forEach((subField) => {
                             fields.push({
-                                label: `${field.label}: ${subfield.label}`,
-                                value: `{field.${field.handle}.${subfield.handle}}`,
+                                label: `${field.label}: ${subField.label}`,
+                                value: `{field.${field.handle}.${subField.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
                             row.fields.forEach((groupfield) => {
-                                if (groupfield.subfieldOptions && groupfield.hasSubfields) {
-                                    groupfield.subfieldOptions.forEach((subfield) => {
+                                if (groupfield.subFieldOptions && groupfield.hasSubFields) {
+                                    groupfield.subFieldOptions.forEach((subField) => {
                                         fields.push({
-                                            label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
-                                            value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
+                                            label: `${field.label}: ${groupfield.label}: ${subField.label}`,
+                                            value: `{field.${field.handle}.${groupfield.handle}.${subField.handle}}`,
                                         });
                                     });
                                 } else if (allowedTypes.includes(groupfield.type)) {
@@ -612,28 +612,28 @@ const getters = {
             getters.fields.forEach((field) => {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
-                    if (field.subfieldOptions && field.hasSubfields) {
-                        field.subfieldOptions.forEach((subfield) => {
+                    if (field.subFieldOptions && field.hasSubFields) {
+                        field.subFieldOptions.forEach((subField) => {
                             fields.push({
                                 id: field.id,
                                 vid: field.vid,
                                 type: field.type,
-                                label: `${field.label}: ${subfield.label}`,
-                                value: `{field.${field.handle}.${subfield.handle}}`,
+                                label: `${field.label}: ${subField.label}`,
+                                value: `{field.${field.handle}.${subField.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
                             row.fields.forEach((groupfield) => {
-                                if (groupfield.subfieldOptions && groupfield.hasSubfields) {
-                                    groupfield.subfieldOptions.forEach((subfield) => {
+                                if (groupfield.subFieldOptions && groupfield.hasSubFields) {
+                                    groupfield.subFieldOptions.forEach((subField) => {
                                         fields.push({
                                             id: field.id,
                                             vid: field.vid,
                                             type: field.type,
-                                            label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
-                                            value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
+                                            label: `${field.label}: ${groupfield.label}: ${subField.label}`,
+                                            value: `{field.${field.handle}.${groupfield.handle}.${subField.handle}}`,
                                         });
                                     });
                                 } else {

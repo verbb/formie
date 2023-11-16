@@ -4,9 +4,9 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
-use verbb\formie\base\SubfieldInterface;
-use verbb\formie\base\SubfieldTrait;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubFieldTrait;
+use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
@@ -28,20 +28,20 @@ use yii\db\Schema;
 
 use GraphQL\Type\Definition\Type;
 
-class Name extends FormField implements SubfieldInterface, PreviewableFieldInterface
+class Name extends FormField implements SubFieldInterface, PreviewableFieldInterface
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubFields';
     public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
 
 
     // Traits
     // =========================================================================
 
-    use SubfieldTrait {
-        validateRequiredFields as subfieldValidateRequiredFields;
+    use SubFieldTrait {
+        validateRequiredFields as subFieldValidateRequiredFields;
     }
 
 
@@ -130,7 +130,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Public Methods
     // =========================================================================
 
-    public function hasSubfields(): bool
+    public function hasSubFields(): bool
     {
         if ($this->useMultipleFields) {
             return true;
@@ -207,10 +207,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFrontEndSubfields($context): array
+    public function getFrontEndSubFields($context): array
     {
         $subFields = [];
 
@@ -224,7 +221,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->prefixPlaceholder,
                     'errorMessage' => $this->prefixErrorMessage,
                     'defaultValue' => $this->getDefaultValue('prefix'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'options' => $this->prefixOptions,
                     'inputAttributes' => [
                         [
@@ -241,7 +238,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->firstNamePlaceholder,
                     'errorMessage' => $this->firstNameErrorMessage,
                     'defaultValue' => $this->getDefaultValue('firstName'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -257,7 +254,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->middleNamePlaceholder,
                     'errorMessage' => $this->middleNameErrorMessage,
                     'defaultValue' => $this->getDefaultValue('middleName'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -273,7 +270,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     'placeholder' => $this->lastNamePlaceholder,
                     'errorMessage' => $this->lastNameErrorMessage,
                     'defaultValue' => $this->getDefaultValue('lastName'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -300,7 +297,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         }
 
-        $event = new ModifyFrontEndSubfieldsEvent([
+        $event = new ModifyFrontEndSubFieldsEvent([
             'field' => $this,
             'rows' => $subFields,
         ]);
@@ -310,10 +307,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->rows;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSubfieldOptions(): array
+    public function getSubFieldOptions(): array
     {
         return [
             [
@@ -341,7 +335,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             return;
         }
 
-        $this->subfieldValidateRequiredFields($element);
+        $this->subFieldValidateRequiredFields($element);
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
@@ -397,8 +391,8 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         $toggleBlocks = [];
 
-        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
-            $subfields = [
+        foreach ($this->getSubFieldOptions() as $key => $nestedField) {
+            $subFields = [
                 SchemaHelper::textField([
                     'label' => Craft::t('formie', 'Label'),
                     'help' => Craft::t('formie', 'The label that describes this field.'),
@@ -415,7 +409,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             ];
 
             if ($nestedField['handle'] === 'prefix') {
-                $subfields[] = SchemaHelper::selectField([
+                $subFields[] = SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Default Value'),
                     'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
@@ -425,7 +419,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                     ),
                 ]);
             } else {
-                $subfields[] = SchemaHelper::variableTextField([
+                $subFields[] = SchemaHelper::variableTextField([
                     'label' => Craft::t('formie', 'Default Value'),
                     'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
@@ -436,7 +430,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             $toggleBlock = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],
                 'blockHandle' => $nestedField['handle'],
-            ], $subfields);
+            ], $subFields);
 
             $toggleBlock['if'] = '$get(useMultipleFields).value';
 
@@ -444,7 +438,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         $fields[] = SchemaHelper::toggleBlocks([
-            'subfields' => $this->getSubfieldOptions(),
+            'subFields' => $this->getSubFieldOptions(),
         ], $toggleBlocks);
 
         return $fields;
@@ -470,8 +464,8 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             ]),
         ];
 
-        foreach ($this->getSubfieldOptions() as $key => $nestedField) {
-            $subfields = [
+        foreach ($this->getSubFieldOptions() as $key => $nestedField) {
+            $subFields = [
                 SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Required Field'),
                     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
@@ -493,7 +487,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'blockHandle' => $nestedField['handle'],
                 'showToggle' => false,
                 'showEnabled' => false,
-            ], $subfields);
+            ], $subFields);
 
             $toggleBlock['if'] = '$get(' . $nestedField['handle'] . 'Enabled).value && $get(useMultipleFields).value';
 
@@ -508,7 +502,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         return [
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
-            SchemaHelper::subfieldLabelPosition([
+            SchemaHelper::subFieldLabelPosition([
                 'if' => '$get(useMultipleFields).value',
             ]),
             SchemaHelper::instructions(),
@@ -595,7 +589,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         $rules = parent::defineRules();
         $rules[] = [
-            ['subfieldLabelPosition'],
+            ['subFieldLabelPosition'],
             'in',
             'range' => Formie::$plugin->getFields()->getLabelPositions(),
             'skipOnEmpty' => true,
@@ -609,7 +603,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
         if ($this->useMultipleFields) {
             $values = [];
 
-            foreach ($this->getSubfieldOptions() as $subField) {
+            foreach ($this->getSubFieldOptions() as $subField) {
                 if ($this->{$subField['handle'] . 'Enabled'}) {
                     $values[$this->getExportLabel($element) . ': ' . $subField['label']] = $value[$subField['handle']] ?? '';
                 }

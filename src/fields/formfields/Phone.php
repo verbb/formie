@@ -2,8 +2,8 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\SubfieldInterface;
-use verbb\formie\base\SubfieldTrait;
+use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubFieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
@@ -22,12 +22,12 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface
+class Phone extends FormField implements SubFieldInterface, PreviewableFieldInterface
 {
     // Traits
     // =========================================================================
 
-    use SubfieldTrait;
+    use SubFieldTrait;
 
 
     // Static Methods
@@ -139,18 +139,12 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFrontEndSubfields($context): array
+    public function getFrontEndSubFields($context): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSubfieldOptions(): array
+    public function getSubFieldOptions(): array
     {
         return [
             [

@@ -13,7 +13,7 @@
 {% if field.displayType == 'dropdowns' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for subField in field.getFrontEndSubfields(_context)[0] %}
+            {% for subField in field.getFrontEndSubFields(_context)[0] %}
                 <div class="fui-col-auto" style="flex: 0;">
                     {% set dateValue = null %}
                     {% set char = field.getFormattingChar(subField.handle) %}
@@ -39,7 +39,7 @@
 {% if field.displayType == 'inputs' %}
     {% namespace field.handle %}
         <div class="fui-row">
-            {% for subField in field.getFrontEndSubfields(_context)[0] %}
+            {% for subField in field.getFrontEndSubFields(_context)[0] %}
                 {% set dateValue = null %}
                 {% set char = field.getFormattingChar(subField.handle) %}
 

@@ -6,7 +6,7 @@
 {% set form = renderOptions.form %}
 
 {% fieldtag 'subFieldRows' %}
-    {% for row in field.getFrontEndSubfields(renderOptions) %}
+    {% for row in field.getFrontEndSubFields(renderOptions) %}
         {% fieldtag 'subFieldRow' %}
             {% for subField in row %}
                 {{ craft.formie.renderField(form, subField) }}

@@ -6,9 +6,9 @@ use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\SubfieldInterface;
-use verbb\formie\base\SubfieldTrait;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubFieldTrait;
+use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -31,18 +31,18 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Address extends FormField implements SubfieldInterface, PreviewableFieldInterface
+class Address extends FormField implements SubFieldInterface, PreviewableFieldInterface
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
+    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubFields';
 
 
     // Traits
     // =========================================================================
 
-    use SubfieldTrait;
+    use SubFieldTrait;
 
 
     // Static Methods
@@ -283,7 +283,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         }
     }
 
-    public function getFrontEndSubfields($context): array
+    public function getFrontEndSubFields($context): array
     {
         $subFields = [];
 
@@ -297,7 +297,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address1Placeholder,
                     'errorMessage' => $this->address1ErrorMessage,
                     'defaultValue' => $this->getDefaultValue('address1'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -319,7 +319,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address2Placeholder,
                     'errorMessage' => $this->address2ErrorMessage,
                     'defaultValue' => $this->getDefaultValue('address2'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -341,7 +341,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->address3Placeholder,
                     'errorMessage' => $this->address3ErrorMessage,
                     'defaultValue' => $this->getDefaultValue('address3'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -363,7 +363,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->cityPlaceholder,
                     'errorMessage' => $this->cityErrorMessage,
                     'defaultValue' => $this->getDefaultValue('city'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -383,7 +383,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->zipPlaceholder,
                     'errorMessage' => $this->zipErrorMessage,
                     'defaultValue' => $this->getDefaultValue('zip'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -405,7 +405,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->statePlaceholder,
                     'errorMessage' => $this->stateErrorMessage,
                     'defaultValue' => $this->getDefaultValue('state'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -425,7 +425,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->countryPlaceholder,
                     'errorMessage' => $this->countryErrorMessage,
                     'defaultValue' => $this->getDefaultValue('country'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'options' => $this->countryOptions,
                     'inputAttributes' => [
                         [
@@ -451,7 +451,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'placeholder' => $this->autocompletePlaceholder,
                     'errorMessage' => $this->autocompleteErrorMessage,
                     'defaultValue' => $this->getDefaultValue('autocomplete'),
-                    'labelPosition' => $this->subfieldLabelPosition,
+                    'labelPosition' => $this->subFieldLabelPosition,
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -495,7 +495,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             }
         }
 
-        $event = new ModifyFrontEndSubfieldsEvent([
+        $event = new ModifyFrontEndSubFieldsEvent([
             'field' => $this,
             'rows' => $subFields,
         ]);
@@ -505,7 +505,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $event->rows;
     }
 
-    public function getVisibleFrontEndSubfields($row): array
+    public function getVisibleFrontEndSubFields($row): array
     {
         $subFields = [];
 
@@ -525,7 +525,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $subFields;
     }
 
-    public function getSubfieldOptions(): array
+    public function getSubFieldOptions(): array
     {
         $fields = [];
         $addressProviderOptions = $this->_getAddressProviderOptions();
@@ -648,11 +648,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             SchemaHelper::labelField(),
         ];
 
-        foreach ($this->getSubfieldOptions() as $nestedField) {
-            $subfields = [];
+        foreach ($this->getSubFieldOptions() as $nestedField) {
+            $subFields = [];
 
             if ($nestedField['handle'] === 'autocomplete' && $addressProviderOptions) {
-                $subfields[] = SchemaHelper::selectField([
+                $subFields[] = SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Auto-Complete Integration'),
                     'help' => Craft::t('formie', 'Select which address provider this field should use.'),
                     'name' => 'autocompleteIntegration',
@@ -665,7 +665,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 ]);
             }
 
-            $subfields[] = SchemaHelper::textField([
+            $subFields[] = SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Label'),
                 'help' => Craft::t('formie', 'The label that describes this field.'),
                 'name' => $nestedField['handle'] . 'Label',
@@ -673,16 +673,16 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 'required' => true,
             ]);
 
-            $subfields[] = SchemaHelper::textField([
+            $subFields[] = SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
                 'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => $nestedField['handle'] . 'Placeholder',
             ]);
 
             if ($nestedField['handle'] === 'country') {
-                $subfields[] = SchemaHelper::selectField([
+                $subFields[] = SchemaHelper::selectField([
                     'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                     'options' => array_merge(
                         [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
@@ -690,9 +690,9 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     ),
                 ]);
             } else {
-                $subfields[] = SchemaHelper::textField([
+                $subFields[] = SchemaHelper::textField([
                     'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Entering a default value will place the value in the field when it loads.'),
+                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                     'name' => $nestedField['handle'] . 'DefaultValue',
                 ]);
             }
@@ -700,11 +700,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             $toggleBlocks[] = SchemaHelper::toggleBlock([
                 'blockLabel' => $nestedField['label'],
                 'blockHandle' => $nestedField['handle'],
-            ], $subfields);
+            ], $subFields);
         }
 
         $fields[] = SchemaHelper::toggleBlocks([
-            'subfields' => $this->getSubfieldOptions(),
+            'subFields' => $this->getSubFieldOptions(),
         ], $toggleBlocks);
 
         return $fields;
@@ -714,8 +714,8 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $fields = [];
 
-        foreach ($this->getSubfieldOptions() as $nestedField) {
-            $subfields = [
+        foreach ($this->getSubFieldOptions() as $nestedField) {
+            $subFields = [
                 SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Required Field'),
                     'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
@@ -730,13 +730,13 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
             ];
 
             if ($nestedField['handle'] !== 'autocomplete') {
-                $subfields[] = SchemaHelper::lightswitchField([
+                $subFields[] = SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Hidden Field'),
                     'help' => Craft::t('formie', 'Whether this field should be hidden when filling out the form.'),
                     'name' => $nestedField['handle'] . 'Hidden',
                 ]);
             } else {
-                $subfields[] = SchemaHelper::lightswitchField([
+                $subFields[] = SchemaHelper::lightswitchField([
                     'label' => Craft::t('formie', 'Show Current Location Button'),
                     'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
                     'name' => $nestedField['handle'] . 'CurrentLocation',
@@ -744,7 +744,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 ]);
             }
 
-            $subfields[] = SchemaHelper::prePopulate([
+            $subFields[] = SchemaHelper::prePopulate([
                 'name' => $nestedField['handle'] . 'PrePopulate',
             ]);
 
@@ -753,7 +753,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 'blockHandle' => $nestedField['handle'],
                 'showToggle' => false,
                 'showEnabled' => false,
-            ], $subfields);
+            ], $subFields);
 
             $toggleBlock['if'] = '$get(' . $nestedField['handle'] . 'Enabled).value';
 
@@ -768,7 +768,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return [
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
-            SchemaHelper::subfieldLabelPosition(),
+            SchemaHelper::subFieldLabelPosition(),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
         ];
@@ -836,7 +836,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $rules = parent::defineRules();
         $rules[] = [
-            ['subfieldLabelPosition'],
+            ['subFieldLabelPosition'],
             'in',
             'range' => Formie::$plugin->getFields()->getLabelPositions(),
             'skipOnEmpty' => true,
@@ -849,7 +849,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $values = [];
 
-        foreach ($this->getSubfieldOptions() as $subField) {
+        foreach ($this->getSubFieldOptions() as $subField) {
             if ($this->{$subField['handle'] . 'Enabled'}) {
                 $values[$this->getExportLabel($element) . ': ' . $subField['label']] = $value[$subField['handle']] ?? '';
             }

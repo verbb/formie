@@ -185,15 +185,15 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function subfieldLabelPosition($config = []): array
+    public static function subFieldLabelPosition($config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Subfield Label Position'),
             'help' => Craft::t('formie', 'How the label for the subfields should be positioned.'),
-            'name' => 'subfieldLabelPosition',
+            'name' => 'subFieldLabelPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                Formie::$plugin->getFields()->getLabelPositionsArray()
+                Formie::$plugin->getFields()->getLabelPositionsOptions()
             ),
         ], $config));
     }

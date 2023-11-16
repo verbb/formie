@@ -6,25 +6,22 @@ use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
-trait SubfieldTrait
+trait SubFieldTrait
 {
     // Properties
     // =========================================================================
 
-    public ?string $subfieldLabelPosition = null;
+    public ?string $subFieldLabelPosition = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function hasSubfields(): bool
+    public function hasSubFields(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -33,13 +30,10 @@ trait SubfieldTrait
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateRequiredFields(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->handle);
-        $subFields = ArrayHelper::getColumn($this->getSubfieldOptions(), 'handle');
+        $subFields = ArrayHelper::getColumn($this->getSubFieldOptions(), 'handle');
 
         foreach ($subFields as $subField) {
             $labelProp = "{$subField}Label";

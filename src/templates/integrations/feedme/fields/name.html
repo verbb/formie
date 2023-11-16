@@ -38,7 +38,7 @@
         </td>
     </tr>
 
-    {% for option in field.getSubfieldOptions() %}
+    {% for option in field.getSubFieldOptions() %}
         {% if field[option.handle ~ 'Enabled'] %}
             {% set nameLabel = option.label %}
             {% set instructionsHandle = handle ~ '[' ~ option.handle ~ ']' %}
