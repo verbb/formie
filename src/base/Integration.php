@@ -94,7 +94,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function log($integration, $message, $throwError = false): void
     {
-        Formie::log($integration->name . ': ' . $message);
+        Formie::info($integration->name . ': ' . $message);
 
         if ($throwError) {
             throw new IntegrationException($message);
@@ -296,7 +296,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_BEFORE_CHECK_CONNECTION, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Checking connection cancelled by event hook.');
+            Integration::info($this, 'Checking connection cancelled by event hook.');
 
             return false;
         }
@@ -354,7 +354,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_BEFORE_FETCH_FORM_SETTINGS, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Checking connection cancelled by event hook.');
+            Integration::info($this, 'Checking connection cancelled by event hook.');
 
             return false;
         }
@@ -629,7 +629,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Sending payload cancelled by event hook.');
+            Integration::info($this, 'Sending payload cancelled by event hook.');
         }
 
         // Allow events to alter some props
@@ -653,7 +653,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->trigger(self::EVENT_AFTER_SEND_PAYLOAD, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Payload marked as invalid by event hook.');
+            Integration::info($this, 'Payload marked as invalid by event hook.');
         }
 
         return $event->isValid;
@@ -670,7 +670,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $fieldValue = $this->getMappedFieldValue($this->optInField, $submission, new IntegrationField());
 
         if (self::isEmpty($fieldValue)) {
-            Integration::log($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
+            Integration::info($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
                 'field' => $this->optInField,
             ]));
 
@@ -699,7 +699,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if (!$hasOptedIn) {
-            Integration::log($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
+            Integration::info($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
                 'field' => $this->optInField,
                 'value' => $fieldValue,
             ]));
@@ -720,7 +720,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
 
             // Change the field handle to reflect the top-level field, not the full path to the value
-            // but still keep the subfield path (if any) for some fields to use
+            // but still keep the subField path (if any) for some fields to use
             $fieldKey = explode('.', $fieldKey);
             $fieldHandle = array_shift($fieldKey);
             $fieldKey = implode('.', $fieldKey);
@@ -763,11 +763,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 return $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
             }
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Error trying to fetch mapped field value: “{message}” {file}:{line}', [
+            Formie::error('Error trying to fetch mapped field value: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
         }
 
         return null;
@@ -782,7 +782,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Protected Methods
     // =========================================================================
 
-    /**
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -148,12 +148,12 @@ class ConditionsHelper
                     $results[] = $result;
                 }
             } catch (Throwable $e) {
-                Formie::error(Craft::t('formie', 'Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
+                Formie::error('Failed to parse conditional “{rule}”: “{message}” {file}:{line}', [
                     'rule' => trim(ArrayHelper::recursiveImplode('', $condition)),
                     'message' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                ]));
+                ]);
 
                 continue;
             }

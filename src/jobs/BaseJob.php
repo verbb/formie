@@ -59,11 +59,11 @@ abstract class BaseJob extends CraftBaseJob
 
             Db::update(Table::QUEUE, ['job' => $message], ['id' => $event->id], [], false);
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Unable to update job info debug: “{message}” {file}:{line}', [
+            Formie::error('Unable to update job info debug: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
         }
     }
 }

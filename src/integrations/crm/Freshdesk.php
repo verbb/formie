@@ -362,7 +362,7 @@ class Freshdesk extends Crm
                                 }
                             } catch (Throwable $e) {
                                 // If fails to update, most likely an agent and can safely ignore exception
-                                Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                Integration::info($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
                                     'message' => $e->getMessage(),
                                     'response' => Json::encode($response),
                                     'payload' => Json::encode($contactPayload),

@@ -93,7 +93,7 @@ class EmailTemplates extends Component
         }
 
         if ($runValidation && !$template->validate()) {
-            Formie::log('Template not saved due to validation error.');
+            Formie::info('Template not saved due to validation error.');
 
             return false;
         }

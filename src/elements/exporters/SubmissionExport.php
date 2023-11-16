@@ -128,11 +128,11 @@ class SubmissionExport extends ElementExporter
 
             return $event->exportData;
         } catch (Throwable $e) {
-            Formie::log(Craft::t('app', '{message} {file}:{line}', [
+            Formie::info('{message} {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
         }
 
         return [];

@@ -76,7 +76,7 @@ class Tokens extends Component
         }
 
         if ($runValidation && !$token->validate()) {
-            Formie::log('Token not saved due to validation error.');
+            Formie::info('Token not saved due to validation error.');
             return false;
         }
 
@@ -213,7 +213,7 @@ class Tokens extends Component
                     // Add some logging for refresh tokens for easier debugging
                     $params = $grant->prepareRequestParameters($integration->getOauthProviderConfig(), ['refresh_token' => $refreshToken]);
 
-                    Formie::log($integration->name . ': Refresh token with params ' . Json::encode($params));
+                    Formie::info($integration->name . ': Refresh token with params ' . Json::encode($params));
 
                     $newToken = $provider->getAccessToken($grant, ['refresh_token' => $refreshToken]);
 

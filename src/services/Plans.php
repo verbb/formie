@@ -79,7 +79,7 @@ class Plans extends Component
         }
 
         if ($runValidation && !$plan->validate()) {
-            Formie::log('Plan not saved due to validation error.');
+            Formie::info('Plan not saved due to validation error.');
 
             return false;
         }

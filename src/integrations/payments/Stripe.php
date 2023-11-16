@@ -921,7 +921,7 @@ class Stripe extends Payment
         $subscriptionReference = $stripeInvoice['subscription'] ?? null;
 
         if (!$subscriptionReference || !($subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($subscriptionReference))) {
-            Integration::log($this, 'Subscription with the reference “' . $subscriptionReference . '” not found when processing webhook ' . $data['id']);
+            Integration::info($this, 'Subscription with the reference “' . $subscriptionReference . '” not found when processing webhook ' . $data['id']);
 
             return;
         }
@@ -944,7 +944,7 @@ class Stripe extends Payment
         if ($plan = Formie::$plugin->getPlans()->getPlanByReference($reference)) {
             Formie::$plugin->getPlans()->archivePlanById($plan->id);
 
-            Integration::log($this, Craft::t('formie', 'Plan “{reference}” was archived because the corresponding plan was deleted on Stripe.', [
+            Integration::info($this, Craft::t('formie', 'Plan “{reference}” was archived because the corresponding plan was deleted on Stripe.', [
                 'reference' => $reference,
             ]));
         }
@@ -967,7 +967,7 @@ class Stripe extends Payment
         $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id']);
 
         if (!$subscription) {
-            Integration::log($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
+            Integration::info($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
 
             return;
         }
@@ -981,7 +981,7 @@ class Stripe extends Payment
         $subscription = Formie::$plugin->getSubscriptions()->getSubscriptionByReference($stripeSubscription['id']);
 
         if (!$subscription) {
-            Integration::log($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
+            Integration::info($this, 'Subscription with the reference “' . $stripeSubscription['id'] . '” not found when processing webhook ' . $data['id']);
 
             return;
         }
@@ -992,7 +992,7 @@ class Stripe extends Payment
         $this->_setSubscriptionStatusData($subscription);
 
         if (empty($data['data']['object']['plan'])) {
-            Integration::log($this, $subscription->reference . ' contains multiple plans, which is not supported. (event "' . $data['id'] . '")');
+            Integration::info($this, $subscription->reference . ' contains multiple plans, which is not supported. (event "' . $data['id'] . '")');
         } else {
             $planReference = $data['data']['object']['plan']['id'];
             $plan = Formie::$plugin->getPlans()->getPlanByReference($planReference);
@@ -1000,7 +1000,7 @@ class Stripe extends Payment
             if ($plan) {
                 $subscription->planId = $plan->id;
             } else {
-                Integration::log($this, $subscription->reference . ' was switched to a plan on Stripe that does not exist on this Site. (event "' . $data['id'] . '")');
+                Integration::info($this, $subscription->reference . ' was switched to a plan on Stripe that does not exist on this Site. (event "' . $data['id'] . '")');
             }
         }
 

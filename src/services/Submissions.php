@@ -557,7 +557,7 @@ class Submissions extends Component
             'j' => Json::encode($fieldValues),
         ]);
 
-        Formie::log($error);
+        Formie::info($error);
     }
 
     public function populateFakeSubmission(Submission $submission): void

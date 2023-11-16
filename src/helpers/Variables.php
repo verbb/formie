@@ -227,12 +227,12 @@ class Variables
         try {
             return $view->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
+            Formie::error('Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
 
             return '';
         }

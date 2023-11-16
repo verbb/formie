@@ -37,11 +37,10 @@ abstract class FormField extends Field implements FormFieldInterface
             parent::__set($name, $value);
         } catch (UnknownPropertyException $e) {
             // Let it slide, but log it, _just_ in case.
-            Formie::log(Craft::t('app', '{message} {file}:{line}', [
+            Formie::info('{message} {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
         }
     }
 
@@ -49,6 +48,7 @@ abstract class FormField extends Field implements FormFieldInterface
     {
         if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
             return Schema::TYPE_TEXT;
+            ]);
         }
 
         return parent::getContentColumnType();

@@ -105,7 +105,7 @@ class Stencils extends Component
         }
 
         if ($runValidation && !$stencil->validate()) {
-            Formie::log('Stencil not saved due to validation error.');
+            Formie::info('Stencil not saved due to validation error.');
 
             return false;
         }

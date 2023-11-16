@@ -288,7 +288,7 @@ class Integrations extends Component
         }
 
         if ($runValidation && !$integration->validate()) {
-            Formie::log('Integration not saved due to validation error.');
+            Formie::info('Integration not saved due to validation error.');
 
             return false;
         }

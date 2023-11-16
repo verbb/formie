@@ -344,7 +344,7 @@ abstract class Payment extends Integration
         $this->trigger(self::EVENT_BEFORE_PROCESS_PAYMENT, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Payment processing cancelled by event hook.');
+            Integration::info($this, 'Payment processing cancelled by event hook.');
         }
 
         return $event->isValid;
@@ -360,7 +360,7 @@ abstract class Payment extends Integration
         $this->trigger(self::EVENT_AFTER_PROCESS_PAYMENT, $event);
 
         if (!$event->isValid) {
-            Integration::log($this, 'Payment processing marked as invalid by event hook.');
+            Integration::info($this, 'Payment processing marked as invalid by event hook.');
         }
 
         return $event->isValid;

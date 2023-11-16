@@ -54,11 +54,11 @@ class FieldsController extends Controller
             // Fetch the element query for the field, so we can fetch the content (limited)
             $elements = $field->getPreviewElements();
         } catch (Throwable $e) {
-            Formie::error(Craft::t('formie', 'Unable to fetch element select options: “{message}” {file}:{line}', [
+            Formie::error('Unable to fetch element select options: “{message}” {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
         }
 
         return $this->asJson($elements);

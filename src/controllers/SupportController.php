@@ -236,7 +236,7 @@ class SupportController extends Controller
                 FileHelper::unlink($tempFileForm);
             }
         } catch (Throwable $e) {
-            Formie::log('Tried to attach debug logs to a support request and something went horribly wrong: `' . $e->getMessage() . ':' . $e->getLine() . '`.');
+            Formie::info('Tried to attach debug logs to a support request and something went horribly wrong: `' . $e->getMessage() . ':' . $e->getLine() . '`.');
 
             // There was a problem zipping, so reset the params and just send the email without the attachment.
             $requestParams['note'] .= "\n\nError attaching zip: `" . $e->getMessage() . ":" . $e->getLine() . "`.";

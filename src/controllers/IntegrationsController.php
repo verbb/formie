@@ -227,21 +227,21 @@ class IntegrationsController extends Controller
             $errorTitle = $request->getParam('error');
             $errorDescription = $request->getParam('error_description');
 
-            Formie::error(Craft::t('formie', 'Couldn’t connect to “{name}”: “{message}” {file}:{line}', [
+            Formie::error('Couldn’t connect to “{name}”: “{message}” {file}:{line}', [
                 'name' => $integration->name,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-            ]));
+            ]);
 
             if ($errorTitle || $errorDescription) {
                 $errorMsg = $errorTitle . ' ' . $errorDescription;
             }
 
-            Formie::error(Craft::t('formie', '“{name}” response: “{errorMsg}”', [
+            Formie::error('“{name}” response: “{errorMsg}”', [
                 'name' => $integration->name,
                 'errorMsg' => $errorMsg,
-            ]));
+            ]);
 
             // Show an error when connecting to OAuth, instead of just in logs
             $session->setFlash('formie-error', $errorMsg);

@@ -77,7 +77,7 @@ class Notifications extends Component
         }
 
         if ($runValidation && !$notification->validate()) {
-            Formie::log('Notification not saved due to validation error.');
+            Formie::info('Notification not saved due to validation error.');
 
             return false;
         }

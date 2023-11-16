@@ -227,9 +227,9 @@ class Emails extends Component
                 // Check to see the template is valid
                 if (!$view->doesTemplateExist($emailTemplate->template)) {
                     // Let's press on if we can't find the template - use the default
-                    Formie::error(Craft::t('formie', 'Notification email template does not exist at “{templatePath}”.', [
+                    Formie::error('Notification email template does not exist at “{templatePath}”.', [
                         'templatePath' => $emailTemplate->template,
-                    ]));
+                    ]);
                 } else {
                     $templatePath = $emailTemplate->template;
                 }
@@ -454,7 +454,7 @@ class Emails extends Component
         if (!$settings->sendEmailAlerts) {
             $error = Craft::t('formie', 'Fail alert not configured to send.');
 
-            Formie::log($error);
+            Formie::info($error);
 
             return ['error' => $error];
         }
@@ -578,14 +578,14 @@ class Emails extends Component
 
             // Check for asset size, 0kb files are technically invalid (or at least spammy)
             if (!$asset->size) {
-                Formie::log('Not attaching “' . $asset->filename . '” due to invalid file size: ' . $asset->size . '.');
+                Formie::info('Not attaching “' . $asset->filename . '” due to invalid file size: ' . $asset->size . '.');
 
                 continue;
             }
 
             // Check if the asset it over 15mb (a reasonable threshold)
             if (($asset->size / 1000000) > 15) {
-                Formie::log('Not attaching “' . $asset->filename . '” due to large file size: ' . $asset->size . '.');
+                Formie::info('Not attaching “' . $asset->filename . '” due to large file size: ' . $asset->size . '.');
 
                 continue;
             }

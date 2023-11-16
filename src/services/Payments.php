@@ -82,7 +82,7 @@ class Payments extends Component
         }
 
         if ($runValidation && !$payment->validate()) {
-            Formie::log('Payment not saved due to validation error.');
+            Formie::info('Payment not saved due to validation error.');
 
             return false;
         }

@@ -364,10 +364,10 @@ class Salesforce extends Crm
 
                     // Check if a duplicate lead and if we should create a task instead.
                     if ($responseCode === 'DUPLICATES_DETECTED') {
-                        Integration::log($this, 'Duplicate lead found.', false);
+                        Integration::info($this, 'Duplicate lead found.', false);
 
                         if ($this->duplicateLeadTask) {
-                            Integration::log($this, 'Attempting to create task for duplicate lead.', false);
+                            Integration::info($this, 'Attempting to create task for duplicate lead.', false);
 
                             $taskPayload = [
                                 'Subject' => $this->duplicateLeadTaskSubject,
@@ -388,7 +388,7 @@ class Salesforce extends Crm
 
                                 $taskCreated = true;
 
-                                Integration::log($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
+                                Integration::info($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
                                     'response' => Json::encode($response),
                                     'payload' => Json::encode($taskPayload),
                                 ]));

@@ -89,7 +89,7 @@ class Subscriptions extends Component
         }
 
         if ($runValidation && !$subscription->validate()) {
-            Formie::log('Subscription not saved due to validation error.');
+            Formie::info('Subscription not saved due to validation error.');
 
             return false;
         }

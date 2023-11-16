@@ -306,7 +306,7 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::error('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
@@ -332,7 +332,7 @@ class SubmissionsController extends Controller
         if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
+            Formie::error('Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]);
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
@@ -422,7 +422,7 @@ class SubmissionsController extends Controller
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
-        Formie::log("Submission triggered for ${handle}.");
+        Formie::info("Submission triggered for ${handle}.");
 
         /* @var Form $form */
         $form = $this->_getForm($handle);
@@ -524,7 +524,7 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::error('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
 
             // If there are page field errors, set the current page to the page with the error for good UX.
             $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
@@ -599,7 +599,7 @@ class SubmissionsController extends Controller
         if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::error('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
 
             // If there are page field errors, set the current page to the page with the error for good UX.
             $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);

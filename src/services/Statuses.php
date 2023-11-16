@@ -141,7 +141,7 @@ class Statuses extends Component
         }
 
         if ($runValidation && !$status->validate()) {
-            Formie::log('Status not saved due to validation error.');
+            Formie::info('Status not saved due to validation error.');
 
             return false;
         }
