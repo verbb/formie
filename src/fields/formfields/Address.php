@@ -13,8 +13,9 @@ use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Address as AddressModel;
-use verbb\formie\positions\AboveInput;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -880,8 +881,13 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                    $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                ],
             ]);
         }
 

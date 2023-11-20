@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\Element;
@@ -470,8 +471,13 @@ class Table extends CraftTable implements FormFieldInterface
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                    $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                ],
             ]);
         }
 

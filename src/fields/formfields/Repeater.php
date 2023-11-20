@@ -11,6 +11,7 @@ use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -359,8 +360,13 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                    $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                ],
             ]);
         }
 

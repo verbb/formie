@@ -14,6 +14,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Name as NameModel;
 use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -603,8 +604,13 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                        $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                    ],
                 ]);
             }
         }
