@@ -104,7 +104,7 @@ class Brevo extends EmailMarketing
                 $payload = [
                     'email' => $email,
                     'includeListIds' => [(int)$this->listId],
-                    'templateId' => $this->templateId,
+                    'templateId' => (int)$this->templateId,
                     'redirectionUrl' => $this->redirectionUrl,
                 ];
             } else {
