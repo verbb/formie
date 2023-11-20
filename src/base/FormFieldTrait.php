@@ -22,6 +22,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -818,8 +819,13 @@ trait FormFieldTrait
                 return null;
             }
 
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('label', [
-                'class' => 'fui-label',
+                'class' => [
+                    'fui-label',
+                    $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                ],
                 'for' => $id,
             ]);
         }

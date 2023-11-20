@@ -1,4 +1,5 @@
-{% if labelPosition.shouldDisplay(position) %}
+{# Even when hidden, the label should be output for accessibility #}
+{% if labelPosition.shouldDisplay(position) or (labelPosition == 'hidden' and position == 'above') %}
     {% fieldtag 'fieldLabel' %}
         {{- field.name | t('formie') | raw -}}
 
