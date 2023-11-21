@@ -296,6 +296,35 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
             'instructionsPosition' => AboveInput::class,
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+        $rules[] = [$this->handle, 'validateRequiredFields', 'skipOnEmpty' => false];
+
+        return $rules;
+    }
+
+    /**
+     * Validates the required address sub-fields.
+     *
+     * @param ElementInterface $element
+     */
+    public function validateRequiredFields(ElementInterface $element)
+    {
+        $subFields = [
+            'address1',
+            'address2',
+            'address3',
+            'city',
+            'zip',
+            'state',
+            'country',
+        ];
 
         if ($this->autocompleteEnabled) {
             $subFields[] = 'autocomplete';
