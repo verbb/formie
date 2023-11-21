@@ -376,7 +376,9 @@ class Zoho extends Crm
         $token = $this->getToken();
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration. Attempting to refresh token.');
+
+            $token = $this->getToken(true);
         }
 
         // Populated after OAuth connection
