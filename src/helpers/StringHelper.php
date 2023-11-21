@@ -37,6 +37,6 @@ class StringHelper extends CraftStringHelper
 
     public static function cleanString(string $str): string
     {
-        return (new AntiXSS())->xss_clean((string)$str);
+        return (new AntiXSS())->xss_clean($str);
     }
 }

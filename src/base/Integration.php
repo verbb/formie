@@ -223,7 +223,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->handle ?? '';
     }
 
-    public function getClassHandle()
+    public function getClassHandle(): string
     {
         return StringHelper::toKebabCase(static::displayName());
     }
@@ -338,7 +338,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $settings = $this->getCache('settings') ?: [];
 
             // Add support for emoji in cached content
-            $settings = Json::decode(StringHelper::shortcodesToEmoji((string)Json::encode($settings)));
+            $settings = Json::decode(StringHelper::shortcodesToEmoji(Json::encode($settings)));
 
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
@@ -919,7 +919,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Add support for emoji in cached content
         $data = Json::encode($this->cache);
-        $data = StringHelper::emojiToShortcodes((string)$data);
+        $data = StringHelper::emojiToShortcodes($data);
 
         // Direct DB update to keep it out of PC, plus speed
         Db::update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id]);

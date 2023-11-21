@@ -89,7 +89,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         return Template::raw(Craft::t('formie', (string)$this->_descriptionHtml));
     }
 
-    public function setDescriptionHtml($value)
+    public function setDescriptionHtml($value): void
     {
         $this->_descriptionHtml = $value;
     }

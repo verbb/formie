@@ -316,7 +316,7 @@ class HubSpotLegacy extends Crm
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
                 // Bloody HubSpot have old APIs, so they require a separate endpoint
-                $endpoint = "submissions/v3/integration/submit/${portalId}/${formGuid}";
+                $endpoint = "submissions/v3/integration/submit/{$portalId}/{$formGuid}";
                 $payload = $formPayload;
                 $method = 'POST';
 

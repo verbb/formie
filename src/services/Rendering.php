@@ -453,10 +453,10 @@ class Rendering extends Component
 
         // Create our own buffer for CSS files. `View::startCssBuffer()` only handles CSS code, not files
         $this->startFileBuffer('cssFiles', $view);
-        $css = $view->startCssBuffer();
+        $view->startCssBuffer();
 
         $this->startFileBuffer('jsFiles', $view);
-        $js = $view->startJsBuffer();
+        $view->startJsBuffer();
 
         // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
         // This helps when targeting head/body/inline and ensure we output it **here**

@@ -126,7 +126,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 'name' => 'formula',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    return (string)Json::encode($field->getFormula());
+                    return Json::encode($field->getFormula());
                 },
             ],
         ]);

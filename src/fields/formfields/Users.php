@@ -37,7 +37,7 @@ class Users extends CraftUsers implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -248,7 +248,6 @@ class Users extends CraftUsers implements FormFieldInterface
             'defaultUser' => [
                 'name' => 'defaultUser',
                 'type' => UserInterface::getType(),
-                'resolve' => UserResolver::class.'::resolve',
                 'args' => UserArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -417,7 +416,7 @@ class Users extends CraftUsers implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

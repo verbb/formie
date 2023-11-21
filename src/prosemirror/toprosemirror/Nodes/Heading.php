@@ -19,7 +19,7 @@ class Heading extends Node
         ];
     }
 
-    private function getLevel($value)
+    private function getLevel($value): ?string
     {
         preg_match("/^h([1-6])$/", $value, $match);
 

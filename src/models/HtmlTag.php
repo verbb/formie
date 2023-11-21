@@ -33,7 +33,7 @@ class HtmlTag extends Model
         $this->attributes = ArrayHelper::filterEmptyFalse($attributes);
     }
 
-    public function setFromConfig(array $config, array $context = [])
+    public function setFromConfig(array $config, array $context = []): void
     {
         $resetClass = $config['resetClass'] ?? false;
         $tagName = $config['tag'] ?? null;
@@ -59,7 +59,7 @@ class HtmlTag extends Model
 
         if ($classes) {
             foreach ($classes as $key => $class) {
-                if (strstr($class, '{{')) {
+                if (str_contains($class, '{{')) {
                     $parsed = Craft::$app->getView()->renderString($class, $context);
 
                     $this->attributes['class'][$key] = $parsed;

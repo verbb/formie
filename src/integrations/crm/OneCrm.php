@@ -55,7 +55,7 @@ class OneCrm extends Crm
     // Public Methods
     // =========================================================================
 
-    public function getClassHandle()
+    public function getClassHandle(): string
     {
         return 'one-crm';
     }

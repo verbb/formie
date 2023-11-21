@@ -142,7 +142,7 @@ class SubmissionExport extends ElementExporter
     // Private Methods
     // =========================================================================
 
-    private function _populateElementContent(ElementInterface $element)
+    private function _populateElementContent(ElementInterface $element): void
     {
         // Make sure the element has content
         if (!$element->hasContent()) {

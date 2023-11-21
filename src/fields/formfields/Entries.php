@@ -37,7 +37,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -306,7 +306,6 @@ class Entries extends CraftEntries implements FormFieldInterface
             'defaultEntry' => [
                 'name' => 'defaultEntry',
                 'type' => EntryInterface::getType(),
-                'resolve' => EntryResolver::class.'::resolve',
                 'args' => EntryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -470,7 +469,7 @@ class Entries extends CraftEntries implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

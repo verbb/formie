@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
@@ -97,29 +98,15 @@ class Email extends FormField implements PreviewableFieldInterface
         }
     }
 
-    public function validateUniqueEmail(ElementInterface $element, string $attribute): void
+    public function validateUniqueEmail(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($attribute);
+        $fieldHandle = $this->handle;
+        $value = $element->getFieldValue($this->handle);
         $value = trim($value);
 
-        // Use a DB lookup for performance
-        $contentTable = $element->contentTable;
-
-        if ($this->columnSuffix) {
-            $fieldHandle .= '_' . $this->columnSuffix;
-        }
-
-        $query = (new Query())
-            ->select($fieldHandle)
-            ->from(['c' => $contentTable])
-            ->where([$fieldHandle => $value, 'isIncomplete' => false, 'e.dateDeleted' => null])
-            ->leftJoin(['s' => '{{%formie_submissions}}'], "[[s.id]] = [[c.elementId]]")
-            ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]');
-
-        // Exclude _this_ element, if there is one
-        if ($element->id) {
-            $query->andWhere(['!=', 's.id', $element->id]);
-        }
+        $query = Submission::find()
+            ->formId($element->formId)
+            ->$fieldHandle($value);
 
         // Fire a 'modifyEmailFieldUniqueQuery' event
         $event = new ModifyEmailFieldUniqueQueryEvent([
@@ -128,11 +115,8 @@ class Email extends FormField implements PreviewableFieldInterface
         ]);
         $this->trigger(self::EVENT_MODIFY_UNIQUE_QUERY, $event);
 
-        // Be sure to check only against completed submission content
-        $emailExists = $event->query->exists();
-
-        if ($emailExists) {
-            $element->addError($attribute, Craft::t('formie', '“{name}” must be unique.', [
+        if ($event->query->exists()) {
+            $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [
                 'name' => $this->name,
             ]));
         }

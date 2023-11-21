@@ -55,7 +55,6 @@ class Formie
             Craft::configure($query, $criteria);
         }
 
-        /* @var FormQuery $query */
         return $query;
     }
 
@@ -67,7 +66,6 @@ class Formie
             Craft::configure($query, $criteria);
         }
 
-        /* @var SubmissionQuery $query */
         return $query;
     }
 

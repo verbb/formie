@@ -208,13 +208,13 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return '';
     }
 
-    // public function getDefaultValue($attributePrefix = '')
-    // {
-    //     $defaultValue = parent::getDefaultValue($attributePrefix);
+    public function getDefaultValue($attributePrefix = '')
+    {
+        $defaultValue = parent::getDefaultValue($attributePrefix);
 
-    //     // Ensure default values are treated the same way as normal values
-    //     return $this->normalizeValue($defaultValue);
-    // }
+        // Ensure default values are treated the same way as normal values
+        return $this->normalizeValue($defaultValue);
+    }
 
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
@@ -269,41 +269,27 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return '';
     }
 
-    // public function getFieldDefaults(): array
-    // {
-    //     /* @var Settings $settings */
-    //     $settings = Formie::$plugin->getSettings();
-    //     $displayType = $settings->defaultDateDisplayType ?: 'calendar';
-    //     $defaultOption = $settings->defaultDateValueOption ?: '';
-    //     $defaultValue = $settings->getDefaultDateTimeValue();
+    public function getFieldTypeConfigDefaults(): array
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+        $displayType = $settings->defaultDateDisplayType ?: 'calendar';
+        $defaultOption = $settings->defaultDateValueOption ?: '';
+        $defaultValue = $settings->getDefaultDateTimeValue();
 
-    //     return [
-    //         'dateFormat' => 'Y-m-d',
-    //         'timeFormat' => 'H:i',
-    //         'displayType' => $displayType,
-    //         'defaultValue' => $defaultValue,
-    //         'defaultOption' => $defaultOption,
-    //         'includeDate' => true,
-    //         'includeTime' => true,
-    //         'dayLabel' => Craft::t('formie', 'Day'),
-    //         'dayPlaceholder' => '',
-    //         'monthLabel' => Craft::t('formie', 'Month'),
-    //         'monthPlaceholder' => '',
-    //         'yearLabel' => Craft::t('formie', 'Year'),
-    //         'yearPlaceholder' => '',
-    //         'hourLabel' => Craft::t('formie', 'Hour'),
-    //         'hourPlaceholder' => '',
-    //         'minuteLabel' => Craft::t('formie', 'Minute'),
-    //         'minutePlaceholder' => '',
-    //         'secondLabel' => Craft::t('formie', 'Second'),
-    //         'secondPlaceholder' => '',
-    //         'ampmLabel' => Craft::t('formie', 'AM/PM'),
-    //         'ampmPlaceholder' => '',
-    //         'useDatePicker' => true,
-    //         'datePickerOptions' => [],
-    //         'availableDaysOfWeek' => '*',
-    //     ];
-    // }
+        return [
+            'displayType' => $displayType,
+            'defaultValue' => $defaultValue,
+            'defaultOption' => $defaultOption,
+            'dayLabel' => Craft::t('formie', 'Day'),
+            'monthLabel' => Craft::t('formie', 'Month'),
+            'yearLabel' => Craft::t('formie', 'Year'),
+            'hourLabel' => Craft::t('formie', 'Hour'),
+            'minuteLabel' => Craft::t('formie', 'Minute'),
+            'secondLabel' => Craft::t('formie', 'Second'),
+            'ampmLabel' => Craft::t('formie', 'AM/PM'),
+        ];
+    }
 
     public function getFormattingChar($name): ?string
     {
@@ -790,7 +776,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return null;
     }
 
-    public function getWeekDayNamesOptions()
+    public function getWeekDayNamesOptions(): array
     {
         $options = [['label' => Craft::t('formie', 'All'), 'value' => '*']];
 

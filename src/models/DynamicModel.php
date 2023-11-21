@@ -67,32 +67,32 @@ class DynamicModel extends Model
         }
     }
 
-    public function canGetProperty($name, $checkVars = true, $checkBehaviors = true)
+    public function canGetProperty($name, $checkVars = true, $checkBehaviors = true): bool
     {
         return parent::canGetProperty($name, $checkVars, $checkBehaviors) || $this->hasAttribute($name);
     }
 
-    public function canSetProperty($name, $checkVars = true, $checkBehaviors = true)
+    public function canSetProperty($name, $checkVars = true, $checkBehaviors = true): bool
     {
         return parent::canSetProperty($name, $checkVars, $checkBehaviors) || $this->hasAttribute($name);
     }
 
-    public function hasAttribute($name)
+    public function hasAttribute($name): bool
     {
         return array_key_exists($name, $this->_attributes);
     }
 
-    public function defineAttribute($name, $value = null)
+    public function defineAttribute($name, $value = null): void
     {
         $this->_attributes[$name] = $value;
     }
 
-    public function undefineAttribute($name)
+    public function undefineAttribute($name): void
     {
         unset($this->_attributes[$name]);
     }
 
-    public function addRule($attributes, $validator, $options = [])
+    public function addRule($attributes, $validator, $options = []): static
     {
         $validators = $this->getValidators();
 
@@ -107,7 +107,7 @@ class DynamicModel extends Model
         return $this;
     }
 
-    public static function validateData(array $data, $rules = [])
+    public static function validateData(array $data, $rules = []): static
     {
         $model = new static($data);
 
@@ -131,26 +131,26 @@ class DynamicModel extends Model
         return $model;
     }
 
-    public function attributes()
+    public function attributes(): array
     {
         return array_keys($this->_attributes);
     }
 
-    public function setAttributeLabels(array $labels = [])
+    public function setAttributeLabels(array $labels = []): static
     {
         $this->_attributeLabels = $labels;
 
         return $this;
     }
 
-    public function setAttributeLabel($attribute, $label)
+    public function setAttributeLabel($attribute, $label): static
     {
         $this->_attributeLabels[$attribute] = $label;
 
         return $this;
     }
 
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return $this->_attributeLabels;
     }

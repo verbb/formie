@@ -66,7 +66,6 @@ class Submissions extends Component
 
     public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
         return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
     }
 

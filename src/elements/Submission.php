@@ -510,6 +510,8 @@ class Submission extends Element
         if ($form = $this->getForm()) {
             return $form->title;
         }
+
+        return null;
     }
 
     public function getStatusModel(): Status

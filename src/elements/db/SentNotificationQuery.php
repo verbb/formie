@@ -98,7 +98,6 @@ class SentNotificationQuery extends ElementQuery
             ],
             SentNotification::STATUS_FAILED => [
                 'formie_sentnotifications.success' => false,
-                'formie_sentnotifications.success' => null,
             ],
             default => parent::statusCondition($status),
         };

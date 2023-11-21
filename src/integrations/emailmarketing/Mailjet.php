@@ -13,13 +13,17 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
+use Throwable;
+
+use GuzzleHttp\Client;
+
 class Mailjet extends EmailMarketing
 {
     // Properties
     // =========================================================================
 
-    public $apiKey;
-    public $secretKey;
+    public ?string $apiKey = null;
+    public ?string $secretKey = null;
 
 
     // Public Methods
@@ -35,7 +39,7 @@ class Mailjet extends EmailMarketing
         return Craft::t('formie', 'Sign up users to your Mailjet lists to grow your audience for campaigns.');
     }
 
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
@@ -70,7 +74,7 @@ class Mailjet extends EmailMarketing
                     'fields' => $listFields,
                 ]);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
 
@@ -99,7 +103,7 @@ class Mailjet extends EmailMarketing
             if ($response === false) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -118,7 +122,7 @@ class Mailjet extends EmailMarketing
                 Integration::error($this, 'Unable to find “{ID}” in response.', true);
                 return false;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
             return false;
@@ -127,7 +131,7 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    public function getClient()
+    public function getClient(): ?Client
     {
         if ($this->_client) {
             return $this->_client;
@@ -169,7 +173,7 @@ class Mailjet extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = [])
+    private function _getCustomFields($fields, $excludeNames = []): array
     {
         $customFields = [];
 

@@ -202,7 +202,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $inputOptions;
     }
 
-    public function getDisplayTypeField(): FormFieldInterface
+    public function getDisplayTypeField(): ?FormFieldInterface
     {
         // Use all the same settings from this field, but remove any invalid ones
         $class = new ReflectionClass($this);
@@ -217,10 +217,9 @@ class Recipients extends FormField implements PreviewableFieldInterface
             // can set the namespace with `setParentFIeld()`, but we want to specifically use the
             // namespace value we already have, which has already neen set anyway.
             $config['parentField'] = $this->getParentField();
-            $config['namespace'] = $this->getNamespace();
-        } else {
-            $config['namespace'] = $this->getNamespace();
         }
+
+        $config['namespace'] = $this->getNamespace();
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if (!$property->isStatic() && $property->getDeclaringClass()->isAbstract()) {
@@ -245,30 +244,32 @@ class Recipients extends FormField implements PreviewableFieldInterface
         if ($this->displayType === 'checkboxes') {
             return new Checkboxes($config);
         }
+
+        return null;
     }
 
-    // public function getDefaultValue($attributePrefix = '')
-    // {
-    //     $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
+    public function getDefaultValue($attributePrefix = '')
+    {
+        $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
 
-    //     // If the default value from the parent field (query params, etc.) is empty, use the default values
-    //     // set in the field option settings.
-    //     if (!$this->getIsHidden() && $value === '') {
-    //         $value = [];
+        // If the default value from the parent field (query params, etc.) is empty, use the default values
+        // set in the field option settings.
+        if (!$this->getIsHidden() && $value === '') {
+            $value = [];
 
-    //         foreach ($this->options() as $option) {
-    //             if (!empty($option['isDefault'])) {
-    //                 $value[] = $option['value'];
-    //             }
-    //         }
+            foreach ($this->options() as $option) {
+                if (!empty($option['isDefault'])) {
+                    $value[] = $option['value'];
+                }
+            }
 
-    //         if ($this->displayType !== 'checkboxes') {
-    //             $value = $value[0] ?? '';
-    //         }
-    //     }
+            if ($this->displayType !== 'checkboxes') {
+                $value = $value[0] ?? '';
+            }
+        }
 
-    //     return $value;
-    // }
+        return $value;
+    }
 
     public function getRealValue($value)
     {
@@ -283,7 +284,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         }
 
         // Check if we need to replace the value - for fields that define options in CP
-        if (strpos($value, 'id:') !== false) {
+        if (str_contains($value, 'id:')) {
             // Replace each occurance of the `id:X` placeholder value with their real value
             $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
                 $index = $match[1] ?? 0;
@@ -293,7 +294,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         }
 
         // For hidden fields, there's no CP defined options, so decode its encoded value
-        if (strpos($value, 'base64:') !== false) {
+        if (str_contains($value, 'base64:')) {
             $value = StringHelper::decdec($value);
 
             // Check if this was an array of data

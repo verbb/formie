@@ -1544,7 +1544,7 @@ class Form extends Element
         $this->_frontEndJsEvents[] = $value;
     }
 
-    public function getFrontEndClasses()
+    public function getFrontEndClasses(): array
     {
         $allClasses = [];
 
@@ -1555,7 +1555,6 @@ class Form extends Element
             'disabled' => 'fui-disabled',
             'tabError' => 'fui-tab-error',
             'tabActive' => 'fui-tab-active',
-            'successMessage' => 'fui-alert-success',
             'alert' => 'fui-alert',
             'alertError' => 'fui-alert-error',
             'alertSuccess' => 'fui-alert-success',

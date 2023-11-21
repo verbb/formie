@@ -82,7 +82,7 @@ class MigrateFreeform extends Migration
         return false;
     }
 
-    public function setConsoleRequest($value)
+    public function setConsoleRequest($value): void
     {
         $this->_consoleRequest = $value;
     }

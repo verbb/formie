@@ -18,6 +18,7 @@ use craft\helpers\Json;
 use yii\base\Exception;
 
 use HTMLPurifier_Config;
+use HTMLPurifier_AttrDef_HTML_Bool;
 
 class Html extends FormField
 {
@@ -75,7 +76,7 @@ class Html extends FormField
         }
 
         // Add emoji support
-        $htmlContent = StringHelper::shortcodesToEmoji((string)$htmlContent);
+        $htmlContent = StringHelper::shortcodesToEmoji($htmlContent);
 
         if ($this->purifyContent) {
             // Ensure we run it all through purifier
@@ -189,7 +190,7 @@ class Html extends FormField
 
         // Add some extra, modern elements to be supported `<details>`, `<summary>`
         $def = $purifierConfig->getHTMLDefinition(true);
-        $def->addElement('details', 'Block', 'Flow', 'Common', [ 'open' => new \HTMLPurifier_AttrDef_HTML_Bool(true)]);
+        $def->addElement('details', 'Block', 'Flow', 'Common', [ 'open' => new HTMLPurifier_AttrDef_HTML_Bool(true)]);
         $def->addElement('summary', 'Inline', 'Inline', 'Common');
 
         // Give plugins a chance to modify the HTML Purifier config, or add new ones

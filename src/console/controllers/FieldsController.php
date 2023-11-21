@@ -16,7 +16,7 @@ class FieldsController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionCleanupFieldLayouts()
+    public function actionCleanupFieldLayouts(): int
     {
         $layouts = (new Query())
             ->select(['id'])

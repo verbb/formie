@@ -39,7 +39,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -269,7 +269,6 @@ class Products extends CommerceProducts implements FormFieldInterface
             'defaultProduct' => [
                 'name' => 'defaultProduct',
                 'type' => ProductInterface::getType(),
-                'resolve' => ProductResolver::class.'::resolve',
                 'args' => ProductArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -437,7 +436,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

@@ -1166,7 +1166,7 @@ trait FormFieldTrait
             $reservedWords = $rule['reservedWords'] ?? null;
 
             if ($attribute === 'handle' && $reservedWords) {
-                ArrayHelper::removeValue($rules[$ruleKey]['reservedWords'], 'username');
+                ArrayHelper::removeValue($rule['reservedWords'], 'username');
             }
         }
 
@@ -1245,7 +1245,7 @@ trait FormFieldTrait
     // Private Methods
     // =========================================================================
 
-    private static function normalizeConfig(array &$config = [])
+    private static function normalizeConfig(array &$config = []): void
     {
         // Normalise the config from Formie v1 to v2. This is a bit more reliable than a migration
         // updating all field settings, as the presence of these properties in field classes that don't
@@ -1341,7 +1341,7 @@ trait FormFieldTrait
         return array_values(array_unique(array_merge(...$reservedWords)));
     }
 
-    private function _getFullHandle()
+    private function _getFullHandle(): array
     {
         $handles = [];
 
@@ -1358,7 +1358,7 @@ trait FormFieldTrait
         return $handles;
     }
 
-    private function _getFullNamespace()
+    private function _getFullNamespace(): array
     {
         $names = [];
 

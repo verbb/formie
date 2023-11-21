@@ -280,7 +280,7 @@ class Mailchimp extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _getDataCenter()
+    private function _getDataCenter(): false|string
     {
         if (preg_match('/([a-zA-Z]+[\d]+)$/', App::parseEnv($this->apiKey), $matches)) {
             return $matches[1] ?? '';

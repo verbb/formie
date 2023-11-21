@@ -102,7 +102,7 @@ class Payment extends FormField
         $integration = $this->getPaymentIntegration();
 
         if (!$integration) {
-            return '';
+            return Template::raw('');
         }
 
         return Template::raw($integration->getFrontEndHtml($this, $renderOptions));
@@ -112,22 +112,14 @@ class Payment extends FormField
     {
         $integration = $this->getPaymentIntegration();
 
-        if (!$integration) {
-            return null;
-        }
-
-        return $integration->getFrontEndJsVariables($this);
+        return $integration?->getFrontEndJsVariables($this);
     }
 
     public function getFrontEndSubFields($context): array
     {
         $integration = $this->getPaymentIntegration();
 
-        if (!$integration) {
-            return null;
-        }
-
-        return $integration->getFrontEndSubFields($this, $context);
+        return $integration?->getFrontEndSubFields($this, $context);
     }
 
     public function getPaymentIntegration(): ?IntegrationInterface
@@ -269,7 +261,7 @@ class Payment extends FormField
         return $paymentProviderOptions;
     }
 
-    private function _getProviderSettings($schemaGroup)
+    private function _getProviderSettings($schemaGroup): array
     {
         $schemas = [];
 

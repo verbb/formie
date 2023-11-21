@@ -72,7 +72,6 @@ class Trello extends Miscellaneous
 
     public function getOauthProvider(): AbstractProvider|Oauth1Provider
     {
-        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return new TrelloProvider($this->getOauthProviderConfig());
     }
 
@@ -110,7 +109,7 @@ class Trello extends Miscellaneous
             foreach ($allBoards as $key => $board) {
                 $lists = [];
 
-                $allLists = $this->request('GET', "boards/${board['id']}/lists");
+                $allLists = $this->request('GET', "boards/{$board['id']}/lists");
 
                 foreach ($allLists as $list) {
                     $lists[] = [

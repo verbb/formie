@@ -31,6 +31,7 @@ use Throwable;
 use Exception;
 
 use Stripe\StripeClient;
+use Stripe\Customer;
 use Stripe\Event as StripeEvent;
 use Stripe\Exception as StripeException;
 use Stripe\Invoice as StripeInvoice;
@@ -551,7 +552,7 @@ class Stripe extends Payment
         return $response;
     }
 
-    public function cancelSubscription($reference, $params = [])
+    public function cancelSubscription($reference, $params = []): ?array
     {
         try {
             $stripeSubscription = $this->getStripe()->subscriptions->retrieve($reference);
@@ -1053,7 +1054,7 @@ class Stripe extends Payment
         return $plan;
     }
 
-    private function _getPlan($planId)
+    private function _getPlan($planId): ?Plan
     {
         try {
             $data = $this->getStripe()->plans->retrieve($planId);
@@ -1085,7 +1086,7 @@ class Stripe extends Payment
         }
     }
     
-    private function _createPlan($payload)
+    private function _createPlan($payload): ?Plan
     {
         try {
             // Raise a `modifyPlanPayload` event
@@ -1121,7 +1122,7 @@ class Stripe extends Payment
         }
     }
 
-    private function _getCustomer(Submission $submission)
+    private function _getCustomer(Submission $submission): ?Customer
     {
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
         $field = $this->getField();

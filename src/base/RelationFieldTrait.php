@@ -203,10 +203,9 @@ trait RelationFieldTrait
             // can set the namespace with `setParentFIeld()`, but we want to specifically use the
             // namespace value we already have, which has already been set anyway.
             $config['parentField'] = $this->getParentField();
-            $config['namespace'] = $this->getNamespace();
-        } else {
-            $config['namespace'] = $this->getNamespace();
         }
+
+        $config['namespace'] = $this->getNamespace();
 
         // Remove any properties from the `BaseRelationField` class
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
@@ -232,7 +231,7 @@ trait RelationFieldTrait
         return $config;
     }
 
-    public function getDisplayTypeField(): FormFieldInterface
+    public function getDisplayTypeField(): ?FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();
 
@@ -247,6 +246,8 @@ trait RelationFieldTrait
         if ($this->displayType === 'checkboxes') {
             return new Checkboxes($config);
         }
+
+        return null;
     }
 
     public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null

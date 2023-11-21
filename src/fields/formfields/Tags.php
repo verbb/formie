@@ -43,7 +43,7 @@ class Tags extends CraftTags implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -373,7 +373,6 @@ class Tags extends CraftTags implements FormFieldInterface
             'defaultTag' => [
                 'name' => 'defaultTag',
                 'type' => TagInterface::getType(),
-                'resolve' => TagResolver::class.'::resolve',
                 'args' => TagArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -505,7 +504,7 @@ class Tags extends CraftTags implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

@@ -14,6 +14,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\elements\Category;
+use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\SiteNotFoundException;
 use craft\fields\BaseRelationField;
@@ -39,7 +40,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -186,7 +187,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $options;
     }
 
-    public function getRootCategoryElement()
+    public function getRootCategoryElement(): array|Category|null
     {
         if ($this->rootCategory) {
             if ($rootCategoryId = ArrayHelper::getColumn($this->rootCategory, 'id')) {
@@ -331,7 +332,6 @@ class Categories extends CraftCategories implements FormFieldInterface
             'defaultCategory' => [
                 'name' => 'defaultCategory',
                 'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class.'::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -348,7 +348,6 @@ class Categories extends CraftCategories implements FormFieldInterface
             'rootCategory' => [
                 'name' => 'rootCategory',
                 'type' => CategoryInterface::getType(),
-                'resolve' => CategoryResolver::class . '::resolve',
                 'args' => CategoryArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getRootCategoryElement();
@@ -526,7 +525,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

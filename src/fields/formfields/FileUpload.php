@@ -264,11 +264,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return implode(', ', $extensions);
     }
 
-    public function getVolumeOptions()
+    public function getVolumeOptions(): array
     {
         $volumes = [];
 
-        /* @var Volume $volume */
         foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
             $volumes[] = [
                 'label' => $volume->name,

@@ -28,14 +28,15 @@ use Solspace\Calendar\Elements\Event as EventElement;
 use Solspace\Calendar\Library\DateHelper;
 
 use Carbon\Carbon;
+use Throwable;
 
 class CalendarEvent extends Element
 {
     // Properties
     // =========================================================================
 
-    public $calendarId;
-    public $defaultAuthorId;
+    public ?int $calendarId = null;
+    public ?int $defaultAuthorId = null;
 
 
     // Public Methods
@@ -63,7 +64,7 @@ class CalendarEvent extends Element
         return Craft::t('formie', 'Map content provided by form submissions to create Solspace Calendar Event elements.');
     }
 
-    public function fetchFormSettings()
+    public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
 
@@ -96,7 +97,7 @@ class CalendarEvent extends Element
         ]);
     }
 
-    public function getElementAttributes()
+    public function getElementAttributes(): array
     {
         return [
             new IntegrationField([
@@ -179,7 +180,7 @@ class CalendarEvent extends Element
         ];
     }
 
-    public function getUpdateAttributes()
+    public function getUpdateAttributes(): array
     {
         $attributes = [];
 
@@ -223,7 +224,7 @@ class CalendarEvent extends Element
         return $attributes;
     }
 
-    public function sendPayload(Submission $submission)
+    public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
         if (!$this->calendarId) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `calendarId`.'), true);
@@ -299,7 +300,7 @@ class CalendarEvent extends Element
             if (!$this->afterSendPayload($submission, '', $event, '', [])) {
                 return true;
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -315,7 +316,7 @@ class CalendarEvent extends Element
         return true;
     }
 
-    public function getAuthor($form)
+    public function getAuthor($form): array
     {
         $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
 

@@ -13,6 +13,7 @@ use yii\base\InvalidArgumentException;
 
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
 
 class FileUploadInputType extends InputObjectType
@@ -20,7 +21,7 @@ class FileUploadInputType extends InputObjectType
     // Static Methods
     // =========================================================================
 
-    public static function getType($context)
+    public static function getType($context): ListOfType
     {
         $typeName = 'FileUploadInput';
 
@@ -53,7 +54,7 @@ class FileUploadInputType extends InputObjectType
         return Type::listOf($argumentType);
     }
 
-    public static function normalizeValue($values)
+    public static function normalizeValue($values): array
     {
         $assetIds = [];
         $newValues = [];

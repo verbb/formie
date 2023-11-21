@@ -42,7 +42,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        // getDefaultValue as traitGetDefaultValue;
+        getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
         getFormBuilderConfig as traitGetFormBuilderConfig;
@@ -275,7 +275,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
             'defaultVariant' => [
                 'name' => 'defaultVariant',
                 'type' => VariantInterface::getType(),
-                'resolve' => VariantResolver::class.'::resolve',
                 'args' => VariantArguments::getArguments(),
                 'resolve' => function($class) {
                     return $class->getDefaultValueQuery() ? $class->getDefaultValueQuery()->one() : null;
@@ -443,7 +442,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue($value): array
     {
         $ids = [];
 

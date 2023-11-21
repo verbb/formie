@@ -170,7 +170,7 @@ class Variables
                 'submissionUrl' => $submission->getCpEditUrl() ?? '',
                 'submissionId' => $submission->id ?? null,
                 'submissionUid' => $submission->uid ?? null,
-                'submissionDate' => $dateCreated ? $dateCreated->format('Y-m-d H:i:s') : null,
+                'submissionDate' => $dateCreated?->format('Y-m-d H:i:s'),
 
                 'siteName' => $siteName,
                 'systemEmail' => $systemEmail,

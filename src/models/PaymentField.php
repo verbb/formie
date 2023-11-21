@@ -23,12 +23,12 @@ class PaymentField extends DynamicModel
         return Json::encode($this->getAttributes());
     }
 
-    public function getElement()
+    public function getElement(): ?ElementInterface
     {
         return $this->_element;
     }
 
-    public function setElement($value)
+    public function setElement($value): void
     {
         $this->_element = $value;
     }

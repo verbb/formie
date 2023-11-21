@@ -187,7 +187,7 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
             'value' => $value,
             'field' => $this,
             'footHtml' => $footHtml,
-        ]);;
+        ]);
     }
 
     public function getPreviewInputHtml(): string

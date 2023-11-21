@@ -339,7 +339,7 @@ class Agile extends Crm
                 ]);
 
                 // Check to see if this contact already exists, and update
-                $response = $this->request('GET', "contacts/search/email/${email}");
+                $response = $this->request('GET', "contacts/search/email/{$email}");
                 $existingContact = $response['id'] ?? '';
 
                 if ($existingContact) {

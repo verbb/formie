@@ -35,7 +35,7 @@ class Sendinblue extends EmailMarketing
     // Public Methods
     // =========================================================================
 
-    public function getClassHandle()
+    public function getClassHandle(): string
     {
         return 'sendinblue';
     }

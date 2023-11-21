@@ -337,7 +337,7 @@ class SharpSpring extends Crm
         return (string)$request->getBody();
     }
 
-    private function _serializeValuesForForm($element)
+    private function _serializeValuesForForm($element): array
     {
         $serializedValues = [];
 

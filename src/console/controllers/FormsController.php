@@ -24,7 +24,7 @@ class FormsController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function options($actionID)
+    public function options($actionID): array
     {
         $options = parent::options($actionID);
 

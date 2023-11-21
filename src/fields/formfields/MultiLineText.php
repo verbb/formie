@@ -100,7 +100,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public function validateMinCharacters(ElementInterface $element, string $attribute): void
     {
-        $min = (int)($this->min ?? 0);
+        $min = $this->min ?? 0;
 
         if (!$min) {
             return;
@@ -110,7 +110,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $string = StringHelper::encodeHtml((string)$value);
+        $string = StringHelper::encodeHtml($value);
 
         // Replace newline and tab characters to compare
         $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
@@ -126,7 +126,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public function validateMaxCharacters(ElementInterface $element, string $attribute): void
     {
-        $max = (int)($this->max ?? 0);
+        $max = $this->max ?? 0;
 
         if (!$max) {
             return;
@@ -136,7 +136,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
-        $string = StringHelper::encodeHtml((string)$value);
+        $string = StringHelper::encodeHtml($value);
 
         // Replace newline and tab characters to compare
         $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
@@ -152,7 +152,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public function validateMinWords(ElementInterface $element, string $attribute): void
     {
-        $min = (int)($this->min ?? 0);
+        $min = $this->min ?? 0;
 
         if (!$min) {
             return;
@@ -170,7 +170,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public function validateMaxWords(ElementInterface $element, string $attribute): void
     {
-        $max = (int)($this->max ?? 0);
+        $max = $this->max ?? 0;
 
         if (!$max) {
             return;
@@ -233,7 +233,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return $modules;
     }
 
-    public function getRichTextButtons()
+    public function getRichTextButtons(): ?array
     {
         $order = array_map(function($item) {
             return $item['value'];
@@ -252,7 +252,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return $this->richTextButtons;
     }
 
-    public function getButtonOptions()
+    public function getButtonOptions(): array
     {
         return [
             ['label' => Craft::t('formie', 'Bold'), 'value' => 'bold'],

@@ -85,7 +85,7 @@ class MigrateSproutForms extends Migration
         return false;
     }
 
-    public function setConsoleRequest($value)
+    public function setConsoleRequest($value): void
     {
         $this->_consoleRequest = $value;
     }
@@ -689,7 +689,6 @@ class MigrateSproutForms extends Migration
                 $newField->sources = $field->sources;
                 break;
             case sproutfields\Url::class:
-                break;
                 $newField = new formfields\SingleLineText();
                 $this->_applyFieldDefaults($newField);
 

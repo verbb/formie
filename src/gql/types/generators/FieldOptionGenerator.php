@@ -37,7 +37,7 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
                     'description' => 'The label of the option.',
                     'resolve' => function($source) {
                         // Optgroups are handled differently, so normalize
-                        return isset($source['optgroup']) ? $source['optgroup'] : $source['label'];
+                        return $source['optgroup'] ?? $source['label'];
                     },
                 ],
 

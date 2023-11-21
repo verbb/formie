@@ -109,9 +109,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
             $value = Variables::getParsedValue($value, $element);
 
             // Immediately update the value for the element, so integrations use the up-to-date value
-            if ($element) {
-                $element->setFieldValue($this->handle, $value);
-            }
+            $element?->setFieldValue($this->handle, $value);
         }
 
         return parent::serializeValue($value, $element);

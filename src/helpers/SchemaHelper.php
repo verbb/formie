@@ -385,7 +385,7 @@ class SchemaHelper
         return $names;
     }
 
-    public static function setFieldAttributes(&$fieldSchema)
+    public static function setFieldAttributes(&$fieldSchema): void
     {
         // Automaticallty set the `id` and `key` attributes for fields, which FormKit needs
         foreach ($fieldSchema as &$field) {

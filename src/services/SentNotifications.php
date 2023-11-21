@@ -135,7 +135,6 @@ class SentNotifications extends Component
         $info['transportType'] = $transportType::displayName();
 
         if (get_class($transportType) === Smtp::class) {
-            /** @var Smtp $transportType */
             $info['host'] = $transportType->host;
             $info['port'] = $transportType->port;
             $info['username'] = $transportType->username;

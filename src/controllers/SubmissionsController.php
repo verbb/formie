@@ -422,7 +422,7 @@ class SubmissionsController extends Controller
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
-        Formie::info("Submission triggered for ${handle}.");
+        Formie::info("Submission triggered for {$handle}.");
 
         /* @var Form $form */
         $form = $this->_getForm($handle);

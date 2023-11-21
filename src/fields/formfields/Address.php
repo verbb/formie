@@ -567,11 +567,7 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
     {
         $integration = $this->getAddressProviderIntegration();
 
-        if (!$integration) {
-            return null;
-        }
-
-        return $integration->getFrontEndJsVariables($this);
+        return $integration?->getFrontEndJsVariables($this);
     }
 
     public function getAddressProviderIntegration(): ?IntegrationInterface

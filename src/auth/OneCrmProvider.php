@@ -5,12 +5,14 @@ use craft\helpers\Json;
 
 use League\OAuth2\Client\Provider\GenericProvider;
 
+use Psr\Http\Message\RequestInterface;
+
 class OneCrmProvider extends GenericProvider
 {
     // Public Methods
     // =========================================================================
 
-    protected function getAccessTokenRequest(array $params)
+    protected function getAccessTokenRequest(array $params): RequestInterface
     {
         $method  = $this->getAccessTokenMethod();
         $url = $this->getAccessTokenUrl($params);
