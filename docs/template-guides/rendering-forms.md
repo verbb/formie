@@ -60,6 +60,6 @@ You can dynamically override any settings for the form using `form.setSettings()
 {{ craft.formie.renderForm(form) }}
 ```
 
-The above would override the redirect URL for the form, regardless of what is defined in the form's settings. See the [Form Settings](docs:developers/form#form-settings) docs for a full list of available settings to override.
+The above would override the `redirectUrl` for the form, regardless of what is defined in the form's settings. See the [Form Settings](docs:developers/form#form-settings) docs for a full list of available settings to override.
 
 For more fine-grained control over rendering of a form, see [Rendering Pages](docs:template-guides/rendering-pages) and [Rendering Fields](docs:template-guides/rendering-fields).
