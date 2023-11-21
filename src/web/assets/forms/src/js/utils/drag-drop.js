@@ -1,6 +1,6 @@
 function canDrag(sourcePageIndex, sourceField, dragData) {
     // Nesting repeater fields is not allowed!
-    if (sourceField && dragData.supportsNested) {
+    if (sourceField && dragData.hasNestedFields) {
         return false;
     }
 
@@ -20,7 +20,7 @@ function canDrag(sourcePageIndex, sourceField, dragData) {
     }
 
     // Disallow moving a field from inside one repeater to another repeater.
-    if (dragData.fieldId && sourceField && sourceField.supportsNested) {
+    if (dragData.fieldId && sourceField && sourceField.hasNestedFields) {
         if (dragData.fieldId != sourceField.__id) {
             return false;
         }

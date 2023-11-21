@@ -205,7 +205,7 @@ export default {
                 let options = field.field.settings.options || [];
 
                 // Check for group/repeater fields
-                if (field.field.supportsNested) {
+                if (field.field.hasNestedFields) {
                     options = field.subField.settings.options || [];
                     testField = field.subField;
                 }
@@ -239,7 +239,7 @@ export default {
                 let options = field.field.settings.options || [];
 
                 // Check for group/repeater fields
-                if (field.field.supportsNested) {
+                if (field.field.hasNestedFields) {
                     options = field.subField.settings.options || [];
                     testField = field.subField;
                 }
@@ -346,22 +346,22 @@ export default {
                                 field,
                                 subField,
                                 type: field.type,
-                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                value: `{${field.handle}.${subField.handle}}`,
+                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
+                                value: `{${field.settings.handle}.${subField.settings.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater') {
                         // No support yet
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
-                        field.rows.forEach((row) => {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((subField) => {
                                 customFields.push({
                                     field,
                                     subField,
                                     type: field.type,
-                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                    value: `{${field.handle}.rows.new1.fields.${subField.handle}}`,
+                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
+                                    value: `{${field.settings.handle}.${subField.settings.handle}}`,
                                 });
                             });
                         });
@@ -370,15 +370,15 @@ export default {
                         customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 60 }),
-                            value: `{${field.handle}.date}`,
+                            label: truncate(field.settings.label, { length: 60 }),
+                            value: `{${field.settings.handle}.date}`,
                         });
                     } else {
                         customFields.push({
                             field,
                             type: field.type,
-                            label: truncate(field.label, { length: 60 }),
-                            value: `{${field.handle}}`,
+                            label: truncate(field.settings.label, { length: 60 }),
+                            value: `{${field.settings.handle}}`,
                         });
                     }
                 }

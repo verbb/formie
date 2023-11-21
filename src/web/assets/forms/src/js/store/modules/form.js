@@ -71,12 +71,12 @@ const mutations = {
                                     field.__id = newId();
 
                                     // For nested fields - more rows/fields!
-                                    if (field.rows && Array.isArray(field.rows)) {
-                                        field.rows.forEach((nestedRow) => {
+                                    if (field.settings.rows && Array.isArray(field.settings.rows)) {
+                                        field.settings.rows.forEach((nestedRow) => {
                                             if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
                                                 nestedRow.fields.forEach((nestedField) => {
-                                                    if (!nestedField.vid) {
-                                                        nestedField.vid = newId();
+                                                    if (!nestedField.__id) {
+                                                        nestedField.__id = newId();
                                                     }
                                                 });
                                             }
@@ -256,10 +256,10 @@ const mutations = {
                         return false;
                     }
 
-                    if (field.supportsNested) {
-                        forEach(field.rows, (repeaterRow) => {
+                    if (field.hasNestedFields) {
+                        forEach(field.settings.rows, (repeaterRow) => {
                             forEach(repeaterRow.fields, (repeaterField, repeaterKey) => {
-                                if (repeaterField && repeaterField.vid == id) {
+                                if (repeaterField && repeaterField.__id == id) {
                                     repeaterRow.fields.splice(repeaterKey, 1);
                                     return false;
                                 }
@@ -279,10 +279,10 @@ const mutations = {
                 }
 
                 forEach(row.fields, (field) => {
-                    if (field.supportsNested) {
-                        forEach(field.rows, (repeaterRow, repeaterKey) => {
+                    if (field.hasNestedFields) {
+                        forEach(field.settings.rows, (repeaterRow, repeaterKey) => {
                             if (repeaterRow && repeaterRow.fields.length === 0) {
-                                field.rows.splice(repeaterKey, 1);
+                                field.settings.rows.splice(repeaterKey, 1);
                                 return false;
                             }
                         });
@@ -443,12 +443,12 @@ const getters = {
         const allRows = flatMap(state.pages, 'rows');
         let allFields = flatMap(allRows, 'fields');
 
-        const repeaterFields = filter(allFields, (field) => { return !!field.rows; });
-        const repeaterRows = flatMap(repeaterFields, 'rows');
+        const nestedFields = filter(allFields, (field) => { return !!field.settings.rows; });
+        const nestedRows = flatMap(nestedFields, 'settings.rows');
 
         allFields = [
             ...allFields,
-            ...flatMap(repeaterRows, 'fields'),
+            ...flatMap(nestedRows, 'fields'),
         ];
 
         // Return all non-empty fields
@@ -490,9 +490,9 @@ const getters = {
             getters.fields.forEach((field) => {
             // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
-                    if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                     // Is this a group field that supports nesting?
-                        field.rows.forEach((row) => {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((subField) => {
                                 if (allowedTypes.includes(subField.type)) {
                                     fields.push({
@@ -541,9 +541,9 @@ const getters = {
             getters.fields.forEach((field) => {
             // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
-                    if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                     // Is this a group field that supports nesting?
-                        field.rows.forEach((row) => {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((subField) => {
                                 if (allowedTypes.includes(subField.type)) {
                                     fields.push({
@@ -605,9 +605,9 @@ const getters = {
                                 value: `{field.${field.handle}.${subField.handle}}`,
                             });
                         });
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
-                        field.rows.forEach((row) => {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((groupfield) => {
                                 if (groupfield.subFieldOptions && groupfield.hasSubFields) {
                                     groupfield.subFieldOptions.forEach((subField) => {
@@ -665,9 +665,9 @@ const getters = {
                                 value: `{field.${field.handle}.${subField.handle}}`,
                             });
                         });
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
-                        field.rows.forEach((row) => {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((groupfield) => {
                                 if (groupfield.subFieldOptions && groupfield.hasSubFields) {
                                     groupfield.subFieldOptions.forEach((subField) => {
@@ -748,7 +748,7 @@ const getters = {
             });
 
             if (field) {
-                const allFields = flatMap(field.rows, 'fields');
+                const allFields = flatMap(field.settings.rows, 'fields');
 
                 let fieldHandles = flatMap(allFields, 'handle');
 

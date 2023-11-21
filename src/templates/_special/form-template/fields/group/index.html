@@ -1,7 +1,3 @@
 {% fieldtag 'nestedFieldContainer' %}
-    {% set block = value.one() ?? null %}
-
-    {{ formieInclude('fields/group/_row', {
-        id: block.id ?? 'new1',
-    }) }}
+    {{ formieInclude('fields/group/_row') }}
 {% endfieldtag %}

@@ -23,10 +23,7 @@ class GroupInputType extends InputObjectType
 
         $groupFields = [];
 
-        foreach ($context->getCustomFields() as $field) {
-            $field->isNested = true;
-            $field->setContainer($context);
-
+        foreach ($context->getFields() as $field) {
             $groupFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
@@ -35,19 +32,6 @@ class GroupInputType extends InputObjectType
             'fields' => function() use ($groupFields) {
                 return $groupFields;
             },
-            'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-    }
-
-    public static function normalizeValue(mixed $value): mixed
-    {
-        return [
-            'rows' => [
-                'new1' => [
-                    'fields' => $value,
-                ],
-            ],
-            'sortOrder' => ['new1'],
-        ];
     }
 }

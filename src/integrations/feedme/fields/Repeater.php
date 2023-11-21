@@ -57,14 +57,7 @@ class Repeater extends Field implements FieldInterface
         }
 
         return [
-            'rows' => [
-                'new1' => [
-                    'fields' => $preppedData,
-                ],
-            ],
-            'sortOrder' => [
-                'new1',
-            ],
+            'new1' => $preppedData,
         ];
     }
 }

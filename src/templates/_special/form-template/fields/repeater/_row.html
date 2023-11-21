@@ -3,33 +3,19 @@
 
 {% fieldtag 'nestedField' %}
     {% fieldtag 'nestedFieldWrapper' %}
-        {# There will only ever be 1 page. #}
-        {% set page = field.fieldLayout.pages[0] ?? null %}
-        
-        {% if page %}
-            {% fieldtag 'nestedFieldRows' %}
-                {% for row in page.rows %}
-                    {% fieldtag 'nestedFieldRow' %}
-                        {% for field in row.fields %}
-                            {# Tell child fields about this parent, so that namespacing works #}
-                            {% do field.setParentField(repeaterField, "rows[#{id}][fields]") %}
+        {% fieldtag 'nestedFieldRows' %}
+            {% for row in field.getRows() %}
+                {% fieldtag 'nestedFieldRow' %}
+                    {% for field in row.getFields() %}
+                        {# Update the namespace for the field, to include the specific block index #}
+                        {% do field.setParentField(repeaterField, index) %}
 
-                            {# Important to always use a NestedFieldRow as the element, otherwise will use #}
-                            {# the Submission element, which will fetch content from fields outside of a Repeater #}
-                            {{ craft.formie.renderField(form, field, {
-                                element: block ?? create({
-                                    class: 'verbb\\formie\\elements\\NestedFieldRow',
-                                    fieldId: repeaterField.id,
-                                }),
-                            }) }}
-                        {% endfor %}
-                    {% endfieldtag %}
-                {% endfor %}
-            {% endfieldtag %}
-        {% endif %}
+                        {{ craft.formie.renderField(form, field) }}
+                    {% endfor %}
+                {% endfieldtag %}
+            {% endfor %}
+        {% endfieldtag %}
 
         {{ fieldtag('fieldRemoveButton') }}
-
-        {{ hiddenInput(field.getHtmlName('sortOrder[]'), id) }}
     {% endfieldtag %}
 {% endfieldtag %}

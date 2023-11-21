@@ -2,22 +2,20 @@
 
 {% block field %}
 
-{% set id = 'new1' %}
+{# Keep track of the outer group field #}
+{% set groupField = field %}
 
 <div class="fui-group-field pane">
-    {% namespace "#{field.handle}[rows][#{id}][fields]" %}
-        {% for field in field.getFieldLayout().getCustomFields() %}
+    {% namespace field.handle %}
+        {% for field in field.getFields() %}
             {% include 'formie/_formfields/group/field' with {
                 field: field,
+                fieldKey: "#{groupField.handle}.#{field.handle}",
+                element: element,
                 required: field.required,
-                element: value.one() ?? null,
             } only %}
         {% endfor %}
     {% endnamespace %}
 </div>
-
-{% namespace field.handle %}
-    {{ hiddenInput('sortOrder[]', id) }}
-{% endnamespace %}
 
 {% endblock %}

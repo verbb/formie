@@ -56,15 +56,6 @@ class Group extends Field implements FieldInterface
             return null;
         }
 
-        return [
-            'rows' => [
-                'new1' => [
-                    'fields' => $preppedData,
-                ],
-            ],
-            'sortOrder' => [
-                'new1',
-            ],
-        ];
+        return $preppedData;
     }
 }

@@ -25,10 +25,7 @@ class RepeaterInputType extends InputObjectType
 
         $repeaterFields = [];
 
-        foreach ($context->getCustomFields() as $field) {
-            $field->isNested = true;
-            $field->setContainer($context);
-
+        foreach ($context->getFields() as $field) {
             $repeaterFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
@@ -49,30 +46,6 @@ class RepeaterInputType extends InputObjectType
                     'rows' => Type::listOf($rowContainerType),
                 ];
             },
-            'normalizeValue' => [self::class, 'normalizeValue'],
         ]));
-    }
-
-    public static function normalizeValue($value): mixed
-    {
-        $preparedRows = [];
-        $rowCounter = 1;
-
-        if (!empty($value['rows'])) {
-            foreach ($value['rows'] as $row) {
-                if (!empty($row)) {
-                    $key = 'new' . $rowCounter++;
-                    $sortOrder[] = $key;
-                    $preparedRows[$key] = [
-                        'fields' => $row,
-                    ];
-                }
-            }
-        }
-
-        return [
-            'rows' => $preparedRows,
-            'sortOrder' => $sortOrder ?? [],
-        ];
     }
 }

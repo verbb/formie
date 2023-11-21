@@ -1,16 +1,16 @@
 {{ hiddenInput(field.getHtmlName(), '') }}
 
 {% fieldtag 'nestedFieldContainer' %}
-    {% if value  %}
-        {% for block in value.all() %}
+    {% if value %}
+        {% for block in value %}
             {{ formieInclude('fields/repeater/_row', {
-                id: block.id ?? 'new' ~ loop.index,
+                index: loop.index0,
             }) }}
         {% endfor %}
     {% elseif field.minRows > 0 %}
         {% for i in 1..field.minRows %}
             {{ formieInclude('fields/repeater/_row', {
-                id: 'new' ~ i,
+                index: 'new' ~ i,
             }) }}
         {% endfor %}
     {% endif %}
@@ -24,7 +24,7 @@
     {# For GraphQL requests we need to render this inline #}
     <script type="text/x-template" data-repeater-template="{{ field.handle }}">
         {{ formieInclude('fields/repeater/_row', {
-            id: '__ROW__',
+            index: '__ROW__',
         }) }}
     </script>
 {% else %}
@@ -32,7 +32,7 @@
     {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
     {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
         {{ formieInclude('fields/repeater/_row', {
-            id: '__ROW__',
+            index: '__ROW__',
         }) }}
     {% endscript %}
 {% endif %}

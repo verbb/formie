@@ -2,13 +2,12 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
-use verbb\formie\elements\db\NestedFieldRowQuery;
-use verbb\formie\elements\NestedFieldRow;
+use verbb\formie\base\MultiNestedFieldInterface;
+use verbb\formie\base\NestedField;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -18,6 +17,7 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
+use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 
 use GraphQL\Type\Definition\ObjectType;
@@ -25,17 +25,8 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
+class Repeater extends NestedField implements MultiNestedFieldInterface
 {
-    // Traits
-    // =========================================================================
-
-    use NestedFieldTrait {
-        validateRows as traitValidateRows;
-        getFrontEndJsModules as traitGetFrontEndJsModules;
-    }
-
-
     // Static Methods
     // =========================================================================
 
@@ -66,7 +57,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         $rules = parent::getElementValidationRules();
 
         $rules[] = [
-            'validateRows',
+            'validateBlocks',
             'on' => [Element::SCENARIO_ESSENTIALS, Element::SCENARIO_DEFAULT, Element::SCENARIO_LIVE],
             'skipOnEmpty' => false,
         ];
@@ -74,12 +65,9 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         return $rules;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function validateRows(ElementInterface $element): void
+    public function validateBlocks(ElementInterface $element): void
     {
-        $this->traitValidateRows($element);
+        $value = $element->getFieldValue($this->handle);
 
         if ($element->getScenario() === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
             $arrayValidator = new ArrayValidator([
@@ -96,19 +84,82 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
                 'skipOnEmpty' => false,
             ]);
 
-            $value = $element->getFieldValue($this->handle);
-            $blocks = $value->all();
-
-            if (!$arrayValidator->validate($blocks, $error)) {
+            if (!$arrayValidator->validate($value, $error)) {
                 $element->addError($this->handle, $error);
+            }
+        }
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                $fieldKey = "$this->handle.$rowKey.$field->handle";
+                $subValue = $element->getFieldValue($fieldKey);
+                $isEmpty = $field->isValueEmpty($subValue, $element);
+
+                // Roll our own validation, due to lack of field layout and elements
+                if ($field->required && $isEmpty) {
+                    $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+                }
+
+                foreach ($field->getElementValidationRules() as $rule) {
+                    $attribute = $fieldKey;
+                    $method = $rule[1];
+
+                    if (!$isEmpty && $field->hasMethod($method)) {
+                        $field->$method($element, $attribute);
+                    }
+                }
             }
         }
     }
 
-    /**
-     * @return array
-     */
-    public function getFieldDefaults(): array
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
+    {
+        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Normalize all inner fields
+        foreach ($value as $rowKey => $row) {
+            foreach ($row as $fieldHandle => $subValue) {
+                $field = $fieldsByHandle[$fieldHandle] ?? null;
+
+                if ($fieldHandle === $field?->handle) {
+                    $value[$rowKey][$fieldHandle] = $field->normalizeValue($subValue, $element);
+                }
+            }
+        }
+
+        // Reset any `new1` or `row1` keys
+        $value = array_values($value);
+
+        return $value;
+    }
+
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
+    {
+        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        foreach ($value as $rowKey => $row) {
+            foreach ($row as $fieldHandle => $subValue) {
+                $field = $fieldsByHandle[$fieldHandle] ?? null;
+
+                if ($fieldHandle === $field?->handle) {
+                    $value[$rowKey][$fieldHandle] = $field->serializeValue($subValue, $element);
+                }
+            }
+        }
+
+        return $value;
+    }
+
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'addLabel' => Craft::t('formie', 'Add another row'),
@@ -131,6 +182,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         $footHtml = $view->clearJsBuffer();
 
         return $view->renderTemplate('formie/_formfields/repeater/input', [
+            'element' => $element,
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
@@ -145,48 +197,9 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         ]);
     }
 
-    public function populateValue($value): void
-    {
-        if (!is_array($value) || !isset($value[0])) {
-            return;
-        }
-
-        $blocks = [];
-
-        foreach ($value as $i => $fieldContent) {
-            try {
-                $row = new NestedFieldRow();
-                $row->fieldId = $this->id;
-                $row->setFieldValues($fieldContent);
-
-                $blocks[] = $row;
-            } catch (Throwable $e) {
-                continue;
-            }
-        }
-
-        if ($blocks) {
-            $this->defaultValue = new NestedFieldRowQuery(NestedFieldRow::class);
-            $this->defaultValue->setBlocks($blocks);
-        }
-    }
-
-    public function parsePopulatedFieldValues($value, $element): array
-    {
-        // For when parsing populated content from the cache, when the field is visibly disabled
-        // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
-        $rows = [];
-
-        foreach ($value as $i => $fields) {
-            $rows['new' . ($i + 1)]['fields'] = $fields;
-        }
-
-        return $rows;
-    }
-
     public function getFrontEndJsModules(): ?array
     {
-        $modules = $this->traitGetFrontEndJsModules();
+        $modules = parent::getFrontEndJsModules();
 
         $modules[] = [
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
@@ -391,5 +404,86 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
         $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
         
         return $rules;
+    }
+
+
+    protected function defineValueAsString($value, ElementInterface $element = null): string
+    {
+        $values = [];
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $valueAsString = $field->getValueAsString($subValue, $element);
+
+                if ($valueAsString) {
+                    $values[] = $valueAsString;
+                }
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    {
+        $values = [];
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $valueAsJson = $field->getValueAsJson($subValue, $element);
+
+                if ($valueAsJson) {
+                    $values[$rowKey][$field->handle] = $valueAsJson;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    {
+        $values = [];
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $valueForExport = $field->getValueForExport($subValue, $element);
+
+                $key = $this->getExportLabel($element) . ': ' . ($rowKey + 1);
+
+                if (is_array($valueForExport)) {
+                    foreach ($valueForExport as $i => $j) {
+                        $values[$key . ': ' . $i] = $j;
+                    }
+                } else {
+                    $values[$key . ': ' . $field->getExportLabel($element)] = $valueForExport;
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    {
+        $values = '';
+
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
+                    continue;
+                }
+
+                $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
+                $html = $field->getValueForSummary($subValue, $element);
+
+                $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
+            }
+        }
+
+        return Template::raw($values);
     }
 }

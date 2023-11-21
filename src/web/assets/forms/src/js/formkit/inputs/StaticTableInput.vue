@@ -129,7 +129,7 @@ export default {
                     }
 
                     // Is this a repeater or field that supports nesting?
-                    if (toBoolean(field.supportsNested) && field.rows) {
+                    if (toBoolean(field.hasNestedFields) && field.rows) {
                         field.rows.forEach((row) => {
                             row.fields.forEach((subField) => {
                                 options.push({

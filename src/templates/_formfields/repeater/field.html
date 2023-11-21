@@ -1,10 +1,8 @@
 {% from '_includes/forms' import field %}
 
-{% set element = element ?? null %}
-
-{% set value = (element ? element.getFieldValue(field.handle) : field.normalizeValue(null)) %}
-{% set errors = (element ? element.getErrors(field.handle) : null) %}
-{% set instructions = (field.instructions ? field.instructions|t('formie') : null) %}
+{% set value = element ? element.getFieldValue(field.getFieldKey()) : field.normalizeValue(null) %}
+{% set errors = (element ? element.getErrors(field.getFieldKey()) : null) %}
+{% set instructions = (field.instructions ? field.instructions | t('formie') : null) %}
 
 {% set input = field.getInputHtml(value, element) %}
 
@@ -12,7 +10,7 @@
     {{ field({
         label: field.name | t('formie') | e,
         required: required,
-        instructions: instructions|e,
+        instructions: instructions | e,
         id: field.handle,
         errors: errors,
         fieldAttributes: {

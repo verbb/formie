@@ -58,7 +58,7 @@ export default {
             default: false,
         },
 
-        supportsNested: {
+        hasNestedFields: {
             type: Boolean,
             default: false,
         },

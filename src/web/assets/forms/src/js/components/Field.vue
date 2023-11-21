@@ -22,7 +22,7 @@
             :class="{ 'is-active': dragActive, 'has-errors': hasError }"
             :transfer-data="{
                 trigger: 'field',
-                supportsNested: fieldtype.supportsNested,
+                hasNestedFields: fieldtype.hasNestedFields,
                 rowIndex,
                 fieldId,
                 pageIndex,
@@ -32,7 +32,7 @@
             @on-dragstart="dragStart"
             @on-dragend="dragEnd"
         >
-            <div v-if="!fieldtype.supportsNested" class="fui-edit-overlay" @click.prevent="openModal"></div>
+            <div v-if="!fieldtype.hasNestedFields" class="fui-edit-overlay" @click.prevent="openModal"></div>
 
             <div class="fui-field-info">
                 <label v-if="fieldtype.hasLabel" class="fui-field-label">
@@ -376,7 +376,7 @@ export default {
             });
 
             // Clone the old field rows.
-            if (this.field.supportsNested) {
+            if (this.field.hasNestedFields) {
                 newField.rows = cloneDeep(this.field.rows);
                 newField.rows.forEach((row) => {
                     row.id = newId();

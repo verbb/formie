@@ -1,28 +1,32 @@
 {% set element = element ?? null %}
 
+{# Keep track of the outer repeater field #}
+{% set repeaterField = field %}
+
 {% set html %}
     <fieldset class="fui-fieldset">
-        {% set id = row.id ?? '__ROW__' %}
+        {% set index = index ?? '__ROW__' %}
+
+        {# Namespace tag can't handle `0`, which is what our indexes start at, being arrays #}
+        {% set namespace = index != '__ROW__' ? 'row' ~ (index + 1) : index %}
         
-        {% namespace "rows[#{id}][fields]" %}
-            {# There will only ever be 1 page. #}
-            {% set page = field.fieldLayout.pages[0] ?? null %}
-            
-            {% if page %}
-                <div class="fui-field-rows">
-                    {% for row in page.rows %}
-                        <div class="fui-row fui-page-row">
-                            {% for field in row.fields %}
-                                {% include 'formie/_formfields/repeater/field' with {
-                                    field: field,
-                                    required: field.required,
-                                    element: element,
-                                } only %}
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+        {% namespace namespace %}
+            <div class="fui-field-rows">
+                {% for row in field.getRows() %}
+                    <div class="fui-row fui-page-row">
+                        {% for field in row.getFields() %}
+                            {# Update the namespace for the field, to include the specific block index #}
+                            {% do field.setParentField(repeaterField, index) %}
+
+                            {% include 'formie/_formfields/repeater/field' with {
+                                field: field,
+                                element: element,
+                                required: field.required,
+                            } only %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
         {% endnamespace %}
 
         {% set buttonAttributes = {
@@ -34,8 +38,6 @@
         <button {{ attr(buttonAttributes) }}>
             {{ 'Remove' | t('formie') }}
         </button>
-
-        {{ hiddenInput('sortOrder[]', id) }}
     </fieldset>
 {% endset %}
 

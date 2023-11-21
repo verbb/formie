@@ -2,7 +2,7 @@
     <drag
         class="fui-field-pill"
         :hide-image-html="!isSafari"
-        :transfer-data="{ trigger: 'pill', supportsNested: fieldtype.supportsNested, type }"
+        :transfer-data="{ trigger: 'pill', hasNestedFields: fieldtype.hasNestedFields, type }"
         @on-dragstart="dragStart"
         @on-dragend="dragEnd"
     >

@@ -2,11 +2,12 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\base\NestedField;
+use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -16,18 +17,15 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
+use craft\helpers\Template;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
-class Group extends FormField implements NestedFieldInterface, EagerLoadingFieldInterface
+use yii\validators\Validator;
+
+class Group extends NestedField implements SingleNestedFieldInterface
 {
-    // Traits
-    // =========================================================================
-
-    use NestedFieldTrait;
-
-
     // Static Methods
     // =========================================================================
 
@@ -55,7 +53,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         $rules = parent::getElementValidationRules();
 
         $rules[] = [
-            'validateRows',
+            'validateBlocks',
             'on' => [Element::SCENARIO_ESSENTIALS, Element::SCENARIO_DEFAULT, Element::SCENARIO_LIVE],
             'skipOnEmpty' => false,
         ];
@@ -63,9 +61,73 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return $rules;
     }
 
+    public function validateBlocks(ElementInterface $element): void
+    {
+        foreach ($this->getFields() as $field) {
+            $fieldKey = "$this->handle.$field->handle";
+            $value = $element->getFieldValue($fieldKey);
+            $isEmpty = $field->isValueEmpty($value, $element);
+
+            // Roll our own validation, due to lack of field layout and elements
+            if ($field->required && $isEmpty) {
+                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+            }
+
+            foreach ($field->getElementValidationRules() as $rule) {
+                $attribute = $fieldKey;
+                $method = $rule[1];
+
+                if (!$isEmpty && $field->hasMethod($method)) {
+                    $field->$method($element, $attribute);
+                }
+            }
+        }
+    }
+
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
+    {
+        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Normalize all inner fields
+        foreach ($value as $fieldHandle => $subValue) {
+            $field = $fieldsByHandle[$fieldHandle] ?? null;
+
+            if ($fieldHandle === $field?->handle) {
+                $value[$fieldHandle] = $field->normalizeValue($subValue, $element);
+            }
+        }
+
+        return $value;
+    }
+
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
+    {
+        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        foreach ($value as $fieldHandle => $subValue) {
+            $field = $fieldsByHandle[$fieldHandle] ?? null;
+
+            if ($fieldHandle === $field?->handle) {
+                $value[$fieldHandle] = $field->serializeValue($subValue, $element);
+            }
+        }
+
+        return $value;
+    }
+
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/input', [
+            'element' => $element,
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
@@ -77,34 +139,6 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
             'field' => $this,
         ]);
-    }
-
-    public function populateValue($value): void
-    {
-        if (!is_array($value)) {
-            return;
-        }
-
-        if ($fields = $this->getCustomFields()) {
-            foreach ($fields as $field) {
-                $fieldValue = $value[$field->handle] ?? null;
-
-                if ($fieldValue) {
-                    $field->populateValue($fieldValue);
-                }
-            }
-        }
-    }
-
-    public function parsePopulatedFieldValues($value, $element): array
-    {
-        // For when parsing populated content from the cache, when the field is visibly disabled
-        // It's supplied in a format that makes sense for `populateValue()` but not for `$element->setFieldValue()`.
-        return [
-            'new1' => [
-                'fields' => $value,
-            ],
-        ];
     }
 
     public function getConfigJson(): ?string
@@ -191,5 +225,81 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
         }
 
         return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueAsString($value, ElementInterface $element = null): string
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            $subValue = $element->getFieldValue("$this->handle.$field->handle");
+            $valueAsString = $field->getValueAsString($subValue, $element);
+
+            if ($valueAsString) {
+                $values[] = $valueAsString;
+            }
+        }
+
+        return implode(', ', $values);
+    }
+
+    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            $subValue = $element->getFieldValue("$this->handle.$field->handle");
+            $valueAsJson = $field->getValueAsJson($subValue, $element);
+
+            if ($valueAsJson) {
+                $values[$field->handle] = $valueAsJson;
+            }
+        }
+
+        return $values;
+    }
+
+    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            $subValue = $element->getFieldValue("$this->handle.$field->handle");
+            $valueForExport = $field->getValueForExport($subValue, $element);
+
+            $key = $this->getExportLabel($element);
+
+            if (is_array($valueForExport)) {
+                foreach ($valueForExport as $i => $j) {
+                    $values[$key . ': ' . $i] = $j;
+                }
+            } else {
+                $values[$key . ': ' . $field->getExportLabel($element)] = $valueForExport;
+            }
+        }
+
+        return $values;
+    }
+
+    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    {
+        $values = '';
+
+        foreach ($this->getFields() as $field) {
+            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
+                continue;
+            }
+
+            $subValue = $element->getFieldValue("$this->handle.$field->handle");
+            $html = $field->getValueForSummary($subValue, $element);
+
+            $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
+        }
+
+        return Template::raw($values);
     }
 }

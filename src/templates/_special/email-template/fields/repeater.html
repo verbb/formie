@@ -1,13 +1,14 @@
+{# Keep track of the outer group field #}
+{% set repeaterField = field %}
+
 <div style="margin: 1em 0;">
     {% if not (renderOptions.hideName ?? false) %}
         <strong>{{ field.name | t('formie') }}</strong>
     {% endif %}
 
-    {% set fields = field.getFieldLayout().getCustomFields() %}
-
-    {% if value.exists() %}
+    {% if value %}
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
-            {% for row in value.all() %}
+            {% for row in value %}
                 <thead>
                     {% if not loop.first %}
                         <tr>
@@ -23,8 +24,9 @@
                 </thead>
 
                 <tbody>
-                    {% for field in fields %}
-                        {% set fieldValue = (row ? row.getFieldValue(field.handle) : field.normalizeValue(null)) %}
+                    {% for field in field.getFields() %}
+                        {% set fieldKey = "#{repeaterField.handle}.#{loop.parent.loop.index0}.#{field.handle}", %}
+                        {% set fieldValue = (submission ? submission.getFieldValue(fieldKey) : field.normalizeValue(null)) %}
 
                         {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                             hideName: true,

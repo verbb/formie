@@ -1,29 +1,12 @@
-{# Keep track of the outer repeater field #}
+{# Keep track of the outer group field #}
 {% set groupField = field %}
 
-{# There will only ever be 1 page. #}
-{% set page = field.fieldLayout.pages[0] ?? null %}
-
-{% if page %}
-    {% fieldtag 'nestedFieldRows' %}
-        {% for row in page.rows %}
-            {% fieldtag 'nestedFieldRow' %}
-                {% for field in row.fields %}
-                    {# Tell child fields about this parent, so that namespacing works #}
-                    {% do field.setParentField(groupField, "rows[#{id}][fields]") %}
-                
-                    {# Important to always use a NestedFieldRow as the element, otherwise will use #}
-                    {# the Submission element, which will fetch content from fields outside of a Group #}
-                    {{ craft.formie.renderField(form, field, {
-                        element: block ?? create({
-                            class: 'verbb\\formie\\elements\\NestedFieldRow',
-                            fieldId: groupField.id,
-                        }),
-                    }) }}
-                {% endfor %}
-            {% endfieldtag %}
-        {% endfor %}
-    {% endfieldtag %}
-{% endif %}
-
-{{ hiddenInput(field.getHtmlName('sortOrder[]'), id) }}
+{% fieldtag 'nestedFieldRows' %}
+    {% for row in field.getRows() %}
+        {% fieldtag 'nestedFieldRow' %}
+            {% for field in row.getFields() %}
+                {{ craft.formie.renderField(form, field) }}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}
