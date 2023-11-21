@@ -125,20 +125,6 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'countryEnabled' => true,
-            'countryCollapsed' => true,
-            'countryShowDialCode' => true,
-            'countryDefaultValue' => '',
-            'countryAllowed' => [],
-        ];
-    }
-
     public function getFrontEndSubFields($context): array
     {
         return [];
@@ -166,30 +152,17 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         ];
     }
 
-    public function validateRequiredFields(ElementInterface $element): void
+    public function validateRequiredFields(ElementInterface $element, string $attribute): void
     {
         if ($this->required) {
-            $value = $element->getFieldValue($this->handle);
+            $value = $element->getFieldValue($attribute);
 
             if (StringHelper::isBlank((string)$value->number)) {
-                $element->addError(
-                    $this->handle,
-                    Craft::t('formie', '"{label}" cannot be blank.', [
-                        'label' => $this->name,
-                    ])
-                );
+                $element->addError($attribute, Craft::t('formie', '"{label}" cannot be blank.', [
+                    'label' => $this->name,
+                ]));
             }
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExtraBaseFieldConfig(): array
-    {
-        return [
-            'countries' => static::getCountryOptions(),
-        ];
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
@@ -206,11 +179,6 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
             'field' => $this,
         ]);
-    }
-
-    public function populateValue($value): void
-    {
-        $this->defaultValue = $this->normalizeValue($value);
     }
 
     public function getSettingGqlTypes(): array

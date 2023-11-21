@@ -69,8 +69,8 @@ class Html extends CraftHtmlHelper
         $merged['style'] = array_merge($style, $extraStyle);
         $merged['aria'] = array_merge($aria, $extraAria);
 
-        // Filter just `null` and `false` values
-        return ArrayHelper::filterEmptyValues($merged); 
+        // Filter `null`, `false` and empty string values
+        return ArrayHelper::filterEmptyFalse($merged);
     }
 
     public static function getFieldClassKey($class): string

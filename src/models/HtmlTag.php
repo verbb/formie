@@ -30,7 +30,7 @@ class HtmlTag extends Model
         $this->extraClasses = $extraClasses;
 
         // Filter nested arrays like classes
-        $this->attributes = ArrayHelper::filterEmptyValues($attributes);
+        $this->attributes = ArrayHelper::filterEmptyFalse($attributes);
     }
 
     public function setFromConfig(array $config, array $context = [])
@@ -52,7 +52,7 @@ class HtmlTag extends Model
         $this->attributes = Html::mergeAttributes($this->attributes, $attributes);
 
         // Filter nested arrays like classes
-        $this->attributes = ArrayHelper::filterEmptyValues($this->attributes);
+        $this->attributes = ArrayHelper::filterEmptyFalse($this->attributes);
 
         // Provide support for Twig-in-config syntax for really complex stuff. Just for classes.
         $classes = $this->attributes['class'] ?? [];

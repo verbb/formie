@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -10,7 +11,7 @@ use craft\base\ElementInterface;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\StringHelper;
 
-class Checkboxes extends BaseOptionsField implements FormFieldInterface
+class Checkboxes extends OptionsField
 {
     // Static Methods
     // =========================================================================
@@ -35,34 +36,13 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
     // =========================================================================
 
     public bool $multi = true;
-    public ?string $layout = null;
+    public ?string $layout = 'vertical';
     public ?string $toggleCheckbox = null;
     public ?string $toggleCheckboxLabel = null;
 
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function init(): void
-    {
-        parent::init();
-
-        $this->multi = true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'options' => [],
-            'layout' => 'vertical',
-        ];
-    }
 
     public function getFieldOptions(): array
     {

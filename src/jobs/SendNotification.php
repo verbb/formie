@@ -49,15 +49,13 @@ class SendNotification extends BaseJob
         $this->notification['content'] = $notification->getParsedContent();
 
         // Add a little extra info for submission fields
-        if ($fieldLayout = $submission->getFieldLayout()) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                $this->submission['fields'][] = [
-                    'type' => get_class($field),
-                    'handle' => $field->handle,
-                    'settings' => $field->settings,
-                    'value' => $submission->getFieldValue($field->handle),
-                ];
-            }
+        foreach ($submission->getFields() as $field) {
+            $this->submission['fields'][] = [
+                'type' => get_class($field),
+                'handle' => $field->handle,
+                'settings' => $field->settings,
+                'value' => $submission->getFieldValue($field->handle),
+            ];
         }
 
         $this->setProgress($queue, 0.75);

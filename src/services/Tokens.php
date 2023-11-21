@@ -8,6 +8,7 @@ use verbb\formie\records\Token as TokenRecord;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\Db;
 use craft\helpers\Json;
 
 use yii\base\Component;
@@ -124,9 +125,7 @@ class Tokens extends Component
             ]));
         }
 
-        Craft::$app->getDb()->createCommand()
-            ->delete('{{%formie_tokens}}', ['id' => $token->id])
-            ->execute();
+       Db::delete('{{%formie_tokens}}', ['id' => $token->id]);
 
         // Fire an 'afterDeleteToken' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_TOKEN)) {

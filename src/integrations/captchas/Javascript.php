@@ -161,7 +161,7 @@ class Javascript extends Captcha
         $array = array_filter([
             self::JAVASCRIPT_INPUT_NAME . '_',
             $form->id,
-            $page->id ?? null,
+            $page->handle ?? null,
         ]);
 
         return implode('', $array);

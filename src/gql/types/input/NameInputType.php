@@ -17,7 +17,7 @@ class NameInputType extends InputObjectType
     public static function getType(NameField $context): mixed
     {
         /** @var NameField $context */
-        $typeName = $context->getGqlFieldContext()->handle . '_' . $context->handle . '_FormieNameInput';
+        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieNameInput';
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

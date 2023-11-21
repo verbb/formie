@@ -19,66 +19,64 @@
 
             <div v-else-if="loading" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-            <div v-else-if="mounted">
-                <div v-if="existingFields.length" class="fui-modal-content-wrap">
-                    <div class="fui-modal-sidebar sidebar">
-                        <nav v-if="filteredExistingFields.length">
-                            <ul>
-                                <li v-if="existingFields.length">
-                                    <a :class="{ 'sel': selectedKey === existingFields[0].key }" @click.prevent="selectTab(existingFields[0].key)">
-                                        <span class="label">{{ existingFields[0].label }}</span>
-                                    </a>
-                                </li>
+            <div v-else-if="mounted && existingFields.length" class="fui-modal-content-wrap">
+                <div class="fui-modal-sidebar sidebar">
+                    <nav v-if="filteredExistingFields.length">
+                        <ul>
+                            <li v-if="existingFields.length">
+                                <a :class="{ 'sel': selectedKey === existingFields[0].key }" @click.prevent="selectTab(existingFields[0].key)">
+                                    <span class="label">{{ existingFields[0].label }}</span>
+                                </a>
+                            </li>
 
-                                <li class="heading"><span>{{ t('formie', 'Forms') }}</span></li>
+                            <li class="heading"><span>{{ t('formie', 'Forms') }}</span></li>
 
-                                <li v-for="(form, index) in existingFields" :key="index">
-                                    <a v-if="index > 0" :class="{ 'sel': selectedKey === form.key }" @click.prevent="selectTab(form.key)">
-                                        <span class="label">{{ form.label }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+                            <li v-for="(form, index) in existingFields" :key="index">
+                                <a v-if="index > 0" :class="{ 'sel': selectedKey === form.key }" @click.prevent="selectTab(form.key)">
+                                    <span class="label">{{ form.label }}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="fui-modal-content">
+                    <div class="toolbar flex flex-nowrap">
+                        <div class="flex-grow texticon search icon clearable">
+                            <input v-model="search" class="text fullwidth" type="text" autocomplete="off" placeholder="Search">
+                            <div class="clear hidden" title="Clear"></div>
+                        </div>
                     </div>
 
-                    <div class="fui-modal-content">
-                        <div class="toolbar flex flex-nowrap">
-                            <div class="flex-grow texticon search icon clearable">
-                                <input v-model="search" class="text fullwidth" type="text" autocomplete="off" placeholder="Search">
-                                <div class="clear hidden" title="Clear"></div>
-                            </div>
-                        </div>
+                    <div v-if="filteredExistingFields.length">
+                        <div v-for="(form, formIndex) in filteredExistingFields" :key="formIndex" :class="{ hidden: selectedKey !== form.key }">
+                            <div v-for="(page, pIndex) in form.pages" :key="pIndex">
+                                <div class="fui-existing-item-heading-wrap">
+                                    <div class="fui-existing-item-heading">{{ page.label }}</div>
+                                </div>
 
-                        <div v-if="filteredExistingFields.length">
-                            <div v-for="(form, formIndex) in filteredExistingFields" :key="formIndex" :class="{ hidden: selectedKey !== form.key }">
-                                <div v-for="(page, pIndex) in form.pages" :key="pIndex">
-                                    <div class="fui-existing-item-heading-wrap">
-                                        <div class="fui-existing-item-heading">{{ page.label }}</div>
-                                    </div>
-
-                                    <div class="fui-row small-padding">
-                                        <existing-field
-                                            v-for="(field, fieldIndex) in page.fields"
-                                            :key="fieldIndex"
-                                            :selected="isFieldSelected(field)"
-                                            v-bind="field"
-                                            @selected="fieldSelected"
-                                        />
-                                    </div>
+                                <div class="fui-row small-padding">
+                                    <existing-field
+                                        v-for="(field, fieldIndex) in page.fields"
+                                        :key="fieldIndex"
+                                        :selected="isFieldSelected(field)"
+                                        v-bind="field"
+                                        @selected="fieldSelected"
+                                    />
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div v-else>
-                            <p>{{ t('formie', 'No fields found.') }}</p>
-                        </div>
+                    <div v-else>
+                        <p>{{ t('formie', 'No fields found.') }}</p>
                     </div>
                 </div>
+            </div>
 
-                <div v-else class="fui-modal-content-wrap">
-                    <div class="fui-modal-content">
-                        <p>{{ t('formie', 'No existing fields to select.') }}</p>
-                    </div>
+            <div v-else class="fui-modal-content-wrap">
+                <div class="fui-modal-content">
+                    <p>{{ t('formie', 'No existing fields to select.') }}</p>
                 </div>
             </div>
         </template>
@@ -123,6 +121,7 @@
 import { mapState } from 'vuex';
 import { findIndex } from 'lodash-es';
 import { newId } from '@utils/string';
+import { clone } from '@utils/object';
 
 import Modal from '@components/Modal.vue';
 import MenuBtn from '@components/MenuBtn.vue';
@@ -164,8 +163,8 @@ export default {
             return this.existingFields.reduce((acc, form) => {
                 const pages = form.pages.reduce((acc, page) => {
                     const fields = page.fields.filter((field) => {
-                        const inLabel = field.label.toLowerCase().includes(this.search.toLowerCase());
-                        const inHandle = field.handle.toLowerCase().includes(this.search.toLowerCase());
+                        const inLabel = field.settings.label.toLowerCase().includes(this.search.toLowerCase());
+                        const inHandle = field.settings.handle.toLowerCase().includes(this.search.toLowerCase());
 
                         return inLabel || inHandle;
                     });
@@ -269,6 +268,9 @@ export default {
                 // Update the store so we don't need to fetch again
                 if (response.data) {
                     this.$store.dispatch('formie/setExistingFields', response.data);
+
+                    // Auto-select the first tab ("All Forms")
+                    this.selectTab('*');
                 }
 
                 this.mounted = true;
@@ -287,9 +289,7 @@ export default {
         addFields() {
             for (const field of this.selectedFields) {
                 const config = {
-                    label: field.label,
-                    handle: field.handle,
-                    settings: field.settings,
+                    settings: clone(field.settings),
                 };
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
@@ -314,16 +314,16 @@ export default {
 
         addSynced() {
             for (const field of this.selectedFields) {
-                const rowCount = this.form.pages[this.pageIndex].rows.length;
-
-                const newField = {
-                    id: `sync:${field.id}`,
-                    label: field.label,
-                    handle: field.handle,
-                    type: field.type,
+                const config = {
+                    id: field.id,
                     isSynced: true,
-                    settings: field.settings,
+                    settings: clone(field.settings),
                 };
+
+                config.settings.isSynced = true;
+
+                const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
+                const rowCount = this.form.pages[this.pageIndex].rows.length;
 
                 const payload = {
                     pageIndex: this.pageIndex,

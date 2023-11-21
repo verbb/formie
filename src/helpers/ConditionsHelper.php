@@ -186,46 +186,39 @@ class ConditionsHelper
             return explode('.', $item)[0] ?? null;
         }, $includedHandles));
 
-        if ($fieldLayout = $submission->getFieldLayout()) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                if ($field->getIsCosmetic()) {
-                    continue;
-                }
-
-                // If we only want specific fields, no need to parse them all to improve performance
-                if ($handles && !in_array($field->handle, $handles)) {
-                    continue;
-                }
-
-                $value = $submission->getFieldValue($field->handle);
-
-                // Special-handling for element fields which for integrations contain their titles
-                // (or field setting labels), but we want IDs.
-                if ($field instanceof BaseRelationField) {
-                    $value = $field->serializeValue($value, $submission);
-                } else if ($field instanceof Password) {
-                    // Don't mess around with passwords for conditions. We don't really "know" the value
-                    // but more important will cause an infinite loop (somehow)
-                    $value = '•••••••••••••••••••••';
-                } else if ($field instanceof Group) {
-                    // Handling for Group fields who have a particular structure
-                    $rows = array_values($field->serializeValue($value, $submission))[0] ?? [];
-
-                    $value = ['rows' => ['new1' => $rows]];
-                } else if ($field instanceof Recipients) {
-                    // Recipients fields should use encoded values, because they can't be exposed in HTML source
-                    $value = $field->getValueAsString($field->getFakeValue($value), $submission);
-                } else if ($field instanceof Hidden) {
-                    // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
-                    $value = $field->getValueAsString($value, $submission);
-                } else if (method_exists($field, 'serializeValueForIntegration')) {
-                    $value = $field->serializeValueForIntegration($value, $submission);
-                } else {
-                    $value = $field->serializeValue($value, $submission);
-                }
-
-                $serializedValues[$field->handle] = $value;
+        foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic()) {
+                continue;
             }
+
+            // If we only want specific fields, no need to parse them all to improve performance
+            if ($handles && !in_array($field->handle, $handles)) {
+                continue;
+            }
+
+            $value = $submission->getFieldValue($field->handle);
+
+            // Special-handling for element fields which for integrations contain their titles
+            // (or field setting labels), but we want IDs.
+            if ($field instanceof BaseRelationField) {
+                $value = $field->serializeValue($value, $submission);
+            } else if ($field instanceof Password) {
+                // Don't mess around with passwords for conditions. We don't really "know" the value
+                // but more important will cause an infinite loop (somehow)
+                $value = '•••••••••••••••••••••';
+            } else if ($field instanceof Recipients) {
+                // Recipients fields should use encoded values, because they can't be exposed in HTML source
+                $value = $field->getValueAsString($field->getFakeValue($value), $submission);
+            } else if ($field instanceof Hidden) {
+                // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
+                $value = $field->getValueAsString($value, $submission);
+            } else if (method_exists($field, 'serializeValueForIntegration')) {
+                $value = $field->serializeValueForIntegration($value, $submission);
+            } else {
+                $value = $field->serializeValue($value, $submission);
+            }
+
+            $serializedValues[$field->handle] = $value;
         }
 
         return $serializedValues;

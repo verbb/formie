@@ -122,66 +122,65 @@ class FormsController extends Controller
             }
         }
 
-        // Set the default template from settings, if not already set - for new forms
-        if (!$form->id && !$form->templateId) {
-            $form->templateId = $settings->getDefaultFormTemplateId();
-        }
+        if ($duplicate) {
+            $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
 
-        if (!Formie::$plugin->getForms()->saveForm($form)) {
-            Formie::error(Craft::t('app', 'Couldn’t save form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]));
-
-            if ($this->request->getAcceptsJson()) {
-                $notifications = $form->getNotifications();
-                $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
-
-                $json = [
-                    'success' => false,
-                    'id' => $form->id,
-                    'notifications' => $notificationsConfig,
-                    'errors' => $form->getConsolidatedErrors(),
-                    'fieldLayoutId' => $form->fieldLayoutId,
-                ];
-
-                // Don't return the config if there's an error on duplicate - settings will have changed
-                if (!$duplicate) {
-                    $json['config'] = $form->getFormConfig();
+            if (!$duplicatedForm) {
+                // Important not to return back the duplicated form (which failed to be created). Use the original form.
+                if ($this->request->getAcceptsJson()) {
+                    return $this->asJson([
+                        'success' => false,
+                        'config' => $form->getFormBuilderConfig(),
+                        'notifications' => $form->getNotificationsConfig(),
+                    ]);
                 }
 
-                return $this->asJson($json);
+                $this->setFailFlash(Craft::t('formie', 'Couldn’t duplicate form.'));
+
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'form' => $form,
+                ]);
+
+                return null;
             }
+        } else {
+            if (!Craft::$app->getElements()->saveElement($form)) {
+                if ($this->request->getAcceptsJson()) {
+                    return $this->asJson([
+                        'success' => false,
+                        'config' => $form->getFormBuilderConfig(),
+                        'notifications' => $form->getNotificationsConfig(),
+                    ]);
+                }
 
-            $this->setFailFlash(Craft::t('formie', 'Couldn’t save form.'));
+                $this->setFailFlash(Craft::t('formie', 'Couldn’t save form.'));
 
-            Craft::$app->getUrlManager()->setRouteParams([
-                'form' => $form,
-                'errors' => $form->getConsolidatedErrors(),
-            ]);
+                Craft::$app->getUrlManager()->setRouteParams([
+                    'form' => $form,
+                ]);
 
-            return null;
+                return null;
+            }
         }
 
-        $notifications = $form->getNotifications();
-        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
+        // For some things, we'll want to use a potentially duplicated form (if we've duplicated)
+        $savedForm = ($duplicate) ? $duplicatedForm : $form;
 
         // Check if we need to update the permissions for this user.
-        $this->_updateFormPermission($form);
+        $this->_updateFormPermission($savedForm);
 
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
-                'id' => $form->id,
-                'config' => $form->getFormConfig(),
-                'notifications' => $notificationsConfig,
-                'errors' => $form->getErrors(),
-                'fieldLayoutId' => $form->fieldLayoutId,
-                'redirect' => ($duplicate) ? $form->cpEditUrl : null,
-                'redirectMessage' => Craft::t('formie', 'Form saved.'),
+                'config' => $form->getFormBuilderConfig(),
+                'notifications' => $form->getNotificationsConfig(),
+                'redirect' => ($duplicate) ? $duplicatedForm->getCpEditUrl() : null,
             ]);
         }
 
         $this->setSuccessFlash(Craft::t('formie', 'Form saved.'));
 
-        return $this->redirectToPostedUrl($form);
+        return $this->redirectToPostedUrl($savedForm);
     }
 
     public function actionSaveAsStencil(): ?Response
@@ -208,44 +207,33 @@ class FormsController extends Controller
             $stencil->setDefaultStatus($status);
         }
 
-        if ($settings = $this->request->getParam('settings')) {
-            $pages = Json::decode($this->request->getParam('pages'));
-            $notifications = Json::decode($this->request->getParam('notifications'));
+        $settings = $this->request->getParam('settings');
+        $pages = Json::decode($this->request->getParam('pages'));
+        $notifications = Json::decode($this->request->getParam('notifications'));
 
-            // Set form data.
-            $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
-            $stencil->data->userDeletedAction = $this->request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
-            $stencil->data->fileUploadsAction = $this->request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
-            $stencil->data->dataRetention = $this->request->getParam('dataRetention', $stencil->data->dataRetention);
-            $stencil->data->dataRetentionValue = $this->request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
+        // Set form data.
+        $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
+        $stencil->data->userDeletedAction = $this->request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
+        $stencil->data->fileUploadsAction = $this->request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
+        $stencil->data->dataRetention = $this->request->getParam('dataRetention', $stencil->data->dataRetention);
+        $stencil->data->dataRetentionValue = $this->request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
 
-            // Build temp form for validation.
-            $form = Formie::$plugin->getForms()->buildFormFromPost();
+        // Build temp form for validation.
+        $form = Formie::$plugin->getForms()->buildFormFromPost();
 
-            // Don't validate the handle.
-            $form->handle .= random_int(0, mt_getrandmax());
+        // Don't validate the handle.
+        $form->handle .= random_int(0, mt_getrandmax());
 
-            $form->validate();
+        $form->validate();
 
-            $formHasErrors = $form->hasErrors();
-            $formErrors = $form->getErrors();
-        } else {
-            $formHasErrors = false;
-            $formErrors = [];
-        }
+        $formErrors = $form->getErrors();
 
-        // Save it
-        if ($formHasErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
-            $config = $stencil->getFormConfig();
-            $notifications = ArrayHelper::remove($config, 'notifications', []);
-
+        if ($formErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
             if ($this->request->getAcceptsJson()) {
                 return $this->asJson([
-                    'id' => $stencil->id,
-                    'config' => $config,
-                    'notifications' => $notifications,
-                    'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                    'success' => !$formHasErrors && !$stencil->hasErrors(),
+                    'success' => false,
+                    'config' => $stencil->getFormBuilderConfig(),
+                    'notifications' => $stencil->getNotificationsConfig(),
                 ]);
             }
 
@@ -254,23 +242,17 @@ class FormsController extends Controller
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $stencil,
                 'stencil' => $stencil,
-                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
             ]);
 
             return null;
         }
 
-        $config = $stencil->getFormConfig();
-        $notifications = ArrayHelper::remove($config, 'notifications', []);
-
         if ($this->request->getAcceptsJson()) {
             return $this->asJson([
-                'id' => $stencil->id,
-                'config' => $config,
-                'notifications' => $notifications,
-                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                'success' => !$formHasErrors && !$stencil->hasErrors(),
-                'redirect' => $stencil->cpEditUrl,
+                'success' => true,
+                'config' => $stencil->getFormBuilderConfig(),
+                'notifications' => $stencil->getNotificationsConfig(),
+                'redirect' => $stencil->getCpEditUrl(),
                 'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
             ]);
         }
@@ -336,6 +318,7 @@ class FormsController extends Controller
         // Add captchas into the payload
         $formHandle = $this->request->getRequiredParam('form');
         $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+
         // Force fetch captchas because we're dealing with potential ajax forms
         // Normally, this function returns only if the `showAllPages` property is set.
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true);
@@ -373,95 +356,40 @@ class FormsController extends Controller
     // Private Methods
     // =========================================================================
 
-    /**
-     * Prepares the variable array for rendering the form builder.
-     *
-     * @param array $variables
-     * @throws Throwable
-     */
     private function _prepareVariableArray(array &$variables): void
     {
-        // Locale related checks
-        if (Craft::$app->getIsMultiSite()) {
-            // Only use the sites that the user has access to
-            $variables['siteIds'] = Craft::$app->getSites()->getEditableSiteIds();
-        } else {
-            $variables['siteIds'] = [Craft::$app->getSites()->getPrimarySite()->id];
-        }
+        if (!$variables['form']) {
+            $variables['form'] = Formie::$plugin->getForms()->getFormById($variables['formId']);
 
-        if (!$variables['siteIds']) {
-            throw new ForbiddenHttpException('User not permitted to edit content in any sites supported by this form');
-        }
-
-        if (empty($variables['site'])) {
-            $site = $variables['site'] = Craft::$app->getSites()->currentSite;
-
-            if (!in_array($variables['site']->id, $variables['siteIds'], false)) {
-                $site = $variables['site'] = Craft::$app->getSites()->getSiteById($variables['siteIds'][0]);
-            }
-        } else {
-            // Make sure they were requesting a valid site
-            /** @var Site $site */
-            $site = $variables['site'];
-
-            if (!in_array($site->id, $variables['siteIds'], false)) {
-                throw new ForbiddenHttpException('User not permitted to edit content in this site');
-            }
-        }
-
-        if (empty($variables['form'])) {
-            if (!empty($variables['formId'])) {
-                $variables['form'] = Formie::$plugin->getForms()->getFormById($variables['formId'], $site->id);
-
-                if (!$variables['form']) {
-                    throw new Exception('Missing form data.');
-                }
-            } else {
-                $variables['form'] = new Form();
-
-                if (!empty($variables['site'])) {
-                    $variables['form']->siteId = $site->id;
-                }
+            if (!$variables['form']) {
+                throw new Exception('Missing form data.');
             }
         }
 
         /** @var Form $form */
         $form = $variables['form'];
 
-        // Enable locales
-        if ($form->id) {
-            $variables['enabledSiteIds'] = Craft::$app->getElements()->getEnabledSiteIdsForElement($form->id);
-        } else {
-            $variables['enabledSiteIds'] = [];
-
-            foreach (Craft::$app->getSites()->getEditableSiteIds() as $site) {
-                $variables['enabledSiteIds'][] = $site;
-            }
-        }
-
-        // When there's only a single tab, it looks like Craft switches it to a null value.
-        // Pretty bizarre default behaviour!
-        $variables['tabs'] = $variables['formTabs'] = Formie::$plugin->getForms()->buildTabs($form);
         $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
-
-        $notifications = $form->getNotifications();
-        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
-
-        $variables['formConfig'] = $form->getFormConfig();
-        $variables['notifications'] = $notificationsConfig;
-        $variables['variables'] = Variables::getVariablesArray();
-        $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
-        $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
-        $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
-        $variables['formHandles'] = $this->_getFormHandles($form->id);
         $variables['formUsage'] = Formie::$plugin->getForms()->getFormUsage($form);
 
-        $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
-        $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();
+        $variables['jsBuilderConfig'] = [
+            'config' => $form->getFormBuilderConfig(),
+            'fields' => Formie::$plugin->getFields()->getFormBuilderFieldTypes(),
+            'notifications' => $form->getNotificationsConfig(),
+            'variables' => Variables::getVariablesArray(),
+            'emailTemplates' => Formie::$plugin->getEmailTemplates()->getAllTemplates(),
+            'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
+            'formHandles' => $this->_getFormHandles($form->id),
+            'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
+            'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
+            'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+        ];
+
+        $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs($form, $variables);
     }
 
-    private function _updateFormPermission($form): void
+    private function _updateFormPermission(Form $form): void
     {
         if (Craft::$app->getEdition() !== Craft::Pro) {
             return;
@@ -511,7 +439,7 @@ class FormsController extends Controller
         Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
     }
 
-    private function _getFormHandles($formId)
+    private function _getFormHandles(int $formId): array
     {
         return (new Query())
             ->select(['handle'])

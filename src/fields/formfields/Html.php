@@ -85,7 +85,7 @@ class Html extends FormField
         return $htmlContent;
     }
 
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'labelPosition' => HiddenPosition::class,

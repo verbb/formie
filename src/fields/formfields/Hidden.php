@@ -4,7 +4,6 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -39,14 +38,21 @@ class Hidden extends FormField implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public ?string $defaultOption = null;
+    public ?string $defaultOption = 'custom';
     public ?string $queryParameter = null;
     public ?string $cookieName = null;
-    public ?string $columnType = null;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Remove unused settings
+        unset($config['columnType']);
+
+        parent::__construct($config);
+    }
 
     public function init(): void
     {
@@ -93,12 +99,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
-            // We have to check if this is a NestedFieldRow, we always need the top-level submission
-            // Potentially move this to `Variables::getParsedValue()`.
-            if ($element instanceof NestedFieldRow) {
-                $element = $element->owner;
-            }
-
             // Check if there's no value been added on the front-end, and use the default value
             if ($value === '') {
                 $value = $this->defaultValue;
@@ -117,15 +117,10 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'labelPosition' => HiddenPosition::class,
-            'defaultOption' => 'custom',
-            'includeInEmail' => true,
         ];
     }
 

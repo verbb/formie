@@ -19,7 +19,7 @@
         <drag
             ref="draggableField"
             class="fui-field-block"
-            :class="{ 'is-active': dragActive, 'has-errors': field.hasError }"
+            :class="{ 'is-active': dragActive, 'has-errors': hasError }"
             :transfer-data="{
                 trigger: 'field',
                 supportsNested: fieldtype.supportsNested,
@@ -36,7 +36,7 @@
 
             <div class="fui-field-info">
                 <label v-if="fieldtype.hasLabel" class="fui-field-label">
-                    <span v-if="field.label && field.label.length">{{ field.label }}</span>
+                    <span v-if="field.settings.label && field.settings.label.length">{{ field.settings.label }}</span>
                     <span v-else>{{ fieldtype.label }}</span>
 
                     <span v-if="field.settings.required" class="error"> *</span>
@@ -52,7 +52,7 @@
                     {{ t('formie', 'Conditions') }}
                 </span>
 
-                <code class="fui-field-handle">{{ field.handle }}</code>
+                <code class="fui-field-handle">{{ field.settings.handle }}</code>
 
                 <span class="fui-flex-break"></span>
                 <span class="fui-field-instructions">{{ field.settings.instructions }}</span>
@@ -68,7 +68,7 @@
                 />
             </div>
 
-            <field-preview :id="field.vid" class="fui-field-preview" :class="`fui-type-${nameKebab}`" :expected-type="expectedType" />
+            <field-preview :id="field.__id" class="fui-field-preview" :class="`fui-type-${nameKebab}`" :expected-type="expectedType" />
 
             <markdown v-if="fieldtype.data.warning" class="warning with-icon" :source="fieldtype.data.warning" />
 
@@ -87,7 +87,7 @@
                 <div class="fui-field-pill" style="width: 148px;">
                     <span class="fui-field-pill-icon" v-html="fieldtype.icon"></span>
 
-                    <span class="fui-field-pill-name">{{ field.label }}</span>
+                    <span class="fui-field-pill-name">{{ field.settings.label }}</span>
                     <span class="fui-field-pill-drag"></span>
                 </div>
             </template>
@@ -113,7 +113,7 @@
 
 <script>
 import { Drag, Drop } from '@vendor/vue-drag-drop';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, isEmpty } from 'lodash-es';
 
 // eslint-disable-next-line
 import { generateHandle, getNextAvailableHandle, generateKebab, getDisplayName, newId } from '@utils/string';
@@ -221,7 +221,7 @@ export default {
         },
 
         fieldHandles() {
-            return this.$store.getters['form/fieldHandlesExcluding'](this.field.vid, this.parentFieldId);
+            return this.$store.getters['form/fieldHandlesExcluding'](this.field.__id, this.parentFieldId);
         },
 
         fieldCanRequire() {
@@ -242,7 +242,7 @@ export default {
             if (typeof disallowedField === 'boolean') {
                 return disallowedField;
             } if (typeof disallowedField === 'function') {
-                const field = this.$store.getters['form/field'](this.field.vid);
+                const field = this.$store.getters['form/field'](this.field.__id);
                 return disallowedField(field);
             }
 
@@ -250,11 +250,15 @@ export default {
         },
 
         fieldsSchema() {
-            return this.fieldtype.fieldsSchema;
+            return this.fieldtype.schema.fields;
         },
 
         tabsSchema() {
-            return this.fieldtype.tabsSchema;
+            return this.fieldtype.schema.tabs;
+        },
+
+        hasError() {
+            return !isEmpty(this.field.errors);
         },
     },
 
@@ -267,9 +271,11 @@ export default {
             this.openModal();
 
             // Testing
-            // this.field.label = this.fieldtype.label;
-            // this.field.handle = generateHandle(this.fieldtype.label);
+            // this.field.settings.label = this.fieldtype.label;
+            // this.field.settings.handle = generateHandle(this.fieldtype.label);
         }
+        // this.field.settings.label = '';
+        // this.field.settings.handle = '';
     },
 
     mounted() {
@@ -308,7 +314,7 @@ export default {
             this.showModal = false;
 
             if (this.brandNewField) {
-                this.$store.dispatch('form/deleteField', { id: this.field.vid });
+                this.$store.dispatch('form/deleteField', { id: this.field.__id });
             }
         },
 
@@ -348,7 +354,7 @@ export default {
 
         cloneField() {
             // Let's get smart about generating a handle. Check if its unique - if it isn't, make it unique
-            const generatedHandle = generateHandle(this.field.label);
+            const generatedHandle = generateHandle(this.field.settings.label);
             let handles = this.$store.getters['form/fieldHandles'];
 
             // Get field handles for the parent field (group, repeater)
@@ -364,7 +370,7 @@ export default {
             const newHandle = value.substr(0, maxHandleLength);
 
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {
-                label: this.field.label,
+                label: this.field.settings.label,
                 handle: newHandle,
                 settings: cloneDeep(this.field.settings),
             });
@@ -377,7 +383,7 @@ export default {
 
                     row.fields.forEach((field) => {
                         delete field.id;
-                        field.vid = newId();
+                        field.__id = newId();
                     });
                 });
             }
@@ -403,12 +409,12 @@ export default {
         },
 
         deleteField() {
-            const name = this.field.label || this.fieldtype.label;
+            const name = this.field.settings.label || this.fieldtype.label;
 
             const confirmationMessage = Craft.t('formie', 'Are you sure you want to delete “{name}”?', { name });
 
             if (confirm(confirmationMessage)) {
-                this.$store.dispatch('form/deleteField', { id: this.field.vid });
+                this.$store.dispatch('form/deleteField', { id: this.field.__id });
             }
         },
 

@@ -90,7 +90,7 @@ class Honeypot extends Captcha
         $array = array_filter([
             self::HONEYPOT_INPUT_NAME . '_',
             $form->id,
-            $page->id ?? null,
+            $page->handle ?? null,
         ]);
 
         return implode('', $array);

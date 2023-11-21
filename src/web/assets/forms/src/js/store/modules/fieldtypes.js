@@ -1,4 +1,4 @@
-import { find } from 'lodash-es';
+import { find, merge } from 'lodash-es';
 import { newId } from '@utils/string';
 import { clone } from '@utils/object';
 
@@ -54,31 +54,17 @@ const getters = {
         };
     },
 
-    newField: (state) => {
+    newField: (state, getters) => {
         return (type, settings) => {
-            let field = find(state, { type });
+            const fieldtype = getters.fieldtype(type);
 
-            // Just in case
-            if (!field) {
-                field = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
-            }
-
-            const newField = {
-                vid: newId(),
-                type,
-                columnWidth: 12,
-                hasLabel: field.hasLabel,
-                settings: { ...clone(field.defaults) },
-            };
-
-            if (field.supportsNested) {
-                newField.rows = clone(field.rows);
-                newField.supportsNested = true;
-            }
+            // The fieldtype will contain the settings for a new field
+            let { newField } = clone(fieldtype);
+            newField.__id = newId();
 
             // Allow other settings to be overridden
             if (settings) {
-                Object.assign(newField, settings);
+                newField = merge(newField, settings);
             }
 
             return newField;

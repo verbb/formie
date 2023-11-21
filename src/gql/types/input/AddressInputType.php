@@ -17,7 +17,7 @@ class AddressInputType extends InputObjectType
     public static function getType(AddressField $context): mixed
     {
         /** @var AddressField $context */
-        $typeName = $context->getGqlFieldContext()->handle . '_' . $context->handle . '_FormieAddressInput';
+        $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieAddressInput';
 
         if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
             return $inputType;

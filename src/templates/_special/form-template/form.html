@@ -88,7 +88,7 @@
 
                     {{ formieInclude('_includes/page-tabs') }}
 
-                    {% for page in form.pages %}
+                    {% for page in form.getPages() %}
                         {{ craft.formie.renderPage(form, page, renderOptions) }}
                     {% endfor %}
 

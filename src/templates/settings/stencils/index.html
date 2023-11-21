@@ -13,11 +13,11 @@
 	{% set tableData = tableData | merge([{
         id: stencil.id,
         labelHtml: {
-            url: stencil.cpEditUrl,
+            url: stencil.getCpEditUrl(),
             html: stencil.name | raw
         },
         title: stencil.name | t('formie'),
-        url: stencil.cpEditUrl,
+        url: stencil.getCpEditUrl(),
         handle: stencil.handle | e,
     }]) %}
 {% endfor %}

@@ -261,7 +261,7 @@ class Variables
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-        foreach ($form->getCustomFields() as $field) {
+        foreach ($form->getFields() as $field) {
             if (!$field->includeInEmail) {
                 continue;
             }
@@ -330,12 +330,10 @@ class Variables
             return $values;
         }
 
-        if ($submission->getFieldLayout()) {
-            foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
-                $submissionValue = $submission->getFieldValue($field->handle);
+        foreach ($submission->getFields() as $field) {
+            $submissionValue = $submission->getFieldValue($field->handle);
 
-                $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
-            }
+            $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
         }
 
         // For performance
@@ -394,18 +392,14 @@ class Variables
                 $values[$handle] = $submissionValue[$subField['handle']] ?? '';
             }
         } else if ($field instanceof formfields\Group) {
-            if ($submissionValue && $row = $submissionValue->one()) {
-                if ($fieldLayout = $row->getFieldLayout()) {
-                    foreach ($row->getFieldLayout()->getCustomFields() as $nestedField) {
-                        $submissionValue = $row->getFieldValue($nestedField->handle);
-                        $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
+            foreach ($field->getFields() as $nestedField) {
+                $submissionValue = $submission->getFieldValue("$field->handle.$nestedField->handle");
+                $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
 
-                        foreach ($fieldValues as $key => $fieldValue) {
-                            $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
 
-                            $values[$handle] = $fieldValue;
-                        }
-                    }
+                    $values[$handle] = $fieldValue;
                 }
             }
         } else if ($field instanceof BaseRelationField) {
@@ -493,7 +487,7 @@ class Variables
         $oldTemplateMode = $view->getTemplateMode();
         $view->setTemplateMode($view::TEMPLATE_MODE_CP);
 
-        foreach ($form->getCustomFields() as $field) {
+        foreach ($form->getFields() as $field) {
             if (!$field->includeInEmail) {
                 continue;
             }

@@ -10,7 +10,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\FakeElementQuery;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -342,7 +341,7 @@ class SharpSpring extends Crm
     {
         $serializedValues = [];
 
-        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
+        foreach ($element->getFields() as $field) {
             if ($field->getIsCosmetic()) {
                 continue;
             }
@@ -360,7 +359,7 @@ class SharpSpring extends Crm
                     $serializedValues[$field->handle] = $value;
                 }
             } else if ($field instanceof Group) {
-                $nestedValues = $this->_serializeValuesForForm($rawValue->one());
+                $nestedValues = $this->_serializeValuesForForm($rawValue);
 
                 foreach ($nestedValues as $k => $v) {
                     $serializedValues[$field->handle . '.' . $k] = $v;

@@ -154,24 +154,22 @@ class SubmissionExport extends ElementExporter
                 $element->title = $row['title'];
             }
 
-            if ($fieldLayout = $element->getFieldLayout()) {
-                foreach ($fieldLayout->getCustomFields() as $field) {
-                    if ($field::hasContentColumn()) {
-                        $type = $field->dbType();
+            foreach ($element->getFields() as $field) {
+                if ($field::hasContentColumn()) {
+                    $type = $field->dbType();
 
-                        if (is_array($type)) {
-                            $value = [];
+                    if (is_array($type)) {
+                        $value = [];
 
-                            foreach (array_keys($type) as $i => $key) {
-                                $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix, $i !== 0 ? $key : null);
-                                $value[$key] = $row[$column];
-                            }
-
-                            $element->setFieldValue($field->handle, $value);
-                        } else {
-                            $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix);
-                            $element->setFieldValue($field->handle, $row[$column]);
+                        foreach (array_keys($type) as $i => $key) {
+                            $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix, $i !== 0 ? $key : null);
+                            $value[$key] = $row[$column];
                         }
+
+                        $element->setFieldValue($field->handle, $value);
+                    } else {
+                        $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix);
+                        $element->setFieldValue($field->handle, $row[$column]);
                     }
                 }
             }

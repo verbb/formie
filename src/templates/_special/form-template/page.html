@@ -7,13 +7,13 @@
 
         {% if form.settings.displayCurrentPageTitle %}
             {{ formtag('pageTitle', {
-                text: page.name | t('formie'),
+                text: page.label | t('formie'),
             }) }}
         {% endif %}
 
-        {% for row in page.getRows(false) %}
+        {% for row in page.getRows() %}
             {% formtag 'row' %}
-                {% for field in row.fields %}
+                {% for field in row.getFields() %}
                     {{ craft.formie.renderField(form, field, renderOptions) }}
                 {% endfor %}
             {% endformtag %}

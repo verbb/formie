@@ -163,45 +163,13 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getExtraBaseFieldConfig(): array
-    {
-        return [
-            'prefixOptions' => static::getPrefixOptions(),
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
-            'prefixEnabled' => false,
-            'prefixCollapsed' => true,
             'prefixLabel' => Craft::t('formie', 'Prefix'),
-            'prefixDefaultValue' => '',
-            'prefixPrePopulate' => '',
-
-            'firstNameEnabled' => true,
-            'firstNameCollapsed' => true,
             'firstNameLabel' => Craft::t('formie', 'First Name'),
-            'firstNameDefaultValue' => '',
-            'firstNamePrePopulate' => '',
-
-            'middleNameEnabled' => false,
-            'middleNameCollapsed' => true,
             'middleNameLabel' => Craft::t('formie', 'Middle Name'),
-            'middleNameDefaultValue' => '',
-            'middleNamePrePopulate' => '',
-
-            'lastNameEnabled' => true,
-            'lastNameCollapsed' => true,
             'lastNameLabel' => Craft::t('formie', 'Last Name'),
-            'lastNameDefaultValue' => '',
-            'lastNamePrePopulate' => '',
 
             'instructionsPosition' => AboveInput::class,
         ];
@@ -329,13 +297,13 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
         ];
     }
 
-    public function validateRequiredFields(ElementInterface $element): void
+    public function validateRequiredFields(ElementInterface $element, string $attribute): void
     {
         if (!$this->useMultipleFields) {
             return;
         }
 
-        $this->subFieldValidateRequiredFields($element);
+        $this->subFieldValidateRequiredFields($element, $attribute);
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string

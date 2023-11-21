@@ -68,7 +68,7 @@
 
         <div class="input ltr">
             {% if sentNotification.form %}
-                <a href="{{ sentNotification.form.cpEditUrl }}">{{ sentNotification.form }}</a>
+                <a href="{{ sentNotification.form.getCpEditUrl() }}">{{ sentNotification.form }}</a>
             {% else %}
                 {{ 'Deleted' | t('formie') }}
             {% endif %}
@@ -82,7 +82,7 @@
 
         <div class="input ltr">
             {% if sentNotification.submission %}
-                <a href="{{ sentNotification.submission.cpEditUrl }}">{{ sentNotification.submission }}</a>
+                <a href="{{ sentNotification.submission.getCpEditUrl() }}">{{ sentNotification.submission }}</a>
             {% else %}
                 {{ 'Deleted' | t('formie') }}
             {% endif %}

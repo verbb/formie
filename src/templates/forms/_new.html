@@ -55,7 +55,7 @@
                 }) }}
             {% endif %}
 
-            <a class="fieldtoggle" data-target="advanced">{{ 'Advanced' | t('app') }}</a>
+            <a href="#" class="fieldtoggle" data-target="advanced">{{ 'Advanced' | t('app') }}</a>
 
             <div id="advanced" class="{{ form.getErrors('handle') ? '' : 'hidden' }}">
                 {{ forms.textField({

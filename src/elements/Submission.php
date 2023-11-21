@@ -6,7 +6,8 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
-use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\MultiNestedFieldInterface;
+use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
@@ -15,7 +16,6 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\fields\formfields\Payment;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
 use verbb\formie\records\Submission as SubmissionRecord;
@@ -72,10 +72,7 @@ class Submission extends Element
 
     public static function hasTitles(): bool
     {
-        // We cannot have titles because the element index for All Forms doesn't seem
-        // to like resolving multiple content tables. Don't use `populateElementContent`
-        // because it adds n+1 queries.
-        return false;
+        return true;
     }
 
     public static function hasStatuses(): bool
@@ -111,26 +108,6 @@ class Submission extends Element
     public static function statuses(): array
     {
         return Formie::$plugin->getStatuses()->getStatusesArray();
-    }
-
-    public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
-    {
-        $fieldsService = Craft::$app->getFields();
-        $originalFieldContext = $fieldsService->fieldContext;
-
-        $submission = $sourceElements[0] ?? null;
-
-        // Ensure we setup the correct content table before fetching the eager-loading map.
-        // This is particular helps resolve element fields' content.
-        if ($submission && $submission instanceof self) {
-            $fieldsService->fieldContext = $submission->getFieldContext();
-        }
-
-        $map = parent::eagerLoadingMap($sourceElements, $handle);
-
-        $fieldsService->fieldContext = $originalFieldContext;
-
-        return $map;
     }
 
     protected static function defineSources(string $context = null): array
@@ -391,14 +368,93 @@ class Submission extends Element
         return $this->_fieldLayout;
     }
 
+    public function getPages(): array
+    {
+        return $this->getFieldLayout()?->getPages() ?? [];
+    }
+
+    public function getRows(): array
+    {
+        return $this->getFieldLayout()?->getRows() ?? [];
+    }
+
+    public function getFields(): array
+    {
+        return $this->getFieldLayout()?->getFields() ?? [];
+    }
+
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+    }
+
+    public function getFieldById(int $id): ?FormFieldInterface
+    {
+        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
+    }
+
+    public function getFieldValue(string $fieldHandle): mixed
+    {
+        // Add support for dot-notation lookup for field values
+        $fieldKey = explode('.', $fieldHandle);
+        $handle = array_shift($fieldKey);
+        $fieldKey = implode('.', $fieldKey);
+
+        $fieldValue = parent::getFieldValue($handle);
+
+        if (is_array($fieldValue) && $fieldKey) {
+            return ArrayHelper::getValue($fieldValue, $fieldKey);
+        }
+
+        return $fieldValue;
+    }
+
+    public function getFieldValuesForField(string $type): array
+    {
+        $fieldValues = [];
+
+        // Return all values for a field for a given type. Includes nested fields like Group/Repeater.
+        foreach ($this->getFields() as $field) {
+            if (get_class($field) === $type) {
+                $fieldValues[$field->handle] = $this->getFieldValue($field->handle);
+            }
+
+            if ($field instanceof SingleNestedFieldInterface) {
+                foreach ($field->getFields() as $nestedField) {
+                    if (get_class($nestedField) === $type) {
+                        $fieldKey = "$field->handle.$nestedField->handle";
+
+                        $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
+                    }
+                }
+            }
+
+            if ($field instanceof MultiNestedFieldInterface) {
+                $value = $element->getFieldValue($field->handle);
+
+                foreach ($value as $rowKey => $row) {
+                    foreach ($this->getFields() as $nestedField) {
+                        if (get_class($nestedField) === $type) {
+                            $fieldKey = "$field->handle.$rowKey.$nestedField->handle";
+
+                            $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $fieldValues;
+    }
+
     public function updateTitle($form): void
     {
         if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
             $this->title = $customTitle;
 
             // Rather than re-save, directly update the submission record
-            Craft::$app->getDb()->createCommand()->update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id])->execute();
-            Craft::$app->getDb()->createCommand()->update('{{%content}}', ['title' => $customTitle], ['elementId' => $this->id])->execute();
+            Db::update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id]);
+            Db::update('{{%elements_sites}}', ['title' => $customTitle], ['elementId' => $this->id, 'siteId' => $this->siteId]);
         }
     }
 
@@ -456,15 +512,6 @@ class Submission extends Element
         }
     }
 
-    public function getFieldByHandle(string $handle): ?FormFieldInterface
-    {
-        if ($fieldLayout = $this->getFieldLayout()) {
-            return ArrayHelper::firstWhere($fieldLayout->getCustomFields(), 'handle', $handle);
-        }
-
-        return null;
-    }
-
     public function getStatusModel(): Status
     {
         if (!$this->_status && $this->statusId) {
@@ -511,15 +558,13 @@ class Submission extends Element
     {
         $html = '';
 
-        if ($fieldLayout = $this->getFieldLayout()) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                if ($field instanceof Payment && ($paymentIntegration = $field->getPaymentIntegration())) {
-                    // Set the payment field on the integration, for ease-of-use
-                    $paymentIntegration->setField($field);
+        foreach ($this->getFields() as $field) {
+            if ($field instanceof Payment && ($paymentIntegration = $field->getPaymentIntegration())) {
+                // Set the payment field on the integration, for ease-of-use
+                $paymentIntegration->setField($field);
 
-                    if ($summaryHtml = $paymentIntegration->getSubmissionSummaryHtml($this, $field)) {
-                        $html .= $summaryHtml;
-                    }
+                if ($summaryHtml = $paymentIntegration->getSubmissionSummaryHtml($this, $field)) {
+                    $html .= $summaryHtml;
                 }
             }
         }
@@ -550,9 +595,6 @@ class Submission extends Element
             if ($disabledValues && is_array($disabledValues)) {
                 foreach ($disabledValues as $key => $value) {
                     try {
-                        // Special handling for group/repeater which would be otherwise pretty verbose to supply
-                        $value = $form->getFieldByHandle($key)->parsePopulatedFieldValues($value, $this);
-
                         $this->setFieldValue($key, $value);
                     } catch (Throwable) {
                         continue;
@@ -565,22 +607,18 @@ class Submission extends Element
 
         // Any conditionally hidden fields should have their content excluded when saving.
         // But - only for incomplete forms. Not a great idea to remove content for completed forms.
-        if ($this->getFieldLayout() && $this->isIncomplete) {
-            foreach ($this->getFieldLayout()->getCustomFields() as $field) {
+        if ($this->isIncomplete) {
+            foreach ($this->getFields() as $field) {
                 if ($field->isConditionallyHidden($this)) {
-                    // Reset the field value - watch out for some fields
-                    if ($field instanceof NestedFieldInterface) {
-                        $this->setFieldValue($field->handle, []);
-                    } else {
-                        $this->setFieldValue($field->handle, null);
-                    }
+                    // Reset the field value
+                    $this->setFieldValue($field->handle, null);
                 }
             }
         }
 
         // If the final page, populate any visibly disabled fields with empty values with their default
-        if ($this->getFieldLayout() && !$this->isIncomplete) {
-            foreach ($this->getFieldLayout()->getCustomFields() as $field) {
+        if (!$this->isIncomplete) {
+            foreach ($this->getFields() as $field) {
                 if ($field->visibility === 'disabled') {
                     $value = $this->getFieldValue($field->handle);
 
@@ -599,7 +637,7 @@ class Submission extends Element
         $form = $this->getForm();
 
         if ($form) {
-            $fields = $page ? $page->getCustomFields() : $form->getCustomFields();
+            $fields = $page ? $page->getFields() : $form->getFields();
 
             foreach ($fields as $field) {
                 $values[$field->handle] = $field->getValue($this);
@@ -613,7 +651,7 @@ class Submission extends Element
     {
         $values = [];
 
-        foreach ($this->fieldLayoutFields() as $field) {
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic()) {
                 continue;
             }
@@ -629,7 +667,7 @@ class Submission extends Element
     {
         $values = [];
 
-        foreach ($this->fieldLayoutFields() as $field) {
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic()) {
                 continue;
             }
@@ -645,7 +683,7 @@ class Submission extends Element
     {
         $values = [];
 
-        foreach ($this->fieldLayoutFields() as $field) {
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic()) {
                 continue;
             }
@@ -669,7 +707,7 @@ class Submission extends Element
     {
         $items = [];
 
-        foreach ($this->fieldLayoutFields() as $field) {
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($this)) {
                 continue;
             }
@@ -695,11 +733,9 @@ class Submission extends Element
 
         $this->_pagesForField = [];
 
-        if ($fieldLayout = $this->getForm()->getFormFieldLayout()) {
-            foreach ($fieldLayout->getPages() as $page) {
-                foreach ($page->getCustomFields() as $field) {
-                    $this->_pagesForField[$field->handle] = $page;
-                }
+        foreach ($this->getPages() as $page) {
+            foreach ($page->getFields() as $field) {
+                $this->_pagesForField[$field->handle] = $page;
             }
         }
 
@@ -813,11 +849,8 @@ class Submission extends Element
         // no way to remove that file on hard-delete, so that won't work.
         // See https://github.com/craftcms/cms/issues/5074
         if ($form && $form->fileUploadsAction === 'delete') {
-            foreach ($form->getCustomFields() as $field) {
-                if ($field instanceof FileUpload) {
-                    // Store them now while we still have access to them, to delete in `afterDelete()`
-                    $this->_assetsToDelete = array_merge($this->_assetsToDelete, $this->getFieldValue($field->handle)->all());
-                }
+            foreach ($this->getFieldValuesForField(FileUpload::class) as $value) {
+                $this->_assetsToDelete = array_merge($this->_assetsToDelete, $value->all());
             }
         }
 

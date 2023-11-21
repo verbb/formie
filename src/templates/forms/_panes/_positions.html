@@ -5,7 +5,7 @@
         label: 'Default Label Position' | t('formie'),
         instructions: 'Fields will by default have their label position set to this option.' | t('formie'),
         name: 'settings[defaultLabelPosition]',
-        options: craft.formie.plugin.fields.getLabelPositionsArray(),
+        options: craft.formie.plugin.fields.getLabelPositionsOptions(),
         value: form.settings.defaultLabelPosition ?? 'above-input',
     }) }}
 
@@ -13,7 +13,7 @@
         label: 'Default Instructions Position' | t('formie'),
         instructions: 'Fields will by default have their instructions position set to this option.' | t('formie'),
         name: 'settings[defaultInstructionsPosition]',
-        options: craft.formie.plugin.fields.getInstructionsPositionsArray(),
+        options: craft.formie.plugin.fields.getInstructionsPositionsOptions(),
         value: form.settings.defaultInstructionsPosition ?? 'above-input',
     }) }}
 </div>

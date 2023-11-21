@@ -170,39 +170,9 @@ class Notifications extends Component
 
         $notifications = [];
         $notificationsData = $request->getParam('notifications');
-        $notificationsData = Json::decode($notificationsData) ?? [];
-
-        $duplicate = $request->getParam('duplicate');
+        $notificationsData = Json::decodeIfJson($notificationsData) ?? [];
 
         foreach ($notificationsData as $notificationData) {
-            if (isset($notificationData['hasError'])) {
-                unset($notificationData['hasError']);
-            }
-
-            if (isset($notificationData['errors'])) {
-                unset($notificationData['errors']);
-            }
-
-            // Remove IDs if we're duplicating
-            if ($duplicate) {
-                unset($notificationData['id'], $notificationData['formId'], $notificationData['uid']);
-            }
-
-            // Discard some Vue-specific things
-            if (isset($notificationData['attachAssetsOptions'])) {
-                unset($notificationData['attachAssetsOptions']);
-            }
-
-            if (isset($notificationData['attachAssetsHtml'])) {
-                unset($notificationData['attachAssetsHtml']);
-            }
-
-            if (isset($notificationData['id'])) {
-                if (str_starts_with($notificationData['id'], 'new')) {
-                    $notificationData['id'] = null;
-                }
-            }
-
             $notifications[] = new Notification($notificationData);
         }
 
@@ -216,7 +186,6 @@ class Notifications extends Component
         foreach ($notifications as $notification) {
             $config = $notification->getAttributes();
             $config['errors'] = $notification->getErrors();
-            $config['hasError'] = (bool)$notification->getErrors();
 
             $attachAssets = Json::decodeIfJson($notification->attachAssets) ?? [];
 

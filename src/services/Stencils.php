@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\elements\Form;
 use verbb\formie\Formie;
 use verbb\formie\events\StencilEvent;
+use verbb\formie\models\FormFieldLayout;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Stencil as StencilRecord;
@@ -301,27 +302,9 @@ class Stencils extends Component
         $form->setTemplate($stencil->getTemplate());
         $form->setDefaultStatus($stencil->getDefaultStatus());
 
-        $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($stencil->data->pages, Form::class);
-        $form->setFormFieldLayout($fieldLayout);
+        $form->setFormFieldLayout(new FormFieldLayout(['pages' => $stencil->data->pages]));
 
-        $notifications = [];
-        foreach ($stencil->data->notifications as $notificationData) {
-            if (isset($notificationData['hasError'])) {
-                unset($notificationData['hasError']);
-            }
-
-            if (isset($notificationData['errors'])) {
-                unset($notificationData['errors']);
-            }
-
-            // Ensure we deal with any potentially out-of-date stencil data, as we add new settings
-            // Could also probably add this to a migration to be extra safe.
-            $notificationData['recipients'] = $notificationData['recipients'] ?? 'email';
-
-            $notifications[] = new Notification($notificationData);
-        }
-
-        $form->setNotifications($notifications);
+        $form->setNotifications($stencil->getNotifications());
     }
 
 

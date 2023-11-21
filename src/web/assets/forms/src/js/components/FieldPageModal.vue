@@ -170,7 +170,6 @@ export default {
             this.pages.push({
                 id: newPageId,
                 label: Craft.t('formie', 'New Page'),
-                enableConditions: false,
                 rows: [],
             });
 

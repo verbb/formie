@@ -7,6 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
+use verbb\formie\models\FormFieldLayout;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
@@ -38,7 +39,7 @@ class ImportExportHelper
             ->one();
 
         // Remove attributes we won't need
-        foreach (['id', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+        foreach (['id', 'formFieldLayout', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
             ArrayHelper::remove($data, $key);
         }
 
@@ -113,9 +114,6 @@ class ImportExportHelper
         foreach ($formElement->getPages() as $page) {
             $pageData = $page->toArray();
 
-            // Rename name to label
-            $pageData['label'] = ArrayHelper::remove($pageData, 'name');
-
             // Remove some attributes
             foreach (['id', 'layoutId', 'elements', 'uid'] as $key) {
                 ArrayHelper::remove($pageData, $key);
@@ -131,7 +129,7 @@ class ImportExportHelper
 
         // Also save any custom fields' content
         if ($fieldLayout = $formElement->getFieldLayout()) {
-            foreach ($formElement->getFieldLayout()->getCustomFields() as $customField) {
+            foreach ($fieldLayout->getCustomFields() as $customField) {
                 $fieldValue = $formElement->getFieldValue($customField->handle);
                 $data['customFields'][$customField->handle] = $customField->serializeValue($fieldValue, $formElement);
             }
@@ -147,12 +145,12 @@ class ImportExportHelper
 
         // Store the fields on an existing form, so we can retain their IDs later
         if ($existingForm) {
-            $existingFormFields = ArrayHelper::index($existingForm->getCustomFields(), 'handle');
+            $existingFormFields = ArrayHelper::index($existingForm->getFields(), 'handle');
 
             // Handle any nested fields from Group/Repeater. Save them as `repeaterHandle_fields`.
             foreach ($existingFormFields as $existingFormField) {
                 if ($existingFormField instanceof NestedFieldInterface) {
-                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getCustomFields(), 'handle');
+                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getFields(), 'handle');
                 }
             }
         }
@@ -239,8 +237,7 @@ class ImportExportHelper
         self::filterUnsupportedFields($pages);
 
         // Handle field layout and pages
-        $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pages, Form::class);
-        $form->setFormFieldLayout($fieldLayout);
+        $form->setFormFieldLayout(new FormFieldLayout(['pages' => $pages]));
 
         // Handle for template
         if ($formTemplate) {
@@ -304,6 +301,8 @@ class ImportExportHelper
         foreach ($rows as $rowId => $row) {
             foreach ($row['fields'] as $fieldId => $field) {
                 $settings = array_merge([
+                    'label' => $field->name,
+                    'handle' => $field->handle,
                     'instructions' => $field->instructions,
                     'required' => $field->required,
                 ], $field->settings);
@@ -311,15 +310,16 @@ class ImportExportHelper
                 ArrayHelper::remove($settings, 'formId');
 
                 $pageData['rows'][$rowId]['fields'][$fieldId] = [
-                    'label' => $field->name,
-                    'handle' => $field->handle,
-                    'type' => $field->type,
+                    'type' => get_class($field),
                     'settings' => $settings,
                 ];
 
                 // Handle nested fields
                 if ($field instanceof NestedFieldInterface) {
-                    self::getFieldInfoForExport($field->getNestedRows(), $pageData['rows'][$rowId]['fields'][$fieldId]);
+                    self::getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]);
+
+                    // Rename `rows` to `rowsConfig`
+                    $pageData['rows'][$rowId]['fields'][$fieldId]['settings']['rowsConfig'] = ArrayHelper::remove($pageData['rows'][$rowId]['fields'][$fieldId], 'rows');
                 }
             }
         }

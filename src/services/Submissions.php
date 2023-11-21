@@ -6,7 +6,6 @@ use verbb\formie\base\Integration;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\events\PruneSubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\SubmissionEvent;
@@ -17,8 +16,6 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\models\Address;
-use verbb\formie\models\FakeElement;
-use verbb\formie\models\FakeElementQuery;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
@@ -238,7 +235,7 @@ class Submissions extends Component
 
     public function processPayments(Submission $submission): bool
     {
-        foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
+        foreach ($submission->getFields() as $field) {
             if ($field instanceof formfields\Payment) {
                 // No need to proceed further if field is conditionally hidden
                 if ($field->isConditionallyHidden($submission)) {
@@ -451,9 +448,7 @@ class Submissions extends Component
 
         if ($inheritorOnDelete) {
             // Re-assign each submission to the new user
-            Craft::$app->getDb()->createCommand()
-                ->update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id])
-                ->execute();
+            Db::update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id]);
         } else {
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {
@@ -519,7 +514,7 @@ class Submissions extends Component
 
             // Build a string based on field content - much easier to find values
             // in a single string than iterate through multiple arrays
-            $fieldValues = $this->_getContentAsString($submission);
+            $fieldValues = implode(' ', $submission->getValuesAsString());
 
             foreach ($excludes as $exclude) {
                 // Check if string contains
@@ -562,7 +557,7 @@ class Submissions extends Component
 
     public function populateFakeSubmission(Submission $submission): void
     {
-        $fields = $submission->getFieldLayout()->getCustomFields();
+        $fields = $submission->getFields();
         $fieldContent = $this->getFakeFieldContent($fields);
 
         $submission->setFieldValues($fieldContent);
@@ -640,17 +635,14 @@ class Submissions extends Component
 
                     break;
                 case formfields\Group::class:
+                    $fieldContent[$field->handle] = $this->getFakeFieldContent($field->getFields());
+
+                    break;
                 case formfields\Repeater::class:
-                    // Create a fake object to query. Maybe one day I'll figure out how to generate a fake elementQuery.
-                    // The fields rely on a NestedRowQuery for use in emails, so we need some similar.
-                    $query = new FakeElementQuery(FakeElement::class);
-
-                    if ($fieldLayout = $field->getFieldLayout()) {
-                        $content = $this->getFakeFieldContent($fieldLayout->getCustomFields());
-                        $query->setFieldValues($content, $fieldLayout);
-                    }
-
-                    $fieldContent[$field->handle] = $query;
+                    $fieldContent[$field->handle] = [
+                        $this->getFakeFieldContent($field->getFields()),
+                        $this->getFakeFieldContent($field->getFields()),
+                    ];
 
                     break;
                 case formfields\MultiLineText::class:
@@ -761,7 +753,7 @@ class Submissions extends Component
         return $submissions;
     }
 
-    private function _getArrayFromMultiline($string): array
+    private function _getArrayFromMultiline(?string $string): array
     {
         $array = [];
 
@@ -770,44 +762,5 @@ class Submissions extends Component
         }
 
         return array_filter($array);
-    }
-
-    private function _getContentAsString($submission): string
-    {
-        $fieldValues = [];
-
-        if (($fieldLayout = $submission->getFieldLayout()) !== null) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                try {
-                    $value = $submission->getFieldValue($field->handle);
-
-                    if ($value instanceof NestedFieldRowQuery) {
-                        $values = [];
-
-                        foreach ($value->all() as $row) {
-                            $fieldValues[] = $this->_getContentAsString($row);
-                        }
-
-                        continue;
-                    }
-
-                    if ($value instanceof ElementQuery) {
-                        $value = $value->one();
-                    }
-
-                    if ($value instanceof MultiOptionsFieldData) {
-                        $value = implode(' ', array_map(function($item) {
-                            return $item->value;
-                        }, (array)$value));
-                    }
-
-                    $fieldValues[] = (string)$value;
-                } catch (Throwable $e) {
-                    continue;
-                }
-            }
-        }
-
-        return implode(' ', $fieldValues);
     }
 }

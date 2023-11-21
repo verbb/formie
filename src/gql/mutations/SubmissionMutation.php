@@ -74,7 +74,7 @@ class SubmissionMutation extends Mutation
 
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
-        $contentFields = $form->getCustomFields();
+        $contentFields = $form->getFields();
 
         foreach ($contentFields as $contentField) {
             $contentField->formId = $form->id;

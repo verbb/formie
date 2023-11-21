@@ -201,7 +201,7 @@ trait RelationFieldTrait
         if ($this->getParentField()) {
             // Note the order here is important, due to Repeaters (and other nested fields)
             // can set the namespace with `setParentFIeld()`, but we want to specifically use the
-            // namespace value we already have, which has already neen set anyway.
+            // namespace value we already have, which has already been set anyway.
             $config['parentField'] = $this->getParentField();
             $config['namespace'] = $this->getNamespace();
         } else {
@@ -215,7 +215,7 @@ trait RelationFieldTrait
             }
         }
 
-        // And because this is in a trait, we don't have access to the `FormFieldTrait`, but we include thise
+        // And because this is in a trait, we don't have access to the `FormFieldTrait`, but we include those
         $class = new ReflectionClass(FormFieldTrait::class);
 
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {

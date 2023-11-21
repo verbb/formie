@@ -131,49 +131,7 @@ class SubmissionQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
-        if ($this->formId !== null && empty($this->formId)) {
-            throw new QueryAbortedException();
-        }
-
         $this->joinElementTable('formie_submissions');
-
-        if (!$this->formId) {
-            $formIds = [];
-            $subQuery = null;
-
-            // Get the formIds for all submissions in thie query
-            if ($this->id) {
-                $subQuery = (new Query())
-                    ->select(['formId'])
-                    ->distinct()
-                    ->from(['{{%formie_submissions}} submissions'])
-                    ->where(Db::parseParam('id', $this->id));
-            } else if ($this->uid) {
-                // Note we're using the element table's UID
-                $subQuery = (new Query())
-                    ->select(['formId'])
-                    ->distinct()
-                    ->from(['{{%formie_submissions}} submissions'])
-                    ->leftJoin(['{{%elements}} elements'], '[[submissions.id]] = [[elements.id]]')
-                    ->where(Db::parseParam('elements.uid', $this->uid));
-            }
-
-            // We also need to do another query to ensure the forms haven't been deleted
-            if ($subQuery) {
-                $formIds = (new Query())
-                    ->select(['formId'])
-                    ->from(['{{%elements}} elements'])
-                    ->where(['dateDeleted' => null])
-                    ->andWhere(['not', ['formId' => null]])
-                    ->leftJoin(['forms' => $subQuery], '[[forms.formId]] = [[elements.id]]')
-                    ->andWhere(['dateDeleted' => null])
-                    ->column();
-            }
-
-            if ($formIds) {
-                $this->formId = count($formIds) === 1 ? $formIds[0] : $formIds;
-            }
-        }
 
         $this->query->select([
             'formie_submissions.id',
@@ -218,23 +176,6 @@ class SubmissionQuery extends ElementQuery
         }
 
         return parent::beforePrepare();
-    }
-
-    protected function customFields(): array
-    {
-        // This method won't get called if $this->formId isn't set to a single int
-        /** @var Form $form */
-        try {
-            $form = Form::find()->id($this->formId)->one();
-
-            if ($form) {
-                return $form->getCustomFields();
-            }
-        } catch (Throwable) {
-            // This will throw an error when restoring a form - but that's okay
-        }
-
-        return [];
     }
 
     protected function statusCondition(string $status): mixed

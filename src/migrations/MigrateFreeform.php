@@ -11,9 +11,8 @@ use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\Notification;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
@@ -129,7 +128,7 @@ class MigrateFreeform extends Migration
                 return $form;
             }
 
-            if (!Formie::$plugin->getForms()->saveForm($form)) {
+            if (!Craft::$app->getElements()->saveElement($form)) {
                 $this->stdout("    > Failed to save form “{$form->handle}”.", Console::FG_RED);
 
                 foreach ($form->getErrors() as $attr => $errors) {
@@ -398,10 +397,10 @@ class MigrateFreeform extends Migration
 
         $pages = [];
         $fields = [];
-        $layout = $form->getLayout();
+        $layout = $form->getFormFieldLayout();
 
         foreach ($layout->getPages() as $pageIndex => $page) {
-            $newPage = new FieldLayoutPage();
+            $newPage = new FormPage();
             $newPage->name = $page->getLabel();
             $newPage->sortOrder = '' . $pageIndex;
 

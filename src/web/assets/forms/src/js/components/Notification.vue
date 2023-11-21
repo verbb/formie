@@ -1,7 +1,7 @@
 <template>
     <tr class="fui-notification-row">
         <td class="">
-            <a href="#" :class="{ 'error': false }" @click.prevent="openModal">
+            <a href="#" :class="{ 'error': hasError }" @click.prevent="openModal">
                 <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
                 <strong>{{ notification.name }}</strong>
             </a>
@@ -40,6 +40,8 @@
 </template>
 
 <script>
+import { isEmpty } from 'lodash-es';
+
 import { newId } from '@utils/string';
 
 import NotificationEditModal from '@components/NotificationEditModal.vue';
@@ -74,12 +76,16 @@ export default {
             return (this.notification.id || '').toString() === '';
         },
 
+        hasError() {
+            return !isEmpty(this.notification.errors);
+        },
+
         isUnsaved() {
             if (this.$store.state.form.isStencil) {
                 return false;
             }
 
-            return (this.notification.id || '').toString().startsWith('new');
+            return this.isNew;
         },
     },
 
@@ -99,16 +105,15 @@ export default {
         },
 
         addNotification() {
-            if (this.isNew) {
+            if (this.notification.__isNew) {
+                delete this.notification.__isNew;
+
                 const payload = {
-                    data: Object.assign(this.notification, { id: newId() }),
+                    data: this.notification,
                 };
 
                 this.$store.dispatch('notifications/addNotification', payload);
             }
-
-            // Update the form state to trigger content-change warnings
-            this.$store.state.form.pages[0].notificationFlag = true;
         },
 
         deleteNotification() {
@@ -117,19 +122,16 @@ export default {
 
             if (confirm(confirmationMessage)) {
                 const payload = {
-                    id: this.notification.id,
+                    id: this.notification.__id,
                 };
 
                 this.$store.dispatch('notifications/deleteNotification', payload);
-
-                // Update the form state to trigger content-change warnings
-                this.$store.state.form.pages[0].notificationFlag = true;
             }
         },
 
         duplicateNotification() {
             const newNotification = this.clone(this.notification);
-            newNotification.id = newId();
+            newNotification.__id = newId();
 
             delete newNotification.errors;
             delete newNotification.hasError;
@@ -138,9 +140,6 @@ export default {
             this.$store.dispatch('notifications/addNotification', {
                 data: newNotification,
             });
-
-            // Update the form state to trigger content-change warnings
-            this.$store.state.form.pages[0].notificationFlag = true;
         },
     },
 

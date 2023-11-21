@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
@@ -183,6 +184,18 @@ class FormSettings extends Model
         $this->_form = $value;
     }
 
+    public function getFormBuilderConfig(): array
+    {
+        $config = $this->toArray();
+        $config['errors'] = $this->getErrors();
+
+        foreach ($this->getEnabledIntegrations() as $key => $integration) {
+            $config['integrations'][$integration->handle]['errors'] = $integration->getErrors();
+        }
+
+        return $config;
+    }
+
     public function getSubmitActionMessage($submission = null): string
     {
         $message = ($this->_getHtmlContent($this->submitActionMessage, $submission) ?: $this->submitActionMessage);
@@ -290,6 +303,34 @@ class FormSettings extends Model
         return $this->getForm()->getRedirectEntry();
     }
 
+    public function validateIntegrations(): void
+    {
+        if ($form = $this->getForm()) {
+            $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
+
+            foreach ($integrations as $integration) {
+                $integration->setScenario(Integration::SCENARIO_FORM);
+
+                if (!$integration->validate()) {
+                    foreach ($integration->getErrors() as $key => $error) {
+                        $this->addError('integrations.' . $integration->handle . '.' . $key, $error[0]);
+                    }
+                }
+            }
+        }
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['integrations'], 'validateIntegrations'];
+
+        return $rules;
+    }
 
     // Private Methods
     // =========================================================================

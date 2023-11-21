@@ -16,6 +16,7 @@ interface FormFieldInterface extends ComponentInterface
     // =========================================================================
 
     public const EVENT_MODIFY_DEFAULT_VALUE = 'modifyDefaultValue';
+    public const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
     public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
     public const EVENT_MODIFY_VALUE_AS_STRING = 'modifyValueAsString';
     public const EVENT_MODIFY_VALUE_AS_JSON = 'modifyValueAsJson';
@@ -28,136 +29,16 @@ interface FormFieldInterface extends ComponentInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the SVG icon.
-     *
-     * @return string
-     */
     public static function getSvgIcon(): string;
-
-    /**
-     * Returns the path to the SVG icon.
-     *
-     * @return string
-     */
     public static function getSvgIconPath(): string;
-
-    /**
-     * Returns the template path for the frontend input HTML.
-     *
-     * @return string
-     */
     public static function getFrontEndInputTemplatePath(): string;
-
-    /**
-     * Returns the template path for the frontend email HTML.
-     *
-     * @return string
-     */
     public static function getEmailTemplatePath(): string;
-
-    /**
-     * Returns true if this field is an unsaved field
-     * with a reference to another.
-     *
-     * @return bool
-     */
-    public function getIsRef(): bool;
-
-    /**
-     * Returns the nice submission value for this field.
-     *
-     * @param ElementInterface $element
-     * @return mixed
-     */
-    public function getValue(ElementInterface $element): mixed;
-
-    /**
-     * Returns the default settings for new fields of this type.
-     *
-     * @return array
-     */
-    public function getFieldDefaults(): array;
-
-    /**
-     * Returns all the default settings for a field.
-     *
-     * @return array
-     * @see FormFieldTrait::getFieldDefaults() to add aditional settings.
-     */
-    public function getAllFieldDefaults(): array;
-
-    /**
-     * Defines the schema for the edit field modal.
-     *
-     * @return array
-     * @see FormFieldTrait::getFieldSchema()
-     */
     public function getFieldSchema(): array;
-
-    /**
-     * Returns true if the field should show a label in the CP.
-     *
-     * @return bool
-     */
     public function hasLabel(): bool;
-
-    /**
-     * Returns true if the field contains any sub-fields (Name, Address, etc).
-     *
-     * @return bool
-     */
-    public function hasSubfields(): bool;
-
-    /**
-     * Returns true if the field contains any nested fields (Group, Repeater, etc).
-     *
-     * @return bool
-     */
+    public function hasSubFields(): bool;
     public function hasNestedFields(): bool;
-
-    /**
-     * Returns true if the field is considering cosmetic, and has no value (heading, section, etc).
-     *
-     * @return bool
-     */
     public function getIsCosmetic(): bool;
-
-    /**
-     * Returns true if the field is considering hidden through visibility settings.
-     *
-     * @return bool
-     */
     public function getIsHidden(): bool;
-
-    /**
-     * Returns any extra config items to be added to the
-     * base field config.
-     *
-     * @return array
-     */
-    public function getExtraBaseFieldConfig(): array;
-
-    /**
-     * Returns a JSON safe array of settings for this field
-     * for rendering the form builder.
-     *
-     * @return array
-     */
-    public function getBaseFieldConfig(): array;
-
-    /**
-     * Returns the fields saved settings for rendering the form builder.
-     *
-     * @return array
-     */
-    public function getSavedSettings(): array;
-
-    /**
-     * Returns custom container attributes.
-     *
-     * @return array
-     */
     public function getContainerAttributes(): array;
     public function getInputAttributes(): array;
     public function getPreviewInputHtml(): string;

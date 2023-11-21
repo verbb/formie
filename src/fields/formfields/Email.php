@@ -78,11 +78,11 @@ class Email extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    public function validateDomain(ElementInterface $element): void
+    public function validateDomain(ElementInterface $element, string $attribute): void
     {
         $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
 
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($attribute);
 
         $domain = explode('@', $value)[1] ?? null;
 
@@ -90,16 +90,16 @@ class Email extends FormField implements PreviewableFieldInterface
             $domain = trim($domain);
 
             if (in_array($domain, $blockedDomains)) {
-                $element->addError($this->handle, Craft::t('formie', '“{domain}” is not allowed.', [
+                $element->addError($attribute, Craft::t('formie', '“{domain}” is not allowed.', [
                     'domain' => $domain,
                 ]));
             }
         }
     }
 
-    public function validateUniqueEmail(ElementInterface $element): void
+    public function validateUniqueEmail(ElementInterface $element, string $attribute): void
     {
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($attribute);
         $value = trim($value);
 
         // Use a DB lookup for performance
@@ -132,7 +132,7 @@ class Email extends FormField implements PreviewableFieldInterface
         $emailExists = $event->query->exists();
 
         if ($emailExists) {
-            $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [
+            $element->addError($attribute, Craft::t('formie', '“{name}” must be unique.', [
                 'name' => $this->name,
             ]));
         }

@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\Html;
@@ -268,8 +269,8 @@ class Calculations extends FormField implements PreviewableFieldInterface
         }
 
         if ($field = $element->getFieldByHandle($fieldHandle)) {
-            if ($field instanceof Group) {
-                $inputNames = array_merge($inputNames, [$fieldHandle, 'rows', 'new1', 'fields']);
+            if ($field instanceof SingleNestedFieldInterface) {
+                $inputNames = array_merge($inputNames, [$fieldHandle]);
 
                 return $this->_getFieldVariable($fieldKey, $field, $inputNames);
             }

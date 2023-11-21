@@ -57,7 +57,7 @@ export default {
 
         proxySourceValue() {
             if (this.editingField) {
-                return this.editingField.field.label;
+                return this.editingField.field.settings.label;
             }
 
             return get(this.context.attrs, 'source-value', this.sourceValue);
@@ -65,7 +65,7 @@ export default {
 
         proxyFieldId() {
             if (this.editingField) {
-                return this.editingField.field.vid;
+                return this.editingField.field.__id;
             }
 
             return get(this.context.attrs, 'field-id', this.fieldId);

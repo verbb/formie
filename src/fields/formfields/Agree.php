@@ -54,16 +54,6 @@ class Agree extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
-    {
-        // Moved to a private variable in 2.0.3 due to infinite loop issue. TODO: remove at next breakpoint
-        if (array_key_exists('descriptionHtml', $config)) {
-            unset($config['descriptionHtml']);
-        }
-
-        parent::__construct($config);
-    }
-
     public function attributes(): array
     {
         $names = parent::attributes();
@@ -110,7 +100,7 @@ class Agree extends FormField implements PreviewableFieldInterface
         return $this->defaultValue;
     }
 
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'defaultValue' => false,

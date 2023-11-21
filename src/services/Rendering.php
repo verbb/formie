@@ -7,7 +7,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
 use verbb\formie\events\ModifyRenderEvent;
-use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 
@@ -121,7 +121,7 @@ class Rendering extends Component
         return $output;
     }
 
-    public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FormPage|null $page = null, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -172,7 +172,7 @@ class Rendering extends Component
         $field->applyRenderOptions($form, $renderOptions);
 
         // Get the active submission.
-        $element = $renderOptions['element'] ?? $form->getCurrentSubmission();
+        $element = $form->getCurrentSubmission();
 
         /* @var FormField $field */
         $html = $form->renderTemplate('field', [
@@ -409,7 +409,7 @@ class Rendering extends Component
 
                     // If forcing, set the value every time this is called
                     if ($force && $submission) {
-                        // The value will be normalised already as the `defaulValue`
+                        // The value will be normalised already as the `defaultValue`
                         $submission->setFieldValue($field->handle, $field->defaultValue);
                     }
                 }

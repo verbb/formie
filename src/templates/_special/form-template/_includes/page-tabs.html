@@ -3,7 +3,7 @@
         {% for page in form.pages %}
             {% formtag 'pageTab' %}
                 {%- set pageIndex = loop.index0 -%}
-                {%- set params = { handle: form.handle, pageId: page.id } -%}
+                {%- set params = { handle: form.handle, page: page.handle } -%}
 
                 {%- if form.getSessionKey() -%}
                     {%- set params = params | merge({ sessionKey: form.getSessionKey() }) -%}
@@ -14,7 +14,7 @@
                 {%- endif -%}
 
                 {{ formtag('pageTabLink', {
-                    text: page.name | t('formie'),
+                    text: page.label | t('formie'),
                 }) }}
             {% endformtag %}
         {% endfor %}

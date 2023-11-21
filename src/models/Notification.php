@@ -63,30 +63,6 @@ class Notification extends Model
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        parent::init();
-
-        if (!$this->templateId) {
-            $this->templateId = null;
-        }
-
-        if (!$this->pdfTemplateId) {
-            $this->pdfTemplateId = null;
-        }
-
-        // Cast some properties. Doesn't play well with JS otherwise.
-        $this->attachFiles = (bool)$this->attachFiles;
-        $this->enableConditions = (bool)$this->enableConditions;
-        $this->attachPdf = (bool)$this->attachPdf;
-
-        // Normalise TipTap v1 nodes
-        // TODO: can be removed at the next breakpoint
-        if (is_string($this->content)) {
-            $this->content = RichTextHelper::normalizeNodes($this->content);
-        }
-    }
-
     public function __toString()
     {
         return (string)$this->name;

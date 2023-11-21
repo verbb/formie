@@ -1,6 +1,9 @@
 // import Vue from 'vue';
 import { findIndex } from 'lodash-es';
 
+import { newId } from '@utils/string';
+import { clone } from '@utils/object';
+
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
 // See: https://vuex.vuejs.org/en/modules.html#module-reuse
@@ -13,6 +16,9 @@ const mutations = {
     SET_NOTIFICATIONS(state, config) {
         for (const prop in config) {
             state[prop] = config[prop];
+
+            // Add a private ID to keep track of things in Vue
+            state[prop].__id = newId();
         }
     },
 
@@ -63,7 +69,20 @@ const actions = {
 // Getters are primarily used to perform some calculation/manipulation to store state
 // before having that information accessible to components.
 const getters = {
+    serializedPayload: (state) => {
+        // Filter the model to send back to the server
+        const notifications = clone(state);
 
+        // Filter out some unwanted data
+        notifications.forEach((notification) => {
+            delete notification.__id;
+            delete notification.errors;
+            delete notification.attachAssetsOptions;
+            delete notification.attachAssetsHtml;
+        });
+
+        return notifications;
+    },
 };
 
 export default {

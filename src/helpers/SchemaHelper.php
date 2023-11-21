@@ -180,7 +180,7 @@ class SchemaHelper
             'name' => 'labelPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                Formie::$plugin->getFields()->getLabelPositionsArray($field)
+                Formie::$plugin->getFields()->getLabelPositionsOptions($field)
             ),
         ], $config));
     }
@@ -216,7 +216,7 @@ class SchemaHelper
             'name' => 'instructionsPosition',
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Form Default'), 'value' => '']],
-                Formie::$plugin->getFields()->getInstructionsPositionsArray($field)
+                Formie::$plugin->getFields()->getInstructionsPositionsOptions($field)
             ),
         ], $config));
     }

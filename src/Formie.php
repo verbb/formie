@@ -110,7 +110,6 @@ class Formie extends Plugin
         self::$plugin = $this;
 
         $this->_registerTwigExtensions();
-        $this->_registerFieldsEvents();
         $this->_registerFieldTypes();
         $this->_registerVariable();
         $this->_registerElementTypes();
@@ -368,18 +367,6 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerFieldsEvents(): void
-    {
-        Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_LAYOUT, function(FieldLayoutEvent $event) {
-            $fieldLayout = $event->layout;
-
-            if ($fieldLayout instanceof FieldLayout) {
-                /* @var FieldLayout $fieldLayout */
-                Formie::$plugin->getFields()->onSaveFieldLayout($fieldLayout);
-            }
-        });
-    }
-
     private function _registerFieldTypes(): void
     {
         Event::on(Fields::class, Fields::EVENT_REGISTER_FIELD_TYPES, function(RegisterComponentTypesEvent $event) {
@@ -391,20 +378,11 @@ class Formie extends Plugin
     private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
-            // Delete fields with no form.
-            $this->getFields()->deleteOrphanedFields();
-
-            // Delete syncs that are empty.
-            $this->getSyncs()->pruneSyncs();
-
             // Delete incomplete submissions older than the configured interval.
             $this->getSubmissions()->pruneIncompleteSubmissions();
 
             // Deletes submissions if they are past the form data retention settings.
             $this->getSubmissions()->pruneDataRetentionSubmissions();
-
-            // Delete leftover content tables, for deleted forms
-            $this->getForms()->pruneContentTables();
 
             // Delete sent notifications older than the configured interval.
             $this->getSentNotifications()->pruneSentNotifications();

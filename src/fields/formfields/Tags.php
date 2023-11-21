@@ -43,10 +43,10 @@ class Tags extends CraftTags implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        getDefaultValue as traitGetDefaultValue;
+        // getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
-        getSavedFieldConfig as traitGetSavedFieldConfig;
+        getFormBuilderConfig as traitGetFormBuilderConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
         getDisplayTypeValue as traitGetDisplayTypeValue;
         getDisplayTypeField as traitGetDisplayTypeField;
@@ -94,9 +94,9 @@ class Tags extends CraftTags implements FormFieldInterface
         $this->labelSource = 'title';
     }
 
-    public function getSavedFieldConfig(): array
+    public function getFormBuilderConfig(): array
     {
-        $settings = $this->traitGetSavedFieldConfig();
+        $settings = $this->traitGetFormBuilderConfig();
 
         return $this->modifyFieldSettings($settings);
     }
@@ -161,23 +161,16 @@ class Tags extends CraftTags implements FormFieldInterface
             ->fixedOrder();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getExtraBaseFieldConfig(): array
+    public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();
 
         return [
-            'sourceOptions' => $options,
             'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         $tag = null;
         $tags = Craft::$app->getTags()->getAllTagGroups();

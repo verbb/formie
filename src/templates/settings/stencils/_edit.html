@@ -18,6 +18,23 @@
     </div>
 {% endblock %}
 
+{% set errorSummary %}
+
+<div id="fui-error-summary">
+    <div v-if="errors.length" class="error-summary" tabindex="-1" v-cloak>
+        <div>
+            <span class="notification-icon" data-icon="alert" aria-label="error" role="img"></span>
+            <h2>${errorMessage}</h2>
+        </div>
+
+        <ul v-for="(error, index) in errors" :key="index" class="errors">
+            <li>${error}</li>
+        </ul>
+    </div>
+</div>
+
+{% endset %}
+
 {% block actionButton %}
     <div id="fui-save-form-button">
         <div class="btngroup submit first">
@@ -25,12 +42,12 @@
                 {{ 'Save' | t('app') }}
             </a>
 
-            <div class="btn submit menubtn"></div>
+            <div class="btn submit menu-toggle menubtn-custom"></div>
             <div class="menu">
                 <ul>
                     {% if stencil.id %}
                         <li>
-                            <a data-redirect="{{ stencil.cpEditUrl | hash }}" @click.prevent="onSaveAs({ duplicateStencil: true })">
+                            <a data-redirect="{{ stencil.getCpEditUrl() | hash }}" @click.prevent="onSaveAs({ duplicateStencil: true })">
                                 {{ 'Save as a new stencil' | t('formie') }}
                             </a>
                         </li>
@@ -61,7 +78,7 @@
         <input type="hidden" name="stencilId" value="{{ stencil.id }}" />
     {% endif %}
 
-    {% for tab in formTabs %}
+    {% for tab in tabs %}
         <div id="{{ tab.url | trim('#') }}" class="{{ tab.tab is defined ? 'tab-form-fields' }} {{ not loop.first ? 'hidden' }}">
             {% include ['formie/forms/_panes/' ~ tab.value, 'formie/forms/_panes/form-fields'] %}
         </div>
@@ -75,19 +92,7 @@
 {% js %}
     document.addEventListener('vite-script-loaded', function(e) {
         if (e.detail.path === 'src/js/formie-form.js') {
-            new Craft.Formie.EditForm({
-                isStencil: true,
-                config: {{ formConfig | json_encode | raw }},
-                fields: {{ fields | json_encode | raw }},
-                notifications: {{ notifications | json_encode | raw }},
-                variables: {{ variables | json_encode | raw }},
-                emailTemplates: {{ emailTemplates | json_encode | raw }},
-                reservedHandles: {{ reservedHandles | json_encode | raw }},
-                formHandles: {{ formHandles | json_encode | raw }},
-                statuses: {{ craft.formie.statuses | json_encode | raw }},
-                maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
-                maxFieldHandleLength: {{ maxFieldHandleLength | json_encode | raw }},
-            });
+            new Craft.Formie.EditForm({{ jsBuilderConfig | json_encode | raw }});
 
             // Wait for Vue to kick in
             setTimeout(function() {

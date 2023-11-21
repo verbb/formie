@@ -7,7 +7,6 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -70,8 +69,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public ?string $sizeLimit = null;
     public ?string $sizeMinLimit = null;
     public ?string $limitFiles = null;
-    public bool $restrictFiles = false;
-    public ?array $allowedKinds = null;
+    public bool $restrictFiles = true;
+    public ?array $allowedKinds = ['image', 'pdf'];
     public ?string $uploadLocationSource = null;
     public ?string $uploadLocationSubpath = null;
     public bool $restrictLocation = true;
@@ -140,15 +139,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $values;
     }
 
-    public function getExtraBaseFieldConfig(): array
-    {
-        return [
-            'volumes' => $this->getSourceOptions(),
-            'fileKindOptions' => $this->getFileKindOptions(),
-        ];
-    }
-
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -162,12 +153,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         return [
             'uploadLocationSource' => $volume,
-            'uploadLocationSubpath' => '',
-            'restrictFiles' => true,
-            'allowedKinds' => [
-                'image',
-                'pdf',
-            ],
         ];
     }
 
@@ -190,7 +175,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $rules;
     }
 
-    public function validateFileLimit(ElementInterface $element): void
+    public function validateFileLimit(ElementInterface $element, string $attribute): void
     {
         $fileLimit = (int)($this->limitFiles ?? 1);
 
@@ -198,13 +183,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (count($uploadedFiles) > $fileLimit) {
-            $element->addError($this->handle, Craft::t('formie', 'Choose up to {files} files.', [
+            $element->addError($attribute, Craft::t('formie', 'Choose up to {files} files.', [
                 'files' => $fileLimit,
             ]));
         }
     }
 
-    public function validateMinFileSize(ElementInterface $element): void
+    public function validateMinFileSize(ElementInterface $element, string $attribute): void
     {
         $filenames = [];
 
@@ -220,13 +205,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->handle, Craft::t('formie', 'File must be larger than {size} MB.', [
+            $element->addError($attribute, Craft::t('formie', 'File must be larger than {size} MB.', [
                 'size' => $this->sizeMinLimit,
             ]));
         }
     }
 
-    public function validateMaxFileSize(ElementInterface $element): void
+    public function validateMaxFileSize(ElementInterface $element, string $attribute): void
     {
         $filenames = [];
 
@@ -242,7 +227,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->handle, Craft::t('formie', 'File must be smaller than {size} MB.', [
+            $element->addError($attribute, Craft::t('formie', 'File must be smaller than {size} MB.', [
                 'size' => $this->sizeLimit,
             ]));
         }
@@ -487,11 +472,6 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         $submission = $element;
-
-        // Watch out for Group/Repeater
-        if ($element instanceof NestedFieldRow) {
-            $submission = $element->getOwner();
-        }
 
         // Rename files, if enabled
         $filenameFormat = Variables::getParsedValue($this->filenameFormat, $submission);

@@ -4,7 +4,7 @@ namespace verbb\formie\elements\actions;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
-use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FormFieldLayout;
 
 use Craft;
 use craft\base\ElementAction;
@@ -85,46 +85,45 @@ class DuplicateForm extends Duplicate
                 $form->canonicalId = null;
                 $form->dateCreated = null;
                 $form->dateUpdated = null;
-                $form->title = $element->title . ' ' . Craft::t('formie', 'Copy');
+                $form->title = Craft::t('formie', '{title} Copy', ['title' => $element->title]);
                 $form->handle = HandleHelper::getUniqueHandle($formHandles, $element->handle);
                 $form->settings = clone $element->settings;
                 $form->settings->setForm($form);
 
-                $pagesData = $element->getFormConfig()['pages'];
+                // Reset page data IDs
+                $pagesData = $element->getFormBuilderConfig()['pages'];
 
                 // Reset page data IDs
-                foreach ($pagesData as $pageKey => $page) {
-                    $pagesData[$pageKey]['id'] = null;
+                foreach ($pagesData as $pageKey => &$page) {
+                    unset($page['id'], $page['errors']);
 
-                    $rows = $page['rows'] ?? [];
+                    if (isset($page['rows'])) {
+                        foreach ($page['rows'] as $rowKey => &$row) {
+                            unset($row['id'], $row['errors']);
 
-                    foreach ($rows as $rowKey => $row) {
-                        $pagesData[$pageKey]['rows'][$rowKey]['id'] = null;
+                            if (isset($row['fields'])) {
+                                foreach ($row['fields'] as $fieldKey => &$field) {
+                                    unset($field['id'], $field['errors']);
 
-                        $fields = $row['fields'] ?? [];
+                                    // Handle Group/Repeater to do the same, but slightly different
+                                    if (isset($field['settings']['rows'])) {
+                                        foreach ($field['settings']['rows'] as $nestedRowKey => &$nestedRow) {
+                                            unset($nestedRow['id'], $nestedRow['errors']);
 
-                        foreach ($fields as $fieldKey => $field) {
-                            // Handle Group/Repeater to do the same, but slightly different
-                            if (isset($field['settings']['contentTable'])) {
-                                $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['settings']['contentTable'] = null;
-                            }
-
-                            $nestedRows = $field['rows'] ?? [];
-
-                            foreach ($nestedRows as $nestedRowKey => $nestedRow) {
-                                $nestedFields = $nestedRow['fields'] ?? [];
-
-                                foreach ($nestedFields as $nestedFieldKey => $nestedField) {
-                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['id'] = null;
-                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['columnSuffix'] = null;
-                                    $pagesData[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['settings']['formId'] = null;
+                                            if (isset($nestedRow['fields'])) {
+                                                foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
+                                                    unset($nestedField['id'], $nestedField['errors']);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout($pagesData, Form::class, true);
+                $fieldLayout = new FormFieldLayout(['pages' => $pagesData]);
                 $fieldLayout->id = null;
 
                 $form->setFormFieldLayout($fieldLayout);
@@ -142,7 +141,7 @@ class DuplicateForm extends Duplicate
 
                 $form->setNotifications($notifications);
 
-                $success = Formie::$plugin->getForms()->saveForm($form);
+                $success = Craft::$app->getElements()->saveElement($form);
 
                 if (!$success) {
                     $failCount++;

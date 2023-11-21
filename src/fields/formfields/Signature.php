@@ -72,18 +72,6 @@ class Signature extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'backgroundColor' => '#ffffff',
-            'penColor' => '#000000',
-            'penWeight' => '2',
-        ];
-    }
-
     public function getImageUrl(Submission $submission, mixed $value)
     {
         // If `devMode` is on, assume local development, and use base64 as image

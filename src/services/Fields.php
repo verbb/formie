@@ -16,10 +16,9 @@ use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\positions\LeftInput;
@@ -52,25 +51,13 @@ class Fields extends Component
     // =========================================================================
 
     public const EVENT_MODIFY_EXISTING_FIELDS = 'modifyExistingFields';
-    public const EVENT_MODIFY_FIELD_CONFIG = 'modifyFieldConfig';
-    public const EVENT_MODIFY_FIELD_ROW_CONFIG = 'modifyFieldRowConfig';
     public const EVENT_BEFORE_SAVE_FIELD_ROW = 'beforeSaveFieldRow';
     public const EVENT_AFTER_SAVE_FIELD_ROW = 'afterSaveFieldRow';
     public const EVENT_BEFORE_SAVE_FIELD_PAGE = 'beforeSaveFieldPage';
     public const EVENT_AFTER_SAVE_FIELD_PAGE = 'afterSaveFieldPage';
-    /**
-     * @event RegisterFieldsEvent The event that is triggered when registering fields.
-     */
+
     public const EVENT_REGISTER_FIELDS = 'registerFields';
-
-    /**
-     * @event RegisterFieldOptionsEvent The event that is triggered when registering label positions.
-     */
     public const EVENT_REGISTER_LABEL_POSITIONS = 'registerLabelPositions';
-
-    /**
-     * @event RegisterFieldOptionsEvent The event that is triggered when registering instructions positions.
-     */
     public const EVENT_REGISTER_INSTRUCTIONS_POSITIONS = 'registerInstructionsPositions';
 
 
@@ -78,19 +65,13 @@ class Fields extends Component
     // =========================================================================
 
     private array $_fields = [];
-    private array $_layoutsById = [];
     private array $_existingFields = [];
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns the registered field groups.
-     *
-     * @return array[]
-     */
-    public function getRegisteredFieldGroups(): array
+    public function getFormBuilderFieldTypes(): array
     {
         $registeredFields = $this->getRegisteredFields();
 
@@ -142,7 +123,7 @@ class Fields extends Component
             ]));
         }
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+        if (Plugin::isPluginInstalledAndEnabled('commerce')) {
             $elementFields = array_merge($elementFields, array_filter([
                 ArrayHelper::remove($registeredFields, formfields\Products::class),
                 ArrayHelper::remove($registeredFields, formfields\Variants::class),
@@ -189,37 +170,13 @@ class Fields extends Component
 
         foreach ($groupedFields as $groupKey => $group) {
             foreach ($group['fields'] as $fieldKey => $class) {
-                $groupedFields[$groupKey]['fields'][$fieldKey] = $class->getBaseFieldConfig();
+                $groupedFields[$groupKey]['fields'][$fieldKey] = $class->getFieldTypeConfig();
             }
         }
 
         return $groupedFields;
     }
 
-    /**
-     * Returns a registered field by its class.
-     *
-     * @param $class
-     * @return FormFieldInterface|null
-     */
-    public function getRegisteredField($class): ?FormFieldInterface
-    {
-        $fields = $this->getRegisteredFields();
-
-        foreach ($fields as $field) {
-            if (get_class($field) === $class) {
-                /* @var FormFieldInterface $instance */
-                return $this->createField($class);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param bool $excludeDisabled
-     * @return array
-     */
     public function getRegisteredFields(bool $excludeDisabled = true): array
     {
         if (count($this->_fields)) {
@@ -268,7 +225,7 @@ class Fields extends Component
             ]);
         }
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+        if (Plugin::isPluginInstalledAndEnabled('commerce')) {
             $fields = array_merge($fields, [
                 formfields\Products::class,
                 formfields\Variants::class,
@@ -297,11 +254,6 @@ class Fields extends Component
         return $this->_fields;
     }
 
-    /**
-     * Returns the registered fields for Feed Me.
-     *
-     * @return array[]
-     */
     public function getRegisteredFormieFields(): array
     {
         $fields = [];
@@ -332,7 +284,7 @@ class Fields extends Component
             $fields[] = FeedMeField\Users::class;
         }
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('commerce')) {
+        if (Plugin::isPluginInstalledAndEnabled('commerce')) {
             $fields[] = FeedMeField\Products::class;
             $fields[] = FeedMeField\Variants::class;
         }
@@ -343,13 +295,6 @@ class Fields extends Component
         return $fields;
     }
 
-    /**
-     * Returns an array of existing form fields grouped into pages.
-     *
-     * @param Form|null $excludeForm
-     * @return array
-     * @throws InvalidConfigException
-     */
     public function getExistingFields(Form $excludeForm = null): array
     {
         if ($this->_existingFields) {
@@ -367,59 +312,6 @@ class Fields extends Component
         $forms = $query->all();
 
         $allFields = [];
-        $existingFields = [];
-
-        $fields = [];
-        $syncs = [];
-
-        foreach (Craft::$app->getFields()->getAllFields(false) as $field) {
-            preg_match('/formie:(?P<uid>.+)/', $field->context, $matches);
-            if (!$matches) {
-                // Not a formie field.
-                continue;
-            }
-
-            // Is this a non-Formie field, or a MissingField?
-            if (!($field instanceof FormFieldInterface)) {
-                continue;
-            }
-
-            // Get the UI
-            $uid = $matches['uid'];
-
-            if (ArrayHelper::contains($forms, 'uid', $uid)) {
-                if ($sync = Formie::$plugin->getSyncs()->getFieldSync($field)) {
-                    if (in_array($sync->id, $syncs, false)) {
-                        // Only include one instance of a synced field.
-                        continue;
-                    }
-
-                    $syncs[] = $sync->id;
-                }
-
-                $fields[] = $field;
-            }
-        }
-
-        ArrayHelper::multisort($fields, 'name', SORT_ASC, SORT_STRING);
-
-        foreach ($fields as $field) {
-            if (!($field instanceof NestedFieldInterface)) {
-                /* @var FormFieldInterface $field */
-                $allFields[] = $this->getSavedFieldConfig($field);
-            }
-        }
-
-        $existingFields[] = [
-            'key' => '*',
-            'label' => Craft::t('formie', 'All forms'),
-            'pages' => [
-                [
-                    'label' => Craft::t('formie', 'All fields'),
-                    'fields' => $allFields,
-                ],
-            ],
-        ];
 
         foreach ($forms as $form) {
             $formPages = [];
@@ -427,17 +319,22 @@ class Fields extends Component
             foreach ($form->getPages() as $page) {
                 $pageFields = [];
 
-                $fields = $page->getCustomFields();
+                $fields = $page->getFields();
                 ArrayHelper::multisort($fields, 'name', SORT_ASC, SORT_STRING);
 
                 foreach ($fields as $field) {
+                    // Only include one instance of a synced field.
+                    if ($field->isSynced && ArrayHelper::contains($allFields, 'id', $field->id)) {
+                        continue;
+                    }
+
                     if (!($field instanceof NestedFieldInterface)) {
-                        $pageFields[] = $this->getSavedFieldConfig($field);
+                        $pageFields[] = $allFields[] = $field->getFormBuilderConfig();
                     }
                 }
 
                 $formPages[] = [
-                    'label' => $page->name,
+                    'label' => $page->label,
                     'fields' => $pageFields,
                 ];
             }
@@ -449,6 +346,19 @@ class Fields extends Component
             ];
         }
 
+        ArrayHelper::multisort($allFields, 'name', SORT_ASC, SORT_STRING);
+
+        array_unshift($existingFields, [
+            'key' => '*',
+            'label' => Craft::t('formie', 'All forms'),
+            'pages' => [
+                [
+                    'label' => Craft::t('formie', 'All fields'),
+                    'fields' => $allFields,
+                ],
+            ],
+        ]);
+
         // Fire a 'modifyExistingFields' event
         $event = new ModifyExistingFieldsEvent([
             'fields' => $existingFields,
@@ -458,23 +368,32 @@ class Fields extends Component
         return $this->_existingFields = $event->fields;
     }
 
-    /**
-     * Returns all formie fields.
-     *
-     * @return FormFieldInterface[]
-     */
-    public function getAllFields(): array
+    public function updateIsSynced(FieldInterface $field): void
     {
-        $allFields = [];
-        $fields = Craft::$app->getFields()->getAllFields(false);
+        $foundFields = 0;
 
-        foreach ($fields as $field) {
-            if (str_starts_with($field->context, 'formie:')) {
-                $allFields[] = $field;
+        // Find any references for the field, to check if we still need to sync it.
+        foreach (Form::find()->all() as $form) {
+            // Skip the form for this field, as we're deleting the field, and it shouldn't be counted
+            if ($field->getForm()?->uid === $form->uid) {
+                continue;
+            }
+
+            if ($layout = $form->getFormFieldLayout()) {
+                $allFieldUids = ArrayHelper::getColumn($layout->getFields(), 'uid');
+
+                if (in_array($field->uid, $allFieldUids)) {
+                    $foundFields++;
+                }
             }
         }
 
-        return $allFields;
+        // There's only one reference to to field now, so it's no longer synced to anything
+        if ($foundFields < 2) {
+            $field->isSynced = false;
+
+            Craft::$app->getFields()->saveField($field);
+        }
     }
 
     public function checkRequiredPlugin(FieldInterface $field): bool
@@ -488,7 +407,7 @@ class Fields extends Component
             $handle = $requiredPlugin['handle'] ?? '';
 
             if ($handle) {
-                if (!Formie::$plugin->getService()->isPluginInstalledAndEnabled($handle)) {
+                if (!Plugin::isPluginInstalledAndEnabled($handle)) {
                     throw new MissingComponentException();
                 }
 
@@ -503,137 +422,6 @@ class Fields extends Component
         return true;
     }
 
-    /**
-     * Returns all fields on a provided element, for a given type. Includes drilling into nested fields.
-     *
-     * @return FormFieldInterface[]
-     */
-    public function getElementFieldsForType($element, $type): array
-    {
-        $fields = [];
-
-        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
-            if (get_class($field) === $type) {
-                $fields[] = [$field];
-            }
-
-            if ($field instanceof NestedFieldInterface) {
-                $fields[] = $this->getElementFieldsForType($field, $type);
-            }
-        }
-
-        // For performance
-        return array_merge(...$fields);
-    }
-
-    /**
-     * Deletes any fields that aren't attached to a form anymore.
-     */
-    public function deleteOrphanedFields($consoleInstance = null): void
-    {
-        $allFieldIds = [];
-        $forms = Form::find()->trashed(null)->all();
-
-        /* @var Form $form */
-        foreach ($forms as $form) {
-            /* @var FormField $field */
-            foreach ($form->getCustomFields() as $field) {
-                $allFieldIds[] = $field->id;
-            }
-        }
-
-        foreach ($this->getAllFields() as $field) {
-            if (!in_array($field->id, $allFieldIds)) {
-                // Just a sanity check to protect against any non-Formie contexted fields
-                if (!str_contains($field->context, 'formie:')) {
-                    continue;
-                }
-
-                // Be careful when deleting a field. `getFields()->deleteField()` will try and cleanup the content
-                // column on the global scope. We can't change the contentTable because the form where this is
-                // stored is gone (because this is an orphaned field, we know that). So we must to a direct delete
-                // which is mostly okay, as Formie fields aren't stored in project config.
-                Db::delete(CraftTable::FIELDS, [
-                    'id' => $field->id,
-                ]);
-            }
-        }
-    }
-
-    /**
-     * Gets a field's config for rendering form builder.
-     *
-     * @param FormFieldInterface $field
-     * @return array
-     */
-    public function getSavedFieldConfig(FormFieldInterface $field): array
-    {
-        /* @var FormField $field */
-        $config = $field->getSavedFieldConfig();
-
-        $config['label'] = $field->name;
-        $config['icon'] = $field->getSvgIcon();
-        $config['type'] = get_class($field);
-        $config['errors'] = $field->getErrors();
-        $config['hasLabel'] = $field->hasLabel();
-        $config['hasError'] = (bool)$field->getErrors();
-        $config['settings'] = $field->getSavedSettings();
-        $config['isCosmetic'] = $field->getIsCosmetic();
-
-        // Indicates whether the field is currently synced to another field.
-        $config['isSynced'] = Formie::$plugin->getSyncs()->isSynced($field);
-
-        // Indicates whether the field contains conditions.
-        $config['hasConditions'] = $field->hasConditions();
-
-        // Copy some attributes into `settings` - required for Formulate for the moment
-        // as it doesn't support nested data, and it really has trouble dealing with top-level
-        // attributes like `label` and `settings[attribute]` together in one go.
-        $config['settings']['label'] = $field->name;
-        $config['settings']['handle'] = $field->handle;
-
-        // These really belong in settings anyway...
-        $config['settings']['required'] = (bool)$field->required;
-        $config['settings']['instructions'] = $field->instructions;
-
-        // Nested fields have rows of their own.
-        if ($config['supportsNested'] = ($field instanceof NestedFieldInterface)) {
-            $config['isElementField'] = true;
-
-            /* @var NestedFieldInterface|NestedFieldTrait $field */
-            $config['rows'] = $field->getRows();
-        }
-
-        // Allow fields to provide subfield options for mapping
-        if ($field instanceof SubFieldInterface) {
-            $config['subfieldOptions'] = $field->getSubfieldOptions();
-            $config['hasSubfields'] = $field->hasSubfields();
-        }
-
-        // Whether this field is nested inside another one
-        $config['isNested'] = $field->isNested;
-
-        // Whether this is an element field
-        if ($field instanceof BaseRelationField) {
-            $config['isElementField'] = true;
-        }
-
-        // Fire a 'modifyFieldConfig' event
-        $event = new ModifyFieldConfigEvent([
-            'config' => $config,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_FIELD_CONFIG, $event);
-
-        return $event->config;
-    }
-
-    /**
-     * Returns a field's render options from the main options array.
-     *
-     * @param FormFieldInterface $field
-     * @param array|null $options
-     * @return array
-     */
     public function getFieldOptions(FormFieldInterface $field, array $options = null): array
     {
         if (empty($options)) {
@@ -651,13 +439,6 @@ class Fields extends Component
         return $fieldOptions;
     }
 
-    /**
-     * Returns a list of available field label positions.
-     *
-     * @param FormFieldInterface|null $field
-     * @return array
-     * @noinspection DuplicatedCode
-     */
     public function getLabelPositions(FormFieldInterface $field = null): array
     {
         $labelPositions = [
@@ -689,33 +470,16 @@ class Fields extends Component
         return $event->options;
     }
 
-    /**
-     * Returns label positions for use in form builder.
-     *
-     * @param FormFieldInterface|null $field
-     * @return array
-     */
-    public function getLabelPositionsArray(FormFieldInterface $field = null): array
+    public function getLabelPositionsOptions(FormFieldInterface $field = null): array
     {
-        $labelPositions = [];
-
-        foreach ($this->getLabelPositions($field) as $class) {
-            $labelPositions[] = [
+        return array_map(function($class) {
+            return [
                 'label' => $class::displayName(),
                 'value' => $class,
             ];
-        }
-
-        return $labelPositions;
+        }, $this->getLabelPositions($field));
     }
 
-    /**
-     * Returns a list of available field instructions positions.
-     *
-     * @param FormFieldInterface|null $field
-     * @return array
-     * @noinspection DuplicatedCode
-     */
     public function getInstructionsPositions(FormFieldInterface $field = null): array
     {
         $instructionsPositions = [
@@ -744,339 +508,16 @@ class Fields extends Component
         return $event->options;
     }
 
-    /**
-     * Returns instructions positions for use in form builder.
-     *
-     * @param FormFieldInterface|null $field
-     * @return array
-     */
-    public function getInstructionsPositionsArray(FormFieldInterface $field = null): array
+    public function getInstructionsPositionsOptions(FormFieldInterface $field = null): array
     {
-        $instructionsPositions = [];
-
-        foreach ($this->getInstructionsPositions($field) as $class) {
-            $instructionsPositions[] = [
+        return array_map(function($class) {
+            return [
                 'label' => $class::displayName(),
                 'value' => $class,
             ];
-        }
-
-        return $instructionsPositions;
+        }, $this->getInstructionsPositions($field));
     }
 
-
-    // Layouts
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a field layout by its ID.
-     *
-     * @param int $layoutId The field layout’s ID
-     * @return FieldLayout|null The field layout, or null if it doesn’t exist
-     */
-    public function getLayoutById(int $layoutId): ?FieldLayout
-    {
-        if (array_key_exists($layoutId, $this->_layoutsById)) {
-            return $this->_layoutsById[$layoutId];
-        }
-
-        $result = $this->_createLayoutQuery()
-            ->andWhere(['id' => $layoutId])
-            ->one();
-
-        return $this->_layoutsById[$layoutId] = $result ? new FieldLayout($result) : null;
-    }
-
-    /**
-     * Returns a layout's pages by its ID.
-     *
-     * @param int $layoutId The field layout’s ID
-     * @return FieldLayoutPage[] The field layout’s pages
-     */
-    public function getLayoutPagesById(int $layoutId): array
-    {
-        $tabs = $this->_createLayoutPageQuery()
-            ->addSelect([
-                'ps.settings',
-            ])
-            ->leftJoin('{{%formie_pagesettings}} ps', '[[ps.fieldLayoutTabId]] = [[flt.id]]')
-            ->where(['layoutId' => $layoutId])
-            ->all();
-
-        $isMysql = Craft::$app->getDb()->getIsMysql();
-
-        foreach ($tabs as $key => $value) {
-            if ($isMysql) {
-                $value['name'] = html_entity_decode($value['name'], ENT_QUOTES | ENT_HTML5);
-            }
-
-            $tabs[$key] = new FieldLayoutPage($value);
-        }
-
-        return $tabs;
-    }
-
-    /**
-     * Returns the fields in a field layout, identified by its ID.
-     *
-     * @param int $layoutId The field layout’s ID
-     * @return FieldInterface[] The fields
-     */
-    public function getFieldsByLayoutId(int $layoutId): array
-    {
-        $fields = [];
-
-        $results = $this->_createFieldQuery()
-            ->addSelect([
-                'flf.layoutId',
-                'flf.tabId',
-                'flf.required',
-                'flf.sortOrder',
-                'forms.id as formId',
-                'rows.id as rowId',
-                'rows.uid as rowUid',
-                'rows.row as rowIndex',
-            ])
-            ->innerJoin('{{%fieldlayoutfields}} flf', '[[flf.fieldId]] = [[fields.id]]')
-            ->innerJoin('{{%fieldlayouttabs}} flt', '[[flt.id]] = [[flf.tabId]]')
-            ->leftJoin('{{%formie_forms}} forms', '[[forms.fieldLayoutId]] = [[flf.layoutId]]')
-            ->leftJoin('{{%formie_rows}} rows', '[[rows.fieldLayoutFieldId]] = [[flf.id]]')
-            ->where(['flf.layoutId' => $layoutId])
-            ->orderBy([
-                'flt.sortOrder' => SORT_ASC,
-                'rows.row' => SORT_ASC,
-                'flf.sortOrder' => SORT_ASC,
-            ])
-            ->all();
-
-        foreach ($results as $result) {
-            $field = Formie::$plugin->getFields()->createField($result);
-
-            $fields[] = $field;
-        }
-
-        return $fields;
-    }
-
-    /**
-     * Saves a Formie's custom field layout data.
-     *
-     * @param FieldLayout $fieldLayout
-     *
-     * @see \craft\services\Fields::saveLayout()
-     * @see Formie::_registerFieldsEvents()
-     */
-    public function onSaveFieldLayout(FieldLayout $fieldLayout): void
-    {
-        $this->saveRows($fieldLayout);
-        $this->savePages($fieldLayout);
-    }
-
-    /**
-     * Creates a field with a given config.
-     *
-     * @param mixed $config The field’s class name, or its config, with a `type` value and optionally a `settings` value
-     * @return FormFieldInterface The field
-     * @throws InvalidConfigException
-     * @noinspection PhpDocMissingThrowsInspection
-     */
-    public function createField(mixed $config): FormFieldInterface
-    {
-        if (is_string($config)) {
-            $config = ['type' => $config];
-        }
-
-        if (!empty($config['id']) && empty($config['uid']) && is_numeric($config['id'])) {
-            $uid = Db::uidById(CraftTable::FIELDS, $config['id']);
-            $config['uid'] = $uid;
-        }
-
-        try {
-            $field = ComponentHelper::createComponent($config, FormFieldInterface::class);
-        } catch (MissingComponentException $e) {
-            $config['errorMessage'] = $e->getMessage();
-            $config['expectedType'] = $config['type'];
-            unset($config['type']);
-
-            $field = new formfields\MissingField($config);
-        }
-
-        return $field;
-    }
-
-
-    // Rows
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns an array of fields grouped into rows.
-     *
-     * @param FormFieldInterface[] $fields
-     * @return array
-     */
-    public function groupIntoRows(array $fields): array
-    {
-        $rows = [];
-
-        foreach ($fields as $field) {
-            /* @var FormField $field */
-            $rows[$field->rowIndex]['id'] = $field->rowId;
-            $rows[$field->rowIndex]['uid'] = $field->rowUid;
-
-            if (!isset($rows[$field->rowIndex]['fields'])) {
-                $rows[$field->rowIndex]['fields'] = [];
-            }
-
-            // @var FormField $field
-            $rows[$field->rowIndex]['fields'][] = $field;
-        }
-
-        ksort($rows);
-
-        return array_values($rows);
-    }
-
-    /**
-     * Returns row config for a page's fields.
-     *
-     * @param array $rows
-     * @return array
-     */
-    public function getRowConfig(array $rows): array
-    {
-        $rowConfig = [];
-
-        foreach ($rows as $rowIndex => $row) {
-            $fields = [];
-
-            foreach ($row['fields'] as $fieldIndex => $field) {
-                // Set a flag on any field inside a nested field
-                if ($field instanceof NestedFieldInterface) {
-                    // In some cases, nested fields might not have their fieldlayout setup correctly
-                    if (is_array($field->getCustomFields())) {
-                        foreach ($field->getCustomFields() as $key => $nestedField) {
-                            $nestedField->isNested = true;
-                        }
-                    }
-                }
-
-                $fields[$fieldIndex] = Formie::$plugin->getFields()->getSavedFieldConfig($field);
-            }
-
-            $rowConfig[$rowIndex] = [
-                'id' => $row['id'],
-                'fields' => $fields,
-            ];
-        }
-
-        // Fire a 'modifyFieldRowConfig' event
-        $event = new ModifyFieldRowConfigEvent([
-            'config' => $rowConfig,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_FIELD_ROW_CONFIG, $event);
-
-        return $event->config;
-    }
-
-    /**
-     * Saves all a field layouts row data.
-     *
-     * @param FieldLayout $fieldLayout
-     */
-    public function saveRows(FieldLayout $fieldLayout): void
-    {
-        foreach ($fieldLayout->getCustomFields() as $field) {
-            $record = new Row();
-            $isNew = $record->getIsNewRecord();
-
-            $record->row = $field->rowIndex;
-            $record->fieldLayoutId = $fieldLayout->id;
-            $record->fieldLayoutFieldId = (new Query())->select(['id'])
-                ->from(CraftTable::FIELDLAYOUTFIELDS)
-                ->where([
-                    'layoutId' => $fieldLayout->id,
-                    'fieldId' => $field->id,
-                ])
-                ->scalar();
-
-            // This can happen in very specific circumstances
-            if (!$record->fieldLayoutFieldId) {
-                Formie::error(Craft::t('app', 'Preparing row error: layoutId:{layoutId} - fieldId:{fieldId}', [
-                    'layoutId' => $fieldLayout->id,
-                    'fieldId' => $field->id,
-                ]));
-            }
-
-            // Fire a 'beforeSaveFieldRow' event
-            if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_FIELD_ROW)) {
-                $this->trigger(self::EVENT_BEFORE_SAVE_FIELD_ROW, new FieldRowEvent([
-                    'row' => $record,
-                    'isNew' => $isNew,
-                ]));
-            }
-
-            $record->save();
-
-            // Fire a 'afterSaveFieldRow' event
-            if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_FIELD_ROW)) {
-                $this->trigger(self::EVENT_AFTER_SAVE_FIELD_ROW, new FieldRowEvent([
-                    'row' => $record,
-                    'isNew' => $isNew,
-                ]));
-            }
-        }
-    }
-
-
-    // Pages
-    // -------------------------------------------------------------------------
-
-    /**
-     * Saves all a field layouts page data.
-     *
-     * @param FieldLayout $fieldLayout
-     */
-    public function savePages(FieldLayout $fieldLayout): void
-    {
-        foreach ($fieldLayout->getPages() as $page) {
-            // Try to find the page settings first
-            $record = PageSettings::find()->where(['fieldLayoutId' => $fieldLayout->id, 'fieldLayoutTabId' => $page->id])->one();
-
-            if (!$record) {
-                $record = new PageSettings();
-            }
-
-            $isNew = $record->getIsNewRecord();
-
-            $record->settings = $page->settings;
-            $record->fieldLayoutId = $fieldLayout->id;
-            $record->fieldLayoutTabId = $page->id;
-
-            // Fire a 'beforeSaveFieldRow' event
-            if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_FIELD_PAGE)) {
-                $this->trigger(self::EVENT_BEFORE_SAVE_FIELD_PAGE, new FieldPageEvent([
-                    'page' => $record,
-                    'isNew' => $isNew,
-                ]));
-            }
-
-            $record->save();
-
-            // Fire a 'afterSaveFieldRow' event
-            if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_FIELD_PAGE)) {
-                $this->trigger(self::EVENT_AFTER_SAVE_FIELD_PAGE, new FieldPageEvent([
-                    'page' => $record,
-                    'isNew' => $isNew,
-                ]));
-            }
-        }
-    }
-
-    /**
-     * Returns a list of reserved field handles.
-     *
-     * @return string[]
-     */
     public function getReservedHandles(): array
     {
         try {
@@ -1092,80 +533,6 @@ class Fields extends Component
             $reservedWords = [];
         }
 
-        return array_merge(
-            $reservedWords,
-            HandleValidator::$baseReservedWords
-        );
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    /**
-     * Returns a Query object prepped for retrieving fields.
-     *
-     * @return Query
-     */
-    private function _createFieldQuery(): Query
-    {
-        return (new Query())
-            ->select([
-                'fields.id',
-                'fields.dateCreated',
-                'fields.dateUpdated',
-                'fields.groupId',
-                'fields.name',
-                'fields.handle',
-                'fields.context',
-                'fields.columnSuffix',
-                'fields.instructions',
-                'fields.searchable',
-                'fields.translationMethod',
-                'fields.translationKeyFormat',
-                'fields.type',
-                'fields.settings',
-                'fields.uid',
-            ])
-            ->from(['fields' => CraftTable::FIELDS])
-            ->orderBy(['fields.name' => SORT_ASC, 'fields.handle' => SORT_ASC]);
-    }
-
-    /**
-     * Returns a Query object prepped for retrieving layouts.
-     *
-     * @return Query
-     */
-    private function _createLayoutQuery(): Query
-    {
-        return (new Query)
-            ->select([
-                'id',
-                'type',
-                'uid',
-            ])
-            ->from([CraftTable::FIELDLAYOUTS])
-            ->where(['dateDeleted' => null]);
-    }
-
-    /**
-     * Returns a Query object prepped for retrieving layout pages.
-     *
-     * @return Query
-     */
-    private function _createLayoutPageQuery(): Query
-    {
-        return (new Query())
-            ->select([
-                'flt.id',
-                'flt.layoutId',
-                'flt.name',
-                'flt.settings',
-                'flt.elements',
-                'flt.sortOrder',
-                'flt.uid',
-            ])
-            ->from(['flt' => CraftTable::FIELDLAYOUTTABS])
-            ->orderBy(['sortOrder' => SORT_ASC]);
+        return array_merge($reservedWords, HandleValidator::$baseReservedWords);
     }
 }

@@ -19,6 +19,23 @@
     </div>
 {% endblock %}
 
+{% set errorSummary %}
+
+<div id="fui-error-summary">
+    <div v-if="errors.length" class="error-summary" tabindex="-1" v-cloak>
+        <div>
+            <span class="notification-icon" data-icon="alert" aria-label="error" role="img"></span>
+            <h2>${errorMessage}</h2>
+        </div>
+
+        <ul v-for="(error, index) in errors" :key="index" class="errors">
+            <li>${error}</li>
+        </ul>
+    </div>
+</div>
+
+{% endset %}
+
 {% block actionButton %}
 
 {% set submissions = craft.formie.submissions.form(form.handle).limit(1).exists() %}
@@ -90,7 +107,7 @@
         <input type="hidden" name="fieldLayoutId" value="{{ form.fieldLayoutId }}" />
     {% endif %}
 
-    {% for tab in formTabs %}
+    {% for tab in tabs %}
         <div id="{{ tab.url | trim('#') }}" class="{{ tab.tab is defined ? 'tab-form-fields' }} {{ not loop.first ? 'hidden' }}">
             {% include ['formie/forms/_panes/' ~ tab.value, 'formie/forms/_panes/form-fields'] %}
         </div>
@@ -104,19 +121,7 @@
 {% js %}
     document.addEventListener('vite-script-loaded', function(e) {
         if (e.detail.path === 'src/js/formie-form.js') {
-            new Craft.Formie.EditForm({
-                isStencil: false,
-                config: {{ formConfig | json_encode | raw }},
-                fields: {{ fields | json_encode | raw }},
-                notifications: {{ notifications | json_encode | raw }},
-                variables: {{ variables | json_encode | raw }},
-                emailTemplates: {{ emailTemplates | json_encode | raw }},
-                reservedHandles: {{ reservedHandles | json_encode | raw }},
-                formHandles: {{ formHandles | json_encode | raw }},
-                statuses: {{ craft.formie.statuses | json_encode | raw }},
-                maxFormHandleLength: {{ maxFormHandleLength | json_encode | raw }},
-                maxFieldHandleLength: {{ maxFieldHandleLength | json_encode | raw }},
-            });
+            new Craft.Formie.EditForm({{ jsBuilderConfig | json_encode | raw }});
 
             // Wait for Vue to kick in
             setTimeout(function() {

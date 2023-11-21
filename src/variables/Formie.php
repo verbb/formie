@@ -10,7 +10,7 @@ use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 
@@ -81,7 +81,7 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $renderOptions);
     }
 
-    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FormPage $page = null, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }

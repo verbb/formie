@@ -3,7 +3,7 @@
         <div class="fui-existing-item" :class="{ 'sel': selected, 'disabled': isDisabled }" @click="click">
             <div class="fui-existing-item-wrap">
                 <div class="fui-existing-item-title">
-                    {{ label }}
+                    {{ settings.label }}
                 </div>
 
                 <div class="fui-existing-item-type">
@@ -30,16 +30,6 @@ export default {
     props: {
         id: {
             type: [String, Number],
-            default: '',
-        },
-
-        label: {
-            type: String,
-            default: '',
-        },
-
-        handle: {
-            type: String,
             default: '',
         },
 
@@ -87,7 +77,7 @@ export default {
         },
 
         isDisabled() {
-            return this.fieldHandles.indexOf(this.handle) !== -1;
+            return this.fieldHandles.indexOf(this.settings.handle) !== -1;
         },
 
         fieldtype() {

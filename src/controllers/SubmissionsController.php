@@ -985,8 +985,8 @@ class SubmissionsController extends Controller
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
-            'currentPageId' => $form->getCurrentPage()->id,
-            'nextPageId' => $nextPage->id ?? null,
+            'currentPage' => $form->getCurrentPage()->handle,
+            'nextPage' => $nextPage->handle ?? null,
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
@@ -1036,12 +1036,14 @@ class SubmissionsController extends Controller
 
         $variables['tabs'] = [];
 
-        foreach ($variables['submission']->getFieldLayout()->getTabs() as $index => $tab) {
+        $pages = $variables['submission']->getPages() ?? [];
+
+        foreach ($pages as $page) {
             // Do any of the fields on this tab have errors?
             $hasErrors = false;
 
             if ($variables['submission']->hasErrors()) {
-                foreach ($tab->getCustomFields() as $field) {
+                foreach ($page->getFields() as $field) {
                     /** @var FormField $field */
                     if ($hasErrors = $variables['submission']->hasErrors($field->handle . '.*')) {
                         break;
@@ -1049,11 +1051,9 @@ class SubmissionsController extends Controller
                 }
             }
 
-            $tabId = $tab->getHtmlId();
-
-            $variables['tabs'][$tabId] = [
-                'label' => Craft::t('formie', $tab->name),
-                'url' => '#' . $tabId,
+            $variables['tabs'][$page->handle] = [
+                'label' => Craft::t('formie', $page->label),
+                'url' => '#' . $page->handle,
                 'class' => $hasErrors ? 'error' : null,
             ];
         }

@@ -82,6 +82,7 @@ export default {
 
     data() {
         let activePage = location.hash;
+
         if (activePage.indexOf('#tab-fields-page') !== 0) {
             activePage = '#tab-fields-page-1';
         }

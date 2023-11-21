@@ -143,11 +143,11 @@ export default {
             },
 
             set(fieldSettings) {
-                if (!this.fieldRef.submitButton) {
-                    // We still use label/handle at the top level, so copy those over
-                    this.field.label = fieldSettings.label;
-                    this.field.handle = fieldSettings.handle;
-                }
+                // if (!this.fieldRef.submitButton) {
+                //     // We still use label/handle at the top level, so copy those over
+                //     this.field.label = fieldSettings.label;
+                //     this.field.handle = fieldSettings.handle;
+                // }
 
                 // Update the field settings as 'normal'
                 this.field.settings = fieldSettings;
@@ -160,8 +160,8 @@ export default {
         this.originalField = this.clone(this.field);
 
         // We need to copy label/handle so FormKit can handle things
-        this.fieldSettings.label = this.field.label;
-        this.fieldSettings.handle = this.field.handle;
+        // this.fieldSettings.label = this.field.label;
+        // this.fieldSettings.handle = this.field.handle;
 
         // Add this to the global Vue instance so we can access it inside fields
         this.$store.dispatch('formie/setEditingField', this.fieldRef);

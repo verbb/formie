@@ -168,10 +168,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'labelPosition' => Hidden::class,
@@ -250,32 +247,29 @@ class Recipients extends FormField implements PreviewableFieldInterface
         }
     }
 
-    public function getDefaultValue($attributePrefix = '')
-    {
-        $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
+    // public function getDefaultValue($attributePrefix = '')
+    // {
+    //     $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
 
-        // If the default value from the parent field (query params, etc.) is empty, use the default values
-        // set in the field option settings.
-        if (!$this->getIsHidden() && $value === '') {
-            $value = [];
+    //     // If the default value from the parent field (query params, etc.) is empty, use the default values
+    //     // set in the field option settings.
+    //     if (!$this->getIsHidden() && $value === '') {
+    //         $value = [];
 
-            foreach ($this->options() as $option) {
-                if (!empty($option['isDefault'])) {
-                    $value[] = $option['value'];
-                }
-            }
+    //         foreach ($this->options() as $option) {
+    //             if (!empty($option['isDefault'])) {
+    //                 $value[] = $option['value'];
+    //             }
+    //         }
 
-            if ($this->displayType !== 'checkboxes') {
-                $value = $value[0] ?? '';
-            }
-        }
+    //         if ($this->displayType !== 'checkboxes') {
+    //             $value = $value[0] ?? '';
+    //         }
+    //     }
 
-        return $value;
-    }
+    //     return $value;
+    // }
 
-    /**
-     * @inheritDoc
-     */
     public function getRealValue($value)
     {
         // This will convert fake values (`id:1`, `['id:2', 'id:3']`) into their real values (`email@`, `[`email@`, `email@`]`)

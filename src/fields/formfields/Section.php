@@ -49,18 +49,6 @@ class Section extends FormField
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'borderStyle' => 'solid',
-            'borderWidth' => 1,
-            'borderColor' => '#cccccc',
-        ];
-    }
-
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/input', [

@@ -7,6 +7,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\MailEvent;
 use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\formfields\FileUpload;
+use verbb\formie\fields\formfields\Group;
+use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
@@ -535,28 +537,13 @@ class Emails extends Component
         return array_filter($emailsEnv);
     }
 
-    private function _getAssetsForSubmission($element): array
+    private function _getAssetsForSubmission(Submission $submission): array
     {
         $assets = [];
 
-        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
-            if (get_class($field) === FileUpload::class) {
-                $value = $element->getFieldValue($field->handle);
-
-                if ($value instanceof AssetQuery) {
-                    $assets[] = $value->all();
-                }
-            }
-
-            // Separate check for nested fields (repeater/group), fetch the element and try again
-            if ($field instanceof NestedFieldInterface) {
-                $query = $element->getFieldValue($field->handle);
-
-                if ($query) {
-                    foreach ($query->all() as $nestedElement) {
-                        $assets[] = $this->_getAssetsForSubmission($nestedElement);
-                    }
-                }
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            if ($value instanceof AssetQuery) {
+                $assets[] = $value->all();
             }
         }
 

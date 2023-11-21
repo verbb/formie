@@ -18,7 +18,7 @@ use verbb\formie\integrations\emailmarketing;
 use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\payments;
 use verbb\formie\integrations\webhooks;
-use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
@@ -319,9 +319,7 @@ class Integrations extends Component
     {
         // Direct DB update to keep it out of PC, plus speed
         // Update the settings as some providers add from provider callback.
-        return Craft::$app->getDb()->createCommand()
-            ->update('{{%formie_integrations}}', ['tokenId' => $token, 'settings' => Json::encode($integration->settings)], ['id' => $integration->id])
-            ->execute();
+        return Db::update('{{%formie_integrations}}', ['tokenId' => $token, 'settings' => Json::encode($integration->settings)], ['id' => $integration->id]);
     }
 
     public function handleChangedIntegration(ConfigEvent $event): void
@@ -594,7 +592,7 @@ class Integrations extends Component
         return ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
     }
 
-    public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, bool $force = false): array
+    public function getAllEnabledCaptchasForForm(Form $form, FormPage $page = null, bool $force = false): array
     {
         $captchas = [];
         $integrations = $this->getAllEnabledIntegrationsForForm($form);
@@ -630,7 +628,7 @@ class Integrations extends Component
         return $captchas;
     }
 
-    public function getCaptchasHtmlForForm(Form $form, FieldLayoutPage $page = null): string
+    public function getCaptchasHtmlForForm(Form $form, FormPage $page = null): string
     {
         $html = '';
 

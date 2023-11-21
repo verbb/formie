@@ -106,22 +106,16 @@
         <div id="fields">
             {% set fieldLayout = submission.getFieldLayout() %}
 
-            {% for tab in fieldLayout.getTabs() %}
-                <div id="{{ tab.getHtmlId() }}"{% if not loop.first %} class="hidden"{% endif %}>
-                    {% set rows = craft.formie.plugin.fields.groupIntoRows(tab.getCustomFields()) %}
-
+            {% for page in fieldLayout.getPages() %}
+                <div id="{{ page.handle }}"{% if not loop.first %} class="hidden"{% endif %}>
                     {% namespace 'fields' %}
-                        {% for row in rows %}
-                            {% for field in row.fields %}
-                                {% if field.type == 'verbb\\formie\\fields\\formfields\\Heading' %}
-                                    {% include 'formie/_formfields/heading/input' %}
-                                {% else %}
-                                    {% include '_includes/field' with {
-                                        field: field,
-                                        element: submission,
-                                        required: field.required,
-                                    } %}
-                                {% endif %}
+                        {% for row in page.getRows() %}
+                            {% for field in row.getFields() %}
+                                {% include '_includes/field' with {
+                                    field: field,
+                                    element: submission,
+                                    required: field.required,
+                                } %}
                             {% endfor %}
                         {% endfor %}
                     {% endnamespace %}
@@ -152,7 +146,7 @@
         </div>
 
         <div class="input ltr">
-            <a href="{{ submission.form.cpEditUrl }}">{{ submission.form }}</a>
+            <a href="{{ submission.form.getCpEditUrl() }}">{{ submission.form }}</a>
         </div>
     </div>
 

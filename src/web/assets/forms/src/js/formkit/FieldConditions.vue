@@ -363,7 +363,7 @@ export default {
 
             fields.forEach((field) => {
                 // Don't allow conditions on _this_ field
-                if (this.field.vid === field.vid) {
+                if (this.field.__id === field.__id) {
                     return;
                 }
 

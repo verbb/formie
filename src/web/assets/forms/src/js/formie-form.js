@@ -6,7 +6,7 @@ if (import.meta.hot) {
     import.meta.hot.accept();
 }
 
-import { get, isEmpty } from 'lodash-es';
+import { get, isEmpty, merge } from 'lodash-es';
 import { generateHandle, getNextAvailableHandle, newId } from '@utils/string';
 import { clone } from '@utils/object';
 
@@ -58,9 +58,6 @@ if (typeof Craft.Formie === typeof undefined) {
 
 Craft.Formie.EditForm = Garnish.Base.extend({
     init(settings) {
-        // Add isStencil flag
-        settings.config.isStencil = settings.isStencil;
-
         // Initialise our Vuex stores with data ASAP
         store.dispatch('form/setFormConfig', settings.config);
         store.dispatch('form/setVariables', settings.variables);
@@ -75,6 +72,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
         // Create some Vue instances for other elements on the page, outside of the form builder
         new Craft.Formie.PageTitle();
+        new Craft.Formie.ErrorSummary();
         new Craft.Formie.SaveButton();
 
         const app = createVueApp({
@@ -111,7 +109,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                         return;
                     }
 
-                    if (!settings.isStencil) {
+                    if (!this.form.isStencil) {
                         this.templateReloadNotice = true;
                     }
                 },
@@ -162,41 +160,11 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                 },
 
                 getFormData(options = {}) {
-                    const formElem = this.getFormElement();
-                    const data = new FormData(formElem);
+                    const data = new FormData(this.getFormElement());
 
-                    // Quick-n-easy clone
-                    const pageData = clone(this.form.pages);
-
-                    // Filter out some unwanted data
-                    if (pageData) {
-                        pageData.forEach((page) => {
-                            delete page.errors;
-                            delete page.hasError;
-
-                            page.rows.forEach((row) => {
-                                row.fields.forEach((field) => {
-                                    delete field.icon;
-                                    delete field.errors;
-                                    delete field.hasError;
-                                });
-                            });
-                        });
-                    }
-
-                    // Quick-n-easy clone
-                    const notificationsData = clone(this.notifications);
-
-                    // Filter out some unwanted data
-                    if (notificationsData) {
-                        notificationsData.forEach((notification) => {
-                            delete notification.errors;
-                            delete notification.hasError;
-                        });
-                    }
-
-                    data.append('pages', JSON.stringify(pageData));
-                    data.append('notifications', JSON.stringify(notificationsData));
+                    // Add serialized models for form and notifications
+                    data.append('pages', JSON.stringify(this.$store.getters['form/serializedPayload']));
+                    data.append('notifications', JSON.stringify(this.$store.getters['notifications/serializedPayload']));
 
                     Object.keys(options).forEach((option) => {
                         data.append(option, options[option]);
@@ -226,13 +194,12 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                         $integrationsTab.classList.remove('error');
                     }
 
-                    const { formBuilder, notificationBuilder } = this.$refs;
-
+                    // Serialize the form page, then add in the form builder and notifications data
                     const data = this.getFormData(options);
 
                     let actionUrl = 'formie/forms/save';
 
-                    if (settings.isStencil) {
+                    if (this.form.isStencil) {
                         actionUrl = 'formie/stencils/save';
                     }
 
@@ -243,23 +210,10 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     Craft.sendActionRequest('POST', actionUrl, { data }).then((response) => {
                         if (response.data) {
                             if (response.data.config) {
-                                // Because of how validation works on the Craft side, any new pages with an id of `newXXXX-XXXX` will be
-                                // stripped out. This is because we _have_ to strip them out as they need to be `null` to be saved properly.
-                                // But on failed validation, they're stripped out and we end up with all sorts of issues. This is the same for
-                                // rows. So - always ensure pages and rows have an ID.
-                                response.data.config.pages.forEach((page) => {
-                                    if (!page.id) {
-                                        page.id = newId();
-                                    }
+                                // Merge (deep) the server response with our client-side data (for success or fail)
+                                const newConfig = merge(this.clone(this.form), response.data.config);
 
-                                    page.rows.forEach((row) => {
-                                        if (!row.id) {
-                                            row.id = newId();
-                                        }
-                                    });
-                                });
-
-                                this.$store.dispatch('form/setFormConfig', response.data.config);
+                                this.$store.dispatch('form/setFormConfig', newConfig);
                                 this.$store.dispatch('notifications/setNotifications', response.data.notifications);
                             }
 
@@ -286,66 +240,58 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                         Craft.cp.displayNotice(Craft.t('formie', data.redirectMessage));
 
                         return window.location = data.redirect;
-                    } if (!settings.isStencil) {
-                        history.replaceState({}, '', Craft.getUrl(`formie/forms/edit/${data.id}${location.hash}`));
+                    } if (this.form.isStencil) {
+                        history.replaceState({}, '', Craft.getUrl(`formie/settings/stencils/edit/${data.config.id}${location.hash}`));
 
-                        this.addInput('formId', data.id);
-                        this.addInput('fieldLayoutId', data.fieldLayoutId);
+                        this.addInput('stencilId', data.config.id);
                     } else {
-                        history.replaceState({}, '', Craft.getUrl(`formie/settings/stencils/edit/${data.id}${location.hash}`));
+                        history.replaceState({}, '', Craft.getUrl(`formie/forms/edit/${data.config.id}${location.hash}`));
 
-                        this.addInput('stencilId', data.id);
+                        this.addInput('formId', data.config.id);
                     }
 
-                    Craft.cp.displayNotice(Craft.t('formie', 'Form saved.'));
+                    if (this.form.isStencil) {
+                        Craft.cp.displayNotice(Craft.t('formie', 'Stencil saved.'));
+                    } else {
+                        Craft.cp.displayNotice(Craft.t('formie', 'Form saved.'));
+                    }
+
                     this.$events.emit('formie:save-form-loading', false);
                 },
 
                 onError(data = {}) {
-                    let message = 'Unable to save form.';
-
-                    if (data.errors && (data.errors.length || data.errors)) {
-                        message = `Unable to save form: ${JSON.stringify(data.errors)}.`;
+                    if (this.form.isStencil) {
+                        Craft.cp.displayError(Craft.t('formie', 'Couldn’t save stencil.'));
+                    } else {
+                        Craft.cp.displayError(Craft.t('formie', 'Couldn’t save form.'));
                     }
 
-                    Craft.cp.displayError(Craft.t('formie', message));
                     this.$events.emit('formie:save-form-loading', false);
 
-                    // TODO: Clean this up...
+                    // Not really a great way to handle this, with tabs being outside of Vue...
                     const $fieldsTab = document.querySelector('a[href="#tab-fields"]');
                     const $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
                     const $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
 
-                    if (data && data.config) {
-                        data.config.pages.forEach((page) => {
-                            page.rows.forEach((row) => {
-                                row.fields.forEach((field) => {
-                                    if ($fieldsTab && field.hasError) {
-                                        $fieldsTab.classList.add('error');
-                                    }
-                                });
-                            });
-                        });
-
-                        // Check for integration errors
-                        if (data.config.settings.integrations) {
-                            Object.keys(data.config.settings.integrations).forEach((handle) => {
-                                const integration = data.config.settings.integrations[handle];
-
-                                if ($integrationsTab && integration.errors) {
-                                    $integrationsTab.classList.add('error');
-                                }
-                            });
+                    this.form.pages.forEach((page) => {
+                        if ($fieldsTab && !isEmpty(page.errors)) {
+                            $fieldsTab.classList.add('error');
                         }
-                    }
+                    });
 
-                    if (data && data.notifications) {
-                        data.notifications.forEach((notification) => {
-                            if ($notificationsTab && notification.hasError) {
-                                $notificationsTab.classList.add('error');
+                    if (this.form.settings.errors) {
+                        Object.keys(this.form.settings.errors).forEach((errorKey) => {
+                            if ($integrationsTab && errorKey.startsWith('integrations.')) {
+                                $integrationsTab.classList.add('error');
                             }
                         });
                     }
+
+                    this.notifications.forEach((notification) => {
+                        if ($notificationsTab && !isEmpty(notification.errors)) {
+                            $notificationsTab.classList.add('error');
+                        }
+                    });
                 },
 
                 addInput(name, value) {
@@ -415,6 +361,50 @@ Craft.Formie.PageTitle = Garnish.Base.extend({
         });
 
         app.mount('#fui-page-title');
+    },
+});
+
+Craft.Formie.ErrorSummary = Garnish.Base.extend({
+    init() {
+        const app = createVueApp({
+            computed: {
+                form() {
+                    return this.$store.state.form;
+                },
+
+                errorMessage() {
+                    if (this.errors.length === 1) {
+                        return Craft.t('formie', 'Found {num} error', { num: this.errors.length });
+                    }
+
+                    return Craft.t('formie', 'Found {num} errors', { num: this.errors.length });
+                },
+
+                errors() {
+                    const errors = [];
+
+                    this.form.pages.forEach((page) => {
+                        page.rows.forEach((row) => {
+                            row.fields.forEach((field) => {
+                                if (field.errors) {
+                                    Object.entries(field.errors).forEach(([key, value]) => {
+                                        value.forEach((error) => {
+                                            const message = [`${page.label}:`, `${field.settings.label} -`, error];
+
+                                            errors.push(message.join(' '));
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    });
+
+                    return errors;
+                },
+            },
+        });
+
+        app.mount('#fui-error-summary');
     },
 });
 

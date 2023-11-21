@@ -13,11 +13,11 @@
     {% set tableData = tableData | merge([{
         id: template.id,
         labelHtml: {
-            url: template.cpEditUrl,
+            url: template.getCpEditUrl(),
             html: template.name,
         },
         title: template.name | t('formie'),
-        url: template.cpEditUrl,
+        url: template.getCpEditUrl(),
         handle: template.handle | e,
         _showDelete: template.canDelete(),
     }]) %}

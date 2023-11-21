@@ -17,14 +17,11 @@ use craft\db\Migration;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 
-/**
- * Install migration.
- */
 class Install extends Migration
 {
-    /**
-     * @inheritdoc
-     */
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         $this->createTables();
@@ -35,23 +32,8 @@ class Install extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
-        // Drop all form content tables
-        if ($this->db->tableExists('{{%formie_forms}}')) {
-            foreach (Form::find()->trashed(null)->all() as $form) {
-                /* @var Form $form */
-                if ($this->db->tableExists($form->fieldContentTable)) {
-                    MigrationHelper::dropAllForeignKeysOnTable($form->fieldContentTable, $this);
-                }
-
-                $this->dropTableIfExists($form->fieldContentTable);
-            }
-        }
-
         $this->dropForeignKeys();
         $this->removeTables();
         $this->removeContent();
@@ -79,8 +61,7 @@ class Install extends Migration
         $this->createTable('{{%formie_forms}}', [
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
-            // Factor in `{{$fmc_*}}`
-            'fieldContentTable' => $this->string(74)->notNull(),
+            'formFieldLayout' => $this->mediumText(),
             'settings' => $this->mediumText(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
@@ -140,28 +121,6 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_nested}}');
-        $this->createTable('{{%formie_nested}}', [
-            'id' => $this->primaryKey(),
-            'fieldId' => $this->integer()->notNull(),
-            'fieldLayoutId' => $this->integer()->notNull(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_nestedfieldrows}}');
-        $this->createTable('{{%formie_nestedfieldrows}}', [
-            'id' => $this->primaryKey(),
-            'ownerId' => $this->integer()->notNull(),
-            'fieldId' => $this->integer()->notNull(),
-            'sortOrder' => $this->smallInteger()->unsigned(),
-            'deletedWithOwner' => $this->boolean()->null(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
         $this->archiveTableIfExists('{{%formie_notifications}}');
         $this->createTable('{{%formie_notifications}}', [
             'id' => $this->primaryKey(),
@@ -189,17 +148,6 @@ class Install extends Migration
             'attachAssets' => $this->text(),
             'enableConditions' => $this->boolean()->defaultValue(false),
             'conditions' => $this->text(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_pagesettings}}');
-        $this->createTable('{{%formie_pagesettings}}', [
-            'id' => $this->primaryKey(),
-            'fieldLayoutId' => $this->integer()->notNull(),
-            'fieldLayoutTabId' => $this->integer()->notNull(),
-            'settings' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -291,17 +239,6 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_rows}}');
-        $this->createTable('{{%formie_rows}}', [
-            'id' => $this->primaryKey(),
-            'fieldLayoutId' => $this->integer()->notNull(),
-            'fieldLayoutFieldId' => $this->integer()->notNull(),
-            'row' => $this->integer()->notNull(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
         $this->archiveTableIfExists('{{%formie_sentnotifications}}');
         $this->createTable('{{%formie_sentnotifications}}', [
             'id' => $this->primaryKey(),
@@ -379,24 +316,6 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_syncs}}');
-        $this->createTable('{{%formie_syncs}}', [
-            'id' => $this->primaryKey(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_syncfields}}');
-        $this->createTable('{{%formie_syncfields}}', [
-            'id' => $this->primaryKey(),
-            'syncId' => $this->integer()->notNull(),
-            'fieldId' => $this->integer()->notNull(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
         $this->archiveTableIfExists('{{%formie_tokens}}');
         $this->createTable('{{%formie_tokens}}', [
             'id' => $this->primaryKey(),
@@ -419,15 +338,8 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntrySiteId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_formtemplates}}', 'fieldLayoutId', false);
-        $this->createIndex(null, '{{%formie_nested}}', 'fieldId', true);
-        $this->createIndex(null, '{{%formie_nested}}', 'fieldLayoutId', false);
-        $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'ownerId', false);
-        $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'fieldId', false);
-        $this->createIndex(null, '{{%formie_nestedfieldrows}}', 'sortOrder', false);
         $this->createIndex(null, '{{%formie_notifications}}', 'formId', false);
         $this->createIndex(null, '{{%formie_notifications}}', 'templateId', false);
-        $this->createIndex(null, '{{%formie_pagesettings}}', 'fieldLayoutId', false);
-        $this->createIndex(null, '{{%formie_pagesettings}}', 'fieldLayoutTabId', true);
         $this->createIndex(null, '{{%formie_payments}}', 'integrationId', false);
         $this->createIndex(null, '{{%formie_payments}}', 'fieldId', false);
         $this->createIndex(null, '{{%formie_payments}}', 'reference', false);
@@ -446,14 +358,11 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_relations}}', ['sourceId'], false);
         $this->createIndex(null, '{{%formie_relations}}', ['targetId'], false);
         $this->createIndex(null, '{{%formie_relations}}', ['sourceSiteId'], false);
-        $this->createIndex(null, '{{%formie_rows}}', 'fieldLayoutId', false);
-        $this->createIndex(null, '{{%formie_rows}}', 'fieldLayoutFieldId', true);
         $this->createIndex(null, '{{%formie_stencils}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_stencils}}', 'defaultStatusId', false);
         $this->createIndex(null, '{{%formie_submissions}}', 'formId', false);
         $this->createIndex(null, '{{%formie_submissions}}', 'statusId', false);
         $this->createIndex(null, '{{%formie_submissions}}', 'userId', false);
-        $this->createIndex(null, '{{%formie_syncfields}}', ['syncId', 'fieldId'], true);
     }
 
     public function addForeignKeys(): void
@@ -464,16 +373,9 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_forms}}', ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_nested}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_nested}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['ownerId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_nestedfieldrows}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['pdfTemplateId'], '{{%formie_pdftemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_pagesettings}}', ['fieldLayoutTabId'], '{{%fieldlayouttabs}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_payments}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_payments}}', ['subscriptionId'], '{{%formie_payments_subscriptions}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_payments}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
@@ -486,8 +388,6 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
         $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_rows}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_rows}}', ['fieldLayoutFieldId'], '{{%fieldlayoutfields}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'SET NULL', null);
@@ -499,7 +399,6 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_submissions}}', ['statusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_syncfields}}', ['syncId'], '{{%formie_syncs}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_syncfields}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
     }
 
     public function removeTables(): void
@@ -509,22 +408,16 @@ class Install extends Migration
             'formie_forms',
             'formie_formtemplates',
             'formie_integrations',
-            'formie_nested',
-            'formie_nestedfieldrows',
             'formie_notifications',
-            'formie_pagesettings',
             'formie_payments',
             'formie_payments_plans',
             'formie_payments_subscriptions',
             'formie_pdftemplates',
             'formie_relations',
-            'formie_rows',
             'formie_sentnotifications',
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
-            'formie_syncfields',
-            'formie_syncs',
             'formie_tokens',
         ];
 
@@ -543,19 +436,16 @@ class Install extends Migration
 
         // Delete Form Elements
         $this->delete('{{%elements}}', ['type' => Form::class]);
-
-        // Delete NestedFieldRow Elements
-        $this->delete('{{%elements}}', ['type' => NestedFieldRow::class]);
     }
 
     public function dropProjectConfig(): void
     {
-        Craft::$app->projectConfig->remove('formie');
+        Craft::$app->getProjectConfig()->remove('formie');
     }
 
     public function insertDefaultData(): void
     {
-        $projectConfig = Craft::$app->projectConfig;
+        $projectConfig = Craft::$app->getProjectConfig();
 
         // Don't make the same config changes twice
         $installed = ($projectConfig->get('plugins.formie', true) !== null);
@@ -588,6 +478,10 @@ class Install extends Migration
         }
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function dropForeignKeys(): void
     {
         $tables = [
@@ -595,22 +489,16 @@ class Install extends Migration
             'formie_forms',
             'formie_formtemplates',
             'formie_integrations',
-            'formie_nested',
-            'formie_nestedfieldrows',
             'formie_notifications',
-            'formie_pagesettings',
             'formie_payments',
             'formie_payments_plans',
             'formie_payments_subscriptions',
             'formie_pdftemplates',
             'formie_relations',
-            'formie_rows',
             'formie_sentnotifications',
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
-            'formie_syncfields',
-            'formie_syncs',
             'formie_tokens',
         ];
 
@@ -620,6 +508,10 @@ class Install extends Migration
             }
         }
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _defaultStatuses(): void
     {

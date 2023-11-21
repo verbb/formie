@@ -73,12 +73,10 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
 
         $contentFieldGqlTypes = [];
 
-        if ($fieldLayout = $context->getFieldLayout()) {
-            /** @var Field $contentField */
-            foreach ($fieldLayout->getCustomFields() as $contentField) {
-                if ($contentField->includeInGqlSchema($schema)) {
-                    $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
-                }
+        /** @var Field $contentField */
+        foreach ($context->getFields() as $contentField) {
+            if ($contentField->includeInGqlSchema($schema)) {
+                $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
             }
         }
 

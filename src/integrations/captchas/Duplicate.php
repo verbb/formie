@@ -105,7 +105,7 @@ class Duplicate extends Captcha
         $array = array_filter([
             self::DUPLICATE_INPUT_NAME . '_',
             $form->id,
-            $page->id ?? null,
+            $page->handle ?? null,
         ]);
 
         return implode('', $array);

@@ -31,9 +31,9 @@ class MissingField extends FormField implements MissingComponentInterface
         return '';
     }
 
-    public static function hasContentColumn(): bool
+    public function getFormBuilderSettings(): array
     {
-        return false;
+        return [];
     }
 
 

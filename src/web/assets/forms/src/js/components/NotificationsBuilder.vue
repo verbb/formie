@@ -17,7 +17,7 @@
                             </thead>
 
                             <tbody class="vuetable-body">
-                                <notification v-for="(notification) in notifications" :key="notification.id" ref="notification" :notification="notification" :schema="schema" />
+                                <notification v-for="(notification) in notifications" :key="notification.__id" ref="notification" :notification="notification" :schema="schema" />
                             </tbody>
                         </table>
                     </div>
@@ -53,6 +53,8 @@
 <script>
 import { mapState } from 'vuex';
 
+import { newId } from '@utils/string';
+
 import Notification from '@components/Notification.vue';
 import ExistingNotificationModal from '@components/ExistingNotificationModal.vue';
 
@@ -85,6 +87,8 @@ export default {
         newNotification() {
             // Create a new model each time we create a field. Populate any defaults
             this.newNotificationModel = {
+                __id: newId(),
+                __isNew: true,
                 enabled: true,
                 attachFiles: true,
                 enableConditions: false,

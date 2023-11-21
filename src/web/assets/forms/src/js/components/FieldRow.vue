@@ -19,7 +19,7 @@
             <field
                 v-for="(field, index) in fields"
                 ref="fields"
-                :key="field.vid"
+                :key="field.__id"
                 :column-index="index"
                 :page-index="pageIndex"
                 :row-index="rowIndex"

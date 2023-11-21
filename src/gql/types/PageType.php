@@ -26,7 +26,7 @@ class PageType extends ObjectType
     {
         $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
 
-        $fields = $source->getCustomFields();
+        $fields = $source->getFields();
         $includeDisabled = $arguments['includeDisabled'] ?? false;
 
         // Don't include disabled fields by default for GQL

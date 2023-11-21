@@ -20,6 +20,7 @@ use craft\base\SavableComponent;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\queue\JobInterface;
@@ -730,7 +731,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getCustomFields(), 'handle');
+        $formFields = ArrayHelper::index($submission->getFields(), 'handle');
 
         // Try and get the form field we're pulling data from
         $field = $formFields[$fieldHandle] ?? null;
@@ -921,9 +922,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $data = StringHelper::emojiToShortcodes((string)$data);
 
         // Direct DB update to keep it out of PC, plus speed
-        Craft::$app->getDb()->createCommand()
-            ->update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id])
-            ->execute();
+        Db::update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id]);
     }
 
     private function getCache($key)

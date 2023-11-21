@@ -61,7 +61,7 @@ class FormQuery extends ElementQuery
         $this->query->select([
             'formie_forms.id',
             'formie_forms.handle',
-            'formie_forms.fieldContentTable',
+            'formie_forms.formFieldLayout',
             'formie_forms.settings',
             'formie_forms.templateId',
             'formie_forms.submitActionEntryId',

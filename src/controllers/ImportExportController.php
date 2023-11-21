@@ -110,7 +110,7 @@ class ImportExportController extends Controller
             $type = explode('\\', $field['type']);
             $type = array_pop($type);
 
-            $this->stdout("        > {$type}: “{$field['label']}” `({$field['handle']})`.", Console::FG_GREEN);
+            $this->stdout("        > {$type}: “{$field['settings']['label']}” `({$field['settings']['handle']})`.", Console::FG_GREEN);
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
@@ -171,7 +171,7 @@ class ImportExportController extends Controller
             $form = ImportExportHelper::createFormFromImport($json);
         }
 
-        if (!Formie::$plugin->getForms()->saveForm($form)) {
+        if (!Craft::$app->getElements()->saveElement($form)) {
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([

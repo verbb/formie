@@ -6,6 +6,7 @@ import { find, flatMap, forEach, filter, omitBy } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
 import { newId } from '@utils/string';
+import { clone } from '@utils/object';
 
 // State is simply an object that contains the properties that need to be shared within the application:
 // The state must return a function to make the module reusable.
@@ -19,12 +20,13 @@ const getRows = (payload) => {
         // eslint-disable-next-line
         const field = getters.field(state)(payload.fieldId);
 
-        if (typeof field.rows === 'undefined') {
-            field.rows = [];
+        if (typeof field.settings.rows === 'undefined') {
+            field.settings.rows = [];
         }
 
-        return ref(field.rows);
+        return ref(field.settings.rows);
     }
+
     if (typeof state.pages[payload.pageIndex].rows === 'undefined') {
         state.pages[payload.pageIndex].rows = [];
     }
@@ -37,7 +39,7 @@ const getRows = (payload) => {
 // In addition, Actions may or may not pass in a payload as the second argument:
 const mutations = {
     SET_FORM_CONFIG(state, config) {
-        // Ensure all fields have a `vid` set, which we use in Vue to uniquely identify fields
+        // Ensure all fields have a `__id` set, which we use in Vue to uniquely identify fields
         // As we want to keep `id` reserved for server-side, saved field models. This helps
         // separate Vue instances of fields, while not setting the IDs to `new-2546` which doesn't
         // play well server-side (Postgres). More to the point, when validation fails server-side, the IDs
@@ -46,12 +48,27 @@ const mutations = {
         // Maybe a better way to prep this instead of the massive nesting below??
         if (config.pages && Array.isArray(config.pages)) {
             config.pages.forEach((page) => {
+                // Normalize some arrays that should be objects
+                if (page.errors && Array.isArray(page.errors)) {
+                    page.errors = {};
+                }
+
                 if (page.rows && Array.isArray(page.rows)) {
                     page.rows.forEach((row) => {
+                        // Normalize some arrays that should be objects
+                        if (row.errors && Array.isArray(row.errors)) {
+                            row.errors = {};
+                        }
+
                         if (row.fields && Array.isArray(row.fields)) {
                             row.fields.forEach((field) => {
-                                if (!field.vid) {
-                                    field.vid = newId();
+                                // Normalize some arrays that should be objects
+                                if (field.errors && Array.isArray(field.errors)) {
+                                    field.errors = {};
+                                }
+
+                                if (!field.__id) {
+                                    field.__id = newId();
 
                                     // For nested fields - more rows/fields!
                                     if (field.rows && Array.isArray(field.rows)) {
@@ -234,8 +251,7 @@ const mutations = {
         forEach(state.pages, (page) => {
             forEach(page.rows, (row) => {
                 forEach(row.fields, (field, key) => {
-
-                    if (field && field.vid == id) {
+                    if (field && field.__id == id) {
                         row.fields.splice(key, 1);
                         return false;
                     }
@@ -372,8 +388,35 @@ const getters = {
         return state;
     },
 
-    formHash: (state) => {
-        return md5Hex(JSON.stringify(state.pages));
+    formHash: (state, getters, store) => {
+        // Generate a hash of Vue data, used for unload warnings
+        return md5Hex(JSON.stringify(state.pages) + JSON.stringify(store.notifications));
+    },
+
+    serializedPayload: (state) => {
+        // Filter the model to send back to the server
+        const pages = clone(state.pages);
+
+        // Filter out some unwanted data
+        pages.forEach((page) => {
+            delete page.__id;
+            delete page.id;
+            delete page.errors;
+
+            page.rows.forEach((row) => {
+                delete row.__id;
+                delete row.id;
+                delete row.errors;
+
+                row.fields.forEach((field) => {
+                    delete field.__id;
+                    delete field.icon;
+                    delete field.errors;
+                });
+            });
+        });
+
+        return pages;
     },
 
     pageSettings: (state) => {
@@ -389,10 +432,10 @@ const getters = {
     },
 
     field: (state) => {
-        return (vid) => {
+        return (id) => {
             const allFields = getters.fields(state);
 
-            return find(allFields, { vid });
+            return find(allFields, { __id: id });
         };
     },
 
@@ -616,7 +659,7 @@ const getters = {
                         field.subFieldOptions.forEach((subField) => {
                             fields.push({
                                 id: field.id,
-                                vid: field.vid,
+                                __id: field.__id,
                                 type: field.type,
                                 label: `${field.label}: ${subField.label}`,
                                 value: `{field.${field.handle}.${subField.handle}}`,
@@ -630,7 +673,7 @@ const getters = {
                                     groupfield.subFieldOptions.forEach((subField) => {
                                         fields.push({
                                             id: field.id,
-                                            vid: field.vid,
+                                            __id: field.__id,
                                             type: field.type,
                                             label: `${field.label}: ${groupfield.label}: ${subField.label}`,
                                             value: `{field.${field.handle}.${groupfield.handle}.${subField.handle}}`,
@@ -639,7 +682,7 @@ const getters = {
                                 } else {
                                     fields.push({
                                         id: field.id,
-                                        vid: field.vid,
+                                        __id: field.__id,
                                         type: field.type,
                                         label: `${field.label}: ${groupfield.label}`,
                                         value: `{field.${field.handle}.${groupfield.handle}}`,
@@ -650,7 +693,7 @@ const getters = {
                     } else {
                         fields.push({
                             id: field.id,
-                            vid: field.vid,
+                            __id: field.__id,
                             type: field.type,
                             label: field.label,
                             value: `{field.${field.handle}}`,
@@ -699,9 +742,9 @@ const getters = {
     },
 
     fieldHandlesForField: (state, getters, rootState, rootGetters) => {
-        return (vid) => {
+        return (id) => {
             const field = getters.fields.find((field) => {
-                return field.vid === vid;
+                return field.__id === id;
             });
 
             if (field) {
@@ -721,22 +764,22 @@ const getters = {
     },
 
     fieldHandlesExcluding: (state, getters, rootState, rootGetters) => {
-        return (vid, parentId) => {
+        return (id, parentId) => {
             const allRows = flatMap(state.pages, 'rows');
             let allFields = flatMap(allRows, 'fields');
 
             // When supplying a parent field, limit handles to children of the parent
             if (parentId) {
                 const field = getters.fields.find((field) => {
-                    return field.vid === parentId;
+                    return field.__id === parentId;
                 });
 
                 if (field) {
-                    allFields = flatMap(field.rows, 'fields');
+                    allFields = flatMap(field.settings.rows, 'fields');
                 }
             }
 
-            allFields = omitBy(allFields, { vid });
+            allFields = omitBy(allFields, { __id: id });
 
             let fieldHandles = flatMap(allFields, 'handle');
 

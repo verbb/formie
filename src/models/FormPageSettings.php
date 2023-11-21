@@ -6,7 +6,7 @@ use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
-class PageSettings extends Model
+class FormPageSettings extends Model
 {
     // Properties
     // =========================================================================
@@ -32,9 +32,6 @@ class PageSettings extends Model
     // Public Methods
     // =========================================================================
     
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         if (!$this->submitButtonLabel) {

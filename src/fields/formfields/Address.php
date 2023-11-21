@@ -192,74 +192,40 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         return parent::serializeValue($value, $element);
     }
 
-    public function getExtraBaseFieldConfig(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
-            'countries' => static::getCountryOptions(),
-        ];
-    }
-
-    public function getFieldDefaults(): array
-    {
-        return [
-            'autocompleteEnabled' => false,
-            'autocompleteCollapsed' => true,
             'autocompleteLabel' => Craft::t('formie', 'Auto-Complete'),
-            'autocompleteDefaultValue' => '',
-            'autocompletePrePopulate' => '',
-            'autocompleteCurrentLocation' => false,
-
-            'address1Enabled' => true,
-            'address1Collapsed' => true,
             'address1Label' => Craft::t('formie', 'Address 1'),
-            'address1DefaultValue' => '',
-            'address1PrePopulate' => '',
-
-            'address2Enabled' => false,
-            'address2Collapsed' => true,
             'address2Label' => Craft::t('formie', 'Address 2'),
-            'address2DefaultValue' => '',
-            'address2PrePopulate' => '',
-
-            'address3Enabled' => false,
-            'address3Collapsed' => true,
             'address3Label' => Craft::t('formie', 'Address 3'),
-            'address3DefaultValue' => '',
-            'address3PrePopulate' => '',
-
-            'cityEnabled' => true,
-            'cityCollapsed' => true,
             'cityLabel' => Craft::t('formie', 'City'),
-            'cityDefaultValue' => '',
-            'cityPrePopulate' => '',
-
-            'stateEnabled' => true,
-            'stateCollapsed' => true,
             'stateLabel' => Craft::t('formie', 'State / Province'),
-            'stateDefaultValue' => '',
-            'statePrePopulate' => '',
-
-            'zipEnabled' => true,
-            'zipCollapsed' => true,
             'zipLabel' => Craft::t('formie', 'ZIP / Postal Code'),
-            'zipDefaultValue' => '',
-            'zipPrePopulate' => '',
-
-            'countryEnabled' => true,
-            'countryCollapsed' => true,
             'countryLabel' => Craft::t('formie', 'Country'),
-            'countryDefaultValue' => '',
-            'countryPrePopulate' => '',
 
             'instructionsPosition' => AboveInput::class,
         ];
+    }
+
+    public function getElementValidationRules(): array
+    {
+        $rules = parent::getElementValidationRules();
+        $rules[] = [$this->handle, 'validateRequiredFields', 'skipOnEmpty' => false];
+
+        return $rules;
+    }
+
+    public function validateSubfields(ElementInterface $element, string $attribute): void
+    {
+        $subFields = [];
 
         if ($this->autocompleteEnabled) {
             $subFields[] = 'autocomplete';
         }
 
         /* @var AddressModel $value */
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($attribute);
 
         foreach ($subFields as $subField) {
             $labelProp = "{$subField}Label";
@@ -268,14 +234,14 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError($this->handle, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($attribute, Craft::t('formie', '"{label}" cannot be blank.', [
                     'label' => $this->$labelProp,
                 ]));
             }
 
             // Validate the postcode separately
             if ($subField === 'zip' && strlen($fieldValue) > 10) {
-                $element->addError($this->handle, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+                $element->addError($attribute, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
                     'label' => $this->$labelProp,
                     'max' => 10,
                 ]));

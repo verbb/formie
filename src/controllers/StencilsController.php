@@ -9,6 +9,7 @@ use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
@@ -55,52 +56,10 @@ class StencilsController extends Controller
     {
         $variables = compact('id', 'stencil');
 
-        if (!$variables['stencil']) {
-            if ($variables['id']) {
-                $variables['stencil'] = Formie::$plugin->getStencils()->getStencilById($variables['id']);
-
-                if (!$variables['stencil']) {
-                    throw new HttpException(404);
-                }
-            } else {
-                $variables['stencil'] = new Stencil();
-            }
-        }
-
-        if ($variables['stencil']->id) {
-            $variables['title'] = $variables['stencil']->name;
-        } else {
-            $variables['title'] = Craft::t('formie', 'Create a new stencil');
-        }
-
-        /* @var Stencil $stencil */
-        $stencil = $variables['stencil'];
+        $this->_prepareVariableArray($variables);
 
         // For form builder compatibility.
-        $variables['form'] = $stencil;
-
-        $allStencils = Formie::$plugin->getStencils()->getAllStencils();
-
-        $variables['tabs'] = $variables['formTabs'] = Formie::$plugin->getForms()->buildTabs();
-        $variables['notificationsTabs'] = Formie::$plugin->getForms()->buildNotificationTabs();
-
-        $config = $stencil->getFormConfig();
-        $notifications = ArrayHelper::remove($config, 'notifications', []);
-
-        $variables['formConfig'] = $config;
-        $variables['notifications'] = $notifications;
-        $variables['variables'] = Variables::getVariablesArray();
-        $variables['fields'] = Formie::$plugin->getFields()->getRegisteredFieldGroups();
-        $variables['emailTemplates'] = Formie::$plugin->getEmailTemplates()->getAllTemplates();
-        $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
-        $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
-        $variables['formHandles'] = ArrayHelper::getColumn($allStencils, 'handle');
-        $variables['formUsage'] = [];
-
-        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
-
-        $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
-        $variables['maxFieldHandleLength'] = HandleHelper::getMaxFieldHandle();
+        $variables['form'] = $variables['stencil'];
 
         Plugin::registerAsset('src/js/formie-form.js');
 
@@ -110,9 +69,8 @@ class StencilsController extends Controller
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
+
         $request = $this->request;
-        $notificationsConfig = null;
-        $form = null;
 
         $duplicate = (bool)$request->getParam('duplicateStencil');
 
@@ -129,7 +87,7 @@ class StencilsController extends Controller
             $stencil = clone $stencil;
             $stencil->id = null;
             $stencil->uid = null;
-            $stencil->name .= ' ' . Craft::t('formie', 'Copy');
+            $stencil->name = Craft::t('formie', '{name} Copy', ['name' => $stencil->name]);
 
             $stencils = Formie::$plugin->getStencils()->getAllStencils();
             $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
@@ -146,47 +104,37 @@ class StencilsController extends Controller
             $stencil->setDefaultStatus($status);
         }
 
-        if ($settings = $request->getParam('settings')) {
-            $pages = Json::decode($request->getParam('pages'));
-            $notifications = Json::decode($request->getParam('notifications'));
+        // if ($settings = $request->getParam('settings')) {
+        $settings = $request->getParam('settings');
+        $pages = Json::decode($request->getParam('pages'));
+        $notifications = Json::decode($request->getParam('notifications'));
 
-            // Set form data.
-            $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
-            $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
-            $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
-            $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
-            $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
+        // Set form data.
+        $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
+        $stencil->data->userDeletedAction = $request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
+        $stencil->data->fileUploadsAction = $request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
+        $stencil->data->dataRetention = $request->getParam('dataRetention', $stencil->data->dataRetention);
+        $stencil->data->dataRetentionValue = $request->getParam('dataRetentionValue', $stencil->data->dataRetentionValue);
 
-            // Build temp form for validation.
-            $form = Formie::$plugin->getForms()->buildFormFromPost();
+        // Build temp form for validation.
+        $form = Formie::$plugin->getForms()->buildFormFromPost();
 
-            // Don't validate the handle.
-            $form->handle .= mt_rand();
+        // Don't validate the handle.
+        $form->handle .= mt_rand();
 
-            $form->validate();
+        $form->validate();
 
-            $formHasErrors = $form->hasErrors();
-            $formErrors = $form->getErrors();
-        } else {
-            $formHasErrors = false;
-            $formErrors = [];
-        }
+        $formErrors = $form->getErrors();
 
         // Save it
-        if ($formHasErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
+        if ($formErrors || !Formie::$plugin->getStencils()->saveStencil($stencil)) {
             $stencil->name = $originalName;
 
             if ($request->getAcceptsJson()) {
-                $notifications = $form->getNotifications();
-                $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
-
                 return $this->asJson([
                     'success' => false,
-                    'id' => $stencil->id,
-                    'config' => $form->getFormConfig(),
-                    'notifications' => $notificationsConfig,
-                    'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                    'fieldLayoutId' => $form->fieldLayoutId,
+                    'config' => $form->getFormBuilderConfig(),
+                    'notifications' => $form->getNotificationsConfig(),
                 ]);
             }
 
@@ -195,33 +143,17 @@ class StencilsController extends Controller
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $stencil,
                 'stencil' => $stencil,
-                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
             ]);
 
             return null;
         }
 
-        if ($form) {
-            $notifications = $form->getNotifications();
-            $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
-
-            // Setup fake IDs for the notifications. They're saved on the stencil, not models, but show like they are
-            foreach ($notificationsConfig as $key => $notification) {
-                // Generate a fake ID just for stencils. Helps to not show it as saved
-                $notificationsConfig[$key]['id'] = StringHelper::appendRandomString('stencil', 16);
-            }
-        }
-
         if ($request->getAcceptsJson()) {
             return $this->asJson([
                 'success' => true,
-                'id' => $stencil->id,
-                'config' => $stencil->getFormConfig(),
-                'notifications' => $notificationsConfig,
-                'errors' => ArrayHelper::merge($formErrors, $stencil->getErrors()),
-                'fieldLayoutId' => $form->fieldLayoutId,
+                'config' => $stencil->getFormBuilderConfig(),
+                'notifications' => $stencil->getNotificationsConfig(),
                 'redirect' => ($duplicate) ? $stencil->getCpEditUrl() : null,
-                'redirectMessage' => Craft::t('formie', 'Stencil saved.'),
             ]);
         }
 
@@ -241,5 +173,61 @@ class StencilsController extends Controller
         }
 
         return $this->asJson(['error' => Craft::t('formie', 'Couldn’t archive stencil.')]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _prepareVariableArray(array &$variables): void
+    {
+        if (!$variables['stencil']) {
+            if ($variables['id']) {
+                $variables['stencil'] = Formie::$plugin->getStencils()->getStencilById($variables['id']);
+
+                if (!$variables['stencil']) {
+                    throw new HttpException(404);
+                }
+            } else {
+                $variables['stencil'] = new Stencil();
+            }
+        }
+
+        if ($variables['stencil']->id) {
+            $variables['title'] = $variables['stencil']->name;
+        } else {
+            $variables['title'] = Craft::t('formie', 'Create a new stencil');
+        }
+
+        /** @var Stencil $stencil */
+        $stencil = $variables['stencil'];
+
+        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
+        $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
+        $variables['formUsage'] = [];
+
+        $variables['jsBuilderConfig'] = [
+            'config' => $stencil->getFormBuilderConfig(),
+            'fields' => Formie::$plugin->getFields()->getFormBuilderFieldTypes(),
+            'notifications' => $stencil->getNotificationsConfig(),
+            'variables' => Variables::getVariablesArray(),
+            'emailTemplates' => Formie::$plugin->getEmailTemplates()->getAllTemplates(),
+            'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
+            'formHandles' => $this->_getStencilHandles($stencil->id),
+            'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
+            'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
+            'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+        ];
+
+        $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs();
+    }
+
+    private function _getStencilHandles(int $stencilId): array
+    {
+        return (new Query())
+            ->select(['handle'])
+            ->from(['{{%formie_stencils}}'])
+            ->where(['not', ['id' => $stencilId]])
+            ->column();
     }
 }

@@ -183,6 +183,7 @@ export default {
         submitHandler() {
             // Validation has already cleared the form
 
+            // Add the notification (if a new one). Otherwise, model has already been updated in real-time
             this.notificationRef.addNotification();
 
             // Hide the modal

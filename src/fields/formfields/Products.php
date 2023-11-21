@@ -39,10 +39,10 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
-        getDefaultValue as traitGetDefaultValue;
+        // getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
-        getSavedFieldConfig as traitGetSavedFieldConfig;
+        getFormBuilderConfig as traitGetFormBuilderConfig;
         getSettingGqlTypes as traitGetSettingGqlTypes;
         defineHtmlTag as traitDefineHtmlTag;
         RelationFieldTrait::defineValueAsString insteadof FormFieldTrait;
@@ -90,39 +90,27 @@ class Products extends CommerceProducts implements FormFieldInterface
         Formie::$plugin->getFields()->checkRequiredPlugin($this);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSavedFieldConfig(): array
+    public function getFormBuilderConfig(): array
     {
-        $settings = $this->traitGetSavedFieldConfig();
+        $settings = $this->traitGetFormBuilderConfig();
 
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getExtraBaseFieldConfig(): array
+    public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();
 
         return [
-            'sourceOptions' => $options,
             'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a product'),
-            'labelSource' => 'title',
-            'orderBy' => 'title ASC',
         ];
     }
 

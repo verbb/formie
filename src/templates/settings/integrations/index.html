@@ -27,7 +27,7 @@
     {% set tableData = tableData | merge([{
         id: integration.id,
         title: integration.getName() | t('formie'),
-        url: integration.cpEditUrl,
+        url: integration.getCpEditUrl(),
         name: integration.getName() | t('formie') | e,
         enabled: integration.getEnabled(),
         connected: integration.getIsConnected(),

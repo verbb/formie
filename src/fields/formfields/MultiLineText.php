@@ -41,35 +41,16 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public bool $limit = false;
     public ?int $min = null;
-    public ?string $minType = null;
+    public ?string $minType = 'characters';
     public ?int $max = null;
-    public ?string $maxType = null;
+    public ?string $maxType = 'characters';
     public bool $useRichText = false;
-    public ?array $richTextButtons = null;
+    public ?array $richTextButtons = ['bold', 'italic'];
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
-    public function __construct(array $config = [])
-    {
-        // Migrate legacy settings - remove at the next breakpoint
-        if (array_key_exists('limitType', $config)) {
-            $config['maxType'] = $config['limitType'];
-            unset($config['limitType']);
-        }
-        
-        // Migrate legacy settings - remove at the next breakpoint
-        if (array_key_exists('limitAmount', $config)) {
-            $config['max'] = $config['limitAmount'];
-            unset($config['limitAmount']);
-        }
-
-        parent::__construct($config);
-    }
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         if ($value !== null) {
@@ -117,7 +98,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    public function validateMinCharacters(ElementInterface $element): void
+    public function validateMinCharacters(ElementInterface $element, string $attribute): void
     {
         $min = (int)($this->min ?? 0);
 
@@ -125,7 +106,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->handle);
+        $value = (string)$element->getFieldValue($attribute);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
@@ -137,13 +118,13 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $count = StringHelper::count($string);
 
         if ($count < $min) {
-            $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} characters.', [
+            $element->addError($attribute, Craft::t('formie', 'You must enter at least {limit} characters.', [
                 'limit' => $min,
             ]));
         }
     }
 
-    public function validateMaxCharacters(ElementInterface $element): void
+    public function validateMaxCharacters(ElementInterface $element, string $attribute): void
     {
         $max = (int)($this->max ?? 0);
 
@@ -151,7 +132,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->handle);
+        $value = (string)$element->getFieldValue($attribute);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
@@ -163,13 +144,13 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $count = StringHelper::count($string);
 
         if ($count > $max) {
-            $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} characters.', [
+            $element->addError($attribute, Craft::t('formie', 'Limited to {limit} characters.', [
                 'limit' => $max,
             ]));
         }
     }
 
-    public function validateMinWords(ElementInterface $element): void
+    public function validateMinWords(ElementInterface $element, string $attribute): void
     {
         $min = (int)($this->min ?? 0);
 
@@ -177,17 +158,17 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($attribute);
         $count = count(explode(' ', $value));
 
         if ($count > $min) {
-            $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} words.', [
+            $element->addError($attribute, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
         }
     }
 
-    public function validateMaxWords(ElementInterface $element): void
+    public function validateMaxWords(ElementInterface $element, string $attribute): void
     {
         $max = (int)($this->max ?? 0);
 
@@ -195,11 +176,11 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($attribute);
         $count = count(explode(' ', $value));
 
         if ($count > $max) {
-            $element->addError($this->handle, Craft::t('formie', 'Limited to {limit} words.', [
+            $element->addError($attribute, Craft::t('formie', 'Limited to {limit} words.', [
                 'limit' => $max,
             ]));
         }
@@ -269,18 +250,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         }
 
         return $this->richTextButtons;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'minType' => 'characters',
-            'maxType' => 'characters',
-            'richTextButtons' => ['bold', 'italic'],
-        ];
     }
 
     public function getButtonOptions()

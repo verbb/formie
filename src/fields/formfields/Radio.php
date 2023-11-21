@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -10,7 +11,7 @@ use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\StringHelper;
 
-class Radio extends BaseOptionsField implements FormFieldInterface
+class Radio extends OptionsField
 {
     // Static Methods
     // =========================================================================
@@ -39,17 +40,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface
 
     // Public Methods
     // =========================================================================
-
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'options' => [],
-            'layout' => 'vertical',
-        ];
-    }
 
     public function getFieldOptions(): array
     {

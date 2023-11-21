@@ -28,7 +28,7 @@
             label: 'Default Label Position' | t('formie'),
             instructions: 'Fields will by default have their label position set to this option.' | t('formie'),
             name: 'defaultLabelPosition',
-            options: craft.formie.plugin.fields.getLabelPositionsArray(),
+            options: craft.formie.plugin.fields.getLabelPositionsOptions(),
             value: settings.defaultLabelPosition
         }) }}
 
@@ -36,7 +36,7 @@
             label: 'Default Instructions Position' | t('formie'),
             instructions: 'Fields will by default have their instructions position set to this option.' | t('formie'),
             name: 'defaultInstructionsPosition',
-            options: craft.formie.plugin.fields.getInstructionsPositionsArray(),
+            options: craft.formie.plugin.fields.getInstructionsPositionsOptions(),
             value: settings.defaultInstructionsPosition,
         }) }}
 
@@ -110,7 +110,7 @@
         <div id="default-datetime-date" class="{{ settings.defaultDateValueOption != 'date' ? 'hidden' }}">
             {{ forms.dateTimeField({
                 label: 'Default Date/Time' | t('formie'),
-                instructions: 'Entering a default value will place the value in the field when it loads.' | t('formie'),
+                instructions: 'Set a default value for the field when it doesn’t have a value.' | t('formie'),
                 name: 'defaultDateTime',
                 value: settings.getDefaultDateTimeValue(),
                 errors: settings.getErrors('defaultDateTime'),

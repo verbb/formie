@@ -43,16 +43,6 @@ class Heading extends FormField
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [
-            'headingSize' => 'h2',
-        ];
-    }
-
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/input', [

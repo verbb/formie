@@ -1,7 +1,7 @@
 {% hook 'formie.field.field-before' %}
 
-{% set value = value ?? renderOptions.value ?? field.getFieldValue(element) %}
-{% set errors = field.getFieldErrors(element) %}
+{% set value = value ?? renderOptions.value ?? element.getFieldValue(field.getFieldKey()) ?? field.normalizeValue(null) %}
+{% set errors = element ? element.getErrors(field.getFieldKey()) : [] %}
 
 {% set labelPosition = craft.formie.getLabelPosition(field, form) %}
 {% set subFieldLabelPosition = craft.formie.getLabelPosition(field, form, true) %}

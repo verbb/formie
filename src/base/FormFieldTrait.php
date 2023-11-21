@@ -3,15 +3,15 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFieldValueEvent;
+use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
-use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\fields\formfields;
-use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\fields\formfields\Hidden;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
@@ -26,7 +26,6 @@ use verbb\formie\positions\BelowInput;
 use Craft;
 use craft\base\ElementInterface;
 use craft\gql\types\DateTime as DateTimeType;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\HandleValidator;
@@ -95,16 +94,9 @@ trait FormFieldTrait
     public ?array $conditions = null;
     public bool $enableContentEncryption = false;
     public ?string $visibility = null;
-    
-    public ?int $formId = null;
-    public ?int $rowId = null;
-    public ?string $rowUid = null;
-    public ?int $rowIndex = null;
-
-    public bool $isNested = false;
+    public bool $isSynced = false;
 
     private ?Form $_form = null;
-    private ?NestedFieldInterface $_container = null;
     private array $_themeConfig = [];
     private ?FormFieldInterface $_parentField = null;
     private string $_namespace = 'fields';
@@ -122,34 +114,7 @@ trait FormFieldTrait
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getIsNew(): bool
-    {
-        return parent::getIsNew() || $this->getIsRef();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getIsRef(): bool
-    {
-        return $this->id && str_starts_with($this->id, 'sync:');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getValue(ElementInterface $element): mixed
-    {
-        return $element->getFieldValue($this->handle);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::serializeValue($value, $element);
 
@@ -161,10 +126,7 @@ trait FormFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
 
@@ -178,28 +140,6 @@ trait FormFieldTrait
         }
 
         return $value;
-    }
-
-    public function getFieldErrors(?ElementInterface $element = null): array
-    {
-        $errorKeys = [];
-
-        $field = $this;
-
-        while ($field) {
-            // Because the element can be either a submission or a nested row, we don't
-            // need to include the parent nested row handle in the error key.
-            if (!($field instanceof NestedFieldInterface)) {
-                // Be sure to prepend parent fields, as we're going deepest outward
-                array_unshift($errorKeys, $field->handle);
-            }
-
-            $field = $field->getParentField();
-        }
-
-        $errorKey = implode('.', $errorKeys);
-
-        return $element ? $element->getErrors($errorKey) : [];
     }
 
     public function getValueAsString(mixed $value, ?ElementInterface $element = null): mixed
@@ -262,8 +202,10 @@ trait FormFieldTrait
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_INTEGRATION, $event);
 
         // Raise the same event on the integration class for convenience
-        $integration->init(); // We need to manually trigger `init()` as it doesn't seem to kick off in a queue job
-        $integration->trigger($integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
+        if ($integration) {
+            $integration->init(); // We need to manually trigger `init()` as it doesn't seem to kick off in a queue job
+            $integration->trigger($integration::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
+        }
 
         return $event->value;
     }
@@ -301,17 +243,9 @@ trait FormFieldTrait
 
     public function populateValue($value): void
     {
-        $this->defaultValue = $value;
+        $this->defaultValue = $this->normalizeValue($value);
     }
 
-    public function parsePopulatedFieldValues($value, $element)
-    {
-        return $value;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function settingsAttributes(): array
     {
         $class = new ReflectionClass($this);
@@ -334,17 +268,6 @@ trait FormFieldTrait
             }
         }
 
-        if ($class->isSubclassOf(BaseOptionsField::class)) {
-            while (true) {
-                $extraTraits[] = $parent->getTraits();
-                $parent = $parent->getParentClass();
-
-                if ($parent->name !== BaseOptionsField::class) {
-                    break;
-                }
-            }
-        }
-
         // For performance
         $traits = array_merge(...$extraTraits);
 
@@ -357,16 +280,10 @@ trait FormFieldTrait
         }
 
         $names = array_unique($names);
-        ArrayHelper::removeValue($names, 'rowId');
-        ArrayHelper::removeValue($names, 'rowIndex');
-        ArrayHelper::removeValue($names, 'rowUid');
 
         return $names;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -394,67 +311,25 @@ trait FormFieldTrait
         }
     }
 
-    /**
-     * @return NestedFieldInterface|Form|null
-     */
-    public function getGqlFieldContext(): Form|NestedFieldInterface|null
-    {
-        return $this->isNested ? $this->getContainer() : $this->getForm();
-    }
-
-    /**
-     * Return the container if this is a nested field.
-     *
-     * @return NestedFieldInterface
-     */
-    public function getContainer(): NestedFieldInterface
-    {
-        return $this->_container;
-    }
-
-    /**
-     * Set the container for a nested field.
-     */
-    public function setContainer(NestedFieldInterface $container): void
-    {
-        $this->_container = $container;
-    }
-
-    /**
-     * @return Form|null
-     */
     public function getForm(): ?Form
     {
-        if (!$this->formId) {
-            // Try and fetch the form via the UID from the context
-            $uid = $this->getContextUid();
-
-            // Check if this is a nested field, and bubble-up
-            if (strstr($uid, 'formieField:')) {
-                $fieldUid = str_replace('formieField:', '', $uid);
-
-                if ($fieldUid) {
-                    if ($field = Craft::$app->getFields()->getFieldByUid($fieldUid)) {
-                        $uid = $field->getContextUid();
-                    }
-                }
-            }
-
-            /* @var Form $form */
-            if ($form = Form::find()->uid($uid)->one()) {
-                $this->formId = $form->id;
-
-                return $this->_form = $form;
-            }
-
-            return null;
-        }
-
         if ($this->_form) {
             return $this->_form;
         }
 
-        return $this->_form = Form::find()->id($this->formId)->one();
+        // Try and fetch the form via the UID from the context
+        $uid = $this->getContextUid();
+
+        // Check if this is a nested field, and bubble-up
+        if (str_contains($uid, 'formieField:')) {
+            if ($fieldUid = str_replace('formieField:', '', $uid)) {
+                if ($field = Craft::$app->getFields()->getFieldByUid($fieldUid)) {
+                    $uid = $field->getContextUid();
+                }
+            }
+        }
+
+        return $this->_form = Form::find()->uid($uid)->one();
     }
 
     public function setForm($value): void
@@ -468,7 +343,7 @@ trait FormFieldTrait
         // `fui-contactForm-xpvgyvsp-singleName` or `fui-contactForm-xpvgyvsp-multiName-firstName`
         $ids = [$form->getFormId(), ...$this->_getFullNamespace(), $this->handle, $extra];
 
-        return Html::getInputIdAttribute(array_filter($ids));
+        return Html::getInputIdAttribute(ArrayHelper::filterEmpty($ids));
     }
 
     public function getHtmlDataId(Form $form, ?string $extra = null): string
@@ -477,7 +352,7 @@ trait FormFieldTrait
         // `contactForm-singleName` or `contactForm-multiName-firstName`
         $ids = [$form->handle, ...$this->_getFullHandle(), $extra];
 
-        return implode('-', array_filter($ids));
+        return implode('-', ArrayHelper::filterEmpty($ids));
     }
 
     public function getHtmlName(?string $extra = null): string
@@ -486,7 +361,37 @@ trait FormFieldTrait
         // `fields[singleName]` or `fields[multiName][firstName]`
         $names = [...$this->_getFullNamespace(), $this->handle, $extra];
 
-        return Html::getInputNameAttribute(array_filter($names));
+        // Remove empty items, but allow `0` for namespaces
+        $names = ArrayHelper::filterEmpty($names);
+
+        return Html::getInputNameAttribute($names);
+    }
+
+    public function getFieldKey(): string
+    {
+        // Return the full value path for a field, including any parents in dot-notation.
+        // `singlename` or `multiName.firstName` or `group.text` or `repeater.0.text`
+        // This is to assist with submission content lookup, or submission errors and should be used
+        // instead of the simple `field.handle`, as it factors in the parent field and custom namespace
+        $names = [];
+
+        foreach ($this->_getFullNamespace() as $namespaceKey => $item) {
+            // We don't care about `fields`, we just want field info
+            if ($item === 'fields') {
+                continue;
+            }
+
+            // Convert any nested `repeater[0]` references in the namespace to be proper arrays
+            $names[] = explode('[', str_replace(']', '', $item));
+        }
+
+        // Flatten the array (for performance)
+        $names = array_merge(...$names);
+
+        // Remove empty items, but allow `0` for namespaces
+        $names = ArrayHelper::filterEmpty([...$names, $this->handle]);
+        
+        return implode('.', $names);
     }
 
     public function getContextUid(): array|string|null
@@ -508,15 +413,12 @@ trait FormFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return true;
     }
 
-    public function hasSubfields(): bool
+    public function hasSubFields(): bool
     {
         return false;
     }
@@ -536,78 +438,97 @@ trait FormFieldTrait
         return $this->visibility === 'hidden';
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getExtraBaseFieldConfig(): array
+    public function getIsNested(): bool
     {
-        return [];
+        return (bool)$this->getParentField();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getSavedSettings(): array
+    public function getFieldTypeConfig(): array
     {
-        return $this->getSettings();
-    }
+        $config = [
+            'icon' => static::getSvgIcon(),
+            'type' => get_class($this),
+            'label' => static::displayName(),
+            'preview' => $this->getPreviewInputHtml(),
+            'hasLabel' => $this->hasLabel(),
+            'hasSubFields' => $this->hasSubFields(),
+            'hasNestedFields' => $this->hasNestedFields(),
+            'schema' => $this->getFieldSchema(),
+            'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
+            'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
 
-    public function getSavedFieldConfig(): array
-    {
-        return $this->getAttributes(['id', 'name', 'handle', 'columnSuffix']);
-    }
+            // Load in the regular field data, but for a new field
+            'newField' => $this->getFormBuilderConfig(),
 
-    /**
-     * @inheritDoc
-     */
-    public function getFieldDefaults(): array
-    {
-        return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getAllFieldDefaults(): array
-    {
-        $defaults = [
-            'labelPosition' => '',
-            'instructionsPosition' => '',
+            // Add in any extra data the field settings require
+            'data' => $this->getFieldTypeConfigData(),
         ];
 
-        // Combine any class-specified defaults
-        if (method_exists($this, 'getFieldDefaults')) {
-            $defaults = array_merge($defaults, $this->getFieldDefaults());
-        }
-
-        return $defaults;
+        return $config;
     }
 
-    public function getFieldValue($element, $handle = '', $attributePrefix = '')
+    public function getFieldTypeConfigDefaults(): array
     {
-        // Allow handle to be overridden
-        if (!$handle) {
-            $handle = $this->handle;
+        return [];
+    }
+
+    public function getFieldTypeConfigData(): array
+    {
+        return [];
+    }
+
+    public function getFormBuilderConfig(): array
+    {
+        $config = [
+            // 'icon' => $this->getSvgIcon(),
+            'type' => get_class($this),
+            'id' => $this->id,
+            'errors' => $this->getErrors(),
+            'hasLabel' => $this->hasLabel(),
+            'hasSubFields' => $this->hasSubFields(),
+            'hasNestedFields' => $this->hasNestedFields(),
+            'hasConditions' => $this->hasConditions(),
+            'isCosmetic' => $this->getIsCosmetic(),
+            'isSynced' => $this->isSynced,
+            'isNested' => $this->getIsNested(),
+
+            // Any writeable settings should be in `settings` to work with FormKit.
+            'settings' => $this->getFormBuilderSettings(),
+        ];
+
+        // Allow fields to provide subField options for mapping
+        if ($this instanceof SubFieldInterface) {
+            $config['subFieldOptions'] = $this->getSubFieldOptions();
         }
 
-        // If we pass in an element (submission), fetch the value on that
-        $value = $element->{$handle} ?? null;
-
-        // If we pass in an array, fetch the value on that
-        if (is_array($element)) {
-            $value = $element[$handle] ?? null;
+        // Whether this is an element field
+        if ($this instanceof BaseRelationField) {
+            $config['isElementField'] = true;
         }
 
-        // Otherwise, check if there are any default values
-        if ($value === null) {
-            $defaultValue = $this->getDefaultValue($attributePrefix);
+        // Fire a 'modifyFieldConfig' event
+        $event = new ModifyFieldConfigEvent([
+            'config' => $config,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_FIELD_CONFIG, $event);
 
-            if ($defaultValue !== null) {
-                return $defaultValue;
-            }
+        return $event->config;
+    }
+
+    public function getFormBuilderSettings(): array
+    {
+        $settings = $this->getSettings();
+        $settings['label'] = $this->name;
+        $settings['handle'] = $this->handle;
+        $settings['required'] = (bool)$this->required;
+        $settings['instructions'] = $this->instructions;
+
+        // For new fields, ensure we can populate some values, which aren't already set on init
+        if (!$this->id) {
+            $settings = array_merge($settings, $this->getFieldTypeConfigDefaults());
         }
 
-        return $value;
+        return $settings;
     }
 
     public function getDefaultValue($attributePrefix = '')
@@ -654,9 +575,6 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldSchema(): array
     {
         $tabs = [];
@@ -766,7 +684,7 @@ trait FormFieldTrait
 
         if ($key === 'field') {
             $labelPosition = $context['labelPosition'] ?? null;
-            $subfieldLabelPosition = $context['subfieldLabelPosition'] ?? null;
+            $subFieldLabelPosition = $context['subFieldLabelPosition'] ?? null;
             $instructionsPosition = $context['instructionsPosition'] ?? null;
             $containerAttributes = $this->getContainerAttributes() ?? [];
 
@@ -775,7 +693,7 @@ trait FormFieldTrait
                     'fui-field',
                     'fui-type-' . StringHelper::toKebabCase($this->displayName()),
                     'fui-label-' . $labelPosition,
-                    'fui-subfield-label-' . $subfieldLabelPosition,
+                    'fui-subfield-label-' . $subFieldLabelPosition,
                     'fui-instructions-' . $instructionsPosition,
                     $errors ? 'fui-field-error fui-error' : null,
                     $this->required ? 'fui-field-required' : null,
@@ -868,39 +786,6 @@ trait FormFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getBaseFieldConfig(): array
-    {
-        $labelPositions = Formie::$plugin->getFields()->getLabelPositionsArray($this);
-        $instructionsPositions = Formie::$plugin->getFields()->getInstructionsPositionsArray($this);
-
-        $config = [
-            'type' => $this->getType(),
-            'label' => static::displayName(),
-            'defaults' => $this->getAllFieldDefaults(),
-            'icon' => static::getSvgIcon(),
-            'preview' => $this->getPreviewInputHtml(),
-            'data' => $this->getExtraBaseFieldConfig(),
-            'hasLabel' => $this->hasLabel(),
-            'fieldsSchema' => $this->getFieldSchema()['fields'],
-            'tabsSchema' => $this->getFieldSchema()['tabs'],
-
-            // Field settings
-            'labelPositions' => $labelPositions,
-            'instructionsPositions' => $instructionsPositions,
-        ];
-
-        // Nested fields have rows of their own.
-        if ($config['supportsNested'] = ($this instanceof NestedFieldInterface)) {
-            /* @var NestedFieldInterface|NestedFieldTrait $field */
-            $config['rows'] = [];
-        }
-
-        return $config;
-    }
-
     public function getContainerAttributes(): array
     {
         if (!$this->containerAttributes) {
@@ -934,15 +819,15 @@ trait FormFieldTrait
         return $this->_parentField;
     }
 
-    public function setParentField($value, $namespace = ''): void
+    public function setParentField(FormFieldInterface $value, string $namespace = ''): void
     {
         $this->_parentField = $value;
 
         // Also, set the namespace (on the parent field), commonly just the field handle
         // But allows it to be added to (think Repeater).
         // Be sure to create a valid name attribute, from `fieldHandle` and `some[more][attrs]`
-        // to `fieldHandle[some][some][attrs]`.
-        if ($namespace) {
+        // to `fieldHandle[some][some][attrs]`. Also allow `0` as a namespace.
+        if ($namespace !== '') {
             $this->setNamespace(Html::namespaceInputName($namespace, $value->handle));
         } else {
             $this->setNamespace($value->handle);
@@ -1075,20 +960,14 @@ trait FormFieldTrait
 
                 // Dot-notation to name input syntax
                 $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-
-                // A little extra work for Group/Repeater fields, which conditions would be set with `new1`.
-                // When going back to a previous page this will be replaced with the blockId and the condition won't work.
-                if ($element instanceof NestedFieldRow && $element->id) {
-                    $condition['field'] = preg_replace('/\[new\d*\]/', "[$element->id]", $condition['field']);
-                }
             }
 
             unset($condition);
 
             $conditionSettings['conditions'] = $conditions;
 
-            // Check if this is a nested field within a Group/Repeater.
-            $conditionSettings['isNested'] = (bool)strstr($this->context, 'formieField:');
+            // Mark if this is a nested field within a Group/Repeater.
+            $conditionSettings['isNested'] = $this->getIsNested();
 
             return Json::encode($conditionSettings);
         }
@@ -1098,23 +977,15 @@ trait FormFieldTrait
 
     public function getPage($submission)
     {
-        $pages = $submission->getFieldPages();
+        $pages = $submission->getPages();
 
         return $pages[$this->handle] ?? null;
     }
 
-    /**
-     * Returns whether the field has passed conditional evaluation and is hidden.
-     */
-    public function isConditionallyHidden(Submission|NestedFieldRow $element): bool
+    public function isConditionallyHidden(Submission $element): bool
     {
         $isFieldHidden = false;
         $isPageHidden = false;
-
-        // Always use the submission as the context for element data
-        if ($element instanceof NestedFieldRow) {
-            $element = $element->getOwner();
-        }
 
         // Check if the field itself is hidden
         if ($this->enableConditions) {
@@ -1265,39 +1136,16 @@ trait FormFieldTrait
         return 'Field_' . $end;
     }
 
-    public function validate($attributeNames = null, $clearErrors = true)
-    {
-        $refId = null;
-
-        // Watch out for synced field IDs for Postgres because it will fails to match `sync:123` against an int
-        // But probably a good idea to check against this anyway, in general.
-        if ($this->getIsRef()) {
-            $refId = $this->id;
-            $this->id = Formie::$plugin->getSyncs()->parseSyncId($this->id)->id ?? null;
-        }
-
-        $validates = parent::validate($attributeNames, $clearErrors);
-
-        // Add it back
-        if ($refId) {
-            $this->id = $refId;
-        }
-
-        return $validates;
-    }
-
     public function getExportLabel(ElementInterface $element): string
     {
         // Check to see if there's another field with the same label
-        if ($fieldLayout = $element->getFieldLayout()) {
-            foreach ($fieldLayout->getCustomFields() as $field) {
-                if ($field->id === $this->id) {
-                    continue;
-                }
+        foreach ($element->getFields() as $field) {
+            if ($field->id === $this->id) {
+                continue;
+            }
 
-                if ($field->name === $this->name) {
-                    return $this->name . ' (' . $this->handle . ')';
-                }
+            if ($field->name === $this->name) {
+                return $this->name . ' (' . $this->handle . ')';
             }
         }
 
@@ -1452,6 +1300,11 @@ trait FormFieldTrait
             if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetEnd') {
                 $config['instructionsPosition'] = BelowInput::class;
             }
+        }
+
+        // Normalize config from v2 to v3
+        if (array_key_exists('subfieldLabelPosition', $config)) {
+            $config['subFieldLabelPosition'] = ArrayHelper::remove($config, 'subfieldLabelPosition');
         }
     }
 

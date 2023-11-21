@@ -47,11 +47,6 @@ export default {
             type: String,
             default: '',
         },
-
-        errors: {
-            type: [Object, Array],
-            default: () => {},
-        },
     },
 
     emits: ['selected'],
@@ -67,6 +62,10 @@ export default {
             pages: (state) => { return state.form.pages; },
         }),
 
+        page() {
+            return this.pages[this.pageIndex];
+        },
+
         hash() {
             return `#tab-fields-page-${this.pageIndex + 1}`;
         },
@@ -76,21 +75,7 @@ export default {
         },
 
         hasError() {
-            let hasError = false;
-
-            const fields = this.$store.getters['form/fieldsForPage'](this.pageIndex);
-
-            if (!isEmpty(this.errors)) {
-                hasError = true;
-            }
-
-            fields.forEach((field) => {
-                if (field.hasError) {
-                    hasError = true;
-                }
-            });
-
-            return hasError;
+            return !isEmpty(this.page.errors);
         },
     },
 

@@ -12,11 +12,10 @@ use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Phone;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
@@ -135,7 +134,7 @@ class MigrateSproutForms extends Migration
                 return $form;
             }
 
-            if (!Formie::$plugin->getForms()->saveForm($form)) {
+            if (!Craft::$app->getElements()->saveElement($form)) {
                 $this->stdout("    > Failed to save form “{$form->handle}”.", Console::FG_RED);
 
                 foreach ($form->getErrors() as $attr => $errors) {
@@ -418,7 +417,7 @@ class MigrateSproutForms extends Migration
             $fields = [];
 
             foreach ($sproutFieldLayout->getTabs() as $tabIndex => $tab) {
-                $newPage = new FieldLayoutPage();
+                $newPage = new FormPage();
                 $newPage->name = $tab->name;
                 $newPage->sortOrder = '' . $tabIndex;
 

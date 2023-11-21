@@ -110,21 +110,30 @@ class Stencil extends Model
     public function getDisplayName(): string
     {
         if ($this->dateDeleted !== null) {
-            return $this->name . Craft::t('formie', ' (Trashed)');
+            return Craft::t('formie', '{title} (Trashed)', ['title' => $this->name]);
         }
 
         return $this->name;
     }
 
-    public function getFormConfig(): array
+    public function getFormBuilderConfig(): array
     {
-        return ArrayHelper::merge($this->data->getAttributes(), [
+        $data = $this->data->getAttributes();
+
+        return [
             'id' => $this->id,
             'title' => $this->getTitle(),
             'handle' => $this->handle,
-            'templateId' => $this->templateId,
-            'defaultStatusId' => $this->defaultStatusId,
-        ]);
+            'errors' => $this->getErrors(),
+            'pages' => $data['pages'],
+            'settings' => $this->getSettings()->getFormBuilderConfig(),
+            'isStencil' => true,
+        ];
+    }
+
+    public function getNotificationsConfig(): array
+    {
+        return Formie::$plugin->getNotifications()->getNotificationsConfig($this->getNotifications());
     }
 
     public function getConfig(): array

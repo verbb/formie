@@ -2,6 +2,7 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\OptionsField;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
@@ -10,7 +11,7 @@ use craft\base\ElementInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
-class Dropdown extends BaseOptionsField implements FormFieldInterface
+class Dropdown extends OptionsField
 {
     // Static Methods
     // =========================================================================
@@ -29,23 +30,13 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
     // Properties
     // =========================================================================
 
-    public bool $multiple = false;
-    public bool $multi = false;
     public bool $optgroups = true;
 
 
     // Public Methods
     // =========================================================================
 
-    public function init(): void
-    {
-        // Mirror to native `multi` attribute
-        $this->setMultiple($this->multiple);
-
-        parent::init();
-    }
-
-    public function getFieldDefaults(): array
+    public function getFieldTypeConfigDefaults(): array
     {
         return [
             'options' => [
@@ -92,9 +83,9 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         ]);
     }
 
-    public function getSavedSettings(): array
+    public function getFormBuilderSettings(): array
     {
-        $settings = parent::getSavedSettings();
+        $settings = parent::getFormBuilderSettings();
 
         foreach ($settings['options'] as &$option) {
             if (isset($option['optgroup']) && $option['optgroup']) {
@@ -108,29 +99,6 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
         return $settings;
     }
 
-    /**
-     * Returns the multi property.
-     *
-     * @return bool
-     */
-    public function getMultiple(): bool
-    {
-        return $this->multi;
-    }
-
-    /**
-     * Sets the multi property.
-     *
-     * @param $value
-     */
-    public function setMultiple($value): void
-    {
-        $this->multi = $value;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -138,7 +106,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
                 'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
-                'name' => 'multiple',
+                'name' => 'multi',
             ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Options'),
@@ -247,7 +215,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                     $errors ? 'fui-error' : false,
                 ],
                 'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
-                'multiple' => $this->multiple ? true : null,
+                'multiple' => $this->multi ? true : null,
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
