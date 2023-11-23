@@ -101,7 +101,9 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
             return Schema::TYPE_TEXT;
         }
         
-        return parent::getContentColumnType();
+        // Don't fallback on the Craft default, as that can potentially set the field to CHAR(1) if no options
+        // are set, and people want to dynamically populate the options in Twig.
+        return Schema::TYPE_STRING;
     }
 
     public function getSavedFieldConfig(): array
