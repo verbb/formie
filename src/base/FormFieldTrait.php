@@ -17,6 +17,7 @@ use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\HtmlTag;
@@ -120,6 +121,8 @@ trait FormFieldTrait
     public bool $isNested = false;
 
     private ?Form $_form = null;
+    private ?FieldLayoutPage $_page = null;
+    private ?array $_row = null;
     private ?NestedFieldInterface $_container = null;
     private array $_themeConfig = [];
     private ?FormFieldInterface $_parentField = null;
@@ -1135,11 +1138,30 @@ trait FormFieldTrait
         return null;
     }
 
-    public function getPage($submission)
+    public function getPage(submission $submission): ?FieldLayoutPage
     {
+        if ($this->_page) {
+            return $this->_page;
+        }
+
         $pages = $submission->getFieldPages();
 
-        return $pages[$this->handle] ?? null;
+        return $this->_page = ($pages[$this->handle] ?? null);
+    }
+
+    public function setPage(FieldLayoutPage $value): void
+    {
+        $this->_page = $value;
+    }
+
+    public function getRow(): ?array
+    {
+        return $this->_row;
+    }
+
+    public function setRow(array $value): void
+    {
+        $this->_row = $value;
     }
 
     /**

@@ -14,6 +14,10 @@
         {% for row in page.getRows(false) %}
             {% formtag 'row' %}
                 {% for field in row.fields %}
+                    {# Provide fields with a row/page reference #}
+                    {% do field.setPage(page) %}
+                    {% do field.setRow(row) %}
+
                     {{ craft.formie.renderField(form, field, renderOptions) }}
                 {% endfor %}
             {% endformtag %}
