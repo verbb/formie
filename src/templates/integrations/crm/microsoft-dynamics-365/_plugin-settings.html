@@ -118,3 +118,48 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     warning: macros.configWarning('apiVersion', 'formie'),
     errors: integration.getErrors('apiVersion'),
 }) }}
+
+{% set impersonationInstructions %}
+### Impersonation user settings
+
+By default all records created will appear as the authenticated user which the OAuth token was requested under (This differs from the application user). If you would like to modify this, <a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/impersonate-another-user-web-api#how-to-impersonate-a-user" target="_blank">you can use impersonation</a>. This will apply to all Microsoft Dynamics 365 forms with the integration enabled.
+
+**Note:** Impersonation may require additional security permissions not covered in the setup instructions.
+
+If you want to selectively control the created by user per form, use the "Created By" field in the mapping instead.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ impersonationInstructions | t('formie') | md }}
+</div>
+
+{{ forms.lightswitchField({
+    label: 'Impersonate user' | t('formie'),
+    instructions: 'Enable this setting to impersonate the user for created records to be set as.' | t('formie'),
+    id: 'impersonateUser',
+    name: 'impersonateUser',
+    on: integration.settings.impersonateUser ?? false
+}) }}
+
+{{ forms.selectField({
+    label: 'Impersonation header' | t('formie'),
+    instructions: 'Set the value of the impersonate header to be used.' | t('formie'),
+    name: 'impersonateHeader',
+    options: [
+        { label: 'CallerObjectId', value: 'CallerObjectId' },
+        { label: 'MSCRMCallerID', value: 'MSCRMCallerID' }
+    ],
+    value: integration.settings.impersonateHeader ?? 'CallerObjectId',
+    warning: macros.configWarning('impersonateHeader', 'formie'),
+    errors: integration.getErrors('impersonateHeader')
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Impersonate User ID' | t('formie'),
+    instructions: 'Enter the GUID of a valid systemuser to impersonate.' | t('formie'),
+    name: 'impersonateUserId',
+    suggestEnvVars: true,
+    value: integration.settings.impersonateUserId ?? '',
+    warning: macros.configWarning('impersonateUserId', 'formie'),
+    errors: integration.getErrors('impersonateUserId')
+}) }}
