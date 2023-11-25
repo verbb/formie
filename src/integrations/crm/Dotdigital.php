@@ -1,20 +1,19 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
+use Craft;
+use craft\helpers\App;
+use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
+use DateTimeZone;
+use GuzzleHttp\Client;
+use Throwable;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-
-use Craft;
-use craft\helpers\App;
-use craft\helpers\ArrayHelper;
-use craft\helpers\Json;
-
-use GuzzleHttp\Client;
-
-use Throwable;
 
 class Dotdigital extends Crm
 {
@@ -37,7 +36,9 @@ class Dotdigital extends Crm
     public ?string $password = null;
     public ?string $apiDomain = null;
     public bool $mapToContact = false;
+    public bool $sendEmailCampaign = false;
     public ?array $contactFieldMapping = null;
+    public ?array $emailSendMapping = null;
 
 
     // Public Methods
@@ -58,11 +59,18 @@ class Dotdigital extends Crm
         $rules[] = [['username', 'password', 'apiDomain'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
+        $emailCampaign = $this->getFormSettingValue('emailCampaign');
 
         // Validate the following when saving form settings
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['emailSendMapping'], 'validateFieldMapping', 'params' => $emailCampaign, 'when' => function($model) {
+                return $model->enabled && $model->sendEmailCampaign;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 
@@ -86,7 +94,17 @@ class Dotdigital extends Crm
                 ];
             }
 
-            $contactFields = array_merge([
+            $emailCampaignOptions = [];
+            $emailCampaigns = $this->request('GET', 'campaigns');
+
+            foreach ($emailCampaigns as $emailCampaign) {
+                $emailCampaignOptions[] = [
+                    'label' => $emailCampaign['name'],
+                    'value' => (string)$emailCampaign['id']
+                ];
+            }
+
+            $defaultFields = [
                 new IntegrationField([
                     'handle' => 'addressBook',
                     'name' => Craft::t('formie', 'Address Book'),
@@ -158,11 +176,62 @@ class Dotdigital extends Crm
                         ],
                     ],
                 ]),
-            ], $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']));
+            ];
+
+            $emailCampaignFields = [
+                new IntegrationField([
+                    'handle' => 'emailCampaignId',
+                    'name' => Craft::t('formie', 'Email Campaign'),
+                    'required' => true,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Email Campaign'),
+                        'options' => $emailCampaignOptions,
+                    ],
+                ]),
+                new IntegrationField([
+                    'handle' => 'emailCampaignSendDate',
+                    'name' => Craft::t('formie', 'Email Campaign Send Date'),
+                    'options' => [
+                        'label' => Craft::t('formie', 'Email Campaign Send Date'),
+                        'options' => [
+                            [
+                                'label' => Craft::t('formie', '+1 hour'),
+                                'value' => '+1 hour'
+                            ],
+                            [
+                                'label' => Craft::t('formie','+2 hours'),
+                                'value' => '+2 hours'
+                            ],
+                            [
+                                'label' => Craft::t('formie','+4 hours'),
+                                'value' => '+4 hours'
+                            ],
+                            [
+                                'label' => Craft::t('formie','+6 hours'),
+                                'value' => '+6 hours'
+                            ],
+                            [
+                                'label' => Craft::t('formie','+12 hours'),
+                                'value' => '+12 hours'
+                            ],
+                            [
+                                'label' => Craft::t('formie','+1 day'),
+                                'value' => '+1 day'
+                            ]
+                        ],
+                    ],
+                ])
+            ];
+
+            $customFields = $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']);
+
+            $contactFields = ArrayHelper::merge($defaultFields, $customFields);
 
             $settings = [
                 'contact' => $contactFields,
+                'emailCampaign' => $emailCampaignFields
             ];
+
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -174,6 +243,7 @@ class Dotdigital extends Crm
     {
         try {
             $contactValues = $this->getFieldMappingValues($submission, $this->contactFieldMapping, 'contact');
+            $contactId = null;
 
             if ($this->mapToContact) {
                 $email = ArrayHelper::remove($contactValues, 'email');
@@ -191,7 +261,8 @@ class Dotdigital extends Crm
                     ],
                 ];
 
-                $response = $this->deliverPayload($submission, 'contacts/with-consent-and-preferences', $contactPayload);
+                $response = $this->deliverPayload($submission, 'contacts/with-consent-and-preferences',
+                    $contactPayload);
 
                 if ($response === false) {
                     return true;
@@ -200,10 +271,11 @@ class Dotdigital extends Crm
                 $contactId = $response['contact']['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                        'response' => Json::encode($response),
-                        'payload' => Json::encode($contactPayload),
-                    ]), true);
+                    Integration::error($this,
+                        Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                            'response' => Json::encode($response),
+                            'payload' => Json::encode($contactPayload),
+                        ]), true);
 
                     return false;
                 }
@@ -213,7 +285,8 @@ class Dotdigital extends Crm
                         'email' => $email,
                     ];
 
-                    $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts", $addressBookPayload);
+                    $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts",
+                        $addressBookPayload);
 
                     if ($response === false) {
                         return true;
@@ -222,13 +295,62 @@ class Dotdigital extends Crm
                     $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
-                        Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                            'response' => Json::encode($response),
-                            'payload' => Json::encode($addressBookPayload),
-                        ]), true);
+                        Integration::error($this,
+                            Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                                'response' => Json::encode($response),
+                                'payload' => Json::encode($addressBookPayload),
+                            ]), true);
 
                         return false;
                     }
+                }
+            }
+
+            $emailCampaignValues = $this->getFieldMappingValues($submission, $this->emailSendMapping, 'emailCampaign');
+
+            if ($this->sendEmailCampaign && $contactId) {
+
+                $emailCampaign = ArrayHelper::remove($emailCampaignValues, 'emailCampaignId');
+                $emailCampaignSendDate = ArrayHelper::remove($emailCampaignValues, 'emailCampaignSendDate');
+
+                $sendDate = null;
+
+                if ($emailCampaignSendDate) {
+                    $dateCreated = $submission->dateCreated->setTimezone(new DateTimeZone('UTC'));
+
+                    // Preset date modify value
+                    if (str_starts_with($emailCampaignSendDate, '+')) {
+                        $sendDate = $dateCreated->modify($emailCampaignSendDate);
+                    }
+                    // DateTime object/string
+                    else if ($date = DateTimeHelper::toDateTime($emailCampaignSendDate, false, false)) {
+                        $sendDate = $date->format('c');
+                    }
+                }
+
+                $emailCampaignPayload = [
+                    'campaignID' => $emailCampaign,
+                    'contactIDs' => [
+                        $contactId
+                    ],
+                    'sendDate' => $sendDate
+                ];
+
+                $response = $this->deliverPayload($submission, 'campaigns/send', $emailCampaignPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $emailCampaignSendId = $response['id'] ?? '';
+
+                if (!$emailCampaignSendId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “emailSendCampaignId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($emailCampaignPayload),
+                    ]), true);
+
+                    return false;
                 }
             }
         } catch (Throwable $e) {
