@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.43 - 2023-11-26
+
+### Added
+- Added page and row reference to fields.
+- Allow Stripe metadata to pull data from other fields in the form.
+
+### Fixed
+- Fixed option fields (Dropdown, Checkboxes, Radio Buttons) having an incorrect column length when no options were provided (for dynamic options).
+- Fixed handling of token errors for integrations.
+- Fixed an error with validating Address fields.
+- Fixed Brevo `templateId` parameter type.
+- Fixed field labels not being rendered when set to position hidden.
+- Fixed interest categories not being shown correctly for Mailchimp.
+
 ## 2.0.42 - 2023-11-09
 
 ### Added
