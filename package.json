@@ -30,7 +30,7 @@
         "laravel-mix-polyfill": "^3.0.1",
         "lodash-es": "^4.17.21",
         "mini-css-extract-plugin": "^2.6.1",
-        "postcss": "^8.4.14",
+        "postcss": "^8.4.31",
         "postcss-color-function": "^4.1.0",
         "postcss-custom-properties": "^12.1.8",
         "rollup-plugin-analyzer": "^4.0.0",
