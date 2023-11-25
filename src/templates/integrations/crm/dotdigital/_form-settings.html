@@ -64,13 +64,13 @@
 
         <div id="send-email-campaign" class="{{ not sendEmailCampaign or not mapToContact ? 'hidden' }}">
             <integration-field-mapping
-                    label="{{ 'Email Campaign Mapping' | t('formie') }}"
-                    instructions="{{ 'Choose an email campaign to send to a contact. Optionally you can set the send date to be in the future.' | t('formie', { name: integration.displayName() }) }}"
-                    name-label="{{ integration.displayName() }}"
-                    id="email-send-mapping"
-                    name="emailSendMapping"
-                    :value="get(form, 'settings.integrations.{{ handle }}.emailSendMapping')"
-                    :rows="get(settings, 'emailCampaign')"
+                label="{{ 'Email Campaign Mapping' | t('formie') }}"
+                instructions="{{ 'Choose an email campaign to send to a contact. Optionally you can set the send date to be in the future.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="email-send-mapping"
+                name="emailSendMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.emailSendMapping')"
+                :rows="get(settings, 'emailCampaign')"
             ></integration-field-mapping>
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.emailSendMapping'))" class="errors" v-cloak>

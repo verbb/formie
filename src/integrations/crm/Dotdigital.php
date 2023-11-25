@@ -1,19 +1,22 @@
 <?php
 namespace verbb\formie\integrations\crm;
 
-use Craft;
-use craft\helpers\App;
-use craft\helpers\ArrayHelper;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Json;
-use DateTimeZone;
-use GuzzleHttp\Client;
-use Throwable;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+
+use Craft;
+use craft\helpers\App;
+use craft\helpers\ArrayHelper;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Json;
+
+use DateTimeZone;
+use Throwable;
+
+use GuzzleHttp\Client;
 
 class Dotdigital extends Crm
 {
@@ -100,7 +103,7 @@ class Dotdigital extends Crm
             foreach ($emailCampaigns as $emailCampaign) {
                 $emailCampaignOptions[] = [
                     'label' => $emailCampaign['name'],
-                    'value' => (string)$emailCampaign['id']
+                    'value' => (string)$emailCampaign['id'],
                 ];
             }
 
@@ -196,27 +199,27 @@ class Dotdigital extends Crm
                         'options' => [
                             [
                                 'label' => Craft::t('formie', '+1 hour'),
-                                'value' => '+1 hour'
+                                'value' => '+1 hour',
                             ],
                             [
                                 'label' => Craft::t('formie','+2 hours'),
-                                'value' => '+2 hours'
+                                'value' => '+2 hours',
                             ],
                             [
                                 'label' => Craft::t('formie','+4 hours'),
-                                'value' => '+4 hours'
+                                'value' => '+4 hours',
                             ],
                             [
                                 'label' => Craft::t('formie','+6 hours'),
-                                'value' => '+6 hours'
+                                'value' => '+6 hours',
                             ],
                             [
                                 'label' => Craft::t('formie','+12 hours'),
-                                'value' => '+12 hours'
+                                'value' => '+12 hours',
                             ],
                             [
                                 'label' => Craft::t('formie','+1 day'),
-                                'value' => '+1 day'
+                                'value' => '+1 day',
                             ]
                         ],
                     ],
@@ -229,7 +232,7 @@ class Dotdigital extends Crm
 
             $settings = [
                 'contact' => $contactFields,
-                'emailCampaign' => $emailCampaignFields
+                'emailCampaign' => $emailCampaignFields,
             ];
 
         } catch (Throwable $e) {
@@ -261,8 +264,7 @@ class Dotdigital extends Crm
                     ],
                 ];
 
-                $response = $this->deliverPayload($submission, 'contacts/with-consent-and-preferences',
-                    $contactPayload);
+                $response = $this->deliverPayload($submission, 'contacts/with-consent-and-preferences', $contactPayload);
 
                 if ($response === false) {
                     return true;
@@ -271,11 +273,10 @@ class Dotdigital extends Crm
                 $contactId = $response['contact']['id'] ?? '';
 
                 if (!$contactId) {
-                    Integration::error($this,
-                        Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                            'response' => Json::encode($response),
-                            'payload' => Json::encode($contactPayload),
-                        ]), true);
+                    Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($contactPayload),
+                    ]), true);
 
                     return false;
                 }
@@ -285,8 +286,7 @@ class Dotdigital extends Crm
                         'email' => $email,
                     ];
 
-                    $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts",
-                        $addressBookPayload);
+                    $response = $this->deliverPayload($submission, "address-books/{$addressBook}/contacts", $addressBookPayload);
 
                     if ($response === false) {
                         return true;
@@ -295,11 +295,10 @@ class Dotdigital extends Crm
                     $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
-                        Integration::error($this,
-                            Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
-                                'response' => Json::encode($response),
-                                'payload' => Json::encode($addressBookPayload),
-                            ]), true);
+                        Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
+                            'response' => Json::encode($response),
+                            'payload' => Json::encode($addressBookPayload),
+                        ]), true);
 
                         return false;
                     }
@@ -309,7 +308,6 @@ class Dotdigital extends Crm
             $emailCampaignValues = $this->getFieldMappingValues($submission, $this->emailSendMapping, 'emailCampaign');
 
             if ($this->sendEmailCampaign && $contactId) {
-
                 $emailCampaign = ArrayHelper::remove($emailCampaignValues, 'emailCampaignId');
                 $emailCampaignSendDate = ArrayHelper::remove($emailCampaignValues, 'emailCampaignSendDate');
 
@@ -318,12 +316,11 @@ class Dotdigital extends Crm
                 if ($emailCampaignSendDate) {
                     $dateCreated = $submission->dateCreated->setTimezone(new DateTimeZone('UTC'));
 
-                    // Preset date modify value
                     if (str_starts_with($emailCampaignSendDate, '+')) {
+                        // Preset date modify value
                         $sendDate = $dateCreated->modify($emailCampaignSendDate);
-                    }
-                    // DateTime object/string
-                    else if ($date = DateTimeHelper::toDateTime($emailCampaignSendDate, false, false)) {
+                    } else if ($date = DateTimeHelper::toDateTime($emailCampaignSendDate, false, false)) {
+                        // DateTime object/string
                         $sendDate = $date->format('c');
                     }
                 }
@@ -331,9 +328,9 @@ class Dotdigital extends Crm
                 $emailCampaignPayload = [
                     'campaignID' => $emailCampaign,
                     'contactIDs' => [
-                        $contactId
+                        $contactId,
                     ],
-                    'sendDate' => $sendDate
+                    'sendDate' => $sendDate,
                 ];
 
                 $response = $this->deliverPayload($submission, 'campaigns/send', $emailCampaignPayload);
