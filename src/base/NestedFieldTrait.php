@@ -720,11 +720,12 @@ trait NestedFieldTrait
             $subFieldHandle = array_shift($subFieldKey);
             $subFieldKey = implode('.', $subFieldKey);
 
-            $row = $value->one();
-            $subField = $row->getFieldByHandle($subFieldHandle);
-            $subValue = $row->getFieldValue($subFieldHandle);
+            if ($row = $value->one()) {
+                $subField = $row->getFieldByHandle($subFieldHandle);
+                $subValue = $row->getFieldValue($subFieldHandle);
 
-            return $subField->getValueForIntegration($subValue, $integrationField, $integration, $row, $subFieldKey);
+                return $subField->getValueForIntegration($subValue, $integrationField, $integration, $row, $subFieldKey);
+            }
         }
 
         // Fetch the default handling
