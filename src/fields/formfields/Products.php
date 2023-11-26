@@ -134,8 +134,6 @@ class Products extends CommerceProducts implements FormFieldInterface
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
 
-        // TODO: replace with `elementsQuery` at next breakpoint
-        $inputOptions['productsQuery'] = $this->getElementsQuery();
         $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;

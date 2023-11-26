@@ -147,8 +147,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
 
-        // TODO: replace with `elementsQuery` at next breakpoint
-        $inputOptions['variantsQuery'] = $this->getElementsQuery();
         $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;

@@ -121,8 +121,6 @@ class Entries extends CraftEntries implements FormFieldInterface
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
 
-        // TODO: replace with `elementsQuery` at next breakpoint
-        $inputOptions['entriesQuery'] = $this->getElementsQuery();
         $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
         return $inputOptions;

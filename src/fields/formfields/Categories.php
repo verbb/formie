@@ -141,10 +141,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
 
-        // TODO: replace with `elementsQuery` at next breakpoint
-        $inputOptions['categoriesQuery'] = $this->getElementsQuery();
         $inputOptions['elementsQuery'] = $this->getElementsQuery();
-
         $inputOptions['isMultiLevel'] = $this->getIsMultiLevel();
         $inputOptions['allowMultiple'] = $this->branchLimit > 1;
 
