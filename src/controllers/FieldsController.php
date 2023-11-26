@@ -83,7 +83,7 @@ class FieldsController extends Controller
 
             if ($submission && $form = $submission->getForm()) {
                 if ($field = $form->getFieldById($fieldId)) {
-                    $value = $submission->getFieldValue($field->handle);
+                    $value = $submission->getFieldValue($field->fieldKey);
 
                     return $field->getFrontEndInputHtml($form, $value);
                 }
@@ -106,7 +106,7 @@ class FieldsController extends Controller
                 $field = $form->getFieldById($fieldId);
 
                 if ($field instanceof Signature) {
-                    $value = $submission->getFieldValue($field->handle);
+                    $value = $submission->getFieldValue($field->fieldKey);
                     $base64 = explode('base64,', $value);
                     $image = base64_decode(end($base64));
 

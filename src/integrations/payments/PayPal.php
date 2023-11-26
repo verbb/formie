@@ -126,7 +126,7 @@ class PayPal extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $submission->getFieldValue($field->handle);
+            $fieldValue = $submission->getFieldValue($field->fieldKey);
             $authId = $fieldValue['paypalAuthId'] ?? null;
 
             if (!$authId) {
@@ -159,7 +159,7 @@ class PayPal extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->handle, Craft::t('formie', $e->getMessage()));
+            $submission->addError($field->fieldKey, Craft::t('formie', $e->getMessage()));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;

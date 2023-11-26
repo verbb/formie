@@ -68,6 +68,9 @@ class Group extends NestedField implements SingleNestedFieldInterface
             $value = $element->getFieldValue($fieldKey);
             $isEmpty = $field->isValueEmpty($value, $element);
 
+            // Ensure that the inner fields know about this the parent field, to handle getting values properly
+            $field->setParentField($this);
+
             // Roll our own validation, due to lack of field layout and elements
             if ($field->required && $isEmpty) {
                 $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
