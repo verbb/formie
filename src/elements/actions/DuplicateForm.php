@@ -81,7 +81,6 @@ class DuplicateForm extends Duplicate
 
                 $form->id = null;
                 $form->uid = null;
-                $form->fieldLayoutId = null;
                 $form->canonicalId = null;
                 $form->dateCreated = null;
                 $form->dateUpdated = null;

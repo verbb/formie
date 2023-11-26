@@ -252,7 +252,6 @@ class Form extends Element
     public ?string $dataRetentionValue = null;
     public string $userDeletedAction = 'retain';
     public string $fileUploadsAction = 'retain';
-    public ?int $fieldLayoutId = null;
     public ?FormSettings $settings = null;
 
     public bool $resetClasses = false;
@@ -358,47 +357,8 @@ class Form extends Element
 
     public function setFormFieldLayout(mixed $formFieldLayout): void
     {
-        if ($formFieldLayout instanceof FormFieldLayout) {
-            $this->_formFieldLayout = $formFieldLayout;
-
-            return;
-        }
-
-        if (is_string($formFieldLayout)) {
-            $formFieldLayout = new FormFieldLayout(Json::decodeIfJson($formFieldLayout));
-        }
-
         if (!($formFieldLayout instanceof FormFieldLayout)) {
-            $formFieldLayout = new FormFieldLayout([
-                'pages' => [
-                    [
-                        'label' => Craft::t('formie', 'Page 1'),
-                        'settings' => [],
-                        'rows' => [],
-                    ],
-                ],
-            ]);
-        }
-
-        // Add in the actual field layout content (tabs)
-        if ($this->fieldLayoutId) {
-            if ($layout = Craft::$app->getFields()->getLayoutById($this->fieldLayoutId)) {
-                // Populate the custom form field layout with native field layout data - we need both!
-                $formFieldLayout->id = $layout->id;
-                $formFieldLayout->uid = $layout->uid;
-                $formFieldLayout->tabs = $layout->tabs;
-
-                // For any fields in our pages, the required state is recorded in the field layout, so use that
-                foreach ($formFieldLayout->tabs as $tab) {
-                    foreach ($tab->elements as $element) {
-                        foreach ($formFieldLayout->getFields() as $field) {
-                            if ($field->handle === $element->field->handle) {
-                                $field->required = (bool)$element->required;
-                            }
-                        }
-                    }
-                }
-            }
+            $formFieldLayout = new FormFieldLayout($formFieldLayout);
         }
 
         $this->_formFieldLayout = $formFieldLayout;
@@ -1856,7 +1816,6 @@ class Form extends Element
             'handle' => HandleHelper::getUniqueHandle($formHandles, $this->handle),
             'title' => Craft::t('formie', '{title} Copy', ['title' => $this->title]),
             'formFieldLayout' => $formFieldLayout,
-            'fieldLayoutId' => null,
         ];
     }
 
@@ -1892,7 +1851,7 @@ class Form extends Element
 
         $record->handle = $this->handle;
         $record->settings = $this->getSettings();
-        $record->formFieldLayout = $this->getFormFieldLayout()?->getSerializedLayout();
+        $record->formFieldLayout = $this->getFormFieldLayout()?->getSerializedConfig();
         $record->templateId = $this->templateId;
         $record->submitActionEntryId = $this->submitActionEntryId;
         $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;
@@ -1901,7 +1860,6 @@ class Form extends Element
         $record->dataRetentionValue = $this->dataRetentionValue;
         $record->fileUploadsAction = $this->fileUploadsAction;
         $record->userDeletedAction = $this->userDeletedAction;
-        $record->fieldLayoutId = $this->fieldLayoutId;
 
         $record->save(false);
 
@@ -1937,10 +1895,6 @@ class Form extends Element
                 Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
             }
         }
-
-        if ($this->fieldLayoutId) {
-            Craft::$app->getFields()->deleteLayoutById($this->fieldLayoutId);
-        }
     }
 
     public function beforeRestore(): bool
@@ -1967,11 +1921,6 @@ class Form extends Element
 
     public function afterRestore(): void
     {
-        // Restore the field layout too
-        if ($this->fieldLayoutId && !Craft::$app->getFields()->restoreLayoutById($this->fieldLayoutId)) {
-            Formie::info("Form {$this->id} restored, but its field layout ({$this->fieldLayoutId}) was not.");
-        }
-
         $db = Craft::$app->getDb();
 
         // Restore any submissions deleted

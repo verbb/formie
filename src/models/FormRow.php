@@ -33,6 +33,7 @@ class FormRow extends Model
 
     public function __construct($config = [])
     {
+        // No longer in use in Vue, but handle Formie 2 upgrades
         unset($config['id']);
 
         parent::__construct($config);
@@ -64,6 +65,7 @@ class FormRow extends Model
                 if ($fieldUid && $fieldInstance = $fieldsService->getFieldByUid($fieldUid)) {
                     // The required state is stored in our config
                     $fieldInstance->required = $required;
+                    $fieldInstance->layoutElement->required = $required;
 
                     $this->_fields[] = $fieldInstance;
                 } else {
@@ -83,6 +85,8 @@ class FormRow extends Model
                         $this->_fields[] = $this->createField($field);
                     }
                 }
+            } else {
+                $this->_fields[] = $field;
             }
         }
     }
@@ -104,6 +108,18 @@ class FormRow extends Model
         }
 
         return $field;
+    }
+
+    public function getSerializedConfig(): array
+    {
+        return [
+            'fields' => array_map(function($field) {
+                return [
+                    'fieldUid' => $field->uid,
+                    'required' => $field->required,
+                ];
+            }, $this->getFields()),
+        ];
     }
 
     public function getFormBuilderConfig(): array

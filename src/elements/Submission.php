@@ -361,8 +361,8 @@ class Submission extends Element
 
     public function getFieldLayout(): ?FieldLayout
     {
-        if (!$this->_fieldLayout && $form = $this->getForm()) {
-            $this->_fieldLayout = $form->getFormFieldLayout();
+        if (!$this->_fieldLayout) {
+            $this->_fieldLayout = $this->getForm()?->getFormFieldLayout();
         }
 
         return $this->_fieldLayout;

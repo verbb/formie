@@ -4,13 +4,14 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldLayoutElement;
 use craft\base\Model;
 use craft\fieldlayoutelements\CustomField;
-use craft\helpers\ArrayHelper;
+use craft\helpers\Json;
 use craft\models\FieldLayout;
 use craft\models\FieldLayoutTab;
 
@@ -25,13 +26,30 @@ class FormFieldLayout extends FieldLayout
     // Public Methods
     // =========================================================================
 
-    public function init(): void
+    public function __construct(mixed $config = [])
     {
-        // The type for the field layout is actually a Submission element, as the Form element just defines the field. 
-        // It doesn't use it for content, which is required to hook up the correct field layout to the element.
-        $this->type = Submission::class;
+        // Allow passing a JSON string (from the database) to create the model
+        if (is_string($config)) {
+            $config = Json::decodeIfJson($config);
+        }
 
-        parent::init();
+        // Otherwise, we should always set defaults on a form's field layout
+        if (empty($config)) {
+            $config = [
+                'pages' => [
+                    [
+                        'label' => Craft::t('formie', 'Page 1'),
+                        'settings' => [],
+                        'rows' => [],
+                    ],
+                ],
+            ];
+        }
+
+        // No longer in use in Vue, but handle Formie 2 upgrades
+        unset($config['id']);
+
+        parent::__construct($config);
     }
 
     public function attributes(): array
@@ -87,9 +105,6 @@ class FormFieldLayout extends FieldLayout
         $fieldsService = Craft::$app->getFields();
         $context = 'formie:' . $form->uid;
 
-        // Field layouts are two parts - the config layout for the Form, which are pages/rows/fields, and the FieldLayout which are tabs/fields.
-        // We need both to ensure that the Submission, which this is attached to, acts properly according to other Craft elements.
-
         foreach ($this->getFields() as $field) {
             // Setup fields for saving - but only for new fields, so we don't overwrite it (think synced fields)
             if (!$field->id) {
@@ -119,56 +134,15 @@ class FormFieldLayout extends FieldLayout
                 }
             }
         }
-
-        // Update the real field layout for tabs/fields, convert our custom field layout to native Craft one
-        $this->id = $form->fieldLayoutId;
-
-        // Prepare the tabs and fields based on the pages content, created in the form builder, required for the field layout
-        $this->tabs = array_map(function($page) {
-            // Find an existing tab, or create a new one (to retain the correct UID)
-            $tab = ArrayHelper::firstWhere($this->getTabs(), 'name', $page->label) ?? new FieldLayoutTab();
-            $tab->layout = $this;
-            $tab->name = $page->label;
-
-            $tab->elements = array_map(function($field) use ($tab) {
-                // Find an existing tab field, or create a new one (to retain the correct UID)
-                $layoutField = new CustomField($field);
-
-                // If there's an existing field, we should include it's UID, so a new one isn't created
-                if ($existingField = ArrayHelper::firstWhere($tab->elements, 'fieldUid', $field->uid)) {
-                    $layoutField->uid = $existingField->uid;
-                }
-
-                // Ensure that we carry-over the required setting to the field layout, from the field
-                $layoutField->required = (bool)$field->required;
-                
-                return $layoutField;
-            }, $page->getFields());
-
-            return $tab;
-        }, $this->getPages());
-
-        $fieldsService->saveLayout($this);
-
-        // Update the form data, as we'll likely be saving the form after this
-        $form->fieldLayoutId = $this->id;
     }
 
-    public function getSerializedLayout(): array
+    public function getSerializedConfig(): array
     {
-        $layout = $this->toArray(['pages']);
-
-        // Convert full field models into just their UID which reference the fields table.
-        // Otherwise, we would end up saving the field data to the layout config for the form.
-        foreach ($layout['pages'] as $pageKey => &$page) {
-            foreach ($page['rows'] as $rowKey => &$row) {
-                foreach ($row['fields'] as $fieldKey => &$field) {
-                    $field = ['fieldUid' => $field['uid']];
-                }
-            }
-        }
-
-        return $layout;
+        return [
+            'pages' => array_map(function($page) {
+                return $page->getSerializedConfig();
+            }, $this->getPages()),
+        ];
     }
 
     public function getFormBuilderConfig(): array
@@ -185,6 +159,56 @@ class FormFieldLayout extends FieldLayout
                 $this->addError('pages', $page->getErrors());
             }
         }
+    }
+
+    public function getCustomFields(): array
+    {
+        // Compatibility with Craft Field Layout
+        return $this->getFields();
+    }
+
+    public function getVisibleCustomFields(ElementInterface $element): array
+    {
+        // Compatibility with Craft Field Layout
+        return array_filter($this->getCustomFields(), function($field) use ($element) {
+            return !$field->isConditionallyHidden($element);
+        });
+    }
+
+    public function getCustomFieldElements(): array
+    {
+        // Compatibility with Craft Field Layout
+        $elements = [];
+
+        foreach ($this->getFields() as $field) {
+            $elements[] = $field->layoutElement;
+        }
+
+        return $elements;
+    }
+
+    public function getVisibleCustomFieldElements(ElementInterface $element): array
+    {
+        // Compatibility with Craft Field Layout
+        $currentPageFields = $element->getForm()?->getCurrentPage()?->getFields() ?? [];
+
+        // Organise fields, so they're easier to check against
+        $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+        return array_filter($this->getCustomFieldElements(), function($layoutElement) use ($element, $currentPageFieldHandles) {
+            // Check when we're doing a submission from the front-end, and we choose to validate the current page only
+            if ($element instanceof Submission && $element->validateCurrentPageOnly) {
+                if (!in_array($layoutElement->field->handle, $currentPageFieldHandles)) {
+                    return false;
+                }
+            }
+
+            if ($layoutElement->field->isConditionallyHidden($element)) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
 

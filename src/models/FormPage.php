@@ -34,6 +34,7 @@ class FormPage extends Model
 
     public function __construct($config = [])
     {
+        // No longer in use in Vue, but handle Formie 2 upgrades
         unset($config['id']);
 
         parent::__construct($config);
@@ -71,8 +72,30 @@ class FormPage extends Model
         $this->_settings = $settings;
     }
 
-    public function getRows(): array
+    public function getRows(bool $includeDisabled = true): array
     {
+        // Filter out rows that have disabled/hidden fields
+        if ($includeDisabled) {
+            return $this->_rows;
+        }
+
+        $rows = [];
+
+        foreach ($this->_rows as $rowKey => $row) {
+            $fields = $row->getFields();
+            $hiddenFields = [];
+
+            foreach ($row->getFields() as $fieldKey => $field) {
+                if ($field->visibility === 'disabled') {
+                    $hiddenFields[] = $field;
+                }
+            }
+
+            if (count($fields) === count($hiddenFields)) {
+                unset($this->_rows[$rowKey]);
+            }
+        }
+
         return $this->_rows;
     }
 
@@ -94,6 +117,17 @@ class FormPage extends Model
         }
 
         return $fields;
+    }
+
+    public function getSerializedConfig(): array
+    {
+        return [
+            'label' => $this->label,
+            'settings' => $this->getSettings()?->toArray(),
+            'rows' => array_map(function($row) {
+                return $row->getSerializedConfig();
+            }, $this->getRows()),
+        ];
     }
 
     public function getFormBuilderConfig(): array
@@ -126,85 +160,71 @@ class FormPage extends Model
         }
     }
 
-    // public function getRows(bool $includeDisabled = true): array
-    // {
-    //     /* @var FormFieldInterface[] $pageFields */
-    //     $pageFields = $this->getCustomFields();
+    public function isConditionallyHidden(Submission $submission): bool
+    {
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
+            $conditions = $conditionSettings['conditions'] ?? [];
 
-    //     foreach ($pageFields as $key => $field) {
-    //         if ($includeDisabled === false && $field->visibility === 'disabled') {
-    //             unset($pageFields[$key]);
-    //         }
-    //     }
+            if ($conditionSettings && $conditions) {
+                // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
+                // it didn't (for instance the field doesn't have a value)
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
-    //     return Formie::$plugin->getFields()->groupIntoRows($pageFields);
-    // }
+                // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
+                // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
+                if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
+                    return true;
+                }
+            }
+        }
 
-    // public function isConditionallyHidden(Submission $submission): bool
-    // {
-    //     if ($this->hasConditions()) {
-    //         $conditionSettings = $this->getConditions();
-    //         $conditions = $conditionSettings['conditions'] ?? [];
+        return false;
+    }
 
-    //         if ($conditionSettings && $conditions) {
-    //             // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
-    //             // it didn't (for instance the field doesn't have a value)
-    //             $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
+    public function hasConditions(): bool
+    {
+        return ($this->getSettings()->enablePageConditions && $this->getConditions());
+    }
 
-    //             // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
-    //             // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
-    //             if (($result && $conditionSettings['showRule'] !== 'show') || (!$result && $conditionSettings['showRule'] === 'show')) {
-    //                 return true;
-    //             }
-    //         }
-    //     }
+    public function getConditions(): array
+    {
+        // Filter out any un-set conditions
+        $conditions = $this->getSettings()->pageConditions ?? [];
+        $conditionRows = $conditions['conditions'] ?? [];
 
-    //     return false;
-    // }
+        foreach ($conditionRows as $key => $condition) {
+            if (!($condition['condition'] ?? null)) {
+                unset($conditions['conditions'][$key]);
+            }
+        }
 
-    // public function hasConditions(): bool
-    // {
-    //     return ($this->settings->enablePageConditions && $this->getConditions());
-    // }
+        return $conditions;
+    }
 
-    // public function getConditions(): array
-    // {
-    //     // Filter out any un-set conditions
-    //     $conditions = $this->settings->pageConditions ?? [];
-    //     $conditionRows = $conditions['conditions'] ?? [];
+    public function getConditionsJson(): ?string
+    {
+        if ($this->hasConditions()) {
+            $conditionSettings = $this->getConditions();
+            $conditions = $conditionSettings['conditions'] ?? [];
 
-    //     foreach ($conditionRows as $key => $condition) {
-    //         if (!($condition['condition'] ?? null)) {
-    //             unset($conditions['conditions'][$key]);
-    //         }
-    //     }
+            // Prep the conditions for JS
+            foreach ($conditions as &$condition) {
+                ArrayHelper::remove($condition, 'id');
 
-    //     return $conditions;
-    // }
+                // Dot-notation to name input syntax
+                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+            }
 
-    // public function getConditionsJson(): ?string
-    // {
-    //     if ($this->hasConditions()) {
-    //         $conditionSettings = $this->getConditions();
-    //         $conditions = $conditionSettings['conditions'] ?? [];
+            unset($condition);
 
-    //         // Prep the conditions for JS
-    //         foreach ($conditions as &$condition) {
-    //             ArrayHelper::remove($condition, 'id');
+            $conditionSettings['conditions'] = $conditions;
 
-    //             // Dot-notation to name input syntax
-    //             $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-    //         }
+            return Json::encode($conditionSettings);
+        }
 
-    //         unset($condition);
-
-    //         $conditionSettings['conditions'] = $conditions;
-
-    //         return Json::encode($conditionSettings);
-    //     }
-
-    //     return null;
-    // }
+        return null;
+    }
 
     public function getFieldErrors(?Submission $submission): array
     {

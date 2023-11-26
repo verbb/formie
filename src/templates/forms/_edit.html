@@ -103,10 +103,6 @@
         <input type="hidden" name="siteId" value="{{ form.siteId }}" />
     {% endif %}
 
-    {% if form.fieldLayoutId %}
-        <input type="hidden" name="fieldLayoutId" value="{{ form.fieldLayoutId }}" />
-    {% endif %}
-
     {% for tab in tabs %}
         <div id="{{ tab.url | trim('#') }}" class="{{ tab.tab is defined ? 'tab-form-fields' }} {{ not loop.first ? 'hidden' }}">
             {% include ['formie/forms/_panes/' ~ tab.value, 'formie/forms/_panes/form-fields'] %}

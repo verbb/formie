@@ -57,7 +57,7 @@ class ImportExportHelper
                 ->one();
 
             // Remove attributes we won't need
-            foreach (['id', 'fieldLayoutId', 'dateDeleted', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+            foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
                 ArrayHelper::remove($data['formTemplate'], $key);
             }
         }

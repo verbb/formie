@@ -77,7 +77,6 @@ class Install extends Migration
             'fileUploadsAction' => $this->enum('fileUploadsAction', ['retain', 'delete'])
                 ->defaultValue('retain')
                 ->notNull(),
-            'fieldLayoutId' => $this->integer()->notNull(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -336,7 +335,6 @@ class Install extends Migration
         $this->createIndex(null, '{{%formie_forms}}', 'defaultStatusId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntryId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntrySiteId', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_formtemplates}}', 'fieldLayoutId', false);
         $this->createIndex(null, '{{%formie_notifications}}', 'formId', false);
         $this->createIndex(null, '{{%formie_notifications}}', 'templateId', false);
@@ -371,7 +369,6 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_forms}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);

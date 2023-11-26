@@ -25,6 +25,7 @@ use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\fieldlayoutelements\CustomField;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -112,6 +113,19 @@ trait FormFieldTrait
         self::normalizeConfig($config);
 
         parent::__construct($config);
+    }
+
+    public function init(): void
+    {
+        // Assign the field layout element to refer to this field's UID. This is how content is connected to a field.
+        // Normally, we would just use a field layout, but as we need a custom structure, we roll our own, and therefore
+        // have to add our own mechanism to map content to fields, as there is technically no saved field layout element UID.
+        $this->layoutElement = new CustomField($this, [
+            'required' => (bool)$this->required,
+            'uid' => $this->uid,
+        ]);
+
+        parent::init();
     }
 
     public function serializeValue(mixed $value, ElementInterface $element = null): mixed
