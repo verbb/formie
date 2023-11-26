@@ -45,6 +45,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration as traitDefineValueForIntegration;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
+        RelationFieldTrait::setPrePopulatedValue insteadof FormFieldTrait;
     }
 
 

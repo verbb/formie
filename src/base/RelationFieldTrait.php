@@ -328,6 +328,22 @@ trait RelationFieldTrait
         );
     }
 
+    protected function setPrePopulatedValue($value): array
+    {
+        $ids = [];
+
+        // Normalize setting from query param.
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        foreach ($value as $id) {
+            $ids[] = ['id' => $id];
+        }
+
+        return $ids;
+    }
+
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {
         /** @var ElementQueryInterface|Collection $value */

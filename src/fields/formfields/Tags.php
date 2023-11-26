@@ -54,6 +54,7 @@ class Tags extends CraftTags implements FormFieldInterface
         RelationFieldTrait::defineValueAsJson insteadof FormFieldTrait;
         RelationFieldTrait::defineValueForIntegration insteadof FormFieldTrait;
         RelationFieldTrait::populateValue insteadof FormFieldTrait;
+        RelationFieldTrait::setPrePopulatedValue insteadof FormFieldTrait;
     }
 
 
@@ -499,29 +500,7 @@ class Tags extends CraftTags implements FormFieldInterface
             SchemaHelper::conditionsField(),
         ];
     }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function setPrePopulatedValue($value): array
-    {
-        $ids = [];
-
-        // Normalize setting from query param.
-        // TODO: move to `RelationTrait` or reorganise into an extended RelationField.
-        // Otherwise, breaking change for custom element relation fields.
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        foreach ($value as $id) {
-            $ids[] = ['id' => $id];
-        }
-
-        return $ids;
-    }
-
+    
 
     // Private Methods
     // =========================================================================
