@@ -605,10 +605,12 @@ class Form extends Element
 
         if ($pages) {
             // Check if there's a session variable
-            $pageId = Craft::$app->getSession()->get($this->_getSessionKey('pageId'));
+            $pageHandle = Craft::$app->getSession()->get($this->_getSessionKey('page'));
 
-            if ($pageId) {
-                $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
+            if ($pageHandle) {
+                $currentPage = ArrayHelper::firstWhere($pages, function($page) use ($pageHandle) {
+                    return $page->handle === $pageHandle;
+                });
             }
 
             // Separate check from the above. Maybe we're trying to fetch a page that doesn't

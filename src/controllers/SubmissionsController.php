@@ -187,7 +187,7 @@ class SubmissionsController extends Controller
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
+        $goToPage = $this->_getTypedParam('goToPage', 'string');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
@@ -274,8 +274,10 @@ class SubmissionsController extends Controller
             }
 
             // Determine the next page to navigate to
-            if (is_numeric($goToPageId)) {
-                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+            if ($goToPage) {
+                $nextPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($goToPage) {
+                    return $page->handle === $goToPage;
+                });
             } else if ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission, true);
             } else if ($submitAction === 'save') {
@@ -418,7 +420,7 @@ class SubmissionsController extends Controller
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
+        $goToPage = $this->_getTypedParam('goToPage', 'string');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
@@ -474,8 +476,10 @@ class SubmissionsController extends Controller
         }
 
         // Determine the next page to navigate to
-        if (is_numeric($goToPageId)) {
-            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+        if ($goToPage) {
+            $nextPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($goToPage) {
+                return $page->handle === $goToPage;
+            });
         } else if ($submitAction === 'back') {
             $nextPage = $form->getPreviousPage(null, $submission, true);
         } else if ($submitAction === 'save') {
@@ -696,7 +700,7 @@ class SubmissionsController extends Controller
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
-        $pageId = $this->_getTypedParam('pageId', 'id');
+        $pageHandle = $this->_getTypedParam('page', 'string');
         $submissionId = $this->_getTypedParam('submissionId', 'id');
 
         /* @var Form $form */
@@ -719,9 +723,11 @@ class SubmissionsController extends Controller
             }
         }
 
-        $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $pageId);
+        $page = ArrayHelper::firstWhere($form->getPages(), function($page) use ($pageHandle) {
+            return $page->handle === $pageHandle;
+        });
 
-        $form->setCurrentPage($nextPage);
+        $form->setCurrentPage($page);
 
         return $this->redirect($request->referrer);
     }
@@ -1136,10 +1142,12 @@ class SubmissionsController extends Controller
     {
         // Find the first page with a field error and set that as the current page
         if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
-            $firstErrorPageId = array_keys($pageFieldErrors)[0];
+            $firstErrorPage = array_keys($pageFieldErrors)[0];
 
-            if ($firstErrorPageId) {
-                $errorPage = ArrayHelper::firstWhere($form->getPages(), 'id', $firstErrorPageId);
+            if ($firstErrorPage) {
+                $errorPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($firstErrorPage) {
+                    return $page->handle === $firstErrorPage;
+                });
 
                 $form->setCurrentPage($errorPage);
 
