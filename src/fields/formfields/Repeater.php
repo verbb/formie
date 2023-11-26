@@ -95,18 +95,16 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
                 $subValue = $element->getFieldValue($fieldKey);
                 $isEmpty = $field->isValueEmpty($subValue, $element);
 
+                // Ensure that the inner fields know about this specific block, so handle getting values properly
+                $field->setParentField($this, $rowKey);
+
                 // Roll our own validation, due to lack of field layout and elements
                 if ($field->required && $isEmpty) {
                     $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
                 }
 
                 foreach ($field->getElementValidationRules() as $rule) {
-                    $attribute = $fieldKey;
-                    $method = $rule[1];
-
-                    if (!$isEmpty && $field->hasMethod($method)) {
-                        $field->$method($element, $attribute);
-                    }
+                    $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
                 }
             }
         }

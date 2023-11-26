@@ -11,5 +11,5 @@ interface SubFieldInterface extends ComponentInterface
 
     public function getFrontEndSubFields($context): array;
     public function getSubFieldOptions(): array;
-    public function validateRequiredFields(ElementInterface $element, string $attribute);
+    public function validateRequiredFields(ElementInterface $element);
 }

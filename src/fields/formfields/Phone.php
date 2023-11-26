@@ -152,13 +152,13 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         ];
     }
 
-    public function validateRequiredFields(ElementInterface $element, string $attribute): void
+    public function validateRequiredFields(ElementInterface $element): void
     {
         if ($this->required) {
-            $value = $element->getFieldValue($attribute);
+            $value = $element->getFieldValue($this->fieldKey);
 
             if (StringHelper::isBlank((string)$value->number)) {
-                $element->addError($attribute, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($this->fieldKey, Craft::t('formie', '"{label}" cannot be blank.', [
                     'label' => $this->name,
                 ]));
             }

@@ -79,11 +79,11 @@ class Email extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    public function validateDomain(ElementInterface $element, string $attribute): void
+    public function validateDomain(ElementInterface $element): void
     {
         $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
 
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
 
         $domain = explode('@', $value)[1] ?? null;
 
@@ -91,7 +91,7 @@ class Email extends FormField implements PreviewableFieldInterface
             $domain = trim($domain);
 
             if (in_array($domain, $blockedDomains)) {
-                $element->addError($attribute, Craft::t('formie', '“{domain}” is not allowed.', [
+                $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
                     'domain' => $domain,
                 ]));
             }
@@ -100,13 +100,13 @@ class Email extends FormField implements PreviewableFieldInterface
 
     public function validateUniqueEmail(ElementInterface $element): void
     {
-        $fieldHandle = $this->handle;
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($this->fieldKey);
         $value = trim($value);
 
         $query = Submission::find()
+            ->id(['not', $element->id])
             ->formId($element->formId)
-            ->$fieldHandle($value);
+            ->field([$this->fieldKey => $value]);
 
         // Fire a 'modifyEmailFieldUniqueQuery' event
         $event = new ModifyEmailFieldUniqueQueryEvent([
@@ -116,7 +116,7 @@ class Email extends FormField implements PreviewableFieldInterface
         $this->trigger(self::EVENT_MODIFY_UNIQUE_QUERY, $event);
 
         if ($event->query->exists()) {
-            $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [
+            $element->addError($this->fieldKey, Craft::t('formie', '“{name}” must be unique.', [
                 'name' => $this->name,
             ]));
         }

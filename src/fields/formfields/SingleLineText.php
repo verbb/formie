@@ -88,7 +88,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         return $rules;
     }
 
-    public function validateMinCharacters(ElementInterface $element, string $attribute): void
+    public function validateMinCharacters(ElementInterface $element): void
     {
         $min = $this->min ?? 0;
 
@@ -96,7 +96,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = (string)$element->getFieldValue($attribute);
+        $value = (string)$element->getFieldValue($this->fieldKey);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
@@ -108,13 +108,13 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $count = StringHelper::count($string);
 
         if ($count < $min) {
-            $element->addError($attribute, Craft::t('formie', 'You must enter at least {limit} characters.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} characters.', [
                 'limit' => $min,
             ]));
         }
     }
 
-    public function validateMaxCharacters(ElementInterface $element, string $attribute): void
+    public function validateMaxCharacters(ElementInterface $element): void
     {
         $max = $this->max ?? 0;
 
@@ -122,7 +122,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = (string)$element->getFieldValue($attribute);
+        $value = (string)$element->getFieldValue($this->fieldKey);
 
         // Convert multibyte text to HTML entities, so we can properly check string length
         // exactly as it'll be saved in the database.
@@ -134,13 +134,13 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $count = StringHelper::count($string);
 
         if ($count > $max) {
-            $element->addError($attribute, Craft::t('formie', 'Limited to {limit} characters.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} characters.', [
                 'limit' => $max,
             ]));
         }
     }
 
-    public function validateMinWords(ElementInterface $element, string $attribute): void
+    public function validateMinWords(ElementInterface $element): void
     {
         $min = $this->min ?? 0;
 
@@ -148,17 +148,17 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
         $count = count(explode(' ', $value));
 
         if ($count > $min) {
-            $element->addError($attribute, Craft::t('formie', 'You must enter at least {limit} words.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
         }
     }
 
-    public function validateMaxWords(ElementInterface $element, string $attribute): void
+    public function validateMaxWords(ElementInterface $element): void
     {
         $max = $this->max ?? 0;
 
@@ -166,11 +166,11 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             return;
         }
 
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
         $count = count(explode(' ', $value));
 
         if ($count > $max) {
-            $element->addError($attribute, Craft::t('formie', 'Limited to {limit} words.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} words.', [
                 'limit' => $max,
             ]));
         }

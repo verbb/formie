@@ -175,7 +175,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $rules;
     }
 
-    public function validateFileLimit(ElementInterface $element, string $attribute): void
+    public function validateFileLimit(ElementInterface $element): void
     {
         $fileLimit = (int)($this->limitFiles ?? 1);
 
@@ -183,13 +183,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (count($uploadedFiles) > $fileLimit) {
-            $element->addError($attribute, Craft::t('formie', 'Choose up to {files} files.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'Choose up to {files} files.', [
                 'files' => $fileLimit,
             ]));
         }
     }
 
-    public function validateMinFileSize(ElementInterface $element, string $attribute): void
+    public function validateMinFileSize(ElementInterface $element): void
     {
         $filenames = [];
 
@@ -205,13 +205,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($attribute, Craft::t('formie', 'File must be larger than {size} MB.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'File must be larger than {size} MB.', [
                 'size' => $this->sizeMinLimit,
             ]));
         }
     }
 
-    public function validateMaxFileSize(ElementInterface $element, string $attribute): void
+    public function validateMaxFileSize(ElementInterface $element): void
     {
         $filenames = [];
 
@@ -227,7 +227,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($attribute, Craft::t('formie', 'File must be smaller than {size} MB.', [
+            $element->addError($this->fieldKey, Craft::t('formie', 'File must be smaller than {size} MB.', [
                 'size' => $this->sizeLimit,
             ]));
         }

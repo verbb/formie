@@ -640,22 +640,22 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return $rules;
     }
 
-    public function validateDateValues(ElementInterface $element, string $attribute): void
+    public function validateDateValues(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
 
         if ($normalized = (!$value instanceof DateTime)) {
             $value = DateTimeHelper::toDateTime($value);
         }
 
         if (!$value) {
-            $element->addError($attribute, Craft::t('formie', 'Value must be a date.'));
+            $element->addError($this->fieldKey, Craft::t('formie', 'Value must be a date.'));
             return;
         }
 
         if ($min = $this->getMinDate()) {
             if ($value < $min) {
-                $element->addError($attribute, Craft::t('formie', 'Value must be no earlier than {min}.', [
+                $element->addError($this->fieldKey, Craft::t('formie', 'Value must be no earlier than {min}.', [
                     'min' => Craft::$app->getFormatter()->asDate($min, Locale::LENGTH_SHORT),
                 ]));
             }
@@ -663,7 +663,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
 
         if ($max = $this->getMaxDate()) {
             if ($value > $max) {
-                $element->addError($attribute, Craft::t('formie', 'Value must be no later than {max}.', [
+                $element->addError($this->fieldKey, Craft::t('formie', 'Value must be no later than {max}.', [
                     'max' => Craft::$app->getFormatter()->asDate($max, Locale::LENGTH_SHORT),
                 ]));
             }

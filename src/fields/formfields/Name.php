@@ -297,13 +297,13 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
         ];
     }
 
-    public function validateRequiredFields(ElementInterface $element, string $attribute): void
+    public function validateRequiredFields(ElementInterface $element): void
     {
         if (!$this->useMultipleFields) {
             return;
         }
 
-        $this->subFieldValidateRequiredFields($element, $attribute);
+        $this->subFieldValidateRequiredFields($element, $this->fieldKey);
     }
 
     protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string

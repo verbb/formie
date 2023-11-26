@@ -216,7 +216,7 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         return $rules;
     }
 
-    public function validateSubfields(ElementInterface $element, string $attribute): void
+    public function validateSubfields(ElementInterface $element): void
     {
         $subFields = [];
 
@@ -225,7 +225,7 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         }
 
         /* @var AddressModel $value */
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
 
         foreach ($subFields as $subField) {
             $labelProp = "{$subField}Label";
@@ -234,14 +234,14 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError($attribute, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($this->fieldKey, Craft::t('formie', '"{label}" cannot be blank.', [
                     'label' => $this->$labelProp,
                 ]));
             }
 
             // Validate the postcode separately
             if ($subField === 'zip' && strlen($fieldValue) > 10) {
-                $element->addError($attribute, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+                $element->addError($this->fieldKey, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
                     'label' => $this->$labelProp,
                     'max' => 10,
                 ]));

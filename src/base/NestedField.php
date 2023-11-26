@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\models\FormRow;
 
 use Craft;
@@ -10,6 +11,7 @@ use craft\base\ElementInterface;
 use craft\base\Field;
 use craft\base\FieldInterface;
 use craft\db\Query;
+use craft\db\QueryParam;
 use craft\db\Table;
 use craft\elements\ElementCollection;
 use craft\elements\db\ElementQuery;
@@ -22,8 +24,43 @@ use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
 
+use yii\db\ExpressionInterface;
+
 abstract class NestedField extends FormField implements NestedFieldInterface
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): ?array
+    {
+        $param = QueryParam::parse($value);
+
+        if (empty($param->values)) {
+            return null;
+        }
+
+        if ($param->operator === QueryParam::NOT) {
+            $param->operator = QueryParam::OR;
+            $negate = true;
+        } else {
+            $negate = false;
+        }
+
+        $condition = [$param->operator];
+        $qb = Craft::$app->getDb()->getQueryBuilder();
+        $valueSql = static::valueSql($instances);
+
+        foreach ($param->values as $key => $value) {
+            // Key will likely contain a numeric for the block `0.email` - remove that.
+            $key = preg_replace('/^[0-9].*?\./', '', $key);
+
+            $condition[] = $qb->jsonContains($valueSql, [$key => $value]);
+        }
+
+        return $negate ? ['not', $condition] : $condition;
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -196,6 +233,29 @@ abstract class NestedField extends FormField implements NestedFieldInterface
         $rules[] = [['rows'], 'validateRows'];
 
         return $rules;
+    }
+
+    protected function normalizeFieldValidator(string $attribute, mixed $rule, FormFieldInterface $field, ElementInterface $element, bool $isEmpty): void
+    {
+        if (is_string($rule)) {
+            $rule = [$attribute, $rule];
+        }
+
+        if (isset($rule[1])) {
+            // Make sure the attribute name starts with 'field:'
+            if ($rule[0] === $field->handle) {
+                $rule[0] = $attribute;
+            }
+        } else {
+            // ["Validator"] syntax
+            array_unshift($rule, $attribute);
+        }
+
+        $method = $rule[1] ?? null;
+
+        if (!$isEmpty && $field->hasMethod($method)) {
+            $field->$method($element);
+        }
     }
 
 }

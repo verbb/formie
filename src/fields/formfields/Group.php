@@ -74,12 +74,7 @@ class Group extends NestedField implements SingleNestedFieldInterface
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
-                $attribute = $fieldKey;
-                $method = $rule[1];
-
-                if (!$isEmpty && $field->hasMethod($method)) {
-                    $field->$method($element, $attribute);
-                }
+                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
             }
         }
     }

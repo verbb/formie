@@ -30,9 +30,9 @@ trait SubFieldTrait
         return $rules;
     }
 
-    public function validateRequiredFields(ElementInterface $element, string $attribute): void
+    public function validateRequiredFields(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($attribute);
+        $value = $element->getFieldValue($this->fieldKey);
         $subFields = ArrayHelper::getColumn($this->getSubFieldOptions(), 'handle');
 
         foreach ($subFields as $subField) {
@@ -42,7 +42,7 @@ trait SubFieldTrait
             $fieldValue = $value->$subField ?? '';
 
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError($attribute . '.' . $subField, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($this->fieldKey . '.' . $subField, Craft::t('formie', '"{label}" cannot be blank.', [
                     'label' => $this->$labelProp,
                 ]));
             }
