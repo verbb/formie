@@ -4,6 +4,7 @@ namespace verbb\formie\elements\db;
 use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\models\FormFieldLayout;
 use verbb\formie\models\Status;
 
 use Craft;
@@ -125,6 +126,24 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
+    public function field(array $values): static
+    {
+        // Allows querying on custom fields with key/values, and supports dot-notation for complex fields like Group/Repeater
+        foreach ($values as $fieldKey => $value) {
+            $fieldKey = explode('.', $fieldKey);
+            $handle = array_shift($fieldKey);
+            $fieldKey = implode('.', $fieldKey);
+
+            if ($fieldKey) {
+                $this->$handle([$fieldKey => $value]);
+            } else {
+                $this->$handle($value);
+            }
+        }
+
+        return $this;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -194,5 +213,21 @@ class SubmissionQuery extends ElementQuery
         }
 
         return parent::statusCondition($status);
+    }
+
+    protected function fieldLayouts(): array
+    {
+        $layouts = [];
+
+        $layoutConfigs = (new Query())
+            ->select(['formFieldLayout'])
+            ->from(['{{%formie_forms}}'])
+            ->column();
+
+        foreach ($layoutConfigs as $layoutConfig) {
+            $layouts[] = new FormFieldLayout($layoutConfig);
+        }
+
+        return $layouts;
     }
 }
