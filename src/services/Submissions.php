@@ -199,10 +199,8 @@ class Submissions extends Component
                 continue;
             }
 
-            // Add additional useful info for the integration
-            // TODO: refactor this to allow integrations access to control this
-            $integration->referrer = Craft::$app->getRequest()->getReferrer();
-            $integration->ipAddress = Craft::$app->getRequest()->getUserIP();
+            // Allow integrations to add extra data before running
+            $resolvedIntegration->populateContext();
 
             if ($settings->useQueueForIntegrations) {
                 Queue::push(new TriggerIntegration([

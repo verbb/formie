@@ -303,15 +303,14 @@ class HubSpotLegacy extends Crm
                 }
 
                 // Setup Hubspot's context
-                // TODO: change this when we refactor integrations to allow arbitrary storing of extra data at submission time
                 $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
 
                 if ($hutk) {
                     $formPayload['context']['hutk'] = $hutk;
                 }
 
-                $formPayload['context']['ipAddress'] = $this->ipAddress;
-                $formPayload['context']['pageUri'] = $this->referrer;
+                $formPayload['context']['ipAddress'] = $this->context['ipAddress'] ?? null;
+                $formPayload['context']['pageUri'] = $this->context['referrer'] ?? null;
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 

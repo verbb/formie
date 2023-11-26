@@ -899,10 +899,8 @@ class SubmissionsController extends Controller
 
             $resolvedIntegration = $integration;
 
-            // Add additional useful info for the integration
-            // TODO: refactor this to allow integrations access to control this
-            $resolvedIntegration->referrer = $this->request->getReferrer();
-            $resolvedIntegration->ipAddress = $this->request->getUserIP();
+            // Allow integrations to add extra data before running
+            $resolvedIntegration->populateContext();
         }
 
         if (!$resolvedIntegration) {
