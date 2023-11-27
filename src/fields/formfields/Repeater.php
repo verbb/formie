@@ -112,20 +112,16 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
 
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
-
         if (!is_array($value)) {
             $value = [];
         }
 
         // Normalize all inner fields
-        foreach ($value as $rowKey => $row) {
-            foreach ($row as $fieldHandle => $subValue) {
-                $field = $fieldsByHandle[$fieldHandle] ?? null;
+        foreach ($this->getFields() as $field) {
+            foreach ($value as $rowKey => $row) {
+                $fieldValue = $row[$field->handle] ?? null;
 
-                if ($fieldHandle === $field?->handle) {
-                    $value[$rowKey][$fieldHandle] = $field->normalizeValue($subValue, $element);
-                }
+                $value[$rowKey][$field->handle] = $field->normalizeValue($fieldValue, $element);
             }
         }
 
@@ -137,22 +133,21 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
 
     public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
-
         if (!is_array($value)) {
             $value = [];
         }
 
         // Serialize all inner fields
-        foreach ($value as $rowKey => $row) {
-            foreach ($row as $fieldHandle => $subValue) {
-                $field = $fieldsByHandle[$fieldHandle] ?? null;
+        foreach ($this->getFields() as $field) {
+            foreach ($value as $rowKey => $row) {
+                $fieldValue = $row[$field->handle] ?? null;
 
-                if ($fieldHandle === $field?->handle) {
-                    $value[$rowKey][$fieldHandle] = $field->serializeValue($subValue, $element);
-                }
+                $value[$rowKey][$field->handle] = $field->serializeValue($fieldValue, $element);
             }
         }
+
+        // Reset any `new1` or `row1` keys
+        $value = array_values($value);
 
         return $value;
     }

@@ -85,6 +85,17 @@ abstract class NestedField extends FormField implements NestedFieldInterface
         return $attributes;
     }
 
+    public function setAttributes($values, $safeOnly = true): void
+    {
+        // We need to call `setRows()` manually, as it's not listed as an attribute, because it's not something
+        // we want to save, but this is important to populate it from Vue before saving to the field settings
+        if (array_key_exists('rows', $values)) {
+            $this->setRows($values['rows']);
+        }
+
+        parent::setAttributes($values, $safeOnly);
+    }
+
     public function getFormBuilderSettings(): array
     {
         $config = parent::getFormBuilderSettings();

@@ -84,19 +84,15 @@ class Group extends NestedField implements SingleNestedFieldInterface
 
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
-
         if (!is_array($value)) {
             $value = [];
         }
 
         // Normalize all inner fields
-        foreach ($value as $fieldHandle => $subValue) {
-            $field = $fieldsByHandle[$fieldHandle] ?? null;
+        foreach ($this->getFields() as $field) {
+            $fieldValue = $value[$field->handle] ?? null;
 
-            if ($fieldHandle === $field?->handle) {
-                $value[$fieldHandle] = $field->normalizeValue($subValue, $element);
-            }
+            $value[$field->handle] = $field->normalizeValue($fieldValue, $element);
         }
 
         return $value;
@@ -104,19 +100,15 @@ class Group extends NestedField implements SingleNestedFieldInterface
 
     public function serializeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        $fieldsByHandle = ArrayHelper::index($this->getFields(), 'handle');
-
         if (!is_array($value)) {
             $value = [];
         }
 
         // Serialize all inner fields
-        foreach ($value as $fieldHandle => $subValue) {
-            $field = $fieldsByHandle[$fieldHandle] ?? null;
+        foreach ($this->getFields() as $field) {
+            $fieldValue = $value[$field->handle] ?? null;
 
-            if ($fieldHandle === $field?->handle) {
-                $value[$fieldHandle] = $field->serializeValue($subValue, $element);
-            }
+            $value[$field->handle] = $field->serializeValue($fieldValue, $element);
         }
 
         return $value;

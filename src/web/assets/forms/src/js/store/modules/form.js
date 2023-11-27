@@ -412,6 +412,20 @@ const getters = {
                     delete field.__id;
                     delete field.icon;
                     delete field.errors;
+
+                    if (field.settings && field.settings.rows) {
+                        field.settings.rows.forEach((nestedRow) => {
+                            delete nestedRow.__id;
+                            delete nestedRow.id;
+                            delete nestedRow.errors;
+
+                            nestedRow.fields.forEach((nestedField) => {
+                                delete nestedField.__id;
+                                delete nestedField.icon;
+                                delete nestedField.errors;
+                            });
+                        });
+                    }
                 });
             });
         });
