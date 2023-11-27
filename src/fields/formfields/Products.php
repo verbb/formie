@@ -39,6 +39,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        init as traitInit;
         getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
@@ -89,6 +90,8 @@ class Products extends CommerceProducts implements FormFieldInterface
     {
         // Enforce any required plugin before creating the field
         Formie::$plugin->getFields()->checkRequiredPlugin($this);
+
+        $this->traitInit();
     }
 
     public function getFormBuilderConfig(): array

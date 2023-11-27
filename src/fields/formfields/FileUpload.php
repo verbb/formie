@@ -37,6 +37,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        init as traitInit;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getSettingGqlTypes as traitGetSettingGqlTypes;
         defineHtmlTag as traitDefineHtmlTag;
@@ -102,6 +103,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 }
             }
         });
+
+        $this->traitInit();
     }
 
     public function beforeSave(bool $isNew): bool

@@ -42,6 +42,7 @@ class Variants extends CommerceVariants implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait, RelationFieldTrait {
+        init as traitInit;
         getDefaultValue as traitGetDefaultValue;
         getFrontEndInputOptions as traitGetFrontendInputOptions;
         getEmailHtml as traitGetEmailHtml;
@@ -95,6 +96,8 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         // Enforce any required plugin before creating the field
         Formie::$plugin->getFields()->checkRequiredPlugin($this);
+
+        $this->traitInit();
     }
 
     public function getFormBuilderConfig(): array

@@ -45,6 +45,8 @@ class FormPageSettings extends Model
         if (!$this->saveButtonLabel) {
             $this->saveButtonLabel = Craft::t('formie', 'Save');
         }
+
+        parent::init();
     }
 
     public function getContainerAttributes(): array
