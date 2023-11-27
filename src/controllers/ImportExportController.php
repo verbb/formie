@@ -110,7 +110,11 @@ class ImportExportController extends Controller
             $type = explode('\\', $field['type']);
             $type = array_pop($type);
 
-            $this->stdout("        > {$type}: “{$field['settings']['label']}” `({$field['settings']['handle']})`.", Console::FG_GREEN);
+            // Handle Formie v2 exports
+            $label = $field['label'] ?? $field['settings']['label'] ?? '';
+            $handle = $field['handle'] ?? $field['settings']['handle'] ?? '';
+
+            $this->stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);

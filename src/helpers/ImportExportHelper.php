@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\models\FormFieldLayout;
@@ -19,7 +20,6 @@ use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
 use craft\elements\Entry;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 class ImportExportHelper
@@ -165,6 +165,9 @@ class ImportExportHelper
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
         $notifications = ArrayHelper::remove($data, 'notifications');
 
+        // Handle Formie v2 exports
+        unset($data['fieldLayoutId']);
+
         // Handle base form
         $form->setAttributes($data, false);
 
@@ -197,34 +200,32 @@ class ImportExportHelper
 
         // Check if this is updating an existing form. We want to try and find existing fields
         // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
-        /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($existingFormFields as $existingFormField) {
             // Try to find the field data in the import, and attach the ID
-            foreach ($pages as $pageKey => $page) {
-                $rows = $page['rows'] ?? [];
+            foreach ($pages as $pageKey => &$page) {
+                if (isset($page['rows'])) {
+                    foreach ($page['rows'] as $rowKey => &$row) {
+                        if (isset($row['fields'])) {
+                            foreach ($row['fields'] as $fieldKey => &$field) {
+                                $existingField = $existingFormFields[$field['handle']] ?? null;
 
-                foreach ($rows as $rowKey => $row) {
-                    $fields = $row['fields'] ?? [];
+                                if ($existingField) {
+                                    $field['id'] = $existingField->id;
+                                }
+                                
+                                // Handle Group/Repeater to do the same, but slightly different
+                                if (isset($field['rows'])) {
+                                    foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
+                                        if (isset($nestedRow['fields'])) {
+                                            foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
+                                                $existingNestedField = $existingFormFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
 
-                    foreach ($fields as $fieldKey => $field) {
-                        $existingField = $existingFormFields[$field['handle']] ?? null;
-
-                        if ($existingField) {
-                            $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = $existingField->id;
-
-                        }
-                        
-                        // Handle Group/Repeater to do the same, but slightly different
-                        $nestedRows = $field['rows'] ?? [];
-
-                        foreach ($nestedRows as $nestedRowKey => $nestedRow) {
-                            $nestedFields = $nestedRow['fields'] ?? [];
-
-                            foreach ($nestedFields as $nestedFieldKey => $nestedField) {
-                                $existingNestedField = $existingFormFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
-
-                                if ($existingNestedField) {
-                                    $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'][$nestedRowKey]['fields'][$nestedFieldKey]['id'] = $existingNestedField->id;
+                                                if ($existingNestedField) {
+                                                    $nestedField['id'] = $existingNestedField->id;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -233,8 +234,8 @@ class ImportExportHelper
             }
         }
 
-        // Ensure we're not adding a field type that doesn't exist or isn't supported here
-        self::filterUnsupportedFields($pages);
+        // Ensure the pages/rows/fields are prepped properly
+        self::prepFieldsForImport($pages);
 
         // Handle field layout and pages
         $form->setFormFieldLayout(new FormFieldLayout(['pages' => $pages]));
@@ -325,44 +326,52 @@ class ImportExportHelper
         }
     }
 
-    private static function filterUnsupportedFields(&$pages): void
+    private static function prepFieldsForImport(array &$pages): void
     {
-        foreach ($pages as $pageKey => $page) {
-            $rows = $page['rows'] ?? [];
+        foreach ($pages as $pageKey => &$page) {
+            // Handle Formie v2 exports
+            unset($page['userCondition'], $page['elementCondition']);
 
-            foreach ($rows as $rowKey => $row) {
-                $fields = $row['fields'] ?? [];
+            if (isset($page['rows'])) {
+                foreach ($page['rows'] as $rowKey => &$row) {
+                    if (isset($row['fields'])) {
+                        foreach ($row['fields'] as $fieldKey => &$field) {
+                            $type = $field['type'] ?? '';
 
-                foreach ($fields as $fieldKey => $field) {
-                    $type = $field['type'] ?? '';
+                            // Handle Formie v2 exports
+                            unset($field['settings']['isNested']);
+                            $field['settings']['label'] = $field['label'] ?? null;
+                            $field['settings']['handle'] = $field['handle'] ?? null;
 
-                    // This will throw an error for Commerce, where the extended class doesn't exist.
-                    // Which unfortunately means we can't use `class_exists()` because it's the extended
-                    // class that doesn't exist, and that can't be caught for some reason.
-                    if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
-                        unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
-                    } else if (!class_exists($type)) {
-                        // Check if the class doesn't exist
-                        unset($pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]);
-                    }
+                            // This will throw an error for Commerce, where the extended class doesn't exist.
+                            // Which unfortunately means we can't use `class_exists()` because it's the extended
+                            // class that doesn't exist, and that can't be caught for some reason.
+                            if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
+                                unset($row['fields'][$fieldKey]);
+                            } else if (!class_exists($type)) {
+                                // Check if the class doesn't exist
+                                unset($row['fields'][$fieldKey]);
+                            }
 
-                    // Check for nested fields
-                    $nestedRows = $field['rows'] ?? [];
+                            // Check for nested fields
+                            // Handle Formie v2 exports
+                            $nestedRows = $field['rows'] ?? $field['settings']['rows'] ?? [];
 
-                    if ($nestedRows) {
-                        // Create a new variable, so we can use our recursive function
-                        $nestedPages = [$nestedRows];
+                            if ($nestedRows) {
+                                // Create a new variable, so we can use our recursive function
+                                $nestedPages = [['rows' => $nestedRows]];
 
-                        self::filterUnsupportedFields($nestedPages);
+                                self::prepFieldsForImport($nestedPages);
 
-                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['rows'] = $nestedPages[0];
+                                $field['settings']['rows'] = $nestedPages[0]['rows'];
+                            }
+                        }
                     }
                 }
-
-                // Cleanup any isolated fields
-                $pages[$pageKey]['rows'][$rowKey] = array_filter($pages[$pageKey]['rows'][$rowKey]);
-                $pages[$pageKey]['rows'] = array_filter($pages[$pageKey]['rows']);
             }
+
+            // Cleanup any isolated rows/fields
+            $page = ArrayHelper::recursiveFilter($page);
         }
     }
 }
