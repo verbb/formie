@@ -3,9 +3,10 @@ namespace verbb\formie\console\controllers;
 
 use verbb\formie\Formie;
 
+use Throwable;
+
 use yii\console\Controller;
 use yii\console\ExitCode;
-use Throwable;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
 
@@ -24,6 +25,13 @@ class GcController extends Controller
     public function actionPruneDataRetentionSubmissions(): int
     {
         Formie::$plugin->getSubmissions()->pruneDataRetentionSubmissions($this);
+
+        return ExitCode::OK;
+    }
+
+    public function actionDeleteOrphanedFields(): int
+    {
+        Formie::$plugin->getFields()->deleteOrphanedFields($this);
 
         return ExitCode::OK;
     }

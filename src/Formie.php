@@ -378,6 +378,9 @@ class Formie extends Plugin
     private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
+            // Delete fields with no form.
+            $this->getFields()->deleteOrphanedFields();
+
             // Delete incomplete submissions older than the configured interval.
             $this->getSubmissions()->pruneIncompleteSubmissions();
 

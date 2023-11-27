@@ -535,4 +535,45 @@ class Fields extends Component
 
         return array_merge($reservedWords, HandleValidator::$baseReservedWords);
     }
+
+    public function deleteOrphanedFields($consoleInstance = null): void
+    {
+        // Because forms support soft-deletion, and we can't mark fields as soft-deleted, we can't really delete them
+        // until a form is hard-deleted. This is most check on a routine basis.
+        $formUids = (new Query())
+            ->select(['uid'])
+            ->from(['{{%elements}}'])
+            ->where(['type' => Form::class])
+            ->column();
+
+        $fields = (new Query())
+            ->select(['id', 'uid', 'context'])
+            ->from(['{{%fields}}'])
+            ->indexBy('uid')
+            ->all();
+
+        foreach ($fields as $field) {
+            if (str_starts_with($field['context'], 'formie:')) {
+                $uid = str_replace('formie:', '', $field['context']);
+
+                if (!in_array($uid, $formUids)) {
+                    // Do a direct database delete, so as not to trigger any field-deletion events, and performance gains
+                    Db::delete(CraftTable::FIELDS, [
+                        'id' => $field['id'],
+                    ]);
+                }
+            }
+
+            // Check for Group/Repeater fields
+            if (str_starts_with($field['context'], 'formieField:')) {
+                $uid = str_replace('formieField:', '', $field['context']);
+
+                if (!isset($fields[$uid])) {
+                    Db::delete(CraftTable::FIELDS, [
+                        'id' => $field['id'],
+                    ]);
+                }
+            }
+        }
+    }
 }
