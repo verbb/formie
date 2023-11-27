@@ -104,35 +104,11 @@ trait RelationFieldTrait
             $size = (isset($context['viewMode']) && $context['viewMode'] === 'thumbs') ? Cp::ELEMENT_SIZE_LARGE : Cp::ELEMENT_SIZE_SMALL;
         }
 
-        return TemplateHelper::raw(Cp::elementChipHtml(
-            $context['element'],
-            $context['context'] ?? 'index',
-            $size,
-            $context['name'] ?? null,
-            true,
-            true,
-            true,
-            true,
-            $context['single'] ?? false
-        ));
-    }
-
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        /** @var Element|null $element */
-        if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {
-            $value = $element->getEagerLoadedElements($this->handle);
-        } else {
-            /** @var ElementQueryInterface $value */
-            $value = $this->_all($value, $element);
-        }
-
-        /** @var ElementQuery|array $value */
-        $variables = $this->inputTemplateVariables($value, $element);
-
-        $variables['field'] = $this;
-
-        return Craft::$app->getView()->renderTemplate($this->inputTemplate, $variables);
+        return TemplateHelper::raw(Cp::elementChipHtml($context['element'], [
+            'context' => 'index',
+            'size' => $size,
+            'inputName' => $context['name'] ?? null,
+        ]));
     }
 
     public function getDefaultValueQuery()
@@ -318,6 +294,24 @@ trait RelationFieldTrait
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        /** @var Element|null $element */
+        if ($element !== null && $element->hasEagerLoadedElements($this->handle)) {
+            $value = $element->getEagerLoadedElements($this->handle);
+        } else {
+            /** @var ElementQueryInterface $value */
+            $value = $this->_all($value, $element);
+        }
+
+        /** @var ElementQuery|array $value */
+        $variables = $this->inputTemplateVariables($value, $element);
+
+        $variables['field'] = $this;
+
+        return Craft::$app->getView()->renderTemplate($this->inputTemplate, $variables);
+    }
 
     protected function availableSources(): array
     {
