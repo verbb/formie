@@ -368,10 +368,10 @@ class ImportExportHelper
                         }
                     }
                 }
-            }
 
-            // Cleanup any isolated rows/fields
-            $page = ArrayHelper::recursiveFilter($page);
+                // Cleanup any isolated fields
+                $page['rows'] = array_filter($page['rows']);
+            }
         }
     }
 }

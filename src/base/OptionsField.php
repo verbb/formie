@@ -112,7 +112,7 @@ abstract class OptionsField extends FormField implements FormFieldInterface, Pre
             }
 
             $label = (string)$option['label'];
-            $value = (string)($option['value'] ?? '');
+            $value = (string)$option['value'];
 
             if (isset($labels[$optgroup][$label])) {
                 $option['label'] = [
