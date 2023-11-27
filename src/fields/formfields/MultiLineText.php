@@ -186,22 +186,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        $form = null;
-
-        if ($element instanceof Submission) {
-            $form = $element->getForm();
-        }
-
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-            'form' => $form,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
@@ -496,6 +480,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         return parent::defineHtmlTag($key, $context);
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -507,5 +492,21 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         $rules[] = [['minType', 'maxType'], 'in', 'range' => ['characters', 'words']];
 
         return $rules;
+    }
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        $form = null;
+
+        if ($element instanceof Submission) {
+            $form = $element->getForm();
+        }
+
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'form' => $form,
+        ]);
     }
 }

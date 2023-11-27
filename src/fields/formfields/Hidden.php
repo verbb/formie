@@ -122,15 +122,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/preview', [
@@ -267,5 +258,18 @@ class Hidden extends FormField implements PreviewableFieldInterface
         }
 
         return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 }

@@ -109,62 +109,6 @@ class Table extends CraftTable implements FormFieldInterface
         return $rules;
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        /** @var Element $element */
-        if (empty($this->columns)) {
-            return '';
-        }
-
-        // Translate the column headings
-        foreach ($this->columns as &$column) {
-            if (!empty($column['heading'])) {
-                $column['heading'] = Craft::t('formie', $column['heading']);
-            }
-        }
-        unset($column);
-
-        if (!is_array($value)) {
-            $value = [];
-        }
-
-        // Explicitly set each cell value to an array with a 'value' key
-        $checkForErrors = $element && $element->hasErrors($this->handle);
-        foreach ($value as &$row) {
-            foreach ($this->columns as $colId => $col) {
-                if (isset($row[$colId])) {
-                    $hasErrors = $checkForErrors && !$this->_validateCellValue($col['type'], $row[$colId]);
-                    $row[$colId] = [
-                        'value' => $row[$colId],
-                        'hasErrors' => $hasErrors,
-                    ];
-                }
-            }
-        }
-        unset($row);
-
-        // Make sure the value contains at least the minimum number of rows
-        if ($this->minRows) {
-            for ($i = count($value); $i < $this->minRows; $i++) {
-                $value[] = [];
-            }
-        }
-
-        $view = Craft::$app->getView();
-        $id = Html::id($this->handle);
-
-        return $view->renderTemplate('formie/_formfields/table/input', [
-            'id' => $id,
-            'name' => $this->handle,
-            'cols' => $this->columns,
-            'rows' => $value ?: [''],
-            'minRows' => $this->minRows,
-            'maxRows' => $this->maxRows,
-            'static' => $this->static,
-            'addRowLabel' => Craft::t('formie', $this->addRowLabel),
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
@@ -547,6 +491,62 @@ class Table extends CraftTable implements FormFieldInterface
         $rules = parent::defineRules();
         $rules[] = [['minRows', 'maxRows'], 'integer', 'min' => 0];
         return $rules;
+    }
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        /** @var Element $element */
+        if (empty($this->columns)) {
+            return '';
+        }
+
+        // Translate the column headings
+        foreach ($this->columns as &$column) {
+            if (!empty($column['heading'])) {
+                $column['heading'] = Craft::t('formie', $column['heading']);
+            }
+        }
+        unset($column);
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Explicitly set each cell value to an array with a 'value' key
+        $checkForErrors = $element && $element->hasErrors($this->handle);
+        foreach ($value as &$row) {
+            foreach ($this->columns as $colId => $col) {
+                if (isset($row[$colId])) {
+                    $hasErrors = $checkForErrors && !$this->_validateCellValue($col['type'], $row[$colId]);
+                    $row[$colId] = [
+                        'value' => $row[$colId],
+                        'hasErrors' => $hasErrors,
+                    ];
+                }
+            }
+        }
+        unset($row);
+
+        // Make sure the value contains at least the minimum number of rows
+        if ($this->minRows) {
+            for ($i = count($value); $i < $this->minRows; $i++) {
+                $value[] = [];
+            }
+        }
+
+        $view = Craft::$app->getView();
+        $id = Html::id($this->handle);
+
+        return $view->renderTemplate('formie/_formfields/table/input', [
+            'id' => $id,
+            'name' => $this->handle,
+            'cols' => $this->columns,
+            'rows' => $value ?: [''],
+            'minRows' => $this->minRows,
+            'maxRows' => $this->maxRows,
+            'static' => $this->static,
+            'addRowLabel' => Craft::t('formie', $this->addRowLabel),
+        ]);
     }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string

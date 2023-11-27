@@ -47,11 +47,6 @@ class Signature extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Html::tag('img', null, ['src' => $value]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/preview', [
@@ -192,6 +187,11 @@ class Signature extends FormField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Html::tag('img', null, ['src' => $value]);
+    }
 
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {

@@ -101,15 +101,6 @@ class Html extends FormField
         return parent::beforeSave($isNew);
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/preview', [
@@ -165,6 +156,19 @@ class Html extends FormField
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 
 

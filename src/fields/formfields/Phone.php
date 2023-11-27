@@ -165,15 +165,6 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         }
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
@@ -322,5 +313,18 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         }
         
         return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 }

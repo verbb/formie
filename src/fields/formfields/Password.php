@@ -63,16 +63,6 @@ class Password extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        // Mask the value for submissions (but no indication of length)
-        if ($value) {
-            return '•••••••••••••••••••••';
-        }
-
-        return '';
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/password/preview', [
@@ -181,6 +171,16 @@ class Password extends FormField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        // Mask the value for submissions (but no indication of length)
+        if ($value) {
+            return '•••••••••••••••••••••';
+        }
+
+        return '';
+    }
 
     protected function defineValueForSummary($value, ElementInterface $element = null): string
     {

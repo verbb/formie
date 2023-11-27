@@ -535,16 +535,6 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         ]);
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-            'element' => $element,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
@@ -805,6 +795,16 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         ];
 
         return $rules;
+    }
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
     }
 
     protected function defineValueForExport($value, ElementInterface $element = null): mixed

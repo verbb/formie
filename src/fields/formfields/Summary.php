@@ -40,15 +40,6 @@ class Summary extends FormField
         return false;
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/preview', [
@@ -130,5 +121,18 @@ class Summary extends FormField
         }
 
         return parent::defineHtmlTag($key, $context);
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 }

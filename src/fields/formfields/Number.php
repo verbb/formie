@@ -102,26 +102,6 @@ class Number extends FormField implements PreviewableFieldInterface
         return (string)$value;
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        // If decimals is 0 (or null, empty for whatever reason), don't run this
-        if ($value !== null && $this->decimals) {
-            $decimalSeparator = Craft::$app->getLocale()->getNumberSymbol(Locale::SYMBOL_DECIMAL_SEPARATOR);
-            
-            try {
-                $value = number_format($value, $this->decimals, $decimalSeparator, '');
-            } catch (Throwable $e) {
-                // NaN
-            }
-        }
-
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/number/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/number/preview', [
@@ -344,5 +324,25 @@ class Number extends FormField implements PreviewableFieldInterface
         }
 
         return $rules;
+    }
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        // If decimals is 0 (or null, empty for whatever reason), don't run this
+        if ($value !== null && $this->decimals) {
+            $decimalSeparator = Craft::$app->getLocale()->getNumberSymbol(Locale::SYMBOL_DECIMAL_SEPARATOR);
+            
+            try {
+                $value = number_format($value, $this->decimals, $decimalSeparator, '');
+            } catch (Throwable $e) {
+                // NaN
+            }
+        }
+
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/number/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 }

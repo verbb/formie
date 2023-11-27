@@ -110,15 +110,6 @@ class Agree extends FormField implements PreviewableFieldInterface
         ];
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/preview', [
@@ -267,6 +258,15 @@ class Agree extends FormField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/agree/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
+    }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {

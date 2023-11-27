@@ -164,30 +164,6 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
         ];
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        $view = Craft::$app->getView();
-
-        $view->startJsBuffer();
-
-        // Render it once to get the JS used for inner fields (element fields)
-        $bodyHtml = $view->renderTemplate('formie/_formfields/repeater/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);;
-
-        $footHtml = $view->clearJsBuffer();
-
-        return $view->renderTemplate('formie/_formfields/repeater/input', [
-            'element' => $element,
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-            'footHtml' => $footHtml,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [
@@ -404,6 +380,29 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
         return $rules;
     }
 
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        $view = Craft::$app->getView();
+
+        $view->startJsBuffer();
+
+        // Render it once to get the JS used for inner fields (element fields)
+        $bodyHtml = $view->renderTemplate('formie/_formfields/repeater/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);;
+
+        $footHtml = $view->clearJsBuffer();
+
+        return $view->renderTemplate('formie/_formfields/repeater/input', [
+            'element' => $element,
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'footHtml' => $footHtml,
+        ]);
+    }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {

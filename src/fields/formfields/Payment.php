@@ -81,15 +81,6 @@ class Payment extends FormField
         return $model;
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/preview', [
@@ -233,6 +224,15 @@ class Payment extends FormField
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
+    }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {

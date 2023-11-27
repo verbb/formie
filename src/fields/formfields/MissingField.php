@@ -40,15 +40,6 @@ class MissingField extends FormField implements MissingComponentInterface
     // Public Methods
     // =========================================================================
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        $error = $this->errorMessage ?? "Unable to find component class '{$this->expectedType}'.";
-
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/input', [
-            'error' => $error,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/preview', [
@@ -59,5 +50,18 @@ class MissingField extends FormField implements MissingComponentInterface
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        $error = $this->errorMessage ?? "Unable to find component class '{$this->expectedType}'.";
+
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/input', [
+            'error' => $error,
+        ]);
     }
 }

@@ -146,16 +146,6 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-            'options' => $this->options(),
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/preview', [
@@ -509,6 +499,16 @@ class Recipients extends FormField implements PreviewableFieldInterface
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'options' => $this->options(),
+        ]);
+    }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
     {

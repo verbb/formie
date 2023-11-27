@@ -66,16 +66,6 @@ class Dropdown extends OptionsField
         return array_merge($options, $this->options);
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-            'options' => $this->translatedOptions(),
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
@@ -230,6 +220,16 @@ class Dropdown extends OptionsField
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+            'options' => $this->translatedOptions(),
+        ]);
+    }
 
     protected function optionsSettingLabel(): string
     {

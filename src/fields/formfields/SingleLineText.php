@@ -176,15 +176,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         }
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/input', [
-            'name' => $this->handle,
-            'value' => $value,
-            'field' => $this,
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/preview', [
@@ -407,5 +398,14 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $rules[] = [['minType', 'maxType'], 'in', 'range' => ['characters', 'words']];
 
         return $rules;
+    }
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/input', [
+            'name' => $this->handle,
+            'value' => $value,
+            'field' => $this,
+        ]);
     }
 }

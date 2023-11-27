@@ -59,15 +59,6 @@ class Checkboxes extends OptionsField
         return $options;
     }
 
-    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
-            'name' => $this->handle,
-            'values' => $value,
-            'options' => $this->translatedOptions(),
-        ]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/preview', [
@@ -266,6 +257,15 @@ class Checkboxes extends OptionsField
 
     // Protected Methods
     // =========================================================================
+
+    protected function inputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
+            'name' => $this->handle,
+            'values' => $value,
+            'options' => $this->translatedOptions(),
+        ]);
+    }
 
     protected function optionsSettingLabel(): string
     {
