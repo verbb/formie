@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
+use verbb\formie\base\FormFieldInterface;
 
 use Craft;
 use craft\helpers\App;
@@ -41,7 +42,7 @@ class Algolia extends AddressProvider
         return Craft::t('formie', 'Use [Algolia Places](https://community.algolia.com/places/) to suggest addresses, for address fields.');
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

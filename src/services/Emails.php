@@ -9,6 +9,7 @@ use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\formfields\FileUpload;
 use verbb\formie\fields\formfields\Group;
 use verbb\formie\fields\formfields\Repeater;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
@@ -21,7 +22,6 @@ use craft\helpers\App;
 use craft\helpers\Assets;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\mail\Message;
 

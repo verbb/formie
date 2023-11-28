@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\StringHelper;
 
@@ -12,7 +13,6 @@ use craft\base\Field;
 use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\fieldlayoutelements\CustomField;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\models\FieldLayout as CraftFieldLayout;
 

@@ -1,18 +1,22 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\fields\formfields\Table;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\base\ElementInterface;
+use craft\base\FieldInterface;
 use craft\fields;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 use yii\base\Event;
@@ -111,7 +115,7 @@ abstract class Element extends Integration
         ]);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         $handle = $this->getClassHandle();
 
@@ -121,13 +125,13 @@ abstract class Element extends Integration
         ]);
     }
 
-    public function getFormSettings($useCache = true): IntegrationFormSettings|bool
+    public function getFormSettings(bool $useCache = true): IntegrationFormSettings|bool
     {
         // Always fetch, no real need for cache
         return $this->fetchFormSettings();
     }
 
-    public static function convertValueForIntegration($value, $integrationField): mixed
+    public static function convertValueForIntegration(mixed $value, IntegrationField $integrationField): mixed
     {
         // Won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -144,7 +148,7 @@ abstract class Element extends Integration
     // Protected Methods
     // =========================================================================
 
-    protected function getFieldTypeForField($fieldClass)
+    protected function getFieldTypeForField(string $fieldClass): string
     {
         // Provide a map of all native Craft fields to the data we expect
         $fieldTypeMap = [
@@ -168,7 +172,7 @@ abstract class Element extends Integration
         return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
     }
 
-    protected function fieldCanBeUniqueId($field): bool
+    protected function fieldCanBeUniqueId(FieldInterface $field): bool
     {
         $type = $field::class;
 
@@ -200,7 +204,7 @@ abstract class Element extends Integration
         return false;
     }
 
-    protected function getElementForPayload($elementType, $identifier, $submission)
+    protected function getElementForPayload(string $elementType, string $identifier, Submission $submission): ElementInterface
     {
         $element = new $elementType();
 

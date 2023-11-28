@@ -63,7 +63,7 @@ class FormsController extends Controller
         }
 
         foreach ($formIds as $formId) {
-            $query = Form::find()->formId($formId);
+            $query = Form::find()->id($formId);
 
             $count = (int)$query->count();
 

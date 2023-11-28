@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Token;
@@ -12,7 +13,6 @@ use verbb\formie\models\Token;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use Throwable;
 
@@ -260,7 +260,7 @@ class SugarCrm extends Crm
         $token = $this->getToken();
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration.', true);
         }
 
         $apiDomain = rtrim(App::parseEnv($this->apiDomain), '/');
@@ -372,7 +372,7 @@ class SugarCrm extends Crm
         }
     }
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'date' => IntegrationField::TYPE_DATE,
@@ -382,7 +382,7 @@ class SugarCrm extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields): array
+    private function _getCustomFields(array $fields): array
     {
         $customFields = [];
 

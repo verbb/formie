@@ -7,6 +7,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
@@ -17,7 +18,6 @@ use craft\elements\db\ElementQueryInterface;
 use craft\fields\Users as CraftUsers;
 use craft\gql\arguments\elements\User as UserArguments;
 use craft\gql\interfaces\elements\User as UserInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 

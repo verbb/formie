@@ -4,13 +4,13 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 

@@ -318,7 +318,7 @@ class Zoho extends Crm
         $token = $this->getToken();
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration.', true);
         }
 
         // Populated after OAuth connection
@@ -414,7 +414,7 @@ class Zoho extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'jsonarray' => IntegrationField::TYPE_ARRAY,
@@ -433,7 +433,7 @@ class Zoho extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

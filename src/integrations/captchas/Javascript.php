@@ -4,6 +4,7 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\FormPage;
 
 use Craft;
 use craft\helpers\Html;
@@ -150,7 +151,7 @@ class Javascript extends Captcha
     // Private Methods
     // =========================================================================
 
-    private function getSessionKey($form, $page = null): string
+    private function getSessionKey(Form $form, FormPage $page = null): string
     {
         // Default the page to the last page, if not set.
         if (!$page) {

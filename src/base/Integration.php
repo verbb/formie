@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\IntegrationConnectionEvent;
@@ -9,6 +10,7 @@ use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\formfields\Agree;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -18,7 +20,6 @@ use verbb\formie\records\Integration as IntegrationRecord;
 use Craft;
 use craft\base\SavableComponent;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -35,6 +36,7 @@ use League\OAuth2\Client\Provider\GenericProvider;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
+use Exception;
 use Throwable;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
@@ -93,7 +95,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public static function log($integration, $message, $throwError = false): void
+    public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
         Formie::info($integration->name . ': ' . $message);
 
@@ -102,7 +104,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function error($integration, $message, $throwError = false): void
+    public static function error(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
         Formie::error($integration->name . ': ' . $message);
 
@@ -111,7 +113,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function apiError($integration, $exception, $throwError = true): void
+    public static function apiError(IntegrationInterface $integration, Exception $exception, bool $throwError = true): void
     {
         $messageText = $exception->getMessage();
 
@@ -133,7 +135,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function convertValueForIntegration($value, $integrationField): mixed
+    public static function convertValueForIntegration(mixed $value, IntegrationField $integrationField): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             return (is_array($value)) ? $value : [$value];
@@ -249,7 +251,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return '';
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         return '';
     }
@@ -264,12 +266,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->_queueJob;
     }
 
-    public function setQueueJob($value): void
+    public function setQueueJob(mixed $value): void
     {
         $this->_queueJob = $value;
     }
 
-    public function setClient($value): void
+    public function setClient(mixed $value): void
     {
         $this->_client = $value;
     }
@@ -279,7 +281,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return [];
     }
 
-    public function checkConnection($useCache = true): bool
+    public function checkConnection(bool $useCache = true): bool
     {
         if ($useCache && $status = $this->getCache('connection')) {
             if ($status === self::CONNECT_SUCCESS) {
@@ -328,7 +330,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return false;
     }
 
-    public function getFormSettings($useCache = true): bool|IntegrationFormSettings
+    public function getFormSettings(bool $useCache = true): bool|IntegrationFormSettings
     {
         // If using the cache (the default), don't fetch it automatically. Just save API requests a tad.
         if ($useCache) {
@@ -373,12 +375,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $settings;
     }
 
-    public function getFormSettingValue($key)
+    public function getFormSettingValue(string $key)
     {
         return $this->getFormSettings()->getSettingsByKey($key);
     }
 
-    public function validateFieldMapping($attribute, $fields = []): void
+    public function validateFieldMapping(string $attribute, array $fields = []): void
     {
         foreach ($fields as $field) {
             $value = $this->$attribute[$field->handle] ?? '';
@@ -504,7 +506,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return;
     }
 
-    public function getToken($refresh = true): ?Token
+    public function getToken(bool $refresh = true): ?Token
     {
         if ($this->tokenId) {
             return Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
@@ -513,14 +515,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return null;
     }
 
-    public function request(string $method, string $uri, array $options = [])
+    public function request(string $method, string $uri, array $options = []): mixed
     {
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
 
         return Json::decode($response->getBody()->getContents());
     }
 
-    public function deliverPayload($submission, $endpoint, $payload, $method = 'POST', $contentType = 'json')
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
@@ -539,7 +541,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    public function deliverPayloadRequest($submission, $endpoint, $payload, $method = 'POST', $contentType = 'json')
+    public function deliverPayloadRequest(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json')
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
@@ -559,7 +561,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
     {
         $fieldValues = [];
 
@@ -620,7 +622,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
+    public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -648,7 +650,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
-    public function afterSendPayload(Submission $submission, $endpoint, $payload, $method, $response): bool
+    public function afterSendPayload(Submission $submission, string $endpoint, mixed $payload, string $method, mixed $response): bool
     {
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,
@@ -718,7 +720,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function getMappedFieldInfo($mappedFieldValue, $submission): array
+    public function getMappedFieldInfo(string $mappedFieldValue, Submission $submission): array
     {
         // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
         $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
@@ -746,7 +748,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
     }
 
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField)
+    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField)
     {
         try {
             // If this is a submission attribute, fetch it - easy!
@@ -916,7 +918,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    private function setCache($values): void
+    private function setCache(array $values): void
     {
         if ($this->cache === null) {
             $this->cache = [];
@@ -932,7 +934,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         Db::update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id]);
     }
 
-    private function getCache($key)
+    private function getCache(string $key): mixed
     {
         if ($this->cache === null) {
             $this->cache = [];

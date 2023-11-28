@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\models;
 
-use craft\helpers\ArrayHelper;
-use craft\helpers\UrlHelper;
-
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
+
+use craft\helpers\UrlHelper;
 
 class PdfTemplate extends BaseTemplate
 {

@@ -244,7 +244,7 @@ class Pipeliner extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

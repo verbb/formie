@@ -3,6 +3,7 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
@@ -158,7 +159,7 @@ class Maximizer extends Crm
         return true;
     }
 
-    public function request(string $method, string $uri, array $options = [])
+    public function request(string $method, string $uri, array $options = []): mixed
     {
         // Fetch and merge the token in for each request, which isn't a header, but part of every request
         if ($method === 'POST') {
@@ -273,7 +274,7 @@ class Maximizer extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'BooleanField' => IntegrationField::TYPE_BOOLEAN,

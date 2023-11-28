@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\elements\exporters;
 
+use verbb\formie\Formie;
 use verbb\formie\events\ModifySubmissionExportDataEvent;
 
 use Craft;
@@ -13,6 +14,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\helpers\ElementHelper;
 
 use DateTime;
+use Throwable;
 
 class SubmissionExport extends ElementExporter
 {
@@ -46,7 +48,7 @@ class SubmissionExport extends ElementExporter
             $eagerLoadableFields = [];
 
             foreach (Craft::$app->getFields()->getAllFields() as $field) {
-                if ($field instanceof EagerLoadingFieldInterface && strstr($field->context, 'formie')) {
+                if ($field instanceof EagerLoadingFieldInterface && strpos($field->context, 'formie') !== false) {
                     $eagerLoadableFields[] = $field->handle;
                 }
             }
@@ -90,11 +92,6 @@ class SubmissionExport extends ElementExporter
 
                 $row = array_combine(array_values($attributes), $values);
 
-                // Because Craft doesn't suppport querying elements across multiple content tables in one go, 
-                // we need to do some extra work to handle custom fields across multiple forms (and content tables).
-                // This can be a little un-performant.
-                $this->_populateElementContent($element);
-
                 // Fetch the custom field content, already prepped
                 $fieldValues = $element->getValuesForExport();
 
@@ -136,62 +133,5 @@ class SubmissionExport extends ElementExporter
         }
 
         return [];
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _populateElementContent(ElementInterface $element): void
-    {
-        // Make sure the element has content
-        if (!$element->hasContent()) {
-            return;
-        }
-
-        if ($row = $this->_getContentRow($element)) {
-            if ($element->hasTitles() && isset($row['title'])) {
-                $element->title = $row['title'];
-            }
-
-            foreach ($element->getFields() as $field) {
-                if ($field::hasContentColumn()) {
-                    $type = $field->dbType();
-
-                    if (is_array($type)) {
-                        $value = [];
-
-                        foreach (array_keys($type) as $i => $key) {
-                            $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix, $i !== 0 ? $key : null);
-                            $value[$key] = $row[$column];
-                        }
-
-                        $element->setFieldValue($field->handle, $value);
-                    } else {
-                        $column = ElementHelper::fieldColumn('', $field->handle, $field->columnSuffix);
-                        $element->setFieldValue($field->handle, $row[$column]);
-                    }
-                }
-            }
-        }
-    }
-
-    private function _getContentRow(ElementInterface $element)
-    {
-        if (!$element->id || !$element->siteId) {
-            return null;
-        }
-
-        $contentTable = $element->getContentTable();
-
-        $row = (new Query())
-            ->from([$contentTable])
-            ->where([
-                'elementId' => $element->id,
-                'siteId' => $element->siteId,
-            ])
-            ->one();
-
-        return $row;
     }
 }

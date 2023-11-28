@@ -4,12 +4,12 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\MissingIntegration;
 
 use Craft;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 
 use yii\web\NotFoundHttpException;

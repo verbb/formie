@@ -2,12 +2,15 @@
 namespace verbb\formie\base;
 
 use verbb\formie\base\Element as ElementIntegration;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\fields\formfields\Dropdown;
 use verbb\formie\fields\formfields\Checkboxes;
 use verbb\formie\fields\formfields\Radio;
 use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\fields\formfields\Tags;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\Element;
@@ -19,7 +22,6 @@ use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\Cp;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
 use craft\services\ElementSources;
@@ -66,7 +68,7 @@ trait RelationFieldTrait
         ];
     }
 
-    public function modifyFieldSettings($settings): array
+    public function modifyFieldSettings(array $settings): array
     {
         $defaultValue = $this->defaultValue ?? [];
 
@@ -144,7 +146,7 @@ trait RelationFieldTrait
         return null;
     }
 
-    public function populateValue($value): void
+    public function populateValue(mixed $value): void
     {
         $query = static::elementType()::find()->id($value);
 
@@ -226,7 +228,7 @@ trait RelationFieldTrait
         return null;
     }
 
-    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
+    public function getDisplayTypeValue(?ElementQuery $value): MultiOptionsFieldData|SingleOptionFieldData|null
     {
         if ($this->displayType === 'checkboxes' || $this->getIsMultiDropdown()) {
             $options = [];
@@ -259,7 +261,7 @@ trait RelationFieldTrait
         return $value;
     }
 
-    public function setElementsQuery($query): void
+    public function setElementsQuery(?ElementQuery $query): void
     {
         $this->elementsQuery = $query;
     }
@@ -322,7 +324,7 @@ trait RelationFieldTrait
         );
     }
 
-    protected function setPrePopulatedValue($value): array
+    protected function setPrePopulatedValue(mixed $value): array
     {
         $ids = [];
 
@@ -338,7 +340,7 @@ trait RelationFieldTrait
         return $ids;
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         /** @var ElementQueryInterface|Collection $value */
         if ($value instanceof Collection) {
@@ -352,7 +354,7 @@ trait RelationFieldTrait
         }, $value));
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
         /** @var ElementQueryInterface|Collection $value */
         if ($value instanceof Collection) {
@@ -366,7 +368,7 @@ trait RelationFieldTrait
         }, $value);
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // Set the status to null to include disabled elements
         $value->status(null);
@@ -401,7 +403,7 @@ trait RelationFieldTrait
         return null;
     }
 
-    protected function getStringCustomFieldOptions($fields): array
+    protected function getStringCustomFieldOptions(array $fields): array
     {
         $options = [];
 
@@ -447,7 +449,7 @@ trait RelationFieldTrait
         return $clone;
     }
 
-    private function _getElementLabel($element): string
+    private function _getElementLabel(ElementInterface $element): string
     {
         try {
             return (string)$element->{$this->labelSource};
@@ -458,7 +460,7 @@ trait RelationFieldTrait
         return $element->title;
     }
 
-    private function _elementToArray($element)
+    private function _elementToArray(ElementInterface $element)
     {
         // Get all public properties
         $array = get_object_vars($element);

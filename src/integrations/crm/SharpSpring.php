@@ -285,7 +285,7 @@ class SharpSpring extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'int' => IntegrationField::TYPE_NUMBER,
@@ -295,7 +295,7 @@ class SharpSpring extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

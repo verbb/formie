@@ -190,7 +190,7 @@ class User extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+                $attributeValues = ArrayHelper::filterNull($attributeValues);
             }
 
             // Check if the password was mapped, as if the source field was a Password field.
@@ -215,7 +215,7 @@ class User extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+                $fieldValues = ArrayHelper::filterNull($fieldValues);
             }
 
             $user->setFieldValues($fieldValues);

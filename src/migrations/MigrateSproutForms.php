@@ -10,6 +10,7 @@ use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
 use verbb\formie\models\FormPage;
@@ -23,7 +24,6 @@ use Craft;
 use craft\base\FieldInterface;
 use craft\db\Migration;
 use craft\fields\BaseRelationField;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Json;
 
@@ -422,9 +422,6 @@ class MigrateSproutForms extends Migration
                 $newPage->sortOrder = '' . $tabIndex;
 
                 $pageFields = [];
-
-                foreach ($tab->getFields() as $field) {
-                    $newField = $this->_mapField($field);
 
                 foreach ($tab->getCustomFields() as $field) {
                     if ($newField = $this->_mapField($field)) {

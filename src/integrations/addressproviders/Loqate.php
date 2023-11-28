@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\AddressProvider;
 
 use Craft;
@@ -41,7 +42,7 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Use [Loqate](https://www.loqate.com/) to suggest addresses, for address fields.');
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

@@ -2,12 +2,12 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\FileHelper;
 
 use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
-use craft\helpers\ArrayHelper;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 

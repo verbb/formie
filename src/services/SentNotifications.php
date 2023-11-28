@@ -4,6 +4,7 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -11,7 +12,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\mail\transportadapters\BaseTransportAdapter;
 use craft\mail\transportadapters\Smtp;
 

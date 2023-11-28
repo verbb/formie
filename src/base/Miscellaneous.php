@@ -1,13 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
+use verbb\formie\helpers\StringHelper;
 
 use Craft;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
@@ -53,7 +54,7 @@ abstract class Miscellaneous extends Integration
         ]);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         $handle = $this->getClassHandle();
 
@@ -63,7 +64,7 @@ abstract class Miscellaneous extends Integration
         ]);
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         return null;
     }

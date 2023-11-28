@@ -1,13 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
@@ -48,7 +49,7 @@ abstract class Crm extends Integration
         ]);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         $handle = $this->getClassHandle();
 
@@ -58,7 +59,7 @@ abstract class Crm extends Integration
         ]);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         if (is_string($fieldSettings)) {
@@ -70,7 +71,7 @@ abstract class Crm extends Integration
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
+    public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
@@ -105,7 +106,7 @@ abstract class Crm extends Integration
         return $event->isValid;
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         return null;
     }

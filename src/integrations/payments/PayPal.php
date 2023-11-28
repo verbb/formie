@@ -3,6 +3,7 @@ namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -12,6 +13,7 @@ use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
@@ -21,7 +23,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
@@ -78,7 +79,7 @@ class PayPal extends Payment
         ]);
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

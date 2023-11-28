@@ -2,13 +2,13 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 
 use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
-use craft\helpers\ArrayHelper;
 use craft\web\View;
 
 use Twig\Error\LoaderError;

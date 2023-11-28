@@ -1,10 +1,11 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\helpers\StringHelper;
+
 use Craft;
 use craft\helpers\App;
 use craft\helpers\FileHelper as CraftFileHelper;
-use craft\helpers\StringHelper;
 
 use Throwable;
 

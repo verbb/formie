@@ -1,8 +1,6 @@
 <?php
 namespace verbb\formie\gql\resolvers\elements;
 
-use verbb\formie\elements\NestedFieldRow;
-
 use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Gql;

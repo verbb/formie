@@ -20,12 +20,14 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\Settings;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\fieldlayoutelements\CustomField;
+use craft\fields\BaseRelationField;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Json;
 use craft\helpers\Template;
@@ -201,7 +203,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    public function getValueForIntegration(mixed $value, $integrationField, $integration, ?ElementInterface $element = null, $fieldKey = ''): mixed
+    public function getValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
@@ -239,7 +241,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    public function getValueForEmail(mixed $value, $notification, ?ElementInterface $element = null): mixed
+    public function getValueForEmail(mixed $value, Notification $notification, ?ElementInterface $element = null): mixed
     {
         $value = $this->defineValueForEmail($value, $notification, $element);
 
@@ -255,7 +257,7 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    public function populateValue($value): void
+    public function populateValue(mixed $value): void
     {
         $this->defaultValue = $this->normalizeValue($value);
     }
@@ -346,7 +348,7 @@ trait FormFieldTrait
         return $this->_form = Form::find()->uid($uid)->one();
     }
 
-    public function setForm($value): void
+    public function setForm(?Form $value): void
     {
         $this->_form = $value;
     }
@@ -494,7 +496,6 @@ trait FormFieldTrait
     public function getFormBuilderConfig(): array
     {
         $config = [
-            // 'icon' => $this->getSvgIcon(),
             'type' => get_class($this),
             'id' => $this->id,
             'errors' => $this->getErrors(),
@@ -545,7 +546,7 @@ trait FormFieldTrait
         return $settings;
     }
 
-    public function getDefaultValue($attributePrefix = '')
+    public function getDefaultValue(string $attributePrefix = '')
     {
         $defaultValue = null;
         $defaultValueAttribute = 'defaultValue';
@@ -823,7 +824,7 @@ trait FormFieldTrait
         return $this->_namespace;
     }
 
-    public function setNamespace($value): void
+    public function setNamespace(string|bool|null $value): void
     {
         $this->_namespace = $value;
     }
@@ -957,7 +958,7 @@ trait FormFieldTrait
         return $conditions;
     }
 
-    public function getConditionsJson($element = null): ?string
+    public function getConditionsJson(): ?string
     {
         if ($this->hasConditions()) {
             $conditionSettings = $this->getConditions();
@@ -996,7 +997,7 @@ trait FormFieldTrait
         return $pages[$this->handle] ?? null;
     }
 
-    public function isConditionallyHidden(Submission $element): bool
+    public function isConditionallyHidden(Submission $submission): bool
     {
         $isFieldHidden = false;
         $isPageHidden = false;
@@ -1009,7 +1010,7 @@ trait FormFieldTrait
             if ($conditionSettings && $conditions) {
                 // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
                 // it didn't (for instance the field doesn't have a value)
-                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $element);
+                $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
                 // Depending on if we show or hide the field when evaluating. If `false` and set to show, it means
                 // the field is hidden and the conditions to show it isn't met. Therefore, report back that this field is hidden.
@@ -1020,8 +1021,8 @@ trait FormFieldTrait
         }
 
         // Also check if the field is in a hidden page
-        if (!$isFieldHidden && $page = $this->getPage($element)) {
-            $isPageHidden = $page->isConditionallyHidden($element);
+        if (!$isFieldHidden && $page = $this->getPage($submission)) {
+            $isPageHidden = $page->isConditionallyHidden($submission);
         }
 
         return $isFieldHidden || $isPageHidden;
@@ -1209,29 +1210,29 @@ trait FormFieldTrait
         return $rules;
     }
     
-    protected function setPrePopulatedValue($value)
+    protected function setPrePopulatedValue(mixed $value)
     {
         return $value;
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         // Escape any HTML in field content for good measure
         return StringHelper::cleanString((string)$value);
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
         return Json::decode(Json::encode($value));
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         $fieldValue = $this->defineValueAsString($value, $element);
 
@@ -1243,13 +1244,13 @@ trait FormFieldTrait
         return Integration::convertValueForIntegration($fieldValue, $integrationField);
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForEmail($value, $notification, ElementInterface $element = null): string
+    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): string
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);

@@ -2,9 +2,12 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -182,7 +185,7 @@ class Password extends FormField implements PreviewableFieldInterface
         return '';
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -192,7 +195,7 @@ class Password extends FormField implements PreviewableFieldInterface
         return '';
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         // Hide the hashed password from exports as well
         return $this->getValueForSummary($value, $element);

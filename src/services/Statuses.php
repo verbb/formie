@@ -3,6 +3,8 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\events\StatusEvent;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Status;
 use verbb\formie\records\Status as StatusRecord;
 
@@ -11,9 +13,7 @@ use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\events\ConfigEvent;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\StringHelper;
 
 use yii\base\Component;
 use yii\base\ErrorException;

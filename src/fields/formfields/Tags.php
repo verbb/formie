@@ -9,7 +9,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\Tag as FormieTag;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -22,9 +24,7 @@ use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\gql\arguments\elements\Tag as TagArguments;
 use craft\gql\interfaces\elements\Tag as TagInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\TagGroup;
 

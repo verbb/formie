@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\helpers\StringHelper;
+
 use craft\base\Component;
-use craft\helpers\StringHelper;
 
 abstract class Position extends Component implements PositionInterface
 {

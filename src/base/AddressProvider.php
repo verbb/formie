@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\helpers\StringHelper;
+
 use Craft;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 abstract class AddressProvider extends Integration
@@ -55,12 +56,12 @@ abstract class AddressProvider extends Integration
         ]);
     }
 
-    public function getFrontEndHtml($field, array $renderOptions = []): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         return null;
     }

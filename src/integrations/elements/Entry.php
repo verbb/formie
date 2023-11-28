@@ -205,7 +205,7 @@ class Entry extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+                $attributeValues = ArrayHelper::filterNull($attributeValues);
             }
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
@@ -223,7 +223,7 @@ class Entry extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+                $fieldValues = ArrayHelper::filterNull($fieldValues);
             }
 
             $entry->setFieldValues($fieldValues);

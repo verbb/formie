@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\web\twig;
 
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\web\twig\tokenparsers\FieldTagTokenParser;
 use verbb\formie\web\twig\tokenparsers\FormTagTokenParser;
 
 use Craft;
-use craft\helpers\ArrayHelper;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;

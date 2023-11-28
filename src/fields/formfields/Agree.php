@@ -2,10 +2,12 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -268,12 +270,12 @@ class Agree extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         return ($value) ? $this->checkedValue : $this->uncheckedValue;
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If we require a boolean, return that
         if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {

@@ -5,6 +5,8 @@ use verbb\formie\Formie;
 use verbb\formie\base\Element;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -571,7 +573,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         $value = $this->_all($value, $element)->all();
 
@@ -581,7 +583,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }, $value));
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
             // For any element integrations, always return IDs (default behaviour)
@@ -601,7 +603,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         $html = '';
         $value = $this->_all($value, $element)->all();

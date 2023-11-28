@@ -5,17 +5,14 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\events\SyncedFieldEvent;
-use verbb\formie\models\Sync as SyncModel;
-use verbb\formie\models\SyncField as SyncFieldModel;
-use verbb\formie\records\Sync as SyncRecord;
-use verbb\formie\records\SyncField as SyncFieldRecord;
+use verbb\formie\helpers\StringHelper;
 
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
-use craft\helpers\StringHelper;
 
 use Throwable;
+
 use yii\db\StaleObjectException;
 
 class Syncs extends Component

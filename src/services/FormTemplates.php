@@ -4,6 +4,8 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\events\FormTemplateEvent;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\records\FormTemplate as TemplateRecord;
 
@@ -12,9 +14,7 @@ use craft\base\Component;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\events\ConfigEvent;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\StringHelper;
 use craft\models\FieldLayout;
 
 use yii\base\ErrorException;

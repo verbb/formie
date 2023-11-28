@@ -21,7 +21,6 @@ use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\jobs\BaseJob;
-use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;

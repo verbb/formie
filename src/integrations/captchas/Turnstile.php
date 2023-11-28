@@ -4,10 +4,11 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\FormPage;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
@@ -42,7 +43,7 @@ class Turnstile extends Captcha
         ]);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_form-settings', [
             'integration' => $this,
@@ -50,7 +51,7 @@ class Turnstile extends Captcha
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, $page = null): string
+    public function getFrontEndHtml(Form $form, FormPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'formie-turnstile-placeholder',
@@ -58,7 +59,7 @@ class Turnstile extends Captcha
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, FormPage $page = null): ?array
     {
         $settings = [
             'siteKey' => App::parseEnv($this->siteKey),
@@ -75,7 +76,7 @@ class Turnstile extends Captcha
         ];
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): array
+    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

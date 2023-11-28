@@ -3,11 +3,14 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
@@ -21,7 +24,6 @@ use craft\fields\data\OptionData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\Component;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use ReflectionClass;
 use ReflectionProperty;
@@ -510,7 +512,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {
@@ -530,7 +532,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return $value->value ?? '';
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
@@ -556,7 +558,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof MultiOptionsFieldData) {
             return implode(', ', array_map(function($item) {

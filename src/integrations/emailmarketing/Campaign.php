@@ -7,15 +7,15 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\fields\formfields\Table;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\fields;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use yii\base\Event;
 
@@ -222,7 +222,7 @@ class Campaign extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             fields\Assets::class => IntegrationField::TYPE_ARRAY,

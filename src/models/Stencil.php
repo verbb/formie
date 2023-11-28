@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\records\Stencil as StencilRecord;
 use verbb\formie\services\Statuses;
 
@@ -9,7 +10,6 @@ use Craft;
 use craft\base\Model;
 use craft\db\SoftDeleteTrait;
 use craft\elements\Entry;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;

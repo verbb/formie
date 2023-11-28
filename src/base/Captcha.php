@@ -3,9 +3,12 @@ namespace verbb\formie\base;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\FormPage;
 
 use Craft;
-use craft\helpers\StringHelper;
+
+use Closure;
 
 abstract class Captcha extends Integration
 {
@@ -45,7 +48,7 @@ abstract class Captcha extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/captchas/{$handle}.svg", true);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
             'integration' => $this,
@@ -53,17 +56,17 @@ abstract class Captcha extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, $page = null): string
+    public function getFrontEndHtml(Form $form, FormPage $page = null): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(Form $form, $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, FormPage $page = null): ?array
     {
         return null;
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): ?array
+    public function getRefreshJsVariables(Form $form, FormPage $page = null): ?array
     {
         return null;
     }
@@ -82,7 +85,7 @@ abstract class Captcha extends Integration
     // Protected Methods
     // =========================================================================
 
-    protected function getOrSet($key, $callable)
+    protected function getOrSet(string $key, Closure $callable)
     {
         if ($value = Craft::$app->getSession()->get($key)) {
             return $value;
@@ -95,7 +98,7 @@ abstract class Captcha extends Integration
         return $value;
     }
 
-    protected function getRequestParam($name, $allowEmptyString = false)
+    protected function getRequestParam(string $name, bool $allowEmptyString = false)
     {
         // Handle the traditional param, as a POST param
         $param = Craft::$app->getRequest()->getParam($name);

@@ -2,6 +2,7 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
+use verbb\formie\base\FormFieldInterface;
 
 use Craft;
 use craft\helpers\App;
@@ -41,7 +42,7 @@ class AddressFinder extends AddressProvider
         return Craft::t('formie', 'Use [Address Finder](https://addressfinder.com.au/) to suggest Australian and New Zealand addresses, for address fields.');
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;

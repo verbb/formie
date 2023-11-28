@@ -251,7 +251,7 @@ class IContact extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'checkbox' => IntegrationField::TYPE_ARRAY,
@@ -262,7 +262,7 @@ class IContact extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

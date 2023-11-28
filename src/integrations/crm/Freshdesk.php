@@ -5,15 +5,15 @@ use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\elements\db\AssetQuery;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Client;
@@ -471,7 +471,7 @@ class Freshdesk extends Crm
         ]);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [], bool $multipart = false)
+    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [], bool $multipart = false)
     {
         // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
         if (!$multipart) {
@@ -586,7 +586,7 @@ class Freshdesk extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'custom_date' => IntegrationField::TYPE_DATETIME,
@@ -598,7 +598,7 @@ class Freshdesk extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

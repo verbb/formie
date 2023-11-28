@@ -216,7 +216,7 @@ class GoogleSheets extends Miscellaneous
         $token = $this->getToken();
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration.', true);
         }
 
         $spreadsheetId = App::parseEnv($this->spreadsheetId);

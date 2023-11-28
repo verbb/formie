@@ -4,14 +4,14 @@ namespace verbb\formie\integrations\miscellaneous;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use GuzzleHttp\Client;
 
@@ -101,7 +101,7 @@ class Recruitee extends Miscellaneous
         return new IntegrationFormSettings($settings);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         $fields = $this->getFormSettingValue($fieldSettings);
@@ -203,7 +203,7 @@ class Recruitee extends Miscellaneous
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'boolean' => IntegrationField::TYPE_BOOLEAN,
@@ -214,7 +214,7 @@ class Recruitee extends Miscellaneous
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($offers): array
+    private function _getCustomFields(array $offers): array
     {
         $customFields = [];
 

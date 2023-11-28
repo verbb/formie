@@ -496,7 +496,7 @@ class Pardot extends Crm
         $businessUnitId = App::parseEnv($this->businessUnitId);
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration.', true);
         }
 
         $this->_client = Craft::createGuzzleClient([
@@ -619,7 +619,7 @@ class Pardot extends Crm
         return $payload;
     }
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'Checkbox' => IntegrationField::TYPE_ARRAY,
@@ -631,7 +631,7 @@ class Pardot extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

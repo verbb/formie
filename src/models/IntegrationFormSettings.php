@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\ArrayHelper;
+
 use Craft;
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
 
 use yii\base\InvalidConfigException;
 
@@ -31,17 +32,17 @@ class IntegrationFormSettings extends Model
         return $this->collections;
     }
 
-    public function getSettingsByKey($key)
+    public function getSettingsByKey(string $key)
     {
         return ArrayHelper::getValue($this->collections, $key) ?? [];
     }
 
-    public function setSettings($collections): array
+    public function setSettings(array $collections): array
     {
         return array_merge($this->collections, $collections);
     }
 
-    public function setSettingsByKey($key, $value): void
+    public function setSettingsByKey(string $key, mixed $value): void
     {
         ArrayHelper::setValue($this->collections, $key, $value);
     }

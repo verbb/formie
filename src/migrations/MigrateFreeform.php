@@ -10,6 +10,7 @@ use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FormPage;
 use verbb\formie\models\Notification;
@@ -19,7 +20,6 @@ use verbb\formie\prosemirror\toprosemirror\Renderer;
 use Craft;
 use craft\db\Migration;
 use craft\elements\Asset;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Console;
 use craft\helpers\Json;
 

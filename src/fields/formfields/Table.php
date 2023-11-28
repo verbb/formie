@@ -3,17 +3,20 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\FormFieldTrait;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\fields\data\ColorData;
 use craft\fields\Table as CraftTable;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Html;
@@ -550,7 +553,7 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         $values = [];
 
@@ -571,7 +574,7 @@ class Table extends CraftTable implements FormFieldInterface
         return implode(', ', $values);
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -592,7 +595,7 @@ class Table extends CraftTable implements FormFieldInterface
         return $values;
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         $headValues = '';
         $bodyValues = '';

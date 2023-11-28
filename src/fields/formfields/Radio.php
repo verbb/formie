@@ -4,12 +4,12 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\OptionsField;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
-use craft\helpers\StringHelper;
 
 class Radio extends OptionsField
 {

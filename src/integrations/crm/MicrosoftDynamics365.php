@@ -7,12 +7,12 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use League\OAuth1\Client\Server\Server as Oauth1Provider;
 use League\OAuth2\Client\Provider\AbstractProvider;
@@ -293,7 +293,7 @@ class MicrosoftDynamics365 extends Crm
         return true;
     }
 
-    public function request(string $method, string $uri, array $options = [])
+    public function request(string $method, string $uri, array $options = []): mixed
     {
         // Recommended headers to pass for all web API requests
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
@@ -332,7 +332,7 @@ class MicrosoftDynamics365 extends Crm
         $token = $this->getToken();
 
         if (!$token) {
-            Integration::apiError($this, 'Token not found for integration.', true);
+            Integration::error($this, 'Token not found for integration.', true);
         }
 
         $url = rtrim(App::parseEnv($this->apiDomain), '/');

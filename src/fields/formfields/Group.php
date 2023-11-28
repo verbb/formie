@@ -2,6 +2,8 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\NestedField;
 use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
@@ -10,6 +12,7 @@ use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -221,7 +224,7 @@ class Group extends NestedField implements SingleNestedFieldInterface
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         $values = [];
 
@@ -237,7 +240,7 @@ class Group extends NestedField implements SingleNestedFieldInterface
         return implode(', ', $values);
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -253,7 +256,7 @@ class Group extends NestedField implements SingleNestedFieldInterface
         return $values;
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         $values = [];
 
@@ -275,7 +278,7 @@ class Group extends NestedField implements SingleNestedFieldInterface
         return $values;
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         $values = '';
 

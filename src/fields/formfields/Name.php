@@ -4,21 +4,24 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubFieldTrait;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Name as NameModel;
 use verbb\formie\positions\AboveInput;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -566,7 +569,7 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
         ]);
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
             $values = [];

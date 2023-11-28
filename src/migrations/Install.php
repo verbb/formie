@@ -3,7 +3,6 @@ namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\models\Status;

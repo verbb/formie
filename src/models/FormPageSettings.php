@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\ArrayHelper;
+
 use Craft;
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 class FormPageSettings extends Model

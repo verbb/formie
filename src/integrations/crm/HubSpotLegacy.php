@@ -66,7 +66,7 @@ class HubSpotLegacy extends Crm
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
                 if (is_array($event->value)) {
                     $event->value = array_filter($event->value);
-                    $event->value = ArrayHelper::recursiveImplode(';', $event->value);
+                    $event->value = ArrayHelper::recursiveImplode($event->value, ';');
                     $event->value = str_replace('&nbsp;', ' ', $event->value);
                 }
             }
@@ -413,7 +413,7 @@ class HubSpotLegacy extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'checkbox' => IntegrationField::TYPE_ARRAY,
@@ -425,7 +425,7 @@ class HubSpotLegacy extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

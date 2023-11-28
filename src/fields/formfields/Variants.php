@@ -8,6 +8,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
@@ -15,7 +16,6 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\SiteNotFoundException;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 

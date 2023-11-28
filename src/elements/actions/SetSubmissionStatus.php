@@ -3,12 +3,12 @@ namespace verbb\formie\elements\actions;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 class SetSubmissionStatus extends SetStatus

@@ -4,13 +4,13 @@ namespace verbb\formie\integrations\emailmarketing;
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use GuzzleHttp\Exception\RequestException;
@@ -171,7 +171,7 @@ class EmailOctopus extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'NUMBER' => IntegrationField::TYPE_NUMBER,
@@ -181,7 +181,7 @@ class EmailOctopus extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields): array
+    private function _getCustomFields(array $fields): array
     {
         $customFields = [];
 

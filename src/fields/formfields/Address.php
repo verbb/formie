@@ -12,6 +12,7 @@ use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Address as AddressModel;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\models\HtmlTag;
@@ -22,7 +23,6 @@ use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
 use craft\helpers\Component;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 
@@ -807,7 +807,7 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         ]);
     }
 
-    protected function defineValueForExport($value, ElementInterface $element = null): mixed
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         $values = [];
 

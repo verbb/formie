@@ -4,26 +4,28 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubFieldTrait;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 
 use GraphQL\Type\Definition\Type;
@@ -1271,7 +1273,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         if ($value instanceof DateTime) {
             $format = null;
@@ -1294,12 +1296,12 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return '';
     }
 
-    protected function defineValueAsJson($value, ElementInterface $element = null): mixed
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
     {
         return $this->getValueAsString($value, $element);
     }
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {

@@ -3,6 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Support;
 
@@ -10,7 +11,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\FileHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 use craft\web\View;

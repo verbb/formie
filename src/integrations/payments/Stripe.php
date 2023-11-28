@@ -3,6 +3,7 @@ namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormField;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -11,6 +12,7 @@ use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
@@ -22,7 +24,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\web\Response;
 
 use yii\base\Event;
@@ -104,7 +105,7 @@ class Stripe extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with Stripe.');
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -1034,7 +1035,7 @@ class Stripe extends Payment
         ];
 
         // Create a unique ID for this form+field+payload. Only used internally, but prevents creating duplicate plans (which throws an error)
-        $payload['id'] = ArrayHelper::recursiveImplode('_', array_merge(['formie', $submission->getForm()->handle, $field->fieldKey], $payload));
+        $payload['id'] = ArrayHelper::recursiveImplode(array_merge(['formie', $submission->getForm()->handle, $field->fieldKey], $payload), '_');
 
         // Generate a nice name for the price description based on the payload. Added after the ID is generated based on the payload
         $payload['nickname'] = implode(' ', [

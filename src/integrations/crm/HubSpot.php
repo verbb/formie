@@ -30,7 +30,7 @@ class HubSpot extends Crm
         return Craft::t('formie', 'HubSpot');
     }
 
-    public static function convertValueForIntegration($value, $integrationField): mixed
+    public static function convertValueForIntegration(mixed $value, IntegrationField $integrationField): mixed
     {
         // If setting checkboxes values to a static value, ensure it's sent as a single value.
         // This won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
@@ -86,7 +86,7 @@ class HubSpot extends Crm
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
                 if (is_array($event->value)) {
                     $event->value = array_filter($event->value);
-                    $event->value = ArrayHelper::recursiveImplode(';', $event->value);
+                    $event->value = ArrayHelper::recursiveImplode($event->value, ';');
                     $event->value = str_replace('&nbsp;', ' ', $event->value);
                 }
             }
@@ -405,7 +405,7 @@ class HubSpot extends Crm
         ]);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
     {
         // When mapping to forms, the field settings will be an array of `IntegrationCollection` objects.
         // So we need to select the form's settings that we're mapping to and return just the field.
@@ -455,7 +455,7 @@ class HubSpot extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'checkbox' => IntegrationField::TYPE_ARRAY,
@@ -467,7 +467,7 @@ class HubSpot extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 

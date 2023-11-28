@@ -1,10 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\IntegrationField;
+
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 
 trait SubFieldTrait
 {
@@ -53,7 +57,7 @@ trait SubFieldTrait
     // Protected Methods
     // =========================================================================
 
-    protected function defineValueForIntegration($value, $integrationField, $integration, ElementInterface $element = null, $fieldKey = ''): mixed
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // Check if we're trying to get a subfield value
         if ($fieldKey) {

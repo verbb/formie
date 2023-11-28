@@ -15,6 +15,7 @@ use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FormFieldLayout;
 use verbb\formie\models\FormPage;
 use verbb\formie\models\FormSettings;
@@ -40,7 +41,6 @@ use craft\errors\MissingComponentException;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout as CraftFieldLayout;
 use craft\validators\HandleValidator;
@@ -1467,7 +1467,7 @@ class Form extends Element
         foreach ($integrations as $integration) {
             // Some integration types take care of front-end JS in other ways
             if ($integration instanceof Crm || $integration instanceof EmailMarketing || $integration instanceof Miscellaneous) {
-                if ($js = $integration->getFrontEndJsVariables($this)) {
+                if ($js = $integration->getFrontEndJsVariables()) {
                     $registeredJs[] = [$js];
                 }
             }

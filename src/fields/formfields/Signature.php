@@ -2,9 +2,12 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
+use verbb\formie\base\Integration;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\IntegrationField;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -193,7 +196,7 @@ class Signature extends FormField implements PreviewableFieldInterface
         return Html::tag('img', null, ['src' => $value]);
     }
 
-    protected function defineValueForSummary($value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
         return Template::raw(Html::tag('img', null, ['src' => $value]));
     }

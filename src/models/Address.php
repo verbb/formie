@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
+
 use craft\base\Model;
-use craft\helpers\ArrayHelper;
-use craft\helpers\StringHelper;
 
 class Address extends Model
 {

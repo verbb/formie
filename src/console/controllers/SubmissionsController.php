@@ -143,7 +143,7 @@ class SubmissionsController extends Controller
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        if (!$integration->supportsPayloadSending()) {
+        if (!$integration::supportsPayloadSending()) {
             $this->stderr('Integration does not support payload sending.' . PHP_EOL, Console::FG_RED);
 
             return ExitCode::UNSPECIFIED_ERROR;

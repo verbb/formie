@@ -8,15 +8,15 @@ use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\formfields\Payment as PaymentField;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
@@ -144,7 +144,7 @@ abstract class Payment extends Integration
         return Template::raw(Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_email", $inputOptions));
     }
 
-    public function getSubmissionSummaryHtml($submission): ?string
+    public function getSubmissionSummaryHtml(Submission $submission): ?string
     {
         $handle = $this->getIntegrationHandle();
 
@@ -164,7 +164,7 @@ abstract class Payment extends Integration
         ]);
     }
 
-    public function getFrontEndHtml($field, $renderOptions): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions): string
     {
         $handle = $this->getIntegrationHandle();
         
@@ -190,7 +190,7 @@ abstract class Payment extends Integration
         return StringHelper::toCamelCase($this->handle . 'Payment');
     }
 
-    public function getAmount($submission): float
+    public function getAmount(Submission $submission): float
     {
         $amountType = $this->getFieldSetting('amountType');
         $amountFixed = $this->getFieldSetting('amountFixed');
@@ -205,7 +205,7 @@ abstract class Payment extends Integration
         return 0;
     }
 
-    public function getCurrency($submission): ?string
+    public function getCurrency(Submission $submission): ?string
     {
         $currencyType = $this->getFieldSetting('currencyType');
         $currencyFixed = $this->getFieldSetting('currencyFixed');
@@ -305,12 +305,12 @@ abstract class Payment extends Integration
         return $this->_field;
     }
 
-    public function setField($value): void
+    public function setField(?PaymentField $value): void
     {
         $this->_field = $value;
     }
 
-    public function getFieldSetting($setting, $default = null): mixed
+    public function getFieldSetting(string $setting, ?string $default = null): mixed
     {
         if ($field = $this->getField()) {
             $providerSettings = $field->providerSettings[$this->handle] ?? [];

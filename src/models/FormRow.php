@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\MissingField;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
@@ -13,7 +14,6 @@ use craft\base\FieldInterface;
 use craft\base\Model;
 use craft\errors\MissingComponentException;
 use craft\fieldlayoutelements\CustomField;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\Json;
 use craft\models\FieldLayout as CraftFieldLayout;

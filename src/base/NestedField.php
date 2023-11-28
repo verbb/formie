@@ -3,6 +3,8 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FormRow;
 
 use Craft;
@@ -16,11 +18,9 @@ use craft\db\Table;
 use craft\elements\ElementCollection;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\ElementHelper;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\services\Elements;
 
@@ -156,6 +156,19 @@ abstract class NestedField extends FormField implements NestedFieldInterface
         }
 
         return $fields;
+    }
+
+    public function getFieldByHandle(string $handle): ?FormFieldInterface
+    {
+        $foundField = null;
+
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                $foundField = $field;
+            }
+        }
+
+        return $foundField;
     }
 
     public function afterSave(bool $isNew): void

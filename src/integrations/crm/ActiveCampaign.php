@@ -4,12 +4,12 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
@@ -497,7 +497,7 @@ class ActiveCampaign extends Crm
     // Private Methods
     // =========================================================================
 
-    private function _convertFieldType($fieldType)
+    private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
             'multiselect' => IntegrationField::TYPE_ARRAY,
@@ -509,7 +509,7 @@ class ActiveCampaign extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    private function _getCustomFields($fields, $excludeNames = []): array
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
     {
         $customFields = [];
 
@@ -553,7 +553,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    private function _prepCustomFields($fields): array
+    private function _prepCustomFields(array $fields): array
     {
         $customFields = [];
 
@@ -569,7 +569,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    private function _prepAltCustomFields($fields): array
+    private function _prepAltCustomFields(array $fields): array
     {
         $customFields = [];
 
@@ -585,7 +585,7 @@ class ActiveCampaign extends Crm
         return $customFields;
     }
 
-    private function _getPaginated($endpoint, $limit = 100, $offset = 0, $items = []): array
+    private function _getPaginated(string $endpoint, int $limit = 100, int $offset = 0, array $items = []): array
     {
         $response = $this->request('GET', $endpoint, [
             'query' => [

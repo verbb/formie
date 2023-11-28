@@ -5,17 +5,15 @@ use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\events\FieldPageEvent;
-use verbb\formie\events\FieldRowEvent;
 use verbb\formie\events\ModifyExistingFieldsEvent;
 use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldRowConfigEvent;
 use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
@@ -24,8 +22,6 @@ use verbb\formie\positions\BelowInput;
 use verbb\formie\positions\LeftInput;
 use verbb\formie\positions\RightInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\records\PageSettings;
-use verbb\formie\records\Row;
 
 use Craft;
 use craft\base\Component;
@@ -35,7 +31,6 @@ use craft\db\Query;
 use craft\db\Table as CraftTable;
 use craft\errors\MissingComponentException;
 use craft\fields\BaseRelationField;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\validators\HandleValidator;
@@ -396,7 +391,7 @@ class Fields extends Component
         }
     }
 
-    public function checkRequiredPlugin(FieldInterface $field): bool
+    public function checkRequiredPlugin(FormFieldInterface $field): bool
     {
         if (!method_exists($field, 'getRequiredPlugins')) {
             throw new MissingComponentException();

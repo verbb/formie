@@ -3,6 +3,7 @@ namespace verbb\formie\widgets;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\web\assets\cp\WidgetsAsset;
 
 use Craft;
@@ -10,7 +11,6 @@ use craft\base\Widget;
 use craft\db\Query;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
-use craft\helpers\StringHelper;
 
 use yii\db\Expression;
 

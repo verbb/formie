@@ -1,14 +1,15 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyWebhookPayloadEvent;
+use verbb\formie\helpers\StringHelper;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
@@ -54,7 +55,7 @@ abstract class Webhook extends Integration
         ]);
     }
 
-    public function getFormSettingsHtml($form): string
+    public function getFormSettingsHtml(Form $form): string
     {
         $handle = $this->getClassHandle();
 
@@ -82,7 +83,7 @@ abstract class Webhook extends Integration
         return $event->payload;
     }
 
-    protected function getWebhookUrl($url, Submission $submission): bool|string|null
+    protected function getWebhookUrl(string $url, Submission $submission): bool|string|null
     {
         $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
 

@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\models\PaymentField as PaymentFieldModel;
@@ -16,7 +17,6 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\helpers\Template;
 
 use Twig\Markup;
@@ -234,7 +234,7 @@ class Payment extends FormField
         ]);
     }
 
-    protected function defineValueAsString($value, ElementInterface $element = null): string
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         if (is_array($value) || is_object($value)) {
             return Json::encode($value);

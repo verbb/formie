@@ -7,6 +7,7 @@ use verbb\formie\base\SubFieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Phone as PhoneModel;
 
@@ -15,7 +16,6 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 
 use GraphQL\Type\Definition\Type;
 

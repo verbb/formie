@@ -57,13 +57,13 @@ class Html extends FormField
         return true;
     }
 
-    public function getSavedFieldConfig(): array
+    public function getFormBuilderConfig(): array
     {
         // Add emoji support when generating the field config for the form builder.
         // Otherwise, the shortcodes will be shown after saving and refreshing the form builder.
         $this->htmlContent = StringHelper::shortcodesToEmoji((string)$this->htmlContent);
 
-        return parent::getSavedFieldConfig();
+        return parent::getFormBuilderConfig();
     }
 
     public function getRenderedHtmlContent(): string

@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\prosemirror\tohtml\Marks;
 
+use verbb\formie\helpers\StringHelper;
+
 use Craft;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 use craft\validators\HandleValidator;
 
 class Link extends Mark

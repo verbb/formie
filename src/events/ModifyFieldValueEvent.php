@@ -3,7 +3,6 @@ namespace verbb\formie\events;
 
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\FakeElement;
 
 use yii\base\Event;
 

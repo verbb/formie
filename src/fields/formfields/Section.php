@@ -4,13 +4,13 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html;
-use craft\helpers\StringHelper;
 
 class Section extends FormField
 {

@@ -4,13 +4,13 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
 use craft\elements\Entry;
-use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 

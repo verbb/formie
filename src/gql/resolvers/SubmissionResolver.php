@@ -66,7 +66,7 @@ class SubmissionResolver extends ElementResolver
                     if ($selectionNode instanceof InlineFragmentNode) {
                         $fragmentName = $selectionNode->typeCondition->name->value ?? '';
 
-                        if ($fragmentName && strstr($fragmentName, '_Submission')) {
+                        if ($fragmentName && strpos($fragmentName, '_Submission') !== false) {
                             $query->form(explode('_', $fragmentName)[0]);
                         }
                     }

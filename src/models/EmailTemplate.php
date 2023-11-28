@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\models;
 
-use craft\helpers\ArrayHelper;
-use craft\helpers\UrlHelper;
-
 use verbb\formie\Formie;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\records\EmailTemplate as EmailTemplateRecord;
+
+use craft\helpers\UrlHelper;
 
 class EmailTemplate extends BaseTemplate
 {

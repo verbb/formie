@@ -243,7 +243,7 @@ class CalendarEvent extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $attributeValues = ArrayHelper::filterNullValues($attributeValues);
+                $attributeValues = ArrayHelper::filterNull($attributeValues);
             }
 
             foreach ($attributeValues as $eventFieldHandle => $fieldValue) {
@@ -264,7 +264,7 @@ class CalendarEvent extends Element
 
             // Filter null values
             if (!$this->overwriteValues) {
-                $fieldValues = ArrayHelper::filterNullValues($fieldValues);
+                $fieldValues = ArrayHelper::filterNull($fieldValues);
             }
 
             $event->setFieldValues($fieldValues);

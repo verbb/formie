@@ -1,11 +1,12 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
+use verbb\formie\helpers\ArrayHelper;
+
 use Craft;
 use craft\base\Field;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\QueryArgument;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Assets as AssetsHelper;
 use craft\helpers\FileHelper;
 

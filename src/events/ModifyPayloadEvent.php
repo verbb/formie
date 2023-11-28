@@ -11,6 +11,6 @@ class ModifyPayloadEvent extends Event
     // =========================================================================
 
     public ?Submission $submission = null;
-    public ?array $payload = null;
+    public mixed $payload = null;
     
 }

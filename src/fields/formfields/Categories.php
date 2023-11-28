@@ -7,6 +7,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
@@ -21,7 +22,6 @@ use craft\fields\BaseRelationField;
 use craft\fields\Categories as CraftCategories;
 use craft\gql\arguments\elements\Category as CategoryArguments;
 use craft\gql\interfaces\elements\Category as CategoryInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\CategoryGroup;
@@ -257,7 +257,7 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         // Allow any template-defined elementQuery to override
         if ($this->elementsQuery) {
-            Craft::configure($query, $this->elementsQuery);
+            Craft::configure($query, (array)$this->elementsQuery);
         }
 
         // Fire a 'modifyElementFieldQuery' event
