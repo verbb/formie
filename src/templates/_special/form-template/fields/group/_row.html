@@ -5,6 +5,9 @@
     {% for row in field.getRows() %}
         {% fieldtag 'nestedFieldRow' %}
             {% for field in row.getFields() %}
+                {# Update the namespace for the field #}
+                {% do field.setParentField(groupField) %}
+
                 {{ craft.formie.renderField(form, field) }}
             {% endfor %}
         {% endfieldtag %}

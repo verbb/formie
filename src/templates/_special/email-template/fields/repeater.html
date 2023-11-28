@@ -25,8 +25,10 @@
 
                 <tbody>
                     {% for field in field.getFields() %}
-                        {% set fieldKey = "#{repeaterField.handle}.#{loop.parent.loop.index0}.#{field.handle}", %}
-                        {% set fieldValue = (submission ? submission.getFieldValue(fieldKey) : field.normalizeValue(null)) %}
+                        {# Update the namespace for the field, to include the specific block index #}
+                        {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
+
+                        {% set fieldValue = (submission ? submission.getFieldValue(field.fieldKey) : field.normalizeValue(null)) %}
 
                         {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                             hideName: true,

@@ -10,8 +10,10 @@
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             <tbody>
                 {% for field in field.getFields() %}
-                    {% set fieldKey = "#{groupField.handle}.#{field.handle}", %}
-                    {% set fieldValue = (submission ? submission.getFieldValue(fieldKey) : field.normalizeValue(null)) %}
+                    {# Update the namespace for the field #}
+                    {% do field.setParentField(groupField) %}
+
+                    {% set fieldValue = (submission ? submission.getFieldValue(field.fieldKey) : field.normalizeValue(null)) %}
 
                     {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                         hideName: true,
