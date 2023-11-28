@@ -34,6 +34,7 @@ class Table extends CraftTable implements FormFieldInterface
     // =========================================================================
 
     use FormFieldTrait {
+        getFormBuilderSettings as traitGetFormBuilderSettings;
         getSettingGqlTypes as traitGetSettingGqlTypes;
         defineHtmlTag as traitDefineHtmlTag;
     }
@@ -129,7 +130,7 @@ class Table extends CraftTable implements FormFieldInterface
 
     public function getFormBuilderSettings(): array
     {
-        $settings = $this->getSettings();
+        $settings = $this->traitGetFormBuilderSettings();
 
         // Translate the columns options into an array of objects, rather than just a collection of objects
         // Vue can't really deal with that, but let's keep it the same as Craft's Table field
