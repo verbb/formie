@@ -6,6 +6,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -204,28 +205,22 @@ class Variables
             }
         }
 
-        $fieldVariables = [];
+        $fieldVariables[] = self::_getParsedFieldValues($form, $submission, $notification);
 
         if ($includeSummary) {
             // Populate a collection of fields for "all", "visible" and "with-content"
-            $fieldVariables = self::getFormFieldsVariables($form, $notification, $submission);
+            $fieldVariables[] = self::getFormFieldsHtml($form, $notification, $submission);
         }
 
-        // Properly parse field values. There's seemingly performance benefits to doing this separate to the above
-        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+        // For performance
+        $fieldVariables = array_merge(...$fieldVariables);
 
-        // Don't save anything unless we have values
-        $fieldVariables = array_filter($fieldVariables);
-
+        // Save variables to a render cache for performance
         Formie::$plugin->getRenderCache()->setFieldVariables($cacheKey, $fieldVariables);
-
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
-        // Try to parse submission + extra variables
-        $view = Craft::$app->getView();
-
         try {
-            return $view->renderObjectTemplate($value, $submission, $variables);
+            return Craft::$app->getView()->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
             Formie::error('Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
@@ -238,7 +233,7 @@ class Variables
         }
     }
 
-    public static function getFormFieldsVariables(?Form $form, ?Notification $notification, ?Submission $submission): array
+    public static function getFormFieldsHtml(?Form $form, ?Notification $notification, ?Submission $submission): array
     {
         $data = [
             'allFields' => '',
@@ -298,29 +293,8 @@ class Variables
     }
 
 
-    // Public Static Methods
+    // Private Methods
     // =========================================================================
-
-    public static function _getSite($submission): ?Site
-    {
-        // Get the current site, based on front-end requests first. This will fail for a queue job.
-        // For front-end requests where we want to parse content, we must respect the current site.
-        $currentSite = Craft::$app->getSites()->getCurrentSite();
-
-        if ($currentSite) {
-            return $currentSite;
-        }
-
-        // Otherwise, use the siteId for the submission
-        $siteId = $submission->siteId ?? null;
-
-        if ($siteId) {
-            return Craft::$app->getSites()->getSiteById($siteId);
-        }
-
-        // If all else fails, the primary site.
-        return Craft::$app->getSites()->getPrimarySite();
-    }
 
     private static function _getParsedFieldValues($form, $submission, $notification): array
     {
@@ -331,6 +305,10 @@ class Variables
         }
 
         foreach ($submission->getFields() as $field) {
+            if ($field->getIsCosmetic()) {
+                continue;
+            }
+
             $submissionValue = $submission->getFieldValue($field->handle);
 
             $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
@@ -339,28 +317,21 @@ class Variables
         // For performance
         $values = array_merge(...$values);
 
-        return self::_expandArray($values);
+        return ArrayHelper::expand($values);
     }
 
     private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification): array
     {
         $values = [];
 
-        if (!$submission) {
-            return $values;
-        }
-
         $parsedContent = '';
 
-        // If we're specifically trying to get the field value for use in emails, use the field's email template HTML.s
+        // If we're specifically trying to get the field value for use in emails, use the field's email template HTML.
         if ($notification) {
             $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
         }
 
         $prefix = 'field.';
-
-        // For pretty much all cases, we want to use the value represented as a string
-        $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
 
         if ($field instanceof formfields\Date) {
             // Generate additional values
@@ -402,45 +373,27 @@ class Variables
                     $values[$handle] = $fieldValue;
                 }
             }
-        } else if ($field instanceof BaseRelationField) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Table) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof formfields\MultiLineText) {
-            if ($field->useRichText) {
+            if ($field->useRichText && $parsedContent) {
                 $values["{$prefix}{$field->handle}"] = $parsedContent;
             } else {
                 $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
             }
-        } else if ($field instanceof formfields\Repeater) {
+        } else if ($field instanceof BaseRelationField && $parsedContent) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Signature) {
+        } else if ($field instanceof formfields\Repeater && $parsedContent) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Payment) {
+        } else if ($field instanceof formfields\Signature && $parsedContent) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\Payment && $parsedContent) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\Table && $parsedContent) {
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else {
+            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         }
 
         return $values;
-    }
-
-    private static function _expandArray($array): array
-    {
-        $result = [];
-
-        foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $value = self::_expandArray($value);
-            }
-
-            foreach (array_reverse(explode(".", $key)) as $k) {
-                $value = [$k => $value];
-            }
-
-            $result[] = $value;
-        }
-
-        // For performance
-        return array_merge_recursive(...$result);
     }
 
     private static function _getCurrentUser($submission = null): bool|User|IdentityInterface|null
@@ -461,66 +414,24 @@ class Variables
         return null;
     }
 
-
-    // Deprecated
-    // =========================================================================
-
-    public static function getFormFieldsHtml($form, $notification, $submission, $excludeEmpty = false, $excludeHidden = false, $asArray = false): array|string
+    public static function _getSite($submission): ?Site
     {
-        // Deprecated in favour of a single function to generate all 3 states at once for performance
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Variables `getFormFieldsHtml()` method has been deprecated. Use `getFormFieldsVariables()` instead.');
+        // Get the current site, based on front-end requests first. This will fail for a queue job.
+        // For front-end requests where we want to parse content, we must respect the current site.
+        $currentSite = Craft::$app->getSites()->getCurrentSite();
 
-        $fieldItems = $asArray ? [] : '';
-
-        if (!$form || !$submission) {
-            return $fieldItems;
+        if ($currentSite) {
+            return $currentSite;
         }
 
-        // If a specific notification isn't passed in, use a new instance of one. This is for times where we don't really mind
-        // _which_ notification is used, like when a submission is made on the front-end, with a submit message.
-        if (!$notification) {
-            $notification = new Notification();
+        // Otherwise, use the siteId for the submission
+        $siteId = $submission->siteId ?? null;
+
+        if ($siteId) {
+            return Craft::$app->getSites()->getSiteById($siteId);
         }
 
-        // Need to switch back to the CP to render our fields email HTML
-        $view = Craft::$app->getView();
-        $oldTemplateMode = $view->getTemplateMode();
-        $view->setTemplateMode($view::TEMPLATE_MODE_CP);
-
-        foreach ($form->getFields() as $field) {
-            if (!$field->includeInEmail) {
-                continue;
-            }
-
-            if ($field->isConditionallyHidden($submission)) {
-                continue;
-            }
-
-            if ($excludeHidden && $field->getIsHidden()) {
-                continue;
-            }
-
-            $value = $submission->getFieldValue($field->handle);
-
-            if (empty($field->getValueAsString($value, $submission)) && $excludeEmpty) {
-                continue;
-            }
-
-            $html = $field->getEmailHtml($submission, $notification, $value);
-
-            if ($html === false) {
-                continue;
-            }
-
-            if ($asArray) {
-                $fieldItems[$field->handle] = (string)$html;
-            } else {
-                $fieldItems .= $html;
-            }
-        }
-
-        $view->setTemplateMode($oldTemplateMode);
-
-        return $fieldItems;
+        // If all else fails, the primary site.
+        return Craft::$app->getSites()->getPrimarySite();
     }
 }
