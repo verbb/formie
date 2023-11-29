@@ -73,6 +73,9 @@ export default ({ command }) => ({
             // Allow us to use `@components/` in Vue components.
             '@components': path.resolve('./src/js/components'),
 
+            // Allow us to use `@mixins/` in Vue components.
+            '@mixins': path.resolve('./src/js/mixins'),
+
             // Allow us to use `@formkit/` in Vue components.
             '@formkit-components': path.resolve('./src/js/formkit'),
 
