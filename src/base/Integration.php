@@ -724,28 +724,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getMappedFieldInfo(string $mappedFieldValue, Submission $submission): array
     {
-        // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
-        $fieldKey = str_replace(['{', '}'], ['', ''], $mappedFieldValue);
+        // Replace how we store the value (as `{field:fieldHandle}` or `{submission:id}`)
+        $fieldKey = str_replace(['{field:', '}'], ['', ''], $mappedFieldValue);
 
-        // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (str_contains($fieldKey, '[')) {
-            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
-
-            // Change the field handle to reflect the top-level field, not the full path to the value
-            // but still keep the subField path (if any) for some fields to use
-            $fieldKey = explode('.', $fieldKey);
-            $fieldHandle = array_shift($fieldKey);
-            $fieldKey = implode('.', $fieldKey);
-        } else {
-            $fieldHandle = $fieldKey;
-            $fieldKey = '';
-        }
-
-        // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFields(), 'handle');
+        // Change the field handle to reflect the top-level field, not the full path to the value
+        // but still keep the subField path (if any) for some fields to use
+        $fieldKey = explode('.', $fieldKey);
+        $fieldHandle = array_shift($fieldKey);
+        $fieldKey = implode('.', $fieldKey);
 
         // Try and get the form field we're pulling data from
-        $field = $formFields[$fieldHandle] ?? null;
+        $field = ArrayHelper::firstWhere($submission->getFields(), 'handle', $fieldHandle);
 
         return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
     }

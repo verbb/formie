@@ -295,4 +295,22 @@ class Group extends NestedField implements SingleNestedFieldInterface
 
         return Template::raw($values);
     }
+
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    {
+        // Check if we're trying to get a sub-field value
+        if ($fieldKey) {
+            $subFieldKey = explode('.', $fieldKey);
+            $subFieldHandle = array_shift($subFieldKey);
+            $subFieldKey = implode('.', $subFieldKey);
+
+            $subField = $this->getFieldByHandle($subFieldHandle);
+            $subValue = $element->getFieldValue("$this->handle.$subFieldHandle");
+
+            return $subField->getValueForIntegration($subValue, $integrationField, $integration, $element, $subFieldKey);
+        }
+
+        // Fetch the default handling
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
+    }
 }

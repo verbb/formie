@@ -660,33 +660,15 @@ class Freshdesk extends Crm
             return false;
         }
 
-        // Replace how we store the value (as `{field_handle}` or `{submission:id}`)
-        $fieldKey = str_replace(['{', '}'], ['', ''], $mapping['attachments']);
-
         // If this is a submission attribute, it's not anything that can be attached
-        if (StringHelper::startsWith($fieldKey, 'submission:')) {
+        if (str_starts_with($mapping['attachments'], '{submission:')) {
             return false;
         }
 
-        // Check for nested fields (as `group[name[prefix]]`) - convert to dot-notation
-        if (str_contains($fieldKey, '[')) {
-            $fieldKey = str_replace(['[', ']'], ['.', ''], $fieldKey);
-
-            // Change the field handle to reflect the top-level field, not the full path to the value
-            // but still keep the subfield path (if any) for some fields to use
-            $fieldKey = explode('.', $fieldKey);
-            $fieldHandle = array_shift($fieldKey);
-            $fieldKey = implode('.', $fieldKey);
-        } else {
-            $fieldHandle = $fieldKey;
-            $fieldKey = '';
-        }
-
-        // Fetch all custom fields here for efficiency
-        $formFields = ArrayHelper::index($submission->getFieldLayout()->getCustomFields(), 'handle');
-
-        // Try and get the form field we're pulling data from
-        $field = $formFields[$fieldHandle] ?? null;
+        $fieldInfo = $this->getMappedFieldInfo($mapping['attachments'], $submission);
+        $field = $fieldInfo['field'];
+        $fieldKey = $fieldInfo['key'];
+        $fieldHandle = $fieldInfo['handle'];
 
         // If the field exists, check if any value exists
         if ($field && $value = $submission->getFieldValue($fieldHandle)) {
