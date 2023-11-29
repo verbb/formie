@@ -864,6 +864,25 @@ $fields.forEach($field => {
 });
 ```
 
+#### The `modifyQueryParams` event
+The event that is triggered when constructing the URL to the PayPal SDK, where you can modify the query params for various features.
+
+```js
+// Fetch all Payment fields (be sure to check if this is PayPal)
+let $fields = document.querySelectorAll('[data-field-type="payment"]');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('modifyQueryParams', (e) => {
+        let payPalField = e.detail.payPal;
+        let params = e.detail.params;
+
+        // Modify any PayPal options
+        e.detail.params.push('disable-funding=paylater');
+    });
+});
+```
+
 #### The `onApprove` event
 The event that is triggered when PayPal has approved (but not processed) your transaction.
 

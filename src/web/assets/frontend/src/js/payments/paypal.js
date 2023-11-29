@@ -62,6 +62,17 @@ export class FormiePayPal extends FormiePaymentProvider {
         params.push(`currency=${this.currency}`);
         params.push(`client-id=${this.clientId}`);
 
+        // Emit an "modifyQueryParams" event. This can directly modify the `params` param
+        const modifyQueryParamsEvent = new CustomEvent('modifyQueryParams', {
+            bubbles: true,
+            detail: {
+                payPal: this,
+                params,
+            },
+        });
+
+        this.$field.dispatchEvent(modifyQueryParamsEvent);
+
         return `${url}?${params.join('&')}`;
     }
 
