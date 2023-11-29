@@ -100,14 +100,14 @@ class ConditionsHelper
                     continue;
                 }
 
-                $variables['field'] = str_replace(['{', '}'], ['', ''], $variables['field']);
-
                 // Check to see if this is a custom field, or an attribute on the submission
-                if (str_starts_with($variables['field'], 'submission:')) {
-                    $variables['field'] = str_replace('submission:', '', $variables['field']);
+                if (str_starts_with($variables['field'], '{submission:')) {
+                    $variables['field'] = str_replace(['{submission:', '}'], ['', ''], $variables['field']);
 
                     $variables['field'] = ArrayHelper::getValue($submission, $variables['field']);
                 } else {
+                    $variables['field'] = str_replace(['{field:', '}'], ['', ''], $variables['field']);
+
                     // Fetch the value, serialized for string comparison
                     $serializedFieldValue = ConditionsHelper::getSerializedFieldValues($submission, [$variables['field']]);
 
@@ -222,5 +222,18 @@ class ConditionsHelper
         }
 
         return $serializedValues;
+    }
+
+    public static function prepConditionsForJs(array $conditions, string $namespace = 'fields'): array
+    {
+        // Prep the conditions for JS
+        foreach ($conditions as &$condition) {
+            ArrayHelper::remove($condition, 'id');
+
+            // Dot-notation to name input syntax
+            $condition['field'] = $namespace . '[' . str_replace(['{field:', '}', '.'], ['', '', ']['], $condition['field']) . ']';
+        }
+
+        return $conditions;
     }
 }

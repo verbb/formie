@@ -195,17 +195,17 @@ export default {
                     // Is this a repeater or field that supports nesting?
                     if (toBoolean(field.hasNestedFields) && field.settings.rows) {
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((subField) => {
+                            row.fields.forEach((nestedField) => {
                                 customFields.push({
-                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
-                                    value: `{field:${field.settings.handle}.${subField.settings.handle}}`,
+                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
+                                    value: `{field:${field.settings.handle}.${nestedField.settings.handle}}`,
                                 });
 
-                                if (subField.subFieldOptions && subField.hasSubFields) {
-                                    subField.subFieldOptions.forEach((subsubField) => {
+                                if (nestedField.subFieldOptions && nestedField.hasSubFields) {
+                                    nestedField.subFieldOptions.forEach((subField) => {
                                         customFields.push({
-                                            label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}: ${truncate(subsubField.label, { length: 60 })}`,
-                                            value: `{field:${field.settings.handle}.${subField.settings.handle}.${subsubField.handle}}`,
+                                            label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                            value: `{field:${field.settings.handle}.${nestedField.settings.handle}.${subField.handle}}`,
                                         });
                                     });
                                 }

@@ -970,16 +970,7 @@ trait FormFieldTrait
             $namespace = $this->_customNamespace ?? 'fields';
 
             // Prep the conditions for JS
-            foreach ($conditions as &$condition) {
-                ArrayHelper::remove($condition, 'id');
-
-                // Dot-notation to name input syntax
-                $condition['field'] = $namespace . '[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-            }
-
-            unset($condition);
-
-            $conditionSettings['conditions'] = $conditions;
+            $conditionSettings['conditions'] = ConditionsHelper::prepConditionsForJs($conditions, $namespace);
 
             // Mark if this is a nested field within a Group/Repeater.
             $conditionSettings['isNested'] = $this->getIsNested();

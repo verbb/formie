@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ConditionsHelper;
 
 use Craft;
 use craft\base\Model;
@@ -95,16 +96,7 @@ class FormPageSettings extends Model
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS
-            foreach ($conditions as &$condition) {
-                ArrayHelper::remove($condition, 'id');
-
-                // Dot-notation to name input syntax
-                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-            }
-
-            unset($condition);
-
-            $conditionSettings['conditions'] = $conditions;
+            $conditionSettings['conditions'] = ConditionsHelper::prepConditionsForJs($conditions);
 
             return Json::encode($conditionSettings);
         }

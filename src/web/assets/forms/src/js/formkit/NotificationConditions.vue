@@ -338,6 +338,11 @@ export default {
             const customFields = [];
 
             fields.forEach((field) => {
+                // Exclude cosmetic fields (with no value)
+                if (field.isCosmetic) {
+                    return;
+                }
+
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     if (field.subFieldOptions && field.hasSubFields) {
@@ -346,8 +351,8 @@ export default {
                                 field,
                                 subField,
                                 type: field.type,
-                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
-                                value: `{${field.settings.handle}.${subField.settings.handle}}`,
+                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                value: `{field:${field.settings.handle}.${subField.handle}}`,
                             });
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater') {
@@ -355,13 +360,13 @@ export default {
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((subField) => {
+                            row.fields.forEach((nestedField) => {
                                 customFields.push({
                                     field,
-                                    subField,
+                                    subField: nestedField,
                                     type: field.type,
-                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
-                                    value: `{${field.settings.handle}.${subField.settings.handle}}`,
+                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
+                                    value: `{field:${field.settings.handle}.${nestedField.settings.handle}}`,
                                 });
                             });
                         });
@@ -371,14 +376,14 @@ export default {
                             field,
                             type: field.type,
                             label: truncate(field.settings.label, { length: 60 }),
-                            value: `{${field.settings.handle}.date}`,
+                            value: `{field:${field.settings.handle}.date}`,
                         });
                     } else {
                         customFields.push({
                             field,
                             type: field.type,
                             label: truncate(field.settings.label, { length: 60 }),
-                            value: `{${field.settings.handle}}`,
+                            value: `{field:${field.settings.handle}}`,
                         });
                     }
                 }

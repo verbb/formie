@@ -209,16 +209,7 @@ class FormPage extends Model
             $conditions = $conditionSettings['conditions'] ?? [];
 
             // Prep the conditions for JS
-            foreach ($conditions as &$condition) {
-                ArrayHelper::remove($condition, 'id');
-
-                // Dot-notation to name input syntax
-                $condition['field'] = 'fields[' . str_replace(['{', '}', '.'], ['', '', ']['], $condition['field']) . ']';
-            }
-
-            unset($condition);
-
-            $conditionSettings['conditions'] = $conditions;
+            $conditionSettings['conditions'] = ConditionsHelper::prepConditionsForJs($conditions);
 
             return Json::encode($conditionSettings);
         }
