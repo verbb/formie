@@ -827,7 +827,9 @@ trait FormFieldTrait
             return new HtmlTag('label', [
                 'class' => [
                     'fui-label',
-                    $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                ],
+                'data' => [
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
                 ],
                 'for' => $id,
             ]);

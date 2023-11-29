@@ -13,7 +13,8 @@
     display: none;
 }
 
-.fui-sr-only {
+.fui-sr-only,
+[data-fui-sr-only] {
     clip: rect(0,0,0,0);
     height: 1px;
     margin: -1px;

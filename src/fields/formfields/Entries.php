@@ -513,7 +513,9 @@ class Entries extends CraftEntries implements FormFieldInterface
                 return new HtmlTag('legend', [
                     'class' => [
                         'fui-legend',
-                        $labelPosition instanceof HiddenPosition ? 'fui-sr-only' : null,
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
                     ],
                 ]);
             }
