@@ -614,11 +614,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function populateContext(): void
     {
+        $request = Craft::$app->getRequest();
+
         // Add some extra values to integrations to record in the context of being run
         // Useful to maintain the referrer, current site, etc - things that aren't possible in a queue.
         $this->context = [
-            'referrer' => $this->request->getReferrer(),
-            'ipAddress' => $this->request->getUserIP(),
+            'referrer' => $request->getReferrer(),
+            'ipAddress' => $request->getUserIP(),
         ];
     }
 

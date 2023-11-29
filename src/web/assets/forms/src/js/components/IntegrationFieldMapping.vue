@@ -181,31 +181,31 @@ export default {
                 // If this field is nested itself, don't show. The outer field takes care of that below
                 if (!toBoolean(field.isNested)) {
                     // Don't show a nested field on its own
-                    customFields.push({ label: truncate(field.label, { length: 60 }), value: `{${field.handle}}` });
+                    customFields.push({ label: truncate(field.settings.label, { length: 60 }), value: `{field:${field.settings.handle}}` });
 
                     if (field.subFieldOptions && field.hasSubFields) {
                         field.subFieldOptions.forEach((subField) => {
                             customFields.push({
-                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                value: `{${field.handle}[${subField.handle}]}`,
+                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
+                                value: `{field:${field.settings.handle}.${subField.handle}}`,
                             });
                         });
                     }
 
                     // Is this a repeater or field that supports nesting?
-                    if (toBoolean(field.hasNestedFields) && field.rows) {
-                        field.rows.forEach((row) => {
+                    if (toBoolean(field.hasNestedFields) && field.settings.rows) {
+                        field.settings.rows.forEach((row) => {
                             row.fields.forEach((subField) => {
                                 customFields.push({
-                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                    value: `{${field.handle}[${subField.handle}]}`,
+                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}`,
+                                    value: `{field:${field.settings.handle}.${subField.settings.handle}}`,
                                 });
 
                                 if (subField.subFieldOptions && subField.hasSubFields) {
                                     subField.subFieldOptions.forEach((subsubField) => {
                                         customFields.push({
-                                            label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}: ${truncate(subsubField.label, { length: 60 })}`,
-                                            value: `{${field.handle}[${subField.handle}[${subsubField.handle}]]}`,
+                                            label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.settings.label, { length: 60 })}: ${truncate(subsubField.label, { length: 60 })}`,
+                                            value: `{field:${field.settings.handle}.${subField.settings.handle}.${subsubField.handle}}`,
                                         });
                                     });
                                 }
