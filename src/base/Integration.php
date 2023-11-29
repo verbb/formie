@@ -753,8 +753,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField)
     {
         try {
-            // If this is a submission attribute, fetch it - easy!
-            if (StringHelper::startsWith($mappedFieldValue, '{submission:')) {
+            if (str_starts_with($mappedFieldValue, '{submission:')) {
                 $mappedFieldValue = str_replace(['{submission:', '}'], ['', ''], $mappedFieldValue);
 
                 // Ensure the submission value is typecasted properly.

@@ -267,7 +267,7 @@ class Recruitee extends Miscellaneous
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (StringHelper::startsWith($key, 'open_questions:')) {
+            if (str_starts_with($key, 'open_questions:')) {
                 $field = ArrayHelper::remove($fields, $key);
 
                 $typeKey = str_replace('open_questions:', '', $key);

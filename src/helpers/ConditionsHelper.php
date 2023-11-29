@@ -46,7 +46,7 @@ class ConditionsHelper
 
         $expressionLanguage->register('startsWith', function() {
         }, function($args, $subject, $pattern) {
-            return StringHelper::startsWith((string)$subject, $pattern);
+            return str_starts_with((string)$subject, $pattern);
         });
 
         $expressionLanguage->register('endsWith', function() {
@@ -103,7 +103,7 @@ class ConditionsHelper
                 $variables['field'] = str_replace(['{', '}'], ['', ''], $variables['field']);
 
                 // Check to see if this is a custom field, or an attribute on the submission
-                if (StringHelper::startsWith($variables['field'], 'submission:')) {
+                if (str_starts_with($variables['field'], 'submission:')) {
                     $variables['field'] = str_replace('submission:', '', $variables['field']);
 
                     $variables['field'] = ArrayHelper::getValue($submission, $variables['field']);

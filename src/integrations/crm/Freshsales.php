@@ -701,7 +701,7 @@ class Freshsales extends Crm
                 continue;
             }
 
-            if (!StringHelper::startsWith($field['name'], 'cf_')) {
+            if (!str_starts_with($field['name'], 'cf_')) {
                 continue;
             }
 
@@ -721,7 +721,7 @@ class Freshsales extends Crm
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
+            if (str_starts_with($key, 'custom:')) {
                 $field = ArrayHelper::remove($fields, $key);
 
                 $customFields[str_replace('custom:', '', $key)] = $value;

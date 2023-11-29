@@ -493,7 +493,7 @@ class Freshdesk extends Crm
             }
 
             // Prep custom field names for multipart
-            if (StringHelper::startsWith($tag, 'custom:')) {
+            if (str_starts_with($tag, 'custom:')) {
                 $name = 'custom_fields[' . str_replace('custom:', '', $tag) . ']';
             } else {
                 $name = $tag;
@@ -643,7 +643,7 @@ class Freshdesk extends Crm
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
+            if (str_starts_with($key, 'custom:')) {
                 $field = ArrayHelper::remove($fields, $key);
 
                 $customFields[str_replace('custom:', '', $key)] = $value;

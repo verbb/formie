@@ -276,7 +276,7 @@ class Scoro extends Crm
         $payload = $fields;
 
         foreach ($payload as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
+            if (str_starts_with($key, 'custom:')) {
                 $field = ArrayHelper::remove($payload, $key);
 
                 $payload['custom_fields'][str_replace('custom:', '', $key)] = $value;

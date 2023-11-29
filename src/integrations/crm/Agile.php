@@ -540,7 +540,7 @@ class Agile extends Crm
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
+            if (str_starts_with($key, 'custom:')) {
                 ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [

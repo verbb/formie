@@ -393,7 +393,7 @@ class Insightly extends Crm
         $customFields = [];
 
         foreach ($fields as $key => $value) {
-            if (StringHelper::startsWith($key, 'custom:')) {
+            if (str_starts_with($key, 'custom:')) {
                 $field = ArrayHelper::remove($fields, $key);
 
                 $customFields[] = [

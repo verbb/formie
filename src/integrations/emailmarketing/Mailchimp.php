@@ -161,7 +161,7 @@ class Mailchimp extends EmailMarketing
 
             // Handle marketing permissions
             foreach ($fieldValues as $key => $fieldValue) {
-                if (StringHelper::startsWith($key, 'gdpr:')) {
+                if (str_starts_with($key, 'gdpr:')) {
                     $field = ArrayHelper::remove($fieldValues, $key);
 
                     $payload['marketing_permissions'][] = [
