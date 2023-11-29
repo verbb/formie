@@ -430,7 +430,7 @@ class Submission extends Element
             }
 
             if ($field instanceof MultiNestedFieldInterface) {
-                $value = $element->getFieldValue($field->handle);
+                $value = $this->getFieldValue($field->handle);
 
                 foreach ($value as $rowKey => $row) {
                     foreach ($this->getFields() as $nestedField) {
