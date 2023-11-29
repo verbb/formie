@@ -200,7 +200,7 @@ class Submissions extends Component
             }
 
             // Allow integrations to add extra data before running
-            $resolvedIntegration->populateContext();
+            $integration->populateContext();
 
             if ($settings->useQueueForIntegrations) {
                 Queue::push(new TriggerIntegration([
