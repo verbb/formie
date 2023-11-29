@@ -378,7 +378,7 @@ class Rendering extends Component
 
             // PayPal
             'Missing Authorization ID for approval.',
-            'Payment authorized. Finalise the form to complete payment.',
+            'Payment authorized. Finalize the form to complete payment.',
             'Unable to authorize payment. Please try again.',
 
             // Opayo
