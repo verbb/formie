@@ -3,7 +3,6 @@ import path from 'path';
 // Vite Plugins
 import VuePlugin from '@vitejs/plugin-vue';
 import EslintPlugin from 'vite-plugin-eslint';
-import { nodePolyfills as NodePolyfillsPlugin } from 'vite-plugin-node-polyfills'
 
 // Rollup Plugins
 // import AnalyzePlugin from 'rollup-plugin-analyzer';
@@ -48,13 +47,6 @@ export default ({ command }) => ({
         // Vue 3 support
         // https://github.com/vitejs/vite/tree/main/packages/plugin-vue
         VuePlugin(),
-
-        // Get around many console warnings introduced in Vite 5. Hopefully temporary.
-        // See https://github.com/vitejs/vite/issues/9200
-        // https://github.com/davidmyersdev/vite-plugin-node-polyfills
-        NodePolyfillsPlugin({
-            include: ['path', 'fs', 'url', 'source-map-js', 'source-map'],
-        }),
 
         // Analyze bundle size
         // https://github.com/doesdev/rollup-plugin-analyzer
