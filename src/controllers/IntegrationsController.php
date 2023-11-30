@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\IntegrationInterface;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\OauthTokenEvent;
 use verbb\formie\models\Token;
@@ -309,7 +310,7 @@ class IntegrationsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _createToken($response, $integration): ?Response
+    private function _createToken(mixed $response, IntegrationInterface $integration): ?Response
     {
         $token = new Token();
         $token->type = $integration::class;
@@ -370,7 +371,7 @@ class IntegrationsController extends Controller
         return $this->redirect($this->originUrl);
     }
 
-    private function _deleteToken($integration): void
+    private function _deleteToken(IntegrationInterface $integration): void
     {
         // It's okay if this fails. Maybe this token doesn't exist on this environment?
         Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId);

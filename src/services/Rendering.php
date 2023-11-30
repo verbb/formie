@@ -542,7 +542,7 @@ class Rendering extends Component
     // Private Methods
     // =========================================================================
 
-    private function _getTranslatedStrings($array): array
+    private function _getTranslatedStrings(array $array): array
     {
         $strings = [];
 

@@ -71,7 +71,7 @@ class PayWay extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getFrontEndHtml($field, $renderOptions): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
     {
         if (!$this->hasValidSettings()) {
             return '';

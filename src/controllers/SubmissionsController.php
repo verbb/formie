@@ -9,6 +9,7 @@ use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\FormPage;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
 
@@ -974,7 +975,7 @@ class SubmissionsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _returnJsonResponse($success, $submission, $form, $nextPage, $extras = []): Response
+    private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FormPage $nextPage, array $extras = []): Response
     {
         // Try and get the redirect from the template, as it might've been altered in templates
         $redirect = $this->request->getValidatedBodyParam('redirect');

@@ -25,7 +25,7 @@ class ImportExportController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function actionIndex($importError = null, $exportError = null): ?Response
+    public function actionIndex(?string $importError = null, ?string $exportError = null): ?Response
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -59,7 +59,7 @@ class ImportExportController extends Controller
         return $this->redirectToPostedUrl($object);
     }
 
-    public function actionImportConfigure($filename): ?Response
+    public function actionImportConfigure(string $filename): ?Response
     {
         $request = $this->request;
 
@@ -191,7 +191,7 @@ class ImportExportController extends Controller
         return $this->redirectToPostedUrl($form);
     }
 
-    public function actionImportCompleted($formId): Response
+    public function actionImportCompleted(?int $formId): Response
     {
         $form = Formie::$plugin->getForms()->getFormById($formId);
 

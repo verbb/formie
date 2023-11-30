@@ -981,7 +981,7 @@ trait FormFieldTrait
         return null;
     }
 
-    public function getPage($submission)
+    public function getPage(Submission $submission): ?FormPage
     {
         $pages = $submission->getPages();
 

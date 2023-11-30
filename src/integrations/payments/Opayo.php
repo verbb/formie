@@ -105,7 +105,7 @@ class Opayo extends Payment
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
     }
 
-    public function getFrontEndHtml($field, $renderOptions): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
     {
         if (!$this->hasValidSettings()) {
             return '';

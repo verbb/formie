@@ -65,7 +65,7 @@ class PayPal extends Payment
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    public function getFrontEndHtml($field, $renderOptions): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
     {
         if (!$this->hasValidSettings()) {
             return '';

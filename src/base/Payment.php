@@ -164,7 +164,7 @@ abstract class Payment extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions): string
+    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
     {
         $handle = $this->getIntegrationHandle();
         

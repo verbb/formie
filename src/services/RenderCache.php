@@ -16,37 +16,37 @@ class RenderCache extends Component
     // Public Methods
     // =========================================================================
 
-    public function getGlobalVariables($key)
+    public function getGlobalVariables(string $key): mixed
     {
         return $this->globalVariables[$key] ?? [];
     }
 
-    public function setGlobalVariables($key, $values): void
+    public function setGlobalVariables(string $key, array $values): void
     {
         $this->globalVariables[$key] = array_merge($this->getGlobalVariables($key), $values);
     }
 
-    public function getFieldVariables($key)
+    public function getFieldVariables(string $key): mixed
     {
         return $this->fieldVariables[$key] ?? [];
     }
 
-    public function setFieldVariables($key, $values): void
+    public function setFieldVariables(string $key, array $values): void
     {
         $this->fieldVariables[$key] = array_merge($this->getFieldVariables($key), $values);
     }
 
-    public function getVariables($key): array
+    public function getVariables(string $key): array
     {
         return array_merge($this->getGlobalVariables($key), $this->getFieldVariables($key));
     }
 
-    public function getElementFieldElements($key)
+    public function getElementFieldElements(string $key): mixed
     {
         return $this->elementFieldElements[$key] ?? [];
     }
 
-    public function setElementFieldElements($key, $value): void
+    public function setElementFieldElements(string $key, mixed $value): void
     {
         $this->elementFieldElements[$key] = $value;
     }
