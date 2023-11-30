@@ -2,17 +2,14 @@
 // Ensure you document all plugins in use
 // ================================================
 
-import autoprefixer from 'autoprefixer';
-import postCssColorFunction from 'postcss-color-function';
-
-export default {
+module.exports = {
     plugins: [
         // Add browser-prefixing
         // https://github.com/postcss/autoprefixer
-        autoprefixer,
+        require('autoprefixer'),
 
         // Add color utils
         // https://github.com/postcss/postcss-color-function
-        postCssColorFunction,
+        require('postcss-color-function'),
     ],
 }

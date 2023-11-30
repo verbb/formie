@@ -2,7 +2,6 @@
     "name": "formie-cp",
     "version": "2.0.0",
     "private": true,
-    "type": "module",
     "scripts": {
         "dev": "npm run forms & npm run cp & npm run frontend",
         "build": "npm run forms-build & npm run cp-build & npm run frontend-build",

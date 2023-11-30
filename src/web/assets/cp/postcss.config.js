@@ -8,7 +8,7 @@ module.exports = {
         // https://github.com/postcss/autoprefixer
         require('autoprefixer'),
 
-        // Add color utitls
+        // Add color utils
         // https://github.com/postcss/postcss-color-function
         require('postcss-color-function'),
     ],
