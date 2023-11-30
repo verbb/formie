@@ -1,50 +1,94 @@
 {
-  "src/js/formie-integration-settings.js": {
-    "file": "assets/formie-integration-settings.cfc0a907.js",
-    "src": "src/js/formie-integration-settings.js",
-    "isEntry": true,
-    "imports": [
-      "_config.9f5c708b.js"
+  "_config-!~{004}~.js": {
+    "file": "assets/config-pbOI66Ky.css",
+    "src": "_config-!~{004}~.js"
+  },
+  "_config-IMvAHvE1.js": {
+    "assets": [
+      "assets/fa-regular-400-l30-FzO_.eot",
+      "assets/fa-regular-400-q9hTWXW-.woff2",
+      "assets/fa-regular-400-zo5xndbE.woff",
+      "assets/fa-regular-400-vYgVhBti.ttf",
+      "assets/fa-regular-400-J35IyURq.svg",
+      "assets/fa-solid-900-N4erO7po.eot",
+      "assets/fa-solid-900-Kfo4n03V.woff2",
+      "assets/fa-solid-900-TsomeXIw.woff",
+      "assets/fa-solid-900-XkfFaza8.ttf",
+      "assets/fa-solid-900-CH9bxfgG.svg"
     ],
     "css": [
-      "assets/formie-integration-settings.fb842a8a.css"
-    ]
+      "assets/config-pbOI66Ky.css"
+    ],
+    "file": "assets/config-IMvAHvE1.js"
+  },
+  "src/fonts/fa-regular-400.eot": {
+    "file": "assets/fa-regular-400-l30-FzO_.eot",
+    "src": "src/fonts/fa-regular-400.eot"
+  },
+  "src/fonts/fa-regular-400.svg": {
+    "file": "assets/fa-regular-400-J35IyURq.svg",
+    "src": "src/fonts/fa-regular-400.svg"
+  },
+  "src/fonts/fa-regular-400.ttf": {
+    "file": "assets/fa-regular-400-vYgVhBti.ttf",
+    "src": "src/fonts/fa-regular-400.ttf"
+  },
+  "src/fonts/fa-regular-400.woff": {
+    "file": "assets/fa-regular-400-zo5xndbE.woff",
+    "src": "src/fonts/fa-regular-400.woff"
+  },
+  "src/fonts/fa-regular-400.woff2": {
+    "file": "assets/fa-regular-400-q9hTWXW-.woff2",
+    "src": "src/fonts/fa-regular-400.woff2"
+  },
+  "src/fonts/fa-solid-900.eot": {
+    "file": "assets/fa-solid-900-N4erO7po.eot",
+    "src": "src/fonts/fa-solid-900.eot"
+  },
+  "src/fonts/fa-solid-900.svg": {
+    "file": "assets/fa-solid-900-CH9bxfgG.svg",
+    "src": "src/fonts/fa-solid-900.svg"
+  },
+  "src/fonts/fa-solid-900.ttf": {
+    "file": "assets/fa-solid-900-XkfFaza8.ttf",
+    "src": "src/fonts/fa-solid-900.ttf"
+  },
+  "src/fonts/fa-solid-900.woff": {
+    "file": "assets/fa-solid-900-TsomeXIw.woff",
+    "src": "src/fonts/fa-solid-900.woff"
+  },
+  "src/fonts/fa-solid-900.woff2": {
+    "file": "assets/fa-solid-900-Kfo4n03V.woff2",
+    "src": "src/fonts/fa-solid-900.woff2"
   },
   "src/js/formie-form-new.js": {
-    "file": "assets/formie-form-new.fb1e765a.js",
-    "src": "src/js/formie-form-new.js",
-    "isEntry": true,
+    "file": "assets/formie-form-new-do90-SXO.js",
     "imports": [
-      "_config.9f5c708b.js"
-    ]
+      "_config-IMvAHvE1.js"
+    ],
+    "isEntry": true,
+    "src": "src/js/formie-form-new.js"
   },
   "src/js/formie-form.js": {
-    "file": "assets/formie-form.3deb7018.js",
-    "src": "src/js/formie-form.js",
-    "isEntry": true,
+    "css": [
+      "assets/formie-form-BGckUP_-.css"
+    ],
+    "file": "assets/formie-form-zF_Lk_9D.js",
     "imports": [
-      "_config.9f5c708b.js"
+      "_config-IMvAHvE1.js"
     ],
-    "css": [
-      "assets/formie-form.ea6a2e69.css"
-    ]
+    "isEntry": true,
+    "src": "src/js/formie-form.js"
   },
-  "_config.9f5c708b.js": {
-    "file": "assets/config.9f5c708b.js",
+  "src/js/formie-integration-settings.js": {
     "css": [
-      "assets/config.7f2909aa.css"
+      "assets/formie-integration-settings-1lMsdyt4.css"
     ],
-    "assets": [
-      "assets/fa-regular-400.86cbcb46.eot",
-      "assets/fa-regular-400.a771731f.woff2",
-      "assets/fa-regular-400.bb9e1c89.woff",
-      "assets/fa-regular-400.b81833e9.ttf",
-      "assets/fa-regular-400.09f741e9.svg",
-      "assets/fa-solid-900.15a70ae0.eot",
-      "assets/fa-solid-900.e77c7e1c.woff2",
-      "assets/fa-solid-900.974d7c91.woff",
-      "assets/fa-solid-900.8050bcbf.ttf",
-      "assets/fa-solid-900.02c2aa62.svg"
-    ]
+    "file": "assets/formie-integration-settings-d_OcrzI2.js",
+    "imports": [
+      "_config-IMvAHvE1.js"
+    ],
+    "isEntry": true,
+    "src": "src/js/formie-integration-settings.js"
   }
 }

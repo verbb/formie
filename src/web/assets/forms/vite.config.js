@@ -15,7 +15,7 @@ export default ({ command }) => ({
     build: {
         outDir: './dist',
         emptyOutDir: true,
-        manifest: true,
+        manifest: 'manifest.json',
         sourcemap: true,
         rollupOptions: {
             input: {
