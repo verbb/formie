@@ -3,7 +3,6 @@ import { generateClasses } from '@formkit/themes';
 
 // FormKit Plugins
 import customLabelPlugin from '@formkit-components/plugins/customLabelPlugin';
-import addSelectWrapperPlugin from '@formkit-components/plugins/addSelectWrapperPlugin';
 
 // FormKit Inputs
 import CheckboxSelectInput from '@formkit-components/inputs/CheckboxSelectInput.vue';
@@ -17,6 +16,7 @@ import NotificationRecipientsInput from '@formkit-components/inputs/Notification
 import RichTextInput from '@formkit-components/inputs/RichTextInput.vue';
 import StaticTableInput from '@formkit-components/inputs/StaticTableInput.vue';
 import TableInput from '@formkit-components/inputs/TableInput.vue';
+import SelectInput from '@formkit-components/inputs/SelectInput';
 import VariableTextInput from '@formkit-components/inputs/VariableTextInput.vue';
 
 // FormKit Components
@@ -37,7 +37,9 @@ import requiredRichText from '@formkit-components/rules/requiredRichText';
 import { requiredTableCellLabel, requiredTableCellValue, uniqueTableCellLabel, uniqueTableCellValue } from '@formkit-components/rules/tableCell';
 
 export default defaultConfig({
-    plugins: [customLabelPlugin, addSelectWrapperPlugin],
+    plugins: [
+        customLabelPlugin,
+    ],
 
     rules: {
         emailOrVariable,
@@ -144,6 +146,7 @@ export default defaultConfig({
                 valuesWithError: [],
             },
         }),
+        select: SelectInput,
         variableText: createInput(VariableTextInput),
 
         // Components

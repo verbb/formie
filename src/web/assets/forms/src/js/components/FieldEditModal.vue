@@ -1,5 +1,5 @@
 <template>
-    <modal ref="modal" v-model="showModal" modal-class="fui-edit-field-modal" @click-outside="onCancelModal">
+    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-field-modal" @update:model-value="showModal = $event" @click-outside="onCancelModal">
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Field') }}</h3>
             <div v-if="showFieldType" class="fui-modal-fieldtype">{{ fieldtype.label }}</div>

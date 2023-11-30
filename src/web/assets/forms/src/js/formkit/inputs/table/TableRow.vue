@@ -78,7 +78,8 @@
                         v-if="showModal"
                         ref="editFieldModal"
                         v-model:showModal="showModal"
-                        v-model:values="model"
+                        :values="values"
+                        @update:values="values = $event"
                         @closed="onModalClosed"
                     />
                 </div>

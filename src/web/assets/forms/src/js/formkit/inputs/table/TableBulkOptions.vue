@@ -1,5 +1,5 @@
 <template>
-    <modal ref="modal" v-model="showModal" modal-class="fui-table-bulk-add-modal" @click-outside="onCancelModal">
+    <modal ref="modal" :model-value="showModal" modal-class="fui-table-bulk-add-modal" @update:model-value="showModal = $event" @click-outside="onCancelModal">
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Bulk Add Options') }}</h3>
 

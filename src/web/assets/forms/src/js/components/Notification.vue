@@ -29,10 +29,11 @@
         <notification-edit-modal
             v-if="showModal"
             v-model:showModal="showModal"
-            v-model:notification="notification"
+            :notification="notification"
             :notification-ref="this"
             :fields-schema="schema.fieldsSchema"
             :tabs-schema="schema.tabsSchema"
+            @update:notification="notification = $event"
             @delete="deleteNotification"
             @closed="onModalClosed"
         />

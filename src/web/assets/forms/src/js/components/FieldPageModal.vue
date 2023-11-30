@@ -1,5 +1,5 @@
 <template>
-    <modal ref="modal" v-model="showModal" modal-class="fui-edit-pages-modal" @click-outside="onModalCancel">
+    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-pages-modal" @update:model-value="showModal = $event" @click-outside="onModalCancel">
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Pages') }}</h3>
 

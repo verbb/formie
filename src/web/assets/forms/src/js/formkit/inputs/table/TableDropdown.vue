@@ -1,5 +1,5 @@
 <template>
-    <modal ref="modal" v-model="showModal" modal-class="fui-edit-table-modal" :show-header="false">
+    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-table-modal" :show-header="false" @update:model-value="showModal = $event">
         <template #header></template>
 
         <template #body>

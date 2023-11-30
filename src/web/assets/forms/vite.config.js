@@ -3,9 +3,9 @@ import path from 'path';
 // Vite Plugins
 import VuePlugin from '@vitejs/plugin-vue';
 import EslintPlugin from 'vite-plugin-eslint';
+import { nodePolyfills as NodePolyfillsPlugin } from 'vite-plugin-node-polyfills'
 
 // Rollup Plugins
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 // import AnalyzePlugin from 'rollup-plugin-analyzer';
 
 export default ({ command }) => ({
@@ -28,6 +28,11 @@ export default ({ command }) => ({
 
     server: {
         origin: 'http://localhost:4000',
+
+        hmr: {
+            // Using the default `wss` doesn't work on https
+            protocol: 'ws',
+        },
     },
 
     plugins: [
@@ -42,8 +47,13 @@ export default ({ command }) => ({
 
         // Vue 3 support
         // https://github.com/vitejs/vite/tree/main/packages/plugin-vue
-        VuePlugin({
-            isProduction: true,
+        VuePlugin(),
+
+        // Get around many console warnings introduced in Vite 5. Hopefully temporary.
+        // See https://github.com/vitejs/vite/issues/9200
+        // https://github.com/davidmyersdev/vite-plugin-node-polyfills
+        NodePolyfillsPlugin({
+            include: ['path', 'fs', 'url', 'source-map-js', 'source-map'],
         }),
 
         // Analyze bundle size
@@ -52,14 +62,6 @@ export default ({ command }) => ({
         //     summaryOnly: true,
         //     limit: 15,
         // }),
-
-        // Ensure Vite can find the modules it needs
-        // https://github.com/rollup/plugins/tree/master/packages/node-resolve
-        nodeResolve({
-            moduleDirectories: [
-                path.resolve('../../../../node_modules'),
-            ],
-        }),
     ],
 
     resolve: {

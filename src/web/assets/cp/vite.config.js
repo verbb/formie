@@ -5,8 +5,7 @@ import VuePlugin from '@vitejs/plugin-vue';
 import EslintPlugin from 'vite-plugin-eslint';
 
 // Rollup Plugins
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import AnalyzePlugin from 'rollup-plugin-analyzer';
+// import AnalyzePlugin from 'rollup-plugin-analyzer';
 
 // Custom (for the moment)
 import ImageminCopy from './src/vite-plugins/imagemin-copy';
@@ -46,9 +45,7 @@ export default ({ command }) => ({
 
         // Vue 3 support
         // https://github.com/vitejs/vite/tree/main/packages/plugin-vue
-        VuePlugin({
-            isProduction: true,
-        }),
+        VuePlugin(),
 
         // Analyze bundle size
         // https://github.com/doesdev/rollup-plugin-analyzer
@@ -56,14 +53,6 @@ export default ({ command }) => ({
         //     summaryOnly: true,
         //     limit: 15,
         // }),
-
-        // Ensure Vite can find the modules it needs
-        // https://github.com/rollup/plugins/tree/master/packages/node-resolve
-        nodeResolve({
-            moduleDirectories: [
-                path.resolve('./node_modules'),
-            ],
-        }),
     ],
 
     resolve: {

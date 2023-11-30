@@ -17,11 +17,11 @@ import 'tippy.js/themes/light.css';
 
 export default function moveLabelPlugin(node) {
     node.on('created', () => {
-        const inputDefinition = clone(node.props.definition);
-
-        if (!node.props.label) {
+        if (!node.props.label || !node.props.definition) {
             return;
         }
+
+        const inputDefinition = clone(node.props.definition);
 
         if (['radio', 'checkbox'].includes(node.props.type)) { return; }
 
@@ -65,7 +65,6 @@ export default function moveLabelPlugin(node) {
                     });
                 }, 500);
             }
-
 
             const labelElement = {
                 $el: 'label',

@@ -75,10 +75,11 @@
             <field-edit-modal
                 v-if="showModal"
                 v-model:showModal="showModal"
-                v-model:field="field"
+                :field="field"
                 :field-ref="this"
                 :fields-schema="fieldsSchema"
                 :tabs-schema="tabsSchema"
+                @update:field="field = $event"
                 @delete="deleteField"
                 @closed="onModalClosed"
             />

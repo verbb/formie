@@ -1605,6 +1605,14 @@
       "oAP" : "\/src\/base\/NestedFieldInterface.php",
       "oF" : 0
     },
+    "\/src\/base\/OptionsField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/base\/OptionsField.php",
+      "oF" : 0
+    },
     "\/src\/base\/Payment.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -1677,12 +1685,12 @@
       "oAP" : "\/src\/base\/SubFieldInterface.php",
       "oF" : 0
     },
-    "\/src\/base\/SubfieldTrait.php" : {
+    "\/src\/base\/SubFieldTrait.php" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/base\/SubfieldTrait.php",
+      "oAP" : "\/src\/base\/SubFieldTrait.php",
       "oF" : 0
     },
     "\/src\/base\/Webhook.php" : {
@@ -1691,14 +1699,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/base\/Webhook.php",
-      "oF" : 0
-    },
-    "\/src\/console\/controllers\/FieldsController.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/console\/controllers\/FieldsController.php",
       "oF" : 0
     },
     "\/src\/console\/controllers\/FormsController.php" : {
@@ -2067,22 +2067,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/events\/EmailTemplateEvent.php",
-      "oF" : 0
-    },
-    "\/src\/events\/FieldPageEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/FieldPageEvent.php",
-      "oF" : 0
-    },
-    "\/src\/events\/FieldRowEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/FieldRowEvent.php",
       "oF" : 0
     },
     "\/src\/events\/FormTemplateEvent.php" : {
@@ -2643,14 +2627,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/fields\/formfields\/Agree.php",
-      "oF" : 0
-    },
-    "\/src\/fields\/formfields\/BaseOptionsField.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/fields\/formfields\/BaseOptionsField.php",
       "oF" : 0
     },
     "\/src\/fields\/formfields\/Calculations.php" : {
@@ -4305,20 +4281,28 @@
       "oAP" : "\/src\/jobs\/TriggerIntegration.php",
       "oF" : 0
     },
-    "\/src\/migrations\/CreateFormContentTable.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/migrations\/CreateFormContentTable.php",
-      "oF" : 0
-    },
     "\/src\/migrations\/Install.php" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/migrations\/Install.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m231129_000000_integrations_mapping.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m231129_000000_integrations_mapping.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m231130_000000_conditions_mapping.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m231130_000000_conditions_mapping.php",
       "oF" : 0
     },
     "\/src\/migrations\/MigrateFreeform.php" : {
@@ -10965,25 +10949,6 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config.6a1e7598.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config.6a1e7598.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config.6a1e7598.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config.6a1e7598.js.map",
-      "oF" : 0
-    },
     "\/src\/web\/assets\/forms\/dist\/assets\/config.7f2909aa.css" : {
       "aP" : 1,
       "bl" : 0,
@@ -10995,6 +10960,25 @@
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config.7f2909aa-min.css",
       "oF" : 0,
       "pg" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config.9f5c708b.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js.map",
+      "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.09f741e9.svg" : {
       "ft" : 2097152,
@@ -11080,42 +11064,42 @@
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.e77c7e1c.woff2",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.666d3e86.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new.666d3e86.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new.fb1e765a.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.666d3e86.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.666d3e86.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.c07355c6.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form.c07355c6.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form.3deb7018.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.c07355c6.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.c07355c6.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.ea6a2e69.css" : {
@@ -11130,23 +11114,23 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.24c470ae.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings.24c470ae.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings.cfc0a907.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.24c470ae.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.24c470ae.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.fb842a8a.css" : {
@@ -11991,6 +11975,17 @@
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/ToggleBlock.vue",
       "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/src\/js\/mixins\/ConditionsBuilder.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/dist\/js\/ConditionsBuilder.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/store\/index.js" : {
       "bF" : 0,

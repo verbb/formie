@@ -29,9 +29,6 @@ export const createVueApp = (props) => {
         ...props,
     });
 
-    // Fix Vue warnings
-    app.config.unwrapInjectedRef = true;
-
     //
     // Plugins
     // Include any globally-available plugins for the app.
