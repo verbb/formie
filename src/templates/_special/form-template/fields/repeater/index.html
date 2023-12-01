@@ -7,7 +7,7 @@
         {{ formieInclude('_includes/instructions', { position: 'fieldset-start' }) }}
 
         <div class="fui-repeater-rows">
-            {% if value and value.exists() %}
+            {% if value %}
                 {% for block in value.all() %}
                     {{ formieInclude('fields/repeater/_row', {
                         id: block.id ?? 'new' ~ loop.index,
