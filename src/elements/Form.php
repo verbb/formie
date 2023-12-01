@@ -1,4 +1,5 @@
 <?php
+
 namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
@@ -22,15 +23,12 @@ use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
-use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
 use verbb\formie\records\Form as FormRecord;
 use verbb\formie\services\Statuses;
 
 use Craft;
 use craft\base\Element;
-use craft\db\Query;
-use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\elements\actions\Delete;
@@ -56,6 +54,7 @@ use DateTime;
 
 use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
+use verbb\formie\elements\actions\SetFormStatus;
 
 class Form extends Element
 {
@@ -63,6 +62,12 @@ class Form extends Element
     // =========================================================================
 
     public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+    public const STATUSES = [
+        self::STATUS_ACTIVE,
+        self::STATUS_INACTIVE,
+    ];
 
 
     // Static Methods
@@ -106,6 +111,19 @@ class Form extends Element
     public static function hasContent(): bool
     {
         return true;
+    }
+
+    public static function hasStatuses(): bool
+    {
+        return true;
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_ACTIVE => Craft::t('app', 'Active'),
+            self::STATUS_INACTIVE => Craft::t('app', 'Inactive'),
+        ];
     }
 
     /**
@@ -164,7 +182,7 @@ class Form extends Element
 
         return $sources;
     }
-    
+
     /**
      * @inheritDoc
      */
@@ -205,7 +223,6 @@ class Form extends Element
     protected static function defineActions(string $source = null): array
     {
         $actions = [];
-
         $canDeleteForms = Craft::$app->getUser()->checkPermission('formie-deleteForms');
 
         $actions[] = DuplicateForm::class;
@@ -223,6 +240,10 @@ class Form extends Element
             'successMessage' => Craft::t('formie', 'Forms restored.'),
             'partialSuccessMessage' => Craft::t('formie', 'Some forms restored.'),
             'failMessage' => Craft::t('formie', 'Forms not restored.'),
+        ];
+        $actions[] = [
+            'type' => SetFormStatus::class,
+            'statuses' => self::STATUSES,
         ];
 
         return $actions;
@@ -251,6 +272,7 @@ class Form extends Element
             'title' => ['label' => Craft::t('app', 'Title')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
+            'formStatus' => ['label' => Craft::t('formie', 'Status')],
             'template' => ['label' => Craft::t('app', 'Template')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
@@ -311,6 +333,7 @@ class Form extends Element
     //  Properties
     // =========================================================================
 
+    private ?string $formStatus = self::STATUS_ACTIVE;
     public ?string $handle = null;
     public ?string $oldHandle = null;
     public ?string $fieldContentTable = null;
@@ -409,7 +432,7 @@ class Form extends Element
 
         return $behaviors;
     }
-    
+
     /**
      * @inheritdoc
      */
@@ -590,6 +613,23 @@ class Form extends Element
         }
 
         return $this->_defaultStatus;
+    }
+
+    public function setFormStatus(string $status = null): void
+    {
+        if ($status !== null) {
+            $this->formStatus = $status;
+        }
+    }
+
+    public function getFormStatus(): string
+    {
+        return $this->formStatus ?? self::STATUS_ACTIVE;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->getFormStatus();
     }
 
     /**
@@ -1362,7 +1402,7 @@ class Form extends Element
     public function renderTemplate(array|string $components, array $variables = []): string
     {
         $view = Craft::$app->getView();
-        
+
         // Normalise the components to allow for a single component
         if (!is_array($components)) {
             $components = [$components];
@@ -1647,7 +1687,7 @@ class Form extends Element
             $page = $context['page'] ?? null;
             $inputAttributes = $page->settings->getInputAttributes() ?? [];
             $saveButtonStyle = $page->settings->saveButtonStyle ?? 'link';
-            
+
             return new HtmlTag('button', [
                 'class' => [
                     'fui-btn fui-save',
@@ -1968,7 +2008,7 @@ class Form extends Element
     public function setFieldSettings($handle, $settings, $updateSnapshot = true): void
     {
         $field = null;
-        
+
         // Check for nested fields so we can use `group.dropdown` or `dropdown`.
         $handles = explode('.', $handle);
 
@@ -1999,7 +2039,7 @@ class Form extends Element
     {
         // Get the integration settings so we only override what we want
         $integrationSettings = $this->settings->integrations[$handle] ?? [];
-        
+
         // Update the integration settings
         $this->settings->integrations[$handle] = array_merge($integrationSettings, $settings);
 
@@ -2087,7 +2127,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
-        
+
         return false;
     }
 
@@ -2096,7 +2136,7 @@ class Form extends Element
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
-        
+
         return false;
     }
 
@@ -2134,7 +2174,7 @@ class Form extends Element
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -2218,6 +2258,7 @@ class Form extends Element
 
         $record->handle = $this->handle;
         $record->fieldContentTable = $this->fieldContentTable;
+        $record->formStatus = $this->formStatus;
         $record->settings = $this->settings;
         $record->templateId = $this->templateId;
         $record->submitActionEntryId = $this->submitActionEntryId;
@@ -2355,7 +2396,7 @@ class Form extends Element
         ];
 
         $rules[] = [
-            'handle', function($attribute, $params, Validator $validator): void {
+            'handle', function ($attribute, $params, Validator $validator): void {
                 $query = static::find()->handle($this->$attribute);
                 if ($this->id) {
                     $query = $query->id("not {$this->id}");
