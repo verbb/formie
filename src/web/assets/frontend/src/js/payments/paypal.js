@@ -51,6 +51,9 @@ export class FormiePayPal extends FormiePaymentProvider {
         // Field is hidden, so reset everything
         this.onAfterSubmit();
 
+        // Remove the button so it's not rendered multiple times
+        this.$input.innerHTML = '';
+
         // Remove unique event listeners
         this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'paypal'));
     }
