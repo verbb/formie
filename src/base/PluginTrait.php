@@ -23,7 +23,6 @@ use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Subscriptions;
-use verbb\formie\services\Syncs;
 use verbb\formie\web\assets\forms\FormsAsset;
 
 use verbb\base\LogTrait;
@@ -75,7 +74,6 @@ trait PluginTrait
                 'stencils' => Stencils::class,
                 'submissions' => Submissions::class,
                 'subscriptions' => Subscriptions::class,
-                'syncs' => Syncs::class,
                 'vite' => [
                     'class' => VitePluginService::class,
                     'assetClass' => FormsAsset::class,
@@ -198,11 +196,6 @@ trait PluginTrait
     public function getSubscriptions(): Subscriptions
     {
         return $this->get('subscriptions');
-    }
-
-    public function getSyncs(): Syncs
-    {
-        return $this->get('syncs');
     }
 
     public function getVite(): VitePluginService
