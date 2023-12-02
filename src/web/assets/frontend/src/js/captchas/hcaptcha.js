@@ -1,8 +1,11 @@
 import { hcaptcha } from './inc/hcaptcha';
-import { t, eventKey } from '../utils/utils';
+import { FormieCaptchaProvider } from './captcha-provider';
+import { t, eventKey, ensureVariable } from '../utils/utils';
 
-export class FormieHcaptcha {
+export class FormieHcaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -11,6 +14,30 @@ export class FormieHcaptcha {
         this.loadingMethod = settings.loadingMethod;
         this.hCaptchaScriptId = 'FORMIE_HCAPTCHA_SCRIPT';
 
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
+
+    getPlaceholders() {
+        // We can have multiple captchas per form, so store them and render only when we need
+        return this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
+    }
+
+    onShow() {
+        // Initialize the captcha only when it's visible
+        this.initCaptcha();
+    }
+
+    onHide() {
+        // Captcha is hidden, so reset everything
+        this.onAfterSubmit();
+
+        // Remove unique event listeners
+        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', 'Hcaptcha'));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'Hcaptcha'));
+    }
+
+    initCaptcha() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.hCaptchaScriptId)) {
@@ -26,23 +53,24 @@ export class FormieHcaptcha {
                 $script.defer = true;
             }
 
+            // Wait until captcha has loaded, then initialize
+            $script.onload = () => {
+                this.renderCaptcha();
+            };
+
             document.body.appendChild($script);
+        } else {
+            // Ensure that captcha has been loaded and ready to use
+            ensureVariable('hcaptcha').then(() => {
+                this.renderCaptcha();
+            });
         }
 
-        // Wait for/ensure hCaptcha script has been loaded
-        hcaptcha.checkRecaptchaLoad();
-
-        // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
-
-        if (!this.$placeholders) {
+        if (!this.$placeholders.length) {
             console.error('Unable to find any hCaptcha placeholders for [data-hcaptcha-placeholder]');
 
             return;
         }
-
-        // Render the captcha for just this page
-        this.renderCaptcha();
 
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Hcaptcha'), this.onValidate.bind(this));

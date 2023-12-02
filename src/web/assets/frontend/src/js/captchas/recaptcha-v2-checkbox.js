@@ -1,8 +1,11 @@
 import { recaptcha } from './inc/recaptcha';
-import { t, eventKey } from '../utils/utils';
+import { FormieCaptchaProvider } from './captcha-provider';
+import { t, eventKey, ensureVariable } from '../utils/utils';
 
-export class FormieRecaptchaV2Checkbox {
+export class FormieRecaptchaV2Checkbox extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
@@ -13,6 +16,31 @@ export class FormieRecaptchaV2Checkbox {
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
         this.errorMessageClass = this.form.getClasses('errorMessage');
 
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
+
+    getPlaceholders() {
+        // We can have multiple captchas per form, so store them and render only when we need
+        return this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
+    }
+
+    onShow() {
+        // Initialize the captcha only when it's visible
+        this.initCaptcha();
+    }
+
+    onHide() {
+        // Captcha is hidden, so reset everything
+        this.onAfterSubmit();
+
+        // Remove unique event listeners
+        this.form.removeEventListener(eventKey('onBeforeFormieSubmit', 'RecaptchaV2'));
+        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', 'RecaptchaV2'));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'RecaptchaV2'));
+    }
+
+    initCaptcha() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.recaptchaScriptId)) {
@@ -28,23 +56,24 @@ export class FormieRecaptchaV2Checkbox {
                 $script.defer = true;
             }
 
+            // Wait until Recaptcha.js has loaded, then initialize
+            $script.onload = () => {
+                this.renderCaptcha();
+            };
+
             document.body.appendChild($script);
+        } else {
+            // Ensure that Recaptcha has been loaded and ready to use
+            ensureVariable('grecaptcha').then(() => {
+                this.renderCaptcha();
+            });
         }
-
-        // Wait for/ensure recaptcha script has been loaded
-        recaptcha.checkRecaptchaLoad();
-
-        // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('[data-recaptcha-placeholder]');
 
         if (!this.$placeholders.length) {
             console.error('Unable to find any ReCAPTCHA placeholders for [data-recaptcha-placeholder]');
 
             return;
         }
-
-        // Render the captcha for just this page
-        this.renderCaptcha();
 
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onBeforeFormieSubmit', 'RecaptchaV2'), this.onBeforeSubmit.bind(this));

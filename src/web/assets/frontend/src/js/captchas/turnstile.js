@@ -1,14 +1,41 @@
 import { turnstile } from './inc/turnstile';
-import { t, eventKey } from '../utils/utils';
+import { FormieCaptchaProvider } from './captcha-provider';
+import { t, eventKey, ensureVariable } from '../utils/utils';
 
-export class FormieTurnstile {
+export class FormieTurnstile extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
         this.loadingMethod = settings.loadingMethod;
         this.turnstileScriptId = 'FORMIE_TURNSTILE_SCRIPT';
 
+        // We can start listening for the field to become visible to initialize it
+        this.initialized = true;
+    }
+
+    getPlaceholders() {
+        // We can have multiple captchas per form, so store them and render only when we need
+        return this.$placeholders = this.$form.querySelectorAll('[data-turnstile-placeholder]');
+    }
+
+    onShow() {
+        // Initialize the captcha only when it's visible
+        this.initCaptcha();
+    }
+
+    onHide() {
+        // Captcha is hidden, so reset everything
+        this.onAfterSubmit();
+
+        // Remove unique event listeners
+        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', 'Turnstile'));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'Turnstile'));
+    }
+
+    initCaptcha() {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
         if (!document.getElementById(this.turnstileScriptId)) {
@@ -24,23 +51,24 @@ export class FormieTurnstile {
                 $script.defer = true;
             }
 
+            // Wait until Recaptcha.js has loaded, then initialize
+            $script.onload = () => {
+                this.renderCaptcha();
+            };
+
             document.body.appendChild($script);
+        } else {
+            // Ensure that Recaptcha has been loaded and ready to use
+            ensureVariable('turnstile').then(() => {
+                this.renderCaptcha();
+            });
         }
 
-        // Wait for/ensure turnstile script has been loaded
-        turnstile.checkCaptchaLoad();
-
-        // We can have multiple captchas per form, so store them and render only when we need
-        this.$placeholders = this.$form.querySelectorAll('[data-turnstile-placeholder]');
-
-        if (!this.$placeholders) {
+        if (!this.$placeholders.length) {
             console.error('Unable to find any Turnstile placeholders for [data-turnstile-placeholder]');
 
             return;
         }
-
-        // Render the captcha for just this page
-        this.renderCaptcha();
 
         // Attach a custom event listener on the form
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Turnstile'), this.onValidate.bind(this));
