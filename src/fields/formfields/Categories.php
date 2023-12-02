@@ -122,7 +122,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    public function getDefaultValue($attributePrefix = '')
+    public function getDefaultValue(string $attributePrefix = ''): mixed
     {
         // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field settings.

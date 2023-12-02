@@ -546,7 +546,7 @@ trait FormFieldTrait
         return $settings;
     }
 
-    public function getDefaultValue(string $attributePrefix = '')
+    public function getDefaultValue(string $attributePrefix = ''): mixed
     {
         $defaultValue = null;
         $defaultValueAttribute = 'defaultValue';
@@ -1201,7 +1201,7 @@ trait FormFieldTrait
         return $rules;
     }
     
-    protected function setPrePopulatedValue(mixed $value)
+    protected function setPrePopulatedValue(mixed $value): mixed
     {
         return $value;
     }

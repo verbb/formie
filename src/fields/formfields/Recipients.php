@@ -240,7 +240,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         return null;
     }
 
-    public function getDefaultValue($attributePrefix = '')
+    public function getDefaultValue(string $attributePrefix = ''): mixed
     {
         $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
 

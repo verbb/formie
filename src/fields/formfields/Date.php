@@ -210,7 +210,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return '';
     }
 
-    public function getDefaultValue($attributePrefix = '')
+    public function getDefaultValue(string $attributePrefix = ''): mixed
     {
         $defaultValue = parent::getDefaultValue($attributePrefix);
 
