@@ -1199,7 +1199,7 @@ class Form extends Element
                 'href' => UrlHelper::actionUrl('formie/submissions/set-page', $params),
                 'data-fui-page-tab-anchor' => true,
                 'data-fui-page-index' => $pageIndex,
-                'data-fui-page-id' => $pageHandle ?? false,
+                'data-fui-page-handle' => $pageHandle ?? false,
             ]);
         }
 
@@ -1432,7 +1432,7 @@ class Form extends Element
             'pages' => $this->getPages(),
             'classes' => $this->getFrontEndClasses(),
             'redirectUrl' => $this->getRedirectUrl(),
-            'currentPage' => $this->getCurrentPage()->handle ?: '',
+            'currentPageHandle' => $this->getCurrentPage()->handle ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,

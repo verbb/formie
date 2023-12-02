@@ -9,7 +9,7 @@ export class FormieFormTheme {
         this.validationOnSubmit = !!this.settings.validationOnSubmit;
         this.validationOnFocus = !!this.settings.validationOnFocus;
 
-        this.setCurrentPage(this.settings.currentPageId);
+        this.setCurrentPage(this.settings.currentPageHandle);
 
         if (!this.$form) {
             return;
@@ -261,11 +261,11 @@ export class FormieFormTheme {
                 e.preventDefault();
 
                 const pageIndex = e.target.getAttribute('data-fui-page-index');
-                const pageId = e.target.getAttribute('data-fui-page-id');
+                const pageHandle = e.target.getAttribute('data-fui-page-handle');
 
                 this.togglePage({
                     nextPageIndex: pageIndex,
-                    nextPageId: pageId,
+                    nextPageHandle: pageHandle,
                     totalPages: this.settings.pages.length,
                 });
 
@@ -443,8 +443,8 @@ export class FormieFormTheme {
     }
 
     showTabErrors(errors) {
-        Object.keys(errors).forEach((pageId, index) => {
-            const $tab = this.$form.parentNode.querySelector(`[data-fui-page-id="${pageId}"]`);
+        Object.keys(errors).forEach((pageHandle, index) => {
+            const $tab = this.$form.parentNode.querySelector(`[data-fui-page-handle="${pageHandle}"]`);
 
             if ($tab) {
                 $tab.parentNode.classList.add(this.tabErrorClass);
@@ -629,7 +629,7 @@ export class FormieFormTheme {
         }
 
         // Check if we need to proceed to the next page
-        if (data.nextPageId) {
+        if (data.nextPageHandle) {
             this.removeLoading();
 
             this.togglePage(data);
@@ -660,7 +660,7 @@ export class FormieFormTheme {
             if (this.settings.submitActionMessagePosition == 'top-form') {
                 this.togglePage({
                     nextPageIndex: 0,
-                    nextPageId: this.settings.pages[0].id,
+                    nextPageHandle: this.settings.pages[0].handle,
                     totalPages: this.settings.pages.length,
                 });
             } else {
@@ -725,7 +725,7 @@ export class FormieFormTheme {
     }
 
     updateSubmissionInput(data) {
-        if (!data.submissionId || !data.nextPageId) {
+        if (!data.submissionId || !data.nextPageHandle) {
             return;
         }
 
@@ -766,10 +766,10 @@ export class FormieFormTheme {
         // Hide all pages
         const $allPages = this.$form.querySelectorAll('[data-fui-page]');
 
-        if (data.nextPageId) {
+        if (data.nextPageHandle) {
             $allPages.forEach(($page) => {
                 // Show the current page
-                if ($page.id === `${this.getPageId(data.nextPageId)}`) {
+                if ($page.id === `${this.getPageHandle(data.nextPageHandle)}`) {
                     $page.removeAttribute('data-fui-page-hidden');
                 } else {
                     $page.setAttribute('data-fui-page-hidden', true);
@@ -791,10 +791,10 @@ export class FormieFormTheme {
 
         const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');
 
-        if (data.nextPageId) {
+        if (data.nextPageHandle) {
             $tabs.forEach(($tab) => {
                 // Show the current page
-                if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
+                if ($tab.id === `${this.tabClass}-${data.nextPageHandle}`) {
                     $tab.classList.add(this.tabActiveClass);
                 } else {
                     $tab.classList.remove(this.tabActiveClass);
@@ -802,7 +802,7 @@ export class FormieFormTheme {
             });
 
             // Update the current page
-            this.setCurrentPage(data.nextPageId);
+            this.setCurrentPage(data.nextPageHandle);
         }
 
         // Smooth-scroll to the top of the form.
@@ -811,14 +811,14 @@ export class FormieFormTheme {
         }
     }
 
-    setCurrentPage(pageId) {
-        this.settings.currentPageId = pageId;
-        this.$currentPage = this.$form.querySelector(`#${this.getPageId(pageId)}`);
+    setCurrentPage(pageHandle) {
+        this.settings.currentPageHandle = pageHandle;
+        this.$currentPage = this.$form.querySelector(`#${this.getPageHandle(pageHandle)}`);
     }
 
     getCurrentPage() {
         return this.settings.pages.find((page) => {
-            return page.id == this.settings.currentPageId;
+            return page.handle == this.settings.currentPageHandle;
         });
     }
 
@@ -832,8 +832,8 @@ export class FormieFormTheme {
         return 0;
     }
 
-    getPageId(pageId) {
-        return `${this.config.formHashId}-p-${pageId}`;
+    getPageHandle(pageHandle) {
+        return `${this.config.formHashId}-p-${pageHandle}`;
     }
 
     scrollToForm() {

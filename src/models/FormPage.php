@@ -24,6 +24,7 @@ class FormPage extends Model
     // =========================================================================
 
     public ?string $label = null;
+    public ?string $handle = null;
 
     private ?FormPageSettings $_settings = null;
     private array $_rows = [];
@@ -37,6 +38,9 @@ class FormPage extends Model
         // No longer in use in Vue, but handle Formie 2 upgrades
         unset($config['id']);
 
+        // Hard-set the handle for now
+        $config['handle'] = StringHelper::toKebabCase($config['label']);
+
         parent::__construct($config);
     }
 
@@ -47,11 +51,6 @@ class FormPage extends Model
         $attributes[] = 'rows';
         
         return $attributes;
-    }
-
-    public function getHandle(): string
-    {
-        return StringHelper::toKebabCase($this->label);
     }
 
     public function getSettings(): ?FormPageSettings

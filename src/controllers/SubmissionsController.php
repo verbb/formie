@@ -991,7 +991,7 @@ class SubmissionsController extends Controller
             'success' => $success,
             'submissionId' => $submission->id,
             'currentPage' => $form->getCurrentPage()->handle,
-            'nextPage' => $nextPage->handle ?? null,
+            'nextPageHandle' => $nextPage->handle ?? null,
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
