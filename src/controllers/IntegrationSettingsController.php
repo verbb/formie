@@ -155,7 +155,7 @@ class IntegrationSettingsController extends Controller
     // Private Methods
     // =========================================================================
 
-    public function _editIntegration(?int $integrationId, IntegrationInterface $integration, string $typeName, string $typeHandle): Response
+    public function _editIntegration(?int $integrationId, ?IntegrationInterface $integration, string $typeName, string $typeHandle): Response
     {
         $integrations = Formie::$plugin->getIntegrations();
 

@@ -11,22 +11,25 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 
-use League\OAuth1\Client\Server\Server as Oauth1Provider;
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Provider\Google as GoogleProvider;
-
 use Throwable;
 
-use GuzzleHttp\Client;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Google as GoogleProvider;
 
-class GoogleSheets extends Miscellaneous
+class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return GoogleProvider::class;
     }
 
     public static function displayName(): string
@@ -38,8 +41,6 @@ class GoogleSheets extends Miscellaneous
     // Properties
     // =========================================================================
 
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
     public ?string $proxyRedirect = null;
     public ?string $spreadsheetId = null;
     public ?string $sheetId = null;
@@ -49,42 +50,40 @@ class GoogleSheets extends Miscellaneous
     // Public Methods
     // =========================================================================
 
-    public function getAuthorizeUrl(): string
-    {
-        return 'https://accounts.google.com/o/oauth2/v2/auth';
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        return 'https://www.googleapis.com/oauth2/v4/token';
-    }
-
-    public function getResourceOwner(): string
-    {
-        return 'https://openidconnect.googleapis.com/v1/userinfo';
-    }
-
-    public function getClientId(): string
-    {
-        return App::parseEnv($this->clientId);
-    }
-
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->clientSecret);
-    }
-
     public function getProxyRedirect(): ?bool
     {
         return App::parseBooleanEnv($this->proxyRedirect);
     }
 
-    public function getOauthScope(): array
+    public function getSpreadsheetId(): ?string
     {
-        return [
+        return App::parseEnv($this->spreadsheetId);
+    }
+
+    public function getSheetId(): ?string
+    {
+        return App::parseEnv($this->sheetId);
+    }
+
+    public function getBaseApiUrl(?Token $token): ?string
+    {
+        $spreadsheetId = $this->getSpreadsheetId();
+
+        return "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/";
+    }
+
+    public function getAuthorizationUrlOptions(): array
+    {
+        $options = parent::getAuthorizationUrlOptions();
+        $options['access_type'] = 'offline';
+        $options['prompt'] = 'consent';
+
+        $options['scope'] = [
             'https://www.googleapis.com/auth/drive',
             'https://www.googleapis.com/auth/spreadsheets',
         ];
+        
+        return $options;
     }
 
     public function getRedirectUri(): string
@@ -97,19 +96,6 @@ class GoogleSheets extends Miscellaneous
         }
 
         return $uri;
-    }
-
-    public function getOauthProviderConfig(): array
-    {
-        return array_merge(parent::getOauthProviderConfig(), [
-            'accessType' => 'offline',
-            'prompt' => 'consent',
-        ]);
-    }
-
-    public function getOauthProvider(): AbstractProvider|Oauth1Provider
-    {
-        return new GoogleProvider($this->getOauthProviderConfig());
     }
 
     public function getDescription(): string
@@ -207,51 +193,6 @@ class GoogleSheets extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $spreadsheetId = App::parseEnv($this->spreadsheetId);
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', '');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/",
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -260,7 +201,7 @@ class GoogleSheets extends Miscellaneous
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
+        $rules[] = [['spreadsheetId'], 'required'];
 
         // Validate the following when saving form settings
         $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];

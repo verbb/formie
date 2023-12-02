@@ -4,6 +4,7 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
+use verbb\formie\base\OAuthIntegrationTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -12,19 +13,26 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
 use Exception;
 
-class Zoho extends Crm
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Zoho as ZohoProvider;
+
+class Zoho extends Crm implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return ZohoProvider::class;
     }
 
     public static function displayName(): string
@@ -36,11 +44,6 @@ class Zoho extends Crm
     // Properties
     // =========================================================================
     
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
-    public ?string $apiServer = null;
-    public ?string $apiLocation = null;
-    public ?string $apiDomain = null;
     public bool|string $useDeveloper = false;
     public bool $mapToContact = false;
     public bool $mapToDeal = false;
@@ -57,28 +60,11 @@ class Zoho extends Crm
     // Public Methods
     // =========================================================================
 
-    public function getAuthorizeUrl(): string
+    public function __construct($config = [])
     {
-        return 'https://accounts.zoho.com/oauth/v2/auth';
-    }
+        unset($config['apiServer'], $config['apiLocation'], $config['apiDomain']);
 
-    public function getAccessTokenUrl(): string
-    {
-        // Populated after OAuth connection
-        $url = $this->apiServer ?: 'https://accounts.zoho.com';
-        $url = rtrim($url, '/');
-
-        return "$url/oauth/v2/token";
-    }
-
-    public function getClientId(): string
-    {
-        return App::parseEnv($this->clientId);
-    }
-
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->clientSecret);
+        parent::__construct($config);
     }
 
     public function getUseDeveloper(): string
@@ -86,45 +72,34 @@ class Zoho extends Crm
         return App::parseBooleanEnv($this->useDeveloper);
     }
 
-    public function getOauthScope(): array
+    public function getBaseApiUrl(?Token $token): ?string
     {
-        return [
+        $url = parent::getBaseApiUrl($token);
+
+        return "$url/crm/v2";
+    }
+
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['dc'] = 'US';
+        $config['useDeveloper'] = $this->getUseDeveloper();
+
+        return $config;
+    }
+
+    public function getAuthorizationUrlOptions(): array
+    {
+        $options = parent::getAuthorizationUrlOptions();
+        $options['access_type'] = 'offline';
+        $options['prompt'] = 'consent';
+
+        $options['scope'] = [
             'ZohoCRM.modules.ALL',
             'ZohoCRM.settings.ALL',
         ];
-    }
-
-    public function getOauthAuthorizationOptions(): array
-    {
-        return [
-            'access_type' => 'offline',
-        ];
-    }
-
-    public function beforeFetchAccessToken(&$provider): void
-    {
-        // Save these properties for later...
-        $this->apiLocation = Craft::$app->getRequest()->getParam('location');
-        $this->apiServer = Craft::$app->getRequest()->getParam('accounts-server');
-
-        // We have to update the OAuth provider object with the new URLs provided by Zoho.
-        // Annoyingly, can't just edit the provider, so create it again.
-        $provider = $this->getOauthProvider();
-    }
-    
-    public function afterFetchAccessToken($token): void
-    {
-        // Save these properties for later...
-        $this->apiDomain = $token->getValues()['api_domain'] ?? '';
-
-        if (!$this->apiDomain) {
-            throw new Exception('Zoho response missing `api_domain`.');
-        }
-    }
-
-    public function extraAttributes(): array
-    {
-        return ['apiDomain'];
+        
+        return $options;
     }
 
     public function getDescription(): string
@@ -270,7 +245,7 @@ class Zoho extends Crm
                         ],
                     ];
 
-                    $response = $this->deliverPayload($submission, "/Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
+                    $response = $this->deliverPayload($submission, "Contacts/{$contactId}/Deals/{$dealId}", $payload, 'PUT');
 
                     if ($response === false) {
                         return true;
@@ -309,57 +284,6 @@ class Zoho extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        // Populated after OAuth connection
-        $url = $this->apiDomain ?? 'https://www.zohoapis.com';
-        $url = rtrim($url, '/');
-
-        if ($this->useDeveloper) {
-            $url = 'https://developer.zohoapis.com';
-        }
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/crm/v2/",
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', 'Deals');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "$url/crm/v2/",
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -367,8 +291,6 @@ class Zoho extends Crm
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');

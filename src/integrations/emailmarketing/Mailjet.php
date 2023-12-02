@@ -119,7 +119,7 @@ class Mailjet extends EmailMarketing
             $accountId = $response['Data'][0]['ID'] ?? '';
 
             if (!$accountId) {
-                Integration::error($this, 'Unable to find “{ID}” in response.', true);
+                Integration::error('Unable to find “{ID}” in response.', true);
                 return false;
             }
         } catch (Throwable $e) {
@@ -131,7 +131,7 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    public function getClient(): ?Client
+    public function getClient(): Client
     {
         if ($this->_client) {
             return $this->_client;

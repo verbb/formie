@@ -14,20 +14,30 @@ use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use DateTime;
 use Throwable;
 use Exception;
 
-class Salesforce extends Crm
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Salesforce as SalesforceProvider;
+
+use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
+use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
+
+class Salesforce extends Crm implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return SalesforceProvider::class;
     }
 
     public static function displayName(): string
@@ -39,8 +49,6 @@ class Salesforce extends Crm
     // Properties
     // =========================================================================
     
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
     public ?string $apiDomain = null;
     public ?string $matchLead = null;
     public bool|string $useSandbox = false;
@@ -66,30 +74,6 @@ class Salesforce extends Crm
     // Public Methods
     // =========================================================================
 
-    public function getAuthorizeUrl(): string
-    {
-        $prefix = $this->getUseSandbox() ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/authorize";
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        $prefix = $this->getUseSandbox() ? 'test' : 'login';
-
-        return "https://{$prefix}.salesforce.com/services/oauth2/token";
-    }
-
-    public function getClientId(): string
-    {
-        return App::parseEnv($this->clientId);
-    }
-
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->clientSecret);
-    }
-
     public function getUseSandbox(): string
     {
         return App::parseBooleanEnv($this->useSandbox);
@@ -100,68 +84,75 @@ class Salesforce extends Crm
         return App::parseBooleanEnv($this->useCredentials);
     }
 
-    public function getOauthScope(): array
+    public function getUsername(): string
     {
-        return [
+        return App::parseEnv($this->username);
+    }
+
+    public function getPassword(): string
+    {
+        return App::parseEnv($this->password);
+    }
+
+    public function getApiDomain(): string
+    {
+        $prefix = $this->getUseSandbox() ? 'test' : 'login';
+
+        return "https://{$prefix}.salesforce.com";
+    }
+
+    public function getBaseApiUrl(?Token $token): ?string
+    {
+        $url = $this->getApiDomain();
+
+        return "$url/services/data/v49.0";
+    }
+
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['domain'] = $this->getApiDomain();
+
+        return $config;
+    }
+
+    public function getAuthorizationUrlOptions(): array
+    {
+        $options = parent::getAuthorizationUrlOptions();
+
+        $options['scope'] = [
             'api',
             'openid',
             'refresh_token',
             'offline_access',
         ];
+        
+        return $options;
     }
 
-    public function getOauthProviderConfig(): array
-    {
-        return array_merge(parent::getOauthProviderConfig(), [
-            'scopeSeparator' => ' ',
-        ]);
-    }
-
-    public function oauthCallback(): ?array
+    public function getAccessToken(): OAuth1Token|OAuth2Token|null
     {
         // In some instances (service users) we might want to use the insecure password grant
         if ($this->getUseCredentials()) {
-            $provider = $this->getOauthProvider();
+            $oauthProvider = $this->getOAuthProvider();
 
-            $this->beforeFetchAccessToken($provider);
-
-            // Get a password grant, which is different from normal
-            $token = $provider->getAccessToken('password', [
+            // SugarCRM doesn't support `authorization_code` grant
+            $token = $oauthProvider->getAccessToken('password', [
                 'client_id' => $this->getClientId(),
                 'client_secret' => $this->getClientSecret(),
-                'username' => App::parseEnv($this->username),
-                'password' => App::parseEnv($this->password),
+                'username' => $this->getUsername(),
+                'password' => $this->getPassword(),
             ]);
 
-            $this->afterFetchAccessToken($token);
-
-            return [
-                'success' => true,
-                'token' => $token,
-            ];
-        } else {
-            return parent::oauthCallback();
+            return $token;
         }
-    }
 
-    public function afterFetchAccessToken($token): void
-    {
-        // Save these properties for later...
-        $this->apiDomain = $token->getValues()['instance_url'] ?? '';
-
-        if (!$this->apiDomain) {
-            throw new Exception('Salesforce response missing `instance_url`.');
-        }
+        return parent::getAccessToken();
     }
 
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Salesforce customers by providing important information on their conversion on your site.');
-    }
-
-    public function extraAttributes(): array
-    {
-        return ['apiDomain'];
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -486,49 +477,6 @@ class Salesforce extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "{$this->apiDomain}/services/data/v49.0/",
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', '/');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "{$this->apiDomain}/services/data/v49.0/",
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -536,8 +484,6 @@ class Salesforce extends Crm
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');

@@ -159,14 +159,14 @@ class Maximizer extends Crm
         return true;
     }
 
-    public function request(string $method, string $uri, array $options = []): mixed
+    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
     {
         // Fetch and merge the token in for each request, which isn't a header, but part of every request
         if ($method === 'POST') {
             $options['json']['Token'] = $this->getClient()->getConfig()['headers']['X-Token'] ?? null;
         }
 
-        return parent::request($method, $uri, $options);
+        return parent::request($method, $uri, $options, $decodeJson);
     }
 
     public function fetchConnection(): bool

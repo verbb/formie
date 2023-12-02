@@ -8,8 +8,8 @@
 1. Click on the **New Application** button at top-right.
 1. Enter a name in the popup window and click **Save**.
 1. In the **Redirect URI** field, enter the value from the **Redirect URI** field below.
-1. Copy the **API Key** from {name} and paste in the **API Key** field below.
-1. Click the **Generate Secret** button, copy the **App Secret** and paste it into the **App Secret** field below.
+1. Copy the **API Key** from {name} and paste in the **Client ID** field below.
+1. Click the **Generate Secret** button, copy the **App Secret** and paste it into the **Client Secret** field below.
 
 ### Step 2. Test Connection
 1. Save this integration.
@@ -35,23 +35,23 @@
 {% endif %}
 
 {{ forms.autosuggestField({
-    label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
-    name: 'apiKey',
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientId',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.apiKey ?? '',
-    warning: macros.configWarning('apiKey', 'formie'),
-    errors: integration.getErrors('apiKey'),
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'App Secret' | t('formie'),
-    instructions: 'Enter your {name} App Secret here.' | t('formie', { name: integration.displayName() }),
-    name: 'appSecret',
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
-    value: integration.settings.appSecret ?? '',
-    warning: macros.configWarning('appSecret', 'formie'),
-    errors: integration.getErrors('appSecret'),
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
 }) }}

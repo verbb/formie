@@ -17,16 +17,23 @@ use craft\helpers\Json;
 
 use Throwable;
 
-use GuzzleHttp\Client;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\ConstantContact as ConstantContactProvider;
 
-class ConstantContact extends EmailMarketing
+class ConstantContact extends EmailMarketing implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return ConstantContactProvider::class;
     }
 
     public static function displayName(): string
@@ -35,55 +42,31 @@ class ConstantContact extends EmailMarketing
     }
 
 
-    // Properties
-    // =========================================================================
-
-    public ?string $apiKey = null;
-    public ?string $appSecret = null;
-
-
     // Public Methods
     // =========================================================================
 
-    public function getAuthorizeUrl(): string
+    public function __construct($config = [])
     {
-        $useNewEndpoint = App::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
-
-        // Check for deprecated endpoint
-        if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
-            return 'https://api.cc.email/v3/idfed';
+        if (array_key_exists('apiKey', $config)) {
+            $config['clientId'] = ArrayHelper::remove($config, 'apiKey');
         }
 
-        return 'https://authz.constantcontact.com/oauth2/default/v1/authorize';
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        $useNewEndpoint = App::parseEnv('$FORMIE_INTEGRATION_CC_NEW_ENDPOINT');
-
-        // Check for deprecated endpoint
-        if (!DateTimeHelper::isInThePast('2022-04-01 00:00:00') && $useNewEndpoint !== true) {
-            return 'https://idfed.constantcontact.com/as/token.oauth2';
+        if (array_key_exists('appSecret', $config)) {
+            $config['clientSecret'] = ArrayHelper::remove($config, 'appSecret');
         }
 
-        return 'https://authz.constantcontact.com/oauth2/default/v1/token';
+        parent::__construct($config);
     }
 
-    public function getClientId(): string
+    public function getAuthorizationUrlOptions(): array
     {
-        return App::parseEnv($this->apiKey);
-    }
+        $options = parent::getAuthorizationUrlOptions();
 
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->appSecret);
-    }
-
-    public function getOauthScope(): array
-    {
         // The non-array syntax here is deliberate
         // https://community.constantcontact.com/t5/Developer-Support-ask-questions/One-or-more-scopes-are-not-configured-for-the-authorization/m-p/383293#M12904
-        return ['contact_data offline_access'];
+        $options['scope'] = ['contact_data', 'offline_access'];
+        
+        return $options;
     }
 
     public function getDescription(): string
@@ -206,63 +189,6 @@ class ConstantContact extends EmailMarketing
 
         return true;
     }
-
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.cc.email/v3/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $this->request('GET', 'contact_lists');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => 'https://api.cc.email/v3/',
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'appSecret'], 'required'];
-
-        return $rules;
-    }
-
 
 
     // Private Methods

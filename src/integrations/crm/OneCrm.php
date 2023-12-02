@@ -2,7 +2,6 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
-use verbb\formie\auth\OneCrmProvider;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
@@ -14,21 +13,25 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Client;
-
 use Throwable;
 
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth1\Client\Server\Server as Oauth1Provider;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\OneCrm as OneCrmProvider;
 
-class OneCrm extends Crm
+class OneCrm extends Crm implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return OneCrmProvider::class;
     }
 
     public static function displayName(): string
@@ -40,8 +43,6 @@ class OneCrm extends Crm
     // Properties
     // =========================================================================
 
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
     public ?string $apiDomain = null;
     public bool $mapToContact = false;
     public bool $mapToLead = false;
@@ -61,50 +62,30 @@ class OneCrm extends Crm
         return 'one-crm';
     }
 
-    public function getAuthorizeUrl(): string
-    {
-        return $this->getApiDomain() . 'auth/user/authorize';
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        return $this->getApiDomain() . 'auth/user/access_token';
-    }
-
-    public function getClientId(): string
-    {
-        return App::parseEnv($this->clientId);
-    }
-
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->clientSecret);
-    }
-
     public function getApiDomain(): string
     {
-        return rtrim(App::parseEnv($this->apiDomain), '/') . '/api.php/';
+        return App::parseEnv($this->apiDomain);
     }
 
-    public function getOauthScope(): array
+    public function getOAuthProviderConfig(): array
     {
-        return [
+        $config = parent::getOAuthProviderConfig();
+        $config['apiDomain'] = $this->getApiDomain();
+
+        return $config;
+    }
+
+    public function getAuthorizationUrlOptions(): array
+    {
+        $options = parent::getAuthorizationUrlOptions();
+
+        $options['scope'] = [
             'read',
             'write',
             'profile',
         ];
-    }
-
-    public function getOauthProviderConfig(): array
-    {
-        return array_merge(parent::getOauthProviderConfig(), [
-            'scopeSeparator' => ' ',
-        ]);
-    }
-
-    public function getOauthProvider(): AbstractProvider|Oauth1Provider
-    {
-        return new OneCrmProvider($this->getOauthProviderConfig());
+        
+        return $options;
     }
 
     public function getDescription(): string
@@ -309,49 +290,6 @@ class OneCrm extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => $this->getApiDomain(),
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', 'account');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => $this->getApiDomain(),
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -360,7 +298,7 @@ class OneCrm extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret', 'apiDomain'], 'required'];
+        $rules[] = [['apiDomain'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');

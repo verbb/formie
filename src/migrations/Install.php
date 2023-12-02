@@ -16,6 +16,8 @@ use craft\db\Migration;
 use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 
+use verbb\auth\Auth;
+
 class Install extends Migration
 {
     // Public Methods
@@ -23,6 +25,9 @@ class Install extends Migration
 
     public function safeUp(): bool
     {
+        // Ensure that the Auth module kicks off setting up tables
+        Auth::$plugin->migrator->up();
+
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
@@ -112,7 +117,6 @@ class Install extends Migration
             'enabled' => $this->string()->notNull()->defaultValue('true'),
             'settings' => $this->text(),
             'cache' => $this->longText(),
-            'tokenId' => $this->integer(),
             'dateDeleted' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -313,19 +317,6 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
-
-        $this->archiveTableIfExists('{{%formie_tokens}}');
-        $this->createTable('{{%formie_tokens}}', [
-            'id' => $this->primaryKey(),
-            'type' => $this->string()->notNull(),
-            'accessToken' => $this->text(),
-            'secret' => $this->text(),
-            'endOfLife' => $this->string(),
-            'refreshToken' => $this->text(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
     }
 
     public function createIndexes(): void
@@ -414,7 +405,6 @@ class Install extends Migration
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
-            'formie_tokens',
         ];
 
         foreach ($tables as $table) {
@@ -495,7 +485,6 @@ class Install extends Migration
             'formie_statuses',
             'formie_stencils',
             'formie_submissions',
-            'formie_tokens',
         ];
 
         foreach ($tables as $table) {

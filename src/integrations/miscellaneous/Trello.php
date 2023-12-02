@@ -12,25 +12,25 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use League\HTMLToMarkdown\HtmlConverter;
-use League\OAuth1\Client\Server\Server as Oauth1Provider;
-use League\OAuth1\Client\Server\Trello as TrelloProvider;
-use League\OAuth2\Client\Provider\AbstractProvider;
-
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Subscriber\Oauth\Oauth1;
-use GuzzleHttp\Client;
-
 use Throwable;
 
-class Trello extends Miscellaneous
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Trello as TrelloProvider;
+
+class Trello extends Miscellaneous implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return TrelloProvider::class;
     }
 
     public static function displayName(): string
@@ -42,8 +42,6 @@ class Trello extends Miscellaneous
     // Properties
     // =========================================================================
 
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
     public ?string $boardId = null;
     public ?string $listId = null;
     public ?string $cardName = null;
@@ -53,39 +51,17 @@ class Trello extends Miscellaneous
     // Public Methods
     // =========================================================================
 
-    public function oauthVersion(): int
+    public function getAuthorizationUrlOptions(): array
     {
-        return 1;
-    }
+        $options = parent::getAuthorizationUrlOptions();
 
-    public function getOauthProviderConfig(): array
-    {
-        return [
-            'identifier' => App::parseEnv($this->clientId),
-            'secret' => App::parseEnv($this->clientSecret),
-            'name' => Craft::t('formie', 'Formie'),
-            'callback_uri' => $this->getRedirectUri(),
-            'scope' => $this->getOauthScope(),
-            'expiration' => 'never',
-        ];
-    }
-
-    public function getOauthProvider(): AbstractProvider|Oauth1Provider
-    {
-        return new TrelloProvider($this->getOauthProviderConfig());
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    public function getOauthScope(): array
-    {
-        return [
+        $options['scope'] = [
             'read',
             'write',
             'account',
         ];
+        
+        return $options;
     }
 
     public function getDescription(): string
@@ -190,37 +166,6 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $info = $this->getOauthProviderConfig();
-        $stack = HandlerStack::create();
-
-        $stack->push(new Oauth1([
-            'consumer_key' => $info['identifier'],
-            'consumer_secret' => $info['secret'],
-            'token' => $token->accessToken,
-            'token_secret' => $token->secret,
-        ]));
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.trello.com/1/',
-            'handler' => $stack,
-            'auth' => 'oauth',
-        ]);
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -228,8 +173,6 @@ class Trello extends Miscellaneous
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
 
         // Validate the following when saving form settings
         $rules[] = [['boardId', 'listId', 'cardName', 'cardDescription'], 'required', 'on' => [Integration::SCENARIO_FORM]];

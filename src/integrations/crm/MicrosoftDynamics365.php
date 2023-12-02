@@ -14,15 +14,14 @@ use verbb\formie\models\IntegrationFormSettings;
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
-use League\OAuth1\Client\Server\Server as Oauth1Provider;
-use League\OAuth2\Client\Provider\AbstractProvider;
-use TheNetworg\OAuth2\Client\Provider\Azure;
 
 use Throwable;
 
-use GuzzleHttp\Client;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Azure as AzureProvider;
 
-class MicrosoftDynamics365 extends Crm
+class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 {
     // Constants
     // =========================================================================
@@ -35,9 +34,14 @@ class MicrosoftDynamics365 extends Crm
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return AzureProvider::class;
     }
 
     public static function displayName(): string
@@ -49,8 +53,6 @@ class MicrosoftDynamics365 extends Crm
     // Properties
     // =========================================================================
     
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
     public ?string $apiDomain = null;
     public ?string $apiVersion = 'v9.0';
     public bool $mapToContact = false;
@@ -71,38 +73,47 @@ class MicrosoftDynamics365 extends Crm
     // Public Methods
     // =========================================================================
 
-    public function getClientId(): string
+    public function getApiDomain(): string
     {
-        return App::parseEnv($this->clientId);
+        return App::parseEnv($this->apiDomain);
     }
 
-    public function getClientSecret(): string
+    public function getApiVersion(): string
     {
-        return App::parseEnv($this->clientSecret);
+        return App::parseEnv($this->apiVersion);
     }
 
-    public function getOauthScope(): array
+    public function getBaseApiUrl(?Token $token): ?string
     {
-        return [
+        $url = rtrim($this->getApiDomain(), '/');
+        $apiVersion = $this->getApiVersion();
+
+        return "$url/api/data/$apiVersion/";
+    }
+
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['defaultEndPointVersion'] = '1.0';
+        $config['resource'] = $this->getApiDomain();
+        $config['tenant'] = 'common';
+
+        return $config;
+    }
+
+    public function getAuthorizationUrlOptions(): array
+    {
+        $options = parent::getAuthorizationUrlOptions();
+
+        $options['scope'] = [
             'openid',
             'profile',
             'email',
             'offline_access',
             'user.read',
         ];
-    }
-
-    public function getOauthProvider(): AbstractProvider|Oauth1Provider
-    {
-        return new Azure($this->getOauthProviderConfig());
-    }
-
-    public function getOauthProviderConfig(): array
-    {
-        return array_merge(parent::getOauthProviderConfig(), [
-            'defaultEndPointVersion' => '1.0',
-            'resource' => App::parseEnv($this->apiDomain),
-        ]);
+        
+        return $options;
     }
 
     public function getDescription(): string
@@ -293,7 +304,7 @@ class MicrosoftDynamics365 extends Crm
         return true;
     }
 
-    public function request(string $method, string $uri, array $options = []): mixed
+    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
     {
         // Recommended headers to pass for all web API requests
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
@@ -320,53 +331,7 @@ class MicrosoftDynamics365 extends Crm
             $options['headers']['If-Match'] = '*';
         }
 
-        return parent::request($method, $uri, $options);
-    }
-
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $url = rtrim(App::parseEnv($this->apiDomain), '/');
-        $apiVersion = $this->apiVersion;
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/api/data/$apiVersion/",
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $this->request('GET', 'WhoAmI');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "$url/api/data/$apiVersion/",
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
+        return parent::request($method, $uri, $options, $decodeJson);
     }
 
 
@@ -376,8 +341,6 @@ class MicrosoftDynamics365 extends Crm
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $lead = $this->getFormSettingValue('lead');

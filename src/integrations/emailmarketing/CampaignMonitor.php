@@ -178,19 +178,6 @@ class CampaignMonitor extends EmailMarketing
     }
 
 
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'clientId'], 'required'];
-
-        return $rules;
-    }
-
-
     // Private Methods
     // =========================================================================
 

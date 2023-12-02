@@ -62,9 +62,9 @@ class Zapier extends Webhook
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getWebhookUrl($webhook, $submission), $payload, 'POST', 'json', false);
 
-            $json = Json::decode((string)$response->getBody());
+            $json = Json::decode($response);
 
             $settings = [
                 'response' => $response,

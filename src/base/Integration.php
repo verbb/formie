@@ -14,7 +14,6 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
@@ -29,15 +28,17 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\Response;
 
-use League\OAuth1\Client\Server\Server as Oauth1Provider;
-use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Provider\GenericProvider;
-
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
+use Error;
 use Exception;
 use Throwable;
+
+use verbb\auth\Auth;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\base\OAuthProviderTrait;
+use verbb\auth\models\Token;
 
 abstract class Integration extends SavableComponent implements IntegrationInterface
 {
@@ -67,6 +68,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const CONNECT_SUCCESS = 'success';
 
 
+    // Traits
+    // =========================================================================
+
+    use OAuthProviderTrait {
+        request as OAuthRequest;
+    }
+
+
     // Static Methods
     // =========================================================================
 
@@ -80,7 +89,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return false;
     }
@@ -113,7 +122,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-    public static function apiError(IntegrationInterface $integration, Exception $exception, bool $throwError = true): void
+    public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true): void
     {
         $messageText = $exception->getMessage();
 
@@ -131,7 +140,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         Formie::error($integration->name . ': ' . $message);
 
         if ($throwError) {
-            throw new IntegrationException($message);
+            throw new IntegrationException($message, 0, $exception);
         }
     }
 
@@ -186,7 +195,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?string $type = null;
     public ?int $sortOrder = null;
     public array $cache = [];
-    public ?string $tokenId = null;
     public ?string $uid = null;
 
     // Store extra context for when running the integration
@@ -202,6 +210,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // No longer required, due to Auth module
+        unset($config['tokenId']);
+
+        parent::__construct($config);
+    }
+
     public function scenarios(): array
     {
         $scenarios = parent::scenarios();
@@ -210,6 +226,19 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $scenarios[self::SCENARIO_FORM] = $scenarios[self::SCENARIO_FORM] ?? [];
 
         return $scenarios;
+    }
+
+    public function settingsAttributes(): array
+    {
+        // These won't be picked up in a Trait
+        $attributes = parent::settingsAttributes();
+
+        if (static::supportsOAuthConnection()) {
+            $attributes[] = 'clientId';
+            $attributes[] = 'clientSecret';
+        }
+
+        return $attributes;
     }
 
     public function getName(): string
@@ -319,8 +348,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getIsConnected(): bool
     {
-        if (static::supportsOauthConnection()) {
-            return (bool)$this->getToken(false);
+        if (static::supportsOAuthConnection()) {
+            return (bool)$this->getToken();
         }
 
         if (static::supportsConnection()) {
@@ -359,6 +388,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return false;
         }
 
+        // Only proceed if the provider is connected
+        if (!static::getIsConnected()) {
+            Integration::error($this, 'Connect to the integration provider first.', true);
+        }
+
         $settings = $this->fetchFormSettings();
 
         // Fire a 'afterFetchFormSettings' event
@@ -392,137 +426,33 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
-
-    // OAuth Methods
-    // =========================================================================
-
-    public function getAuthorizeUrl(): string
+    public function getToken(): ?Token
     {
-        return '';
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        return '';
-    }
-
-    public function getResourceOwner(): string
-    {
-        return '';
-    }
-
-    public function getClientId(): string
-    {
-        return '';
-    }
-
-    public function getClientSecret(): string
-    {
-        return '';
-    }
-
-    public function getOauthScope(): array
-    {
-        return [];
-    }
-
-    public function getOauthAuthorizationOptions(): array
-    {
-        return [];
-    }
-
-    public function oauthVersion(): int
-    {
-        return 2;
-    }
-
-    public function oauth2Legged(): bool
-    {
-        return false;
-    }
-
-    public function oauthConnect(): ?Response
-    {
-        switch ($this->oauthVersion()) {
-            case 1:
-            {
-                return $this->oauth1Connect();
-            }
-            case 2:
-            {
-                return $this->oauth2Connect();
-            }
+        if ($this->id) {
+            return Auth::$plugin->getTokens()->getTokenByOwnerReference('formie', $this->id);
         }
 
         return null;
     }
 
-    public function oauthCallback(): ?array
-    {
-        switch ($this->oauthVersion()) {
-            case 1:
-            {
-                return $this->oauth1Callback();
-            }
-            case 2:
-            {
-                return $this->oauth2Callback();
-            }
-        }
-
-        return null;
-    }
-
-    public function getRedirectUri(): string
+    public function getRedirectUri(): ?string
     {
         return UrlHelper::siteUrl('formie/integrations/callback');
     }
 
-    public function getOauthProviderConfig(): array
+    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
     {
-        return [
-            'urlAuthorize' => $this->getAuthorizeUrl(),
-            'urlAccessToken' => $this->getAccessTokenUrl(),
-            'urlResourceOwnerDetails' => $this->getResourceOwner(),
-            'clientId' => $this->getClientId(),
-            'clientSecret' => $this->getClientSecret(),
-            'redirectUri' => $this->getRedirectUri(),
-            'scopes' => $this->getOauthScope(),
-        ];
-    }
-
-    public function getOauthProvider(): AbstractProvider|Oauth1Provider
-    {
-        return new GenericProvider($this->getOauthProviderConfig());
-    }
-
-    public function beforeFetchAccessToken(&$provider): void
-    {
-        return;
-    }
-
-    public function afterFetchAccessToken($token): void
-    {
-        return;
-    }
-
-    public function getToken(bool $refresh = true): ?Token
-    {
-        if ($this->tokenId) {
-            return Formie::$plugin->getTokens()->getTokenById($this->tokenId, $refresh);
+        // If an OAuth-based integration, use the Auth module's client to do the request
+        if (static::supportsOAuthConnection()) {
+            return $this->OAuthRequest($method, $uri, $options);
         }
 
-        return null;
-    }
-
-    public function request(string $method, string $uri, array $options = []): mixed
-    {
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
 
-        return Json::decode($response->getBody()->getContents());
+        return ($decodeJson) ? Json::decode($response->getBody()->getContents()) : $response->getBody()->getContents();
     }
 
-    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json', bool $decodeJson = true): mixed
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
@@ -531,27 +461,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         $response = $this->request($method, $endpoint, [
             $contentType => $payload,
-        ]);
-
-        // Allow events to say the response is invalid
-        if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
-            return false;
-        }
-
-        return $response;
-    }
-
-    public function deliverPayloadRequest(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json')
-    {
-        // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
-            return false;
-        }
-
-        // Don't assume a JSON response
-        $response = $this->getClient()->request($method, $endpoint, [
-            $contentType => $payload,
-        ]);
+        ], $decodeJson);
 
         // Allow events to say the response is invalid
         if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
@@ -789,6 +699,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => IntegrationRecord::class];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
         $rules[] = [['name', 'handle'], 'required'];
+
         $rules[] = [
             ['handle'],
             HandleValidator::class,
@@ -800,6 +711,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
                 'title',
             ],
         ];
+
+        if (static::supportsOAuthConnection()) {
+            $rules[] = [
+                ['clientId', 'clientSecret'], 'required', 'when' => function($model) {
+                    return $model->enabled;
+                },
+            ];
+        }
 
         return $rules;
     }
@@ -837,76 +756,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     // Private Methods
     // =========================================================================
-
-    private function oauth1Connect(): Response
-    {
-        $provider = $this->getOauthProvider();
-
-        // Obtain temporary credentials
-        $temporaryCredentials = $provider->getTemporaryCredentials();
-
-        // Store credentials in the session
-        Craft::$app->getSession()->set('oauth.temporaryCredentials', $temporaryCredentials);
-
-        // Redirect to the login screen
-        $authorizationUrl = $provider->getAuthorizationUrl($temporaryCredentials);
-
-        return Craft::$app->getResponse()->redirect($authorizationUrl);
-    }
-
-    private function oauth2Connect(): Response
-    {
-        $provider = $this->getOauthProvider();
-
-        Craft::$app->getSession()->set('formie.oauthState', $provider->getState());
-
-        $options = $this->getOauthAuthorizationOptions();
-        $options['scope'] = $this->getOauthScope();
-
-        $authorizationUrl = $provider->getAuthorizationUrl($options);
-
-        return Craft::$app->getResponse()->redirect($authorizationUrl);
-    }
-
-    private function oauth1Callback(): array
-    {
-        $provider = $this->getOauthProvider();
-
-        $oauthToken = Craft::$app->getRequest()->getParam('oauth_token');
-        $oauthVerifier = Craft::$app->getRequest()->getParam('oauth_verifier');
-
-        // Retrieve the temporary credentials we saved before.
-        $temporaryCredentials = Craft::$app->getSession()->get('oauth.temporaryCredentials');
-
-        // Obtain token credentials from the server.
-        $token = $provider->getTokenCredentials($temporaryCredentials, $oauthToken, $oauthVerifier);
-
-        return [
-            'success' => true,
-            'token' => $token,
-        ];
-    }
-
-    private function oauth2Callback(): array
-    {
-        $provider = $this->getOauthProvider();
-
-        $code = Craft::$app->getRequest()->getParam('code');
-
-        $this->beforeFetchAccessToken($provider);
-
-        // Try to get an access token (using the authorization code grant)
-        $token = $provider->getAccessToken('authorization_code', [
-            'code' => $code,
-        ]);
-
-        $this->afterFetchAccessToken($token);
-
-        return [
-            'success' => true,
-            'token' => $token,
-        ];
-    }
 
     private function setCache(array $values): void
     {

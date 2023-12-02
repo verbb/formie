@@ -4,8 +4,6 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\errors\IntegrationException;
-use verbb\formie\events\OauthTokenEvent;
-use verbb\formie\models\Token;
 
 use Craft;
 use craft\helpers\Json;
@@ -19,25 +17,29 @@ use yii\web\Response;
 use Exception;
 use Throwable;
 
+use verbb\auth\Auth;
+use verbb\auth\helpers\Session;
 
 class IntegrationsController extends Controller
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_AFTER_OAUTH_CALLBACK = 'afterOauthCallback';
-
-
     // Properties
     // =========================================================================
 
     protected array|bool|int $allowAnonymous = ['callback'];
 
-    private ?string $originUrl = null;
-
 
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        // Don't require CSRF validation for callback requests
+        if ($action->id === 'callback') {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
 
     public function actionSaveIntegration(): ?Response
     {
@@ -69,7 +71,6 @@ class IntegrationsController extends Controller
             'sortOrder' => $savedIntegration->sortOrder ?? null,
             'enabled' => (bool)$this->request->getParam('enabled'),
             'settings' => $settings,
-            'tokenId' => $savedIntegration->tokenId ?? null,
             'uid' => $savedIntegration->uid ?? null,
         ];
 
@@ -171,224 +172,104 @@ class IntegrationsController extends Controller
     // OAuth Methods
     // =========================================================================
 
-    public function actionConnect(): Response
+    public function actionConnect(): ?Response
     {
-        $request = $this->request;
-        $session = Craft::$app->getSession();
-
-        $integrationId = $request->getParam('integrationId');
-
-        if (!$integrationId) {
-            throw new Exception(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
-        }
-
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
-
-        if (!$integration) {
-            throw new Exception(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
-        }
-
-        // Setup for OAuth
-        $controllerUrl = UrlHelper::actionUrl('formie/integrations/connect', ['integrationId' => $integrationId]);
-
-        $session->set('formie.controllerUrl', $controllerUrl);
-
-        $this->originUrl = $session->get('formie.originUrl');
-
-        if (!$this->originUrl) {
-            $this->originUrl = $request->referrer;
-            $session->set('formie.originUrl', $this->originUrl);
-        }
+        $integrationHandle = $this->request->getRequiredParam('integration');
 
         try {
-            // Redirect to provider’s authorization page
-            $session->set('formie.provider', $integration->handle);
-
-            if (!$session->get('formie.callback')) {
-                // Some providers (2-legged) might not return a connect response
-                if (!$integration->oauth2Legged()) {
-                    return $integration->oauthConnect();
-                }
+            if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {
+                return $this->asFailure(Craft::t('formie', 'Unable to find integration “{integration}”.', ['integration' => $integrationHandle]));
             }
 
-            // Callback
-            $session->remove('formie.callback');
+            // Keep track of which integration instance is for, so we can fetch it in the callback
+            Session::set('integrationHandle', $integrationHandle);
 
-            $callbackResponse = $integration->oauthCallback();
-
-            if ($callbackResponse['success']) {
-                return $this->_createToken($callbackResponse, $integration);
-            }
-
-            throw new Exception($callbackResponse['errorMsg']);
+            return Auth::$plugin->getOAuth()->connect('formie', $integration);
         } catch (Throwable $e) {
-            $errorMsg = $e->getMessage();
-
-            // Try and get a more meaningful error message
-            $errorTitle = $request->getParam('error');
-            $errorDescription = $request->getParam('error_description');
-
-            Formie::error('Couldn’t connect to “{name}”: “{message}” {file}:{line}', [
-                'name' => $integration->name,
+            $error = Craft::t('formie', 'Unable to authorize connect “{integration}”: “{message}” {file}:{line}', [
+                'integration' => $integrationHandle,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
 
-            if ($errorTitle || $errorDescription) {
-                $errorMsg = $errorTitle . ' ' . $errorDescription;
-            }
-
-            Formie::error('“{name}” response: “{errorMsg}”', [
-                'name' => $integration->name,
-                'errorMsg' => $errorMsg,
-            ]);
+            // Log the full error
+            Formie::error($error);
 
             // Show an error when connecting to OAuth, instead of just in logs
-            $session->setFlash('formie-error', $errorMsg);
-            $this->setFailFlash(Craft::t('formie', 'Unable to connect to “{name}”.', [
-                'name' => $integration->name,
-            ]));
+            Craft::$app->getSession()->setFlash('formie-error', $error);
 
-            $this->_cleanSession();
-
-            return $this->redirect($this->originUrl);
+            return $this->asFailure(Craft::t('formie', 'Unable to authorize connect “{integration}”.', ['integration' => $integrationHandle]));
         }
     }
 
-    public function actionDisconnect(): Response
+    public function actionCallback(): ?Response
     {
-        $request = $this->request;
-        $session = Craft::$app->getSession();
+        // Get both the origin (failure) and redirect (success) URLs
+        $origin = Session::get('origin');
+        $redirect = Session::get('redirect');
 
-        $integrationId = $request->getParam('integrationId');
+        // Get the integration we're current authorizing
+        if (!($integrationHandle = Session::get('integrationHandle'))) {
+            Session::setError('formie', Craft::t('formie', 'Unable to find integration.'), true);
 
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
-
-        $this->_deleteToken($integration);
-
-        if ($request->getAcceptsJson()) {
-            return $this->asJson([
-                'success' => true,
-            ]);
+            return $this->redirect($origin);
         }
 
-        $this->setSuccessFlash(Craft::t('formie', '“{name}” disconnected.', [
-            'name' => $integration->name,
-        ]));
+        if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {
+            Session::setError('formie', Craft::t('formie', 'Unable to find integration “{integration}”.', ['integration' => $integrationHandle]), true);
 
-        return $this->redirect($request->referrer);
-    }
-
-    public function actionCallback(): Response
-    {
-        $request = $this->request;
-        $session = Craft::$app->getSession();
-
-        $session->set('formie.callback', true);
-
-        $url = $session->get('formie.controllerUrl');
-
-        if (!str_contains($url, '?')) {
-            $url .= '?';
-        } else {
-            $url .= '&';
+            return $this->redirect($origin);
         }
 
-        $queryParams = $request->getQueryParams();
+        try {
+            // Fetch the access token from the integration and create a Token for us to use
+            $token = Auth::$plugin->getOAuth()->callback('formie', $integration);
 
-        if (isset($queryParams['p'])) {
-            unset($queryParams['p']);
-        }
+            if (!$token) {
+                Session::setError('formie', Craft::t('formie', 'Unable to fetch token.'), true);
 
-        $url .= http_build_query($queryParams);
-
-        return $this->redirect($url);
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _createToken(mixed $response, IntegrationInterface $integration): ?Response
-    {
-        $token = new Token();
-        $token->type = $integration::class;
-
-        switch ($integration->oauthVersion()) {
-            case 1:
-            {
-                $token->accessToken = $response['token']->getIdentifier();
-                $token->secret = $response['token']->getSecret();
-
-                break;
+                return $this->redirect($origin);
             }
-            case 2:
-            {
-                $token->accessToken = $response['token']->getToken();
-                $token->endOfLife = $response['token']->getExpires();
-                $token->refreshToken = $response['token']->getRefreshToken();
 
-                break;
-            }
-        }
+            // Save the token to the Auth plugin, with a reference to this integration
+            $token->reference = $integration->id;
+            Auth::$plugin->getTokens()->upsertToken($token);
+        } catch (Throwable $e) {
+            // Check if there are any meaningful errors returned from providers
+            $message = implode(', ', array_filter([$e->getMessage(), $this->request->getParam('error'), $this->request->getParam('error_description')]));
 
-        // Fire a 'afterOauthCallback' event
-        if ($this->hasEventHandlers(self::EVENT_AFTER_OAUTH_CALLBACK)) {
-            $this->trigger(self::EVENT_AFTER_OAUTH_CALLBACK, new OauthTokenEvent([
-                'token' => $token,
-            ]));
-        }
-
-        if (!Formie::$plugin->getTokens()->saveToken($token)) {
-            $error = Craft::t('formie', 'Unable to save token - {errors}.', [
-                'errors' => Json::encode($token->getErrors()),
+            $error = Craft::t('formie', 'Unable to process callback for “{integration}”: “{message}” {file}:{line}', [
+                'integration' => $integrationHandle,
+                'message' => $message,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
 
             Formie::error($error);
-            $this->setFailFlash($error);
 
-            return null;
+            // Show the error detail in the CP
+            Craft::$app->getSession()->setFlash('formie-error', $error);
+
+            return $this->redirect($origin);
         }
 
-        if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, $token->id)) {
-            $error = Craft::t('formie', 'Unable to save integration - {errors}.', [
-                'errors' => Json::encode($integration->getErrors()),
-            ]);
+        Session::setNotice('formie', Craft::t('formie', '{name} connected.', ['name' => $integration->name]), true);
 
-            Formie::error($error);
-            $this->setFailFlash($error);
-
-            return null;
-        }
-
-        $this->_cleanSession();
-
-        $this->setSuccessFlash(Craft::t('formie', '“{name}” connected.', [
-            'name' => $integration->name,
-        ]));
-
-        return $this->redirect($this->originUrl);
+        return $this->redirect($redirect);
     }
 
-    private function _deleteToken(IntegrationInterface $integration): void
+    public function actionDisconnect(): ?Response
     {
-        // It's okay if this fails. Maybe this token doesn't exist on this environment?
-        Formie::$plugin->getTokens()->deleteTokenById($integration->tokenId);
+        $integrationHandle = $this->request->getRequiredParam('integration');
 
-        // Update the integration settings directly, outside of project config
-        if (!Formie::$plugin->getIntegrations()->updateIntegrationToken($integration, null)) {
-            $error = Craft::t('formie', 'Unable to update integration - {errors}.', [
-                'errors' => Json::encode($integration->getErrors()),
-            ]);
-
-            Formie::error($error);
-            $this->setFailFlash($error);
+        if (!($integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($integrationHandle))) {
+            return $this->asFailure(Craft::t('formie', 'Unable to find integration “{integration}”.', ['integration' => $integrationHandle]));
         }
-    }
 
-    private function _cleanSession(): void
-    {
-        Craft::$app->getSession()->remove('formie.originUrl');
+        // Delete all tokens for this integration
+        Auth::$plugin->getTokens()->deleteTokenByOwnerReference('formie', $integration->id);
+
+        return $this->asModelSuccess($integration, Craft::t('formie', '{name} disconnected.', ['name' => $integration->name]), 'integration');
     }
 }

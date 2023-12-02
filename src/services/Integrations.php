@@ -136,19 +136,15 @@ class Integrations extends Component
             crm\Capsule::class,
             crm\Copper::class,
             crm\Dotdigital::class,
-            // crm\Creatio::class,
             crm\Freshdesk::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
-            crm\HubSpotLegacy::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
             crm\Klaviyo::class,
             crm\Maximizer::class,
             crm\Mercury::class,
-            // crm\MethodCrm::class,
             crm\MicrosoftDynamics365::class,
-            // crm\NetSuite::class,
             crm\OneCrm::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
@@ -159,7 +155,6 @@ class Integrations extends Component
             crm\SharpSpring::class,
             crm\SugarCrm::class,
             crm\VCita::class,
-            // crm\Zengine::class,
             crm\Zoho::class,
         ];
 
@@ -252,11 +247,6 @@ class Integrations extends Component
         return ArrayHelper::firstWhere($this->getAllIntegrations(), 'handle', $handle, true);
     }
 
-    public function getIntegrationByTokenId($tokenId): ?IntegrationInterface
-    {
-        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'tokenId', $tokenId);
-    }
-
     public function createIntegrationConfig(IntegrationInterface $integration): array
     {
         return [
@@ -266,9 +256,6 @@ class Integrations extends Component
             'enabled' => $integration->getEnabled(false),
             'sortOrder' => (int)$integration->sortOrder,
             'settings' => ProjectConfigHelper::packAssociativeArrays($integration->getSettings()),
-
-            // TODO: remove this from the PC, but not without migrating existing values, to prevent data loss
-            'tokenId' => $integration->tokenId,
         ];
     }
 
@@ -313,13 +300,6 @@ class Integrations extends Component
         }
 
         return true;
-    }
-
-    public function updateIntegrationToken(IntegrationInterface $integration, $token): int
-    {
-        // Direct DB update to keep it out of PC, plus speed
-        // Update the settings as some providers add from provider callback.
-        return Db::update('{{%formie_integrations}}', ['tokenId' => $token, 'settings' => Json::encode($integration->settings)], ['id' => $integration->id]);
     }
 
     public function handleChangedIntegration(ConfigEvent $event): void
@@ -714,7 +694,6 @@ class Integrations extends Component
                 'sortOrder',
                 'settings',
                 'cache',
-                'tokenId',
                 'dateCreated',
                 'dateUpdated',
                 'uid',

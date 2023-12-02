@@ -8,7 +8,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
-use verbb\formie\models\Token;
 
 use Craft;
 use craft\helpers\App;
@@ -16,16 +15,26 @@ use craft\helpers\Json;
 
 use Throwable;
 
-use GuzzleHttp\Client;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Sugarcrm as SugarCrmProvider;
 
-class SugarCrm extends Crm
+use League\OAuth1\Client\Credentials\TokenCredentials as OAuth1Token;
+use League\OAuth2\Client\Token\AccessToken as OAuth2Token;
+
+class SugarCrm extends Crm implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return SugarCrmProvider::class;
     }
 
     public static function displayName(): string
@@ -53,42 +62,56 @@ class SugarCrm extends Crm
     // Public Methods
     // =========================================================================
 
-    public function oauth2Legged(): bool
+    public function __construct(array $config = [])
     {
-        return true;
+        // Not really needed, due to `password` OAuth grant
+        $config['clientId'] = 'sugar';
+        $config['clientSecret'] = 'sugar';
+
+        parent::__construct($config);
     }
 
-    public function getAccessTokenUrl(): string
+    public function getUsername(): string
     {
-        $apiDomain = rtrim(App::parseEnv($this->apiDomain), '/');
-
-        return "{$apiDomain}/rest/v11/oauth2/token";
+        return App::parseEnv($this->username);
     }
 
-    public function getClientId(): string
+    public function getPassword(): string
     {
-        return 'sugar';
+        return App::parseEnv($this->password);
     }
 
-    public function oauthCallback(): ?array
+    public function getApiDomain(): string
     {
-        $provider = $this->getOauthProvider();
+        return App::parseEnv($this->apiDomain);
+    }
 
-        $this->beforeFetchAccessToken($provider);
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['url'] = $this->getApiDomain();
 
-        // Get a password grant, which is different from normal
-        $token = $provider->getAccessToken('password', [
-            'username' => App::parseEnv($this->username),
-            'password' => App::parseEnv($this->password),
+        return $config;
+    }
+
+    public function getAuthorizationUrl(): ?string
+    {
+        // Not required for `password` grant
+        return $this->getRedirectUri();
+    }
+
+    public function getAccessToken(): OAuth1Token|OAuth2Token|null
+    {
+        $oauthProvider = $this->getOAuthProvider();
+
+        // SugarCRM doesn't support `authorization_code` grant
+        $token = $oauthProvider->getAccessToken('password', [
+            'username' => $this->getUsername(),
+            'password' => $this->getPassword(),
             'platform' => 'formie',
         ]);
 
-        $this->afterFetchAccessToken($token);
-
-        return [
-            'success' => true,
-            'token' => $token,
-        ];
+        return $token;
     }
 
     public function getDescription(): string
@@ -251,51 +274,6 @@ class SugarCrm extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $apiDomain = rtrim(App::parseEnv($this->apiDomain), '/');
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "{$apiDomain}/rest/v11/",
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', 'ping');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                $this->_refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => "{$apiDomain}/rest/v11/",
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -351,7 +329,7 @@ class SugarCrm extends Crm
         if (($token->endOfLife && $token->refreshToken) || $force) {
             // Has token expired ?
             if ($time > $token->endOfLife || $force) {
-                $newToken = $this->getOauthProvider()->getAccessToken('refresh_token', [
+                $newToken = $this->getOAuthProvider()->getAccessToken('refresh_token', [
                     'refresh_token' => $token->refreshToken,
                     'platform' => 'formie',
                 ]);

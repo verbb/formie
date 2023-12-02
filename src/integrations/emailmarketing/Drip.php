@@ -16,16 +16,23 @@ use craft\helpers\Json;
 
 use Throwable;
 
-use GuzzleHttp\Client;
+use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
+use verbb\auth\providers\Drip as DripProvider;
 
-class Drip extends EmailMarketing
+class Drip extends EmailMarketing implements OAuthProviderInterface
 {
     // Static Methods
     // =========================================================================
 
-    public static function supportsOauthConnection(): bool
+    public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return DripProvider::class;
     }
 
     public static function displayName(): string
@@ -33,35 +40,9 @@ class Drip extends EmailMarketing
         return Craft::t('formie', 'Drip');
     }
 
-    // Properties
-    // =========================================================================
-
-    public ?string $clientId = null;
-    public ?string $clientSecret = null;
-
 
     // Public Methods
     // =========================================================================
-
-    public function getAuthorizeUrl(): string
-    {
-        return 'https://www.getdrip.com/oauth/authorize';
-    }
-
-    public function getAccessTokenUrl(): string
-    {
-        return 'https://www.getdrip.com/oauth/token';
-    }
-
-    public function getClientId(): string
-    {
-        return App::parseEnv($this->clientId);
-    }
-
-    public function getClientSecret(): string
-    {
-        return App::parseEnv($this->clientSecret);
-    }
 
     public function getDescription(): string
     {
@@ -220,61 +201,5 @@ class Drip extends EmailMarketing
         }
 
         return true;
-    }
-
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $token = $this->getToken();
-
-        if (!$token) {
-            Integration::error($this, 'Token not found for integration.', true);
-        }
-
-        $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.getdrip.com/v2/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-
-        // Always provide an authenticated client - so check first.
-        // We can't always rely on the EOL of the token.
-        try {
-            $response = $this->request('GET', 'accounts');
-        } catch (Throwable $e) {
-            if ($e->getCode() === 401) {
-                // Force-refresh the token
-                Formie::$plugin->getTokens()->refreshToken($token, true);
-
-                // Then try again, with the new access token
-                $this->_client = Craft::createGuzzleClient([
-                    'base_uri' => 'https://api.getdrip.com/v2/',
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . ($token->accessToken ?? 'empty'),
-                        'Content-Type' => 'application/json',
-                    ],
-                ]);
-            }
-        }
-
-        return $this->_client;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
-
-        return $rules;
     }
 }

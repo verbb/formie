@@ -120,7 +120,7 @@
     {% if not isNewIntegration and integration.supportsConnection() %}
         {% set connected = integration.getIsConnected() %}
 
-        {% if integration.supportsOauthConnection() %}
+        {% if integration.supportsOAuthConnection() %}
             {% if not craft.app.config.general.allowAdminChanges %}
                 <form id="main-form" class="field lightswitch-field fui-connect" method="post" accept-charset="UTF-8">
                     {{ csrfInput() }}
@@ -134,7 +134,7 @@
                 </div>
 
                 <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Disconnect' | t('formie') }}</a>
+                    <a class="btn small formsubmit" data-action="formie/integrations/disconnect" data-param="integration" data-value="{{ integration.handle }}" data-redirect="{{ craft.app.request.url | hash }}">{{ 'Disconnect' | t('formie') }}</a>
                 </div>
             {% else %}
                 <div class="heading">
@@ -142,7 +142,7 @@
                 </div>
 
                 <div class="input ltr">
-                    <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integrationId" data-value="{{ integration.id }}">{{ 'Connect' | t('formie') }}</a>
+                    <a class="btn small formsubmit" data-action="formie/integrations/connect" data-param="integration" data-value="{{ integration.handle }}" data-redirect="{{ craft.app.request.url | hash }}">{{ 'Connect' | t('formie') }}</a>
                 </div>
             {% endif %}
 
