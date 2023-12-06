@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
@@ -13,6 +14,8 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use yii\behaviors\AttributeTypecastBehavior;
+
+use LitEmoji\LitEmoji;
 
 class FormSettings extends Model
 {
@@ -85,6 +88,13 @@ class FormSettings extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        $this->normalizeSettings($config);
+
+        parent::__construct($config);
+    }
 
     /**
      * @inheritDoc
@@ -255,6 +265,36 @@ class FormSettings extends Model
     public function getRedirectEntry()
     {
         return $this->getForm()->getRedirectEntry();
+    }
+
+    public function serializeSettings(): array
+    {
+        $settings = $this->toArray();
+
+        $encodeEmoji = function($prop) use (&$settings) {
+            if (isset($settings[$prop])) {
+                $settings[$prop] = LitEmoji::encodeShortcode((string)$settings[$prop]);
+            }
+        };
+
+        // Add emoji support for some settings
+        $encodeEmoji('submitActionMessage');
+        $encodeEmoji('errorMessage');
+
+        return $settings;
+    }
+
+    public function normalizeSettings(array &$settings): void
+    {
+        $decodeEmoji = function($prop) use (&$settings) {
+            if (isset($settings[$prop]) && is_string($settings[$prop])) {
+                $settings[$prop] = LitEmoji::encodeUnicode((string)$settings[$prop]);
+            }
+        };
+
+        // Add emoji support for some settings
+        $decodeEmoji('submitActionMessage');
+        $decodeEmoji('errorMessage');
     }
 
 
