@@ -663,7 +663,7 @@ let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] dat
 // For each field, bind on the `beforeInit` event
 $fields.forEach($field => {
     $field.addEventListener('beforeInit', (e) => {
-        let datePickerField = e.detail.richText;
+        let richText = e.detail.richText;
         let options = e.detail.options;
 
         // Modify any Pell options
