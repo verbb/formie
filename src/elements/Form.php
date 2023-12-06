@@ -2218,7 +2218,7 @@ class Form extends Element
 
         $record->handle = $this->handle;
         $record->fieldContentTable = $this->fieldContentTable;
-        $record->settings = $this->settings;
+        $record->settings = $this->settings->serializeSettings();
         $record->templateId = $this->templateId;
         $record->submitActionEntryId = $this->submitActionEntryId;
         $record->submitActionEntrySiteId = $this->submitActionEntrySiteId;

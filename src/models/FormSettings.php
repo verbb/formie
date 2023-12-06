@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
@@ -140,12 +141,11 @@ class FormSettings extends Model
             }
         }
 
+        $this->normalizeSettings($config);
+
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -283,27 +283,52 @@ class FormSettings extends Model
         return $enabledIntegrations;
     }
 
-    /**
-     * Gets the form's redirect URL.
-     *
-     * @param bool $checkLastPage
-     * @return String
-     * @throws LoaderError
-     * @throws SyntaxError
-     */
     public function getFormRedirectUrl(bool $checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
     }
 
-    /**
-     * Gets the form's redirect entry, or null if not set.
-     *
-     * @return Entry|null
-     */
     public function getRedirectEntry(): ?Entry
     {
         return $this->getForm()->getRedirectEntry();
+    }
+
+    public function serializeSettings(): array
+    {
+        $settings = $this->toArray();
+
+        $encodeEmoji = function($prop) use (&$settings) {
+            if (isset($settings[$prop])) {
+                $settings[$prop] = StringHelper::emojiToShortcodes((string)$settings[$prop]);
+            }
+        };
+
+        // Add emoji support for some settings
+        $encodeEmoji('submitActionMessage');
+        $encodeEmoji('errorMessage');
+        $encodeEmoji('requireUserMessage');
+        $encodeEmoji('scheduleFormPendingMessage');
+        $encodeEmoji('scheduleFormExpiredMessage');
+        $encodeEmoji('limitSubmissionsMessage');
+
+        return $settings;
+    }
+
+    public function normalizeSettings(array &$settings): void
+    {
+        $decodeEmoji = function($prop) use (&$settings) {
+            if (isset($settings[$prop]) && is_string($settings[$prop])) {
+                $settings[$prop] = StringHelper::shortcodesToEmoji((string)$settings[$prop]);
+            }
+        };
+
+        // Add emoji support for some settings
+        $decodeEmoji('submitActionMessage');
+        $decodeEmoji('errorMessage');
+        $decodeEmoji('requireUserMessage');
+        $decodeEmoji('scheduleFormPendingMessage');
+        $decodeEmoji('scheduleFormExpiredMessage');
+        $decodeEmoji('limitSubmissionsMessage');
     }
 
 
