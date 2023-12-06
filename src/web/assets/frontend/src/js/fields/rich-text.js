@@ -141,7 +141,7 @@ export class FormieRichText {
             document.body.appendChild($script);
         }
 
-        this.editor = init({
+        const options = {
             element: this.$container,
             defaultParagraphSeparator: 'p',
             styleWithCSS: true,
@@ -158,7 +158,20 @@ export class FormieRichText {
                 content: 'fui-input fui-rich-text-content',
                 selected: 'fui-rich-text-selected',
             },
+        };
+
+        // Emit an "beforeInit" event. This can directly modify the `options` param
+        const beforeInitEvent = new CustomEvent('beforeInit', {
+            bubbles: true,
+            detail: {
+                richText: this,
+                options,
+            },
         });
+
+        this.$field.dispatchEvent(beforeInitEvent);
+
+        this.editor = init(options);
 
         // Populate any values initially set
         this.editor.content.innerHTML = this.$field.textContent;
