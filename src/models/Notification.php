@@ -63,6 +63,20 @@ class Notification extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        if (isset($config['attachAssetsOptions'])) {
+            unset($config['attachAssetsOptions']);
+        }
+
+        if (isset($config['attachAssetsHtml'])) {
+            unset($config['attachAssetsHtml']);
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritDoc
      */
