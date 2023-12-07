@@ -679,6 +679,21 @@ $fields.forEach($field => {
 
 The above example uses the `beforeInit` event to modify the config for Pell. There's event data in the event's `detail` attribute, which you can modify.
 
+#### The `afterInit` event
+The event that is triggered after the Pell editor is initialized.
+
+```js
+// Fetch all Multi-Line Text fields - specifically the textarea. Events are bound on the textarea element
+let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] textarea');
+
+// For each field, bind on the `afterInit` event
+$fields.forEach($field => {
+    $field.addEventListener('afterInit', (e) => {
+        let richText = e.detail.richText;
+    });
+});
+```
+
 
 ### Phone Fields
 

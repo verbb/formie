@@ -175,6 +175,14 @@ export class FormieRichText {
 
         // Populate any values initially set
         this.editor.content.innerHTML = this.$field.textContent;
+
+        // Emit an "afterInit" event
+        this.$field.dispatchEvent(new CustomEvent('afterInit', {
+            bubbles: true,
+            detail: {
+                richText: this,
+            },
+        }));
     }
 }
 
