@@ -658,7 +658,7 @@ The event that is triggered before the Pell editor is initialized.
 
 ```js
 // Fetch all Multi-Line Text fields - specifically the textarea. Events are bound on the textarea element
-let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] [data-rich-text] textarea');
+let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] textarea');
 
 // For each field, bind on the `beforeInit` event
 $fields.forEach($field => {
