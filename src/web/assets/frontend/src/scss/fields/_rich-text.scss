@@ -98,3 +98,8 @@
     }
 }
 
+// Add placeholder
+.fui-rich-text-content[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+}
+

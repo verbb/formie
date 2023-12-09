@@ -7,6 +7,7 @@ export class FormieRichText {
         this.$field = settings.$field.querySelector('textarea');
         this.$container = settings.$field.querySelector('[data-rich-text]');
         this.scriptId = 'FORMIE_FONT_AWESOME_SCRIPT';
+        this.defaultParagraphSeparator = 'p';
 
         this.buttons = settings.buttons;
 
@@ -143,11 +144,17 @@ export class FormieRichText {
 
         const options = {
             element: this.$container,
-            defaultParagraphSeparator: 'p',
+            defaultParagraphSeparator: this.defaultParagraphSeparator,
             styleWithCSS: true,
             actions: this.getButtons(),
             onChange: (html) => {
-                this.$field.textContent = html;
+                // catch "empty" HTML if we're using a placeholder
+                if (this.$field.placeholder && html === `<${this.defaultParagraphSeparator}><br></${this.defaultParagraphSeparator}>`) {
+                    this.$field.textContent = "";
+                    this.editor.content.innerHTML = "";
+                } else {
+                    this.$field.textContent = html;
+                }
 
                 // Fire a custom event on the input
                 this.$field.dispatchEvent(new CustomEvent('populate', { bubbles: true }));
@@ -170,6 +177,9 @@ export class FormieRichText {
         });
 
         this.$field.dispatchEvent(beforeInitEvent);
+
+        // save the defaultParagraphSeparator again, if it changed
+        this.defaultParagraphSeparator = options.defaultParagraphSeparator || this.defaultParagraphSeparator;
 
         this.editor = init(options);
 
