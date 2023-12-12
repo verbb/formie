@@ -1039,6 +1039,18 @@ class Submission extends Element
                     // Store them now while we still have access to them, to delete in `afterDelete()`
                     $this->_assetsToDelete = array_merge($this->_assetsToDelete, $this->getFieldValue($field->handle)->all());
                 }
+
+                if ($field instanceof NestedFieldInterface) {
+                    $blocks = $this->getFieldValue($field->handle)->all();
+
+                    foreach ($blocks as $block) {
+                        foreach ($field->getCustomFields() as $nestedField) {
+                            if ($nestedField instanceof FileUpload) {
+                                $this->_assetsToDelete = array_merge($this->_assetsToDelete, $block->getFieldValue($nestedField->handle)->all());
+                            }
+                        }
+                    }
+                }
             }
         }
 

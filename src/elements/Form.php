@@ -727,6 +727,27 @@ class Form extends Element
         return $this->_rows = array_merge(...$rows);
     }
 
+    public function getFieldsByType(string $type): array
+    {
+        $fields = [];
+
+        foreach ($this->getCustomFields() as $field) {
+            if (get_class($field) === $type) {
+                $fields[] = $field;
+            }
+
+            if ($field instanceof NestedFieldInterface) {
+                foreach ($field->getCustomFields() as $nestedField) {
+                    if (get_class($nestedField) === $type) {
+                        $fields[] = $nestedField;
+                    }
+                }
+            }
+        }
+
+        return $fields;
+    }
+
     /**
      * Returns true if any form field has conditions configured.
      */
