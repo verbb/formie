@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.0.44 - 2023-12-12
+
+### Added
+- Added `afterInit` JS event to Multi-Line Text fields that have the rich text editor enabled.
+- Added `beforeInit` JS event for Multi-Line Text fields that have the rich text editor enabled.
+- Added `aria-live=“polite”` and `aria-atomic=“true”` to error messages on the front-end.
+- Added `modifyQueryParams` event for PayPal.
+
+### Changed
+- Changed `finalise` to `finalize` for PayPal message.
+- Changed `fui-sr-only` for hidden label position to use `data-fui-sr-only` instead of class, for Theme Config compatibility.
+- Updated Multi-Line field, Rich Text editor to support placeholder attribute. (thanks @IrateGod).
+
+### Fixed
+- Fixed an error for Products and Variants fields when checking for Commerce being installed, when the fields are initialized too early.
+- Fixed File Upload assets within Repeater or Group fields not being deleted according to their submission data retention settings.
+- Fixed an error when a stencil’s email notification contained an attached asset.
+- Fixed lack of enter key accessibility for sent notification and submission modals in the control panel.
+- Fixed an error when form message settings contained emoji’s.
+- Fixed setting elementQuery via templates not overwriting Element fields.
+- Fixed an issue when a PayPal payment field was toggled by conditional rules.
+- Fixed an issue using `populateFormValues` for Repeater fields.
+- Fixed an error when mapping Group fields to some integrations when no value is present.
+- Fixed an error when updating queue job information cache for integrations.
+
 ## 2.0.43 - 2023-11-26
 
 ### Added
