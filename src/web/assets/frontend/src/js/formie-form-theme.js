@@ -578,7 +578,7 @@ export class FormieFormTheme {
         this.showTabErrors(pageFieldErrors);
 
         // Fire a fail event
-        this.submitHandler.formSubmitError();
+        this.submitHandler.formSubmitError(data);
 
         // Fire cleanup methods after _any_ ajax call
         this.afterAjaxSubmit(data);
