@@ -150,8 +150,8 @@ export class FormieRichText {
             onChange: (html) => {
                 // catch "empty" HTML if we're using a placeholder
                 if (this.$field.placeholder && html === `<${this.defaultParagraphSeparator}><br></${this.defaultParagraphSeparator}>`) {
-                    this.$field.textContent = "";
-                    this.editor.content.innerHTML = "";
+                    this.$field.textContent = '';
+                    this.editor.content.innerHTML = '';
                 } else {
                     this.$field.textContent = html;
                 }
