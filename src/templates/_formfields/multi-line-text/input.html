@@ -5,7 +5,7 @@
 
 {% block field %}
     {% if field.useRichText %}
-        <div class="fui-rich-text" data-rich-text></div>
+        <div class="fui-rich-text" data-rich-text {% if field.placeholder %} data-placeholder="{{ field.placeholder}}" {% endif %}></div>
 
         <div style="display: none !important;">
             {% include '_includes/forms/textarea' with { rows: 5 } %}
