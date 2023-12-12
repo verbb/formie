@@ -272,7 +272,7 @@ class FormSettings extends Model
         $settings = $this->toArray();
 
         $encodeEmoji = function($prop) use (&$settings) {
-            if (isset($settings[$prop])) {
+            if (isset($settings[$prop]) && is_string($settings[$prop])) {
                 $settings[$prop] = LitEmoji::encodeShortcode((string)$settings[$prop]);
             }
         };
