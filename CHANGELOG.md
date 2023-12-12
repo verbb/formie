@@ -1,11 +1,19 @@
 # Changelog
 
+## 1.6.36.1 - 2023-12-12
+
+### Changed
+- Improve error message when failing to save a form.
+
+### Fixed
+- Fixed an error when creating new forms.
+
 ## 1.6.36 - 2023-12-12
 
 ### Fixed
-- Fix an error when form message settings contained emoji’s.
-- Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
-- Fix an issue using `populateFormValues` for Repeater fields.
+- Fixed an error when form message settings contained emoji’s.
+- Fixed lack of enter key accessibility for sent notification and submission modals in the control panel.
+- Fixed an issue using `populateFormValues` for Repeater fields.
 
 ## 1.6.35 - 2023-10-25
 
