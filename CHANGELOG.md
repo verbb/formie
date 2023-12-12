@@ -1101,6 +1101,13 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.36 - 2023-12-12
+
+### Fixed
+- Fix an error when form message settings contained emoji’s.
+- Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
+- Fix an issue using `populateFormValues` for Repeater fields.
+
 ## 1.6.35 - 2023-10-25
 
 ### Added
