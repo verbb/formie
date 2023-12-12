@@ -96,8 +96,10 @@ class Products extends CommerceProducts implements FormFieldInterface
 
     public function init(): void
     {
-        // Enforce any required plugin before creating the field
-        Formie::$plugin->getFields()->checkRequiredPlugin($this);
+        // Enforce any required plugin before creating the field, but not before Craft is ready
+        Craft::$app->onInit(function() {
+            Formie::$plugin->getFields()->checkRequiredPlugin($this);
+        });
     }
 
     /**
