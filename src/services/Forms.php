@@ -259,9 +259,15 @@ class Forms extends Component
         } catch (Throwable $e) {
             $transaction->rollBack();
 
-            $form->addErrors(['general' => $e->getMessage()]);
+            $error = Craft::t('app', '{message} {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
 
-            Formie::error('Unable to save form “' . $form->handle . '”: ' . $e->getMessage());
+            $form->addErrors(['general' => $error]);
+            
+            Formie::error('Unable to save form “' . $form->handle . '”: ' . $error);
 
             return false;
         }
