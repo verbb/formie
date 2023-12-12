@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.44.1 - 2023-12-12
+
+### Changed
+- Improve error message when failing to save a form.
+
+### Fixed
+- Fixed an error when creating new forms.
+
 ## 2.0.44 - 2023-12-12
 
 ### Added
