@@ -791,6 +791,25 @@ class Submission extends Element
         }
     }
 
+    public function setFieldValueFromRequest(string $fieldHandle, mixed $value): void
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        // Check if we only want to set the fields for the current page. This helps with large
+        // forms with lots of Repeater/Group fields not on the current page being saved.
+        if ($setOnlyCurrentPagePayload) {
+            $currentPageFields = $this->getForm()->getCurrentPage()->getCustomFields();
+            $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+            if (!in_array($fieldHandle, $currentPageFieldHandles)) {
+                return;
+            }
+        }
+
+        parent::setFieldValueFromRequest($fieldHandle, $value);
+    }
+
     /**
      * Returns all field values.
      *

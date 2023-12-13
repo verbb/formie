@@ -56,6 +56,7 @@ class Settings extends Model
     public bool $useQueueForNotifications = true;
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
+    public bool $setOnlyCurrentPagePayload = false;
 
     // Sent Notifications
     public bool $sentNotifications = true;
