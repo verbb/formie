@@ -186,6 +186,11 @@ export class FormieRichText {
         // Populate any values initially set
         this.editor.content.innerHTML = this.$field.textContent;
 
+        // Populate placeholder if set
+        if (this.$field.placeholder) {
+            this.editor.content.setAttribute('data-placeholder', this.$field.placeholder);
+        }
+
         // Emit an "afterInit" event
         this.$field.dispatchEvent(new CustomEvent('afterInit', {
             bubbles: true,
