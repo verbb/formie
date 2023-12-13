@@ -798,7 +798,7 @@ class Submission extends Element
 
         // Check if we only want to set the fields for the current page. This helps with large
         // forms with lots of Repeater/Group fields not on the current page being saved.
-        if ($setOnlyCurrentPagePayload) {
+        if ($settings->setOnlyCurrentPagePayload) {
             $currentPageFields = $this->getForm()->getCurrentPage()->getCustomFields();
             $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
