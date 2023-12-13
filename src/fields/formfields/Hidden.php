@@ -107,6 +107,11 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return true;
     }
 
+    public function hasLabel(): bool
+    {
+        return false;
+    }
+
     /**
      * @inheritDoc
      */
