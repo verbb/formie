@@ -116,7 +116,9 @@ export class FormieFormBase {
         }));
 
         // Ensure that once completed, we re-fetch the captcha value, which will have expired
-        Formie.refreshFormTokens(this);
+        if (!data.nextPageId) {
+            Formie.refreshFormTokens(this);
+        }
     }
 
     formSubmitError(data = {}) {
