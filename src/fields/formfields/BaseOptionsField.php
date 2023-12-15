@@ -344,6 +344,29 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         return $this->traitSetPrePopulatedValue($value);
     }
 
+    protected function defaultValue(): array|string|null
+    {
+        if ($this->multi) {
+            $defaultValues = [];
+
+            foreach ($this->options() as $option) {
+                if (!empty($option['isDefault'])) {
+                    $defaultValues[] = $option['value'];
+                }
+            }
+
+            return $defaultValues;
+        }
+
+        foreach ($this->options() as $option) {
+            if (!empty($option['isDefault'])) {
+                return $option['value'];
+            }
+        }
+
+        return null;
+    }
+
 
     // Private Methods
     // =========================================================================
