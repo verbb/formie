@@ -390,6 +390,11 @@ export default {
                         // Is this a group field that supports nesting?
                         field.rows.forEach((row) => {
                             row.fields.forEach((subfield) => {
+                                // Don't allow conditions on _this_ field
+                                if (this.field.vid === subfield.vid) {
+                                    return;
+                                }
+
                                 customFields.push({
                                     field,
                                     subfield,
