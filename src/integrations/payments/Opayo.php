@@ -616,6 +616,10 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-name',
+                        ],
                     ],
                 ],
             ],
@@ -634,6 +638,10 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-number',
+                        ],
                     ],
                 ],
                 [
@@ -650,6 +658,10 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-exp',
+                        ],
                     ],
                 ],
                 [
@@ -665,6 +677,10 @@ class Opayo extends Payment
                         [
                             'label' => 'name',
                             'value' => false,
+                        ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-csc',
                         ],
                     ],
                 ],
