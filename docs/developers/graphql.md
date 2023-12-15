@@ -397,6 +397,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | `source` | `String!` | Which source do you want to select categories from?
 | `branchLimit` | `String!` | Limit the number of selectable category branches.
 | `categories` | `CategoryQuery` | The category query for available categories.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### Checkboxes
@@ -464,6 +465,7 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | `sources` | `String` | Which sources do you want to select entries from?
 | `limit` | `String` | Limit the number of selectable entries.
 | `entries` | `EntryQuery` | The entry query for available entries.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### File Upload
@@ -592,6 +594,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `sources` | `String` | Which sources do you want to select products from?
 | `limit` | `Boolean` | Limit the number of selectable products.
 | `products` | `ProductQuery` | The product query for available products.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### Radio
@@ -655,6 +658,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `placeholder` | `String` | The option shown initially, when no option is selected.
 | `source` | `String` | Which source do you want to select tags from?
 | `tags` | `TagQuery` | The tag query for available tags.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### Users
@@ -664,6 +668,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `sources` | `String` | Which sources do you want to select users from?
 | `limit` | `String` | Limit the number of selectable users.
 | `users` | `UserQuery` | The user query for available users.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### Variants
@@ -673,6 +678,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `source ` | `String` | Which source do you want to select variants from?
 | `limit` | `String` | Limit the number of selectable variants.
 | `variants` | `VariantQuery` | The variant query for available variants.
+| `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
 #### Nested Fields

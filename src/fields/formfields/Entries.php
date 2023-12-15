@@ -333,7 +333,15 @@ class Entries extends CraftEntries implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
-           'defaultValue' => [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'defaultValue' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {

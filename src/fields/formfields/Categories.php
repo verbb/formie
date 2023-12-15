@@ -364,6 +364,10 @@ class Categories extends CraftCategories implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
             'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
