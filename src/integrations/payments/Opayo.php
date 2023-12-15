@@ -606,6 +606,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Cardholder Name'),
+                    'handle' => 'cardName',
                     'required' => true,
                     'inputAttributes' => [
                         [
@@ -627,6 +628,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Card Number'),
+                    'handle' => 'cardNumber',
                     'required' => true,
                     'placeholder' => '•••• •••• •••• ••••',
                     'inputAttributes' => [
@@ -647,6 +649,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Expiry'),
+                    'handle' => 'cardExpiry',
                     'required' => true,
                     'placeholder' => 'MMYY',
                     'inputAttributes' => [
@@ -667,6 +670,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'CVC'),
+                    'handle' => 'cardCvc',
                     'required' => true,
                     'placeholder' => '•••',
                     'inputAttributes' => [
