@@ -107,11 +107,6 @@ class Hidden extends FormField implements PreviewableFieldInterface
         return true;
     }
 
-    public function hasLabel(): bool
-    {
-        return false;
-    }
-
     /**
      * @inheritDoc
      */
@@ -305,6 +300,10 @@ class Hidden extends FormField implements PreviewableFieldInterface
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldLabel') {
+            return null;
+        }
 
         if ($key === 'fieldInput') {
             return new HtmlTag('input', [
