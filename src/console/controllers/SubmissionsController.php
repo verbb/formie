@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 
 use Throwable;
@@ -40,6 +41,16 @@ class SubmissionsController extends Controller
     public bool $incompleteOnly = false;
 
     /**
+     * @var string|null A DateTime string to select submissions to delete before the given date.
+     */
+    public ?string $before = null;
+
+    /**
+     * @var string|null A DateTime string to select submissions to delete after the given date.
+     */
+    public ?string $after = null;
+
+    /**
      * @var string|null The submission ID(s) to use data for. Can be set to multiple comma-separated IDs.
      */
     public ?string $submissionId = null;
@@ -70,6 +81,8 @@ class SubmissionsController extends Controller
             $options[] = 'formHandle';
             $options[] = 'spamOnly';
             $options[] = 'incompleteOnly';
+            $options[] = 'before';
+            $options[] = 'after';
         }
 
         if ($actionID === 'run-integration') {
@@ -132,6 +145,14 @@ class SubmissionsController extends Controller
                 $query->isIncomplete(true);
             } else {
                 $query->isIncomplete(null);
+            }
+
+            if ($this->before) {
+                $query->before(DateTimeHelper::toDateTime($this->before));
+            }
+
+            if ($this->after) {
+                $query->after(DateTimeHelper::toDateTime($this->after));
             }
 
             $count = (int)$query->count();
