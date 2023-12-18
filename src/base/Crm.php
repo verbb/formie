@@ -23,12 +23,6 @@ abstract class Crm extends Integration
     }
 
 
-    // Properties
-    // =========================================================================
-    
-    public ?string $optInField = null;
-
-
     // Public Methods
     // =========================================================================
 
@@ -76,41 +70,6 @@ abstract class Crm extends Integration
         }
 
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
-    }
-
-    public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method): bool
-    {
-        // If in the context of a queue. save the payload for debugging
-        if ($this->getQueueJob()) {
-            $this->getQueueJob()->payload = $payload;
-        }
-
-        $event = new SendIntegrationPayloadEvent([
-            'submission' => $submission,
-            'payload' => $payload,
-            'endpoint' => $endpoint,
-            'method' => $method,
-            'integration' => $this,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_SEND_PAYLOAD, $event);
-
-        if (!$event->isValid) {
-            Integration::log($this, 'Sending payload cancelled by event hook.');
-        }
-
-        // Also, check for opt-in fields. This allows the above event to potentially alter things
-        if (!$this->enforceOptInField($submission)) {
-            Integration::log($this, 'Sending payload cancelled by opt-in field.');
-
-            return false;
-        }
-
-        // Allow events to alter some props
-        $payload = $event->payload;
-        $endpoint = $event->endpoint;
-        $method = $event->method;
-
-        return $event->isValid;
     }
 
     /**

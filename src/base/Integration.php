@@ -193,6 +193,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public array $cache = [];
     public ?string $tokenId = null;
     public ?string $uid = null;
+    public ?string $optInField = null;
 
     // Used to retain the referrer URL from submissions
     public ?string $referrer = '';
@@ -644,6 +645,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         if (!$event->isValid) {
             Integration::log($this, 'Sending payload cancelled by event hook.');
+        }
+
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
         }
 
         // Allow events to alter some props
