@@ -2441,7 +2441,7 @@ return [
     'Guernsey' => 'Guernsey',
     'Having issues using {name}? Enter your details below, so we can assist.' => 'Having issues using {name}? Enter your details below, so we can assist.',
     'Unable to update integration - {errors}.' => 'Unable to update integration - {errors}.',
-    'Configure Import' => 'Configure Import',
+    'Review Import' => 'Review Import',
     'Myanmar' => 'Myanmar',
     'Cameroon' => 'Cameroon',
     'Bosnian' => 'Bosnian',
