@@ -58,6 +58,7 @@ class Variables
     {
         return [
             ['label' => Craft::t('formie', 'Email'), 'heading' => true],
+            ['label' => Craft::t('formie', 'User Email'), 'value' => '{userEmail}'],
             ['label' => Craft::t('formie', 'System Email'), 'value' => '{systemEmail}'],
             ['label' => Craft::t('formie', 'System Reply-To'), 'value' => '{systemReplyTo}'],
         ];
