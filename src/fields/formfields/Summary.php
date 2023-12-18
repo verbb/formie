@@ -41,6 +41,12 @@ class Summary extends FormField
     }
 
 
+    // Properties
+    // =========================================================================
+
+    public ?string $description = 'Your submission is being prepared. Please review below before proceeding.';
+
+
     // Public Methods
     // =========================================================================
 
@@ -107,9 +113,17 @@ class Summary extends FormField
         $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
     }
 
-    /**
-     * @inheritDoc
-     */
+    public function defineGeneralSchema(): array
+    {
+        return [
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Description'),
+                'help' => Craft::t('formie', 'The description text shown at the top of the field.'),
+                'name' => 'description',
+            ]),
+        ];
+    }
+
     public function defineAdvancedSchema(): array
     {
         return [
@@ -143,7 +157,7 @@ class Summary extends FormField
         if ($key === 'fieldSummaryHeading') {
             return new HtmlTag('h3', [
                 'class' => 'fui-heading-h3',
-                'text' => Craft::t('formie', 'Your submission is being prepared. Please review below before proceeding.'),
+                'text' => Craft::t('formie', $this->description),
             ]);
         }
 
