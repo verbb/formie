@@ -558,6 +558,19 @@ class Fields extends Component
                 ]);
             }
         }
+
+        // Do the same for Group/Repeater inner fields, where their owner Group/Repeater has been deleted.
+        foreach (Craft::$app->getFields()->getAllFields(false) as $field) {
+            if (str_contains($field->context, 'formieField:')) {
+                $sourceFieldUid = str_replace('formieField:', '', $field->context);
+
+                if (!Craft::$app->getFields()->getFieldByUid($sourceFieldUid)) {
+                    Db::delete(CraftTable::FIELDS, [
+                        'id' => $field->id,
+                    ]);
+                }
+            }
+        }
     }
 
     /**
