@@ -21,6 +21,7 @@ use verbb\formie\models\Status;
 use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
+use craft\base\Component;
 use craft\base\Element;
 use craft\base\FieldInterface;
 use craft\elements\User;
@@ -44,6 +45,7 @@ use yii\validators\NumberValidator;
 use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
+use ReflectionClass;
 use Throwable;
 
 use Twig\Markup;
@@ -1097,32 +1099,59 @@ class Submission extends Element
 
     public function afterValidate(): void
     {
-        parent::afterValidate();
-
-        // For server-side validation, swap out the error message if a custom one is defined
-        if (($fieldLayout = $this->getFieldLayout()) && ($errors = $this->getErrors())) {
-            $customErrorMessages = [];
+        // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator`
+        // message for our custom error message. Might ask the Craft crew if there's a better way...
+        if (
+            static::hasContent() &&
+            Craft::$app->getIsInstalled() &&
+            $fieldLayout = $this->getFieldLayout()
+        ) {
+            $scenario = $this->getScenario();
             $layoutElements = $fieldLayout->getVisibleCustomFieldElements($this);
 
             foreach ($layoutElements as $layoutElement) {
                 $field = $layoutElement->getField();
+                $attribute = "field:$field->handle";
 
-                if ($field->errorMessage) {
-                    $customErrorMessages[$field->handle] = $field->errorMessage;
+                if (isset($this->_attributeNames) && !isset($this->_attributeNames[$attribute])) {
+                    continue;
                 }
-            }
 
-            if ($customErrorMessages) {
-                foreach ($errors as $errorKey => $error) {
-                    $customError = $customErrorMessages[$errorKey] ?? null;
+                $isEmpty = fn() => $field->isValueEmpty($this->getFieldValue($field->handle), $this);
 
-                    if ($customError) {
-                        $this->clearErrors($errorKey);
-                        $this->addError($errorKey, $customError);
+                // Add the required validator but with our custom message
+                if ($scenario === self::SCENARIO_LIVE && $layoutElement->required) {
+                    (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $field->errorMessage]))
+                        ->validateAttribute($this, $attribute);
+                }
+
+                foreach ($field->getElementValidationRules() as $rule) {
+                    $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);
+                    if (
+                        in_array($scenario, $validator->on) ||
+                        (empty($validator->on) && !in_array($scenario, $validator->except))
+                    ) {
+                        $validator->validateAttributes($this);
+                    }
+                }
+
+                if ($field::hasContentColumn()) {
+                    $columnType = $field->getContentColumnType();
+                    $value = $field->serializeValue($this->getFieldValue($field->handle), $this);
+
+                    if (is_array($columnType)) {
+                        foreach ($columnType as $key => $type) {
+                            $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $type, $value[$key] ?? null);
+                        }
+                    } else {
+                        $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $columnType, $value);
                     }
                 }
             }
         }
+
+        // Bubble up past the `Element::afterValidate()` to prevent this happening twice
+        Component::afterValidate();
     }
 
 
@@ -1202,5 +1231,21 @@ class Submission extends Element
             default:
                 return parent::tableAttributeHtml($attribute);
         }
+    }
+
+
+    // Protected methods
+    // =========================================================================
+
+    private function _callPrivateMethod(string $methodName): mixed
+    {
+        // Required to be able to call private methods in this class for `afterValidate()`.
+        $object = $this;
+        $reflectionClass = new ReflectionClass($object);
+        $reflectionMethod = $reflectionClass->getMethod($methodName);
+        $reflectionMethod->setAccessible(true);
+
+        $params = array_slice(func_get_args(), 1);
+        return $reflectionMethod->invokeArgs($object, $params);
     }
 }
