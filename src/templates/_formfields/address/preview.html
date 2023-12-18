@@ -32,16 +32,16 @@
         <input type="text" class="fui-field-input" :placeholder="field.settings.cityPlaceholder" :value="field.settings.cityDefaultValue">
     </div>
 
-    <div v-if="field.settings.stateEnabled" class="fui-col-auto">
-        <label class="fui-field-label">${ field.settings.stateLabel } <span v-if="field.settings.stateRequired" class="error">*</span></label>
-        <input type="text" class="fui-field-input" :placeholder="field.settings.statePlaceholder" :value="field.settings.stateDefaultValue">
+    <div v-if="field.settings.zipEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.zipLabel } <span v-if="field.settings.zipRequired" class="error">*</span></label>
+        <input type="number" class="fui-field-input" :placeholder="field.settings.zipPlaceholder" :value="field.settings.zipDefaultValue">
     </div>
 </div>
 
 <div v-if="field.settings.zipEnabled || field.settings.countryEnabled" class="fui-row">
-    <div v-if="field.settings.zipEnabled" class="fui-col-auto">
-        <label class="fui-field-label">${ field.settings.zipLabel } <span v-if="field.settings.zipRequired" class="error">*</span></label>
-        <input type="number" class="fui-field-input" :placeholder="field.settings.zipPlaceholder" :value="field.settings.zipDefaultValue">
+    <div v-if="field.settings.stateEnabled" class="fui-col-auto">
+        <label class="fui-field-label">${ field.settings.stateLabel } <span v-if="field.settings.stateRequired" class="error">*</span></label>
+        <input type="text" class="fui-field-input" :placeholder="field.settings.statePlaceholder" :value="field.settings.stateDefaultValue">
     </div>
 
     <div v-if="field.settings.countryEnabled" class="fui-col-auto">

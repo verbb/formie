@@ -633,12 +633,12 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                 'handle' => 'city',
             ],
             [
-                'label' => Craft::t('formie', 'State / Province'),
-                'handle' => 'state',
-            ],
-            [
                 'label' => Craft::t('formie', 'ZIP / Postal Code'),
                 'handle' => 'zip',
+            ],
+            [
+                'label' => Craft::t('formie', 'State / Province'),
+                'handle' => 'state',
             ],
             [
                 'label' => Craft::t('formie', 'Country'),
