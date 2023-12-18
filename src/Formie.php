@@ -42,6 +42,8 @@ use craft\console\Application as ConsoleApplication;
 use craft\console\Controller as ConsoleController;
 use craft\console\controllers\ResaveController;
 use craft\elements\User as UserElement;
+use craft\elements\exporters\Expanded;
+use craft\elements\exporters\Raw;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
@@ -79,8 +81,6 @@ use craft\feedme\services\Fields as FeedMeFields;
 
 use yii\base\Event;
 use yii\queue\ExecEvent;
-use craft\elements\exporters\Expanded;
-use craft\elements\exporters\Raw;
 
 class Formie extends Plugin
 {
