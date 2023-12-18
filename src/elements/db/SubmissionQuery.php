@@ -26,6 +26,8 @@ class SubmissionQuery extends ElementQuery
     public mixed $userId = null;
     public ?bool $isIncomplete = false;
     public ?bool $isSpam = false;
+    public mixed $before = null;
+    public mixed $after = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
@@ -176,6 +178,18 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
+    public function before(mixed $value): self
+    {
+        $this->before = $value;
+        return $this;
+    }
+
+    public function after(mixed $value): self
+    {
+        $this->after = $value;
+        return $this;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -276,6 +290,14 @@ class SubmissionQuery extends ElementQuery
 
         if ($this->title) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.title', $this->title));
+        }
+
+        if ($this->before) {
+            $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->before, '<'));
+        }
+
+        if ($this->after) {
+            $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->after, '>='));
         }
 
         return parent::beforePrepare();
