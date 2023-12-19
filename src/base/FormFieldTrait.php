@@ -5,10 +5,12 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\events\ModifyFieldValueEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
+use verbb\formie\events\ModifyFieldUniqueQueryEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\fields\formfields\BaseOptionsField;
 use verbb\formie\fields\formfields\Hidden;
@@ -27,6 +29,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\db\Query;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
@@ -409,6 +412,59 @@ trait FormFieldTrait
             $element->addError($this->handle, Craft::t('formie', '{name} must match {value}.', [
                 'name' => $this->name,
                 'value' => $sourceField->name ?? '',
+            ]));
+        }
+    }
+
+    public function validateUniqueValue(ElementInterface $element): void
+    {
+        $value = $element->getFieldValue($this->handle);
+        $value = trim($value);
+
+        // Use a DB lookup for performance
+        $fieldHandle = $element->fieldColumnPrefix . $this->handle;
+        $contentTable = $element->contentTable;
+
+        if ($this->columnSuffix) {
+            $fieldHandle .= '_' . $this->columnSuffix;
+        }
+
+        $query = (new Query())
+            ->select($fieldHandle)
+            ->from(['c' => $contentTable])
+            ->where([$fieldHandle => $value, 'isIncomplete' => false, 'e.dateDeleted' => null])
+            ->leftJoin(['s' => '{{%formie_submissions}}'], "[[s.id]] = [[c.elementId]]")
+            ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]');
+
+        // Exclude _this_ element, if there is one
+        if ($element->id) {
+            $query->andWhere(['!=', 's.id', $element->id]);
+        }
+
+        // TODO: to remove at the next breakpoint
+        if ($this instanceof formfields\Email) {
+            Craft::$app->getDeprecator()->log(__METHOD__, 'The `ModifyEmailFieldUniqueQueryEvent` event has been deprecated. Use the `ModifyFieldUniqueQueryEvent` event instead.');
+
+            $event = new ModifyEmailFieldUniqueQueryEvent([
+                'query' => $query,
+                'field' => $this,
+            ]);
+        } else {
+            $event = new ModifyFieldUniqueQueryEvent([
+                'query' => $query,
+                'field' => $this,
+            ]);
+        }
+
+        // Fire a 'modifyFieldUniqueQuery' event
+        $this->trigger(self::EVENT_MODIFY_UNIQUE_QUERY, $event);
+
+        // Be sure to check only against completed submission content
+        $emailExists = $event->query->exists();
+
+        if ($emailExists) {
+            $element->addError($this->handle, Craft::t('formie', '“{name}” must be unique.', [
+                'name' => $this->name,
             ]));
         }
     }

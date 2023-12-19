@@ -3,6 +3,7 @@ namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
@@ -17,6 +18,12 @@ use yii\db\Schema;
 
 class MultiLineText extends FormField implements PreviewableFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
+
+
     // Static Methods
     // =========================================================================
 
@@ -47,6 +54,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
     public ?string $maxType = null;
     public bool $useRichText = false;
     public ?array $richTextButtons = null;
+    public bool $uniqueValue = false;
 
 
     // Public Methods
@@ -134,6 +142,10 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
             if ($this->maxType === 'words') {
                 $rules[] = 'validateMaxWords';
             }
+        }
+
+        if ($this->uniqueValue) {
+            $rules[] = 'validateUniqueValue';
         }
 
         return $rules;
@@ -493,6 +505,11 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'fieldTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Unique Value'),
+                'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+                'name' => 'uniqueValue',
+            ]),
         ];
     }
 
