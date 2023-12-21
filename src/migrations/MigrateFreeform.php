@@ -11,9 +11,10 @@ use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\Notification;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Notification;
+use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
@@ -26,6 +27,7 @@ use craft\helpers\Json;
 
 use Throwable;
 
+use yii\base\InvalidConfigException;
 use yii\console\Controller;
 use yii\helpers\Markdown;
 
@@ -36,8 +38,6 @@ use Solspace\Freeform\Library\Composer\Components\FieldInterface;
 use Solspace\Freeform\Library\Composer\Components\Fields\DataContainers\Option;
 use Solspace\Freeform\Fields as freeformfields;
 use Solspace\Freeform\Fields\SubmitField;
-use yii\base\InvalidConfigException;
-use verbb\formie\models\Settings;
 
 /**
  * Migrates Freeform forms, notifications and submissions.

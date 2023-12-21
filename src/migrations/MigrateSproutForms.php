@@ -12,11 +12,12 @@ use verbb\formie\events\ModifyMigrationSubmissionEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Phone;
-use verbb\formie\models\FieldLayout;
-use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
@@ -39,7 +40,6 @@ use barrelstrength\sproutforms\fields\formfields as sproutfields;
 use barrelstrength\sproutbaseemail\elements\NotificationEmail;
 use barrelstrength\sproutbaseemail\SproutBaseEmail;
 use barrelstrength\sproutforms\SproutForms;
-use verbb\formie\models\Settings;
 
 /**
  * Migrates Sprout Forms forms, notifications and submissions.
