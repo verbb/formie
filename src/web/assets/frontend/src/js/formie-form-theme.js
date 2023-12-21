@@ -22,6 +22,7 @@ export class FormieFormTheme {
         this.loadingClass = this.form.getClasses('loading');
         this.tabErrorClass = this.form.getClasses('tabError');
         this.tabActiveClass = this.form.getClasses('tabActive');
+        this.tabCompleteClass = this.form.getClasses('tabComplete');
         this.errorMessageClass = this.form.getClasses('errorMessage');
         this.successMessageClass = this.form.getClasses('successMessage');
         this.alertClass = this.form.getClasses('alert');
@@ -817,6 +818,20 @@ export class FormieFormTheme {
                     $tab.classList.add(this.tabActiveClass);
                 } else {
                     $tab.classList.remove(this.tabActiveClass);
+                }
+            });
+
+            let isComplete = true;
+
+            $tabs.forEach(($tab) => {
+                if ($tab.classList.contains(this.tabActiveClass)) {
+                    isComplete = false;
+                }
+
+                if (isComplete) {
+                    $tab.classList.add(this.tabCompleteClass);
+                } else {
+                    $tab.classList.remove(this.tabCompleteClass);
                 }
             });
 

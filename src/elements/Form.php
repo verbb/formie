@@ -1544,14 +1544,18 @@ class Form extends Element
 
         if ($key === 'pageTab') {
             $submission = $context['submission'] ?? null;
-            $currentPageId = $context['currentPage']->id ?? null;
+            $currentPage = $context['currentPage'] ?? null;
+            $currentPageId = $currentPage->id ?? null;
+            $currentPageIndex = $this->getPageIndex($currentPage);
             $page = $context['page'] ?? null;
             $pageId = $page->id ?? null;
+            $pageIndex = $this->getPageIndex($page);
 
             return new HtmlTag('div', [
                 'id' => 'fui-tab-' . $pageId,
                 'class' => [
                     'fui-tab',
+                    ($currentPageIndex > $pageIndex) ? 'fui-tab-complete' : false,
                     ($pageId == $currentPageId) ? 'fui-tab-active' : false,
                     $page->getFieldErrors($submission) ? 'fui-tab-error' : false,
                 ],
@@ -1888,6 +1892,7 @@ class Form extends Element
             'disabled' => 'fui-disabled',
             'tabError' => 'fui-tab-error',
             'tabActive' => 'fui-tab-active',
+            'tabComplete' => 'fui-tab-complete',
             'successMessage' => 'fui-alert-success',
             'alert' => 'fui-alert',
             'alertError' => 'fui-alert-error',
