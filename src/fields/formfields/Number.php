@@ -404,12 +404,7 @@ class Number extends FormField implements PreviewableFieldInterface
 
         $rules[] = [['defaultValue', 'min', 'max'], 'number'];
         $rules[] = [['decimals'], 'integer'];
-        $rules[] = [
-            ['max'],
-            'compare',
-            'compareAttribute' => 'min',
-            'operator' => '>=',
-        ];
+        $rules[] = [['max'], 'compare', 'compareAttribute' => 'min', 'operator' => '>='];
 
         if (!$this->decimals) {
             $rules[] = [['defaultValue', 'min', 'max'], 'integer'];
