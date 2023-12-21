@@ -252,6 +252,7 @@ class Form extends Element
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
+            'pageCount' => ['label' => Craft::t('formie', 'Pages')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -289,6 +290,11 @@ class Form extends Element
         return [
             'title' => Craft::t('app', 'Title'),
             'handle' => Craft::t('app', 'Handle'),
+            [
+                'label' => Craft::t('app', 'Pages'),
+                'orderBy' => 'pageCount',
+                'attribute' => 'pageCount',
+            ],
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
@@ -2400,6 +2406,7 @@ class Form extends Element
     {
         return match ($attribute) {
             'usageCount' => count(Formie::$plugin->getForms()->getFormUsage($this)),
+            'pageCount' => count($this->getPages()),
             default => parent::tableAttributeHtml($attribute),
         };
     }
