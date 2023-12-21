@@ -117,7 +117,9 @@ export class FormieFormBase {
 
         // Ensure that once completed, we re-fetch the captcha value, which will have expired
         if (!data.nextPageId) {
-            Formie.refreshFormTokens(this);
+            // Use `this.config.Formie` just in case we're not loading thie script in the global window
+            // (i.e. when users import this script in their own).
+            this.config.Formie.refreshFormTokens(this);
         }
     }
 
