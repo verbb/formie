@@ -427,6 +427,7 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
                 'help' => Craft::t('formie', 'Limit the number of available entries.'),

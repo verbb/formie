@@ -802,7 +802,9 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
      */
     public function defineSettingsSchema(): array
     {
-        $fields = [];
+        $fields = [
+            SchemaHelper::includeInEmailField(),
+        ];
 
         foreach ($this->getSubfieldOptions() as $nestedField) {
             $subfields = [

@@ -466,6 +466,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Branch Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable category branches.'),

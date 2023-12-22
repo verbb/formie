@@ -253,6 +253,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
     public function defineSettingsSchema(): array
     {
         return [
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Minimum instances'),
                 'help' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),

@@ -142,6 +142,7 @@ class Password extends FormField implements PreviewableFieldInterface
                 'fieldTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

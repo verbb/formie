@@ -404,6 +404,7 @@ class Table extends CraftTable implements FormFieldInterface
                 'name' => 'errorMessage',
                 'if' => '$get(required).value',
             ]),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Static'),
                 'help' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),

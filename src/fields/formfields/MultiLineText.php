@@ -505,6 +505,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
                 'fieldTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
                 'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),

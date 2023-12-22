@@ -504,6 +504,7 @@ class Name extends FormField implements SubfieldInterface, PreviewableFieldInter
             SchemaHelper::prePopulate([
                 'if' => '$get(useMultipleFields).value != true',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
 
         foreach ($this->getSubfieldOptions() as $key => $nestedField) {

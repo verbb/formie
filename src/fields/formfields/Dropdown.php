@@ -321,6 +321,7 @@ class Dropdown extends BaseOptionsField implements FormFieldInterface
                 ],
             ],
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

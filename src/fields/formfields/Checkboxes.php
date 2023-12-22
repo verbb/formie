@@ -278,6 +278,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                 ],
             ],
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Add Toggle Checkbox'),
                 'help' => Craft::t('formie', 'Whether to add an additional checkbox to toggle all checkboxes in this field by.'),

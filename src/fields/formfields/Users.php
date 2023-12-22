@@ -361,6 +361,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable users.'),

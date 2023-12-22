@@ -451,6 +451,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
             SchemaHelper::enableContentEncryptionField(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

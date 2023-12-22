@@ -246,6 +246,7 @@ class Agree extends FormField implements PreviewableFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

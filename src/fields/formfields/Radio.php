@@ -169,6 +169,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 
