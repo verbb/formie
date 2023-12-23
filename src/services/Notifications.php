@@ -81,6 +81,11 @@ class Notifications extends Component
         return $this->_notifications()->firstWhere('id', $id);
     }
 
+    public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
+    {
+        return ArrayHelper::whereMultiple($this->_notifications(), ['formId' => $form->id, 'handle' => $handle])[0] ?? null;
+    }
+
     /**
      * Saves a notification.
      *
@@ -115,6 +120,10 @@ class Notifications extends Component
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
+
+            // TODO: make this a setting in the form builder
+            $notificationRecord->handle = $this->_getUniqueNotificationHandle($notification);
+
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
             $notificationRecord->recipients = $notification->recipients;
@@ -462,6 +471,7 @@ class Notifications extends Component
             $definedTabs[] = 'Templates';
         }
 
+        $definedTabs[] = 'Settings';
         $definedTabs[] = 'Preview';
         $definedTabs[] = 'Conditions';
 
@@ -690,6 +700,17 @@ class Notifications extends Component
         ];
     }
 
+    public function defineSettingsSchema(): array
+    {
+        return [
+            // TODO: add this at the next breakpoint
+            // SchemaHelper::handleField([
+            //     'help' => Craft::t('formie', 'How you’ll refer to this notification in your templates. Use the refresh icon to re-generate this from your notification name.'),
+            //     'warning' => '',
+            // ]),
+        ];
+    }
+
     /**
      * Defines the templates preview schema.
      *
@@ -772,6 +793,7 @@ class Notifications extends Component
                 'templateId',
                 'pdfTemplateId',
                 'name',
+                'handle',
                 'enabled',
                 'subject',
                 'recipients',
@@ -811,5 +833,29 @@ class Notifications extends Component
         }
 
         return new NotificationRecord();
+    }
+
+    private function _getUniqueNotificationHandle(Notification $notification): string
+    {
+        $increment = 1;
+        $notificationHandle = StringHelper::toHandle($notification->name);
+        $handle = $notificationHandle;
+
+        // Generate a unique notification handle. Note that they're not unique globally, just per-form.
+        while (true) {
+            $existingNotification = (new Query())
+                ->select(['*'])
+                ->from(['{{%formie_notifications}}'])
+                ->where(['handle' => $handle, 'formId' => $notification->formId])
+                ->one();
+
+            if (!$existingNotification) {
+                return $handle;
+            }
+
+            $handle = $notificationHandle . $increment;
+
+            $increment++;
+        }
     }
 }

@@ -169,6 +169,7 @@ class Install extends Migration
             'templateId' => $this->integer(),
             'pdfTemplateId' => $this->integer(),
             'name' => $this->text()->notNull(),
+            'handle' => $this->string(64)->notNull(),
             'enabled' => $this->boolean()->defaultValue(true),
             'subject' => $this->text(),
             'recipients' => $this->enum('recipients', ['email', 'conditions'])
