@@ -1805,7 +1805,7 @@ class Form extends Element
             'scrollToTop' => $this->settings->scrollToTop,
             'hasMultiplePages' => $this->hasMultiplePages(),
             'pages' => $this->getPages(),
-            'classes' => $this->getFrontEndClasses(),
+            'themeConfig' => $this->getThemeConfigAttributes(),
             'redirectUrl' => $this->getRedirectUrl(),
             'currentPageId' => $this->getCurrentPage()->id ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
@@ -1881,9 +1881,9 @@ class Form extends Element
         $this->_frontEndJsEvents[] = $value;
     }
 
-    public function getFrontEndClasses()
+    public function getThemeConfigAttributes()
     {
-        $allClasses = [];
+        $allAttributes = [];
 
         // Provide defaults to fallback on, which aren't in Theme Config
         $configKeys = [
@@ -1928,7 +1928,8 @@ class Form extends Element
                     $classes = [$classes];
                 }
 
-                $allClasses[$configKey] = implode(' ', $classes);
+                $allAttributes[$configKey] = Html::getTagAttributes($tag->attributes);
+                $allAttributes[$configKey]['class'] = implode(' ', $classes);
             } else if ($fieldTag) {
                 $classes = $fieldTag->attributes['class'] ?? $fallback;
 
@@ -1936,13 +1937,14 @@ class Form extends Element
                     $classes = [$classes];
                 }
 
-                $allClasses[$configKey] = implode(' ', $classes);
+                $allAttributes[$configKey] = Html::getTagAttributes($fieldTag->attributes);
+                $allAttributes[$configKey]['class'] = implode(' ', $classes);
             } else {
-                $allClasses[$configKey] = $fallback;
+                $allAttributes[$configKey]['class'] = $fallback;
             }
         }
 
-        return $allClasses;
+        return $allAttributes;
     }
 
     public function getFrontEndTemplateOption($option): bool

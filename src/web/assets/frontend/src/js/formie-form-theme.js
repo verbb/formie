@@ -424,8 +424,13 @@ export class FormieFormTheme {
             $alert.setAttribute('data-fui-alert', 'true');
             $alert.innerHTML = text;
 
+            // Set attributes on the alert according to theme config
+            this.form.applyThemeConfig($alert, 'alert', false);
+
             // For error notices, we have potential special handling on position
             if (type == 'error') {
+                this.form.applyThemeConfig($alert, 'alertError', false);
+
                 $alert.className += ` ${this.alertErrorClass} ${this.alertClass}-${this.settings.errorMessagePosition}`;
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
@@ -434,6 +439,8 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
+                this.form.applyThemeConfig($alert, 'alertSuccess', false);
+
                 $alert.className += ` ${this.alertSuccessClass} ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {

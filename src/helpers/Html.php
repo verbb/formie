@@ -144,6 +144,21 @@ class Html extends CraftHtmlHelper
         return $mergedConfigs;
     }
 
+    public static function getTagAttributes(array $attributes): array
+    {
+        $tagAttributes = [];
+        $attributeString = trim(static::renderTagAttributes($attributes));
+
+        $pattern = '/\b([^\s=]+)(?:=("[^"]*"|\'[^\']*\'|[^"\s\']*))?/';
+        preg_match_all($pattern, $attributeString, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $tagAttributes[$match[1]] = isset($match[2]) ? trim($match[2], "\"'") : true;
+        }
+
+        return $tagAttributes;
+    }
+
 
     // Private Methods
     // =========================================================================

@@ -205,9 +205,27 @@ export class FormieFormBase {
         });
     }
 
-    getClasses(key) {
-        const classes = this.settings.classes || {};
+    getThemeConfigAttributes(key) {
+        const attributes = this.settings.themeConfig || {};
 
-        return classes[key];
+        return attributes[key] || {};
+    }
+
+    getClasses(key) {
+        return this.getThemeConfigAttributes(key).class || [];
+    }
+
+    applyThemeConfig($element, key, applyClass = true) {
+        const attributes = this.getThemeConfigAttributes(key);
+
+        if (attributes) {
+            Object.entries(attributes).forEach(([attribute, value]) => {
+                if (attribute === 'class' && !applyClass) {
+                    return;
+                }
+
+                $element.setAttribute(attribute, value);
+            });
+        }
     }
 }
