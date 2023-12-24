@@ -169,6 +169,8 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     public bool $countryRequired = false;
     public ?string $countryErrorMessage = null;
     public bool $countryHidden = false;
+    public string $countryOptionLabel = 'full';
+    public string $countryOptionValue = 'short';
 
 
     // Public Methods
@@ -355,6 +357,20 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         }
     }
 
+    public function getCountryOptionsForDisplay(): array
+    {
+        $countries = [];
+
+        foreach (static::getCountryOptions() as $country) {
+            $label = ($this->countryOptionLabel === 'short') ? $country['value'] : $country['label'];
+            $value = ($this->countryOptionValue === 'short') ? $country['value'] : $country['label'];
+
+            $countries[] = ['label' => $label, 'value' => $value];
+        }
+
+        return $countries;
+    }
+
     /**
      * @inheritDoc
      */
@@ -501,7 +517,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'errorMessage' => $this->countryErrorMessage,
                     'defaultValue' => $this->getDefaultValue('country'),
                     'labelPosition' => $this->subfieldLabelPosition,
-                    'options' => $this->countryOptions,
+                    'options' => $this->getCountryOptionsForDisplay(),
                     'inputAttributes' => [
                         [
                             'label' => 'autocomplete',
@@ -833,6 +849,28 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
                     'name' => $nestedField['handle'] . 'CurrentLocation',
                     'if' => '$get(autocompleteIntegration).value == googlePlaces',
+                ]);
+            }
+
+            if ($nestedField['handle'] === 'country') {
+                $subfields[] = SchemaHelper::selectField([
+                    'label' => Craft::t('formie', 'Option Label'),
+                    'help' => Craft::t('formie', 'Select the format for the dropdown option label.'),
+                    'name' => $nestedField['handle'] . 'OptionLabel',
+                    'options' => array_merge(
+                        [['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full']],
+                        [['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short']],
+                    ),
+                ]);
+
+                $subfields[] = SchemaHelper::selectField([
+                    'label' => Craft::t('formie', 'Option Value'),
+                    'help' => Craft::t('formie', 'Select the format for the dropdown option value.'),
+                    'name' => $nestedField['handle'] . 'OptionValue',
+                    'options' => array_merge(
+                        [['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full']],
+                        [['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short']],
+                    ),
                 ]);
             }
 
