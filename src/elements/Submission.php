@@ -1189,6 +1189,13 @@ class Submission extends Element
         return $event->rules;
     }
 
+    public function getHtmlAttributes(string $context): array
+    {
+        $attributes = parent::getHtmlAttributes($context);
+        $attributes['data-date-created'] = $this->dateCreated->format('Y-m-d\TH:i:s.u\Z');
+
+        return $attributes;
+    }
 
     /**
      * @inheritDoc

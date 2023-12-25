@@ -280,201 +280,157 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 });
 
 Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
-    startDate: null,
-    endDate: null,
-
-    startDatepicker: null,
-    endDatepicker: null,
-
-    $chartExplorer: null,
-    $totalValue: null,
-    $chartContainer: null,
-    $spinner: null,
-    $error: null,
-    $chart: null,
-    $startDate: null,
-    $endDate: null,
-
     afterInit() {
         this.$explorerContainer = $('<div class="chart-explorer-container"></div>').prependTo(this.$container);
-        this.createChartExplorer();
+        this.$chartExplorer = $('<div class="chart-explorer"></div>').appendTo(this.$explorerContainer);
+        this.$chartContainer = $('<div class="chart-container"></div>').appendTo(this.$chartExplorer);
+        this.$chart = $('<div class="chart"></div>').appendTo(this.$chartContainer);
+
+        this.loadReport();
         this.base();
     },
 
-    getStorage(key) {
-        return Craft.Formie.SubmissionTableView.getStorage(this.elementIndex._namespace, key);
-    },
+    groupAndFillData(origin) {
+        // Convert object into arrays
+        const dataArray = Object.entries(origin);
+        
+        // Calculate the number of days between the first and last value
+        const lastDate = new Date(dataArray[0][0]);
+        const firstDate = new Date(dataArray[dataArray.length - 1][0]);
+        const daysDifference = (lastDate - firstDate) / (1000 * 60 * 60 * 24);
 
-    setStorage(key, value) {
-        Craft.Formie.SubmissionTableView.setStorage(this.elementIndex._namespace, key, value);
-    },
+        // Determine grouping based on the number of days
+        let grouping;
 
-    createChartExplorer() {
-        // chart explorer
-        var $chartExplorer = $('<div class="chart-explorer"></div>').appendTo(this.$explorerContainer),
-            $chartHeader = $('<div class="chart-header"></div>').appendTo($chartExplorer),
-            $dateRange = $('<div class="date-range" />').appendTo($chartHeader),
-            $startDateContainer = $('<div class="datewrapper"></div>').appendTo($dateRange),
-            $to = $('<span class="to light">to</span>').appendTo($dateRange),
-            $endDateContainer = $('<div class="datewrapper"></div>').appendTo($dateRange),
-            $total = $('<div class="total"></div>').appendTo($chartHeader),
-            $totalLabel = $('<div class="total-label light">' + Craft.t('formie', 'Total Submissions') + '</div>').appendTo($total),
-            $totalValueWrapper = $('<div class="total-value-wrapper"></div>').appendTo($total),
-            $totalValue = $('<span class="total-value">&nbsp;</span>').appendTo($totalValueWrapper);
-
-        this.$chartExplorer = $chartExplorer;
-        this.$totalValue = $totalValue;
-        this.$chartContainer = $('<div class="chart-container"></div>').appendTo($chartExplorer);
-        this.$spinner = $('<div class="spinner hidden" />').prependTo($chartHeader);
-        this.$error = $('<div class="error"></div>').appendTo(this.$chartContainer);
-        this.$chart = $('<div class="chart"></div>').appendTo(this.$chartContainer);
-
-        this.$startDate = $('<input type="text" class="text" size="20" autocomplete="off" />').appendTo($startDateContainer);
-        this.$endDate = $('<input type="text" class="text" size="20" autocomplete="off" />').appendTo($endDateContainer);
-
-        this.$startDate.datepicker($.extend({
-            onSelect: $.proxy(this, 'handleStartDateChange'),
-        }, Craft.datepickerOptions));
-
-        this.$endDate.datepicker($.extend({
-            onSelect: $.proxy(this, 'handleEndDateChange'),
-        }, Craft.datepickerOptions));
-
-        this.startDatepicker = this.$startDate.data('datepicker');
-        this.endDatepicker = this.$endDate.data('datepicker');
-
-        this.addListener(this.$startDate, 'keyup', 'handleStartDateChange');
-        this.addListener(this.$endDate, 'keyup', 'handleEndDateChange');
-
-        // Set the start/end dates
-        var startTime = this.getStorage('startTime') || ((new Date()).getTime() - (60 * 60 * 24 * 7 * 1000)),
-            endTime = this.getStorage('endTime') || ((new Date()).getTime());
-
-        this.setStartDate(new Date(startTime));
-        this.setEndDate(new Date(endTime));
-
-        // Load the report
-        this.loadReport();
-    },
-
-    handleStartDateChange() {
-        if (this.setStartDate(Craft.Formie.SubmissionTableView.getDateFromDatepickerInstance(this.startDatepicker))) {
-            this.loadReport();
-        }
-    },
-
-    handleEndDateChange() {
-        if (this.setEndDate(Craft.Formie.SubmissionTableView.getDateFromDatepickerInstance(this.endDatepicker))) {
-            this.loadReport();
-        }
-    },
-
-    setStartDate(date) {
-        // Make sure it has actually changed
-        if (this.startDate && date.getTime() === this.startDate.getTime()) {
-            return false;
+        if (daysDifference >= 730) {
+            grouping = 'year';
+        } else if (daysDifference >= 60) {
+            grouping = 'month';
+        } else if (daysDifference >= 2) {
+            grouping = 'day';
+        } else {
+            grouping = 'hour';
         }
 
-        this.startDate = date;
-        this.setStorage('startTime', this.startDate.getTime());
-        this.$startDate.val(Craft.formatDate(this.startDate));
+        // Helper function to format dates based on grouping
+        const formatDate = (date) => {
+            // Clone the date so we don't mess things up on the original date
+            var newDate = new Date(date.getTime());
 
-        // If this is after the current end date, set the end date to match it
-        if (this.endDate && this.startDate.getTime() > this.endDate.getTime()) {
-            this.setEndDate(new Date(this.startDate.getTime()));
+            // Reset the month/day depending on grouping
+            if (grouping === 'year') {
+                newDate.setMonth(0);
+                newDate.setDate(1);
+                newDate.setHours(0);
+                newDate.setMinutes(0);
+                newDate.setSeconds(0);
+            } else if (grouping === 'month') {
+                newDate.setDate(1);
+                newDate.setHours(0);
+                newDate.setMinutes(0);
+                newDate.setSeconds(0);
+            } else if (grouping === 'day') {
+                newDate.setHours(0);
+                newDate.setMinutes(0);
+                newDate.setSeconds(0);
+            } else if (grouping === 'hour') {
+                newDate.setMinutes(0);
+                newDate.setSeconds(0);
+            }
+
+            if (grouping === 'hour') {
+                return newDate.toISOString().slice(0, 19).replace('T', ' ');
+            }
+
+            // Return a date string
+            return newDate.toISOString().split('T')[0];
+        };
+
+        // Create an array with no-gaps in values, according to our grouping
+        const results = {};
+
+        let currentDate = new Date(firstDate);
+        
+        // Just in case there's only one value, the chartJS will complain.
+        while (currentDate <= lastDate || Object.keys(results).length < 2) {
+            const formattedDate = formatDate(currentDate);
+            
+            results[formattedDate] = 0;
+            
+            if (grouping === 'year') {
+                currentDate.setFullYear(currentDate.getFullYear() + 1);
+            } else if (grouping === 'month') {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+            } else if (grouping === 'day') {
+                currentDate.setDate(currentDate.getDate() + 1);
+            } else {
+                currentDate.setHours(currentDate.getHours() + 1);
+            }
         }
 
-        return true;
-    },
+        // Now, populate each item in our grouped array, now it's been prepped
+        for (const [dateStr, value] of dataArray) {
+            var key = formatDate(new Date(dateStr));
 
-    setEndDate(date) {
-        // Make sure it has actually changed
-        if (this.endDate && date.getTime() === this.endDate.getTime()) {
-            return false;
+            if (key in results) {
+                results[key] += value;
+            }
         }
 
-        this.endDate = date;
-        this.setStorage('endTime', this.endDate.getTime());
-        this.$endDate.val(Craft.formatDate(this.endDate));
-
-        // If this is before the current start date, set the start date to match it
-        if (this.startDate && this.endDate.getTime() < this.startDate.getTime()) {
-            this.setStartDate(new Date(this.endDate.getTime()));
-        }
-
-        return true;
+        // Change from object to array
+        return {
+            data: Object.entries(results).map(([date, value]) => [date, value]),
+            group: grouping,
+        };
     },
 
     loadReport() {
-        var data = this.settings.params;
+        const $elements = $(this.elementIndex.$elements).find('.element');
 
-        data.startDate = Craft.Formie.SubmissionTableView.getDateValue(this.startDate);
-        data.endDate = Craft.Formie.SubmissionTableView.getDateValue(this.endDate);
-
-        this.$spinner.removeClass('hidden');
-        this.$error.addClass('hidden');
-        this.$chart.removeClass('error');
-
-        Craft.sendActionRequest('POST', 'formie/charts/get-submissions-data', { data })
-            .then((response) => {
-                if (!this.chart) {
-                    this.chart = new Craft.charts.Area(this.$chart);
-                }
-
-                var chartDataTable = new Craft.charts.DataTable(response.data.dataTable);
-
-                var chartSettings = {
-                    formatLocaleDefinition: response.data.formatLocaleDefinition,
-                    orientation: response.data.orientation,
-                    formats: response.data.formats,
-                    dataScale: response.data.scale,
-                };
-
-                this.chart.draw(chartDataTable, chartSettings);
-
-                this.$totalValue.html(response.data.totalHtml);
-            })
-            .catch(({response}) => {
-                var msg = Craft.t('formie', 'An unknown error occurred.');
-
-                if (response && response.data && response.data.message) {
-                    msg = response.data.message;
-                }
-
-                this.$error.html(msg);
-                this.$error.removeClass('hidden');
-                this.$chart.addClass('error');
-            })
-            .finally(() => {
-                this.$spinner.addClass('hidden');
-            });
-    },
-},
-{
-    storage: {},
-
-    getStorage(namespace, key) {
-        if (Craft.Formie.SubmissionTableView.storage[namespace] && Craft.Formie.SubmissionTableView.storage[namespace][key]) {
-            return Craft.Formie.SubmissionTableView.storage[namespace][key];
+        if (!$elements.length) {
+            this.$explorerContainer.addClass('chart-empty');
+            return;
         }
 
-        return null;
-    },
-
-    setStorage(namespace, key, value) {
-        if (typeof Craft.Formie.SubmissionTableView.storage[namespace] === typeof undefined) {
-            Craft.Formie.SubmissionTableView.storage[namespace] = {};
+        if (!this.chart) {
+            this.chart = new Craft.charts.Area(this.$chart);
         }
 
-        Craft.Formie.SubmissionTableView.storage[namespace][key] = value;
-    },
+        let data = {};
 
-    getDateFromDatepickerInstance(inst) {
-        return new Date(inst.currentYear, inst.currentMonth, inst.currentDay);
-    },
+        // Get the data for elements (just for this page) assuming we'll group by day
+        $elements.each(function(index, item) {
+            let dateCreated = $(item).data('date-created');
 
-    getDateValue(date) {
-        return date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+            if (!data[dateCreated]) {
+                data[dateCreated] = 0;
+            }
+
+            data[dateCreated]++;
+        });
+
+        const chartData = this.groupAndFillData(data);
+        const dateType = chartData.group === 'hour' ? 'datetime' : 'date';
+
+        var dataTable = {
+            columns: [
+                { type: dateType, label: 'Date' },
+                { type: 'number', label: 'Submissions' },
+            ],
+            rows: chartData.data,
+        };
+
+        var chartDataTable = new Craft.charts.DataTable(dataTable);
+
+        var chartSettings = {
+            orientation: Craft.orientation,
+            formats: {
+                numberFormat: ',.0f',
+            },
+            dataScale: chartData.group,
+        };
+
+        this.chart.draw(chartDataTable, chartSettings);
     },
 });
 
