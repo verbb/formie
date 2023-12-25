@@ -6,6 +6,8 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
     editableForms: null,
     $newSubmissionBtnGroup: null,
     $newSubmissionBtn: null,
+    startDate: null,
+    endDate: null,
 
     init(elementType, $container, settings) {
         this.on('selectSource', $.proxy(this, 'updateButton'));
@@ -38,6 +40,14 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             // Hijack the event
             $menubtn.menu.on('optionselect', $.proxy(this, '_handleStatusChange'));
         }
+
+        Craft.ui.createDateRangePicker({
+            onChange: function (startDate, endDate) {
+                this.startDate = startDate;
+                this.endDate = endDate;
+                this.updateElements();
+            }.bind(this),
+        }).appendTo($toolbar);
 
         this.base(elementType, $container, settings);
     },
@@ -214,6 +224,26 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
             history.replaceState({}, '', Craft.getUrl(uri));
         }
+    },
+
+    getViewParams: function () {
+        var params = this.base();
+
+        if (this.startDate || this.endDate) {
+            var dateAttr = this.$source.data('date-attr') || 'dateCreated';
+            
+            params.criteria[dateAttr] = ['and'];
+
+            if (this.startDate) {
+                params.criteria[dateAttr].push('>=' + this.startDate.getTime() / 1000);
+            }
+
+            if (this.endDate) {
+                params.criteria[dateAttr].push('<' + (this.endDate.getTime() / 1000 + 86400));
+            }
+        }
+
+        return params;
     },
 
     getSite() {
