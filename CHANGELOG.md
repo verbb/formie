@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.0.45 - 2023-12-26
+
+### Added
+- Added `setOnlyCurrentPagePayload` to force only saving the current page’s fields for performance.
+- Added `isAvailable` to FormInterface for GraphQL.
+- Added `displayType` for element fields for GraphQL queries.
+- Added `data-placeholder` on Pell editor to support placeholder on Rich Text fields. (thanks @IrateGod).
+
+### Changed
+- Switch Hidden field `hasLabel` to theme config output for form builder label.
+- Hidden fields now no longer output a label.
+
+### Fixed
+- Fixed populated Repeater fields not working correctly for multi-sites.
+- Fixed a JS error with `Formie.refreshFormTokens` when importing Formie’s JS in your own JS files.
+- Fixed limit submissions check for GraphQL.
+- Fixed validation messages not showing for Opayo payments.
+- Fixed lack of autocomplete attributes for Opayo payment fields.
+- Fixed Repeater/Group inner fields incorrectly being shown as able to have conditions set on the same field.
+- Fixed initial fields in Group/Repeater fields not being marked as `isNested`.
+- Fixed cache-clearing for CSRF/Captchas not working correctly for multi-page forms.
+- Fixed options fields (Radio, Checkboxes, Dropdown) defaults not working in Group/Repeater fields.
+- Fixed `setOnlyCurrentPagePayload`.
+- Fixed `onFormieSubmitError` JS event not containing the server response.
+
 ## 2.0.44.1 - 2023-12-12
 
 ### Changed
