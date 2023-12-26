@@ -181,6 +181,10 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             try {
                 $row = new NestedFieldRow();
                 $row->fieldId = $this->id;
+
+                // Ensure that the siteId is set to the current site
+                $row->siteId = Craft::$app->getSites()->getCurrentSite()->id;
+
                 $row->setFieldValues($fieldContent);
 
                 $blocks[] = $row;
