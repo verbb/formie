@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.1.0 - 2023-12-27
+
+### Added
+- Added the ability to set the label and value for Address field Country sub-field dropdown options.
+- Added `populateAddress` JS event for Google Address provider to modify field-population when an address is found.
+- Added the ability to set a min/max number of options to pick for a Checkboxes and multi-Dropdown field.
+- Added support for Freeform migration with form handles containing invalid characters. Formie will try and rename to a valid handle.
+- Added `fui-tab-complete` class to tabs previous to the active one on the front-end.
+- Added page count to form element index, and the ability to query forms via their `pageCount`.
+- Added support for unique values for Single-Line Text, Multi-Line Text and Number fields.
+- Added note to data retention form setting on garbage collection.
+- Added “Visibility” settings to Agree fields.
+- Added the ability to set a submission as spam when editing it in the control panel.
+- Added info tooltips to email notifications for deliverability gotchas.
+- Added `description` field setting for Summary field, to control the heading text at the top of the field.
+- Added `before` and `after` options to the `formie/submissions/delete` console command.
+- Added `before` and `after` element query params for submissions.
+- Added “Opt-in” field to all integrations.
+- Added “User Email” to email variable pickers.
+- All fields now have the ability to be excluded from the “All Fields” variable for email notifications.
+
+### Changed
+- Submission index chart now shows the same submissions in the table view, and provides a consolidated date range filter.
+- Revamped submissions index chart to be more performant.
+- Changed “Configure Import” text to “Review Import” for Import/Export page.
+
+### Fixed
+- Fixed front-end alert compatibility with Theme Config for alerts, for ajax-driven forms.
+- Fixed formatting buttons not appearing at the top-level of a rich text editor instance.
+- Fixed custom error messages for field being applied for every error (not just for required value failures).
+- Fixed orphaned field cleanup not working for Repeater/Group nested fields.
+- Fixed Zip/Postal Code ordering for Address fields in control panel to match what’s produced on the front-end.
+
 ## 2.0.45 - 2023-12-26
 
 ### Added
