@@ -138,19 +138,6 @@ export class FormieFormTheme {
             const $field = e.target;
             const $fieldContainer = $field.closest('[data-field-type]');
 
-            // Get the error message as defined on the input element. Use the parent to find the element
-            // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
-            const $message = $field.parentNode.querySelector('[data-fui-message]');
-
-            if ($message) {
-                message = $message.getAttribute('data-fui-message');
-            }
-
-            // If there's a server error, it takes priority.
-            if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {
-                message = e.detail.errors.serverMessage;
-            }
-
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
             const $errorToMove = $field.parentNode.querySelector('[data-error-message]');
@@ -159,12 +146,28 @@ export class FormieFormTheme {
                 $errorToMove.parentNode.parentNode.appendChild($errorToMove);
             }
 
-            // The error has been moved, find it again
-            if ($fieldContainer) {
-                const $error = $fieldContainer.querySelector('[data-error-message]');
+            // Only swap out any custom error message for "required" fields, so as not to override other messages
+            if (e.detail && e.detail.errors && (e.detail.errors.missingValue || e.detail.errors.serverMessage)) {
+                // Get the error message as defined on the input element. Use the parent to find the element
+                // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
+                const $message = $field.parentNode.querySelector('[data-fui-message]');
 
-                if ($error && message) {
-                    $error.textContent = message;
+                if ($message) {
+                    message = $message.getAttribute('data-fui-message');
+                }
+
+                // If there's a server error, it takes priority.
+                if (e.detail.errors.serverMessage) {
+                    message = e.detail.errors.serverMessage;
+                }
+
+                // The error has been moved, find it again
+                if ($fieldContainer) {
+                    const $error = $fieldContainer.querySelector('[data-error-message]');
+
+                    if ($error && message) {
+                        $error.textContent = message;
+                    }
                 }
             }
         }, false);
