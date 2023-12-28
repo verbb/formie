@@ -36,8 +36,11 @@ class m231223_000000_notification_handle extends Migration
 
     private function uniqueHandle(array $notification): string
     {
-        $increment = 1;
+        // Ensure that we limit the handle as appropriate
         $notificationHandle = StringHelper::toHandle($notification['name']);
+        $notificationHandle = substr($notificationHandle, 0, 60);
+
+        $increment = 1;
         $handle = $notificationHandle;
 
         // Generate a unique notification handle. Note that they're not unique globally, just per-form.
