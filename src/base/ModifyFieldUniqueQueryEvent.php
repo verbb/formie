@@ -7,7 +7,7 @@ use craft\db\Query;
 
 use yii\base\Event;
 
-class ModifyEmailFieldUniqueQueryEvent extends Event
+class ModifyFieldUniqueQueryEvent extends Event
 {
     // Properties
     // =========================================================================
