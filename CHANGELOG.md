@@ -2,6 +2,7 @@
 
 ## 2.1.1 - 2023-12-29
 
+### Fixed
 - Fix a migration error with generating notification handles.
 - Fix custom error messages for field being applied for every error (not just for required value failures).
 
