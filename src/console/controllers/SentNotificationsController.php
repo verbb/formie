@@ -5,14 +5,17 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 
 use Craft;
+use craft\console\Controller;
+use craft\helpers\Console;
 use craft\helpers\Db;
 
 use Throwable;
 
-use yii\console\Controller;
 use yii\console\ExitCode;
-use yii\helpers\Console;
 
+/**
+ * Manages Formie Sent Notifications.
+ */
 class SentNotificationsController extends Controller
 {
     // Properties
@@ -41,6 +44,9 @@ class SentNotificationsController extends Controller
         return $options;
     }
 
+    /**
+     * Delete Formie sent notifications.
+     */
     public function actionDelete(): int
     {
         $formIds = null;

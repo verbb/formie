@@ -4,15 +4,19 @@ namespace verbb\formie\console\controllers;
 use verbb\formie\migrations\MigrateFreeform;
 use verbb\formie\migrations\MigrateSproutForms;
 
+use craft\console\Controller;
+use craft\helpers\Console;
+
 use Throwable;
 
-use yii\helpers\Console;
-use yii\console\Controller;
 use yii\console\ExitCode;
 
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 use solspace\freeform\Freeform;
 
+/**
+ * Manages Formie migrations from other plugins.
+ */
 class MigrateController extends Controller
 {
     // Properties
@@ -33,6 +37,9 @@ class MigrateController extends Controller
         return $options;
     }
 
+    /**
+     * Migrates Sprout Forms forms to Formie forms.
+     */
     public function actionMigrateSproutForms(): int
     {
         $formIds = SproutFormsForm::find()->ids();
@@ -54,6 +61,9 @@ class MigrateController extends Controller
         return ExitCode::OK;
     }
 
+    /**
+     * Migrates Solspace Freeform forms to Formie forms.
+     */
     public function actionMigrateFreeform(): int
     {
         $formIds = Freeform::getInstance()->forms->getAllFormIds();

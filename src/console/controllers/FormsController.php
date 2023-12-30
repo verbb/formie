@@ -4,14 +4,17 @@ namespace verbb\formie\console\controllers;
 use verbb\formie\elements\Form;
 
 use Craft;
+use craft\console\Controller;
 use craft\helpers\Db;
+use craft\helpers\Console;
 
 use Throwable;
 
-use yii\console\Controller;
 use yii\console\ExitCode;
-use yii\helpers\Console;
 
+/**
+ * Manages Formie Forms.
+ */
 class FormsController extends Controller
 {
     // Properties
@@ -36,6 +39,9 @@ class FormsController extends Controller
         return $options;
     }
 
+    /**
+     * Delete Formie forms.
+     */
     public function actionDelete(): int
     {
         $formIds = null;

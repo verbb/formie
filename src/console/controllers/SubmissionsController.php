@@ -6,14 +6,17 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 
 use Craft;
+use craft\console\Controller;
+use craft\helpers\Console;
 use craft\helpers\Db;
 
 use Throwable;
 
-use yii\console\Controller;
 use yii\console\ExitCode;
-use yii\helpers\Console;
 
+/**
+ * Manages Formie Submissions.
+ */
 class SubmissionsController extends Controller
 {
     // Properties
@@ -55,6 +58,9 @@ class SubmissionsController extends Controller
         return $options;
     }
 
+    /**
+     * Delete Formie submissions.
+     */
     public function actionDelete(): int
     {
         $formIds = null;
@@ -121,6 +127,9 @@ class SubmissionsController extends Controller
         return ExitCode::OK;
     }
 
+    /**
+     * Run an integration on a Formie submission.
+     */
     public function actionRunIntegration(): int
     {
         if (!$this->submissionId) {
@@ -172,6 +181,9 @@ class SubmissionsController extends Controller
         return ExitCode::OK;
     }
 
+    /**
+     * Send an email notification on a Formie submission.
+     */
     public function actionSendNotification(): int
     {
         if (!$this->submissionId) {
