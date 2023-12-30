@@ -365,9 +365,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         if ($useCache) {
             $settings = $this->getCache('settings') ?: [];
 
-            // Add support for emoji in cached content
-            $settings = Json::decode(StringHelper::shortcodesToEmoji(Json::encode($settings)));
-
             // De-serialize it from the cache back into full, nested class objects
             $formSettings = new IntegrationFormSettings();
             $formSettings->unserialize($settings);
@@ -767,7 +764,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Add support for emoji in cached content
         $data = Json::encode($this->cache);
-        $data = StringHelper::emojiToShortcodes($data);
 
         // Direct DB update to keep it out of PC, plus speed
         Db::update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id]);

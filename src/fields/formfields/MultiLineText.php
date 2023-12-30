@@ -53,24 +53,9 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        if ($value !== null) {
-            $value = StringHelper::entitiesToEmoji((string)$value);
-        }
-
         $value = $value !== '' ? $value : null;
 
         return parent::normalizeValue($value, $element);
-    }
-
-    public function serializeValue(mixed $value, ElementInterface $element = null): mixed
-    {
-        if ($value !== null) {
-            // Save as HTML entities (e.g. `&#x1F525;`) so we can use that in JS to determine length.
-            // Saving as a shortcode is too tricky to determine the same length in JS.
-            $value = StringHelper::encodeHtml((string)$value);
-        }
-
-        return parent::serializeValue($value, $element);
     }
 
     public function getElementValidationRules(): array
@@ -108,10 +93,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
         $value = (string)$element->getFieldValue($this->fieldKey);
 
-        // Convert multibyte text to HTML entities, so we can properly check string length
-        // exactly as it'll be saved in the database.
-        $string = StringHelper::encodeHtml($value);
-
         // Replace newline and tab characters to compare
         $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
 
@@ -133,10 +114,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
         }
 
         $value = (string)$element->getFieldValue($this->fieldKey);
-
-        // Convert multibyte text to HTML entities, so we can properly check string length
-        // exactly as it'll be saved in the database.
-        $string = StringHelper::encodeHtml($value);
 
         // Replace newline and tab characters to compare
         $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);

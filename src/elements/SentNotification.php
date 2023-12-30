@@ -344,10 +344,6 @@ class SentNotification extends Element
         $record->dateCreated = $this->dateCreated;
         $record->dateUpdated = $this->dateUpdated;
 
-        // Ensure we take care of any emoji's in content
-        $record->body = StringHelper::encodeHtml((string)$record->body);
-        $record->htmlBody = StringHelper::encodeHtml((string)$record->htmlBody);
-
         $record->save(false);
 
         parent::afterSave($isNew);

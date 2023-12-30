@@ -57,15 +57,6 @@ class Html extends FormField
         return true;
     }
 
-    public function getFormBuilderConfig(): array
-    {
-        // Add emoji support when generating the field config for the form builder.
-        // Otherwise, the shortcodes will be shown after saving and refreshing the form builder.
-        $this->htmlContent = StringHelper::shortcodesToEmoji((string)$this->htmlContent);
-
-        return parent::getFormBuilderConfig();
-    }
-
     public function getRenderedHtmlContent(): string
     {
         $htmlContent = trim($this->htmlContent);
@@ -74,9 +65,6 @@ class Html extends FormField
         if ($htmlContent) {
             $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
         }
-
-        // Add emoji support
-        $htmlContent = StringHelper::shortcodesToEmoji($htmlContent);
 
         if ($this->purifyContent) {
             // Ensure we run it all through purifier
@@ -91,14 +79,6 @@ class Html extends FormField
         return [
             'labelPosition' => HiddenPosition::class,
         ];
-    }
-
-    public function beforeSave(bool $isNew): bool
-    {
-        // Add emoji support to HTML content
-        $this->htmlContent = StringHelper::emojiToShortcodes((string)$this->htmlContent);
-
-        return parent::beforeSave($isNew);
     }
 
     public function getPreviewInputHtml(): string

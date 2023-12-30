@@ -695,7 +695,6 @@ class Table extends CraftTable implements FormFieldInterface
             case 'multiline':
             case 'singleline':
                 if ($value !== null) {
-                    $value = StringHelper::shortcodesToEmoji((string)$value);
                     return trim(preg_replace('/\R/u', "\n", $value));
                 }
                 // no break

@@ -90,13 +90,13 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
                 foreach ($allLists as $list) {
                     $lists[] = [
                         'id' => $list['id'],
-                        'name' => StringHelper::emojiToShortcodes((string)$list['name']),
+                        'name' => (string)$list['name'],
                     ];
                 }
 
                 $boards[$board['id']] = [
                     'id' => $board['id'],
-                    'name' => StringHelper::emojiToShortcodes((string)$board['name']),
+                    'name' => (string)$board['name'],
                     'lists' => $lists,
                 ];
             }
@@ -109,27 +109,6 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         }
 
         return new IntegrationFormSettings($settings);
-    }
-
-    public function getFormSettings($useCache = true): bool|IntegrationFormSettings
-    {
-        $settings = parent::getFormSettings($useCache);
-        $boards = $settings->getSettingsByKey('boards');
-
-        // Parse any Emoji's in board/list titles from the saved cache
-        foreach ($boards as $boardKey => $board) {
-            $boards[$boardKey]['name'] = StringHelper::shortcodesToEmoji((string)$board['name']);
-
-            $lists = $board['lists'] ?? [];
-
-            foreach ($lists as $listKey => $list) {
-                $boards[$boardKey]['lists'][$listKey]['name'] = StringHelper::shortcodesToEmoji((string)$list['name']);
-            }
-        }
-
-        $settings->setSettingsByKey('boards', $boards);
-
-        return $settings;
     }
 
     public function sendPayload(Submission $submission): bool

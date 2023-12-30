@@ -3,8 +3,6 @@ namespace verbb\formie\helpers;
 
 use craft\helpers\StringHelper as CraftStringHelper;
 
-use LitEmoji\LitEmoji;
-
 use voku\helper\AntiXSS;
 
 class StringHelper extends CraftStringHelper
@@ -23,16 +21,6 @@ class StringHelper extends CraftStringHelper
         }
 
         return null;
-    }
-
-    public static function entitiesToEmoji(string $str): string
-    {
-        return LitEmoji::entitiesToUnicode($str);
-    }
-
-    public static function encodeHtml(string $str): string
-    {
-        return LitEmoji::encodeHtml($str);
     }
 
     public static function cleanString(string $str): string
