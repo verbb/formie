@@ -22,12 +22,12 @@ use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
 use craft\base\FieldInterface;
+use craft\console\Controller;
 use craft\db\Migration;
 use craft\fields\BaseRelationField;
 use craft\helpers\Console;
 use craft\helpers\Json;
 
-use yii\console\Controller;
 use yii\helpers\Markdown;
 
 use Throwable;

@@ -89,8 +89,8 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '2.0.10';
-    public string $minVersionRequired = '1.5.15';
+    public string $schemaVersion = '3.0.0';
+    // public string $minVersionRequired = '2.0.42';
 
 
     // Traits
@@ -351,9 +351,7 @@ class Formie extends Plugin
     private function _registerVariable(): void
     {
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $event) {
-            /** @var CraftVariable $variable */
-            $variable = $event->sender;
-            $variable->set('formie', FormieVariable::class);
+            $event->sender->set('formie', FormieVariable::class);
         });
     }
 

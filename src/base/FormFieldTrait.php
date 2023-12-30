@@ -1308,9 +1308,18 @@ trait FormFieldTrait
             }
         }
 
-        // Normalize config from v2 to v3
+        // Normalize config from v2 to v3. This is important to keep as long as possible, as field errors will be
+        // triggered before migrations do.
         if (array_key_exists('subfieldLabelPosition', $config)) {
             $config['subFieldLabelPosition'] = ArrayHelper::remove($config, 'subfieldLabelPosition');
+        }
+
+        if (array_key_exists('isNested', $config)) {
+            unset($config['isNested']);
+        }
+
+        if (array_key_exists('formId', $config)) {
+            unset($config['formId']);
         }
     }
 

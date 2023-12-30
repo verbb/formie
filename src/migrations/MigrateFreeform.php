@@ -18,6 +18,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
+use craft\console\Controller;
 use craft\db\Migration;
 use craft\elements\Asset;
 use craft\helpers\Console;
@@ -25,7 +26,6 @@ use craft\helpers\Json;
 
 use Throwable;
 
-use yii\console\Controller;
 use yii\helpers\Markdown;
 
 use Solspace\Freeform\Freeform;

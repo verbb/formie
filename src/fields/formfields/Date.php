@@ -266,11 +266,6 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return null;
     }
 
-    public function getSearchKeywords(mixed $value, ElementInterface $element): string
-    {
-        return '';
-    }
-
     public function getFieldTypeConfigDefaults(): array
     {
         /* @var Settings $settings */
@@ -1353,6 +1348,11 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
 
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+    }
+
+    protected function searchKeywords(mixed $value, ElementInterface $element): string
+    {
+        return '';
     }
 
 
