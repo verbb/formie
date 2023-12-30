@@ -1,5 +1,61 @@
 # Changelog
 
+## 3.0.0
+
+### Added
+- You can now get submission field values via dot-notation for nested values. e.g. `submission.getFieldValue('group.text')` or  `submission.getFieldValue('repeater.1.text')`
+- You can now query submission field values via dot-notation for nested values. e.g. `submission.field('group.text').one()` or  `submission.field('repeater.1.text').one()`
+- Integrations can now populate a `$context` property with arbitrary data that's stored before processing, and accessible in the queue job.
+- Added `Field::fieldKey` to represent the handles of a field and any parent field. e.g. `group.text` or `repeater.text`.
+
+### Changed
+- Compatible with Craft `5.0.0-beta.1`.
+- Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
+- Repeater and Group fields values now no longer use elements, just plain arrays.
+- Submission content now no longer has their own content tables, thanks to Craft 5 content changes. Content is now in a single column, in your `elements_sites` database table.
+- References to `subfield` is now `subField` for various classes.
+- OAuth-based integrations now use the [Auth Module](https://verbb.io/packages/auth) to handle authentication under the hood.
+- `Formie::log()` is now `Formie::info()`.
+- `Integration::log()` is now `Integration::info()`.
+- Integration field mapping now uses `field:fieldHandle` syntax for fields.
+- Integration field mapping now uses dot-notation (`field:group.text`) syntax for nested fields.
+- Conditions (fields, pages, notifications) now uses `field:fieldHandle` syntax for fields.
+- Conditions (fields, pages, notifications)  now uses dot-notation (`field:group.text`) syntax for nested fields.
+- Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
+
+### Removed
+- Removed `verbb\formie\base\NestedFieldTrait` class.
+- Removed `verbb\formie\elements\NestedFieldRow` class.
+- Removed `verbb\formie\elements\dbNestedFieldRowQuery` class.
+- Removed `verbb\formie\events\FieldPageEvent` class.
+- Removed `verbb\formie\events\FieldRowEvent` class.
+- Removed `verbb\formie\events\OauthTokenEvent` class.
+- Removed `verbb\formie\events\SyncedFieldEvent` class.
+- Removed `verbb\formie\events\TokenEvent` class.
+- Removed `verbb\formie\models\Sync` class.
+- Removed `verbb\formie\models\SyncField` class.
+- Removed `verbb\formie\models\Token` class.
+- Removed `verbb\formie\records\NestedFieldRow` class.
+- Removed `verbb\formie\records\PageSettings` class.
+- Removed `verbb\formie\records\Row` class.
+- Removed `verbb\formie\records\Sync` class.
+- Removed `verbb\formie\records\SyncField` class.
+- Removed `verbb\formie\records\Token` class.
+- Removed `verbb\formie\services\NestedFields` class.
+- Removed `verbb\formie\services\Syncs` class.
+- Removed `verbb\formie\services\Tokens` class.
+- Removed `formie/gc/prune-syncs` console command.
+- Removed `formie/gc/prune-content-tables` console command.
+- Removed `formie/gc/prune-content-table-fields` console command.
+- Removed `Formie::$plugin->getNestedFields()`.
+- Removed `Formie::$plugin->getSyncs()`.
+- Removed `Formie::$plugin->getTokens()`.
+- Removed `Categories:categoriesQuery` variable for Category element field templates.
+- Removed `Categories:entriesQuery` variable for Entry element field templates.
+- Removed `Categories:productsQuery` variable for Product element field templates.
+- Removed `Categories:usersQuery` variable for User element field templates.
+- Removed `Categories:variantsQuery` variable for Variant element field templates.
+
 ## 2.0.37 - 2023-09-25
 
 ### Added

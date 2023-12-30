@@ -65,13 +65,6 @@ A cleanup tasks to ensure fields aren't orphaned. Not normally required.
 ./craft formie/gc/delete-orphaned-fields
 ```
 
-### Prune Syncs
-A cleanup task to ensure Synced Fields are neat. Not normally required.
-
-```shell
-./craft formie/gc/prune-syncs
-```
-
 ### Prune Incomplete Submissions
 Deletes any incomplete submissions that exceed the "Maximum Incomplete Submission Age" plugin setting.
 
@@ -84,20 +77,6 @@ Deletes any submissions that exceed your data retention form settings.
 
 ```shell
 ./craft formie/gc/prune-data-retention-submissions
-```
-
-### Prune Content Tables
-A cleanup task to ensure deleted forms have their content tables also deleted. Not normally required.
-
-```shell
-./craft formie/gc/prune-content-tables
-```
-
-### Prune Content Table Fields
-A cleanup task for content tables to ensure unnecessary field columns are removed. Not normally required.
-
-```shell
-./craft formie/gc/prune-content-table-fields
 ```
 
 Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/4.x/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.

@@ -1485,14 +1485,6 @@
       "rFN" : 0,
       "uCM" : 0
     },
-    "\/src\/auth\/OneCrmProvider.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/auth\/OneCrmProvider.php",
-      "oF" : 0
-    },
     "\/src\/base\/AddressProvider.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2389,14 +2381,6 @@
       "oAP" : "\/src\/events\/NotificationEvent.php",
       "oF" : 0
     },
-    "\/src\/events\/OauthTokenEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/OauthTokenEvent.php",
-      "oF" : 0
-    },
     "\/src\/events\/PaymentCallbackEvent.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2587,22 +2571,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/events\/SubscriptionEvent.php",
-      "oF" : 0
-    },
-    "\/src\/events\/SyncedFieldEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/SyncedFieldEvent.php",
-      "oF" : 0
-    },
-    "\/src\/events\/TokenEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/TokenEvent.php",
       "oF" : 0
     },
     "\/src\/events\/TriggerIntegrationEvent.php" : {
@@ -3529,14 +3497,6 @@
       "oAP" : "\/src\/integrations\/crm\/Copper.php",
       "oF" : 0
     },
-    "\/src\/integrations\/crm\/Creatio.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/integrations\/crm\/Creatio.php",
-      "oF" : 0
-    },
     "\/src\/integrations\/crm\/Dotdigital.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -3617,28 +3577,12 @@
       "oAP" : "\/src\/integrations\/crm\/Mercury.php",
       "oF" : 0
     },
-    "\/src\/integrations\/crm\/MethodCrm.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/integrations\/crm\/MethodCrm.php",
-      "oF" : 0
-    },
     "\/src\/integrations\/crm\/MicrosoftDynamics365.php" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/integrations\/crm\/MicrosoftDynamics365.php",
-      "oF" : 0
-    },
-    "\/src\/integrations\/crm\/NetSuite.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/integrations\/crm\/NetSuite.php",
       "oF" : 0
     },
     "\/src\/integrations\/crm\/OneCrm.php" : {
@@ -3719,14 +3663,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/integrations\/crm\/VCita.php",
-      "oF" : 0
-    },
-    "\/src\/integrations\/crm\/Zengine.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/integrations\/crm\/Zengine.php",
       "oF" : 0
     },
     "\/src\/integrations\/crm\/Zoho.php" : {
@@ -4289,6 +4225,14 @@
       "oAP" : "\/src\/migrations\/Install.php",
       "oF" : 0
     },
+    "\/src\/migrations\/m231125_000000_craft5.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m231125_000000_craft5.php",
+      "oF" : 0
+    },
     "\/src\/migrations\/m231129_000000_integrations_mapping.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -4303,6 +4247,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/migrations\/m231130_000000_conditions_mapping.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m231202_000000_auth_module.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m231202_000000_auth_module.php",
       "oF" : 0
     },
     "\/src\/migrations\/MigrateFreeform.php" : {
@@ -4559,14 +4511,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/models\/Support.php",
-      "oF" : 0
-    },
-    "\/src\/models\/Token.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/models\/Token.php",
       "oF" : 0
     },
     "\/src\/options\/Acceptability.php" : {
@@ -5377,14 +5321,6 @@
       "oAP" : "\/src\/records\/Subscription.php",
       "oF" : 0
     },
-    "\/src\/records\/Token.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/records\/Token.php",
-      "oF" : 0
-    },
     "\/src\/services\/Emails.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -5551,22 +5487,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/services\/Subscriptions.php",
-      "oF" : 0
-    },
-    "\/src\/services\/Syncs.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/services\/Syncs.php",
-      "oF" : 0
-    },
-    "\/src\/services\/Tokens.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/services\/Tokens.php",
       "oF" : 0
     },
     "\/src\/templates\/_components\/actions\/mark-spam\/trigger.html" : {
@@ -10949,7 +10869,7 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config.7f2909aa.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-pbOI66Ky.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10957,152 +10877,114 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config.7f2909aa-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-pbOI66Ky-min.css",
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config.9f5c708b.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-wnGRsmtI.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config.9f5c708b.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.09f741e9.svg" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-J35IyURq.svg" : {
       "ft" : 2097152,
       "miP" : 0,
       "oA" : 2,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.09f741e9.svg",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-J35IyURq.svg",
       "oF" : 0,
       "opt" : 0,
       "plM" : 52780316221407,
       "prP" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.86cbcb46.eot" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-l30-FzO_.eot" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.86cbcb46.eot",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-l30-FzO_.eot",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.a771731f.woff2" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-q9hTWXW-.woff2" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.a771731f.woff2",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-q9hTWXW-.woff2",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.b81833e9.ttf" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-vYgVhBti.ttf" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.b81833e9.ttf",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-vYgVhBti.ttf",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.bb9e1c89.woff" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-zo5xndbE.woff" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400.bb9e1c89.woff",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-zo5xndbE.woff",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.02c2aa62.svg" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-CH9bxfgG.svg" : {
       "ft" : 2097152,
       "miP" : 0,
       "oA" : 2,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.02c2aa62.svg",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-CH9bxfgG.svg",
       "oF" : 0,
       "opt" : 0,
       "plM" : 52780316221407,
       "prP" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.15a70ae0.eot" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-Kfo4n03V.woff2" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.15a70ae0.eot",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-Kfo4n03V.woff2",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.974d7c91.woff" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-N4erO7po.eot" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.974d7c91.woff",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-N4erO7po.eot",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.8050bcbf.ttf" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-TsomeXIw.woff" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.8050bcbf.ttf",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-TsomeXIw.woff",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.e77c7e1c.woff2" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-XkfFaza8.ttf" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900.e77c7e1c.woff2",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-XkfFaza8.ttf",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new.fb1e765a.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new.fb1e765a.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form.3deb7018.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.3deb7018.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.ea6a2e69.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-BGckUP_-.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -11110,30 +10992,49 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form.ea6a2e69-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-BGckUP_--min.css",
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings.cfc0a907.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-GH5B63FR.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.cfc0a907.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.fb842a8a.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-yJqBZ_ww.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js.map",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -11141,9 +11042,28 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings.fb842a8a-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4-min.css",
       "oF" : 0,
       "pg" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-YbW_rDMW.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js.map",
+      "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/manifest.json" : {
       "ft" : 524288,
@@ -11813,6 +11733,17 @@
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/RichTextInput.vue",
       "oF" : 0
     },
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/SelectInput.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/SelectInput.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/StaticTableInput.vue" : {
       "cB" : 0,
       "ft" : 8192,
@@ -11868,17 +11799,6 @@
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/NotificationConditions.vue",
       "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/plugins\/addSelectWrapperPlugin.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/addSelectWrapperPlugin.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/plugins\/customLabelPlugin.js" : {
       "bF" : 0,
@@ -13111,6 +13031,12 @@
       "oO" : 1,
       "oS" : 1
     },
+    "\/src\/web\/assets\/frontend\/node_modules" : {
+      "ft" : 65536,
+      "oA" : 2,
+      "oAP" : "\/src\/web\/assets\/frontend\/node_modules",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/frontend\/src\/js\/address-providers\/address-finder.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -13162,6 +13088,17 @@
       "mi" : 1,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/frontend\/src\/dist\/js\/loqate.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/frontend\/src\/js\/captchas\/captcha-provider.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 1,
+      "oAP" : "\/src\/web\/assets\/frontend\/src\/dist\/js\/captcha-provider.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
