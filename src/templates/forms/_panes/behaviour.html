@@ -40,8 +40,6 @@
             label: 'Ajax (Client-side)' | t('formie'),
             value: 'ajax',
         }],
-        toggle: true,
-        targetPrefix: 'submit-method-',
         value: submitMethod,
     }) }}
 
@@ -50,69 +48,18 @@
 </div>
 
 <div class="fui-settings-wrap">
-    <div id="submit-method-page-reload" class="{{ submitMethod != 'page-reload' ? 'hidden' }}">
-        {{ forms.selectField({
-            label: 'Action on Submit' | t('formie'),
-            instructions: 'When a user submits this form, I want to:' | t('formie'),
-            id: 'submitAction',
-            name: 'settings[submitAction]',
-            disabled: (submitMethod == 'page-reload') ? false : true,
-            options: [{
-                label: 'Display a message' | t('formie'),
-                value: 'message',
-            },
-            {
-                label: 'Redirect to an entry' | t('formie'),
-                value: 'entry',
-            },
-            {
-                label: 'Redirect to a URL' | t('formie'),
-                value: 'url',
-            },
-            {
-                label: 'Reload the page' | t('formie'),
-                value: 'reload',
-            }],
-            toggle: true,
-            targetPrefix: 'submit-action-',
-            value: submitAction,
-        }) }}
-
-        {# Spacing fix #}
-        <div class="field"></div>
-    </div>
-
-    <div id="submit-method-ajax" class="{{ submitMethod != 'ajax' ? 'hidden' }}">
-        {{ forms.selectField({
-            label: 'Action on Submit' | t('formie'),
-            instructions: 'When a user submits this form, I want to:' | t('formie'),
-            id: 'submitAction',
-            name: 'settings[submitAction]',
-            disabled: (submitMethod == 'ajax') ? false : true,
-            options: [{
-                label: 'Display a message' | t('formie'),
-                value: 'message',
-            },
-            {
-                label: 'Redirect to an entry' | t('formie'),
-                value: 'entry',
-            },
-            {
-                label: 'Redirect to a URL' | t('formie'),
-                value: 'url',
-            },
-            {
-                label: 'Reset form values' | t('formie'),
-                value: 'reset',
-            }],
-            toggle: true,
-            targetPrefix: 'submit-action-',
-            value: submitAction,
-        }) }}
-
-        {# Spacing fix #}
-        <div class="field"></div>
-    </div>
+    {{ forms.selectField({
+        label: 'Action on Submit' | t('formie'),
+        instructions: 'When a user submits this form, I want to:' | t('formie'),
+        id: 'submitAction',
+        name: 'settings[submitAction]',
+        toggle: true,
+        targetPrefix: 'submit-action-',
+        value: submitAction,
+        inputAttributes: {
+            'data-value': submitAction,
+        },
+    }) }}
 
     <hr>
 
@@ -446,28 +393,76 @@
     ></form-kit>
 </div>
 
+{% set actionOptions = {
+    'page-reload': [
+        {
+            label: 'Display a message' | t('formie'),
+            value: 'message',
+        },
+        {
+            label: 'Redirect to an entry' | t('formie'),
+            value: 'entry',
+        },
+        {
+            label: 'Redirect to a URL' | t('formie'),
+            value: 'url',
+        },
+        {
+            label: 'Reload the page' | t('formie'),
+            value: 'reload',
+        },
+    ],
+
+    'ajax': [
+        {
+            label: 'Display a message' | t('formie'),
+            value: 'message',
+        },
+        {
+            label: 'Redirect to an entry' | t('formie'),
+            value: 'entry',
+        },
+        {
+            label: 'Redirect to a URL' | t('formie'),
+            value: 'url',
+        },
+        {
+            label: 'Reset form values' | t('formie'),
+            value: 'reset',
+        },
+    ],
+} %}
+
 {% js %}
 
+// "Action on Submit" has dynamic options, depending on the "Submission Method"
+function updateSubmitActionOptions() {
+    var $submitAction = $('[name="settings[submitAction]"]');
+    var $submitMethod = $('[name="settings[submitMethod]"]');
+    var allOptions = {{ actionOptions | json_encode | raw }};
+    var options = allOptions[$submitMethod.val()];
+    var selectedOption = $submitAction.val() || $submitAction.data('value');
+
+    var output = [];
+
+    $.each(options, function(index, option) {
+        output.push('<option value="'+ option.value +'">'+ option.label +'</option>');
+    });
+
+    $submitAction.html(output.join(''));
+
+    // Restore the original value
+    $submitAction.val(selectedOption);
+}
+
 $('[name="settings[submitMethod]"]').on('change', function(e) {
-   // Toggle the disabled state of the respective dropdowns
-   var value = this.value;
+    updateSubmitActionOptions();
 
-   $('#submitAction-field select').prop('disabled', true);
-   $('#submitAction-field .select').addClass('disabled');
-
-   $('#submit-method-' + value + ' select').prop('disabled', false);
-   $('#submit-method-' + value + ' .select').removeClass('disabled');
+    // Hide the panes that are unique to specific submit methods, as they'll stick around otherwise
+    $('#submit-action-reload').addClass('hidden');
+    $('#submit-action-reset').addClass('hidden');
 });
 
-$('[name="settings[submitAction]"]').on('change', function(e) {
-   // Toggle the disabled state of the respective dropdowns
-   var value = this.value;
-
-   $('#submitActionTab-field select').prop('disabled', true);
-   $('#submitActionTab-field .select').addClass('disabled');
-
-   $('#submit-action-' + value + ' #submitActionTab-field select').prop('disabled', false);
-   $('#submit-action-' + value + ' #submitActionTab-field .select').removeClass('disabled');
-});
+updateSubmitActionOptions();
 
 {% endjs %}
