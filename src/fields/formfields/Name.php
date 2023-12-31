@@ -84,7 +84,7 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
 
     public static function dbType(): string
     {
-        return Schema::TYPE_TEXT;
+        return Schema::TYPE_JSON;
     }
 
 

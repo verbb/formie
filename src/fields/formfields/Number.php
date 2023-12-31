@@ -37,7 +37,7 @@ class Number extends FormField implements PreviewableFieldInterface
     public static function dbType(): string
     {
         // Don't use integer columns, so we can handle large numbers as strings
-        return Schema::TYPE_TEXT;
+        return Schema::TYPE_JSON;
     }
 
 

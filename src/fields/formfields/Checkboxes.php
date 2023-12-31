@@ -11,6 +11,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\MultiOptionsFieldData;
 
+use yii\db\Schema;
+
 class Checkboxes extends OptionsField
 {
     // Static Methods
@@ -19,6 +21,11 @@ class Checkboxes extends OptionsField
     public static function phpType(): string
     {
         return sprintf('\\%s', MultiOptionsFieldData::class);
+    }
+
+    public static function dbType(): string
+    {
+        return Schema::TYPE_JSON;
     }
 
     public static function displayName(): string

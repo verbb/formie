@@ -50,7 +50,7 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
 
     public static function dbType(): string
     {
-        return Schema::TYPE_STRING;
+        return Schema::TYPE_JSON;
     }
 
 

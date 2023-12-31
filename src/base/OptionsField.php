@@ -33,11 +33,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
 
     public static function dbType(): string
     {
-        if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
-            return Schema::TYPE_TEXT;
-        }
-        
-        return parent::dbType();
+        return Schema::TYPE_STRING;
     }
 
 

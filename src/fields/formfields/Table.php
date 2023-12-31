@@ -58,7 +58,7 @@ class Table extends CraftTable implements FormFieldInterface
 
     public static function dbType(): string
     {
-        return Schema::TYPE_TEXT;
+        return Schema::TYPE_JSON;
     }
 
 
