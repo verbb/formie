@@ -223,7 +223,6 @@ class Formie extends Plugin
 
             $event->rules['formie/forms'] = 'formie/forms/index';
             $event->rules['formie/forms/new'] = 'formie/forms/new';
-            $event->rules['formie/forms/new/<siteHandle:{handle}>'] = 'formie/forms/new';
             $event->rules['formie/forms/edit/<formId:\d+>'] = 'formie/forms/edit';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';

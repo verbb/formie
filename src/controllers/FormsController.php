@@ -65,7 +65,7 @@ class FormsController extends Controller
         return $this->renderTemplate('formie/forms/_new', $variables);
     }
 
-    public function actionEdit(int $formId = null, string $siteHandle = null, Form $form = null): Response
+    public function actionEdit(int $formId = null, Form $form = null): Response
     {
         $variables = compact('formId', 'form');
 
@@ -91,8 +91,7 @@ class FormsController extends Controller
         $variables['baseCpEditUrl'] = 'formie/forms/edit/{id}';
 
         // Set the "Continue Editing" URL
-        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'] .
-            (Craft::$app->getIsMultiSite() && Craft::$app->getSites()->currentSite->id !== $variables['site']->id ? '/' . $variables['site']->handle : '');
+        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'];
 
         Plugin::registerAsset('src/js/formie-form.js');
 
