@@ -71,7 +71,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
         }
 
         // For fields that store their content as JSON for arrays (checkboxes), convert it
-        if (is_string($value) && ($value === '' || str_starts_with($value, '[') || str_starts_with($value, '{'))) {
+        if (is_string($value) && ($value === '' || Json::isJsonObject($value))) {
             $value = Json::decodeIfJson($value);
         }
 

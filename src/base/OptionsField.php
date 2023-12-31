@@ -148,7 +148,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
             return $value;
         }
 
-        if (is_string($value) && (str_starts_with($value, '[') || str_starts_with($value, '{'))) {
+        if (is_string($value) && Json::isJsonObject($value)) {
             $value = Json::decodeIfJson($value);
         } else if ($value === '' && $this->multi) {
             $value = [];
