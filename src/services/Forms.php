@@ -8,6 +8,7 @@ use verbb\formie\base\NestedFieldTrait;
 use verbb\formie\base\FormField;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\migrations\CreateFormContentTable;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -272,6 +273,10 @@ class Forms extends Component
 
             return false;
         }
+
+        // To prepare for Formie 3, where field layouts have been revampled, it's important to maintain a copy
+        // for the upgrade, because Craft's migrations will blow the table away, and we need it before that.
+        Plugin::saveFormie3Layout($form);
 
         return true;
     }
