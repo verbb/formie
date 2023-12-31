@@ -90,7 +90,7 @@ class Formie extends Plugin
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
     public string $schemaVersion = '3.0.0';
-    // public string $minVersionRequired = '2.0.42';
+    // public string $minVersionRequired = '2.1.2';
 
 
     // Traits
