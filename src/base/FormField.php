@@ -42,6 +42,14 @@ abstract class FormField extends Field implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        self::normalizeConfig($config);
+
+        parent::__construct($config);
+    }
+
     public function __set($name, $value)
     {
         // Prevent deprecated (removed) model attributes from killing things, particularly when migrating to actually
