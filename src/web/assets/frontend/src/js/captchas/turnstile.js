@@ -1,4 +1,3 @@
-import { FormieCaptchaProvider } from './captcha-provider';
 import { turnstile } from './inc/turnstile';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey, ensureVariable } from '../utils/utils';

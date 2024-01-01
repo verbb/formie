@@ -1,4 +1,3 @@
-import { FormieCaptchaProvider } from './captcha-provider';
 import { recaptchaEnterprise as recaptcha } from './inc/recaptcha';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey, ensureVariable } from '../utils/utils';
