@@ -28,6 +28,12 @@ use craft\commerce\gql\interfaces\elements\Product as ProductInterface;
 
 use GraphQL\Type\Definition\Type;
 
+// Prevent a fatal error if the Commerce class doesn't exist. This is because fields are used
+// at very low-level Craft calls, which can mess things up when encountered.
+if (!class_exists(CommerceProducts::class)) {
+    return;
+}
+
 class Products extends CommerceProducts implements FormFieldInterface
 {
     // Constants

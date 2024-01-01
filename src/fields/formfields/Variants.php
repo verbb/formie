@@ -31,6 +31,12 @@ use GraphQL\Type\Definition\Type;
 
 use yii\base\InvalidConfigException;
 
+// Prevent a fatal error if the Commerce class doesn't exist. This is because fields are used
+// at very low-level Craft calls, which can mess things up when encountered.
+if (!class_exists(CommerceVariants::class)) {
+    return;
+}
+
 class Variants extends CommerceVariants implements FormFieldInterface
 {
     // Constants
