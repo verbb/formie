@@ -82,12 +82,7 @@ class FormQuery extends ElementQuery
             'formie_forms.uid',
         ]);
 
-        $subQuery = (new Query())
-            ->select(['COUNT(*)'])
-            ->from(['pages' => Table::FIELDLAYOUTTABS])
-            ->where('[[pages.layoutId]] = [[formie_forms.fieldLayoutId]]');
-
-        $this->subQuery->addSelect(['pageCount' => $subQuery]);
+        $this->subQuery->addSelect(['JSON_LENGTH(formie_forms.formfieldlayout, "$.pages") AS pageCount']);
 
         if ($this->handle) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.handle', $this->handle));

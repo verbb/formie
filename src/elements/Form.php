@@ -266,6 +266,7 @@ class Form extends Element
     public ?FormSettings $settings = null;
 
     public bool $resetClasses = false;
+    public ?int $pageCount = null;
 
     private ?CraftFieldLayout $_fieldLayout = null;
     private ?FormFieldLayout $_formFieldLayout = null;
