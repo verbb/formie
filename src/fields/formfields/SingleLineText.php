@@ -113,7 +113,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $value = (string)$element->getFieldValue($this->fieldKey);
 
         // Replace newline and tab characters to compare
-        $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
+        $string = preg_replace('/[\t\n\r\s]+/', ' ', $value);
 
         $count = StringHelper::count($string);
 
@@ -135,7 +135,7 @@ class SingleLineText extends FormField implements PreviewableFieldInterface
         $value = (string)$element->getFieldValue($this->fieldKey);
 
         // Replace newline and tab characters to compare
-        $string = preg_replace('/[\t\n\r\s]+/', ' ', $string);
+        $string = preg_replace('/[\t\n\r\s]+/', ' ', $value);
 
         $count = StringHelper::count($string);
 

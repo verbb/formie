@@ -15,7 +15,6 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Phone;
-use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;

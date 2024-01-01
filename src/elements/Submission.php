@@ -910,7 +910,6 @@ class Submission extends Element
         // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator`
         // message for our custom error message. Might ask the Craft crew if there's a better way...
         if (
-            static::hasContent() &&
             Craft::$app->getIsInstalled() &&
             $fieldLayout = $this->getFieldLayout()
         ) {
@@ -940,19 +939,6 @@ class Submission extends Element
                         (empty($validator->on) && !in_array($scenario, $validator->except))
                     ) {
                         $validator->validateAttributes($this);
-                    }
-                }
-
-                if ($field::hasContentColumn()) {
-                    $columnType = $field->getContentColumnType();
-                    $value = $field->serializeValue($this->getFieldValue($field->handle), $this);
-
-                    if (is_array($columnType)) {
-                        foreach ($columnType as $key => $type) {
-                            $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $type, $value[$key] ?? null);
-                        }
-                    } else {
-                        $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $columnType, $value);
                     }
                 }
             }
