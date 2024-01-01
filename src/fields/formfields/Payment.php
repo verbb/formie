@@ -177,6 +177,7 @@ class Payment extends FormField
                 'name' => 'providerSettings',
                 'children' => $this->_getProviderSettings('defineSettingsSchema'),
             ],
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

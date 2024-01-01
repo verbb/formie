@@ -18,3 +18,12 @@
     value: integration.settings.secretKey ?? '',
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
+
+{{ forms.selectField({
+    label: 'Language' | t('formie'),
+    instructions: 'Force a specific language when displaying Friendly Captcha. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
+    name: 'language',
+    value: integration.settings.language ?? 'auto',
+    options: languageOptions,
+    warning: macros.configWarning('language', 'formie'),
+}) }}

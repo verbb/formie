@@ -28,7 +28,6 @@ abstract class EmailMarketing extends Integration
 
     public ?array $fieldMapping = null;
     public ?string $listId = null;
-    public ?string $optInField = null;
 
 
     // Public Methods

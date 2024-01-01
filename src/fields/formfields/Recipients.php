@@ -14,7 +14,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
-use verbb\formie\positions\Hidden;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -163,7 +163,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
     public function getFieldTypeConfigDefaults(): array
     {
         return [
-            'labelPosition' => Hidden::class,
+            'labelPosition' => HiddenPosition::class,
         ];
     }
 
@@ -423,6 +423,7 @@ class Recipients extends FormField implements PreviewableFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 
@@ -489,8 +490,15 @@ class Recipients extends FormField implements PreviewableFieldInterface
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }

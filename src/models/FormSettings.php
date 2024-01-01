@@ -320,6 +320,7 @@ class FormSettings extends Model
         }
     }
 
+
     // Protected Methods
     // =========================================================================
 
@@ -331,6 +332,7 @@ class FormSettings extends Model
 
         return $rules;
     }
+    
 
     // Private Methods
     // =========================================================================

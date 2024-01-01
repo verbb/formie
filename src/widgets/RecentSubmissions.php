@@ -84,7 +84,7 @@ class RecentSubmissions extends Widget
     // =========================================================================
 
     public ?string $title = null;
-    public ?array $formIds = [];
+    public array|string|null $formIds = [];
     public ?int $limit = 5;
     public ?string $displayType = 'list';
     public ?DateTime $startDate = null;

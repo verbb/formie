@@ -77,6 +77,11 @@ class Form extends Element
         return 'form';
     }
 
+    public static function trackChanges(): bool
+    {
+        return true;
+    }
+
     public static function hasTitles(): bool
     {
         return true;
@@ -193,6 +198,7 @@ class Form extends Element
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
+            'pageCount' => ['label' => Craft::t('formie', 'Pages')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -221,6 +227,11 @@ class Form extends Element
         return [
             'title' => Craft::t('app', 'Title'),
             'handle' => Craft::t('app', 'Handle'),
+            [
+                'label' => Craft::t('app', 'Pages'),
+                'orderBy' => 'pageCount',
+                'attribute' => 'pageCount',
+            ],
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
@@ -975,7 +986,15 @@ class Form extends Element
 
         // Add any query params to the URL automatically (think utm)
         if ($url && $request->getIsSiteRequest() && $includeQueryString) {
-            $url = UrlHelper::url($url, $request->getQueryStringWithoutPath());
+            // But only add query strings if they don't override any set for the redirect URL already
+            // For example, the request URL might be `submissionId=12` but the redirect is `submissionId={id}`
+            // we wouldn't want to overwrite the latter with the former. Specifically set URLs take precedence.
+            $requestParams = $request->getQueryStringWithoutPath();
+            $urlParams = explode('?', $url)[1] ?? '';
+
+            // UrlHelper will take care of normalization. The important bit is to override request params if
+            // there's any duplication.
+            $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
         }
 
         // Handle any UTF characters defined in the URL and encode them properly
@@ -1173,15 +1192,19 @@ class Form extends Element
 
         if ($key === 'pageTab') {
             $submission = $context['submission'] ?? null;
-            $currentPage = $context['currentPage']->handle ?? null;
+            $currentPage = $context['currentPage'] ?? null;
+            $currentPageHandle = $currentPage->handle ?? null;
+            $currentPageIndex = $this->getPageIndex($currentPage);
             $page = $context['page'] ?? null;
             $pageHandle = $page->handle ?? null;
+            $pageIndex = $this->getPageIndex($page);
 
             return new HtmlTag('div', [
                 'id' => 'fui-tab-' . $pageHandle,
                 'class' => [
                     'fui-tab',
-                    ($pageHandle == $currentPage) ? 'fui-tab-active' : false,
+                    ($currentPageIndex > $pageIndex) ? 'fui-tab-complete' : false,
+                    ($pageHandle == $currentPageHandle) ? 'fui-tab-active' : false,
                     $page->getFieldErrors($submission) ? 'fui-tab-error' : false,
                 ],
                 'data-fui-page-tab' => true,
@@ -1430,7 +1453,7 @@ class Form extends Element
             'scrollToTop' => $this->settings->scrollToTop,
             'hasMultiplePages' => $this->hasMultiplePages(),
             'pages' => $this->getPages(),
-            'classes' => $this->getFrontEndClasses(),
+            'themeConfig' => $this->getThemeConfigAttributes(),
             'redirectUrl' => $this->getRedirectUrl(),
             'currentPageHandle' => $this->getCurrentPage()->handle ?: '',
             'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
@@ -1506,9 +1529,9 @@ class Form extends Element
         $this->_frontEndJsEvents[] = $value;
     }
 
-    public function getFrontEndClasses(): array
+    public function getThemeConfigAttributes()
     {
-        $allClasses = [];
+        $allAttributes = [];
 
         // Provide defaults to fallback on, which aren't in Theme Config
         $configKeys = [
@@ -1517,6 +1540,8 @@ class Form extends Element
             'disabled' => 'fui-disabled',
             'tabError' => 'fui-tab-error',
             'tabActive' => 'fui-tab-active',
+            'tabComplete' => 'fui-tab-complete',
+            'successMessage' => 'fui-alert-success',
             'alert' => 'fui-alert',
             'alertError' => 'fui-alert-error',
             'alertSuccess' => 'fui-alert-success',
@@ -1551,7 +1576,8 @@ class Form extends Element
                     $classes = [$classes];
                 }
 
-                $allClasses[$configKey] = implode(' ', $classes);
+                $allAttributes[$configKey] = Html::getTagAttributes($tag->attributes);
+                $allAttributes[$configKey]['class'] = implode(' ', $classes);
             } else if ($fieldTag) {
                 $classes = $fieldTag->attributes['class'] ?? $fallback;
 
@@ -1559,13 +1585,14 @@ class Form extends Element
                     $classes = [$classes];
                 }
 
-                $allClasses[$configKey] = implode(' ', $classes);
+                $allAttributes[$configKey] = Html::getTagAttributes($fieldTag->attributes);
+                $allAttributes[$configKey]['class'] = implode(' ', $classes);
             } else {
-                $allClasses[$configKey] = $fallback;
+                $allAttributes[$configKey]['class'] = $fallback;
             }
         }
 
-        return $allClasses;
+        return $allAttributes;
     }
 
     public function getFrontEndTemplateOption(string $option): bool
@@ -1987,6 +2014,7 @@ class Form extends Element
     {
         return match ($attribute) {
             'usageCount' => count(Formie::$plugin->getForms()->getFormUsage($this)),
+            'pageCount' => count($this->getPages()),
             default => parent::attributeHtml($attribute),
         };
     }

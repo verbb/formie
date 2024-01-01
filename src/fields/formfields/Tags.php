@@ -319,7 +319,7 @@ class Tags extends CraftTags implements FormFieldInterface
 
         // Allow any template-defined elementQuery to override
         if ($this->elementsQuery) {
-            Craft::configure($query, $this->elementsQuery);
+            $query = $this->elementsQuery;
         }
 
         // Fire a 'modifyElementFieldQuery' event
@@ -362,7 +362,11 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
-           'defaultValue' => [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {
@@ -444,6 +448,7 @@ class Tags extends CraftTags implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable variants.'),

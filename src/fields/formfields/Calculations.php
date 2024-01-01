@@ -150,6 +150,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 'name' => 'errorMessage',
                 'if' => '$get(required).value',
             ]),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::matchField([
                 'fieldTypes' => [self::class],
             ]),

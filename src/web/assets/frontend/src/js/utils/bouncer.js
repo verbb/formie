@@ -504,6 +504,10 @@ export const Bouncer = function(formElement, options) {
         error.setAttribute('data-error-message', '');
         error.id = settings.errorPrefix + getFieldID(field, settings, true);
 
+        // Set for accessibility
+        error.setAttribute('aria-live', 'polite');
+        error.setAttribute('aria-atomic', true);
+
         // If the field is a radio button or checkbox, grab the last field label
         var fieldTarget = getErrorField(field);
 

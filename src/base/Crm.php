@@ -24,12 +24,6 @@ abstract class Crm extends Integration
     }
 
 
-    // Properties
-    // =========================================================================
-    
-    public ?string $optInField = null;
-
-
     // Public Methods
     // =========================================================================
 

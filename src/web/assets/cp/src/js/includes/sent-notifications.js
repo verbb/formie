@@ -18,7 +18,7 @@ Craft.Formie.ResendNotificationModal = Garnish.Modal.extend({
         var $footer = $('<div class="footer"/>').appendTo(this.$form);
         var $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
         this.$cancelBtn = $('<input type="button" class="btn" value="' + Craft.t('formie', 'Cancel') + '"/>').appendTo($mainBtnGroup);
-        this.$updateBtn = $('<input type="button" class="btn submit" value="' + Craft.t('formie', 'Resend Email Notification') + '"/>').appendTo($mainBtnGroup);
+        this.$updateBtn = $('<input type="submit" class="btn submit" value="' + Craft.t('formie', 'Resend Email Notification') + '"/>').appendTo($mainBtnGroup);
         this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
 
         Craft.initUiElements(this.$form);
@@ -129,7 +129,7 @@ Craft.Formie.BulkResendModal = Garnish.Modal.extend({
         var $footer = $('<div class="footer"/>').appendTo(this.$form);
         var $mainBtnGroup = $('<div class="buttons right"/>').appendTo($footer);
         this.$cancelBtn = $('<input type="button" class="btn" value="' + Craft.t('formie', 'Cancel') + '"/>').appendTo($mainBtnGroup);
-        this.$updateBtn = $('<input type="button" class="btn submit" value="' + Craft.t('formie', 'Resend Email Notifications') + '"/>').appendTo($mainBtnGroup);
+        this.$updateBtn = $('<input type="submit" class="btn submit" value="' + Craft.t('formie', 'Resend Email Notifications') + '"/>').appendTo($mainBtnGroup);
         this.$footerSpinner = $('<div class="spinner right hidden"/>').appendTo($footer);
 
         this.addListener(this.$cancelBtn, 'click', 'onFadeOut');

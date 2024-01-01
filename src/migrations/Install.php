@@ -123,6 +123,26 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_newlayout}}');
+        $this->createTable('{{%formie_newlayout}}', [
+            'id' => $this->primaryKey(),
+            'formId' => $this->integer()->notNull(),
+            'layoutConfig' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_newnestedlayout}}');
+        $this->createTable('{{%formie_newnestedlayout}}', [
+            'id' => $this->primaryKey(),
+            'fieldId' => $this->integer()->notNull(),
+            'layoutConfig' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists('{{%formie_notifications}}');
         $this->createTable('{{%formie_notifications}}', [
             'id' => $this->primaryKey(),
@@ -130,6 +150,7 @@ class Install extends Migration
             'templateId' => $this->integer(),
             'pdfTemplateId' => $this->integer(),
             'name' => $this->text()->notNull(),
+            'handle' => $this->string(64)->notNull(),
             'enabled' => $this->boolean()->defaultValue(true),
             'subject' => $this->text(),
             'recipients' => $this->enum('recipients', ['email', 'conditions'])

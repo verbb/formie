@@ -7,6 +7,7 @@ export class FormieRichText {
         this.$field = settings.$field.querySelector('textarea');
         this.$container = settings.$field.querySelector('[data-rich-text]');
         this.scriptId = 'FORMIE_FONT_AWESOME_SCRIPT';
+        this.defaultParagraphSeparator = 'p';
 
         this.buttons = settings.buttons;
 
@@ -141,13 +142,19 @@ export class FormieRichText {
             document.body.appendChild($script);
         }
 
-        this.editor = init({
+        const options = {
             element: this.$container,
-            defaultParagraphSeparator: 'p',
+            defaultParagraphSeparator: this.defaultParagraphSeparator,
             styleWithCSS: true,
             actions: this.getButtons(),
             onChange: (html) => {
-                this.$field.textContent = html;
+                // catch "empty" HTML if we're using a placeholder
+                if (this.$field.placeholder && html === `<${this.defaultParagraphSeparator}><br></${this.defaultParagraphSeparator}>`) {
+                    this.$field.textContent = '';
+                    this.editor.content.innerHTML = '';
+                } else {
+                    this.$field.textContent = html;
+                }
 
                 // Fire a custom event on the input
                 this.$field.dispatchEvent(new CustomEvent('populate', { bubbles: true }));
@@ -158,10 +165,39 @@ export class FormieRichText {
                 content: 'fui-input fui-rich-text-content',
                 selected: 'fui-rich-text-selected',
             },
+        };
+
+        // Emit an "beforeInit" event. This can directly modify the `options` param
+        const beforeInitEvent = new CustomEvent('beforeInit', {
+            bubbles: true,
+            detail: {
+                richText: this,
+                options,
+            },
         });
+
+        this.$field.dispatchEvent(beforeInitEvent);
+
+        // save the defaultParagraphSeparator again, if it changed
+        this.defaultParagraphSeparator = options.defaultParagraphSeparator || this.defaultParagraphSeparator;
+
+        this.editor = init(options);
 
         // Populate any values initially set
         this.editor.content.innerHTML = this.$field.textContent;
+
+        // Populate placeholder if set
+        if (this.$field.placeholder) {
+            this.editor.content.setAttribute('data-placeholder', this.$field.placeholder);
+        }
+
+        // Emit an "afterInit" event
+        this.$field.dispatchEvent(new CustomEvent('afterInit', {
+            bubbles: true,
+            detail: {
+                richText: this,
+            },
+        }));
     }
 }
 

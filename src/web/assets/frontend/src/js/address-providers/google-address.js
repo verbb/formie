@@ -82,6 +82,17 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             }
 
             this.setAddressValues(place.address_components);
+
+            // Allow events to modify behaviour
+            const populateAddressEvent = new CustomEvent('populateAddress', {
+                bubbles: true,
+                detail: {
+                    addressProvider: this,
+                    addressComponents: place.address_components,
+                },
+            });
+
+            this.$field.dispatchEvent(populateAddressEvent);
         });
     }
 

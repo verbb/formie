@@ -320,6 +320,15 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function includeInEmailField($config = []): array
+    {
+        return self::lightswitchField(array_merge([
+            'label' => Craft::t('formie', 'Include in Email Notifications'),
+            'help' => Craft::t('formie', 'Whether the value of this field should be included in email notifications.'),
+            'name' => 'includeInEmail',
+        ], $config));
+    }
+
     public static function visibility($config = []): array
     {
         return self::selectField(array_merge([

@@ -51,18 +51,9 @@ class User extends Element
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
-        $fields = [];
 
         $userFieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class);
-
-        foreach ($userFieldLayout->getCustomFields() as $field) {
-            $fields[] = new IntegrationField([
-                'handle' => $field->handle,
-                'name' => $field->name,
-                'type' => $this->getFieldTypeForField(get_class($field)),
-                'required' => (bool)$field->required,
-            ]);
-        }
+        $fields = $this->getFieldLayoutFields($userFieldLayout);
 
         $customFields[] = new IntegrationCollection([
             'id' => 'user',

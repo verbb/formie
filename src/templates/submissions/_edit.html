@@ -200,8 +200,8 @@
     {% endif %}
 </div>
 
-{% if submission.isSpam %}
-    <div id="meta-details" class="meta">
+<div id="meta-details" class="meta">
+    {% if submission.isSpam %}
         <div class="field">
             <div class="heading">
                 <label class="">{{ 'Status' | t('formie') }}</label>
@@ -217,26 +217,26 @@
                         <span class="status red"></span>
                     {% endif %}
 
-                    {{ 'Spam' | t('formie') }} <span class="info">{{ submission.spamReason }}</span>
+                    {{ 'Spam' | t('formie') }} {% if submission.spamReason %}<span class="info">{{ submission.spamReason }}</span>{% endif %}
                 </div>
             </div>
         </div>
+    {% endif %}
 
-        <div class="field">
-            <div class="heading">
-                <label class="">{{ 'Mark as Spam' | t('formie') }}</label>
-            </div>
+    <div class="field">
+        <div class="heading">
+            <label class="">{{ 'Mark as Spam' | t('formie') }}</label>
+        </div>
 
-            <div>
-                {{ forms.lightswitchField({
-                    id: 'isSpam',
-                    name: 'isSpam',
-                    on: submission.isSpam,
-                }) }}
-            </div>
+        <div>
+            {{ forms.lightswitchField({
+                id: 'isSpam',
+                name: 'isSpam',
+                on: submission.isSpam,
+            }) }}
         </div>
     </div>
-{% endif %}
+</div>
 
 {% set notifications = form.getNotifications() %}
 

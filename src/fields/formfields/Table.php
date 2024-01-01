@@ -11,6 +11,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\Element;
@@ -182,48 +183,12 @@ class Table extends CraftTable implements FormFieldInterface
 
     public function normalizeValue(mixed $value, ElementInterface $element = null): mixed
     {
-        // This is the parent `Table::normalizeValue()` function, but we need custom behaviour for date/time cells
-        if (is_string($value) && !empty($value)) {
-            $value = Json::decodeIfJson($value);
-        } elseif ($value === null && $this->isFresh($element)) {
-            $value = array_values($this->defaults ?? []);
-        }
+        return $this->_normalizeValueInternal($value, $element, false);
+    }
 
-        if (!is_array($value) || empty($this->columns)) {
-            return null;
-        }
-
-        // Normalize the values and make them accessible from both the col IDs and the handles
-        foreach ($value as &$row) {
-            foreach ($this->columns as $colId => $col) {
-                if (array_key_exists($colId, $row)) {
-                    $cellValue = $row[$colId];
-                } elseif ($col['handle'] && array_key_exists($col['handle'], $row)) {
-                    $cellValue = $row[$col['handle']];
-                } else {
-                    $cellValue = null;
-                }
-
-                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue);
-                $row[$colId] = $cellValue;
-                
-                if ($col['handle']) {
-                    $row[$col['handle']] = $cellValue;
-                }
-            }
-        }
-
-        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
-        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
-        if (is_array($value)) {
-            foreach ($value as $k => $v) {
-                if ($k === '__ROW__') {
-                    unset($value[$k]);
-                }
-            }
-        }
-
-        return $value;
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->_normalizeValueInternal($value, $element, true);
     }
 
     public function hasMinRows(): bool
@@ -333,6 +298,7 @@ class Table extends CraftTable implements FormFieldInterface
                 'name' => 'errorMessage',
                 'if' => '$get(required).value',
             ]),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Static'),
                 'help' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),
@@ -394,8 +360,15 @@ class Table extends CraftTable implements FormFieldInterface
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
             ]);
         }
 
@@ -633,6 +606,89 @@ class Table extends CraftTable implements FormFieldInterface
     // Private Methods
     // =========================================================================
 
+    private function _normalizeValueInternal(mixed $value, ?ElementInterface $element, bool $fromRequest): ?array
+    {
+        //
+        // This is the parent `Table::_normalizeValueInternal()` function, but we need custom behaviour for date/time cells
+        //
+        if (empty($this->columns)) {
+            return null;
+        }
+
+        $defaults = $this->defaults ?? [];
+
+        // Apply static translations
+        foreach ($defaults as &$row) {
+            foreach ($this->columns as $colId => $col) {
+                if ($col['type'] === 'heading' && isset($row[$colId])) {
+                    $row[$colId] = Craft::t('site', $row[$colId]);
+                }
+            }
+        }
+
+        if (is_string($value) && !empty($value)) {
+            $value = Json::decodeIfJson($value);
+        } else if ($value === null && $this->isFresh($element)) {
+            $value = $defaults;
+        }
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Normalize the values and make them accessible from both the col IDs and the handles
+        $value = array_values($value);
+
+        if ($this->staticRows) {
+            $valueRows = count($value);
+            $totalRows = count($defaults);
+
+            if ($valueRows < $totalRows) {
+                $value = array_pad($value, $totalRows, []);
+            } else if ($valueRows > $totalRows) {
+                array_splice($value, $totalRows);
+            }
+        }
+
+        // If the value is still empty, return null
+        if (empty($value)) {
+            return null;
+        }
+
+        foreach ($value as $rowIndex => &$row) {
+            foreach ($this->columns as $colId => $col) {
+                if ($col['type'] === 'heading') {
+                    $cellValue = $defaults[$rowIndex][$colId] ?? '';
+                } else if (array_key_exists($colId, $row)) {
+                    $cellValue = $row[$colId];
+                } else if ($col['handle'] && array_key_exists($col['handle'], $row)) {
+                    $cellValue = $row[$col['handle']];
+                } else {
+                    $cellValue = null;
+                }
+
+                $cellValue = $this->_normalizeCellValue($col['type'], $cellValue, $fromRequest);
+                $row[$colId] = $cellValue;
+
+                if ($col['handle']) {
+                    $row[$col['handle']] = $cellValue;
+                }
+            }
+        }
+
+        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
+        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                if ($k === '__ROW__') {
+                    unset($value[$k]);
+                }
+            }
+        }
+
+        return $value;
+    }
+
     private function _validateCellValue(string $type, mixed $value, string &$error = null): bool
     {
         if ($value === null || $value === '') {
@@ -656,6 +712,7 @@ class Table extends CraftTable implements FormFieldInterface
         }
 
         $validator->message = str_replace('{attribute}', '{value}', $validator->message);
+
         return $validator->validate($value, $error);
     }
 
@@ -663,12 +720,12 @@ class Table extends CraftTable implements FormFieldInterface
     {
         return match ($type) {
             'color' => $value->getHex(),
-            'date', 'time' => DateTimeHelper::toIso8601($value) ?: null,
+            'date', 'time' => null,
             default => $value,
         };
     }
 
-    private function _normalizeCellValue(string $type, mixed $value): mixed
+    private function _normalizeCellValue(string $type, mixed $value, bool $fromRequest): mixed
     {
         switch ($type) {
             case 'color':

@@ -54,6 +54,9 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     // =========================================================================
     
     public ?string $apiDomain = null;
+    public bool $impersonateUser = false;
+    public string $impersonateHeader = 'CallerObjectId';
+    public ?string $impersonateUserId = null;
     public ?string $apiVersion = 'v9.0';
     public bool $mapToContact = false;
     public bool $mapToLead = false;
@@ -323,6 +326,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#prefer-headers
         if ($method === 'POST' || $method === 'PATCH') {
             $options['headers']['Prefer'] = 'return=representation';
+        }
+
+        // Impersonate user when creating records if enabled
+        if ($this->impersonateUser && $method === 'POST') {
+            $options['headers'][$this->impersonateHeader] = $this->impersonateUserId;
         }
 
         // Prevent create when using upsert
@@ -685,10 +693,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
                 $response = $this->request('GET', $targetSchema['entity'], [
                     'query' => [
-                        '$top' => $targetSchema['limit'] ?? '100',
-                        '$select' => implode(',', $select),
+                        '$expand' => $targetSchema['expand'] ?? null,
+                        '$filter' => $targetSchema['filter'] ?? null,
                         '$orderby' => $targetSchema['orderby'] ?? null,
-                        '$filter' => $targetSchema['filter'] ?? null
+                        '$select' => implode(',', $select),
+                        '$top' => $targetSchema['limit'] ?? '100'
                     ],
                 ]);
 
@@ -773,12 +782,12 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 '$top' => '100',
                 '$select' => 'fullname,systemuserid,applicationid',
                 '$orderby' => 'fullname',
-                '$filter' => 'applicationid eq null',
+                '$filter' => 'applicationid eq null and invitestatuscode eq 4 and isdisabled eq false',
             ]
         ]);
 
         foreach (($response['value'] ?? []) as $user) {
-            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => $user['systemuserid']];
+            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => 'systemusers(' . $user['systemuserid'] . ')'];
         }
 
         return $this->_systemUsers;

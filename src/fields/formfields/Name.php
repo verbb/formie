@@ -18,6 +18,7 @@ use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Name as NameModel;
 use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -423,6 +424,7 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
             SchemaHelper::prePopulate([
                 'if' => '$get(useMultipleFields).value != true',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
 
         foreach ($this->getSubFieldOptions() as $key => $nestedField) {
@@ -514,8 +516,15 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }
@@ -530,6 +539,7 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
                 ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                'autocomplete' => 'name',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,

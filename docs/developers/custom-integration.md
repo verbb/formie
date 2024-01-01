@@ -2,10 +2,15 @@
 You can add your own custom integrations to be compatible with Formie by using the provided events.
 
 ```php
-use modules\ExampleCaptcha;
-use modules\ExampleAddressProvider;
-use modules\ExampleElement;
+namespace modules\sitemodule;
 
+use modules\sitemodule\ExampleAddressProvider;
+use modules\sitemodule\ExampleCaptcha;
+use modules\sitemodule\ExampleCrm;
+use modules\sitemodule\ExampleElement;
+use modules\sitemodule\ExampleEmailMarketing;
+use modules\sitemodule\ExampleMiscellaneous;
+use modules\sitemodule\ExampleWebhooks;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
@@ -48,7 +53,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
@@ -130,7 +135,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\AddressProvider;
 use verbb\formie\elements\Form;
@@ -200,7 +205,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\Element;
 use verbb\formie\elements\Form;
@@ -328,7 +333,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Form;
@@ -457,7 +462,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\Crm;
 use verbb\formie\elements\Form;
@@ -601,7 +606,7 @@ Method | Description
 
 ```php
 <?php
-namespace modules;
+namespace modules\sitemodule;
 
 use verbb\formie\base\Webhook;
 use verbb\formie\elements\Form;

@@ -49,12 +49,17 @@ class Honeypot extends Captcha
         return $output;
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): array
+    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),
             'sessionKey' => self::HONEYPOT_INPUT_NAME,
         ];
+    }
+    
+    public function getGqlVariables(Form $form, FormPage $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
     }
 
     public function validateSubmission(Submission $submission): bool

@@ -51,7 +51,7 @@ abstract class BaseJob extends CraftBaseJob
                 $event->job->integration->setClient(null);
 
                 // Clear out the cache for the same reason (can get immensely large)
-                $event->job->integration->cache = null;
+                $event->job->integration->cache = [];
             }
 
             // Serialize it again ready to save

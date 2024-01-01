@@ -71,18 +71,7 @@ class CalendarEvent extends Element
         $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
 
         foreach ($calendars as $calendar) {
-            $fields = [];
-
-            if ($fieldLayout = $calendar->getFieldLayout()) {
-                foreach ($fieldLayout->getCustomFields() as $field) {
-                    $fields[] = new IntegrationField([
-                        'handle' => $field->handle,
-                        'name' => $field->name,
-                        'type' => $this->getFieldTypeForField(get_class($field)),
-                        'required' => (bool)$field->required,
-                    ]);
-                }
-            }
+            $fields = $this->getFieldLayoutFields($calendar->getFieldLayout());
 
             $customFields[] = new IntegrationCollection([
                 'id' => $calendar->id,

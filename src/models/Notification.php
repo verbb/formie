@@ -32,6 +32,7 @@ class Notification extends Model
     public ?int $templateId = null;
     public ?int $pdfTemplateId = null;
     public ?string $name = null;
+    public ?string $handle = null;
     public ?bool $enabled = null;
     public ?string $subject = null;
     public string $recipients = self::RECIPIENTS_EMAIL;

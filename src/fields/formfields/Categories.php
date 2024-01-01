@@ -11,6 +11,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -257,7 +258,7 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         // Allow any template-defined elementQuery to override
         if ($this->elementsQuery) {
-            Craft::configure($query, (array)$this->elementsQuery);
+            $query = $this->elementsQuery;
         }
 
         // Fire a 'modifyElementFieldQuery' event
@@ -318,6 +319,10 @@ class Categories extends CraftCategories implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
             'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
@@ -408,6 +413,7 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Branch Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable category branches.'),
@@ -510,8 +516,15 @@ class Categories extends CraftCategories implements FormFieldInterface
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }

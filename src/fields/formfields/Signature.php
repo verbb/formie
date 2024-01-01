@@ -133,6 +133,7 @@ class Signature extends FormField implements PreviewableFieldInterface
                 'name' => 'errorMessage',
                 'if' => '$get(required).value',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

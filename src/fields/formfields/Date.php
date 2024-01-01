@@ -874,6 +874,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Min Date'),
                 'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),

@@ -76,7 +76,7 @@ class Turnstile extends Captcha
         ];
     }
 
-    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
+    public function getGqlVariables(Form $form, FormPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

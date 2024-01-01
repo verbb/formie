@@ -16,6 +16,7 @@ class IntegrationField extends Model
     public const TYPE_DATETIME = 'datetime';
     public const TYPE_DATECLASS = 'dateclass';
     public const TYPE_ARRAY = 'array';
+    public const TYPE_PHONE = 'phone';
 
 
     // Properties

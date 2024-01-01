@@ -240,6 +240,7 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

@@ -7,6 +7,9 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\FormPage;
 
 use Craft;
+use craft\helpers\Html;
+use craft\helpers\Json;
+use craft\web\View;
 
 class Duplicate extends Captcha
 {
@@ -37,6 +40,17 @@ class Duplicate extends Captcha
 
     public function getFrontEndHtml(Form $form, $page = null): string
     {
+        return Html::tag('div', null, [
+            'class' => 'formie-duplicate-captcha-placeholder',
+            'data-duplicate-captcha-placeholder' => true,
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getFrontEndJsVariables(Form $form, $page = null): ?array
+    {
         $sessionKey = $this->getSessionKey($form, $page);
 
         // Get or create the generated input value, so we can validate it properly. Also make it per-form
@@ -44,11 +58,22 @@ class Duplicate extends Captcha
             return uniqid('', true);
         });
 
-        // Set a hidden field with no value and use javascript to set it.
-        return '<input type="hidden" name="' . $sessionKey . '" value="' . $value . '" />';
+        $settings = [
+            'formId' => $form->getFormId(),
+            'sessionKey' => $sessionKey,
+            'value' => $value,
+        ];
+
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/duplicate.js', true);
+
+        return [
+            'src' => $src,
+            'module' => 'FormieDuplicateCaptcha',
+            'settings' => $settings,
+        ];
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): array
+    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
@@ -58,9 +83,15 @@ class Duplicate extends Captcha
         });
 
         return [
+            'formId' => $form->getFormId(),
             'sessionKey' => $sessionKey,
             'value' => $value,
         ];
+    }
+    
+    public function getGqlVariables(Form $form, FormPage $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
     }
 
     public function validateSubmission(Submission $submission): bool

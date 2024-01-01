@@ -171,7 +171,7 @@ class Opayo extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $submission->getFieldValue($field->fieldKey);
+            $fieldValue = $this->getPaymentFieldValue($submission);
             $opayoTokenId = $fieldValue['opayoTokenId'] ?? null;
             $opayoSessionKey = $fieldValue['opayoSessionKey'] ?? null;
             $opayo3DSComplete = $fieldValue['opayo3DSComplete'] ?? null;
@@ -257,7 +257,7 @@ class Opayo extends Payment
                 ]);
 
                 // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $submission->addError($field->fieldKey, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                 return false;
             }
@@ -290,7 +290,7 @@ class Opayo extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
@@ -558,6 +558,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Cardholder Name'),
+                    'handle' => 'cardName',
                     'required' => true,
                     'inputAttributes' => [
                         [
@@ -568,6 +569,10 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-name',
+                        ],
                     ],
                 ],
             ],
@@ -575,6 +580,7 @@ class Opayo extends Payment
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Card Number'),
+                    'handle' => 'cardNumber',
                     'required' => true,
                     'placeholder' => '•••• •••• •••• ••••',
                     'inputAttributes' => [
@@ -586,11 +592,16 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-number',
+                        ],
                     ],
                 ],
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'Expiry'),
+                    'handle' => 'cardExpiry',
                     'required' => true,
                     'placeholder' => 'MMYY',
                     'inputAttributes' => [
@@ -602,11 +613,16 @@ class Opayo extends Payment
                             'label' => 'name',
                             'value' => false,
                         ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-exp',
+                        ],
                     ],
                 ],
                 [
                     'type' => SingleLineText::class,
                     'name' => Craft::t('formie', 'CVC'),
+                    'handle' => 'cardCvc',
                     'required' => true,
                     'placeholder' => '•••',
                     'inputAttributes' => [
@@ -617,6 +633,10 @@ class Opayo extends Payment
                         [
                             'label' => 'name',
                             'value' => false,
+                        ],
+                        [
+                            'label' => 'autocomplete',
+                            'value' => 'cc-csc',
                         ],
                     ],
                 ],

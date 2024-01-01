@@ -13,6 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -196,8 +197,15 @@ class Group extends NestedField implements SingleNestedFieldInterface
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
             ]);
         }
 

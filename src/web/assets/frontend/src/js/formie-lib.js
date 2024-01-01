@@ -1,4 +1,4 @@
-import { t, isEmpty } from './utils/utils';
+import { t, isEmpty, waitForElement } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
@@ -29,7 +29,7 @@ export class Formie {
         }));
     }
 
-    initForm($form, formConfig = {}) {
+    async initForm($form, formConfig = {}) {
         if (isEmpty(formConfig)) {
             // Initialize the form class with the `data-fui-form` param on the form
             formConfig = JSON.parse($form.getAttribute('data-fui-form'));
@@ -39,6 +39,14 @@ export class Formie {
             console.error('Unable to parse `data-fui-form` form attribute for config. Ensure this attribute exists on your form and contains valid JSON.');
 
             return;
+        }
+
+        // Check if we are initializing a form multiple times
+        const initializeForm = this.getFormByHashId(formConfig.formHashId);
+
+        if (initializeForm) {
+            // Wait until the form is destroyed first before initializing again
+            await this.destroyForm(initializeForm);
         }
 
         // See if we need to init additional, conditional JS (field, captchas, etc)
@@ -60,7 +68,8 @@ export class Formie {
         if (registeredJs.length) {
             // Check if we've already loaded scripts for this form
             if (document.querySelector(`[data-fui-scripts="${formConfig.formHashId}"]`)) {
-                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}`);
+                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}.`);
+
                 return;
             }
 
@@ -165,6 +174,15 @@ export class Formie {
         });
     }
 
+    getFormByHashId(hashId) {
+        // eslint-disable-next-line array-callback-return
+        return this.forms.find((form) => {
+            if (form.config) {
+                return form.config.formHashId == hashId;
+            }
+        });
+    }
+
     getFormByHandle(handle) {
         // eslint-disable-next-line array-callback-return
         return this.forms.find((form) => {
@@ -174,10 +192,18 @@ export class Formie {
         });
     }
 
-    destroyForm($form) {
-        const form = this.getForm($form);
+    async destroyForm(form) {
+        let $form;
 
-        if (!form) {
+        // Allow passing in a DOM element, or a FormieBaseForm object
+        if (form instanceof FormieFormBase) {
+            $form = form.$form;
+        } else {
+            $form = form;
+            form = this.getForm($form);
+        }
+
+        if (!form || !$form) {
             return;
         }
 
@@ -192,6 +218,11 @@ export class Formie {
             form.$registeredJs.parentNode.removeChild(form.$registeredJs);
         }
 
+        // Trigger an event (before events are removed)
+        form.formDestroy({
+            form,
+        });
+
         // Remove all event listeners attached to this form
         if (!isEmpty(form.listeners)) {
             Object.keys(form.listeners).forEach((eventKey) => {
@@ -205,7 +236,76 @@ export class Formie {
         }
 
         // Delete it from the factory
-        delete this.forms[index];
+        this.forms.splice(index, 1);
+    }
+
+    refreshForCache(formHashId, callback) {
+        const form = this.getFormByHashId(formHashId);
+
+        if (!form) {
+            console.error(`Unable to find form "${formHashId}".`);
+            return;
+        }
+
+        this.refreshFormTokens(form, callback);
+    }
+
+    refreshFormTokens(form, callback) {
+        const { formHashId, formHandle } = form.config;
+
+        fetch(`/actions/formie/forms/refresh-tokens?form=${formHandle}`)
+            .then((result) => { return result.json(); })
+            .then((result) => {
+                // Fetch the form we want to deal with
+                const { $form } = form;
+
+                // Update the CSRF input
+                if (result.csrf.param) {
+                    const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
+
+                    if ($csrfInput) {
+                        $csrfInput.value = result.csrf.token;
+
+                        console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                    } else {
+                        console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
+                    }
+                } else {
+                    console.error(`${formHashId}: Missing CSRF token information in cache-refresh response.`);
+                }
+
+                // Update any captchas
+                if (result.captchas) {
+                    Object.entries(result.captchas).forEach(([key, value]) => {
+                        // In some cases, the captcha input might not have loaded yet, as some are dynamically created
+                        // (see Duplicate and JS captchas). So wait for the element to exist first
+                        waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
+                            if (value.value) {
+                                $captchaInput.value = value.value;
+
+                                console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                            }
+                        });
+
+                        // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
+                        setTimeout(() => {
+                            if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
+                                console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
+                            }
+                        }, 10000);
+                    });
+                }
+
+                // Update the form's hash (if using Formie's themed JS)
+                if (form.formTheme) {
+                    form.formTheme.updateFormHash();
+                }
+
+                // Fire a callback for users to do other bits
+                if (callback) {
+                    callback(result);
+                }
+            });
     }
 }
 

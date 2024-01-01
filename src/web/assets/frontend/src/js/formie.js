@@ -5,12 +5,17 @@ import { Formie } from './formie-lib';
 // import `formie-lib.js` directly into your JS modules.
 window.Formie = new Formie();
 
+// Whether we want to initialize the forms automatically.
+const initForms = document.currentScript.hasAttribute('data-manual-init') ? false : true;
+
 // Don't init forms until the document is ready, or the document already loaded
 // https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event#checking_whether_loading_is_already_complete
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', (event) => {
+if (initForms) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', (event) => {
+            window.Formie.initForms();
+        });
+    } else {
         window.Formie.initForms();
-    });
-} else {
-    window.Formie.initForms();
+    }
 }

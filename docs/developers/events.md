@@ -1923,8 +1923,9 @@ Any modifications made to the standard entities such as `systemuser` or `campaig
 
 The following additional parameters are available for each entity:
 
-* `limit` - Set the amount of values to return (defaults to 100 if not specifically set)
+* `expand` - For more complex queries related to one or more entities
 * `filter` - Specify a filter to modify the returned values
+* `limit` - Set the amount of values to return (defaults to 100 if not specifically set)
 * `orderby` - Order the returned values by a specific criteria e.g. `name asc`
 
 When using the `limit` option. Be mindful of the performance impact when refreshing the integration.

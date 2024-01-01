@@ -114,10 +114,24 @@ export class FormieFormBase {
             bubbles: true,
             detail: data,
         }));
+
+        // Ensure that once completed, we re-fetch the captcha value, which will have expired
+        if (!data.nextPageId) {
+            // Use `this.config.Formie` just in case we're not loading thie script in the global window
+            // (i.e. when users import this script in their own).
+            this.config.Formie.refreshFormTokens(this);
+        }
     }
 
     formSubmitError(data = {}) {
         this.$form.dispatchEvent(new CustomEvent('onFormieSubmitError', {
+            bubbles: true,
+            detail: data,
+        }));
+    }
+
+    formDestroy(data = {}) {
+        this.$form.dispatchEvent(new CustomEvent('onFormieDestroy', {
             bubbles: true,
             detail: data,
         }));
@@ -169,15 +183,18 @@ export class FormieFormBase {
 
     addEventListener(element, event, func) {
         this.listeners[event] = { element, func };
+        const eventName = event.split('.')[0];
 
-        element.addEventListener(event.split('.')[0], this.listeners[event].func);
+        element.addEventListener(eventName, this.listeners[event].func);
     }
 
     removeEventListener(event) {
         const eventInfo = this.listeners[event] || {};
 
         if (eventInfo && eventInfo.element && eventInfo.func) {
-            eventInfo.element.removeEventListener(event.split('.')[0], eventInfo.func);
+            const eventName = event.split('.')[0];
+
+            eventInfo.element.removeEventListener(eventName, eventInfo.func);
             delete this.listeners[event];
         }
     }
@@ -190,9 +207,27 @@ export class FormieFormBase {
         });
     }
 
-    getClasses(key) {
-        const classes = this.settings.classes || {};
+    getThemeConfigAttributes(key) {
+        const attributes = this.settings.themeConfig || {};
 
-        return classes[key];
+        return attributes[key] || {};
+    }
+
+    getClasses(key) {
+        return this.getThemeConfigAttributes(key).class || [];
+    }
+
+    applyThemeConfig($element, key, applyClass = true) {
+        const attributes = this.getThemeConfigAttributes(key);
+
+        if (attributes) {
+            Object.entries(attributes).forEach(([attribute, value]) => {
+                if (attribute === 'class' && !applyClass) {
+                    return;
+                }
+
+                $element.setAttribute(attribute, value);
+            });
+        }
     }
 }

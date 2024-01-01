@@ -3,6 +3,7 @@
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
+{% set sendEmailCampaign = form.settings.integrations[handle].sendEmailCampaign ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -47,6 +48,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.contactFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Send email campaign' | t('formie'),
+            instructions: 'Whether to send an email campaign to a contact' | t('formie', { name: integration.displayName() }),
+            id: 'sendEmailCampaign',
+            name: 'sendEmailCampaign',
+            on: sendEmailCampaign,
+            toggle: 'send-email-campaign',
+        }) }}
+
+        <div id="send-email-campaign" class="{{ not sendEmailCampaign or not mapToContact ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Email Campaign Mapping' | t('formie') }}"
+                instructions="{{ 'Choose an email campaign to send to a contact. Optionally you can set the send date to be in the future.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="email-send-mapping"
+                name="emailSendMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.emailSendMapping')"
+                :rows="get(settings, 'emailCampaign')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.emailSendMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.emailSendMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>

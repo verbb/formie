@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\helpers\Json;
@@ -27,7 +28,9 @@ class SendNotification extends BaseJob
         $this->setProgress($queue, 0.25);
 
         $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
-        $submission = Formie::$plugin->getSubmissions()->getSubmissionById($this->submissionId);
+
+        // Be sure to fetch spam submissions too, if we have Formie set to email those
+        $submission = Submission::find()->id($this->submissionId)->isSpam(null)->one();
 
         if (!$notification) {
             throw new Exception('Unable to find notification: ' . $this->notificationId . '.');

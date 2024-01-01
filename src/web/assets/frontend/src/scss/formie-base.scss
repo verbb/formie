@@ -13,7 +13,8 @@
     display: none;
 }
 
-.fui-sr-only {
+.fui-sr-only,
+[data-fui-sr-only] {
     clip: rect(0,0,0,0);
     height: 1px;
     margin: -1px;
@@ -138,3 +139,8 @@
     order: 10;
 }
 
+// Fix to ensure that any nested elements don't trigger JS events themselves. We just want
+// events to be fired on the outer button (think `<span>` elements inside `<button>`).
+.fui-btn * {
+    pointer-events: none;
+}

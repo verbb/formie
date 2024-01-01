@@ -12,6 +12,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\elements\db\ElementQueryInterface;
@@ -88,8 +89,10 @@ class Products extends CommerceProducts implements FormFieldInterface
 
     public function init(): void
     {
-        // Enforce any required plugin before creating the field
-        Formie::$plugin->getFields()->checkRequiredPlugin($this);
+        // Enforce any required plugin before creating the field, but not before Craft is ready
+        Craft::$app->onInit(function() {
+            Formie::$plugin->getFields()->checkRequiredPlugin($this);
+        });
 
         $this->traitInit();
     }
@@ -210,7 +213,7 @@ class Products extends CommerceProducts implements FormFieldInterface
 
         // Allow any template-defined elementQuery to override
         if ($this->elementsQuery) {
-            Craft::configure($query, $this->elementsQuery);
+            $query = $this->elementsQuery;
         }
 
         // Fire a 'modifyElementFieldQuery' event
@@ -259,7 +262,11 @@ class Products extends CommerceProducts implements FormFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge($this->traitGetSettingGqlTypes(), [
-           'defaultValue' => [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'defaultValue' => [
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {
@@ -342,6 +349,7 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable products.'),
@@ -425,8 +433,15 @@ class Products extends CommerceProducts implements FormFieldInterface
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }

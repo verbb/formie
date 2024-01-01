@@ -145,7 +145,7 @@ class FormInterface extends Element
                     $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($source);
 
                     foreach ($captchas as $captcha) {
-                        if ($jsVariables = $captcha->getRefreshJsVariables($source)) {
+                        if ($jsVariables = $captcha->getGqlVariables($source)) {
                             $values[] = [
                                 'handle' => $captcha->getGqlHandle(),
                                 'name' => $jsVariables['sessionKey'] ?? '',
@@ -171,6 +171,14 @@ class FormInterface extends Element
                 'description' => 'The form’s endpoint for sending submissions to, if using POST requests.',
                 'resolve' => function ($source) {
                     return UrlHelper::actionUrl('formie/submission/submit');
+                },
+            ],
+            'isAvailable' => [
+                'name' => 'isAvailable',
+                'type' => Type::boolean(),
+                'description' => 'Whether the form is considered available according to user checks, scheduling and more.',
+                'resolve' => function ($source) {
+                    return $source->isAvailable();
                 },
             ],
         ]), self::getName());

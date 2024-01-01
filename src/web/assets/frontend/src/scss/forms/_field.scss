@@ -122,6 +122,16 @@
 // ReCAPTCHA
 // ==========================================================================
 
-.formie-recaptcha-placeholder > * {
+.formie-recaptcha-placeholder > div > * {
     margin-top: 1rem;
+}
+
+
+// ==========================================================================
+// Friendly Captchas
+// ==========================================================================
+
+.formie-friendly-captcha-placeholder {
+    position: relative;
+    padding-bottom: 12px;
 }

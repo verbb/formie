@@ -10,6 +10,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FormPage;
+use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
 
@@ -224,13 +225,13 @@ class SubmissionsController extends Controller
         // Now populate the rest of it from the post data
         $submission->enabled = true;
         $submission->enabledForSite = true;
-        $submission->title = $request->getParam('title') ?: $submission->title;
-        $submission->statusId = $request->getParam('statusId', $submission->statusId);
-        $submission->isSpam = (bool)$request->getParam('isSpam', $submission->isSpam);
+        $submission->title = $request->getBodyParam('title') ?: $submission->title;
+        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
+        $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
 
         // Save the submission
-        if ($request->getParam('saveAction') === 'draft') {
+        if ($request->getBodyParam('saveAction') === 'draft') {
             $submission->setScenario(Element::SCENARIO_ESSENTIALS);
         }
 
@@ -700,9 +701,9 @@ class SubmissionsController extends Controller
         $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $pageHandle = $this->_getTypedParam('page', 'string');
-        $submissionId = $this->_getTypedParam('submissionId', 'id');
+        $handle = $this->_getTypedParam('handle', 'string', null, false);
+        $pageHandle = $this->_getTypedParam('page', 'string', null, false);
+        $submissionId = $this->_getTypedParam('submissionId', 'id', null, false);
 
         /* @var Form $form */
         $form = $this->_getForm($handle);
@@ -738,8 +739,8 @@ class SubmissionsController extends Controller
         $request = $this->request;
 
         // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $redirect = $this->_getTypedParam('redirect', 'string');
+        $handle = $this->_getTypedParam('handle', 'string', null, false);
+        $redirect = $this->_getTypedParam('redirect', 'string', null, false);
 
         // Ensure the redirect passed is validated, otherwise fallback to referer
         $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: $request->referrer;
@@ -912,9 +913,9 @@ class SubmissionsController extends Controller
             return $this->asFailure($error);
         }
 
-        $result = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
+        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($resolvedIntegration, $submission);
 
-        if (!$result) {
+        if (($response instanceof IntegrationResponse) && !$response->success) {
             $message = Craft::t('formie', 'Integration failed to run.');
 
             $this->setFailFlash($message);
@@ -1085,7 +1086,7 @@ class SubmissionsController extends Controller
         $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
         $submissionId = $this->_getTypedParam('submissionId', 'id');
         $siteId = $this->_getTypedParam('siteId', 'id');
-        $userParam = $request->getParam('user');
+        $userParam = $request->getBodyParam('user');
 
         if ($submissionId) {
             // Allow fetching spammed submissions for multistep forms, where it has been flagged as spam
@@ -1122,8 +1123,8 @@ class SubmissionsController extends Controller
             }
 
             // Allow a `user` override (when editing a submission through the CP)
-            if ($request->getIsCpRequest() && $user = $userParam) {
-                $submission->userId = $user[0] ?? null;
+            if ($request->getIsCpRequest() && $userParam) {
+                $submission->userId = $userParam[0] ?? null;
             }
         }
 
@@ -1174,10 +1175,15 @@ class SubmissionsController extends Controller
         }
     }
 
-    private function _getTypedParam(string $name, string $type, mixed $default = null): mixed
+    private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
     {
         $request = $this->request;
-        $value = $request->getParam($name);
+
+        if ($bodyParam) {
+            $value = $request->getBodyParam($name);
+        } else {
+            $value = $request->getParam($name);
+        }
 
         // Special case for `submitAction`, where we don't want just anything passed in to change behaviour
         if ($name === 'submitAction') {

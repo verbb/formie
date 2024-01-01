@@ -68,13 +68,11 @@ The previous examples have just covered rendering fields in a form in a simple m
     {{ hiddenInput('handle', form.handle) }}
 
     {% for page in form.getPages() %}
-        <div class="page" data-page-id="{{ page.id }}">
+        <div class="fui-page" data-id="{{ page.id }}">
             {% for row in page.getRows() %}
-                <div class="row">
+                <div class="fui-row fui-page-row">
                     {% for field in row.fields %}
-                        <div class="col">
-                            {{ craft.formie.renderField(form, field) }}
-                        </div>
+                        {{ craft.formie.renderField(form, field) }}
                     {% endfor %}
                </div>
             {% endfor %}

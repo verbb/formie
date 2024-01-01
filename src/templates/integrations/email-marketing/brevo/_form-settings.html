@@ -64,3 +64,34 @@
         </ul>
     </template>
 </integration-form-settings>
+
+{% set useDoubleOptIn = form.settings.integrations[handle].useDoubleOptIn ?? false %}
+
+{{ forms.lightswitchField({
+    label: 'Use Double Opt in' | t('formie'),
+    instructions: 'Whether to use double opt-in, which will send the user a confirmation email before they‘re added to the list.' | t('formie'),
+    id: 'useDoubleOptIn',
+    name: 'useDoubleOptIn',
+    on: useDoubleOptIn,
+    toggle: 'optin',
+}) }}
+
+<div id="optin" class="{{ not useDoubleOptIn ? 'hidden' }}">
+    {{ forms.textField({
+        label: 'Template ID' | t('formie'),
+        instructions: 'ID of the Double opt-in (DOI) template.' | t('formie'),
+        id: 'templateId',
+        name: 'templateId',
+        required: true,
+        value: form.settings.integrations[handle].templateId ?? '',
+    }) }}
+
+    {{ forms.textField({
+        label: 'Redirection URL' | t('formie'),
+        instructions: 'URL of the web page that user will be redirected to after clicking on the double opt in URL.' | t('formie'),
+        id: 'redirectionUrl',
+        name: 'redirectionUrl',
+        required: true,
+        value: form.settings.integrations[handle].redirectionUrl ?? '',
+    }) }}
+</div>

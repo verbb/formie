@@ -100,6 +100,7 @@ export default {
 
             const newField = this.$store.getters['fieldtypes/newField'](data.type, {
                 brandNewField: true,
+                isNested: this.isNested,
             });
 
             const payload = {

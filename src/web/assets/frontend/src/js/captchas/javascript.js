@@ -1,5 +1,10 @@
-export class FormieJSCaptcha {
+import { FormieCaptchaProvider } from './captcha-provider';
+import { eventKey } from '../utils/utils';
+
+export class FormieJSCaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
+        super(settings);
+
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.sessionKey = settings.sessionKey;
@@ -20,6 +25,13 @@ export class FormieJSCaptcha {
 
             return;
         }
+
+        this.createInput();
+    }
+
+    createInput() {
+        // We need to handle re-initializing, so always empty the placeholder to start fresh to prevent duplicate captchas
+        this.$placeholder.innerHTML = '';
 
         const $input = document.createElement('input');
         $input.setAttribute('type', 'hidden');

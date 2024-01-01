@@ -650,6 +650,50 @@ $fields.forEach($field => {
 });
 ```
 
+### Multi-Line Text Fields
+When using the Rich Text setting for Multi-Line Text fields, you can access [Pell](https://github.com/jaredreich/pell) settings, and modify them through JavaScript.
+
+#### The `beforeInit` event
+The event that is triggered before the Pell editor is initialized.
+
+```js
+// Fetch all Multi-Line Text fields - specifically the textarea. Events are bound on the textarea element
+let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] textarea');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let richText = e.detail.richText;
+        let options = e.detail.options;
+
+        // Modify any Pell options
+        e.detail.options.classes = {
+            actionbar: 'pell-actionbar',
+            button: 'pell-button',
+            content: 'pell-content',
+            selected: 'pell-button-selected',
+        };
+    });
+});
+```
+
+The above example uses the `beforeInit` event to modify the config for Pell. There's event data in the event's `detail` attribute, which you can modify.
+
+#### The `afterInit` event
+The event that is triggered after the Pell editor is initialized.
+
+```js
+// Fetch all Multi-Line Text fields - specifically the textarea. Events are bound on the textarea element
+let $fields = document.querySelectorAll('[data-field-type="multi-line-text"] textarea');
+
+// For each field, bind on the `afterInit` event
+$fields.forEach($field => {
+    $field.addEventListener('afterInit', (e) => {
+        let richText = e.detail.richText;
+    });
+});
+```
+
 
 ### Phone Fields
 
@@ -860,6 +904,25 @@ $fields.forEach($field => {
 
         // Modify any PayPal options
         e.detail.options.style.layout = 'vertical';
+    });
+});
+```
+
+#### The `modifyQueryParams` event
+The event that is triggered when constructing the URL to the PayPal SDK, where you can modify the query params for various features.
+
+```js
+// Fetch all Payment fields (be sure to check if this is PayPal)
+let $fields = document.querySelectorAll('[data-field-type="payment"]');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('modifyQueryParams', (e) => {
+        let payPalField = e.detail.payPal;
+        let params = e.detail.params;
+
+        // Modify any PayPal options
+        e.detail.params.push('disable-funding=paylater');
     });
 });
 ```

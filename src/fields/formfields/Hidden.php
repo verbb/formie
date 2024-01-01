@@ -219,11 +219,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     public function defineSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Include in Email Notifications'),
-                'help' => Craft::t('formie', 'Whether the value of this field should be included in email notifications.'),
-                'name' => 'includeInEmail',
-            ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 
@@ -245,6 +241,10 @@ class Hidden extends FormField implements PreviewableFieldInterface
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
+
+        if ($key === 'fieldLabel') {
+            return null;
+        }
 
         if ($key === 'fieldInput') {
             return new HtmlTag('input', [

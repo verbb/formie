@@ -11,6 +11,26 @@ use Throwable;
 
 class Phone extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function toPhoneString(mixed $value): string
+    {
+        $number = $value;
+
+        try {
+            // Try and parse the number. Will fail if not provided in international format.
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            $numberProto = $phoneUtil->parse($value);
+            $number = $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
+        } catch (Throwable $e) {
+            // Do nothing, an invalid number
+        }
+
+        return str_replace(' ', '', $number);
+    }
+
+
     // Properties
     // =========================================================================
 

@@ -18,6 +18,11 @@ class WidgetsAsset extends AssetBundle
         ];
 
         $this->js = [
+            'js/vendor/Chart.bundle.min.js',
+            'js/vendor/moment-with-locales.min.js',
+            'js/vendor/chartjs-adapter-moment.min.js',
+            'js/vendor/deepmerge.min.js',
+
             'js/formie-widgets.js',
         ];
 

@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\console\Controller;
 use craft\helpers\Console;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 
 use Throwable;
@@ -26,6 +27,8 @@ class SubmissionsController extends Controller
     public ?string $formHandle = null;
     public bool $spamOnly = false;
     public bool $incompleteOnly = false;
+    public ?string $before = null;
+    public ?string $after = null;
     public ?string $submissionId = null;
     public ?string $integration = null;
     public ?int $notificationId = null;
@@ -43,6 +46,8 @@ class SubmissionsController extends Controller
             $options[] = 'formHandle';
             $options[] = 'spamOnly';
             $options[] = 'incompleteOnly';
+            $options[] = 'before';
+            $options[] = 'after';
         }
 
         if ($actionID === 'run-integration') {
@@ -102,6 +107,14 @@ class SubmissionsController extends Controller
                 $query->isIncomplete(true);
             } else {
                 $query->isIncomplete(null);
+            }
+
+            if ($this->before) {
+                $query->before(DateTimeHelper::toDateTime($this->before));
+            }
+
+            if ($this->after) {
+                $query->after(DateTimeHelper::toDateTime($this->after));
             }
 
             $count = (int)$query->count();

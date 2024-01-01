@@ -14,6 +14,8 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\Phone;
+use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
 use Craft;
@@ -181,6 +183,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return StringHelper::toBoolean($value);
         }
 
+        if ($integrationField->getType() === IntegrationField::TYPE_PHONE) {
+            return Phone::toPhoneString($value);
+        }
+
         // Return the string representation of it by default (also default for integration fields)
         // You could argue we should return `null`, but let's not be too strict on types.
         return $value;
@@ -196,6 +202,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public ?int $sortOrder = null;
     public array $cache = [];
     public ?string $uid = null;
+    public ?string $optInField = null;
 
     // Store extra context for when running the integration
     public array $context = [];
@@ -549,6 +556,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         if (!$event->isValid) {
             Integration::info($this, 'Sending payload cancelled by event hook.');
+        }
+
+        // Also, check for opt-in fields. This allows the above event to potentially alter things
+        if (!$this->enforceOptInField($submission)) {
+            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+
+            return false;
         }
 
         // Allow events to alter some props

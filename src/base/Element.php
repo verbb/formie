@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\formfields\MultiLineText;
 use verbb\formie\fields\formfields\SingleLineText;
@@ -18,6 +19,7 @@ use craft\base\FieldInterface;
 use craft\fields;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 
 use yii\base\Event;
 use yii\helpers\Markdown;
@@ -27,6 +29,12 @@ use DateTimeZone;
 
 abstract class Element extends Integration
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_ELEMENT_FIELDS = 'modifyElementFields';
+
+
     // Static Methods
     // =========================================================================
 
@@ -202,6 +210,34 @@ abstract class Element extends Integration
         }
 
         return false;
+    }
+
+    protected function getFieldLayoutFields(?FieldLayout $fieldLayout): array
+    {
+        $fields = [];
+
+        if ($fieldLayout) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                $fieldClass = get_class($field);
+
+                $fields[] = new IntegrationField([
+                    'handle' => $field->handle,
+                    'name' => $field->name,
+                    'type' => $this->getFieldTypeForField($fieldClass),
+                    'sourceType' => $fieldClass,
+                    'required' => (bool)$field->required,
+                ]);
+            }
+        }
+
+        // Fire a 'modifyElementFields' event
+        $event = new ModifyElementFieldsEvent([
+            'fieldLayout' => $fieldLayout,
+            'fields' => $fields,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_ELEMENT_FIELDS, $event);
+
+        return $event->fields;
     }
 
     protected function getElementForPayload(string $elementType, string $identifier, Submission $submission): ElementInterface

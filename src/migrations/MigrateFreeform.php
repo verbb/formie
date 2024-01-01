@@ -375,6 +375,15 @@ class MigrateFreeform extends Migration
         $increment = 1;
         $handle = $form->handle;
 
+        // Check for invalid handles from Freeform, and convert it automatically
+        if (str_contains($handle, '-')) {
+            $newHandle = str_replace('-', '_', $handle);
+
+            $this->stdout("    > Handle “{$handle}” is invalid, using “{$newHandle}” instead.", Console::FG_YELLOW);
+
+            $handle = $newHandle;
+        }
+
         while (true) {
             if (!Form::find()->handle($handle)->exists()) {
                 return $handle;

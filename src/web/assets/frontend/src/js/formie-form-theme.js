@@ -22,6 +22,7 @@ export class FormieFormTheme {
         this.loadingClass = this.form.getClasses('loading');
         this.tabErrorClass = this.form.getClasses('tabError');
         this.tabActiveClass = this.form.getClasses('tabActive');
+        this.tabCompleteClass = this.form.getClasses('tabComplete');
         this.errorMessageClass = this.form.getClasses('errorMessage');
         this.successMessageClass = this.form.getClasses('successMessage');
         this.alertClass = this.form.getClasses('alert');
@@ -137,19 +138,6 @@ export class FormieFormTheme {
             const $field = e.target;
             const $fieldContainer = $field.closest('[data-field-type]');
 
-            // Get the error message as defined on the input element. Use the parent to find the element
-            // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
-            const $message = $field.parentNode.querySelector('[data-fui-message]');
-
-            if ($message) {
-                message = $message.getAttribute('data-fui-message');
-            }
-
-            // If there's a server error, it takes priority.
-            if (e.detail && e.detail.errors && e.detail.errors.serverMessage) {
-                message = e.detail.errors.serverMessage;
-            }
-
             // Check if we need to move the error out of the .fui-input-container node.
             // Only the input itself should be in here.
             const $errorToMove = $field.parentNode.querySelector('[data-error-message]');
@@ -158,12 +146,28 @@ export class FormieFormTheme {
                 $errorToMove.parentNode.parentNode.appendChild($errorToMove);
             }
 
-            // The error has been moved, find it again
-            if ($fieldContainer) {
-                const $error = $fieldContainer.querySelector('[data-error-message]');
+            // Only swap out any custom error message for "required" fields, so as not to override other messages
+            if (e.detail && e.detail.errors && (e.detail.errors.missingValue || e.detail.errors.serverMessage)) {
+                // Get the error message as defined on the input element. Use the parent to find the element
+                // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
+                const $message = $field.parentNode.querySelector('[data-fui-message]');
 
-                if ($error && message) {
-                    $error.textContent = message;
+                if ($message) {
+                    message = $message.getAttribute('data-fui-message');
+                }
+
+                // If there's a server error, it takes priority.
+                if (e.detail.errors.serverMessage) {
+                    message = e.detail.errors.serverMessage;
+                }
+
+                // The error has been moved, find it again
+                if ($fieldContainer) {
+                    const $error = $fieldContainer.querySelector('[data-error-message]');
+
+                    if ($error && message) {
+                        $error.textContent = message;
+                    }
                 }
             }
         }, false);
@@ -286,7 +290,17 @@ export class FormieFormTheme {
 
         // Exlcude some params from the hash, that are programatically changed
         // TODO, allow some form of registration for captchas.
-        const excludedItems = ['g-recaptcha-response', 'h-captcha-response', 'CRAFT_CSRF_TOKEN', '__JSCHK', 'cf-turnstile-response', 'submitAction'];
+        const excludedItems = [
+            'g-recaptcha-response',
+            'h-captcha-response',
+            'CRAFT_CSRF_TOKEN',
+            '__JSCHK',
+            '__DUP',
+            'beesknees',
+            'cf-turnstile-response',
+            'frc-captcha-solution',
+            'submitAction',
+        ];
 
         for (const pair of formData.entries()) {
             const isExcluded = excludedItems.filter((item) => { return pair[0].startsWith(item); });
@@ -413,8 +427,13 @@ export class FormieFormTheme {
             $alert.setAttribute('data-fui-alert', 'true');
             $alert.innerHTML = text;
 
+            // Set attributes on the alert according to theme config
+            this.form.applyThemeConfig($alert, 'alert', false);
+
             // For error notices, we have potential special handling on position
             if (type == 'error') {
+                this.form.applyThemeConfig($alert, 'alertError', false);
+
                 $alert.className += ` ${this.alertErrorClass} ${this.alertClass}-${this.settings.errorMessagePosition}`;
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
@@ -423,6 +442,8 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
+                this.form.applyThemeConfig($alert, 'alertSuccess', false);
+
                 $alert.className += ` ${this.alertSuccessClass} ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
@@ -568,7 +589,7 @@ export class FormieFormTheme {
         this.showTabErrors(pageFieldErrors);
 
         // Fire a fail event
-        this.submitHandler.formSubmitError();
+        this.submitHandler.formSubmitError(data);
 
         // Fire cleanup methods after _any_ ajax call
         this.afterAjaxSubmit(data);
@@ -641,7 +662,7 @@ export class FormieFormTheme {
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
                 // Reset values if in a new tab. No need when in the same tab.
-                this.$form.reset();
+                this.resetForm();
 
                 window.open(data.redirectUrl, '_blank');
             } else {
@@ -701,7 +722,7 @@ export class FormieFormTheme {
         }
 
         // Reset values regardless, for the moment
-        this.$form.reset();
+        this.resetForm();
 
         // Remove the submission ID input in case we want to go again
         this.removeHiddenInput('submissionId');
@@ -744,6 +765,15 @@ export class FormieFormTheme {
         }
 
         $input.setAttribute('value', value);
+    }
+
+    resetForm() {
+        // `$form.reset()` will do most, but programatically setting `checked` for checkboxes won't be cleared
+        this.$form.reset();
+
+        this.$form.querySelectorAll('[type="checkbox"]').forEach(($checkbox) => {
+            $checkbox.removeAttribute('checked');
+        });
     }
 
     removeHiddenInput(name) {
@@ -798,6 +828,20 @@ export class FormieFormTheme {
                     $tab.classList.add(this.tabActiveClass);
                 } else {
                     $tab.classList.remove(this.tabActiveClass);
+                }
+            });
+
+            let isComplete = true;
+
+            $tabs.forEach(($tab) => {
+                if ($tab.classList.contains(this.tabActiveClass)) {
+                    isComplete = false;
+                }
+
+                if (isComplete) {
+                    $tab.classList.add(this.tabCompleteClass);
+                } else {
+                    $tab.classList.remove(this.tabCompleteClass);
                 }
             });
 

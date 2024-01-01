@@ -1,3 +1,4 @@
+import { FormieCaptchaProvider } from './captcha-provider';
 import { hcaptcha } from './inc/hcaptcha';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey, ensureVariable } from '../utils/utils';
@@ -121,19 +122,8 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
             $token.remove();
         }
 
-        // Check if we actually need to re-render this, or just refresh it...
-        const currentHcaptchaId = this.$placeholder.getAttribute('data-hcaptcha-id');
-
-        if (currentHcaptchaId !== null) {
-            this.hcaptchaId = currentHcaptchaId;
-
-            hcaptcha.reset(this.hcaptchaId);
-
-            return;
-        }
-
-        // Render the hCaptcha
-        hcaptcha.render(this.$placeholder, {
+        // Render the captcha inside the placeholder
+        hcaptcha.render(this.createInput(), {
             sitekey: this.siteKey,
             size: this.size,
             callback: this.onVerify.bind(this),
@@ -143,9 +133,6 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
             'close-callback': this.onClose.bind(this),
         }, (id) => {
             this.hcaptchaId = id;
-
-            // Update the placeholder with our ID, in case we need to re-render it
-            this.$placeholder.setAttribute('data-hcaptcha-id', id);
         });
     }
 

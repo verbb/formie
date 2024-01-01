@@ -30,6 +30,9 @@ class Brevo extends EmailMarketing
     // =========================================================================
 
     public ?string $apiKey = null;
+    public bool $useDoubleOptIn = false;
+    public ?string $templateId = null;
+    public ?string $redirectionUrl = null;
 
 
     // Public Methods
@@ -80,17 +83,30 @@ class Brevo extends EmailMarketing
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'email');
 
-            $payload = [
-                'email' => $email,
-                'listIds' => [(int)$this->listId],
-                'updateEnabled' => true,
-            ];
+            if ($this->useDoubleOptIn) {
+                $endpoint = 'contacts/doubleOptinConfirmation';
 
+                $payload = [
+                    'email' => $email,
+                    'includeListIds' => [(int)$this->listId],
+                    'templateId' => (int)$this->templateId,
+                    'redirectionUrl' => $this->redirectionUrl,
+                ];
+            } else {
+                $endpoint = 'contacts';
+
+                $payload = [
+                    'email' => $email,
+                    'listIds' => [(int)$this->listId],
+                    'updateEnabled' => true,
+                ];
+            }
+            
             if ($fieldValues) {
                 $payload['attributes'] = $fieldValues;
             }
 
-            $response = $this->deliverPayload($submission, 'contacts', $payload);
+            $response = $this->deliverPayload($submission, $endpoint, $payload);
 
             if ($response === false) {
                 return true;

@@ -89,7 +89,7 @@ class Javascript extends Captcha
         ];
     }
 
-    public function getRefreshJsVariables(Form $form, $page = null): array
+    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
 
@@ -103,6 +103,11 @@ class Javascript extends Captcha
             'sessionKey' => $sessionKey,
             'value' => $value,
         ];
+    }
+    
+    public function getGqlVariables(Form $form, FormPage $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
     }
 
     public function validateSubmission(Submission $submission): bool

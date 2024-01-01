@@ -4,6 +4,7 @@ namespace verbb\formie\elements\db;
 use verbb\formie\models\FormTemplate;
 
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
@@ -14,6 +15,7 @@ class FormQuery extends ElementQuery
 
     public mixed $handle = null;
     public mixed $templateId = null;
+    public mixed $pageCount = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
@@ -50,6 +52,12 @@ class FormQuery extends ElementQuery
         return $this;
     }
 
+    public function pageCount($value): static
+    {
+        $this->pageCount = $value;
+        return $this;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -74,12 +82,23 @@ class FormQuery extends ElementQuery
             'formie_forms.uid',
         ]);
 
+        $subQuery = (new Query())
+            ->select(['COUNT(*)'])
+            ->from(['pages' => Table::FIELDLAYOUTTABS])
+            ->where('[[pages.layoutId]] = [[formie_forms.fieldLayoutId]]');
+
+        $this->subQuery->addSelect(['pageCount' => $subQuery]);
+
         if ($this->handle) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.handle', $this->handle));
         }
 
         if ($this->templateId) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
+        }
+
+        if ($this->pageCount) {
+            $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
         }
 
         return parent::beforePrepare();

@@ -4,6 +4,16 @@
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set webhook = form.settings.integrations[handle].webhook ?? null %}
 
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
 {{ forms.textField({
     label: 'Webhook URL' | t('formie'),
     instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),

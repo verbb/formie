@@ -446,6 +446,7 @@ trait RelationFieldTrait
         if ($element !== null) {
             $clone->preferSites([$this->targetSiteId($element)]);
         }
+        
         return $clone;
     }
 

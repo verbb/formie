@@ -97,11 +97,10 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
         // Whenever we have GQL mutation data, handle that processing a little differently
         Event::on(CraftAssets::class, CraftAssets::EVENT_LOCATE_UPLOADED_FILES, function(LocateUploadedFilesEvent $event) {
-            if ($paramName = $this->requestParamName($event->element)) {
-                $data = $this->_uploadedDataFiles[$paramName] ?? [];
-
-                foreach ($data as $uploadedDataFile) {
-                    $event->files[] = $uploadedDataFile;
+            // Ensure that we only listen to the event on _this_ field to prevent issues with other fields in the form
+            if ($event->sender->handle === $this->handle) {
+                if ($paramName = $this->requestParamName($event->element)) {
+                    $event->files = $this->_uploadedDataFiles[$paramName] ?? $event->files ?? [];
                 }
             }
         });
@@ -111,6 +110,23 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
     public function beforeSave(bool $isNew): bool
     {
+        // Fix a FormKit issue (more than anything). When the Select input has a value that isn't in the options, the first
+        // option is selected, but the value doesn't change. Check in with later FormKit versions which probably have this fixed
+        $parts = explode(':', $this->uploadLocationSource, 2);
+        $volumeUid = $parts[1] ?? null;
+
+        if ($volumeUid && !Craft::$app->getVolumes()->getVolumeByUid($volumeUid)) {
+            $volumeUid = null;
+        }
+
+        if (!$volumeUid) {
+            $volumeUid = $this->getSourceOptions()[0]['value'] ?? null;
+
+            if ($volumeUid) {
+                $this->uploadLocationSource = $volumeUid;
+            }
+        }
+
         // For Assets field compatibility - we always use a single upload location
         $this->restrictedLocationSource = $this->uploadLocationSource;
         $this->restrictedLocationSubpath = $this->uploadLocationSubpath ?? '';
@@ -211,8 +227,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'File must be larger than {size} MB.', [
-                'size' => $this->sizeMinLimit,
+            $element->addError($this->fieldKey, Craft::t('formie', 'File must be larger than {filesize} MB.', [
+                'filesize' => $this->sizeMinLimit,
             ]));
         }
     }
@@ -233,8 +249,8 @@ class FileUpload extends CraftAssets implements FormFieldInterface
         }
 
         if ($filenames) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'File must be smaller than {size} MB.', [
-                'size' => $this->sizeLimit,
+            $element->addError($this->fieldKey, Craft::t('formie', 'File must be smaller than {filesize} MB.', [
+                'filesize' => $this->sizeLimit,
             ]));
         }
     }
@@ -342,6 +358,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'name' => 'errorMessage',
                 'if' => '$get(required).value',
             ]),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
                 'help' => Craft::t('formie', 'Limit the number of files a user can upload.'),
@@ -494,6 +511,9 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 $elementService->saveElement($asset);
             }
         }
+
+        // Remove any uploaded files, now they've been dealt with
+        $this->_uploadedDataFiles = [];
     }
 
     public function getContentGqlMutationArgumentType(): array|Type

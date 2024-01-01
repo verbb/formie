@@ -173,7 +173,7 @@ class Stripe extends Payment
         $payload = [];
 
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->fieldKey);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $subscriptionId = $fieldValue['stripeSubscriptionId'] ?? null; 
 
         try {
@@ -212,7 +212,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -288,7 +288,7 @@ class Stripe extends Payment
                     ]);
 
                     // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                    $submission->addError($field->fieldKey, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                    $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                     return false;
                 }
@@ -305,7 +305,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -319,7 +319,7 @@ class Stripe extends Payment
         $payload = [];
 
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->fieldKey);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
         $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null;
 
@@ -424,7 +424,7 @@ class Stripe extends Payment
                 ]);
 
                 // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $submission->addError($field->fieldKey, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
 
                 return false;
             }
@@ -445,7 +445,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, Craft::t('formie', $payment->message));
 
             return false;
         } catch (StripeException\ApiErrorException $e) {
@@ -465,7 +465,7 @@ class Stripe extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $payment->message));
+            $this->addFieldError($submission, Craft::t('formie', $payment->message));
 
             return false;
         } catch (Throwable $e) {
@@ -480,7 +480,7 @@ class Stripe extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $submission->addError($field->fieldKey, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
 
             return false;
         }
@@ -1035,7 +1035,7 @@ class Stripe extends Payment
         ];
 
         // Create a unique ID for this form+field+payload. Only used internally, but prevents creating duplicate plans (which throws an error)
-        $payload['id'] = ArrayHelper::recursiveImplode(array_merge(['formie', $submission->getForm()->handle, $field->fieldKey], $payload), '_');
+        $payload['id'] = ArrayHelper::recursiveImplode(array_merge(['formie', $submission->getForm()->handle, $field->handle], $payload), '_');
 
         // Generate a nice name for the price description based on the payload. Added after the ID is generated based on the payload
         $payload['nickname'] = implode(' ', [
@@ -1127,7 +1127,7 @@ class Stripe extends Payment
     {
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
         $field = $this->getField();
-        $fieldValue = $submission->getFieldValue($field->fieldKey);
+        $fieldValue = $this->getPaymentFieldValue($submission);
         $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
 
         // Create base-level customer data with the payload from the front-end
@@ -1212,7 +1212,7 @@ class Stripe extends Payment
                 $value = trim($option['value']);
 
                 if ($label && $value) {
-                    $payload['metadata'][$label] = $value;
+                    $payload['metadata'][$label] = Variables::getParsedValue($value, $submission, $submission->getForm());
                 }
             }
         }

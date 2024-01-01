@@ -13,6 +13,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -208,6 +209,7 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
     public function defineSettingsSchema(): array
     {
         return [
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Minimum instances'),
                 'help' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),
@@ -303,8 +305,15 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
             ]);
         }
 

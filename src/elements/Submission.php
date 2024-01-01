@@ -22,6 +22,7 @@ use verbb\formie\models\Status;
 use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
+use craft\base\Component;
 use craft\base\Element;
 use craft\base\FieldInterface;
 use craft\elements\User;
@@ -44,6 +45,7 @@ use yii\validators\NumberValidator;
 use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
+use ReflectionClass;
 use Throwable;
 
 use Twig\Markup;
@@ -337,7 +339,8 @@ class Submission extends Element
             }
         }
 
-        if ($this->isIncomplete && $form && $form->settings->limitSubmissions) {
+        // Check whether the submission is either incomplete or "new" (the latter important for GQL)
+        if (($this->isIncomplete || !$this->id) && $form && $form->settings->limitSubmissions) {
             if (!$form->isWithinSubmissionsLimit()) {
                 $this->addError('form', Craft::t('formie', 'This form has met the number of allowed submissions.'));
             }
@@ -632,6 +635,25 @@ class Submission extends Element
         }
     }
 
+    public function setFieldValueFromRequest(string $fieldHandle, mixed $value): void
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        // Check if we only want to set the fields for the current page. This helps with large
+        // forms with lots of Repeater/Group fields not on the current page being saved.
+        if ($settings->setOnlyCurrentPagePayload) {
+            $currentPageFields = $this->getForm()->getCurrentPage()->getCustomFields();
+            $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
+
+            if (!in_array($fieldHandle, $currentPageFieldHandles)) {
+                return;
+            }
+        }
+
+        parent::setFieldValueFromRequest($fieldHandle, $value);
+    }
+
     public function getValues($page): array
     {
         $values = [];
@@ -769,6 +791,14 @@ class Submission extends Element
         return null;
     }
 
+    public function getHtmlAttributes(string $context): array
+    {
+        $attributes = parent::getHtmlAttributes($context);
+        $attributes['data-date-created'] = $this->dateCreated->format('Y-m-d\TH:i:s.u\Z');
+
+        return $attributes;
+    }
+
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */
@@ -877,32 +907,59 @@ class Submission extends Element
 
     public function afterValidate(): void
     {
-        parent::afterValidate();
-
-        // For server-side validation, swap out the error message if a custom one is defined
-        if (($fieldLayout = $this->getFieldLayout()) && ($errors = $this->getErrors())) {
-            $customErrorMessages = [];
+        // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator`
+        // message for our custom error message. Might ask the Craft crew if there's a better way...
+        if (
+            static::hasContent() &&
+            Craft::$app->getIsInstalled() &&
+            $fieldLayout = $this->getFieldLayout()
+        ) {
+            $scenario = $this->getScenario();
             $layoutElements = $fieldLayout->getVisibleCustomFieldElements($this);
 
             foreach ($layoutElements as $layoutElement) {
                 $field = $layoutElement->getField();
+                $attribute = "field:$field->handle";
 
-                if ($field->errorMessage) {
-                    $customErrorMessages[$field->handle] = $field->errorMessage;
+                if (isset($this->_attributeNames) && !isset($this->_attributeNames[$attribute])) {
+                    continue;
                 }
-            }
 
-            if ($customErrorMessages) {
-                foreach ($errors as $errorKey => $error) {
-                    $customError = $customErrorMessages[$errorKey] ?? null;
+                $isEmpty = fn() => $field->isValueEmpty($this->getFieldValue($field->handle), $this);
 
-                    if ($customError) {
-                        $this->clearErrors($errorKey);
-                        $this->addError($errorKey, $customError);
+                // Add the required validator but with our custom message
+                if ($scenario === self::SCENARIO_LIVE && $layoutElement->required) {
+                    (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $field->errorMessage]))
+                        ->validateAttribute($this, $attribute);
+                }
+
+                foreach ($field->getElementValidationRules() as $rule) {
+                    $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);
+                    if (
+                        in_array($scenario, $validator->on) ||
+                        (empty($validator->on) && !in_array($scenario, $validator->except))
+                    ) {
+                        $validator->validateAttributes($this);
+                    }
+                }
+
+                if ($field::hasContentColumn()) {
+                    $columnType = $field->getContentColumnType();
+                    $value = $field->serializeValue($this->getFieldValue($field->handle), $this);
+
+                    if (is_array($columnType)) {
+                        foreach ($columnType as $key => $type) {
+                            $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $type, $value[$key] ?? null);
+                        }
+                    } else {
+                        $this->_callPrivateMethod('_validateCustomFieldContentSizeInternal', $attribute, $field, $columnType, $value);
                     }
                 }
             }
         }
+
+        // Bubble up past the `Element::afterValidate()` to prevent this happening twice
+        Component::afterValidate();
     }
 
 
@@ -937,17 +994,21 @@ class Submission extends Element
         return $event->rules;
     }
 
-
     protected function attributeHtml(string $attribute): string
     {
         if ($attribute == 'form') {
             $form = $this->getForm();
 
             return $form->title ?? '';
-        } else if ($attribute == 'userId') {
+        } 
+
+        if ($attribute == 'userId') {
             $user = $this->getUser();
+            
             return $user ? Cp::elementChipHtml($user) : '';
-        } else if ($attribute == 'status') {
+        }
+
+        if ($attribute == 'status') {
             $status = $this->getStatusModel(true);
 
             return Html::tag('span', Html::tag('span', '', [
@@ -962,7 +1023,9 @@ class Submission extends Element
                     'align-items' => 'center',
                 ],
             ]);
-        } else if ($attribute == 'sendNotification') {
+        } 
+
+        if ($attribute == 'sendNotification') {
             if (($form = $this->getForm()) && $form->getNotifications()) {
                 return Html::a(Craft::t('formie', 'Send'), '#', [
                     'class' => 'btn small formsubmit js-fui-submission-modal-send-btn',
@@ -1000,5 +1063,21 @@ class Submission extends Element
         }
 
         return UrlHelper::cpUrl($path, $params);
+    }
+
+
+    // Private methods
+    // =========================================================================
+
+    private function _callPrivateMethod(string $methodName): mixed
+    {
+        // Required to be able to call private methods in this class for `afterValidate()`.
+        $object = $this;
+        $reflectionClass = new ReflectionClass($object);
+        $reflectionMethod = $reflectionClass->getMethod($methodName);
+        $reflectionMethod->setAccessible(true);
+
+        $params = array_slice(func_get_args(), 1);
+        return $reflectionMethod->invokeArgs($object, $params);
     }
 }

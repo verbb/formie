@@ -104,14 +104,14 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $renderOptions);
     }
 
-    public function renderCss(bool $inline = false): ?Markup
+    public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderCss($inline);
+        return FormiePlugin::$plugin->getRendering()->renderCss($inline, $renderOptions);
     }
 
-    public function renderJs(bool $inline = false): ?Markup
+    public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderJs($inline);
+        return FormiePlugin::$plugin->getRendering()->renderJs($inline, $renderOptions);
     }
 
     public function getFieldOptions(FormFieldInterface $field, array $renderOptions = []): array
