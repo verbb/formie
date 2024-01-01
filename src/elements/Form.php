@@ -194,7 +194,7 @@ class Form extends Element
     protected static function defineTableAttributes(): array
     {
         return [
-            'title' => ['label' => Craft::t('app', 'Title')],
+            'title' => ['label' => Craft::t('app', 'Name')],
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
@@ -225,7 +225,7 @@ class Form extends Element
     protected static function defineSortOptions(): array
     {
         return [
-            'title' => Craft::t('app', 'Title'),
+            'title' => Craft::t('app', 'Name'),
             'handle' => Craft::t('app', 'Handle'),
             [
                 'label' => Craft::t('app', 'Pages'),
