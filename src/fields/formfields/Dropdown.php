@@ -10,9 +10,7 @@ use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Localization;
-use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 

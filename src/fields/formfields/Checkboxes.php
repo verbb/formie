@@ -11,7 +11,6 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\Localization;
-use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 
