@@ -30,10 +30,15 @@ export default function moveLabelPlugin(node) {
         const markdown = new MarkdownIt();
 
         const higherOrderSchema = (extensions) => {
-            const { required } = node.props.attrs;
-            let warningText = node.props.attrs.warning;
-            const helpText = node.context.help;
-            const infoText = node.props.attrs.info;
+            // We need to add all content to the node's context to be reactive, otherwise we get an issue
+            // where the same node props are used across fields. This also gives us the nice benefit of using
+            // `$markdown` or `$warning` which is nicer to use
+            node.context.required = node.props.attrs.required || '';
+            node.context.requiredClass = node.context.required ? 'required' : '';
+            node.context.info = node.props.attrs.info || '';
+            node.context.warning = node.props.attrs.warning || '';
+            node.context.markdown = (string) => { return markdown.render(string); };
+            node.context.markdownInline = (string) => { return markdown.renderInline(string); };
 
             let helpElement = {};
             let tabElement = {};
@@ -46,11 +51,11 @@ export default function moveLabelPlugin(node) {
                 };
             }
 
-            if (infoText) {
+            if (node.context.info) {
                 infoElement = {
                     $el: 'span',
                     attrs: {
-                        'data-tippy-content': markdown.renderInline(infoText),
+                        'data-tippy-content': '$markdownInline($info)',
                         'data-icon': 'info',
                     },
                 };
@@ -72,7 +77,7 @@ export default function moveLabelPlugin(node) {
                 attrs: {
                     id: `$: "label-" + ${'$id'}`,
                     for: '$id',
-                    class: `$: ${'$classes.label'} + ' ' + ${(required ? 'required' : null)}`,
+                    class: `$: ${'$classes.label'} + ' ' + ${'$requiredClass'}`,
                 },
                 children: [
                     '$label',
@@ -80,13 +85,13 @@ export default function moveLabelPlugin(node) {
                 ],
             };
 
-            if (helpText) {
+            if (node.context.help) {
                 helpElement = {
                     $el: 'div',
                     attrs: {
                         id: `$: "help-" + ${'$id'}`,
                         class: '$classes.help',
-                        innerHTML: markdown.render(helpText),
+                        innerHTML: '$markdown($help)',
                     },
                 };
             }
@@ -113,17 +118,17 @@ export default function moveLabelPlugin(node) {
                     const { editingField } = $store.state.formie;
 
                     if (editingField && editingField.field && editingField.field.isSynced) {
-                        warningText = Craft.t('formie', 'The required attribute will not be synced across field instances.');
+                        node.context.warning = Craft.t('formie', 'The required attribute will not be synced across field instances.');
                     }
                 }
             }
 
-            if (warningText) {
+            if (node.context.warning) {
                 extensions.help = {
                     $el: 'div',
                     attrs: {
                         class: 'warning with-icon',
-                        innerHTML: markdown.renderInline(warningText),
+                        innerHTML: '$markdownInline($warning)',
                     },
                     children: null,
                 };
