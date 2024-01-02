@@ -52,16 +52,19 @@ export default function moveLabelPlugin(node) {
             }
 
             if (node.context.info) {
+                const tippyId = `tippy-${Craft.randomString(10)}`;
+
                 infoElement = {
                     $el: 'span',
                     attrs: {
+                        id: tippyId,
                         'data-tippy-content': '$markdownInline($info)',
                         'data-icon': 'info',
                     },
                 };
 
                 setTimeout(() => {
-                    const tipppy = tippy('[data-tippy-content]', {
+                    const tipppy = tippy(`#${tippyId}`, {
                         theme: 'light fui-field-instructions-tooltip',
                         trigger: 'click',
                         interactive: true,
