@@ -13,9 +13,10 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.on('selectSource', $.proxy(this, 'updateButton'));
         this.on('selectSite', $.proxy(this, 'updateButton'));
 
+        // Include incomplete and spam submissions by default
         settings.criteria = {
-            isIncomplete: false,
-            isSpam: false,
+            isIncomplete: null,
+            isSpam: null,
         };
 
         // Find the settings menubtn, and add a new option to it. A little extra work as this needs to be done before
@@ -76,10 +77,10 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.$statusMenuBtn.html($option.html());
 
         this.trashed = false;
-        this.drafts = false;
+        this.drafts = null;
         this.status = null;
-        this.settings.criteria.isIncomplete = false;
-        this.settings.criteria.isSpam = false;
+        this.settings.criteria.isIncomplete = null;
+        this.settings.criteria.isSpam = null;
         let queryParam = null;
 
         if (Garnish.hasAttr($option, 'data-spam')) {

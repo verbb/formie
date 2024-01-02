@@ -321,6 +321,123 @@ class Submission extends Element
         return $this->getStatusModel(true)->handle ?? null;
     }
 
+    public static function defineElementChipHtml(\craft\events\DefineElementHtmlEvent $event): void
+    {
+        $element = $event->element;
+
+        if (!($element instanceof self)) {
+            return;
+        }
+
+        $elementsService = Craft::$app->getElements();
+        $user = Craft::$app->getUser()->getIdentity();
+        $editable = $user && $elementsService->canView($element, $user);
+
+        $id = sprintf('chip-%s', mt_rand());
+
+        $attributes = array_merge($element->getHtmlAttributes($event->context), [
+            'class' => ['element', 'chip', 'small'],
+            'title' => $element->getUiLabel(),
+            'id' => $id,
+            'data' => [
+                'type' => get_class($element),
+                'id' => $element->id,
+                'draft-id' => $element->draftId,
+                'revision-id' => $element->revisionId,
+                'site-id' => $element->siteId,
+                'status' => $element->getStatus(),
+                'label' => (string)$element,
+                'url' => $element->getUrl(),
+                'cp-url' => $editable ? $element->getCpEditUrl() : null,
+                'level' => $element->level,
+                'trashed' => $element->trashed,
+                'editable' => $editable,
+                'savable' => $editable && $elementsService->canSave($element),
+                'duplicatable' => $editable && $elementsService->canDuplicate($element),
+                'deletable' => $editable && $elementsService->canDelete($element),
+
+                'settings' => [
+                    'selectable' => false,
+                    'context' => $event->context,
+                    'id' => Craft::$app->getView()->namespaceInputId($id),
+                    'showDraftName' => true,
+                    'showLabel' => true,
+                    'showStatus' => true,
+                    'showThumb' => false,
+                    'size' => 'small',
+                    'ui' => 'chip',
+                ],
+            ],
+        ]);
+
+        $html = Html::beginTag('div', $attributes);
+        $html .= Html::beginTag('div', ['class' => 'chip-content']);
+
+        if ($element->isIncomplete) {
+            $iconStyle = [
+                'width' => '10px',
+                'height' => '10px',
+                'margin-top' => '-12px',
+                'margin-left' => '-1px',
+                'margin-right' => '1px !important',
+            ];
+
+            $html .= Html::tag('span', '', [
+                'data' => ['icon' => 'draft'],
+                'class' => 'icon',
+                'role' => 'img',
+                'style' => $iconStyle,
+                'aria' => [
+                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), Craft::t('formie', 'Incomplete')),
+                ],
+            ]);
+        } else if ($element->isSpam) {
+            $iconStyle = [
+                'width' => '10px',
+                'height' => '10px',
+                'margin-top' => '-12px',
+                'margin-left' => '-2px',
+                'margin-right' => '2px !important',
+            ];
+
+            $html .= Html::tag('span', '', [
+                'data' => ['icon' => 'error'],
+                'class' => 'icon',
+                'role' => 'img',
+                'style' => $iconStyle,
+                'aria' => [
+                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), Craft::t('formie', 'Spam')),
+                ],
+            ]);
+        } else {
+            $status = $element->getStatus();
+            $statusAttributes = $element::statuses()[$status] ?? null;
+
+            // Just to give the `statusIndicatorHtml` clean types
+            if (is_string($statusAttributes)) {
+                $statusAttributes = ['label' => $statusAttributes];
+            }
+
+            $html .= Html::tag('span', '', [
+                'class' => array_filter([
+                    'status',
+                    $status,
+                    $statusAttributes['color'] ?? null,
+                ]),
+                'role' => 'img',
+                'aria' => [
+                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), $statusAttributes['label'] ?? ucfirst($status)),
+                ],
+            ]);
+        }
+
+        $html .= Html::beginTag('div', ['class' => 'label', 'id' => $id . '-label']);
+        $html .= Html::tag('a', $element->getChipLabelHtml(), ['class' => 'label-link', 'href' => $element->getCpEditUrl()]);
+        $html .= Html::endTag('div') . Html::endTag('div') . Html::endTag('div');
+
+        $event->html = $html;
+    }
+
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
         $validates = parent::validate($attributeNames, $clearErrors);
