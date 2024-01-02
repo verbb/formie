@@ -14,6 +14,12 @@ use craft\migrations\BaseContentRefactorMigration;
 
 class m231125_000000_craft5 extends BaseContentRefactorMigration
 {
+    // Properties
+    // =========================================================================
+
+    protected bool $preserveOldData = true;
+
+
     // Public Methods
     // =========================================================================
 
