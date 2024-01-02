@@ -25,9 +25,6 @@ export class FormieFormTheme {
         this.tabCompleteClass = this.form.getClasses('tabComplete');
         this.errorMessageClass = this.form.getClasses('errorMessage');
         this.successMessageClass = this.form.getClasses('successMessage');
-        this.alertClass = this.form.getClasses('alert');
-        this.alertErrorClass = this.form.getClasses('alertError');
-        this.alertSuccessClass = this.form.getClasses('alertSuccess');
         this.tabClass = this.form.getClasses('tab');
 
         this.initValidator();
@@ -422,19 +419,14 @@ export class FormieFormTheme {
             }
         } else {
             $alert = document.createElement('div');
-            $alert.className = this.alertClass;
-            $alert.setAttribute('role', 'alert');
-            $alert.setAttribute('data-fui-alert', 'true');
             $alert.innerHTML = text;
 
             // Set attributes on the alert according to theme config
-            this.form.applyThemeConfig($alert, 'alert', false);
+            this.form.applyThemeConfig($alert, 'alert');
 
             // For error notices, we have potential special handling on position
             if (type == 'error') {
-                this.form.applyThemeConfig($alert, 'alertError', false);
-
-                $alert.className += ` ${this.alertErrorClass} ${this.alertClass}-${this.settings.errorMessagePosition}`;
+                this.form.applyThemeConfig($alert, 'alertError');
 
                 if (this.settings.errorMessagePosition == 'bottom-form') {
                     this.$submitBtn.parentNode.parentNode.insertBefore($alert, this.$submitBtn.parentNode);
@@ -442,9 +434,7 @@ export class FormieFormTheme {
                     this.$form.parentNode.insertBefore($alert, this.$form);
                 }
             } else {
-                this.form.applyThemeConfig($alert, 'alertSuccess', false);
-
-                $alert.className += ` ${this.alertSuccessClass} ${this.alertClass}-${this.settings.submitActionMessagePosition}`;
+                this.form.applyThemeConfig($alert, 'alertSuccess');
 
                 if (this.settings.submitActionMessagePosition == 'bottom-form') {
                     // An even further special case when hiding the form!

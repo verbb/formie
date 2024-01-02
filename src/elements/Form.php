@@ -1591,6 +1591,10 @@ class Form extends Element
             } else {
                 $allAttributes[$configKey]['class'] = $fallback;
             }
+
+            if ($this->resetClasses) {
+                unset($allAttributes[$configKey]['class']);
+            }
         }
 
         return $allAttributes;

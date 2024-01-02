@@ -226,7 +226,12 @@ export class FormieFormBase {
                     return;
                 }
 
-                $element.setAttribute(attribute, value);
+                // Special-case for adding just the attribute without "true" as the value
+                if (value === true) {
+                    $element.setAttribute(attribute, '');
+                } else {
+                    $element.setAttribute(attribute, value);
+                }
             });
         }
     }
