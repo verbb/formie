@@ -1164,6 +1164,7 @@ class Form extends Element
                 ],
                 'role' => 'alert',
                 'data-fui-alert' => true,
+                'data-fui-alert-error' => true,
             ]);
         }
 
@@ -1175,6 +1176,7 @@ class Form extends Element
                 ],
                 'role' => 'alert',
                 'data-fui-alert' => true,
+                'data-fui-alert-success' => true,
             ]);
         }
 

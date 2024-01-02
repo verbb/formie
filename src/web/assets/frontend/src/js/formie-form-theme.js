@@ -355,7 +355,7 @@ export class FormieFormTheme {
     }
 
     hideSuccess() {
-        const $successMessage = this.$form.parentNode.querySelector(`.${this.successMessageClass}`);
+        const $successMessage = this.$form.parentNode.querySelector('[data-fui-alert-success]');
 
         if ($successMessage && this.settings.submitActionMessageTimeout) {
             const timeout = parseInt(this.settings.submitActionMessageTimeout, 10) * 1000;
@@ -470,7 +470,7 @@ export class FormieFormTheme {
     }
 
     removeFormAlert() {
-        const $alert = this.$form.parentNode.querySelector(`.${this.alertClass}`);
+        const $alert = this.$form.parentNode.querySelector('[data-fui-alert-error]');
 
         if ($alert) {
             $alert.remove();
