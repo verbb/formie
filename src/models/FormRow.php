@@ -107,6 +107,8 @@ class FormRow extends Model
             $field = new MissingField($fieldConfig);
         }
 
+        $field->afterCreateField($fieldConfig);
+
         return $field;
     }
 
