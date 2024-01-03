@@ -4,7 +4,7 @@
 
         <template #body>
             <div class="fui-modal-content">
-                <FormKitForm ref="fieldForm" v-model="formValues" name="tableDropdownOptions" @submit="submitHandler">
+                <FormKitForm ref="fieldForm" :value="formValues" name="tableDropdownOptions" @submit="submitHandler">
                     <FormKit
                         type="table"
                         name="options"

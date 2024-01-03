@@ -34,7 +34,7 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="fieldSettings" @submit="submitHandler">
+                    <FormKitForm v-if="mounted" ref="fieldForm" :value="fieldSettings" @submit="submitHandler" @submit-raw="submitHandlerRaw">
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
@@ -175,22 +175,24 @@ export default {
             this.mounted = true;
 
             this.$nextTick().then(() => {
-                const $firstText = this.$refs.fieldForm.$el.parentNode.querySelector('input[type="text"]');
+                if (this.$refs.fieldForm) {
+                    const $firstText = this.$refs.fieldForm.$el.parentNode.querySelector('input[type="text"]');
 
-                if ($firstText && $firstText.value.length === 0) {
-                    setTimeout(() => {
-                        $firstText.focus();
-                    }, 200);
-                }
+                    if ($firstText && $firstText.value.length === 0) {
+                        setTimeout(() => {
+                            $firstText.focus();
+                        }, 200);
+                    }
 
-                // Set any errors on the form, if they exist
-                if (!isEmpty(this.fieldErrors)) {
-                    this.$refs.fieldForm.setErrors(this.fieldErrors);
+                    // Set any errors on the form, if they exist
+                    if (!isEmpty(this.fieldErrors)) {
+                        this.$refs.fieldForm.setErrors(this.fieldErrors);
 
-                    // Wait until FormKit has settled
-                    setTimeout(() => {
-                        this.updateTabs();
-                    }, 50);
+                        // Wait until FormKit has settled
+                        setTimeout(() => {
+                            this.updateTabs();
+                        }, 50);
+                    }
                 }
             });
         }, 100);
@@ -235,6 +237,12 @@ export default {
             this.closeModal();
         },
 
+        submitHandlerRaw() {
+            // When submitting from the form itself (hitting enter) we need to trigger any extra validation
+            // functionality, like showing any errors on tabs.
+            this.updateTabs();
+        },
+
         onCancelModal() {
             this.$events.emit('fieldEdit.beforeCancel', this.field);
 
@@ -264,7 +272,8 @@ export default {
         },
 
         onSave() {
-            this.updateTabs();
+            // Call any 'raw' submit functions like showing tab errors
+            this.submitHandlerRaw();
 
             // Validate the form - this will prevent firing `submitHandler()` if it fails
             this.$refs.fieldForm.submit();

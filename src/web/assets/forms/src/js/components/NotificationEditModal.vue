@@ -26,7 +26,7 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" :model-value="notification" @update:model-value="notification = $event" @submit="submitHandler">
+                    <FormKitForm v-if="mounted" ref="fieldForm" :value="notification" @submit="submitHandler" @submit-raw="submitHandlerRaw">
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
@@ -190,6 +190,12 @@ export default {
             this.closeModal();
         },
 
+        submitHandlerRaw() {
+            // When submitting from the form itself (hitting enter) we need to trigger any extra validation
+            // functionality, like showing any errors on tabs.
+            this.updateTabs();
+        },
+
         onCancelModal() {
             // Restore original state and exit
             this.$emit('update:notification', this.originalNotification);
@@ -215,7 +221,8 @@ export default {
         },
 
         onSave() {
-            this.updateTabs();
+            // Call any 'raw' submit functions like showing tab errors
+            this.submitHandlerRaw();
 
             // Validate the form - this will prevent firing `submitHandler()` if it fails
             this.$refs.fieldForm.submit();
