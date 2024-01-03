@@ -9,6 +9,7 @@ use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\behaviors\FieldLayoutBehavior;
 use verbb\formie\elements\actions\DuplicateForm;
+use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormHtmlTagEvent;
 use verbb\formie\fields\formfields\SingleLineText;
@@ -36,6 +37,7 @@ use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
 use craft\helpers\DateTimeHelper;
@@ -122,6 +124,11 @@ class Form extends Element
     public static function find(): FormQuery
     {
         return new FormQuery(static::class);
+    }
+
+    public static function createCondition(): ElementConditionInterface
+    {
+        return Craft::createObject(FormCondition::class, [static::class]);
     }
 
     /**
@@ -252,7 +259,7 @@ class Form extends Element
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
-            'pageCount' => ['label' => Craft::t('formie', 'Pages')],
+            'pageCount' => ['label' => Craft::t('formie', 'Page Count')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -291,7 +298,7 @@ class Form extends Element
             'title' => Craft::t('app', 'Title'),
             'handle' => Craft::t('app', 'Handle'),
             [
-                'label' => Craft::t('app', 'Pages'),
+                'label' => Craft::t('app', 'Page Count'),
                 'orderBy' => 'pageCount',
                 'attribute' => 'pageCount',
             ],
