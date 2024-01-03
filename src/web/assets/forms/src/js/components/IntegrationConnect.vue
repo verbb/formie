@@ -10,7 +10,7 @@
 
             <modal ref="modal" v-model="showModal" :show-header="false" :show-footer="false" modal-class="fui-integration-error-modal" @click-outside="closeModal">
                 <template #body>
-                    <div class="fui-dialog-close" @click.prevent="closeModal"></div>
+                    <button class="fui-dialog-close" @click.prevent="closeModal"></button>
 
                     <div class="fui-error-pane error">
                         <div class="fui-error-content">

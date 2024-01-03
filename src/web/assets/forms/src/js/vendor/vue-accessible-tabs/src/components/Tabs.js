@@ -4,6 +4,7 @@ import { cleanChildren } from '../utils/vnode';
 
 const Tabs = {
     name: 'Tabs',
+
     props: {
         id: null,
         defaultIndex: {
@@ -11,17 +12,20 @@ const Tabs = {
             default: 0,
             required: false,
         },
+
         orientation: {
             type: String,
             default: 'horizontal',
             validator: (value) => ['horizontal', 'vertical'].includes(value),
         },
+
         tabActivationMode: {
             type: String,
             default: 'auto',
             validator: (value) => ['auto', 'manual'].includes(value),
         },
     },
+
     data() {
         return {
             tabState: {
@@ -32,30 +36,37 @@ const Tabs = {
             },
         };
     },
+
     computed: {
         isManual() {
             return this.tabActivationMode === 'manual';
         },
     },
+
     methods: {
         setActiveTab(newActiveTab, { force = false } = {}) {
             this.tabState.focusedTab = newActiveTab;
+
             if (force || !this.isManual) {
                 this.tabState.activeTab = newActiveTab;
             }
         },
+
         setActivePanelRef(ref) {
             this.tabState.activePanelRef = ref;
         },
+
         focusActivePanel() {
             if (this.tabState.activePanelRef) {
                 this.tabState.activePanelRef.focus();
             }
         },
+
         focusTab(tabIndex) {
             this.tabState.focusedTab = tabIndex;
         },
     },
+
     provide() {
         return {
             tabState: this.tabState,
@@ -66,6 +77,7 @@ const Tabs = {
             tabActivationMode: this.tabActivationMode,
         };
     },
+    
     render() {
         return h('div', this.$slots.default());
     },

@@ -1,17 +1,16 @@
 <template>
     <vue-final-modal
-        :name="id"
-        :ssr="false"
+        :modal-id="id"
         v-bind="$attrs"
         :z-index-auto="true"
         z-index-base="100"
         :esc-to-close="true"
-        attach="body"
-        :classes="['fui-modal', modalClass]"
+        :class="['fui-modal', modalClass]"
         content-class="fui-modal-wrap"
         overlay-class="fui-modal-overlay"
-        transition="fui-modal"
-        overlay-transition="fui-modal"
+        content-transition="vfm-fade"
+        overlay-transition="vfm-fade"
+        :focus-trap="true"
     >
         <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
             <slot name="header"></slot>
@@ -28,7 +27,9 @@
 </template>
 
 <script>
-import { VueFinalModal, $vfm } from 'vue-final-modal';
+import { VueFinalModal } from 'vue-final-modal';
+
+import 'vue-final-modal/style.css';
 
 export default {
     name: 'Modal',
@@ -63,7 +64,7 @@ export default {
     methods: {
         showModal() {
             setTimeout(() => {
-                $vfm.show(this.id);
+                this.$vfm.open(this.id);
             }, 10);
         },
 
@@ -72,7 +73,7 @@ export default {
             // This is because we often use `v-if` for performance above this high-order component, but that won't work well with transitions.
             // Also give it a sec to be ready.
             setTimeout(() => {
-                $vfm.hide(this.id);
+                this.$vfm.close(this.id);
             }, 10);
         },
     },
@@ -108,7 +109,7 @@ export default {
     max-height: 100%;
     border-radius: 5px;
     background-color: #fff;
-    box-shadow: 0 25px 100px rgba(31, 41, 51, 0.5);
+    box-shadow: 0 25px 100px rgba(31, 41, 51, 0.5) !important;
     z-index: 100;
     overflow: hidden;
 
@@ -142,9 +143,10 @@ export default {
     height: 20px;
     margin-left: auto;
     cursor: pointer;
+    border-radius: 4px;
     background-size: 20px 20px;
     background-repeat: no-repeat;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
     background-image: url("data:image/svg+xml,%3Csvg aria-hidden='true' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath fill='%233f4d5a' d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'%3E%3C/path%3E%3C/svg%3E");
     opacity: 0.6;
 

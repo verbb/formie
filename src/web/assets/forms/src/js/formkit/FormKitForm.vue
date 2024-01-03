@@ -3,11 +3,14 @@
         v-bind="$attrs"
         ref="form"
         type="form"
-        :actions="false"
         :preserve="true"
         :incomplete-message="false"
         :formie-store="$store"
         :plugins="[errorPlugin]"
+        :submit-attrs="{
+            // Keep the submit button around for keyboard accessibility
+            outerClass: 'hidden',
+        }"
     >
         <slot></slot>
     </FormKit>

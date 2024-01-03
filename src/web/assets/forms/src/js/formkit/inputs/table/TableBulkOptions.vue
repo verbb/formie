@@ -3,7 +3,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Bulk Add Options') }}</h3>
 
-            <div class="fui-dialog-close" @click.prevent="onCancelModal"></div>
+            <button class="fui-dialog-close" @click.prevent="onCancelModal"></button>
         </template>
 
         <template #body>
@@ -98,8 +98,8 @@
 
         <template #footer>
             <div class="buttons right">
-                <div class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</div>
-                <div class="btn submit" :class="{ 'fui-loading fui-loading-sm': saveLoading }" role="button" @click.prevent="onSave">{{ t('app', 'Add Options') }}</div>
+                <button class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</button>
+                <button class="btn submit" :class="{ 'fui-loading fui-loading-sm': saveLoading }" role="button" @click.prevent="onSave">{{ t('app', 'Add Options') }}</button>
             </div>
         </template>
     </modal>

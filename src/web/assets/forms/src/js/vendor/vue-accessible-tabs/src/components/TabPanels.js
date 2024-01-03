@@ -2,6 +2,7 @@ import { h } from 'vue';
 
 const TabPanels = {
     name: 'TabPanels',
+    
     render() {
         // Add magic indexes to each <TabPanel> component
         const panels = [];

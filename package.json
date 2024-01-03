@@ -33,7 +33,7 @@
         "postcss-color-function": "^4.1.0",
         "postcss-custom-properties": "^13.3.4",
         "rollup-plugin-analyzer": "^4.0.0",
-        "sass": "^1.69.6",
+        "sass": "^1.69.7",
         "sass-loader": "^13.3.3",
         "vite": "^5.0.10",
         "vite-plugin-eslint": "^1.8.1",
@@ -42,7 +42,7 @@
         "vuex": "^4.1.0"
     },
     "dependencies": {
-        "@formkit/pro": "^0.119.2",
+        "@formkit/pro": "^0.119.4",
         "@formkit/themes": "^1.4.0",
         "@formkit/vue": "^1.4.0",
         "@fortawesome/fontawesome-svg-core": "^6.5.1",
@@ -87,7 +87,7 @@
         "signature_pad": "^4.1.7",
         "sortablejs": "^1.15.1",
         "tippy.js": "^6.3.7",
-        "vue-final-modal": "^3.4.3",
+        "vue-final-modal": "^4.5.3",
         "vue": "^3.4.3",
         "vue-mitt": "^0.0.1",
         "vue-multiselect": "^3.0.0-alpha.2",

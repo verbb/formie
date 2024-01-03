@@ -3,7 +3,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Notification') }}</h3>
 
-            <div class="fui-dialog-close" @click.prevent="onCancelModal"></div>
+            <button class="fui-dialog-close" @click.prevent="onCancelModal"></button>
         </template>
 
         <template #body>
@@ -35,12 +35,12 @@
 
         <template #footer>
             <div v-if="!notificationRef.isNew" class="buttons left">
-                <div class="btn delete" role="button" @click.prevent="deleteNotification">{{ t('app', 'Delete') }}</div>
+                <button class="btn delete" role="button" @click.prevent="deleteNotification">{{ t('app', 'Delete') }}</button>
             </div>
 
             <div class="buttons right">
-                <div class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</div>
-                <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Apply') }}</div>
+                <button class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</button>
+                <button class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Apply') }}</button>
             </div>
         </template>
     </modal>

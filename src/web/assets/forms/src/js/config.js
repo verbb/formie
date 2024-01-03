@@ -3,7 +3,7 @@ import mitt from 'mitt';
 
 // Vue plugins
 import VTooltip from 'floating-vue';
-import { vfmPlugin } from 'vue-final-modal';
+import { createVfm } from 'vue-final-modal';
 import VueUniqueId from '@/js/vendor/vue-unique-id';
 import { plugin as formkitPlugin } from '@formkit/vue';
 import formkitConfig from './config.formkit';
@@ -36,8 +36,8 @@ export const createVueApp = (props) => {
     //
 
     // Vue Final Modal
-    // https://v3.vue-final-modal.org/
-    app.use(vfmPlugin);
+    // https://vue-final-modal.org/
+    app.use(createVfm());
 
     // Vue Unique ID
     // Custom - waiting for https://github.com/berniegp/vue-unique-id

@@ -38,7 +38,7 @@
 
         <template #footer>
             <div class="buttons right">
-                <div class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</div>
+                <button class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</button>
             </div>
         </template>
     </modal>

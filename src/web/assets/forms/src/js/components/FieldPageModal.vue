@@ -3,7 +3,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Pages') }}</h3>
 
-            <div class="fui-dialog-close" @click.prevent="onModalCancel"></div>
+            <button class="fui-dialog-close" @click.prevent="onModalCancel"></button>
         </template>
 
         <template #body>
@@ -77,8 +77,8 @@
 
         <template #footer>
             <div class="buttons right">
-                <div class="btn" role="button" @click.prevent="onModalCancel">{{ t('app', 'Close') }}</div>
-                <div class="btn submit" role="button" @click.prevent="savePages">{{ t('app', 'Apply') }}</div>
+                <button class="btn" role="button" @click.prevent="onModalCancel">{{ t('app', 'Close') }}</button>
+                <button class="btn submit" role="button" @click.prevent="savePages">{{ t('app', 'Apply') }}</button>
                 <div class="spinner hidden"></div>
             </div>
         </template>

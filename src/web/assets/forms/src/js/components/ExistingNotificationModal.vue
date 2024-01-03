@@ -5,7 +5,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Notification') }}</h3>
 
-            <div class="fui-dialog-close" @click.prevent="closeModal"></div>
+            <button class="fui-dialog-close" @click.prevent="closeModal"></button>
         </template>
 
         <template #body>
@@ -77,7 +77,7 @@
         <template #footer>
             <div class="buttons left">
                 <div class="spinner hidden"></div>
-                <div class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</div>
+                <button class="btn" role="button" @click.prevent="closeModal">{{ t('app', 'Cancel') }}</button>
             </div>
 
             <div v-if="filteredExistingNotifications.length" class="buttons right">

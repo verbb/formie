@@ -34,6 +34,8 @@
     text-transform: uppercase;
     text-decoration: none;
     box-shadow: none;
+
+    --focus-ring: inset 0 0 0 0px #fff, inset 0 0 0 2px #0D99F2;
    
     // Button resets
     outline: none;

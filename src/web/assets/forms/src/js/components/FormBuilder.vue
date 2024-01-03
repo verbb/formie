@@ -43,11 +43,14 @@
                 </div>
             </div>
         </div>
+
+        <ModalsContainer />
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
+import { ModalsContainer } from 'vue-final-modal';
 
 import FieldPage from '@components/FieldPage.vue';
 import FieldPageTabs from '@components/FieldPageTabs.vue';
@@ -78,6 +81,7 @@ export default {
         FieldPageTabs,
         FieldPill,
         ExistingFieldModal,
+        ModalsContainer,
     },
 
     data() {
