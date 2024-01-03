@@ -1242,7 +1242,7 @@ class Submission extends Element
     }
 
 
-    // Protected methods
+    // Private methods
     // =========================================================================
 
     private function _callPrivateMethod(string $methodName): mixed
