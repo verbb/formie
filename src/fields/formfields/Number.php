@@ -2,7 +2,6 @@
 namespace verbb\formie\fields\formfields;
 
 use verbb\formie\base\FormField;
-use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
 
