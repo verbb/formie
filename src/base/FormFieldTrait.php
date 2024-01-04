@@ -4,7 +4,6 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
 use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldEmailValueEvent;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
@@ -357,20 +356,10 @@ trait FormFieldTrait
             $query->andWhere(['!=', 's.id', $element->id]);
         }
 
-        // TODO: to remove at the next breakpoint
-        if ($this instanceof formfields\Email) {
-            Craft::$app->getDeprecator()->log(__METHOD__, 'The `ModifyEmailFieldUniqueQueryEvent` event has been deprecated. Use the `ModifyFieldUniqueQueryEvent` event instead.');
-
-            $event = new ModifyEmailFieldUniqueQueryEvent([
-                'query' => $query,
-                'field' => $this,
-            ]);
-        } else {
-            $event = new ModifyFieldUniqueQueryEvent([
-                'query' => $query,
-                'field' => $this,
-            ]);
-        }
+        $event = new ModifyFieldUniqueQueryEvent([
+            'query' => $query,
+            'field' => $this,
+        ]);
 
         // Fire a 'modifyFieldUniqueQuery' event
         $this->trigger(self::EVENT_MODIFY_UNIQUE_QUERY, $event);
