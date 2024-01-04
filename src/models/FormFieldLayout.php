@@ -118,6 +118,10 @@ class FormFieldLayout extends FieldLayout
         // We may need to delete some fields that no longer exist. Determine that from the current layout
         // Fetch the layout again, fresh from the database.
         if ($form->id) {
+            // Ensure that we refresh the field cache, as we fetch a new form, but we don't want to overwrite the 
+            // current field instance which may already have changes.
+            $fieldsService->refreshFields();
+
             $oldForm = Formie::$plugin->getForms()->getFormById($form->id);
             $oldFields = $oldForm?->getFields() ?? [];
             $allFieldIds = ArrayHelper::getColumn($this->getFields(), 'id');
