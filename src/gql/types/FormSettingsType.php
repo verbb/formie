@@ -64,6 +64,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The form’s default instructions position for fields. This will be a `verbb\formie\positions` class name.',
                 ],
+                'requiredIndicator' => [
+                    'name' => 'requiredIndicator',
+                    'type' => Type::string(),
+                    'description' => 'The form’s required fields indicator. Either `asterisk` or `optional`.',
+                ],
 
                 // Behaviour
                 'submitMethod' => [

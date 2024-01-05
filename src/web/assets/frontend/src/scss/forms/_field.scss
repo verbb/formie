@@ -58,6 +58,10 @@
     color: var(--fui-required-color, var(--fui-error));
 }
 
+.fui-optional {
+    color: var(--fui-instructions-color, var(--fui-gray-400));
+}
+
 .fui-instructions,
 .fui-limit-text,
 .fui-file-summary {

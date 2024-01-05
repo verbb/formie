@@ -189,6 +189,7 @@ For a full list of available tags, refer to the below:
 - `fieldContainer`
 - `fieldLabel`
 - `fieldRequired`
+- `fieldOptional`
 - `fieldInstructions`
 - `fieldInputContainer`
 - `fieldInput`

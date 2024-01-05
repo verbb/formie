@@ -3,8 +3,10 @@
     {% fieldtag 'fieldLabel' %}
         {{- field.name | t('formie') | raw -}}
 
-        {%- if field.required ?? required ?? false -%}
+        {%- if form.settings.requiredIndicator == 'asterisk' and (field.required ?? required ?? false) -%}
             &nbsp;{{ fieldtag('fieldRequired', { text: '*' | t('formie') }) }}
+        {%- elseif form.settings.requiredIndicator == 'optional' -%}
+            &nbsp;{{ fieldtag('fieldOptional', { text: '(optional)' | t('formie') }) }}
         {%- endif -%}
 
         {# Allow extra content to be passed in #}

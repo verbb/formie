@@ -33,6 +33,7 @@ class FormSettings extends Model
     public string $progressPosition = 'end';
     public ?string $defaultLabelPosition = null;
     public ?string $defaultInstructionsPosition = null;
+    public string $requiredIndicator = 'asterisk';
 
     // Behaviour
     public ?string $submitMethod = null;

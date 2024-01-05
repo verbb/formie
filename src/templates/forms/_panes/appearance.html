@@ -86,3 +86,20 @@
 </div>
 
 {% include 'formie/forms/_panes/_positions' %}
+
+{{ forms.selectField({
+    label: 'Required Field Indicator' | t('formie'),
+    instructions: 'Select how to show required fields.' | t('formie'),
+    name: 'settings[requiredIndicator]',
+    options: [
+        {
+            label: 'Asterisk for required fields' | t('formie'),
+            value: 'asterisk',
+        },
+        {
+            label: 'Optional indicator for non-required fields' | t('formie'),
+            value: 'optional',
+        }
+    ],
+    value: form.settings.progressPosition ?? 'end',
+}) }}

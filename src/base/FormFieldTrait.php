@@ -803,6 +803,12 @@ trait FormFieldTrait
             ]);
         }
 
+        if ($key === 'fieldOptional') {
+            return new HtmlTag('span', [
+                'class' => 'fui-optional',
+            ]);
+        }
+
         if ($key === 'fieldInstructions') {
             return new HtmlTag('div', [
                 'id' => "{$id}-instructions",
