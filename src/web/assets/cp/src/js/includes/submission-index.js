@@ -415,7 +415,7 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
     },
 
     loadReport() {
-        const $elements = $(this.elementIndex.$elements).find('.element');
+        const $elements = $(this.elementIndex.$elements).find('[data-titlecell] .element');
 
         if (!$elements.length) {
             this.$explorerContainer.addClass('chart-empty');
