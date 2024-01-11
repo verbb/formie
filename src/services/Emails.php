@@ -535,6 +535,9 @@ class Emails extends Component
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
 
+            // Lowercase emails, just in case
+            $email = strtolower($email);
+
             $emailsEnv[] = trim(App::parseEnv(trim($email)));
         }
 
