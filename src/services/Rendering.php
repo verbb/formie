@@ -65,7 +65,7 @@ class Rendering extends Component
      * @throws LoaderError
      * @throws MissingComponentException
      */
-    public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
+    public function renderForm(Form|string|null $form, array $renderOptions = [], bool $fullRender = true): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -73,7 +73,9 @@ class Rendering extends Component
         }
 
         // Give the form a unique ID for each render, to help with multiple renders of the same form
-        $form->setFormId($form->getFormId(false));
+        if ($fullRender) {
+            $form->setFormId($form->getFormId(false));
+        }
 
         // Fire a 'modifyFormRenderOptions' event
         $event = new ModifyFormRenderOptionsEvent([
@@ -252,7 +254,7 @@ class Rendering extends Component
         // So we can easily re-use code, we just call the `renderForm` function
         // This will register any assets, and should be included outside of cached areas.
         // It should be called like `{% do craft.formie.registerAssets(handle) %}`
-        $this->renderForm($form, $renderOptions);
+        $this->renderForm($form, $renderOptions, false);
     }
 
     /**
@@ -571,7 +573,7 @@ class Rendering extends Component
 
         // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
         // This helps when targeting head/body/inline and ensure we output it **here**
-        $this->renderForm($form, $renderOptions);
+        $this->renderForm($form, $renderOptions, false);
 
         $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
         $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
