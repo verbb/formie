@@ -14,6 +14,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Settings;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -1312,13 +1313,20 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 // Don't show the label for calendars, they take care of themselves
                 if ($this->displayType == 'calendar') {
                     return null;
                 }
 
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }
