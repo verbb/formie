@@ -349,7 +349,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
 
             // Validate the postcode separately
             if ($subField === 'zip' && strlen($fieldValue) > 10) {
-                $element->addError($this->handle, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+                $element->addError($this->handle . '.' . $subField, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
                     'label' => $this->$labelProp,
                     'max' => 10,
                 ]));
