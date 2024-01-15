@@ -1,10 +1,30 @@
 # Changelog
 
+## 2.1.2 - 2024-01-16
+
+### Added
+- Added “Page Count” to form conditions when making custom form sources.
+- Added Formie 3 migration prep for field layout changes.
+
+### Fixed
+- Fixed payment fields not filtering out currency symbols for dynamic values.
+- Fixed validation error for Address field Zip subfield not showing correctly for Ajax forms.
+- Fixed label position “hidden” not working work Date fields.
+- Fixed label position “hidden” not working work Checkboxes fields.
+- Fixed an error when sending an email with non-lowercase values for some mailers.
+- Fixed a new `formId` being created when calling `renderFormCss/Js`.
+- Fixed an error for Entry element integrations and setting the `authorId` to a field value.
+- Fixed submissions index not working correctly in some instances.
+- Fixed “Include in Email” field setting for Single-Line Text fields to “Settings” tab.
+- Fixed `ModifyFieldUniqueQueryEvent` error.
+- Fixed submit methods toggling not working correctly in some instances.
+- Fixed autoloading for `ModifyFieldUniqueQueryEvent` class.
+
 ## 2.1.1 - 2023-12-29
 
 ### Fixed
-- Fix a migration error with generating notification handles.
-- Fix custom error messages for field being applied for every error (not just for required value failures).
+- Fixed a migration error with generating notification handles.
+- Fixed custom error messages for field being applied for every error (not just for required value failures).
 
 ## 2.1.0 - 2023-12-27
 
