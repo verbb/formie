@@ -15,7 +15,7 @@ In addition, because _both_ Email Notifications and Integrations can have multip
 ### Recommended Approach
 As the above explains, there are some caveats to disabling storing of submissions. However, we do have a recommended approach that will store submission data, but for the least amount of time necessary.
 
-Firstly, it's recommended you disable the "Use Queue for Notifications" and "Use Queue for Integrations" plugin settings. Otherwise, you run the risk of pruning your submissions before Email Notifications or Integrations have run within the queue.
+Firstly, it's vital that you setup proper queue handling for your site. Our [Troubleshooting](docs:get-started/troubleshooting) docs have plenty of options available to you. This is so that the queue jobs are processed in a timely manner.
 
 Secondly, ensure your forms have been set up with an appropriate data retention value. This could be 2 weeks, 24 hours or even 1 minute.
 
@@ -30,6 +30,11 @@ The easiest method is to set up a cron job on your server to ensure submissions 
 The above command would run every minute around the clock, ensuring submissions are pruned according to your data retention settings, for all forms on your site.
 
 You may also want to disable viewing the Submissions' information in the control panel for your users. You can use the Permissions available to all users to control this by editing their user account.
+
+### Short Data Retention
+If you have a short interval set for your data retention, like a few minutes, it's even more important to ensure that your queue is processed in a timely manner. Otherwise, you run the risk of pruning your submissions before Email Notifications or Integrations have run within the queue.
+
+An approach to get around this might be to disable the "Use Queue for Notifications" and "Use Queue for Integrations" plugin settings. While this isn't recommended due to performance issues when completing a form for your users, it's one way to ensure that things are processed immediately, before the data retention rules are triggered.
 
 ## Encrypt Submission Content
 For an added layer of privacy, you can set any field to have their content encrypted. This means that their content cannot be viewed in its raw form in the database, however the form submission data can still be viewed in the control panel, for authenticated users.
