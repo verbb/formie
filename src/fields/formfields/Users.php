@@ -211,15 +211,18 @@ class Users extends CraftUsers implements FormFieldInterface
             Craft::configure($query, $criteria);
         }
 
+        // Ensure we call the getter to handle pre-populated values correctly
+        $defaultValue = $this->getDefaultValue();
+
         // Check if a default value has been set AND we're limiting. We need to resolve the value before limiting
-        if ($this->defaultValue && $this->limitOptions) {
+        if ($defaultValue && $this->limitOptions) {
             $ids = [];
 
             // Handle the two ways a default value can be set
-            if ($this->defaultValue instanceof ElementQueryInterface) {
-                $ids = $this->defaultValue->id;
+            if ($defaultValue instanceof ElementQueryInterface) {
+                $ids = $defaultValue->id;
             } else {
-                $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
+                $ids = ArrayHelper::getColumn($defaultValue, 'id');
             }
 
             if ($ids) {
