@@ -535,10 +535,13 @@ class Emails extends Component
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
 
-            // Lowercase emails, just in case
-            $email = strtolower($email);
+            // Handle .env variables
+            $email = App::parseEnv(trim($email));
 
-            $emailsEnv[] = trim(App::parseEnv(trim($email)));
+            // Lowercase emails, just in case
+            $email = strtolower(trim($email));
+
+            $emailsEnv[] = $email;
         }
 
         $emailsEnv = array_filter($emailsEnv);
