@@ -393,13 +393,6 @@ class Variables
             return $values;
         }
 
-        $parsedContent = '';
-
-        // If we're specifically trying to get the field value for use in emails, use the field's email template HTML.s
-        if ($notification) {
-            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
-        }
-
         $prefix = 'field.';
 
         // For pretty much all cases, we want to use the value represented as a string
@@ -449,23 +442,27 @@ class Variables
                     }
                 }
             }
-        } else if ($field instanceof BaseRelationField) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Table) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\MultiLineText) {
-            if ($field->useRichText) {
-                $values["{$prefix}{$field->handle}"] = $parsedContent;
-            } else {
-                $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
-            }
-        } else if ($field instanceof formfields\Repeater) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Signature) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Payment) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
+            $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
         }
+
+        // Some fields use the email template for the field, due to their complexity. 
+        // Also good for performance rendering only when we need to here.
+        if (
+            $field instanceof BaseRelationField || 
+            $field instanceof formfields\Table || 
+            ($field instanceof formfields\MultiLineText && $field->useRichText) || 
+            $field instanceof formfields\Repeater || 
+            $field instanceof formfields\Signature || 
+            $field instanceof formfields\Payment
+        ) {
+            // There are some circumstances where we're rendering email content, but not for an email. 
+            // Slack integration rich text is one of them, there are likely more.
+            $notification = $notification ?? new Notification();
+            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
+
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        }     
 
         return $values;
     }
