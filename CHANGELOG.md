@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.3 - 2024-01-25
+
+### Changed
+- Improved performance of email notification content parsing for complex fields, and fix Slack integration when rendering complex fields in their rich text message.
+
+### Fixed
+- Fixed hcaptcha executing captcha multiple times, and not working correctly for submitted forms (if filling out the form again).
+- Fixed saving a new form with a UID already in place, not working correctly.
+- Fixed import/export of forms not respecting UIDs of forms or notifications.
+- Fixed an error when showing spam error messages on the front-end.
+- Fixed element fields not working correctly when pre-populating the value for multi-page forms.
+- Fixed .env variable support for email notifications not working correctly.
+- Fixed rich text editor “link to an asset” not working correctly.
+- Fixed `craft.formie.populateFormValues` not sanitizing potentially harmful strings.
+
 ## 2.1.2 - 2024-01-16
 
 ### Added
