@@ -53,6 +53,10 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
     }
 
     renderCaptcha() {
+        // Reset certain things about the captcha, if we're re-running this on the same page without refresh
+        this.token = null;
+        this.submitHandler = null;
+
         this.$placeholder = null;
 
         // Get the active page
@@ -135,11 +139,20 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         // Save for later to trigger real submit
         this.submitHandler = e.detail.submitHandler;
 
-        // Trigger hCaptcha
-        hcaptcha.execute(this.hcaptchaId);
+        // Check if the captcha has already been solved (someone clicking on the tick), otherwise the captcha triggeres twice
+        if (this.token) {
+            this.onVerify(this.token);
+        } else {
+            // Trigger hCaptcha - or check
+            hcaptcha.execute(this.hcaptchaId);
+        }
     }
 
     onVerify(token) {
+        // Store the token for a potential next time. This is useful if the user is clicking the tick on the captcha, then
+        // submitting, which would trigger the captcha multiple times
+        this.token = token;
+
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
             // Run the next submit action for the form. TODO: make this better!
@@ -162,12 +175,14 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         console.log('hCaptcha has expired - reloading.');
 
         hcaptcha.reset(this.hcaptchaId);
+        this.token = null;
     }
 
     onChallengeExpired() {
         console.log('hCaptcha has expired challenge - reloading.');
 
         hcaptcha.reset(this.hcaptchaId);
+        this.token = null;
     }
 
     onError(error) {
@@ -178,6 +193,8 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         if (this.$form.form.formTheme) {
             this.$form.form.formTheme.removeLoading();
         }
+
+        this.token = null;
     }
 }
 
