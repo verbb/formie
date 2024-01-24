@@ -105,7 +105,7 @@ class Forms extends Component
 
         // Make sure it's got a UUID
         if ($isNewForm) {
-            if (empty($this->uid)) {
+            if (empty($form->uid)) {
                 $form->uid = StringHelper::UUID();
             }
         } else if (!$form->uid) {
