@@ -159,7 +159,7 @@ class Form extends Element
         }
 
         foreach ($templates as $template) {
-            $key = "template:{$template->id}";
+            $key = "template:{$template->uid}";
 
             $sources[] = [
                 'key' => $key,
