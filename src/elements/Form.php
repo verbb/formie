@@ -1340,7 +1340,7 @@ class Form extends Element
         }
 
         // Handle any UTF characters defined in the URL and encode them properly
-        $url = utf8_encode($url);
+        $url = mb_convert_encoding($url, 'UTF-8');
 
         return $url;
     }
