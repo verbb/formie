@@ -7,6 +7,9 @@
 - You can now query submission field values via dot-notation for nested values. e.g. `submission.field('group.text').one()` or  `submission.field('repeater.1.text').one()`
 - Integrations can now populate a `$context` property with arbitrary data that's stored before processing, and accessible in the queue job.
 - Added `Field::fieldKey` to represent the handles of a field and any parent field. e.g. `group.text` or `repeater.text`.
+- Allow `craft.formie.renderJs` to set JS attributes for scripts.
+- Added “Required Field Indicator” for forms, to either show an asterisk for required fields (default) or show optional for non-required fields.
+- Added `data-fui-alert-error` and `data-fui-alert-success` attributes on front-end alerts.
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
@@ -22,6 +25,14 @@
 - Conditions (fields, pages, notifications) now uses `field:fieldHandle` syntax for fields.
 - Conditions (fields, pages, notifications)  now uses dot-notation (`field:group.text`) syntax for nested fields.
 - Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
+- Updated form builder modals and implement better modal accessibility.
+- Submissions element index now show incomplete and spam submissions alongside completed submissions.
+- Changed form `Title` references to form `Name`.
+
+### Fixed
+- Fixed multiple Tippy.js instances in the form builder when field settings contained multiple “info” elements.
+- Fixed alerts on front-end not respecting theme config.
+- Fixed Commerce fields initializing when Commerce wasn’t installed or classes exist.
 
 ### Removed
 - Removed `verbb\formie\base\NestedFieldTrait` class.
@@ -29,6 +40,7 @@
 - Removed `verbb\formie\elements\dbNestedFieldRowQuery` class.
 - Removed `verbb\formie\events\FieldPageEvent` class.
 - Removed `verbb\formie\events\FieldRowEvent` class.
+- Removed `verbb\formie\events\ModifyEmailFieldUniqueQueryEvent` class.
 - Removed `verbb\formie\events\OauthTokenEvent` class.
 - Removed `verbb\formie\events\SyncedFieldEvent` class.
 - Removed `verbb\formie\events\TokenEvent` class.
