@@ -206,7 +206,7 @@ class Submission extends Element
             }
 
             /* @var Form $form */
-            $key = "form:{$form->uid}";
+            $key = "form:{$form->id}";
 
             $sources[$key] = [
                 'key' => $key,
