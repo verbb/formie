@@ -105,6 +105,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
+    public static function log(IntegrationInterface $integration, string $message, bool $throwError = false): void
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The `log()` function is deprecated. Use `info()` instead.');
+
+        self::info($integration, $message, $throwError);
+    }
+
     public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
         Formie::info($integration->name . ': ' . $message);
