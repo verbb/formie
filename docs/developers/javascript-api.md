@@ -107,6 +107,23 @@ For this example, you would see an initial network request to fetch `formie.js`.
 If you're developing a custom field, check out the "JavaScript for Custom Fields" section for how to integrate your own JS for a field's front-end.
 :::
 
+## Script Initialization
+When a page that contains a Formie form loads, our JavaScript will initialize the form, so that it's ready to be interacted with. This covers event listeners, the form factory, initializing captchas and lots more. But rather than run these scripts as soon as the page is run, Formie will only initialize the form's JavaScript when it's visible and interacted with.
+
+This has several performance benefits. One common example - your form might exist in a modal window, which not all users might open. That form may contain a ReCAPTCHA captcha. It would be bad performance to load the ReCAPTCHA JavaScript as well as all other Formie JavaScript unless that modal is open. This is exactly what Formie does.
+
+You can control the initializtion of JavaScript with the following render options:
+
+```twig
+{{ craft.formie.renderForm('myForm', {
+    initJs: false,
+    useObserver: false,
+}) }}
+```
+
+The `initJs` option will not run the `Formie.initForms()` function to automatically initialize your forms. It will be up to you to call this, otherwise non of Formie's JavaScript will run.
+
+The `useObserver` option will disable the `IntersectionObserver` from triggering, which is designed to performantly initialize your form only when it's visible on the page. Disabling this will initialize the form as soon as the `formie.js` script is loaded.
 
 ## Importing via Modules
 You may also wish to bundle Formie's JavaScript as part of your own application code. This can have numerous benefits, from controlling the overall payload size, to custom initialisation. Let's look at an example in Vue.js
