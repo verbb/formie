@@ -1757,14 +1757,6 @@
       "oAP" : "\/src\/controllers\/BehaviourController.php",
       "oF" : 0
     },
-    "\/src\/controllers\/ChartsController.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/controllers\/ChartsController.php",
-      "oF" : 0
-    },
     "\/src\/controllers\/ElementsController.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2141,12 +2133,12 @@
       "oAP" : "\/src\/events\/ModifyElementFieldQueryEvent.php",
       "oF" : 0
     },
-    "\/src\/events\/ModifyEmailFieldUniqueQueryEvent.php" : {
+    "\/src\/events\/ModifyElementFieldsEvent.php" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/events\/ModifyEmailFieldUniqueQueryEvent.php",
+      "oAP" : "\/src\/events\/ModifyElementFieldsEvent.php",
       "oF" : 0
     },
     "\/src\/events\/ModifyExistingFieldsEvent.php" : {
@@ -2211,6 +2203,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/events\/ModifyFieldRowConfigEvent.php",
+      "oF" : 0
+    },
+    "\/src\/events\/ModifyFieldUniqueQueryEvent.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/events\/ModifyFieldUniqueQueryEvent.php",
       "oF" : 0
     },
     "\/src\/events\/ModifyFieldValueEvent.php" : {
@@ -9807,6 +9807,50 @@
       "oAP" : "\/src\/web\/assets\/cp\/dist\/js\/formie-widgets.js.map",
       "oF" : 0
     },
+    "\/src\/web\/assets\/cp\/dist\/js\/vendor\/Chart.bundle.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/cp\/dist\/dist\/js\/Chart.bundle.min.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/cp\/dist\/js\/vendor\/chartjs-adapter-moment.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/cp\/dist\/dist\/js\/chartjs-adapter-moment.min.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/cp\/dist\/js\/vendor\/deepmerge.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/cp\/dist\/dist\/js\/deepmerge.min.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/cp\/dist\/js\/vendor\/moment-with-locales.min.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/cp\/dist\/dist\/js\/moment-with-locales.min.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
     "\/src\/web\/assets\/cp\/postcss.config.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -10662,81 +10706,49 @@
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/chart-js\/Chart.bundle.min.js" : {
+    "\/src\/web\/assets\/cp\/src\/js\/vendor\/Chart.bundle.min.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/dist\/js\/Chart.bundle.min.js",
+      "oAP" : "\/src\/web\/assets\/cp\/src\/dist\/js\/Chart.bundle.min.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/chart-js\/Chart.bundle.min.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/vendor\/chart-js\/Chart.bundle.min.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/chartjs-adapter-moment\/chartjs-adapter-moment.min.js" : {
+    "\/src\/web\/assets\/cp\/src\/js\/vendor\/chartjs-adapter-moment.min.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/dist\/js\/chartjs-adapter-moment.min.js",
+      "oAP" : "\/src\/web\/assets\/cp\/src\/dist\/js\/chartjs-adapter-moment.min.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/chartjs-adapter-moment\/chartjs-adapter-moment.min.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/vendor\/chartjs-adapter-moment\/chartjs-adapter-moment.min.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/deepmerge\/umd.js" : {
+    "\/src\/web\/assets\/cp\/src\/js\/vendor\/deepmerge.min.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/dist\/js\/umd.js",
+      "oAP" : "\/src\/web\/assets\/cp\/src\/dist\/js\/deepmerge.min.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/deepmerge\/umd.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/vendor\/deepmerge\/umd.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/moment\/moment-with-locales.min.js" : {
+    "\/src\/web\/assets\/cp\/src\/js\/vendor\/moment-with-locales.min.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/dist\/js\/moment-with-locales.min.js",
+      "oAP" : "\/src\/web\/assets\/cp\/src\/dist\/js\/moment-with-locales.min.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
-    },
-    "\/src\/web\/assets\/cp\/src\/js\/vendor\/moment\/moment-with-locales.min.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/cp\/src\/js\/vendor\/moment\/moment-with-locales.min.js.map",
-      "oF" : 0
     },
     "\/src\/web\/assets\/cp\/src\/scss\/_sent-notifications.scss" : {
       "aP" : 1,
@@ -10869,7 +10881,26 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-pbOI66Ky.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config--Dczxng5.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js.map",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-BCxA1cjg.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10877,28 +10908,9 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-pbOI66Ky-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-BCxA1cjg-min.css",
       "oF" : 0,
       "pg" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-wnGRsmtI.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-wnGRsmtI.js.map",
-      "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-J35IyURq.svg" : {
       "ft" : 2097152,
@@ -10984,7 +10996,7 @@
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-XkfFaza8.ttf",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-BGckUP_-.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-_a9arM0H.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10992,46 +11004,46 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-BGckUP_--min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-_a9arM0H-min.css",
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-GH5B63FR.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-kzmmjgR2.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-GH5B63FR.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-yJqBZ_ww.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-tNkrMs1Q.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-yJqBZ_ww.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
@@ -11046,23 +11058,23 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-YbW_rDMW.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-PlP6lBPa.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-YbW_rDMW.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/manifest.json" : {
@@ -12680,14 +12692,6 @@
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/algolia-places.js.LICENSE.txt" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/algolia-places.js.LICENSE.txt",
-      "oF" : 0
-    },
     "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/google-address.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -12706,6 +12710,17 @@
       "mi" : 1,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/frontend\/dist\/dist\/js\/loqate.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/frontend\/dist\/js\/captchas\/duplicate.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/dist\/dist\/js\/duplicate.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
@@ -12864,14 +12879,6 @@
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/frontend\/dist\/js\/fields\/hidden.js.LICENSE.txt" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/fields\/hidden.js.LICENSE.txt",
-      "oF" : 0
-    },
     "\/src\/web\/assets\/frontend\/dist\/js\/fields\/phone-country.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -12915,14 +12922,6 @@
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
-    },
-    "\/src\/web\/assets\/frontend\/dist\/js\/fields\/signature.js.LICENSE.txt" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/fields\/signature.js.LICENSE.txt",
-      "oF" : 0
     },
     "\/src\/web\/assets\/frontend\/dist\/js\/fields\/summary.js" : {
       "bF" : 0,
@@ -13099,6 +13098,17 @@
       "mi" : 1,
       "oA" : 1,
       "oAP" : "\/src\/web\/assets\/frontend\/src\/dist\/js\/captcha-provider.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/frontend\/src\/js\/captchas\/duplicate.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/src\/dist\/js\/duplicate.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
@@ -13931,17 +13941,6 @@
       "oA" : 0,
       "oAP" : "\/src\/widgets\/RecentSubmissions.php",
       "oF" : 0
-    },
-    "\/webpack.mix.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/dist\/js\/webpack.mix.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
     }
   },
   "hooks" : [

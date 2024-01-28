@@ -119,6 +119,10 @@ class Rendering extends Component
             $jsAttributes['data-manual-init'] = true;
         }
 
+        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
+            $jsAttributes['data-bypass-observer'] = true;
+        }
+
         if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs && $renderJs) {
             $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS, false, $jsAttributes);
 
@@ -541,6 +545,10 @@ class Rendering extends Component
 
         if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
             $jsAttributes['data-manual-init'] = true;
+        }
+
+        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
+            $jsAttributes['data-bypass-observer'] = false;
         }
 
         if ($inline) {
