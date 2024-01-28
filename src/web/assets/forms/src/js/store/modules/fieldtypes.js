@@ -60,11 +60,24 @@ const getters = {
 
             // The fieldtype will contain the settings for a new field
             let { newField } = clone(fieldtype);
-            newField.__id = newId();
 
             // Allow other settings to be overridden
             if (settings) {
                 newField = merge(newField, settings);
+            }
+
+            // Set a new client-side ID for the field
+            newField.__id = newId();
+
+            // Handle any nested fields to also generate their fields
+            if (newField.settings.rows && Array.isArray(newField.settings.rows)) {
+                newField.settings.rows.forEach((nestedRow) => {
+                    if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
+                        nestedRow.fields.forEach((nestedField) => {
+                            nestedField.__id = newId();
+                        });
+                    }
+                });
             }
 
             return newField;

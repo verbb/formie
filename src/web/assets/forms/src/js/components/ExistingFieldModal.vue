@@ -286,10 +286,27 @@ export default {
             });
         },
 
+        clonedFieldSettings(field) {
+            const settings = clone(field.settings);
+
+            // A little extra handling here for nested fields, where we don't want to include IDs
+            if (settings.rows && Array.isArray(settings.rows)) {
+                settings.rows.forEach((nestedRow) => {
+                    if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
+                        nestedRow.fields.forEach((nestedField) => {
+                            nestedField.id = null;
+                        });
+                    }
+                });
+            }
+
+            return settings;
+        },
+
         addFields() {
             for (const field of this.selectedFields) {
                 const config = {
-                    settings: clone(field.settings),
+                    settings: this.clonedFieldSettings(field),
                 };
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
@@ -317,7 +334,7 @@ export default {
                 const config = {
                     id: field.id,
                     isSynced: true,
-                    settings: clone(field.settings),
+                    settings: this.clonedFieldSettings(field),
                 };
 
                 config.settings.isSynced = true;

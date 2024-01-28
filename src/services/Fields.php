@@ -323,9 +323,7 @@ class Fields extends Component
                         continue;
                     }
 
-                    if (!($field instanceof NestedFieldInterface)) {
-                        $pageFields[] = $allFields[] = $field->getFormBuilderConfig();
-                    }
+                    $pageFields[] = $allFields[] = $field->getFormBuilderConfig();
                 }
 
                 $formPages[] = [

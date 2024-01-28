@@ -11,6 +11,7 @@
 - Added “Required Field Indicator” for forms, to either show an asterisk for required fields (default) or show optional for non-required fields.
 - Added `data-fui-alert-error` and `data-fui-alert-success` attributes on front-end alerts.
 - Added the `form.setPageSettings()` function to override page settings in your Twig templates.
+- Added support for Group and Repeater fields to be added as an existing field, or a synced field in the form builder.
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
