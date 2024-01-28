@@ -55,6 +55,22 @@ A second argument to `renderPage()` allows you to pass in variables used as [Ren
 {% endfor %}
 ```
 
+## Override Page Settings
+You can also dynamically override any settings for the page using `setPageSettings()`. You'll need to use the "handle" of the page, which is automatically derived from the Page Title as a kebab-delimited string. So if your page has the label "Contact Details" the handle would be `contact-details`.
+
+```twig
+{% set form = craft.formie.forms.handle('contactForm').one() %}
+
+{% do form.setPageSettings('page-1', {
+    {# Override the submit button text for "Page 1" #}
+    submitButtonLabel: 'Click here to submit',
+}) %}
+
+{{ craft.formie.renderForm(form) }}
+```
+
+Check out the [Page](docs:developers/page) object for all available settings.
+
 ## Rendering Rows & Fields
 You can render rows for a page, rather than relying on the render function to output them. In this instance, you would want to [Render the Field](docs:template-guides/rendering-fields), rather than the entire page.
 

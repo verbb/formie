@@ -1654,6 +1654,18 @@ class Form extends Element
         }
     }
 
+    public function setPageSettings(string $handle, array $settings): void
+    {
+        $pagesByHandle = ArrayHelper::index($this->pages, 'handle');
+
+        // Get the page settings so we only override what we want
+        $pageSettings = $pagesByHandle[$handle]->settings ?? null;
+
+        if ($pageSettings) {
+            $pageSettings->setAttributes($settings, false);
+        }
+    }
+
     public function setFieldSettings(string $handle, array $settings, bool $updateSnapshot = true): void
     {
         $field = null;
