@@ -34,7 +34,7 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" :value="fieldSettings" @submit="submitHandler" @submit-raw="submitHandlerRaw">
+                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="fieldSettings" @submit="submitHandler" @submit-raw="submitHandlerRaw">
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
