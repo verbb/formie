@@ -7,7 +7,7 @@ export class Formie {
         this.forms = [];
     }
 
-    initForms() {
+    initForms(useObserver = true) {
         this.$forms = document.querySelectorAll('form[data-fui-form]') || [];
 
         // We use this in the CP, where it's a bit tricky to add a form ID. So check just in case.
@@ -17,7 +17,21 @@ export class Formie {
         }
 
         this.$forms.forEach(($form) => {
-            this.initForm($form);
+            // Check if we want to use an `IntersectionObserver` to only initialize the form when visible
+            if (useObserver) {
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].intersectionRatio !== 0) {
+                        this.initForm($form);
+
+                        // Stop listening to prevent multiple init - just in case
+                        observer.disconnect();
+                    }
+                });
+
+                observer.observe($form);
+            } else {
+                this.initForm($form);
+            }
         });
 
         // Emit a custom event to let scripts know the Formie class is ready
