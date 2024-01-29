@@ -47,53 +47,51 @@ class Klaviyo extends Crm
         $settings = [];
 
         try {
-            $profileFields = [
-                new IntegrationField([
-                    'handle' => '$first_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$last_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => '$phone_number',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$region',
-                    'name' => Craft::t('formie', 'Region'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$zip',
-                    'name' => Craft::t('formie', 'Zip'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$organization',
-                    'name' => Craft::t('formie', 'Organization'),
-                ]),
-                new IntegrationField([
-                    'handle' => '$title',
-                    'name' => Craft::t('formie', 'Title'),
-                ]),
-            ];
-
-            $settings = [
-                'profile' => $profileFields,
-            ];
+            if ($this->mapToProfile) {
+                $settings['profile'] = [
+                    new IntegrationField([
+                        'handle' => '$first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$phone_number',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$region',
+                        'name' => Craft::t('formie', 'Region'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$zip',
+                        'name' => Craft::t('formie', 'Zip'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$organization',
+                        'name' => Craft::t('formie', 'Organization'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => '$title',
+                        'name' => Craft::t('formie', 'Title'),
+                    ]),
+                ];
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

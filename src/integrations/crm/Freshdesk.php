@@ -57,246 +57,245 @@ class Freshdesk extends Crm
 
         try {
             // Get Contact fields
-            $fields = $this->request('GET', 'contact_fields');
+            if ($this->mapToContact) {
+                $fields = $this->request('GET', 'contact_fields');
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'mobile',
-                    'name' => Craft::t('formie', 'Mobile'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'twitter_id',
-                    'name' => Craft::t('formie', 'Twitter ID'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'company_id',
-                    'name' => Craft::t('formie', 'Company ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'description',
-                    'name' => Craft::t('formie', 'Description'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-            ], $this->_getCustomFields($fields));
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'mobile',
+                        'name' => Craft::t('formie', 'Mobile'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'twitter_id',
+                        'name' => Craft::t('formie', 'Twitter ID'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'company_id',
+                        'name' => Craft::t('formie', 'Company ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'description',
+                        'name' => Craft::t('formie', 'Description'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'time_zone',
+                        'name' => Craft::t('formie', 'Timezone'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
 
             // Get Ticket fields
-            $fields = $this->request('GET', 'ticket_fields');
+            if ($this->mapToTicket) {
+                $fields = $this->request('GET', 'ticket_fields');
 
-            $ticketFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'unique_external_id',
-                    'name' => Craft::t('formie', 'Unique External ID'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'subject',
-                    'name' => Craft::t('formie', 'Subject'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'type',
-                    'name' => Craft::t('formie', 'Type'),
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'status',
-                    'name' => Craft::t('formie', 'Status'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Source'),
+                $settings['ticket'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'unique_external_id',
+                        'name' => Craft::t('formie', 'Unique External ID'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'subject',
+                        'name' => Craft::t('formie', 'Subject'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'type',
+                        'name' => Craft::t('formie', 'Type'),
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'status',
+                        'name' => Craft::t('formie', 'Status'),
+                        'required' => true,
                         'options' => [
-                            [
-                                'label' => Craft::t('formie', 'Open'),
-                                'value' => 2,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Pending'),
-                                'value' => 3,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Resolved'),
-                                'value' => 4,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Closed'),
-                                'value' => 5,
+                            'label' => Craft::t('formie', 'Source'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'Open'),
+                                    'value' => 2,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Pending'),
+                                    'value' => 3,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Resolved'),
+                                    'value' => 4,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Closed'),
+                                    'value' => 5,
+                                ],
                             ],
                         ],
-                    ],
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'priority',
-                    'name' => Craft::t('formie', 'Priority'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Source'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'priority',
+                        'name' => Craft::t('formie', 'Priority'),
+                        'required' => true,
                         'options' => [
-                            [
-                                'label' => Craft::t('formie', 'Low'),
-                                'value' => 1,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Medium'),
-                                'value' => 2,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'High'),
-                                'value' => 3,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Urgent'),
-                                'value' => 4,
+                            'label' => Craft::t('formie', 'Source'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'Low'),
+                                    'value' => 1,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Medium'),
+                                    'value' => 2,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'High'),
+                                    'value' => 3,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Urgent'),
+                                    'value' => 4,
+                                ],
                             ],
                         ],
-                    ],
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'description',
-                    'name' => Craft::t('formie', 'Description'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_STRING,
-                ]),
-                new IntegrationField([
-                    'handle' => 'responder_id',
-                    'name' => Craft::t('formie', 'Responder ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'attachments',
-                    'name' => Craft::t('formie', 'Attachments'),
-                    'type' => IntegrationField::TYPE_ARRAY,
-                ]),
-                new IntegrationField([
-                    'handle' => 'cc_emails',
-                    'name' => Craft::t('formie', 'CC Emails'),
-                    'type' => IntegrationField::TYPE_ARRAY,
-                ]),
-                new IntegrationField([
-                    'handle' => 'due_by',
-                    'name' => Craft::t('formie', 'Due By'),
-                    'type' => IntegrationField::TYPE_DATETIME,
-                ]),
-                new IntegrationField([
-                    'handle' => 'email_config_id',
-                    'name' => Craft::t('formie', 'Email Config ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'fr_due_by',
-                    'name' => Craft::t('formie', 'First Response Due By'),
-                    'type' => IntegrationField::TYPE_DATETIME,
-                ]),
-                new IntegrationField([
-                    'handle' => 'group_id',
-                    'name' => Craft::t('formie', 'Group ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'product_id',
-                    'name' => Craft::t('formie', 'Product ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'source',
-                    'name' => Craft::t('formie', 'Source'),
-                    'required' => true,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Source'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'description',
+                        'name' => Craft::t('formie', 'Description'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_STRING,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'responder_id',
+                        'name' => Craft::t('formie', 'Responder ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'attachments',
+                        'name' => Craft::t('formie', 'Attachments'),
+                        'type' => IntegrationField::TYPE_ARRAY,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'cc_emails',
+                        'name' => Craft::t('formie', 'CC Emails'),
+                        'type' => IntegrationField::TYPE_ARRAY,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'due_by',
+                        'name' => Craft::t('formie', 'Due By'),
+                        'type' => IntegrationField::TYPE_DATETIME,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email_config_id',
+                        'name' => Craft::t('formie', 'Email Config ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'fr_due_by',
+                        'name' => Craft::t('formie', 'First Response Due By'),
+                        'type' => IntegrationField::TYPE_DATETIME,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'group_id',
+                        'name' => Craft::t('formie', 'Group ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'product_id',
+                        'name' => Craft::t('formie', 'Product ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source',
+                        'name' => Craft::t('formie', 'Source'),
+                        'required' => true,
                         'options' => [
-                            [
-                                'label' => Craft::t('formie', 'Email'),
-                                'value' => 1,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Portal'),
-                                'value' => 2,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Phone'),
-                                'value' => 3,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Chat'),
-                                'value' => 7,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Feedback Widget'),
-                                'value' => 9,
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Outbound Email'),
-                                'value' => 10,
+                            'label' => Craft::t('formie', 'Source'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'Email'),
+                                    'value' => 1,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Portal'),
+                                    'value' => 2,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Phone'),
+                                    'value' => 3,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Chat'),
+                                    'value' => 7,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Feedback Widget'),
+                                    'value' => 9,
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Outbound Email'),
+                                    'value' => 10,
+                                ],
                             ],
                         ],
-                    ],
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags'),
-                    'type' => IntegrationField::TYPE_ARRAY,
-                ]),
-                new IntegrationField([
-                    'handle' => 'company_id',
-                    'name' => Craft::t('formie', 'Company ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'contact' => $contactFields,
-                'ticket' => $ticketFields,
-            ];
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                        'type' => IntegrationField::TYPE_ARRAY,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'company_id',
+                        'name' => Craft::t('formie', 'Company ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

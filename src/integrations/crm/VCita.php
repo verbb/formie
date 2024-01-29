@@ -47,65 +47,63 @@ class VCita extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'fields');
-            $fields = $response['data'] ?? [];
+            if ($this->mapToClient) {
+                $response = $this->request('GET', 'fields');
+                $fields = $response['data'] ?? [];
 
-            $clientFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'first_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'last_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'address',
-                    'name' => Craft::t('formie', 'Address'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_campaign',
-                    'name' => Craft::t('formie', 'Source Campaign'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_channel',
-                    'name' => Craft::t('formie', 'Source Channel'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_name',
-                    'name' => Craft::t('formie', 'Source Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_url',
-                    'name' => Craft::t('formie', 'Source URL'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'staff_id',
-                    'name' => Craft::t('formie', 'Staff ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'status',
-                    'name' => Craft::t('formie', 'Status'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'client' => $clientFields,
-            ];
+                $settings['client'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source_campaign',
+                        'name' => Craft::t('formie', 'Source Campaign'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source_channel',
+                        'name' => Craft::t('formie', 'Source Channel'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source_name',
+                        'name' => Craft::t('formie', 'Source Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source_url',
+                        'name' => Craft::t('formie', 'Source URL'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'staff_id',
+                        'name' => Craft::t('formie', 'Staff ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'status',
+                        'name' => Craft::t('formie', 'Status'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

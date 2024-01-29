@@ -56,407 +56,372 @@ class Freshsales extends Crm
 
         try {
             // Prepare a bunch of extra details for options
-            $ownerOptions = [];
-            $stageOptions = [];
-            $reasonOptions = [];
-            $typeOptions = [];
-            $sourceOptions = [];
-            $campaignOptions = [];
-            $pipelineOptions = [];
+            if ($this->mapToDeal || $this->mapToLead) {
+                $ownerOptions = array_map(function($owner) {
+                    return [
+                        'label' => $owner['display_name'],
+                        'value' => (string)$owner['id'],
+                    ];
+                }, $this->request('GET', 'selector/owners')['users'] ?? []);
 
-            $response = $this->request('GET', 'selector/owners');
-            $owners = $response['users'] ?? [];
+                $stageOptions = array_map(function($stage) {
+                    return [
+                        'label' => $stage['name'],
+                        'value' => (string)$stage['id'],
+                    ];
+                }, $this->request('GET', 'selector/deal_stages')['deal_stages'] ?? []);
 
-            foreach ($owners as $owner) {
-                $ownerOptions[] = [
-                    'label' => $owner['display_name'],
-                    'value' => (string)$owner['id'],
-                ];
-            }
+                $reasonOptions = array_map(function($reason) {
+                    return [
+                        'label' => $reason['name'],
+                        'value' => (string)$reason['id'],
+                    ];
+                }, $this->request('GET', 'selector/deal_reasons')['deal_reasons'] ?? []);
 
-            $response = $this->request('GET', 'selector/deal_stages');
-            $stages = $response['deal_stages'] ?? [];
+                $sourceOptions = array_map(function($source) {
+                    return [
+                        'label' => $source['name'],
+                        'value' => (string)$source['id'],
+                    ];
+                }, $this->request('GET', 'selector/lead_sources')['lead_sources'] ?? []);
 
-            foreach ($stages as $stage) {
-                $stageOptions[] = [
-                    'label' => $stage['name'],
-                    'value' => (string)$stage['id'],
-                ];
-            }
-
-            $response = $this->request('GET', 'selector/deal_reasons');
-            $reasons = $response['deal_reasons'] ?? [];
-
-            foreach ($reasons as $reason) {
-                $reasonOptions[] = [
-                    'label' => $reason['name'],
-                    'value' => (string)$reason['id'],
-                ];
-            }
-
-            $response = $this->request('GET', 'selector/deal_types');
-            $types = $response['deal_types'] ?? [];
-
-            foreach ($types as $type) {
-                $typeOptions[] = [
-                    'label' => $type['name'],
-                    'value' => (string)$type['id'],
-                ];
-            }
-
-            $response = $this->request('GET', 'selector/lead_sources');
-            $sources = $response['lead_sources'] ?? [];
-
-            foreach ($sources as $source) {
-                $sourceOptions[] = [
-                    'label' => $source['name'],
-                    'value' => (string)$source['id'],
-                ];
-            }
-
-            $response = $this->request('GET', 'selector/campaigns');
-            $campaigns = $response['campaigns'] ?? [];
-
-            foreach ($campaigns as $campaign) {
-                $campaignOptions[] = [
-                    'label' => $campaign['name'],
-                    'value' => (string)$campaign['id'],
-                ];
-            }
-
-            $response = $this->request('GET', 'selector/deal_pipelines');
-            $pipelines = $response['deal_pipelines'] ?? [];
-
-            foreach ($pipelines as $pipeline) {
-                $pipelineOptions[] = [
-                    'label' => $pipeline['name'],
-                    'value' => (string)$pipeline['id'],
-                ];
+                $campaignOptions = array_map(function($campaign) {
+                    return [
+                        'label' => $campaign['name'],
+                        'value' => (string)$campaign['id'],
+                    ];
+                }, $this->request('GET', 'selector/campaigns')['campaigns'] ?? []);
             }
 
             // Get Contact fields
-            $response = $this->request('GET', 'settings/contacts/fields');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToContact) {
+                $response = $this->request('GET', 'settings/contacts/fields');
+                $fields = $response['fields'] ?? [];
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'first_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'last_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'work_number',
-                    'name' => Craft::t('formie', 'Work Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'mobile_number',
-                    'name' => Craft::t('formie', 'Mobile'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'address',
-                    'name' => Craft::t('formie', 'Address'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'state',
-                    'name' => Craft::t('formie', 'State'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zipcode',
-                    'name' => Craft::t('formie', 'Zipcode'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-            ], $this->_getCustomFields($fields));
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'work_number',
+                        'name' => Craft::t('formie', 'Work Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'mobile_number',
+                        'name' => Craft::t('formie', 'Mobile'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'state',
+                        'name' => Craft::t('formie', 'State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zipcode',
+                        'name' => Craft::t('formie', 'Zipcode'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'time_zone',
+                        'name' => Craft::t('formie', 'Timezone'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
 
             // Get Lead fields
-            $response = $this->request('GET', 'settings/leads/fields');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToLead) {
+                $response = $this->request('GET', 'settings/leads/fields');
+                $fields = $response['fields'] ?? [];
 
-            $leadFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'first_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'last_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'work_number',
-                    'name' => Craft::t('formie', 'Work Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'mobile_number',
-                    'name' => Craft::t('formie', 'Mobile'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'address',
-                    'name' => Craft::t('formie', 'Address'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'state',
-                    'name' => Craft::t('formie', 'State'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zipcode',
-                    'name' => Craft::t('formie', 'Zipcode'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_stage_id',
-                    'name' => Craft::t('formie', 'Lead Stage ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Stage'),
-                        'options' => $stageOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_reason_id',
-                    'name' => Craft::t('formie', 'Lead Reason ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Reason'),
-                        'options' => $reasonOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_source_id',
-                    'name' => Craft::t('formie', 'Lead Source ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Source'),
-                        'options' => $sourceOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Owner'),
-                        'options' => $ownerOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'medium',
-                    'name' => Craft::t('formie', 'Medium'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'campaign_id',
-                    'name' => Craft::t('formie', 'Campaign ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Campaign'),
-                        'options' => $campaignOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'keyword',
-                    'name' => Craft::t('formie', 'Keyword'),
-                ]),
-            ], $this->_getCustomFields($fields));
+                $settings['lead'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'work_number',
+                        'name' => Craft::t('formie', 'Work Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'mobile_number',
+                        'name' => Craft::t('formie', 'Mobile'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'state',
+                        'name' => Craft::t('formie', 'State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zipcode',
+                        'name' => Craft::t('formie', 'Zipcode'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'time_zone',
+                        'name' => Craft::t('formie', 'Timezone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lead_stage_id',
+                        'name' => Craft::t('formie', 'Lead Stage ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Stage'),
+                            'options' => $stageOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lead_reason_id',
+                        'name' => Craft::t('formie', 'Lead Reason ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Reason'),
+                            'options' => $reasonOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lead_source_id',
+                        'name' => Craft::t('formie', 'Lead Source ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Source'),
+                            'options' => $sourceOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'owner_id',
+                        'name' => Craft::t('formie', 'Owner ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Owner'),
+                            'options' => $ownerOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'medium',
+                        'name' => Craft::t('formie', 'Medium'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'campaign_id',
+                        'name' => Craft::t('formie', 'Campaign ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Campaign'),
+                            'options' => $campaignOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'keyword',
+                        'name' => Craft::t('formie', 'Keyword'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
 
             // Get Deal fields
-            $response = $this->request('GET', 'settings/deals/fields');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToDeal) {
+                $response = $this->request('GET', 'settings/deals/fields');
+                $fields = $response['fields'] ?? [];
 
-            $dealFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'amount',
-                    'name' => Craft::t('formie', 'Amount'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'sales_account_id',
-                    'name' => Craft::t('formie', 'Sales Account ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'deal_stage_id',
-                    'name' => Craft::t('formie', 'Deal Stage ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Stage'),
-                        'options' => $stageOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'deal_reason_id',
-                    'name' => Craft::t('formie', 'Deal Reason ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Reason'),
-                        'options' => $reasonOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'deal_type_id',
-                    'name' => Craft::t('formie', 'Deal Type ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Type'),
-                        'options' => $typeOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Owner'),
-                        'options' => $ownerOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'expected_close',
-                    'name' => Craft::t('formie', 'Expected Close'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'closed_date',
-                    'name' => Craft::t('formie', 'Closed Date'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_source_id',
-                    'name' => Craft::t('formie', 'Lead Source ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Source'),
-                        'options' => $sourceOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'campaign_id',
-                    'name' => Craft::t('formie', 'Campaign ID'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Campaign'),
-                        'options' => $campaignOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'deal_product_id',
-                    'name' => Craft::t('formie', 'Deal Product ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'deal_payment_status_id',
-                    'name' => Craft::t('formie', 'Deal Payment Status ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'probability',
-                    'name' => Craft::t('formie', 'Probability'),
-                ]),
-            ], $this->_getCustomFields($fields));
+                $settings['deal'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'amount',
+                        'name' => Craft::t('formie', 'Amount'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'sales_account_id',
+                        'name' => Craft::t('formie', 'Sales Account ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'deal_stage_id',
+                        'name' => Craft::t('formie', 'Deal Stage ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Stage'),
+                            'options' => $stageOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'deal_reason_id',
+                        'name' => Craft::t('formie', 'Deal Reason ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Reason'),
+                            'options' => $reasonOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'deal_type_id',
+                        'name' => Craft::t('formie', 'Deal Type ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Type'),
+                            'options' => array_map(function($type) {
+                                return [
+                                    'label' => $type['name'],
+                                    'value' => (string)$type['id'],
+                                ];
+                            }, $this->request('GET', 'selector/deal_types')['deal_types'] ?? []),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'owner_id',
+                        'name' => Craft::t('formie', 'Owner ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Owner'),
+                            'options' => $ownerOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'expected_close',
+                        'name' => Craft::t('formie', 'Expected Close'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'closed_date',
+                        'name' => Craft::t('formie', 'Closed Date'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lead_source_id',
+                        'name' => Craft::t('formie', 'Lead Source ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Source'),
+                            'options' => $sourceOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'campaign_id',
+                        'name' => Craft::t('formie', 'Campaign ID'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Campaign'),
+                            'options' => $campaignOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'deal_product_id',
+                        'name' => Craft::t('formie', 'Deal Product ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'deal_payment_status_id',
+                        'name' => Craft::t('formie', 'Deal Payment Status ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'probability',
+                        'name' => Craft::t('formie', 'Probability'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
 
             // Get Account fields
-            $response = $this->request('GET', 'settings/sales_accounts/fields');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToAccount) {
+                $response = $this->request('GET', 'settings/sales_accounts/fields');
+                $fields = $response['fields'] ?? [];
 
-            $accountFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'address',
-                    'name' => Craft::t('formie', 'Address'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'state',
-                    'name' => Craft::t('formie', 'State'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zipcode',
-                    'name' => Craft::t('formie', 'Zipcode'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'industry_type_id',
-                    'name' => Craft::t('formie', 'Industry Type ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'business_type_id',
-                    'name' => Craft::t('formie', 'Business Type ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'number_of_employees',
-                    'name' => Craft::t('formie', 'Number of Employees'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'annual_revenue',
-                    'name' => Craft::t('formie', 'Annual Revenue'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'website',
-                    'name' => Craft::t('formie', 'Website'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'facebook',
-                    'name' => Craft::t('formie', 'Facebook'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'twitter',
-                    'name' => Craft::t('formie', 'Twitter'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'linkedin',
-                    'name' => Craft::t('formie', 'LinkedIn'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'contact' => $contactFields,
-                'lead' => $leadFields,
-                'deal' => $dealFields,
-                'account' => $accountFields,
-            ];
+                $settings['account'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'state',
+                        'name' => Craft::t('formie', 'State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zipcode',
+                        'name' => Craft::t('formie', 'Zipcode'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'industry_type_id',
+                        'name' => Craft::t('formie', 'Industry Type ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'business_type_id',
+                        'name' => Craft::t('formie', 'Business Type ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'number_of_employees',
+                        'name' => Craft::t('formie', 'Number of Employees'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'annual_revenue',
+                        'name' => Craft::t('formie', 'Annual Revenue'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'website',
+                        'name' => Craft::t('formie', 'Website'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'facebook',
+                        'name' => Craft::t('formie', 'Facebook'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'twitter',
+                        'name' => Craft::t('formie', 'Twitter'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'linkedin',
+                        'name' => Craft::t('formie', 'LinkedIn'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

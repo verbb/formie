@@ -129,12 +129,18 @@ class IntegrationsController extends Controller
 
         $request = $this->request;
         $handle = $request->getParam('integration');
+        $settings = $request->getParam('settings');
 
         if (!$handle) {
             return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
         }
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+
+        // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
+        if ($settings) {
+            $integration->setAttributes($settings, false);
+        }
 
         // Handball to the integration class to deal with the return
         return $this->asJson($integration->getFormSettings(false)->getSettings());

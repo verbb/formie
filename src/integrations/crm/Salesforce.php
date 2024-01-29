@@ -175,37 +175,39 @@ class Salesforce extends Crm implements OAuthProviderInterface
             }
 
             // Get Contact fields
-            $response = $this->request('GET', 'sobjects/Contact/describe');
-            $fields = $response['fields'] ?? [];
-            $contactFields = $this->_getCustomFields($fields);
+            if ($this->mapToContact) {
+                $response = $this->request('GET', 'sobjects/Contact/describe');
+                $fields = $response['fields'] ?? [];
+                $settings['contact'] = $this->_getCustomFields($fields);
+            }
 
             // Get Lead fields
-            $response = $this->request('GET', 'sobjects/Lead/describe');
-            $fields = $response['fields'] ?? [];
-            $leadFields = $this->_getCustomFields($fields);
+            if ($this->mapToLead) {
+                $response = $this->request('GET', 'sobjects/Lead/describe');
+                $fields = $response['fields'] ?? [];
+                $settings['lead'] = $this->_getCustomFields($fields);
+            }
 
             // Get Opportunity fields
-            $response = $this->request('GET', 'sobjects/Opportunity/describe');
-            $fields = $response['fields'] ?? [];
-            $opportunityFields = $this->_getCustomFields($fields);
+            if ($this->mapToOpportunity) {
+                $response = $this->request('GET', 'sobjects/Opportunity/describe');
+                $fields = $response['fields'] ?? [];
+                $settings['opportunity'] = $this->_getCustomFields($fields);
+            }
 
             // Get Account fields
-            $response = $this->request('GET', 'sobjects/Account/describe');
-            $fields = $response['fields'] ?? [];
-            $accountFields = $this->_getCustomFields($fields);
+            if ($this->mapToAccount) {
+                $response = $this->request('GET', 'sobjects/Account/describe');
+                $fields = $response['fields'] ?? [];
+                $settings['account'] = $this->_getCustomFields($fields);
+            }
 
             // Get Case fields
-            $response = $this->request('GET', 'sobjects/Case/describe');
-            $fields = $response['fields'] ?? [];
-            $caseFields = $this->_getCustomFields($fields);
-
-            $settings = [
-                'contact' => $contactFields,
-                'lead' => $leadFields,
-                'opportunity' => $opportunityFields,
-                'account' => $accountFields,
-                'case' => $caseFields,
-            ];
+            if ($this->mapToCase) {
+                $response = $this->request('GET', 'sobjects/Case/describe');
+                $fields = $response['fields'] ?? [];
+                $settings['case'] = $this->_getCustomFields($fields);
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

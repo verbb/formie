@@ -112,19 +112,25 @@ class Zoho extends Crm implements OAuthProviderInterface
         $settings = [];
 
         try {
-            $contactFields = $this->_getModuleFields('Contacts');
-            $dealFields = $this->_getModuleFields('Deals');
-            $leadsFields = $this->_getModuleFields('Leads');
-            $accountFields = $this->_getModuleFields('Accounts');
-            $quoteFields = $this->_getModuleFields('Quotes');
+            if ($this->mapToContact) {
+                $settings['contact'] = $this->_getModuleFields('Contacts');
+            }
 
-            $settings = [
-                'contact' => $contactFields,
-                'deal' => $dealFields,
-                'lead' => $leadsFields,
-                'account' => $accountFields,
-                'quote' => $quoteFields,
-            ];
+            if ($this->mapToDeal) {
+                $settings['deal'] = $this->_getModuleFields('Deals');
+            }
+
+            if ($this->mapToLead) {
+                $settings['lead'] = $this->_getModuleFields('Leads');
+            }
+
+            if ($this->mapToAccount) {
+                $settings['account'] = $this->_getModuleFields('Accounts');
+            }
+
+            if ($this->mapToQuote) {
+                $settings['quote'] = $this->_getModuleFields('Quotes');
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

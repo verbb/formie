@@ -129,19 +129,25 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $settings = [];
 
         try {
-            $contactFields = $this->_getEntityFields('contact');
-            $leadFields = $this->_getEntityFields('lead');
-            $opportunityFields = $this->_getEntityFields('opportunity');
-            $accountFields = $this->_getEntityFields('account');
-            $incidentFields = $this->_getEntityFields('incident');
+            if ($this->mapToContact) {
+                $settings['contact'] = $this->_getEntityFields('contact');
+            }
 
-            $settings = [
-                'contact' => $contactFields,
-                'lead' => $leadFields,
-                'opportunity' => $opportunityFields,
-                'account' => $accountFields,
-                'incident' => $incidentFields,
-            ];
+            if ($this->mapToLead) {
+                $settings['lead'] = $this->_getEntityFields('lead');
+            }
+
+            if ($this->mapToOpportunity) {
+                $settings['opportunity'] = $this->_getEntityFields('opportunity');
+            }
+
+            if ($this->mapToAccount) {
+                $settings['account'] = $this->_getEntityFields('account');
+            }
+
+            if ($this->mapToIncident) {
+                $settings['incident'] = $this->_getEntityFields('incident');
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
