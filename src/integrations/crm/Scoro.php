@@ -74,92 +74,90 @@ class Scoro extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'customFields/list');
-            $fields = $response['data'] ?? [];
+            if ($this->mapToContact) {
+                $response = $this->request('GET', 'customFields/list');
+                $fields = $response['data'] ?? [];
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'lastname',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'contact_type',
-                    'name' => Craft::t('formie', 'Contact Type'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Contact Type'),
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lastname',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'contact_type',
+                        'name' => Craft::t('formie', 'Contact Type'),
                         'options' => [
-                            [
-                                'label' => Craft::t('formie', 'Person'),
-                                'value' => 'person',
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Company'),
-                                'value' => 'company',
+                            'label' => Craft::t('formie', 'Contact Type'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'Person'),
+                                    'value' => 'person',
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Company'),
+                                    'value' => 'company',
+                                ],
                             ],
                         ],
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'id_code',
-                    'name' => Craft::t('formie', 'ID Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'birthday',
-                    'name' => Craft::t('formie', 'Birthday'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'position',
-                    'name' => Craft::t('formie', 'Position'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'comments',
-                    'name' => Craft::t('formie', 'Comments'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'sex',
-                    'name' => Craft::t('formie', 'Sex'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'vatno',
-                    'name' => Craft::t('formie', 'VAT Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'timezone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'manager_id',
-                    'name' => Craft::t('formie', 'Manager ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'manager_email',
-                    'name' => Craft::t('formie', 'Manager Email'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_supplier',
-                    'name' => Craft::t('formie', 'Is Supplier'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_client',
-                    'name' => Craft::t('formie', 'Is Client'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'client_profile_id',
-                    'name' => Craft::t('formie', 'Client Profile ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'reference_no',
-                    'name' => Craft::t('formie', 'Reference Number'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'contact' => $contactFields,
-            ];
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'id_code',
+                        'name' => Craft::t('formie', 'ID Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'birthday',
+                        'name' => Craft::t('formie', 'Birthday'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'position',
+                        'name' => Craft::t('formie', 'Position'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'comments',
+                        'name' => Craft::t('formie', 'Comments'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'sex',
+                        'name' => Craft::t('formie', 'Sex'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'vatno',
+                        'name' => Craft::t('formie', 'VAT Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'timezone',
+                        'name' => Craft::t('formie', 'Timezone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'manager_id',
+                        'name' => Craft::t('formie', 'Manager ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'manager_email',
+                        'name' => Craft::t('formie', 'Manager Email'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_supplier',
+                        'name' => Craft::t('formie', 'Is Supplier'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_client',
+                        'name' => Craft::t('formie', 'Is Client'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'client_profile_id',
+                        'name' => Craft::t('formie', 'Client Profile ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'reference_no',
+                        'name' => Craft::t('formie', 'Reference Number'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

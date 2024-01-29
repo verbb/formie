@@ -9,6 +9,8 @@
 <script>
 import { get, set, isEmpty } from 'lodash-es';
 
+import { toBoolean } from '@utils/bool';
+
 export default {
     name: 'IntegrationFormSettings',
 
@@ -135,9 +137,20 @@ export default {
             const data = {
                 formId: this.form.id,
                 integration: this.handle,
+                settings: {},
                 ...this.globalParams,
                 ...payloadParams,
             };
+
+            // Look through the DOM for any lightswitch fields that have a `name` attribute starting with `mapTo`.
+            // It's not pretty, but the only real way to get the enabled data objects we want to fetch for without big rewrites.
+            const $switches = this.$el.parentNode.querySelectorAll('.lightswitch-field');
+
+            $switches.forEach(($switch) => {
+                if ($switch.getAttribute('data-attribute').startsWith('mapTo')) {
+                    data.settings[$switch.getAttribute('data-attribute')] = toBoolean($switch.querySelector('.lightswitch').getAttribute('aria-checked'));
+                }
+            });
 
             Craft.sendActionRequest('POST', 'formie/integrations/form-settings', { data }).then((response) => {
                 this.loading = false;

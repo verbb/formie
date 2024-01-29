@@ -130,269 +130,247 @@ class Pardot extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'customField/version/4/do/query');
-            $fields = $response['result']['customField'] ?? [];
+            if ($this->mapToProspect) {
+                $response = $this->request('GET', 'customField/version/4/do/query');
+                $fields = $response['result']['customField'] ?? [];
 
-            $response = $this->request('GET', 'campaign/version/4/do/query');
-            $campaigns = $response['result']['campaign'] ?? [];
-
-            $campaignOptions = [];
-
-            foreach ($campaigns as $campaign) {
-                $campaignOptions[] = [
-                    'label' => $campaign['name'],
-                    'value' => $campaign['id'],
+                $booleanOptions = [
+                    [
+                        'label' => Craft::t('formie', 'Yes'),
+                        'value' => true,
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'No'),
+                        'value' => false,
+                    ],
                 ];
+
+                $settings['prospect'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'list_id',
+                        'name' => Craft::t('formie', 'Segmentation List'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Lists'),
+                            'options' => array_map(function($list) {
+                                return [
+                                    'label' => $list['name'],
+                                    'value' => $list['id'],
+                                ];
+                            }, $this->request('GET', 'list/version/4/do/query')['result']['list'] ?? []),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'salutation',
+                        'name' => Craft::t('formie', 'Salutation'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'password',
+                        'name' => Craft::t('formie', 'Password'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'company',
+                        'name' => Craft::t('formie', 'Company'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'prospect_account_id',
+                        'name' => Craft::t('formie', 'Prospect Account Id'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Prospect Accounts'),
+                            'options' => array_map(function($prospectAccount) {
+                                return [
+                                    'label' => $prospectAccount['name'],
+                                    'value' => $prospectAccount['id'],
+                                ];
+                            }, $this->request('GET', 'prospectAccount/version/4/do/query')['result']['prospectAccount'] ?? []),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'website',
+                        'name' => Craft::t('formie', 'Website'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'department',
+                        'name' => Craft::t('formie', 'Department'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address_one',
+                        'name' => Craft::t('formie', 'Address Line 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address_two',
+                        'name' => Craft::t('formie', 'Address Line 2'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'state',
+                        'name' => Craft::t('formie', 'State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'territory',
+                        'name' => Craft::t('formie', 'Territory'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zip',
+                        'name' => Craft::t('formie', 'Zip'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'fax',
+                        'name' => Craft::t('formie', 'Fax'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source',
+                        'name' => Craft::t('formie', 'Source'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'annual_revenue',
+                        'name' => Craft::t('formie', 'Annual Revenue'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'employees',
+                        'name' => Craft::t('formie', 'Employees'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'industry',
+                        'name' => Craft::t('formie', 'Industry'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'years_in_business',
+                        'name' => Craft::t('formie', 'Years in Business'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'comments',
+                        'name' => Craft::t('formie', 'Comments'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'notes',
+                        'name' => Craft::t('formie', 'Notes'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'score',
+                        'name' => Craft::t('formie', 'Score'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_do_not_email',
+                        'name' => Craft::t('formie', 'Do Not Email'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Do Not Email'),
+                            'options' => $booleanOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_do_not_call',
+                        'name' => Craft::t('formie', 'Do Not Call'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Do Not Call'),
+                            'options' => $booleanOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_reviewed',
+                        'name' => Craft::t('formie', 'Reviewed'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Reviewed'),
+                            'options' => $booleanOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_archived',
+                        'name' => Craft::t('formie', 'Archived'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Archived'),
+                            'options' => $booleanOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'is_starred',
+                        'name' => Craft::t('formie', 'Starred'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Starred'),
+                            'options' => $booleanOptions,
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'campaign_id',
+                        'name' => Craft::t('formie', 'Campaign ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Campaigns'),
+                            'options' => array_map(function($campaign) {
+                                return [
+                                    'label' => $campaign['name'],
+                                    'value' => $campaign['id'],
+                                ];
+                            }, $this->request('GET', 'campaign/version/4/do/query')['result']['campaign'] ?? []),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'profile',
+                        'name' => Craft::t('formie', 'Profile'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'assign_to',
+                        'name' => Craft::t('formie', 'Assign To'),
+                    ]),
+                ], $this->_getCustomFields($fields));
             }
 
-            $response = $this->request('GET', 'prospectAccount/version/4/do/query');
-            $prospectAccounts = $response['result']['prospectAccount'] ?? [];
-
-            $prospectAccountOptions = [];
-
-            foreach ($prospectAccounts as $prospectAccount) {
-                $prospectAccountOptions[] = [
-                    'label' => $prospectAccount['name'],
-                    'value' => $prospectAccount['id'],
+            if ($this->mapToOpportunity) {
+                $settings['opportunity'] = [
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'value',
+                        'name' => Craft::t('formie', 'Value'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'probability',
+                        'name' => Craft::t('formie', 'Probability'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'prospect_email',
+                        'name' => Craft::t('formie', 'Prospect Email'),
+                    ]),
                 ];
             }
-
-            $response = $this->request('GET', 'list/version/4/do/query');
-            $lists = $response['result']['list'] ?? [];
-
-            $listsOptions = [];
-
-            foreach ($lists as $list) {
-                $listsOptions[] = [
-                    'label' => $list['name'],
-                    'value' => $list['id'],
-                ];
-            }
-
-            $booleanOptions = [
-                [
-                    'label' => Craft::t('formie', 'Yes'),
-                    'value' => true,
-                ],
-                [
-                    'label' => Craft::t('formie', 'No'),
-                    'value' => false,
-                ],
-            ];
-
-            $prospectFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'list_id',
-                    'name' => Craft::t('formie', 'Segmentation List'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Lists'),
-                        'options' => $listsOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'salutation',
-                    'name' => Craft::t('formie', 'Salutation'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'first_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'last_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'password',
-                    'name' => Craft::t('formie', 'Password'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'company',
-                    'name' => Craft::t('formie', 'Company'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'prospect_account_id',
-                    'name' => Craft::t('formie', 'Prospect Account Id'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Prospect Accounts'),
-                        'options' => $prospectAccountOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'website',
-                    'name' => Craft::t('formie', 'Website'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'department',
-                    'name' => Craft::t('formie', 'Department'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'address_one',
-                    'name' => Craft::t('formie', 'Address Line 1'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'address_two',
-                    'name' => Craft::t('formie', 'Address Line 2'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'state',
-                    'name' => Craft::t('formie', 'State'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'territory',
-                    'name' => Craft::t('formie', 'Territory'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zip',
-                    'name' => Craft::t('formie', 'Zip'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'fax',
-                    'name' => Craft::t('formie', 'Fax'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source',
-                    'name' => Craft::t('formie', 'Source'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'annual_revenue',
-                    'name' => Craft::t('formie', 'Annual Revenue'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'employees',
-                    'name' => Craft::t('formie', 'Employees'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'industry',
-                    'name' => Craft::t('formie', 'Industry'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'years_in_business',
-                    'name' => Craft::t('formie', 'Years in Business'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'comments',
-                    'name' => Craft::t('formie', 'Comments'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'notes',
-                    'name' => Craft::t('formie', 'Notes'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'score',
-                    'name' => Craft::t('formie', 'Score'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_do_not_email',
-                    'name' => Craft::t('formie', 'Do Not Email'),
-                    'type' => IntegrationField::TYPE_BOOLEAN,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Do Not Email'),
-                        'options' => $booleanOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_do_not_call',
-                    'name' => Craft::t('formie', 'Do Not Call'),
-                    'type' => IntegrationField::TYPE_BOOLEAN,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Do Not Call'),
-                        'options' => $booleanOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_reviewed',
-                    'name' => Craft::t('formie', 'Reviewed'),
-                    'type' => IntegrationField::TYPE_BOOLEAN,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Reviewed'),
-                        'options' => $booleanOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_archived',
-                    'name' => Craft::t('formie', 'Archived'),
-                    'type' => IntegrationField::TYPE_BOOLEAN,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Archived'),
-                        'options' => $booleanOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'is_starred',
-                    'name' => Craft::t('formie', 'Starred'),
-                    'type' => IntegrationField::TYPE_BOOLEAN,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Starred'),
-                        'options' => $booleanOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'campaign_id',
-                    'name' => Craft::t('formie', 'Campaign ID'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                    'options' => [
-                        'label' => Craft::t('formie', 'Campaigns'),
-                        'options' => $campaignOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'profile',
-                    'name' => Craft::t('formie', 'Profile'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'assign_to',
-                    'name' => Craft::t('formie', 'Assign To'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $opportunityFields = [
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'value',
-                    'name' => Craft::t('formie', 'Value'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'probability',
-                    'name' => Craft::t('formie', 'Probability'),
-                    'type' => IntegrationField::TYPE_NUMBER,
-                ]),
-                new IntegrationField([
-                    'handle' => 'prospect_email',
-                    'name' => Craft::t('formie', 'Prospect Email'),
-                ]),
-            ];
-
-            $settings = [
-                'prospect' => $prospectFields,
-                'opportunity' => $opportunityFields,
-            ];
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

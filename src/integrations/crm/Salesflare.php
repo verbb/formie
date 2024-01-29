@@ -73,55 +73,53 @@ class Salesflare extends Crm
         $settings = [];
 
         try {
-            $fields = $this->request('GET', 'customfields/contacts');
+            if ($this->mapToContact) {
+                $fields = $this->request('GET', 'customfields/contacts');
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'owner',
-                    'name' => Craft::t('formie', 'Owner'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'firstname',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'middle',
-                    'name' => Craft::t('formie', 'Middle Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'lastname',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'suffix',
-                    'name' => Craft::t('formie', 'Suffix'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'birth_date',
-                    'name' => Craft::t('formie', 'Date of Birth'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'phone_number',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'mobile_phone_number',
-                    'name' => Craft::t('formie', 'Mobile Phone Number'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'contact' => $contactFields,
-            ];
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'owner',
+                        'name' => Craft::t('formie', 'Owner'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'firstname',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'middle',
+                        'name' => Craft::t('formie', 'Middle Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lastname',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'suffix',
+                        'name' => Craft::t('formie', 'Suffix'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'birth_date',
+                        'name' => Craft::t('formie', 'Date of Birth'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone_number',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'mobile_phone_number',
+                        'name' => Craft::t('formie', 'Mobile Phone Number'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

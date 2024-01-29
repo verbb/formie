@@ -87,36 +87,35 @@ class Maximizer extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('POST', 'AbEntryGetFieldInfo', [
-                'json' => [
-                    'AbEntry' => [
-                        'Options' => [
-                            'Complex' => true,
+            if ($this->mapToContact) {
+                $response = $this->request('POST', 'AbEntryGetFieldInfo', [
+                    'json' => [
+                        'AbEntry' => [
+                            'Options' => [
+                                'Complex' => true,
+                            ],
                         ],
                     ],
-                ],
-            ]);
+                ]);
 
-            $fields = $response['AbEntry']['Data']['properties'] ?? [];
-            $contactFields = $this->_getCustomFields($fields);
+                $fields = $response['AbEntry']['Data']['properties'] ?? [];
+                $settings['contact'] = $this->_getCustomFields($fields);
+            }
 
-            $response = $this->request('POST', 'OpportunityGetFieldInfo', [
-                'json' => [
-                    'Opportunity' => [
-                        'Options' => [
-                            'Complex' => true,
+            if ($this->mapToOpportunity) {
+                $response = $this->request('POST', 'OpportunityGetFieldInfo', [
+                    'json' => [
+                        'Opportunity' => [
+                            'Options' => [
+                                'Complex' => true,
+                            ],
                         ],
                     ],
-                ],
-            ]);
+                ]);
 
-            $fields = $response['Opportunity']['Data']['properties'] ?? [];
-            $opportunityFields = $this->_getCustomFields($fields);
-
-            $settings = [
-                'contact' => $contactFields,
-                'opportunity' => $opportunityFields,
-            ];
+                $fields = $response['Opportunity']['Data']['properties'] ?? [];
+                $settings['opportunity'] = $this->_getCustomFields($fields);
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

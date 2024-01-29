@@ -85,110 +85,19 @@ class Dotdigital extends Crm
         $settings = [];
 
         try {
-            $fields = $this->request('GET', 'data-fields');
-
-            $addressBookOptions = [];
-            $addressBooks = $this->request('GET', 'address-books');
-
-            foreach ($addressBooks as $addressBook) {
-                $addressBookOptions[] = [
-                    'label' => $addressBook['name'],
-                    'value' => (string)$addressBook['id'],
-                ];
-            }
-
-            $emailCampaignOptions = [];
-            $emailCampaigns = $this->request('GET', 'campaigns');
-
-            foreach ($emailCampaigns as $emailCampaign) {
-                $emailCampaignOptions[] = [
-                    'label' => $emailCampaign['name'],
-                    'value' => (string)$emailCampaign['id'],
-                ];
-            }
-
-            $defaultFields = [
-                new IntegrationField([
-                    'handle' => 'addressBook',
-                    'name' => Craft::t('formie', 'Address Book'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Address Book'),
-                        'options' => $addressBookOptions,
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'FIRSTNAME',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'LASTNAME',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'GENDER',
-                    'name' => Craft::t('formie', 'Gender'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'POSTCODE',
-                    'name' => Craft::t('formie', 'Postcode'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'optInType',
-                    'name' => Craft::t('formie', 'Opt-in Type'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Opt-in Type'),
-                        'options' => [
-                            [
-                                'label' => Craft::t('formie', 'Unknown'),
-                                'value' => 'Unknown',
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Single'),
-                                'value' => 'Single',
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Double'),
-                                'value' => 'Double',
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'VerifiedDouble'),
-                                'value' => 'VerifiedDouble',
-                            ],
-                        ],
-                    ],
-                ]),
-                new IntegrationField([
-                    'handle' => 'emailType',
-                    'name' => Craft::t('formie', 'Email Type'),
-                    'options' => [
-                        'label' => Craft::t('formie', 'Email Type'),
-                        'options' => [
-                            [
-                                'label' => Craft::t('formie', 'PlainText'),
-                                'value' => 'PlainText',
-                            ],
-                            [
-                                'label' => Craft::t('formie', 'Html'),
-                                'value' => 'Html',
-                            ],
-                        ],
-                    ],
-                ]),
-            ];
-
-            $emailCampaignFields = [
+            $settings['emailCampaign'] = [
                 new IntegrationField([
                     'handle' => 'emailCampaignId',
                     'name' => Craft::t('formie', 'Email Campaign'),
                     'required' => true,
                     'options' => [
                         'label' => Craft::t('formie', 'Email Campaign'),
-                        'options' => $emailCampaignOptions,
+                        'options' => array_map(function($emailCampaign) {
+                            return [
+                                'label' => $emailCampaign['name'],
+                                'value' => (string)$emailCampaign['id'],
+                            ];
+                        }, $this->request('GET', 'campaigns')),
                     ],
                 ]),
                 new IntegrationField([
@@ -226,15 +135,89 @@ class Dotdigital extends Crm
                 ])
             ];
 
-            $customFields = $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']);
+            if ($this->mapToContact) {
+                $fields = $this->request('GET', 'data-fields');
+                $customFields = $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']);
 
-            $contactFields = ArrayHelper::merge($defaultFields, $customFields);
-
-            $settings = [
-                'contact' => $contactFields,
-                'emailCampaign' => $emailCampaignFields,
-            ];
-
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'addressBook',
+                        'name' => Craft::t('formie', 'Address Book'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Address Book'),
+                            'options' => array_map(function($addressBook) {
+                                return [
+                                    'label' => $addressBook['name'],
+                                    'value' => (string)$addressBook['id'],
+                                ];
+                            }, $this->request('GET', 'address-books')),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'FIRSTNAME',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'LASTNAME',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'GENDER',
+                        'name' => Craft::t('formie', 'Gender'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'POSTCODE',
+                        'name' => Craft::t('formie', 'Postcode'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'optInType',
+                        'name' => Craft::t('formie', 'Opt-in Type'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Opt-in Type'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'Unknown'),
+                                    'value' => 'Unknown',
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Single'),
+                                    'value' => 'Single',
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Double'),
+                                    'value' => 'Double',
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'VerifiedDouble'),
+                                    'value' => 'VerifiedDouble',
+                                ],
+                            ],
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'emailType',
+                        'name' => Craft::t('formie', 'Email Type'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Email Type'),
+                            'options' => [
+                                [
+                                    'label' => Craft::t('formie', 'PlainText'),
+                                    'value' => 'PlainText',
+                                ],
+                                [
+                                    'label' => Craft::t('formie', 'Html'),
+                                    'value' => 'Html',
+                                ],
+                            ],
+                        ],
+                    ]),
+                ], $customFields);
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

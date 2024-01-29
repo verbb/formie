@@ -165,67 +165,68 @@ class OneCrm extends Crm
 
         // Populate some options for some values
         try {
-            $response = $this->request('GET', 'meta/fields/Contact');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToContact) {
+                $response = $this->request('GET', 'meta/fields/Contact');
+                $fields = $response['fields'] ?? [];
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'email1',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-            ], $this->_getCustomFields($fields, ['email1']));
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'email1',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                ], $this->_getCustomFields($fields, ['email1']));
+            }
 
-            $response = $this->request('GET', 'meta/fields/Lead');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToLead) {
+                $response = $this->request('GET', 'meta/fields/Lead');
+                $fields = $response['fields'] ?? [];
 
-            $leadFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'email1',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-            ], $this->_getCustomFields($fields, ['email1']));
+                $settings['lead'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'email1',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                ], $this->_getCustomFields($fields, ['email1']));
+            }
 
-            $response = $this->request('GET', 'meta/fields/Account');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToAccount) {
+                $response = $this->request('GET', 'meta/fields/Account');
+                $fields = $response['fields'] ?? [];
 
-            $accountFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'email1',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-            ], $this->_getCustomFields($fields, ['email1']));
+                $settings['account'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'email1',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                ], $this->_getCustomFields($fields, ['email1']));
+            }
 
-            $response = $this->request('GET', 'meta/fields/Opportunity');
-            $fields = $response['fields'] ?? [];
+            if ($this->mapToOpportunity) {
+                $response = $this->request('GET', 'meta/fields/Opportunity');
+                $fields = $response['fields'] ?? [];
 
-            $opportunityFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Opportunity Name'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'amount',
-                    'name' => Craft::t('formie', 'Amount'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'date_closed',
-                    'name' => Craft::t('formie', 'Date Closed'),
-                    'required' => true,
-                    'type' => IntegrationField::TYPE_DATETIME,
-                ]),
-            ], $this->_getCustomFields($fields, ['name', 'amount', 'amount_usdollar']));
-
-            $settings = [
-                'contact' => $contactFields,
-                'lead' => $leadFields,
-                'account' => $accountFields,
-                'opportunity' => $opportunityFields,
-            ];
+                $settings['opportunity'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Opportunity Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'amount',
+                        'name' => Craft::t('formie', 'Amount'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'date_closed',
+                        'name' => Craft::t('formie', 'Date Closed'),
+                        'required' => true,
+                        'type' => IntegrationField::TYPE_DATETIME,
+                    ]),
+                ], $this->_getCustomFields($fields, ['name', 'amount', 'amount_usdollar']));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

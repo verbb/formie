@@ -100,113 +100,111 @@ class Infusionsoft extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'contacts/model');
-            $fields = $response['custom_fields'] ?? [];
+            if ($this->mapToContact) {
+                $response = $this->request('GET', 'contacts/model');
+                $fields = $response['custom_fields'] ?? [];
 
-            $contactFields = array_merge([
-                new IntegrationField([
-                    'handle' => 'given_name',
-                    'name' => Craft::t('formie', 'First Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'middle_name',
-                    'name' => Craft::t('formie', 'Middle Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'family_name',
-                    'name' => Craft::t('formie', 'Last Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'suffix',
-                    'name' => Craft::t('formie', 'Suffix'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'preferred_name',
-                    'name' => Craft::t('formie', 'Preferred Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'website',
-                    'name' => Craft::t('formie', 'Website'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'time_zone',
-                    'name' => Craft::t('formie', 'Timezone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'spouse_name',
-                    'name' => Craft::t('formie', 'Spouse Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'opt_in_reason',
-                    'name' => Craft::t('formie', 'Opt-in Reason'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'lead_source_id',
-                    'name' => Craft::t('formie', 'Lead Source ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'job_title',
-                    'name' => Craft::t('formie', 'Job Title'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'owner_id',
-                    'name' => Craft::t('formie', 'Owner ID'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'line1',
-                    'name' => Craft::t('formie', 'Address Street'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'line2',
-                    'name' => Craft::t('formie', 'Address Street 2'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'locality',
-                    'name' => Craft::t('formie', 'Address City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'postal_code',
-                    'name' => Craft::t('formie', 'Address Postal Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'region',
-                    'name' => Craft::t('formie', 'Address Region'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zip_code',
-                    'name' => Craft::t('formie', 'Address Zip Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country_code',
-                    'name' => Craft::t('formie', 'Address Country Code'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'number',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'anniversary',
-                    'name' => Craft::t('formie', 'Anniversary'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'birthday',
-                    'name' => Craft::t('formie', 'Birthday'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'source_type',
-                    'name' => Craft::t('formie', 'Source Type'),
-                ]),
-            ], $this->_getCustomFields($fields));
-
-            $settings = [
-                'contact' => $contactFields,
-            ];
+                $settings['contact'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'given_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'middle_name',
+                        'name' => Craft::t('formie', 'Middle Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'family_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'suffix',
+                        'name' => Craft::t('formie', 'Suffix'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'preferred_name',
+                        'name' => Craft::t('formie', 'Preferred Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'website',
+                        'name' => Craft::t('formie', 'Website'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'time_zone',
+                        'name' => Craft::t('formie', 'Timezone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'spouse_name',
+                        'name' => Craft::t('formie', 'Spouse Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'opt_in_reason',
+                        'name' => Craft::t('formie', 'Opt-in Reason'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'lead_source_id',
+                        'name' => Craft::t('formie', 'Lead Source ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'job_title',
+                        'name' => Craft::t('formie', 'Job Title'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'owner_id',
+                        'name' => Craft::t('formie', 'Owner ID'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'line1',
+                        'name' => Craft::t('formie', 'Address Street'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'line2',
+                        'name' => Craft::t('formie', 'Address Street 2'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'locality',
+                        'name' => Craft::t('formie', 'Address City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'postal_code',
+                        'name' => Craft::t('formie', 'Address Postal Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'region',
+                        'name' => Craft::t('formie', 'Address Region'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zip_code',
+                        'name' => Craft::t('formie', 'Address Zip Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country_code',
+                        'name' => Craft::t('formie', 'Address Country Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'number',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'anniversary',
+                        'name' => Craft::t('formie', 'Anniversary'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'birthday',
+                        'name' => Craft::t('formie', 'Birthday'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'source_type',
+                        'name' => Craft::t('formie', 'Source Type'),
+                    ]),
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
