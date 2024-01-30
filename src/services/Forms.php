@@ -142,7 +142,7 @@ class Forms extends Component
 
         $suffix = ':' . ($form->uid ?? '');
 
-        if ($user->checkPermission('formie-manageFormAppearance') || $user->checkPermission("formie-manageFormAppearance{$suffix}")) {
+        if ($user->checkPermission('formie-showFormAppearance') || $user->checkPermission("formie-showFormAppearance{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Appearance'),
                 'value' => 'appearance',
@@ -150,7 +150,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageFormBehavior') || $user->checkPermission("formie-manageFormBehavior{$suffix}")) {
+        if ($user->checkPermission('formie-showFormBehavior') || $user->checkPermission("formie-showFormBehavior{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Behaviour'),
                 'value' => 'behaviour',
@@ -158,7 +158,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageNotifications') || $user->checkPermission("formie-manageNotifications{$suffix}")) {
+        if ($user->checkPermission('formie-showNotifications') || $user->checkPermission("formie-showNotifications{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Email Notifications'),
                 'value' => 'notifications',
@@ -166,7 +166,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageFormIntegrations') || $user->checkPermission("formie-manageFormIntegrations{$suffix}")) {
+        if ($user->checkPermission('formie-showFormIntegrations') || $user->checkPermission("formie-showFormIntegrations{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Integrations'),
                 'value' => 'integrations',
@@ -176,7 +176,7 @@ class Forms extends Component
 
         $formUsage = $variables['formUsage'] ?? [];
 
-        if ($formUsage && ($user->checkPermission('formie-manageFormUsage') || $user->checkPermission("formie-manageFormUsage{$suffix}"))) {
+        if ($formUsage && ($user->checkPermission('formie-showFormUsage') || $user->checkPermission("formie-showFormUsage{$suffix}"))) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Usage'),
                 'value' => 'usage',
@@ -184,7 +184,7 @@ class Forms extends Component
             ];
         }
 
-        if ($user->checkPermission('formie-manageFormSettings') || $user->checkPermission("formie-manageFormSettings{$suffix}")) {
+        if ($user->checkPermission('formie-showFormSettings') || $user->checkPermission("formie-showFormSettings{$suffix}")) {
             $tabs[] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'value' => 'settings',

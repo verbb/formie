@@ -16,13 +16,21 @@
         Craft.Formie = {};
     }
 
-    {% if currentUser.can('formie-createSubmissions') %}
-        {% set editableSubmissions = craft.formie.getPlugin().getSubmissions().getEditableSubmissions(currentUser) ?: [] %}
-    {% else %}
-        {% set editableSubmissions = [] %}
-    {% endif %}
+    {% set editableForms = [] %}
 
-    Craft.Formie.editableSubmissions = {{ editableSubmissions | json_encode() | raw }};
+    {% for form in craft.formie.forms.all() %}
+        {% if currentUser.can('formie-createSubmissions') or currentUser.can('formie-createSubmissions:' ~ form.uid) %}
+            {% set editableForms = editableForms | merge([{
+                id: form.id,
+                handle: form.handle,
+                name: form.title,
+                sites: craft.app.sites.allSiteIds(),
+                uid: form.uid,
+            }]) %}
+        {% endif %}
+    {% endfor %}
+
+    Craft.Formie.editableForms = {{ editableForms | json_encode() | raw }};
 
     {% if formHandle is defined %}
         window.defaultFormieFormHandle = '{{ formHandle }}';

@@ -11,6 +11,7 @@ use craft\mail\Message;
 use craft\web\Controller;
 
 use yii\validators\EmailValidator;
+use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -23,6 +24,8 @@ class SentNotificationsController extends Controller
     public function actionIndex(): Response
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
+
+        $this->requirePermission('formie-accessSentNotifications');
 
         return $this->renderTemplate('formie/sent-notifications/index', []);
     }
@@ -37,6 +40,8 @@ class SentNotificationsController extends Controller
 
     public function actionEdit(int $sentNotificationId = null, SentNotification $sentNotification = null): Response
     {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
         $variables = compact('sentNotificationId', 'sentNotification');
 
         if (!$variables['sentNotification']) {
@@ -54,6 +59,10 @@ class SentNotificationsController extends Controller
         }
 
         $variables['title'] = $variables['sentNotification']->title;
+
+        if (!$variables['sentNotification']->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         return $this->renderTemplate('formie/sent-notifications/_edit', $variables);
     }
@@ -86,6 +95,7 @@ class SentNotificationsController extends Controller
         $this->requireAcceptsJson();
 
         $request = $this->request;
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         $sentNotification = SentNotification::find()
             ->id($request->getRequiredParam('id'))
@@ -97,6 +107,10 @@ class SentNotificationsController extends Controller
             $this->setFailFlash($error);
 
             return $this->asFailure($error);
+        }
+
+        if (!$sentNotification->canResend($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         $emails = $request->getRequiredParam('to');
@@ -153,6 +167,7 @@ class SentNotificationsController extends Controller
         $this->requireAcceptsJson();
 
         $request = $this->request;
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         $ids = $request->getRequiredParam('ids');
         $recipientsType = $request->getRequiredParam('recipientsType');
@@ -178,6 +193,14 @@ class SentNotificationsController extends Controller
         }
 
         foreach ($sentNotifications as $sentNotification) {
+            if (!$sentNotification->canResend($currentUser)) {
+                $error = Craft::t('formie', 'User is not permitted to perform this action.');
+
+                $this->setFailFlash($error);
+
+                return $this->asFailure($error);
+            }
+
             if ($recipientsType === 'original') {
                 $emails = $sentNotification->to;
             } else {
@@ -237,6 +260,7 @@ class SentNotificationsController extends Controller
         $this->requirePostRequest();
 
         $request = $this->request;
+        $currentUser = Craft::$app->getUser()->getIdentity();
         $sentNotificationId = $request->getRequiredBodyParam('sentNotificationId');
 
         $sentNotification = SentNotification::find()
@@ -245,6 +269,10 @@ class SentNotificationsController extends Controller
 
         if (!$sentNotification) {
             throw new NotFoundHttpException('Sent Notification not found');
+        }
+
+        if (!$sentNotification->canDelete($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         if (!Craft::$app->getElements()->deleteElement($sentNotification)) {

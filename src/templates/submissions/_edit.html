@@ -15,7 +15,7 @@
     { label: 'Submissions' | t('formie'), url: url('formie/submissions') },
 ] %}
 
-{% if currentUser.can('formie-editSubmissions') or currentUser.can('formie-manageSubmission:' ~ form.uid) %}
+{% if submission.canSave(currentUser) %}
     {% set fullPageForm = true %}
 {% endif %}
 
@@ -46,7 +46,7 @@
 
 {% block actionButton %}
 
-{% if currentUser.can('formie-editSubmissions') or currentUser.can('formie-manageSubmission:' ~ form.uid) %}
+{% if submission.canSave(currentUser) %}
     <div class="buttons">
         <div class="btngroup submit">
             <input type="submit" class="btn submit" value="{{ 'Save' | t('formie') }}">
@@ -68,7 +68,7 @@
                     </li>
                 </ul>
 
-                {% if not isNew %}
+                {% if submission.id and submission.canDelete(currentUser) %}
                     <hr>
                     <ul>
                         <li><a class="formsubmit error" data-action="formie/submissions/delete-submission" data-confirm="{{ 'Are you sure you want to delete this submission?' | t('formie') }}" data-redirect="{{ 'formie/submissions' | hash }}">{{ 'Delete' | t('app') }}</a></li>

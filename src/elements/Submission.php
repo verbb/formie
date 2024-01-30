@@ -114,34 +114,30 @@ class Submission extends Element
 
     protected static function defineSources(string $context = null): array
     {
+        $currentUser = Craft::$app->getUser()->getIdentity();
         $forms = Form::find()->all();
 
-        $ids = self::_getAvailableFormIds();
+        $sources = [];
 
-        $sources = [
-            [
+        if ($currentUser->can('formie-viewSubmissions')) {
+            $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'criteria' => ['formId' => $ids],
                 'defaultSort' => ['formie_submissions.title', 'desc'],
-            ],
-        ];
+            ];
+        }
 
-        $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+        $formItems = [];
 
         foreach ($forms as $form) {
-            if (is_array($ids)) {
-                if (!in_array($form->id, $ids)) {
-                    continue;
-                }
-            } else if ($ids === 0) {
+            if (!$currentUser->can('formie-viewSubmissions') && !$currentUser->can("formie-viewSubmissions:{$form->uid}")) {
                 continue;
             }
 
             /* @var Form $form */
             $key = "form:{$form->id}";
 
-            $sources[$key] = [
+            $formItems[$key] = [
                 'key' => $key,
                 'label' => $form->title,
                 'data' => [
@@ -150,6 +146,12 @@ class Submission extends Element
                 'criteria' => ['formId' => $form->id],
                 'defaultSort' => ['formie_submissions.title', 'desc'],
             ];
+        }
+
+        if ($formItems) {
+            $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+
+            $sources += $formItems;
         }
 
         return $sources;
@@ -161,20 +163,32 @@ class Submission extends Element
 
         $actions = parent::defineActions($source);
 
-        $actions[] = $elementsService->createAction([
-            'type' => SetSubmissionStatus::class,
-            'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
-        ]);
+        // Get the UID from the ID (for the source)
+        $formId = (int)str_replace('form:', '', $source);
+        $formUid = Formie::$plugin->getForms()->getFormById($formId)?->uid ?? null;
 
-        $actions[] = $elementsService->createAction([
-            'type' => SetSubmissionSpam::class,
-        ]);
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $canSaveSubmissions = $currentUser->can('formie-saveSubmissions') || $currentUser->can("formie-saveSubmissions:$formUid");
+        $canDeleteSubmissions = $currentUser->can('formie-deleteSubmissions') || $currentUser->can("formie-deleteSubmissions:$formUid");
 
-        $actions[] = $elementsService->createAction([
-            'type' => Delete::class,
-            'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected submissions?'),
-            'successMessage' => Craft::t('formie', 'Submissions deleted.'),
-        ]);
+        if ($canSaveSubmissions) {
+            $actions[] = $elementsService->createAction([
+                'type' => SetSubmissionStatus::class,
+                'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
+            ]);
+
+            $actions[] = $elementsService->createAction([
+                'type' => SetSubmissionSpam::class,
+            ]);
+        }
+
+        if ($canDeleteSubmissions) {
+            $actions[] = $elementsService->createAction([
+                'type' => Delete::class,
+                'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected submissions?'),
+                'successMessage' => Craft::t('formie', 'Submissions deleted.'),
+            ]);
+        }
 
         $actions[] = Craft::$app->elements->createAction([
             'type' => Restore::class,
@@ -255,22 +269,6 @@ class Submission extends Element
             ],
         ];
     }
-
-    private static function _getAvailableFormIds(): int|array
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        $submissions = Formie::$plugin->getSubmissions()->getEditableSubmissions($currentUser);
-        $editableIds = ArrayHelper::getColumn($submissions, 'id');
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
-    }
     
 
     // Properties
@@ -308,11 +306,81 @@ class Submission extends Element
     
     public function canView(User $user): bool
     {
+        if (parent::canView($user)) {
+            return true;
+        }
+
+        if ($user->can('formie-viewSubmissions')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            // Viewing without a form is fine, in case the form's been deleted
+            return true;
+        }
+
+        if (!$user->can("formie-viewSubmissions:$form->uid")) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    public function canSave(User $user): bool
+    {
+        if (parent::canView($user)) {
+            return true;
+        }
+
+        // Front-end requests don't require permissions here, they're in the controller
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            // But, if we're not editing an existing submission, disallow creation from the front-end
+            if (!$this->id) {
+                return false;
+            }
+
+            return true;
+        }
+
+        if ($user->can('formie-saveSubmissions')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        if (!$user->can("formie-saveSubmissions:$form->uid")) {
+            return false;
+        }
+
         return true;
     }
 
     public function canDelete(User $user): bool
     {
+        if (parent::canDelete($user)) {
+            return true;
+        }
+
+        if ($user->can('formie-deleteSubmissions')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        if (!$user->can("formie-deleteSubmissions:$form->uid")) {
+            return false;
+        }
+
         return true;
     }
 

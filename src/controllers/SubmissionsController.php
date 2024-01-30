@@ -86,13 +86,14 @@ class SubmissionsController extends Controller
     {
         $this->getView()->registerAssetBundle(CpAsset::class);
 
-        $this->requirePermission('formie-viewSubmissions');
+        $this->requirePermission('formie-accessSubmissions');
 
         return $this->renderTemplate('formie/submissions/index', []);
     }
 
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
     {
+        $currentUser = Craft::$app->getUser()->getIdentity();
         $sitesService = Craft::$app->getSites();
         $editableSiteIds = $sitesService->getEditableSiteIds();
 
@@ -118,15 +119,6 @@ class SubmissionsController extends Controller
 
         if (!$form) {
             throw new HttpException(404);
-        }
-
-        // User must have at least one of these permissions to edit (all, or the specific form)
-        $submissionViewPermission = Craft::$app->getUser()->checkPermission('formie-viewSubmissions');
-        $submissionsPermission = Craft::$app->getUser()->checkPermission('formie-editSubmissions');
-        $submissionPermission = Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid);
-
-        if (!$submissionViewPermission && !$submissionsPermission && !$submissionPermission) {
-            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         $variables = [
@@ -158,6 +150,10 @@ class SubmissionsController extends Controller
             throw new HttpException(404);
         }
 
+        if (!$variables['submission']->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
+
         $variables['submission']->setForm($form);
 
         $this->_prepEditSubmissionVariables($variables);
@@ -182,6 +178,7 @@ class SubmissionsController extends Controller
         $this->requirePostRequest();
 
         $request = $this->request;
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         /* @var Settings $settings */
         $formieSettings = Formie::$plugin->getSettings();
@@ -200,20 +197,10 @@ class SubmissionsController extends Controller
             throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
         }
 
-        // Check against permissions to save at all, or per-form
-        if (!$request->getIsSiteRequest()) {
-            if (!Craft::$app->getUser()->checkPermission('formie-editSubmissions')) {
-                if (!Craft::$app->getUser()->checkPermission('formie-manageSubmission:' . $form->uid)) {
-                    throw new ForbiddenHttpException('User is not permitted to perform this action');
-                }
-            }
-        }
-
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
 
-        // For site requests, we can only edit existing ones, not create, due to this being potentially anonymous
-        if ($request->getIsSiteRequest() && !$submission->id) {
+        if (!$submission->canSave($currentUser)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
@@ -765,9 +752,8 @@ class SubmissionsController extends Controller
     {
         $this->requirePostRequest();
 
-        $this->requirePermission('formie-editSubmissions');
-
         $request = $this->request;
+        $currentUser = Craft::$app->getUser()->getIdentity();
         $submissionId = $request->getRequiredBodyParam('submissionId');
 
         $submission = Submission::find()
@@ -778,6 +764,10 @@ class SubmissionsController extends Controller
 
         if (!$submission) {
             throw new NotFoundHttpException('Submission not found');
+        }
+
+        if (!$submission->canDelete($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
         if (!Craft::$app->getElements()->deleteElement($submission)) {

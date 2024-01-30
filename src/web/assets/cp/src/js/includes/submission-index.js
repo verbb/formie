@@ -3,7 +3,7 @@ if (typeof Craft.Formie === typeof undefined) {
 }
 
 Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
-    editableForms: null,
+    editableForms: [],
     $newSubmissionBtnGroup: null,
     $newSubmissionBtn: null,
     startDate: null,
@@ -54,13 +54,11 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
     },
 
     afterInit() {
-        this.editableForms = [];
+        const editableForms = Craft.Formie.editableForms;
 
-        var { editableSubmissions } = Craft.Formie;
-
-        if (editableSubmissions) {
-            for (var i = 0; i < editableSubmissions.length; i++) {
-                var form = editableSubmissions[i];
+        if (editableForms) {
+            for (var i = 0; i < editableForms.length; i++) {
+                var form = editableForms[i];
 
                 if (this.getSourceByKey('form:' + form.id)) {
                     this.editableForms.push(form);

@@ -709,47 +709,6 @@ class Submissions extends Component
         return $fieldContent;
     }
 
-    public function getEditableSubmissions(User $currentUser): array
-    {
-        $editableIds = [];
-        $submissions = [];
-        $editableIds = [];
-
-        // Fetch all submission UIDs
-        $formInfo = (new Query())
-            ->from('{{%formie_forms}}')
-            ->select(['id', 'uid'])
-            ->all();
-
-        // Can the user edit _every_ submission?
-        if ($currentUser->can('formie-viewSubmissions')) {
-            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
-        } else {
-            // Find all UIDs the user has permission to
-            foreach ($formInfo as $form) {
-                if ($currentUser->can('formie-manageSubmission:' . $form['uid'])) {
-                    $editableIds[] = $form['id'];
-                }
-            }
-        }
-
-        if ($editableIds) {
-            $forms = Form::find()->id($editableIds)->trashed(null)->all();
-
-            foreach ($forms as $form) {
-                $submissions[] = [
-                    'id' => (int)$form->id,
-                    'handle' => $form->handle,
-                    'name' => Craft::t('formie', $form->title),
-                    'sites' => Craft::$app->getSites()->getAllSiteIds(),
-                    'uid' => $form->uid,
-                ];
-            }
-        }
-
-        return $submissions;
-    }
-
     private function _getArrayFromMultiline(?string $string): array
     {
         $array = [];

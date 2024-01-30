@@ -9,7 +9,11 @@
     { label: 'Sent Notifications' | t('formie'), url: url('formie/sent-notifications') },
 ] %}
 
-{% set fullPageForm = true %}
+{% set form = sentNotification.getForm() %}
+
+{% if sentNotification.canDelete(currentUser) %}
+    {% set fullPageForm = true %}
+{% endif %}
 
 {% set bodyClass = 'fui-body' %}
 {% set selectedSubnavItem = 'sentNotifications' %}
@@ -18,9 +22,11 @@
 
 {% block actionButton %}
 
-<input type="hidden" name="sentNotificationId" value="{{ sentNotification.id }}">
+{% if sentNotification.canDelete(currentUser) %}
+    <input type="hidden" name="sentNotificationId" value="{{ sentNotification.id }}">
 
-<a class="btn formsubmit" data-action="formie/sent-notifications/delete" data-confirm="{{ 'Are you sure you want to delete this sent notification?' | t('formie') }}" data-redirect="{{ 'formie/sent-notifications' | hash }}">{{ 'Delete' | t('app') }}</a>
+    <a class="btn formsubmit" data-action="formie/sent-notifications/delete" data-confirm="{{ 'Are you sure you want to delete this sent notification?' | t('formie') }}" data-redirect="{{ 'formie/sent-notifications' | hash }}">{{ 'Delete' | t('app') }}</a>
+{% endif %}
 
 {% endblock %}
 
@@ -51,15 +57,17 @@
         </div>
     </div>
 
-    <div class="field">
-        <div class="heading">
-            <label class="">{{ 'Resend' | t('formie') }}</label>
-        </div>
+    {% if sentNotification.canResend(currentUser) %}
+        <div class="field">
+            <div class="heading">
+                <label class="">{{ 'Resend' | t('formie') }}</label>
+            </div>
 
-        <div class="input ltr">
-            <a class="js-fui-notification-modal-resend-btn btn small" data-id="{{ sentNotification.id }}">{{ 'Resend' | t('formie') }}</a>
+            <div class="input ltr">
+                <a class="js-fui-notification-modal-resend-btn btn small" data-id="{{ sentNotification.id }}">{{ 'Resend' | t('formie') }}</a>
+            </div>
         </div>
-    </div>
+    {% endif %}
 
     <div class="field">
         <div class="heading">

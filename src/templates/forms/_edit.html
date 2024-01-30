@@ -40,13 +40,13 @@
 
 {% set submissions = craft.formie.submissions.form(form.handle).limit(1).exists() %}
 
-{% if submissions %}
+{% if submissions and (currentUser.can('formie-viewSubmissions') or currentUser.can('formie-viewSubmissions:' ~ form.uid)) %}
     <a href="{{ cpUrl('formie/submissions/' ~ form.handle, { source: 'form:' ~ form.id }) }}" class="btn" target="_blank" rel="noopener" data-icon-after="external">
         {{ 'View Submissions' | t('formie') }}
     </a>
 {% endif %}
 
-{% if currentUser.can('formie-editForms') or currentUser.can('formie-manageForm:' ~ form.uid) %}
+{% if currentUser.can('formie-manageForms') or currentUser.can('formie-manageForms:' ~ form.uid) %}
     <div id="fui-save-form-button">
         <div class="btngroup submit first">
             <a href="#" class="btn submit" :class="{ 'fui-loading fui-loading-sm': loading }" @click.prevent="onSave">

@@ -22,11 +22,11 @@ class BaseController extends Controller
         $url = "formie/{$settings->defaultPage}";
 
         // Check if they have permission to the page they're going to
-        if ($settings->defaultPage === 'forms' && !Craft::$app->getUser()->checkPermission('formie-viewForms')) {
+        if ($settings->defaultPage === 'forms' && !Craft::$app->getUser()->checkPermission('formie-accessForms')) {
             $url = $this->_getFirstAvailablePage();
         }
 
-        if ($settings->defaultPage === 'submissions' && !Craft::$app->getUser()->checkPermission('formie-viewSubmissions')) {
+        if ($settings->defaultPage === 'submissions' && !Craft::$app->getUser()->checkPermission('formie-accessSubmissions')) {
             $url = $this->_getFirstAvailablePage();
         }
 
@@ -37,10 +37,10 @@ class BaseController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _getFirstAvailablePage()
+    private function _getFirstAvailablePage(): string
     {
         $subnav = Formie::$plugin->getCpNavItem()['subnav'] ?? [];
-        $firstNavUrl = reset($subnav)['url'];
+        $firstNavUrl = $subnav ? reset($subnav)['url'] : null;
 
         return $firstNavUrl ?? 'formie/forms';
     }

@@ -66,34 +66,30 @@ class SentNotification extends Element
 
     protected static function defineSources(string $context = null): array
     {
+        $currentUser = Craft::$app->getUser()->getIdentity();
         $forms = Form::find()->all();
 
-        $ids = self::_getAvailableFormIds();
+        $sources = [];
 
-        $sources = [
-            [
+        if ($currentUser->can('formie-viewSentNotifications')) {
+            $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'criteria' => ['formId' => $ids],
                 'defaultSort' => ['elements.dateCreated', 'desc'],
-            ],
-        ];
+            ];
+        }
 
-        $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+        $formItems = [];
 
         foreach ($forms as $form) {
-            if (is_array($ids)) {
-                if (!in_array($form->id, $ids)) {
-                    continue;
-                }
-            } else if ($ids === 0) {
+            if (!$currentUser->can('formie-viewSentNotifications') && !$currentUser->can("formie-viewSentNotifications:$form->uid")) {
                 continue;
             }
 
             /* @var Form $form */
             $key = "form:{$form->id}";
 
-            $sources[$key] = [
+            $formItems[$key] = [
                 'key' => $key,
                 'label' => $form->title,
                 'data' => [
@@ -102,6 +98,12 @@ class SentNotification extends Element
                 'criteria' => ['formId' => $form->id],
                 'defaultSort' => ['elements.dateCreated', 'desc'],
             ];
+        }
+
+        if ($formItems) {
+            $sources[] = ['heading' => Craft::t('formie', 'Forms')];
+
+            $sources += $formItems;
         }
 
         return $sources;
@@ -113,15 +115,27 @@ class SentNotification extends Element
 
         $actions = parent::defineActions($source);
 
-        $actions[] = $elementsService->createAction([
-            'type' => ResendNotifications::class,
-        ]);
+        // Get the UID from the ID (for the source)
+        $formId = (int)str_replace('form:', '', $source);
+        $formUid = Formie::$plugin->getForms()->getFormById($formId)?->uid ?? null;
 
-        $actions[] = $elementsService->createAction([
-            'type' => Delete::class,
-            'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected sent notification?'),
-            'successMessage' => Craft::t('formie', 'Sent Notification deleted.'),
-        ]);
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $canResendNotifications = $currentUser->can('formie-resendSentNotifications') || $currentUser->can("formie-resendSentNotifications:$formUid");
+        $canDeleteNotifications = $currentUser->can('formie-deleteSentNotifications') || $currentUser->can("formie-deleteSentNotifications:$formUid");
+
+        if ($canResendNotifications) {
+            $actions[] = $elementsService->createAction([
+                'type' => ResendNotifications::class,
+            ]);
+        }
+
+        if ($canDeleteNotifications) {
+            $actions[] = $elementsService->createAction([
+                'type' => Delete::class,
+                'confirmationMessage' => Craft::t('formie', 'Are you sure you want to delete the selected sent notification?'),
+                'successMessage' => Craft::t('formie', 'Sent Notification deleted.'),
+            ]);
+        }
 
         $actions[] = Craft::$app->elements->createAction([
             'type' => Restore::class,
@@ -180,39 +194,6 @@ class SentNotification extends Element
         ];
     }
 
-    private static function _getAvailableFormIds(): int|array
-    {
-        $userSession = Craft::$app->getUser();
-
-        $editableIds = [];
-
-        // Fetch all form UIDs
-        $formInfo = (new Query())
-            ->from('{{%formie_forms}}')
-            ->select(['id', 'uid'])
-            ->all();
-
-        // Can the user edit _every_ form?
-        if ($userSession->checkPermission('formie-viewSubmissions')) {
-            $editableIds = ArrayHelper::getColumn($formInfo, 'id');
-        } else {
-            // Find all UIDs the user has permission to
-            foreach ($formInfo as $form) {
-                if ($userSession->checkPermission('formie-manageSubmission:' . $form['uid'])) {
-                    $editableIds[] = $form['id'];
-                }
-            }
-        }
-
-        // Important to check if empty, there are zero editable forms, but as we use this as a criteria param
-        // that would return all forms, not what we want.
-        if (!$editableIds) {
-            $editableIds = 0;
-        }
-
-        return $editableIds;
-    }
-
 
     // Properties
     // =========================================================================
@@ -261,6 +242,25 @@ class SentNotification extends Element
     
     public function canView(User $user): bool
     {
+        if (parent::canView($user)) {
+            return true;
+        }
+
+        if ($user->can('formie-viewSentNotifications')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            // Viewing without a form is fine, in case the form's been deleted
+            return true;
+        }
+
+        if (!$user->can("formie-viewSentNotifications:$form->uid")) {
+            return false;
+        }
+
         return true;
     }
     
@@ -271,6 +271,43 @@ class SentNotification extends Element
 
     public function canDelete(User $user): bool
     {
+        if (parent::canDelete($user)) {
+            return true;
+        }
+
+        if ($user->can('formie-deleteSentNotifications')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        if (!$user->can("formie-deleteSentNotifications:$form->uid")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function canResend(User $user): bool
+    {
+        if ($user->can('formie-resendSentNotifications')) {
+            return true;
+        }
+
+        $form = $this->getForm();
+
+        if (!$form) {
+            return false;
+        }
+
+        if (!$user->can("formie-resendSentNotifications:$form->uid")) {
+            return false;
+        }
+
         return true;
     }
 
@@ -355,15 +392,17 @@ class SentNotification extends Element
 
     protected function attributeHtml(string $attribute): string
     {
+        $currentUser = Craft::$app->getUser()->getIdentity();
+
         return match ($attribute) {
             'form' => $this->getForm()->title ?? '-',
             'submission' => $this->getSubmission()->title ?? '-',
             'notification' => $this->getNotification()->title ?? '-',
-            'resend' => Html::a(Craft::t('formie', 'Resend'), '#', [
+            'resend' => $this->canResend($currentUser) ? Html::a(Craft::t('formie', 'Resend'), '#', [
                 'class' => 'btn small formsubmit js-fui-notification-modal-resend-btn',
                 'data-id' => $this->id,
                 'title' => Craft::t('formie', 'Resend'),
-            ]),
+            ]) : '-',
             'preview' => $this->body ? StringHelper::safeTruncate($this->body, 50) : '',
             'status' => '<span class="status ' . $this->status . '"></span>',
             default => parent::attributeHtml($attribute),
