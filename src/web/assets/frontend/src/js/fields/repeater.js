@@ -75,6 +75,14 @@ export class FormieRepeater {
         // Increment the number of rows "in store"
         this.rowCounter++;
 
+        // Emit an "initRow" event
+        this.$field.dispatchEvent(new CustomEvent('initRow', {
+            bubbles: true,
+            detail: {
+                repeater: this,
+                $row,
+            },
+        }));
     }
 
     addRow(e) {

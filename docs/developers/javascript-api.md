@@ -766,6 +766,23 @@ $fields.forEach($field => {
 });
 ```
 
+#### The `initRow` event
+The event that is triggered after a new row has been appended to the repeater, and after the `append` event.
+
+```js
+// Fetch all Repeater fields
+let $fields = document.querySelectorAll('[data-field-type="repeater"]');
+
+// For each field, bind on the `init` event
+$fields.forEach($field => {
+    $field.addEventListener('initRow', (e) => {
+        let repeaterField = e.detail.repeater;
+        let $row = e.detail.$row;
+    });
+});
+```
+
+
 #### The `remove` event
 The event that is triggered after a row has been removed from the repeater.
 
