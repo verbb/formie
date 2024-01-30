@@ -206,13 +206,13 @@
             </div>
 
             <div class="input ltr">
-                <div id="status-value" class="value flex">
+                <div class="value flex">
                     {% set captcha = submission.getSpamCaptcha() %}
                     
                     {% if captcha %}
                         <img src="{{ captcha.getIconUrl() }}" alt="{{ captcha.displayName() }}" style="width: 15px; height: 15px;">
                     {% else %}
-                        <span class="status red"></span>
+                        <span data-icon="bug" aria-hidden="true"></span>
                     {% endif %}
 
                     {{ 'Spam' | t('formie') }} {% if submission.spamReason %}<span class="info">{{ submission.spamReason }}</span>{% endif %}
@@ -305,32 +305,32 @@
         {% block meta %}
             {% if not isNew %}
                 <div class="data">
-                    <div class="heading">{{ 'Submission ID' | t('formie') }}</div>
-                    <div class="value">{{ submission.id }}</div>
+                    <dt class="heading">{{ 'Submission ID' | t('formie') }}</dt>
+                    <dd class="value">{{ submission.id }}</dd>
                 </div>
             {% endif %}
 
             {% if submission.isIncomplete %}
                 <div class="data">
-                    <h5 class="heading">{{ 'Status' | t('app') }}</h5>
-                    <div id="status-value" class="value"><span class="status"></span>{{ 'Incomplete' | t('formie') }}</div>
+                    <dt class="heading">{{ 'Status' | t('app') }}</dt>
+                    <dd class="value"><span data-icon="draft" aria-hidden="true"></span>{{ 'Incomplete' | t('formie') }}</dd>
                 </div>
             {% endif %}
 
             <div class="data">
-                <h5 class="heading">{{ 'Created at' | t('app') }}</h5>
-                <div id="date-created-value" class="value">{{ submission.dateCreated | datetime('short') }}</div>
+                <dt class="heading">{{ 'Created at' | t('app') }}</dt>
+                <dd class="value">{{ submission.dateCreated | datetime('short') }}</dd>
             </div>
 
             <div class="data">
-                <h5 class="heading">{{ 'Updated at' | t('app') }}</h5>
-                <div id="date-updated-value" class="value">{{ submission.dateUpdated | datetime('short') }}</div>
+                <dt class="heading">{{ 'Updated at' | t('app') }}</dt>
+                <dd class="value">{{ submission.dateUpdated | datetime('short') }}</dd>
             </div>
 
             {% if form.settings.collectIp %}
                 <div class="data">
-                    <h5 class="heading">{{ 'IP Address' | t('app') }}</h5>
-                    <div class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</div>
+                    <dt class="heading">{{ 'IP Address' | t('app') }}</dt>
+                    <dd class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</dd>
                 </div>
             {% endif %}
         {% endblock %}
