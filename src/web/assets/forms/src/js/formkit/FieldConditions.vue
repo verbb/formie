@@ -233,14 +233,19 @@ export default {
                 }
             }
 
-            const filteredFields = this.clone(fields).filter((field) => {
+            const customFieldOptions = this.customFieldOptions(this.clone(fields)).filter((field) => {
                 // Don't allow conditions on _this_ field
-                if (this.field.__id === field.__id) {
+                if (this.field.__id === field.field.__id) {
+                    return false;
+                }
+
+                // Do the same thing for complex fields like Repeater/Groups
+                if (field.subField && this.field.__id === field.subField.__id) {
                     return false;
                 }
 
                 // Is this an excluded field?
-                if (excludedFields.includes(field.handle)) {
+                if (excludedFields.includes(field.field.handle)) {
                     return false;
                 }
 
@@ -249,7 +254,7 @@ export default {
 
             options.push({
                 label: Craft.t('formie', 'Fields'),
-                options: this.customFieldOptions(filteredFields),
+                options: customFieldOptions,
             });
 
             return options;

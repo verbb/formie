@@ -9,11 +9,18 @@ export class FormieConditions {
         // https://fitzgeraldnick.com/2014/01/13/hiding-implementation-details-with-e6-weakmaps.html
         this.conditionsStore = new WeakMap();
 
-        this.initFieldConditions();
+        this.initFieldConditions(this.$form);
+
+        // Handle dynamics fields like Repeater, which should be evaluated when added
+        this.$form.querySelectorAll('[data-field-type="repeater"]').forEach(($field) => {
+            $field.addEventListener('initRow', (e) => {
+                this.initFieldConditions(e.detail.$row);
+            });
+        });
     }
 
-    initFieldConditions() {
-        this.$form.querySelectorAll('[data-field-conditions]').forEach(($field) => {
+    initFieldConditions($container) {
+        $container.querySelectorAll('[data-field-conditions]').forEach(($field) => {
             const conditionSettings = this.parseJsonConditions($field);
 
             if (!conditionSettings || !conditionSettings.conditions.length) {
@@ -25,24 +32,13 @@ export class FormieConditions {
 
             conditionSettings.conditions.forEach((condition) => {
                 // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
-                let $targets = this.$form.querySelectorAll(`[name="${condition.field}"]`);
+                let $targets = $container.querySelectorAll(`[name="${condition.field}"]`);
 
                 // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
-                const $multiFields = this.$form.querySelectorAll(`[name="${condition.field}[]"]`);
+                const $multiFields = $container.querySelectorAll(`[name="${condition.field}[]"]`);
 
                 if ($multiFields.length) {
                     $targets = $multiFields;
-                }
-
-                // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
-                // this will be replaced by the blockId, and will fail to match the conditions settings.
-                if ((!$targets || !$targets.length) && condition.field.includes('[new1]')) {
-                    // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
-                    // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
-                    const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
-
-                    // Find all targets via Regex.
-                    $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
                 }
 
                 if (!$targets || !$targets.length) {
@@ -291,10 +287,10 @@ export class FormieConditions {
         return result;
     }
 
-    querySelectorAllRegex(regex, attributeToSearch) {
+    querySelectorAllRegex($container, regex, attributeToSearch) {
         const output = [];
 
-        for (const element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
+        for (const element of $container.querySelectorAll(`[${attributeToSearch}]`)) {
             if (regex.test(element.getAttribute(attributeToSearch))) {
                 output.push(element);
             }

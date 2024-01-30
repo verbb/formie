@@ -157,8 +157,23 @@ export default {
                                 value: `{field:${field.settings.handle}.${subField.handle}}`,
                             });
                         });
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater') {
-                        // No support yet
+                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater' && field.settings.rows) {
+                        const contextField = this.editingField;
+
+                        // Repeaters only allow selecting their sibling fields
+                        if (contextField && contextField.parentFieldId === field.__id) {
+                            field.settings.rows.forEach((row) => {
+                                row.fields.forEach((nestedField) => {
+                                    customFields.push({
+                                        field,
+                                        subField: nestedField,
+                                        type: field.type,
+                                        label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
+                                        value: `{field:${field.settings.handle}.__ROW__.${nestedField.settings.handle}}`,
+                                    });
+                                });
+                            });
+                        }
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
