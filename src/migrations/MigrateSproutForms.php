@@ -437,9 +437,6 @@ class MigrateSproutForms extends Migration
 
                 $pageFields = [];
 
-                foreach ($tab->getFields() as $field) {
-                    $newField = $this->_mapField($field);
-
                 foreach ($tab->getCustomFields() as $field) {
                     if ($newField = $this->_mapField($field)) {
                     // Fire a 'modifyField' event
