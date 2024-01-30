@@ -5,6 +5,7 @@ use verbb\formie\elements\Submission;
 
 use Craft;
 use craft\base\Component;
+use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\helpers\Db;
 
@@ -33,7 +34,7 @@ class Relations extends Component
         return $elements;
     }
 
-    public function getSubmissionRelations($element): array
+    public function getSubmissionRelations(ElementInterface $element): array
     {
         $elements = [];
 

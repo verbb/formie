@@ -639,7 +639,7 @@ class Submission extends Element
         return $fieldValues;
     }
 
-    public function updateTitle($form): void
+    public function updateTitle(Form $form): void
     {
         if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
             $this->title = $customTitle;

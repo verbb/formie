@@ -227,7 +227,7 @@ class ImportExportController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function stdout($string, $color = ''): void
+    private function stdout(string $string, string $color = ''): void
     {
         $class = '';
 

@@ -125,7 +125,7 @@ class Phone extends FormField implements SubFieldInterface, PreviewableFieldInte
         return null;
     }
 
-    public function getFrontEndSubFields($context): array
+    public function getFrontEndSubFields(mixed $context): array
     {
         return [];
     }

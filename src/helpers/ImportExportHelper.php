@@ -138,7 +138,7 @@ class ImportExportHelper
         return $data;
     }
 
-    public static function createFormFromImport($data, $form = null): Form
+    public static function createFormFromImport(array $data, ?Form $form = null): Form
     {
         $existingForm = $form;
         $existingFormFields = [];
@@ -297,7 +297,7 @@ class ImportExportHelper
     // Private Methods
     // =========================================================================
 
-    private static function getFieldInfoForExport($rows, &$pageData): void
+    private static function getFieldInfoForExport(array $rows, array &$pageData): void
     {
         foreach ($rows as $rowId => $row) {
             foreach ($row['fields'] as $fieldId => $field) {

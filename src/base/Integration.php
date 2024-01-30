@@ -666,7 +666,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
     }
 
-    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField)
+    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         try {
             if (str_starts_with($mappedFieldValue, '{submission:')) {

@@ -15,6 +15,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\errors\MissingComponentException;
 
 use yii\base\InvalidConfigException;
@@ -47,7 +48,7 @@ class Formie
         return FormiePlugin::$plugin->getEmailTemplates()->getAllTemplates();
     }
 
-    public function forms($criteria = null): FormQuery
+    public function forms(array $criteria = []): FormQuery
     {
         $query = Form::find();
 
@@ -58,7 +59,7 @@ class Formie
         return $query;
     }
 
-    public function submissions($criteria = null): SubmissionQuery
+    public function submissions(array $criteria = []): SubmissionQuery
     {
         $query = Submission::find();
 
@@ -154,7 +155,7 @@ class Formie
         return Variables::getParsedValue($value, $submission, $form, $notification);
     }
 
-    public function populateFormValues($element, $values, $force = false): void
+    public function populateFormValues(Form $element, $values, $force = false): void
     {
         FormiePlugin::$plugin->getRendering()->populateFormValues($element, $values, $force);
     }
@@ -239,26 +240,12 @@ class Formie
         return $navItems;
     }
 
-    public function getVisibleFields($row): array
-    {
-        $fields = [];
-        $rowFields = $row['fields'] ?? [];
-
-        foreach ($rowFields as $field) {
-            if (!$field->getIsHidden()) {
-                $fields[] = $field;
-            }
-        }
-
-        return $fields;
-    }
-
-    public function getSubmissionRelations($element): array
+    public function getSubmissionRelations(ElementInterface $element): array
     {
         return FormiePlugin::$plugin->getRelations()->getSubmissionRelations($element);
     }
 
-    public function getFieldNamespaceForScript($field): string
+    public function getFieldNamespaceForScript(FormFieldInterface $field): string
     {
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }

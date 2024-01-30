@@ -11,7 +11,7 @@ class SchemaHelper
     // Static Methods
     // =========================================================================
 
-    public static function textField($config = []): array
+    public static function textField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'text',
@@ -20,7 +20,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function textareaField($config = []): array
+    public static function textareaField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'textarea',
@@ -28,21 +28,21 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function selectField($config = []): array
+    public static function selectField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'select',
         ], $config);
     }
 
-    public static function multiSelectField($config = []): array
+    public static function multiSelectField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'multiSelect',
         ], $config);
     }
 
-    public static function numberField($config = []): array
+    public static function numberField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'number',
@@ -52,7 +52,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function dateField($config = []): array
+    public static function dateField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'date',
@@ -60,7 +60,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function checkboxSelectField($config = []): array
+    public static function checkboxSelectField(array $config = []): array
     {
         // Might be a bug in Formulate, getting `Duplicate keys detected: 'formulate-global-2'.`
         if (isset($config['options'])) {
@@ -74,7 +74,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function checkboxField($config = []): array
+    public static function checkboxField(array $config = []): array
     {
         // Might be a bug in Formulate, getting `Duplicate keys detected: 'formulate-global-2'.`
         if (isset($config['options'])) {
@@ -88,7 +88,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function lightswitchField($config = []): array
+    public static function lightswitchField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'lightswitch',
@@ -96,7 +96,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function toggleBlocks($config, $children = []): array
+    public static function toggleBlocks(array $config, array $children = []): array
     {
         return array_merge([
             '$formkit' => 'toggleBlocks',
@@ -105,7 +105,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function toggleBlock($config, $children = []): array
+    public static function toggleBlock(array $config, array $children = []): array
     {
         return [
             '$cmp' => 'ToggleBlock',
@@ -114,7 +114,7 @@ class SchemaHelper
         ];
     }
 
-    public static function tableField($config = []): array
+    public static function tableField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'table',
@@ -122,21 +122,21 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function variableTextField($config = []): array
+    public static function variableTextField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'variableText',
         ], $config);
     }
 
-    public static function richTextField($config = []): array
+    public static function richTextField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'richText',
         ], $config);
     }
 
-    public static function elementSelectField($config = []): array
+    public static function elementSelectField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'elementSelect',
@@ -147,7 +147,7 @@ class SchemaHelper
     // Reusable
     // =========================================================================
 
-    public static function labelField($config = []): array
+    public static function labelField(array $config = []): array
     {
         return self::textField(array_merge([
             'label' => Craft::t('formie', 'Label'),
@@ -158,7 +158,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function handleField($config = []): array
+    public static function handleField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'handle',
@@ -172,7 +172,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function labelPosition(FormFieldInterface $field, $config = []): array
+    public static function labelPosition(FormFieldInterface $field, array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Label Position'),
@@ -185,7 +185,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function subFieldLabelPosition($config = []): array
+    public static function subFieldLabelPosition(array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Subfield Label Position'),
@@ -198,7 +198,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function instructions($config = []): array
+    public static function instructions(array $config = []): array
     {
         return self::textareaField(array_merge([
             'label' => Craft::t('formie', 'Instructions'),
@@ -208,7 +208,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function instructionsPosition(FormFieldInterface $field, $config = []): array
+    public static function instructionsPosition(FormFieldInterface $field, array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Instructions Position'),
@@ -221,7 +221,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function cssClasses($config = []): array
+    public static function cssClasses(array $config = []): array
     {
         return self::textField(array_merge([
             'label' => Craft::t('formie', 'CSS Classes'),
@@ -230,7 +230,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function containerAttributesField($config = []): array
+    public static function containerAttributesField(array $config = []): array
     {
         return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Container Attributes'),
@@ -257,7 +257,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function inputAttributesField($config = []): array
+    public static function inputAttributesField(array $config = []): array
     {
         return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Input Attributes'),
@@ -284,7 +284,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function prePopulate($config = []): array
+    public static function prePopulate(array $config = []): array
     {
         return self::textField(array_merge([
             'label' => Craft::t('formie', 'Pre-Populate Value'),
@@ -293,7 +293,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function enableConditionsField($config = []): array
+    public static function enableConditionsField(array $config = []): array
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Conditions'),
@@ -302,7 +302,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function conditionsField($config = []): array
+    public static function conditionsField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'fieldConditions',
@@ -311,7 +311,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function enableContentEncryptionField($config = []): array
+    public static function enableContentEncryptionField(array $config = []): array
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Enable Content Encryption'),
@@ -320,7 +320,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function includeInEmailField($config = []): array
+    public static function includeInEmailField(array $config = []): array
     {
         return self::lightswitchField(array_merge([
             'label' => Craft::t('formie', 'Include in Email Notifications'),
@@ -329,7 +329,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function visibility($config = []): array
+    public static function visibility(array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Visibility'),
@@ -344,7 +344,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function columnTypeField($config = []): array
+    public static function columnTypeField(array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Column Type'),
@@ -360,7 +360,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function fieldSelectField($config = []): array
+    public static function fieldSelectField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'fieldSelect',
@@ -368,7 +368,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function matchField($config = []): array
+    public static function matchField(array $config = []): array
     {
         return array_merge([
             '$formkit' => 'fieldSelect',
@@ -379,7 +379,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function extractFieldsFromSchema($fieldSchema, $names = []): array
+    public static function extractFieldsFromSchema(array $fieldSchema, array $names = []): array
     {
         foreach ($fieldSchema as $field) {
             if (isset($field['name'])) {
@@ -394,7 +394,7 @@ class SchemaHelper
         return $names;
     }
 
-    public static function setFieldAttributes(&$fieldSchema): void
+    public static function setFieldAttributes(array &$fieldSchema): void
     {
         // Automaticallty set the `id` and `key` attributes for fields, which FormKit needs
         foreach ($fieldSchema as &$field) {

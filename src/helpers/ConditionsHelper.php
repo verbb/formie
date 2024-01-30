@@ -57,7 +57,7 @@ class ConditionsHelper
         return $expressionLanguage;
     }
 
-    public static function getCondition($condition): string
+    public static function getCondition(string $condition): string
     {
         // Handle some settings defined in JS, so they're compatible with the evaluator we're using.
         // FYI, mostly for backward compatibility with `hoa/ruler` conditions.
@@ -68,7 +68,7 @@ class ConditionsHelper
         return $condition;
     }
 
-    public static function getRule($condition): string
+    public static function getRule(string $condition): string
     {
         // Convert condition set via JS into ruler-compatible
         $operator = ConditionsHelper::getCondition($condition);

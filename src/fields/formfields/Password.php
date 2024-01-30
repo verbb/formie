@@ -33,7 +33,7 @@ class Password extends FormField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function isValueEmpty($value, ElementInterface $element): bool
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
     {
         // Evaluate password fields differently. Because we don't populate the value back to the
         // field on reload, for multi-page forms this messes validation up. Because while for _this_

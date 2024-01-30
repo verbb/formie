@@ -497,7 +497,7 @@ class Form extends Element
         return $this->_formId = 'fui-' . $this->handle . '-' . StringHelper::randomString(6);
     }
 
-    public function setFormId($value): void
+    public function setFormId(string $value): void
     {
         $this->_formId = $value;
     }

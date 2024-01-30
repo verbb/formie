@@ -87,7 +87,7 @@ class EmailController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _populateFromPost($notification, $submission): void
+    private function _populateFromPost(Notification $notification, Submission $submission): void
     {
         $request = $this->request;
         $formId = $request->getParam('formId');

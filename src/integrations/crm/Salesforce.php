@@ -215,7 +215,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return new IntegrationFormSettings($settings);
     }
 
-    public function getMappedFieldValue($mappedFieldValue, $submission, $integrationField): mixed
+    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
     {
         $value = parent::getMappedFieldValue($mappedFieldValue, $submission, $integrationField);
 

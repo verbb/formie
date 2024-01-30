@@ -2,6 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -297,7 +298,7 @@ class Variables
     // Private Methods
     // =========================================================================
 
-    private static function _getParsedFieldValues($form, $submission, $notification): array
+    private static function _getParsedFieldValues(?Form $form, ?Submission $submission, ?Notification $notification): array
     {
         $values = [];
 
@@ -321,7 +322,7 @@ class Variables
         return ArrayHelper::expand($values);
     }
 
-    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification): array
+    private static function _getParsedFieldValue(FormFieldInterface $field, mixed $submissionValue, Submission $submission, ?Notification $notification): array
     {
         $values = [];
 
@@ -397,7 +398,7 @@ class Variables
         return $values;
     }
 
-    private static function _getCurrentUser($submission = null): bool|User|IdentityInterface|null
+    private static function _getCurrentUser(?Submission $submission = null): bool|User|IdentityInterface|null
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
 
@@ -415,7 +416,7 @@ class Variables
         return null;
     }
 
-    public static function _getSite($submission): ?Site
+    public static function _getSite(?Submission $submission): ?Site
     {
         // Get the current site, based on front-end requests first. This will fail for a queue job.
         // For front-end requests where we want to parse content, we must respect the current site.

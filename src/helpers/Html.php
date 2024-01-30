@@ -73,7 +73,7 @@ class Html extends CraftHtmlHelper
         return ArrayHelper::filterEmptyFalse($merged);
     }
 
-    public static function getFieldClassKey($class): string
+    public static function getFieldClassKey(object $class): string
     {
         return StringHelper::toCamelCase(StringHelper::toKebabCase($class::displayName()));
     }

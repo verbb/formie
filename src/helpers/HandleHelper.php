@@ -8,7 +8,7 @@ class HandleHelper
     // Static Methods
     // =========================================================================
 
-    public static function getUniqueHandle($handles, $handle, $suffix = 0)
+    public static function getUniqueHandle(array $handles, string $handle, int $suffix = 0)
     {
         $newHandle = $handle;
 

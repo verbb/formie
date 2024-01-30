@@ -143,13 +143,13 @@ class Opayo extends Payment
         ];
     }
 
-    public function getAmount($submission): float
+    public function getAmount(Submission $submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
-        return self::toOpayoAmount(parent::getAmount($submission), $this->getCurrency($submission));
+        return self::toOpayoAmount(parent::getAmount(Submission $submission), $this->getCurrency(Submission $submission));
     }
 
-    public function getCurrency($submission): ?string
+    public function getCurrency(Submission $submission): ?string
     {
         return (string)$this->getFieldSetting('currency');
     }
@@ -165,8 +165,8 @@ class Opayo extends Payment
         }        
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getCurrency($submission);
+        $amount = $this->getAmount(Submission $submission);
+        $currency = $this->getCurrency(Submission $submission);
 
         // Capture the authorized payment
         try {

@@ -136,10 +136,10 @@ class Stripe extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getAmount($submission): float
+    public function getAmount(Submission $submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
-        return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
+        return self::toStripeAmount(parent::getAmount(Submission $submission), $this->getCurrency(Submission $submission));
     }
 
     public function processPayment(Submission $submission): bool
@@ -363,8 +363,8 @@ class Stripe extends Payment
             }
 
             // Get the amount from the field, which handles dynamic fields
-            $amount = $this->getAmount($submission);
-            $currency = $this->getCurrency($submission);
+            $amount = $this->getAmount(Submission $submission);
+            $currency = $this->getCurrency(Submission $submission);
 
             if (!$amount) {
                 throw new Exception("Missing `amount` from payload: {$amount}.");
@@ -1021,8 +1021,8 @@ class Stripe extends Payment
         $planDescription = $this->getFieldSetting('planDescription', 'Formie: ' . $submission->getForm()->title);
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount($submission);
-        $currency = $this->getCurrency($submission);
+        $amount = $this->getAmount(Submission $submission);
+        $currency = $this->getCurrency(Submission $submission);
 
         $payload = [
             'amount' => $amount,

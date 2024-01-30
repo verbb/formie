@@ -179,7 +179,7 @@ class Name extends FormField implements SubFieldInterface, PreviewableFieldInter
         ];
     }
 
-    public function getFrontEndSubFields($context): array
+    public function getFrontEndSubFields(mixed $context): array
     {
         $subFields = [];
 

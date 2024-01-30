@@ -257,7 +257,7 @@ class Calculations extends FormField implements PreviewableFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function _getFieldVariable($fieldKey, $element = null, $inputNames = []): ?array
+    private function _getFieldVariable(string $fieldKey, mixed $element = null, array $inputNames = []): ?array
     {
         // Check for nested field handles
         if (str_contains($fieldKey, '.')) {

@@ -1068,7 +1068,7 @@ class SubmissionsController extends Controller
         return $form;
     }
 
-    private function _populateSubmission($form, $isIncomplete = true): Submission
+    private function _populateSubmission(Form $form, bool $isIncomplete = true): Submission
     {
         $request = $this->request;
 
@@ -1128,7 +1128,7 @@ class SubmissionsController extends Controller
         return $submission;
     }
 
-    private function _checkPageFieldErrors($submission, $form, $nextPage)
+    private function _checkPageFieldErrors(submission $submission, Form $form, FormPage $nextPage)
     {
         // Find the first page with a field error and set that as the current page
         if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
@@ -1150,7 +1150,7 @@ class SubmissionsController extends Controller
         return $nextPage;
     }
 
-    private function _setTitle($submission, $form): void
+    private function _setTitle(Submission $submission, Form $form): void
     {
         $submission->title = Variables::getParsedValue(
             $form->settings->submissionTitleFormat,

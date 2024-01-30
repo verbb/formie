@@ -106,7 +106,7 @@ class Payment extends FormField
         return $integration?->getFrontEndJsVariables($this);
     }
 
-    public function getFrontEndSubFields($context): array
+    public function getFrontEndSubFields(mixed $context): array
     {
         $integration = $this->getPaymentIntegration();
 

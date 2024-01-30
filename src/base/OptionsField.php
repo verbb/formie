@@ -372,7 +372,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
     }
 
-    protected function setPrePopulatedValue($value): mixed
+    protected function setPrePopulatedValue(mixed $value): mixed
     {
         if ($this->multi) {
             return explode(',', $value);

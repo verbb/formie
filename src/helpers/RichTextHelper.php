@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\helpers;
 
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
 
@@ -18,7 +19,7 @@ class RichTextHelper
     // Static Methods
     // =========================================================================
 
-    public static function getRichTextConfig($key)
+    public static function getRichTextConfig(string $key): array
     {
         $config = self::_getDefaultConfig();
         $fileConfig = self::_getConfig('formie', 'rich-text.json');
@@ -38,7 +39,7 @@ class RichTextHelper
         return $config;
     }
 
-    public static function getHtmlContent($content, $submission = null, $nl2br = true): string
+    public static function getHtmlContent(mixed $content, ?Submission $submission = null, bool $nl2br = true): string
     {
         if (is_string($content)) {
             $content = Json::decodeIfJson($content);
@@ -70,7 +71,7 @@ class RichTextHelper
         return html_entity_decode($html);
     }
 
-    public static function normalizeNodes($content): array|string
+    public static function normalizeNodes(mixed $content): array|string
     {
         return str_replace(['bullet_list', 'code_block', 'hard_break', 'horizontal_rule', 'list_item', 'ordered_list'], ['bulletList', 'codeBlock', 'hardBreak', 'horizontalRule', 'listItem', 'orderedList'], $content);
     }
@@ -126,7 +127,7 @@ class RichTextHelper
         ];
     }
 
-    private static function _getConfig(string $dir, string $file = null)
+    private static function _getConfig(string $dir, string $file = null): bool|array
     {
         if (!$file) {
             return false;

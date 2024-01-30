@@ -303,7 +303,7 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
         return $formattingMap[$name] ?? null;
     }
 
-    public function getFrontEndSubFields($context): array
+    public function getFrontEndSubFields(mixed $context): array
     {
         $subFields = [];
         $rowConfigs = [];

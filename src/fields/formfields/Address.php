@@ -274,7 +274,7 @@ class Address extends FormField implements SubFieldInterface, PreviewableFieldIn
         return $countries;
     }
 
-    public function getFrontEndSubFields($context): array
+    public function getFrontEndSubFields(mixed $context): array
     {
         $subFields = [];
 

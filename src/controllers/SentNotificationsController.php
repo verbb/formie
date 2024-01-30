@@ -302,7 +302,7 @@ class SentNotificationsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _prepNewEmail($sentNotification): Message
+    private function _prepNewEmail(SentNotification $sentNotification): Message
     {
         $newEmail = new Message();
         $newEmail->setSubject($sentNotification->subject);
