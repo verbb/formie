@@ -327,7 +327,7 @@ class Repeater extends NestedField implements MultiNestedFieldInterface
         if ($key === 'nestedField') {
             return new HtmlTag('div', [
                 'class' => 'fui-repeater-row',
-                'data-repeater-row' => true,
+                'data-repeater-row' => '__ROW__',
             ]);
         }
 
