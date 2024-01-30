@@ -28,7 +28,7 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
         if ($menubtn) {
             var $incomplete = $('<li><a data-incomplete><span class="icon" data-icon="draft"></span> ' + Craft.t('formie', 'Incomplete') + '</a></li>');
-            var $spam = $('<li><a data-spam><span class="icon" data-icon="error"></span> ' + Craft.t('formie', 'Spam') + '</a></li>');
+            var $spam = $('<li><a data-spam><span class="icon" data-icon="bug"></span> ' + Craft.t('formie', 'Spam') + '</a></li>');
             var $hr = $('<hr class="padded">');
 
             $menubtn.menu.addOptions($incomplete.children());

@@ -446,8 +446,10 @@ class Submission extends Element
                 'width' => '10px',
                 'height' => '10px',
                 'margin-top' => '-12px',
-                'margin-left' => '-1px',
-                'margin-right' => '1px !important',
+                'margin-left' => '0',
+                'font-size' => '12px',
+                'margin-right' => '3px !important',
+                'color' => 'color: #3f4d5a',
             ];
 
             $html .= Html::tag('span', '', [
@@ -464,12 +466,14 @@ class Submission extends Element
                 'width' => '10px',
                 'height' => '10px',
                 'margin-top' => '-12px',
-                'margin-left' => '-2px',
-                'margin-right' => '2px !important',
+                'margin-left' => '0',
+                'font-size' => '12px',
+                'margin-right' => '3px !important',
+                'color' => 'color: #3f4d5a',
             ];
 
             $html .= Html::tag('span', '', [
-                'data' => ['icon' => 'error'],
+                'data' => ['icon' => 'bug'],
                 'class' => 'icon',
                 'role' => 'img',
                 'style' => $iconStyle,
