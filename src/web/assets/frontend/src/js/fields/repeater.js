@@ -67,21 +67,14 @@ export class FormieRepeater {
 
             Object.keys(fieldConfigs).forEach((module) => {
                 fieldConfigs[module].forEach((fieldConfig) => {
-                    this.initFieldClass(module, fieldConfig);
+                    Formie.initJsClass(module, fieldConfig);
                 });
             });
         }
 
         // Increment the number of rows "in store"
         this.rowCounter++;
-    }
 
-    initFieldClass(className, params) {
-        const moduleClass = window[className];
-
-        if (moduleClass) {
-            new moduleClass(params);
-        }
     }
 
     addRow(e) {
