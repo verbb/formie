@@ -18,6 +18,10 @@
         </td>
 
         <td>
+            <FormKit type="variableText" variables="emailVariables" :value="notification.to" readonly="true" />
+        </td>
+
+        <td>
             <a :title="t('formie', 'Duplicate')" role="button" href="#" class="fui-icon" @click.prevent="duplicateNotification">
                 <svg
                     aria-hidden="true" focusable="false" data-prefix="fas" data-icon="clone" class="svg-inline--fa fa-clone fa-w-16"

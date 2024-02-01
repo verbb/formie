@@ -1,8 +1,8 @@
 <template>
-    <div class="input input-wrap" :class="{ errors: false }">
+    <div class="input input-wrap" :class="{ errors: false, 'read-only': isReadOnly }">
         <editor-content class="fui-tags-list" :class="{ errors: false }" :editor="editor" />
 
-        <div v-if="variables.length" class="select-list-container" :class="{ 'is-open': isOpen }">
+        <div v-if="variables.length && !isReadOnly" class="select-list-container" :class="{ 'is-open': isOpen }">
             <div class="fui-field-add-variable-icon" @click.prevent="selectVariable">
                 <svg aria-hidden="true" focusable="false" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M384 240v32c0 6.6-5.4 12-12 12h-88v88c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-88h-88c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h88v-88c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v88h88c6.6 0 12 5.4 12 12zm120 16c0 137-111 248-248 248S8 393 8 256 119 8 256 8s248 111 248 248zm-48 0c0-110.5-89.5-200-200-200S56 145.5 56 256s89.5 200 200 200 200-89.5 200-200z" /></svg>
             </div>
@@ -20,6 +20,8 @@
 
 <script>
 import { find } from 'lodash-es';
+
+import { toBoolean } from '@utils/bool';
 
 import tippy from 'tippy.js';
 import 'tippy.js/themes/light-border.css';
@@ -93,6 +95,10 @@ export default {
         numberVariables() {
             return this.$store.getters['form/numberFields']();
         },
+
+        isReadOnly() {
+            return toBoolean(this.context.attrs.readonly || false);
+        },
     },
 
     watch: {
@@ -114,12 +120,18 @@ export default {
     mounted() {
         // Setup config for editor, from field config
         this.editor = new Editor({
+            editable: !this.isReadOnly,
             extensions: this.getExtensions(),
             content: this.valueToContent(this.clone(this.context._value)),
             autofocus: false,
             onUpdate: () => {
                 this.json = this.editor.getJSON().content;
                 this.html = this.editor.getHTML();
+            },
+            editorProps: {
+                attributes: {
+                    class: this.isReadOnly ? 'read-only' : '',
+                },
             },
         });
 
@@ -300,7 +312,7 @@ export default {
 
 .fui-tags-list {
     // Override tiptap
-    .ProseMirror {
+    .ProseMirror:not(.read-only)  {
         outline: none;
         // word-wrap: normal;
         // white-space: pre;

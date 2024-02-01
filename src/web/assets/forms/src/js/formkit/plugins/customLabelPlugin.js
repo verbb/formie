@@ -17,7 +17,7 @@ import 'tippy.js/themes/light.css';
 
 export default function moveLabelPlugin(node) {
     node.on('created', () => {
-        if (!node.props.label || !node.props.definition) {
+        if (!node.props || !node.props.definition) {
             return;
         }
 
@@ -44,14 +44,13 @@ export default function moveLabelPlugin(node) {
             let tabElement = {};
             let infoElement = {};
 
-            if (node.props.attrs.tab) {
-                tabElement = {
-                    $el: 'span',
-                    children: node.props.attrs.tab,
-                };
-            }
+            tabElement = {
+                $el: 'span',
+                $if: node.props.attrs.tab,
+                children: node.props.attrs.tab,
+            };
 
-            if (node.context.info) {
+            if (node.props.info) {
                 const tippyId = `tippy-${Craft.randomString(10)}`;
 
                 infoElement = {
@@ -88,16 +87,15 @@ export default function moveLabelPlugin(node) {
                 ],
             };
 
-            if (node.context.help) {
-                helpElement = {
-                    $el: 'div',
-                    attrs: {
-                        id: `$: "help-" + ${'$id'}`,
-                        class: '$classes.help',
-                        innerHTML: '$markdown($help)',
-                    },
-                };
-            }
+            helpElement = {
+                $el: 'div',
+                $if: node.props.help,
+                attrs: {
+                    id: `$: "help-" + ${'$id'}`,
+                    class: '$classes.help',
+                    innerHTML: '$markdown($help)',
+                },
+            };
 
             extensions.label = {
                 $el: 'div',
