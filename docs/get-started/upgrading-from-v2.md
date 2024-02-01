@@ -1,14 +1,6 @@
 # Upgrading from v2
 While the [changelog](https://github.com/verbb/formie/blob/craft-5/CHANGELOG.md) is the most comprehensive list of changes, this guide provides high-level overview and organizes changes by category.
 
-## General
-You'll only need to worry about about the following if you've extended Formie with custom fields or custom integrations.
-
-Old | What to do instead
---- | ---
-| `Formie::log()` | `Formie::info()`
-
-
 ## Repeater & Group Fields
 Repeater and Group fields have had a major overhaul in Formie 3, most notably that their values are no longer elements. This is to simplify the field, provide a lower learning curve to dealing with them, and performance. They also don't use nested field layouts for the same goals. Instead, they are simple arrays.
 
@@ -62,6 +54,7 @@ If you have written your own custom field class, or extended an existing Formie 
 
 Old | What to do instead
 --- | ---
+| `Formie::log()` | `Formie::info()`
 | `Field::hasSubfields()` | `Field::hasSubFields()`
 | `Field::getBaseFieldConfig()` | `Field::getFieldTypeConfig()`
 | `Field::getExtraBaseFieldConfig()` | `Field::getFieldTypeConfigData()`
@@ -149,6 +142,7 @@ If you have written your own custom integration class, or extended an existing F
 
 Old | What to do instead
 --- | ---
+| `Formie::log()` | `Formie::info()`
 | `Integration::log` | `Integration::info`
 | `Integration::supportsOauthConnection` | `Integration::supportsOAuthConnection`
 | `Integration::deliverPayloadRequest` | `Integration::deliverPayload`
