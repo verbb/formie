@@ -1,6 +1,6 @@
 <template>
     <tr class="fui-notification-row">
-        <td class="">
+        <td>
             <a href="#" :class="{ 'error': hasError }" @click.prevent="openModal">
                 <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
                 <strong>{{ notification.name }}</strong>
@@ -9,7 +9,11 @@
             <span v-if="isUnsaved" class="fui-unsaved-pill">{{ t('formie', 'Unsaved') }}</span>
         </td>
 
-        <td class="">
+        <td>
+            <span class="code">{{ notification.handle }}</span>
+        </td>
+
+        <td>
             <span>{{ notification.subject }}</span>
         </td>
 
@@ -136,6 +140,7 @@ export default {
 
             delete newNotification.errors;
             delete newNotification.hasError;
+            delete newNotification.id;
             delete newNotification.uid;
 
             this.$store.dispatch('notifications/addNotification', {

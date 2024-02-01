@@ -10,6 +10,7 @@
                             <thead>
                                 <tr>
                                     <th>{{ t('formie', 'Name') }}</th>
+                                    <th>{{ t('formie', 'Handle') }}</th>
                                     <th>{{ t('formie', 'Subject') }}</th>
                                     <th class="thin"></th>
                                     <th class="thin"></th>

@@ -53,11 +53,16 @@ export default {
     computed: {
         ...mapState({
             editingField: (state) => { return state.formie.editingField; },
+            editingNotification: (state) => { return state.formie.editingNotification; },
         }),
 
         proxySourceValue() {
             if (this.editingField) {
                 return this.editingField.field.settings.label;
+            }
+
+            if (this.editingNotification) {
+                return this.editingNotification.notification.name;
             }
 
             return get(this.context.attrs, 'source-value', this.sourceValue);
@@ -66,6 +71,10 @@ export default {
         proxyFieldId() {
             if (this.editingField) {
                 return this.editingField.field.__id;
+            }
+
+            if (this.editingNotification) {
+                return this.editingNotification.notification.__id;
             }
 
             return get(this.context.attrs, 'field-id', this.fieldId);
@@ -109,6 +118,12 @@ export default {
             // Let's get smart about generating a handle. Check if its unqique - if it isn't, make it unique
             const generatedHandle = generateHandle(this.proxySourceValue);
             let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId, parentFieldId);
+
+            if (this.editingNotification) {
+                handles = this.$store.getters['notifications/notificationHandlesExcluding'](this.proxyFieldId);
+                console.log(handles);
+            }
+
 
             if (this.proxyCollection.length) {
                 handles = this.proxyCollection;

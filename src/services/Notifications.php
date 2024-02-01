@@ -95,10 +95,7 @@ class Notifications extends Component
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
-
-            // TODO: make this a setting in the form builder
-            $notificationRecord->handle = $this->_getUniqueNotificationHandle($notification);
-
+            $notificationRecord->handle = $notification->handle;
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
             $notificationRecord->recipients = $notification->recipients;
@@ -580,11 +577,10 @@ class Notifications extends Component
     public function defineSettingsSchema(): array
     {
         return [
-            // TODO: add this at the next breakpoint
-            // SchemaHelper::handleField([
-            //     'help' => Craft::t('formie', 'How you’ll refer to this notification in your templates. Use the refresh icon to re-generate this from your notification name.'),
-            //     'warning' => '',
-            // ]),
+            SchemaHelper::handleField([
+                'help' => Craft::t('formie', 'How you’ll refer to this notification in your templates. Use the refresh icon to re-generate this from your notification name.'),
+                'warning' => Craft::t('formie', 'Changing this may result in your notification not working as expected.'),
+            ]),
         ];
     }
 

@@ -1,5 +1,5 @@
 // import Vue from 'vue';
-import { findIndex } from 'lodash-es';
+import { findIndex, flatMap, omitBy } from 'lodash-es';
 
 import { newId } from '@utils/string';
 import { clone } from '@utils/object';
@@ -82,6 +82,19 @@ const getters = {
         });
 
         return notifications;
+    },
+
+    notificationHandlesExcluding: (state, getters, rootState, rootGetters) => {
+        return (id) => {
+            const allNotifications = omitBy(state, { __id: id });
+            let notificationHandles = flatMap(allNotifications, 'handle');
+
+            // Fetch all reserved handles
+            const reservedHandles = rootGetters['formie/reservedHandles']();
+            notificationHandles = notificationHandles.concat(reservedHandles);
+
+            return notificationHandles;
+        };
     },
 };
 
