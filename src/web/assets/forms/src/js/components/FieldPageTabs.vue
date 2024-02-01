@@ -10,6 +10,7 @@
                 :active="modelValue"
                 :errors="page.errors"
                 @selected="selectTab"
+                @dblclick.prevent="editPages"
             />
         </ul>
 
