@@ -44,7 +44,7 @@
         align-items: baseline;
     }
 
-    .fui-input-container {
+    .fui-input-wrapper {
         flex: 1;
     }
 }
@@ -56,7 +56,7 @@
 
 .fui-label-below-input {
     // Force legends to display in the correct position.
-    > .fui-field-container > .fui-input-container > .fui-fieldset > .fui-legend {
+    > .fui-field-container > .fui-input-wrapper > .fui-fieldset > .fui-legend {
         display: block;
         float: left;
         clear: both;

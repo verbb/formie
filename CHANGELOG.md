@@ -12,6 +12,10 @@
 - Added `data-fui-alert-error` and `data-fui-alert-success` attributes on front-end alerts.
 - Added the `form.setPageSettings()` function to override page settings in your Twig templates.
 - Added support for Group and Repeater fields to be added as an existing field, or a synced field in the form builder.
+- Added support for Repeater fields to use conditions (within their own row of fields).
+- Added `initRow` to Repeater field JS events.
+- Added the current rowId for the `data-repeater-row` attribute for Repeater fields.
+- Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
@@ -20,6 +24,9 @@
 - Submission content now no longer has their own content tables, thanks to Craft 5 content changes. Content is now in a single column, in your `elements_sites` database table.
 - References to `subfield` is now `subField` for various classes.
 - OAuth-based integrations now use the [Auth Module](https://verbb.io/packages/auth) to handle authentication under the hood.
+- Submissions now have Create/Save/Delete user permissions.
+- Submissions now have separate view and manage user permissions.
+- Sent Notifications now have “All” or per-form user permissions for View/Resend/Delete.
 - `Formie::log()` is now `Formie::info()`.
 - `Integration::log()` is now `Integration::info()`.
 - Integration field mapping now uses `field:fieldHandle` syntax for fields.
@@ -31,6 +38,7 @@
 - Changed form `Title` references to form `Name`.
 - Front-end form JavaScript now waits until the form has entered the viewable area on the page to be initialized.
 - Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
+- Changed `fieldInputContainer` to `fieldInputWrapper` for Theme Config and `.fui-input-container` class to `.fui-input-wrapper` for fields.
 
 ### Fixed
 - Fixed multiple Tippy.js instances in the form builder when field settings contained multiple “info” elements.

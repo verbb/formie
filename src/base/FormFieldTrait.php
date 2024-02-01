@@ -816,9 +816,9 @@ trait FormFieldTrait
             ]);
         }
 
-        if ($key === 'fieldInputContainer') {
+        if ($key === 'fieldInputWrapper') {
             return new HtmlTag('div', [
-                'class' => 'fui-input-container',
+                'class' => 'fui-input-wrapper',
             ]);
         }
 

@@ -22,7 +22,7 @@ To gain a better understanding of what theme config is for, let's walk through t
                                 <label class="fui-label">My Example Field</label>
                                 <div class="fui-instructions">Some instructions</div>
 
-                                <div class="fui-input-container">
+                                <div class="fui-input-wrapper">
                                     <input type="text">
                                 </div>
                             </div>
@@ -107,7 +107,7 @@ Let's try a few more things at once for fun:
                             <label class="fui-label">My Example Field</label>
                             <div class="fui-instructions">Some instructions</div>
 
-                            <div class="fui-input-container">
+                            <div class="fui-input-wrapper">
                                 <input type="text" class="border border-red-500">
                             </div>
                         </div>
@@ -191,7 +191,7 @@ For a full list of available tags, refer to the below:
 - `fieldRequired`
 - `fieldOptional`
 - `fieldInstructions`
-- `fieldInputContainer`
+- `fieldInputWrapper`
 - `fieldInput`
 - `fieldErrors`
 - `fieldError`
@@ -374,7 +374,7 @@ If you don't want to render a tag at all, you can return a falsey value.
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
         fieldContainer: false,
-        fieldInputContainer: null,
+        fieldInputWrapper: null,
     },
 }) }}
 

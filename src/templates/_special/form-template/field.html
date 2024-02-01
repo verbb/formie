@@ -16,7 +16,7 @@
         {{ formieInclude('_includes/label', { position: 'above' }) }}
         {{ formieInclude('_includes/instructions', { position: 'above' }) }}
 
-        {% fieldtag 'fieldInputContainer' %}
+        {% fieldtag 'fieldInputWrapper' %}
             {% hook 'formie.field.input-start' %}
 
             {{ field.getFrontEndInputHtml(form, value, {

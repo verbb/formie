@@ -135,7 +135,7 @@ export class FormieFormTheme {
             const $field = e.target;
             const $fieldContainer = $field.closest('[data-field-type]');
 
-            // Check if we need to move the error out of the .fui-input-container node.
+            // Check if we need to move the error out of the .fui-input-wrapper node.
             // Only the input itself should be in here.
             const $errorToMove = $field.parentNode.querySelector('[data-error-message]');
 
