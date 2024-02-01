@@ -5,8 +5,8 @@ A page represents a collection of fields, grouped by rows. For single-page forms
 
 Attribute | Description
 --- | ---
-`id` | ID of the page.
 `name` | The name of the page.
+`handle` | The handle of the page, automatically derived from the `name`.
 `sortOrder` | The order of the page.
 `settings` | [Settings](#page-settings) for the page.
 
