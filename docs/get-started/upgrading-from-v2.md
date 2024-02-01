@@ -2,10 +2,11 @@
 While the [changelog](https://github.com/verbb/formie/blob/craft-5/CHANGELOG.md) is the most comprehensive list of changes, this guide provides high-level overview and organizes changes by category.
 
 ## General
+You'll only need to worry about about the following if you've extended Formie with custom fields or custom integrations.
 
 Old | What to do instead
 --- | ---
-| `Formie::log` | `Formie::info`
+| `Formie::log()` | `Formie::info()`
 
 
 ## Repeater & Group Fields
@@ -15,10 +16,12 @@ This should only effect users who customise behaviour of these fields, or when w
 
 ```twig
 // Formie v2
+{# Fields would return a `verbb\formie\elements\db\NestedBlockQuery` object #}
 {% set groupValue = myGroupField.one() %}
 {{ groupValue.innerField1 }}
 {{ groupValue.innerField2 }}
 
+{# Fields would return a `verbb\formie\elements\db\NestedBlockQuery` object #}
 {% set repeaterValue = myRepeaterField.all() %}
 
 {% for row in repeaterValue %}
@@ -27,9 +30,11 @@ This should only effect users who customise behaviour of these fields, or when w
 {% endfor %}
 
 // Formie v3
+{# Fields are now an array #}
 {{ myGroupField.innerField1 }}
 {{ myGroupField.innerField2 }}
 
+{# Fields are now an array #}
 {% for row in myRepeaterField %}
     {{ row.innerField1 }}
     {{ row.innerField2 }}
@@ -47,7 +52,13 @@ In addition, you can also now access field value directly from the submission, w
 
 The latter example of a Repeater includes the zero-based index of the row you're fetching values for.
 
+## Theme Config
+The `fieldInputContainer` key for Theme Config has been renamed to `fieldInputWrapper` to follow clear consistency with the terms "wrapper" and "container".
+
+In addition, the `.fui-input-container` class now no longer exists, replaced with `.fui-input-wrapper`, so any CSS overrides you have may need to be updated.
+
 ## Custom Fields
+If you have written your own custom field class, or extended an existing Formie field, check the below for changes.
 
 Old | What to do instead
 --- | ---
@@ -134,6 +145,7 @@ protected function defineValueForEmail(mixed $value, Notification $notification,
 
 
 ## Integrations
+If you have written your own custom integration class, or extended an existing Formie integration, check the below for changes.
 
 Old | What to do instead
 --- | ---
@@ -229,7 +241,7 @@ private function getCache(string $key): mixed
 ### Auth Module
 To simplify and streamline integration logic for OAuth-based providers, we're using the [Auth Module](https://verbb.io/packages/auth) to handle the authentication flow and token handling. For non-OAuth-based providers, there will be no change.
 
-While things should be seamlessly migrated from Formie to Auth, if you have custom integrations that use OAuth, you'll need to integrate those with the Auth module.
+While things should be seamlessly migrated from Formie to Auth, if you have custom integrations that use OAuth, you'll need to integrate those with the Auth module. Formie no longer contains many of the helper methods that an older OAuth integration would've relied on.
 
 In addition, if you were using any of the OAuth-specific functions in Formie, those are now removed.
 
@@ -265,11 +277,23 @@ For the `Integration` class, the following applies:
 Pages no longer have a numerical `id`. Please use their `handle` instead, which is automatically generated from their **Label**.
 
 ### Rows
-In Formie v2 and below, rows were just arrays sitting between Pages and Fields. They are now proper `FormRow` objects.
+In Formie v2 and below, rows were just arrays sitting between Pages and Fields. 
+
+No template changes are required, even if you have custom templates. The below will still work correctly:
+
+```twig
+{% for page in form.getPages() %}
+    {% for row in page.getRows() %}
+        {% for field in row.fields %}
+            {{ craft.formie.renderField(form, field) }}
+        {% endfor %}
+    {% endfor %}
+{% endfor %}
+```
+
 
 ## Fields
-getCustomFields => getFields
-
+The `EVENT_MODIFY_FIELD_CONFIG` event had been moved to be on the individual field class, not the `verbb\formie\services\Fields` service.
 
 
 ```php
