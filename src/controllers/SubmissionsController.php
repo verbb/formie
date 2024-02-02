@@ -1128,7 +1128,7 @@ class SubmissionsController extends Controller
         return $submission;
     }
 
-    private function _checkPageFieldErrors(submission $submission, Form $form, FormPage $nextPage)
+    private function _checkPageFieldErrors(submission $submission, Form $form, ?FormPage $nextPage): ?FormPage
     {
         // Find the first page with a field error and set that as the current page
         if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
