@@ -8,7 +8,7 @@
             </div>
 
             <div class="fui-toolbar-dropdown-container fui-toolbar-dropdown-variables" style="display: none;">
-                <variable-list :variables="variables" @updated="addVariable" />
+                <variable-list :variables="variables" :is-open="isOpen" @updated="addVariable" />
             </div>
         </div>
 
@@ -232,13 +232,10 @@ export default {
             return newContent;
         },
 
-        addVariable(e) {
+        addVariable(data) {
             this.tippy.hide();
 
-            this.editor.chain().focus().setVariableTag({
-                label: e.target.getAttribute('data-label'),
-                value: e.target.getAttribute('data-value'),
-            }).run();
+            this.editor.chain().focus().setVariableTag(data).run();
         },
     },
 };

@@ -6,7 +6,7 @@
                 :key="index"
                 class="suggest-item"
                 :class="{ 'is-selected': index === selectedIndex }"
-                @click="selectItem(index)"
+                @click.prevent="selectItem(index)"
             >
                 {{ item.label }} <code class="suggest-item-handle">{{ item.value }}</code>
             </button>
@@ -78,8 +78,6 @@ export default {
 
         selectItem(index) {
             const item = this.items[index];
-
-            console.log(item);
 
             if (item) {
                 this.command(item);
