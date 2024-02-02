@@ -100,7 +100,7 @@ export default {
 
     mounted() {
         if (this.notification.id == 8) {
-            this.openModal();
+            // this.openModal();
         }
     },
 
