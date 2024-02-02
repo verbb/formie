@@ -81,11 +81,10 @@ export class FormieTextLimit {
 
     count(value) {
         // Convert any multibyte characters to their HTML entity equivalent to match server-side processing
-        // https://dev.to/nikkimk/converting-utf-including-emoji-to-html-x1f92f-4951
-        return [...value].map((char) => {
-            // Check for space characters to exclude
-            return char.codePointAt() > 127 && !/\s/.test(char) ? `&#${char.codePointAt()};` : char;
-        }).join('').length;
+        const unicodeRegExp = /(?:\p{Extended_Pictographic}[\p{Emoji_Modifier}\p{M}]*(?:\p{Join_Control}\p{Extended_Pictographic}[\p{Emoji_Modifier}\p{M}]*)*|\s|.)\p{M}*/guy;
+        const graphemes = value.match(unicodeRegExp) || [];
+
+        return graphemes.length;
     }
 
     stripTags(string) {
