@@ -507,11 +507,11 @@ const getters = {
                     if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((subField) => {
-                                if (allowedTypes.includes(subField.type)) {
+                            row.fields.forEach((groupField) => {
+                                if (allowedTypes.includes(groupField.type)) {
                                     fields.push({
-                                        label: `${field.settings.label}: ${subField.label}`,
-                                        value: `{field.${field.settings.handle}.${subField.handle}}`,
+                                        label: `${field.settings.label}: ${groupField.settings.label}`,
+                                        value: `{field.${field.settings.handle}.${groupField.settings.handle}}`,
                                     });
                                 }
                             });
@@ -558,11 +558,11 @@ const getters = {
                     if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((subField) => {
-                                if (allowedTypes.includes(subField.type)) {
+                            row.fields.forEach((groupField) => {
+                                if (allowedTypes.includes(groupField.type)) {
                                     fields.push({
-                                        label: `${field.settings.label}: ${subField.label}`,
-                                        value: `{field.${field.settings.handle}.${subField.handle}}`,
+                                        label: `${field.settings.label}: ${groupField.settings.label}`,
+                                        value: `{field.${field.settings.handle}.${groupField.settings.handle}}`,
                                     });
                                 }
                             });
@@ -622,18 +622,18 @@ const getters = {
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((groupfield) => {
-                                if (groupfield.subFieldOptions && groupfield.hasSubFields) {
-                                    groupfield.subFieldOptions.forEach((subField) => {
+                            row.fields.forEach((groupField) => {
+                                if (groupField.subFieldOptions && groupField.hasSubFields) {
+                                    groupField.subFieldOptions.forEach((subField) => {
                                         fields.push({
-                                            label: `${field.settings.label}: ${groupfield.settings.label}: ${subField.label}`,
-                                            value: `{field.${field.settings.handle}.${groupfield.settings.handle}.${subField.handle}}`,
+                                            label: `${field.settings.label}: ${groupField.settings.label}: ${subField.label}`,
+                                            value: `{field.${field.settings.handle}.${groupField.settings.handle}.${subField.handle}}`,
                                         });
                                     });
-                                } else if (allowedTypes.includes(groupfield.type)) {
+                                } else if (allowedTypes.includes(groupField.type)) {
                                     fields.push({
-                                        label: `${field.settings.label}: ${groupfield.settings.label}`,
-                                        value: `{field.${field.settings.handle}.${groupfield.settings.handle}}`,
+                                        label: `${field.settings.label}: ${groupField.settings.label}`,
+                                        value: `{field.${field.settings.handle}.${groupField.settings.handle}}`,
                                     });
                                 }
                             });
@@ -682,15 +682,15 @@ const getters = {
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
                         // Is this a group field that supports nesting?
                         field.settings.rows.forEach((row) => {
-                            row.fields.forEach((groupfield) => {
-                                if (groupfield.subFieldOptions && groupfield.hasSubFields) {
-                                    groupfield.subFieldOptions.forEach((subField) => {
+                            row.fields.forEach((groupField) => {
+                                if (groupField.subFieldOptions && groupField.hasSubFields) {
+                                    groupField.subFieldOptions.forEach((subField) => {
                                         fields.push({
                                             id: field.id,
                                             __id: field.__id,
                                             type: field.type,
-                                            label: `${field.settings.label}: ${groupfield.settings.label}: ${subField.label}`,
-                                            value: `{field.${field.settings.handle}.${groupfield.settings.handle}.${subField.handle}}`,
+                                            label: `${field.settings.label}: ${groupField.settings.label}: ${subField.label}`,
+                                            value: `{field.${field.settings.handle}.${groupField.settings.handle}.${subField.handle}}`,
                                         });
                                     });
                                 } else {
@@ -698,8 +698,8 @@ const getters = {
                                         id: field.id,
                                         __id: field.__id,
                                         type: field.type,
-                                        label: `${field.settings.label}: ${groupfield.settings.label}`,
-                                        value: `{field.${field.settings.handle}.${groupfield.settings.handle}}`,
+                                        label: `${field.settings.label}: ${groupField.settings.label}`,
+                                        value: `{field.${field.settings.handle}.${groupField.settings.handle}}`,
                                     });
                                 }
                             });
