@@ -16,6 +16,11 @@
 - Added `initRow` to Repeater field JS events.
 - Added the current rowId for the `data-repeater-row` attribute for Repeater fields.
 - Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
+- Added keyboard navigation to variable picker dropdown.
+- Added the ability to type `{` in variable picker components to autocomplete variables.
+- Added double-clicking a page in the form builder now opens the pages editor.
+- Added “Recipients” to the Email Notifications index table.
+- Added `handle` to Email Notifications that can be accessed directly, instead of by their ID.
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
