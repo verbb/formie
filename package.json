@@ -61,6 +61,7 @@
         "@tiptap/extension-text-align": "^2.1.16",
         "@tiptap/extension-underline": "^2.1.16",
         "@tiptap/starter-kit": "^2.1.16",
+        "@tiptap/suggestion": "^2.2.1",
         "@tiptap/vue-3": "^2.1.16",
         "@yaireo/tagify": "^4.19.0",
         "click-outside-vue3": "^4.0.1",
@@ -87,8 +88,8 @@
         "signature_pad": "^4.1.7",
         "sortablejs": "^1.15.2",
         "tippy.js": "^6.3.7",
-        "vue-final-modal": "^4.5.3",
         "vue": "^3.4.15",
+        "vue-final-modal": "^4.5.3",
         "vue-mitt": "^0.0.1",
         "vue-multiselect": "^3.0.0-alpha.2",
         "vuedraggable": "^4.1.0"

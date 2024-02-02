@@ -99,8 +99,8 @@ export default {
     },
 
     mounted() {
-        if (this.notification.id == 1) {
-            // this.openModal();
+        if (this.notification.id == 8) {
+            this.openModal();
         }
     },
 
