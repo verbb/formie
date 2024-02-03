@@ -143,7 +143,7 @@ class Submissions extends Component
         }
 
         // Trigger any payment integrations - but note these can fail
-        if (!$this->processPayments($submission)) {
+        if ($success && !$this->processPayments($submission)) {
             $success = false;
         }
 
