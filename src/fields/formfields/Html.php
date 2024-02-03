@@ -204,6 +204,25 @@ class Html extends FormField
         ];
     }
 
+    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    {
+        if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
+            // In this case, we don't need the label hidden from screen readers as there's no control to be accessible for
+            if ($labelPosition instanceof HiddenPosition) {
+                return null;
+            }
+
+            return new HtmlTag('label', [
+                'class' => ['fui-label'],
+                // Exclude the `for` attribute, as it's invalid (there's no form control to refer to)
+            ]);
+        }
+
+        return parent::defineHtmlTag($key, $context);
+    }
+
 
     // Private Methods
     // =========================================================================
