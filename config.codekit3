@@ -4257,6 +4257,14 @@
       "oAP" : "\/src\/migrations\/m231202_000000_auth_module.php",
       "oF" : 0
     },
+    "\/src\/migrations\/m240130_000000_permissions.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240130_000000_permissions.php",
+      "oF" : 0
+    },
     "\/src\/migrations\/MigrateFreeform.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -10881,26 +10889,7 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config--Dczxng5.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config--Dczxng5.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-BCxA1cjg.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-axQVqg6P.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10908,9 +10897,28 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-BCxA1cjg-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-axQVqg6P-min.css",
       "oF" : 0,
       "pg" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-v3178U_t.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-v3178U_t.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-v3178U_t.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-v3178U_t.js.map",
+      "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/fa-regular-400-J35IyURq.svg" : {
       "ft" : 2097152,
@@ -11008,42 +11016,42 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-JLakLYQ-.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-kzmmjgR2.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-JLakLYQ-.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-JLakLYQ-.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-kzmmjgR2.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-JLakLYQ-.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-WQWxrBYA.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-tNkrMs1Q.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-WQWxrBYA.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-WQWxrBYA.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-tNkrMs1Q.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-WQWxrBYA.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
@@ -11058,23 +11066,23 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-lakDxfbZ.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-PlP6lBPa.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-lakDxfbZ.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-lakDxfbZ.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-PlP6lBPa.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-lakDxfbZ.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/manifest.json" : {
@@ -11708,6 +11716,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/richtext\/variable-tag\/VariableList.vue",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/richtext\/variable-tag\/VariableListSuggestion.vue" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/richtext\/variable-tag\/VariableListSuggestion.vue",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/richtext\/variable-tag\/VariableTag.js" : {
@@ -12692,6 +12708,14 @@
       "sC" : 0,
       "tS" : 0
     },
+    "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/algolia-places.js.LICENSE.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/algolia-places.js.LICENSE.txt",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/frontend\/dist\/js\/address-providers\/google-address.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -12879,6 +12903,14 @@
       "sC" : 0,
       "tS" : 0
     },
+    "\/src\/web\/assets\/frontend\/dist\/js\/fields\/hidden.js.LICENSE.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/fields\/hidden.js.LICENSE.txt",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/frontend\/dist\/js\/fields\/phone-country.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -12922,6 +12954,14 @@
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
+    },
+    "\/src\/web\/assets\/frontend\/dist\/js\/fields\/signature.js.LICENSE.txt" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/dist\/js\/fields\/signature.js.LICENSE.txt",
+      "oF" : 0
     },
     "\/src\/web\/assets\/frontend\/dist\/js\/fields\/summary.js" : {
       "bF" : 0,

@@ -44,11 +44,13 @@
 - Front-end form JavaScript now waits until the form has entered the viewable area on the page to be initialized.
 - Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
 - Changed `fieldInputContainer` to `fieldInputWrapper` for Theme Config and `.fui-input-container` class to `.fui-input-wrapper` for fields.
+- HubSpot CRM integration now automatically saves the `hubspotutk` cookie at the time of submission, to be sent with API requests. This means you now no longer need to map a form field to ensure the `hubspotutk` tracking cookie is sent.
 
 ### Fixed
 - Fixed multiple Tippy.js instances in the form builder when field settings contained multiple “info” elements.
 - Fixed alerts on front-end not respecting theme config.
 - Fixed Commerce fields initializing when Commerce wasn’t installed or classes exist.
+- Fix text-limit character check for emojis.
 
 ### Removed
 - Removed `verbb\formie\base\NestedFieldTrait` class.

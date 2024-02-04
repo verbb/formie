@@ -323,8 +323,8 @@ class HubSpot extends Crm
                     ];
                 }
 
-                // Setup Hubspot's context
-                $hutk = $formValues['trackingID'] ?? $_COOKIE['hubspotutk'] ?? '';
+                // Setup Hubspot's context, if we're mapping it, or if it's automatically saved in context
+                $hutk = $formValues['trackingID'] ?? $this->context['hubspotutk'] ?? '';
 
                 if ($hutk) {
                     $formPayload['context']['hutk'] = $hutk;
@@ -404,6 +404,14 @@ class HubSpot extends Crm
         return $this->_formsClient = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hsforms.com/',
         ]);
+    }
+
+    public function populateContext(): void
+    {
+        parent::populateContext();
+
+        // Allow us to save the tracking cookie at the time of submission, so grab later
+        $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
     }
 
     public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
