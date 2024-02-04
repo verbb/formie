@@ -215,4 +215,32 @@ Button | Description
 `undo` | Allow undo functionality.
 `redo` | Allow redo functionality.
 `link` | Allow text to be shown as a link.
+`table` | An array of available table options. Refer to below.
 `variableTag` | Allow the use of Variable Tags, to pick variables from form items or global variables.
+
+#### Table
+You can use the following options in the `table` options. Note that you'll also need to include `table` as a button in the `buttons` options.
+
+Option | Description
+--- | ---
+`insert-table` | Creates the `<table>` element.
+`delete-table` | Removes the `<table>` element.
+`add-col-before` | Adds a column before the current cursor.
+`add-col-after` | Adds a column after the current cursor.
+`delete-col` | Removes the column at the current cursor.
+`add-row-before` | Adds a row before the current cursor.
+`add-row-after` | Adds a row after the current cursor.
+`delete-row` | Removes the row at the current cursor.
+`merge-cells` | Merges one or more cells.
+`split-cells` | Splits one or more cells.
+`toggle-header-column` | Toggles the header column at the current cursor.
+`toggle-header-row` | Toggles the header row at the current cursor.
+`toggle-header-cell` | Toggles the header cell at the current cursor.
+
+
+```json
+{
+    "buttons": ["table", "bold", "italic"],
+    "table": ["insert-table", "delete-table", "add-col-before", "delete-col", "add-row-before", "delete-col"]
+}
+```

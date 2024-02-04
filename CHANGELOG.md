@@ -21,6 +21,7 @@
 - Added double-clicking a page in the form builder now opens the pages editor.
 - Added “Recipients” to the Email Notifications index table.
 - Added `handle` to Email Notifications that can be accessed directly, instead of by their ID.
+- Added Table node to rich text editor settings (used for numerous form, field and notification settings).
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
@@ -50,7 +51,8 @@
 - Fixed multiple Tippy.js instances in the form builder when field settings contained multiple “info” elements.
 - Fixed alerts on front-end not respecting theme config.
 - Fixed Commerce fields initializing when Commerce wasn’t installed or classes exist.
-- Fix text-limit character check for emojis.
+- Fixed text-limit character check for emojis on the front-end.
+- Fixed lack of validation for Date fields and their Default Value when setting to a specific date.
 
 ### Removed
 - Removed `verbb\formie\base\NestedFieldTrait` class.
