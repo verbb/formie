@@ -842,6 +842,8 @@ class Date extends FormField implements SubFieldInterface, PreviewableFieldInter
                 'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'if' => '$get(defaultOption).value == date',
+                'validation' => 'requiredDate',
+                'required' => true,
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),

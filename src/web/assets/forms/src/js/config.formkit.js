@@ -31,6 +31,7 @@ import minBlock from '@formkit-components/rules/minBlock';
 import requiredIf from '@formkit-components/rules/requiredIf';
 import uniqueHandle from '@formkit-components/rules/uniqueHandle';
 import requiredRichText from '@formkit-components/rules/requiredRichText';
+import requiredDate from '@formkit-components/rules/requiredDate';
 
 // FormKit can't handle multiple same-name vaidators, otherwise we could do `requiredTableCell:label`
 // eslint-disable-next-line
@@ -48,6 +49,7 @@ export default defaultConfig({
         requiredTableCellLabel,
         requiredTableCellValue,
         requiredRichText,
+        requiredDate,
         uniqueHandle,
         uniqueTableCellLabel,
         uniqueTableCellValue,
@@ -77,6 +79,10 @@ export default defaultConfig({
                 },
 
                 requiredRichText({ name }) {
+                    return Craft.t('formie', '{name} is required.', { name });
+                },
+
+                requiredDate({ name }) {
                     return Craft.t('formie', '{name} is required.', { name });
                 },
 
