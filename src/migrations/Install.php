@@ -52,10 +52,10 @@ class Install extends Migration
             }
         }
 
+        $this->dropProjectConfig();
         $this->dropForeignKeys();
         $this->removeTables();
         $this->removeContent();
-        $this->dropProjectConfig();
 
         return true;
     }
