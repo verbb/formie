@@ -63,8 +63,9 @@ class FormsController extends Controller
 
         $formHandles = ArrayHelper::getColumn(Form::find()->all(), 'handle');
         $stencilArray = Formie::$plugin->getStencils()->getStencilArray();
+        $applyStencilId = $this->request->getParam('applyStencilId');
 
-        $variables = compact('formHandles', 'form', 'stencilArray');
+        $variables = compact('formHandles', 'form', 'stencilArray', 'applyStencilId');
 
         if (!$variables['form']) {
             $variables['form'] = new Form();
