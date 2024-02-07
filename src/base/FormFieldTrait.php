@@ -97,6 +97,7 @@ trait FormFieldTrait
     public ?array $containerAttributes = null;
     public ?array $inputAttributes = null;
     public bool $includeInEmail = true;
+    public ?string $emailValue = null;
     public bool $enableConditions = false;
     public ?array $conditions = null;
     public bool $enableContentEncryption = false;

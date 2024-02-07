@@ -356,6 +356,7 @@ class Products extends CommerceProducts implements FormFieldInterface
             ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable products.'),

@@ -449,6 +449,7 @@ class Tags extends CraftTags implements FormFieldInterface
             ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
                 'help' => Craft::t('formie', 'Limit the number of selectable variants.'),

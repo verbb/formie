@@ -329,6 +329,19 @@ class SchemaHelper
         ], $config));
     }
 
+    public static function emailNotificationValue(array $config = []): array
+    {
+        return self::selectField(array_merge([
+            'label' => Craft::t('formie', 'Email Notification Value'),
+            'help' => Craft::t('formie', 'Select what value to use for email notifications.'),
+            'name' => 'emailValue',
+            'options' => [
+                ['label' => Craft::t('formie', 'Public URL'), 'value' => 'publicUrl'],
+                ['label' => Craft::t('formie', 'Control Panel URL'), 'value' => 'cpUrl'],
+            ],
+        ], $config));
+    }
+
     public static function visibility(array $config = []): array
     {
         return self::selectField(array_merge([

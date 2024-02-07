@@ -8,8 +8,10 @@
     {% if elements | length %}
         <ul>
             {% for element in elements %}
+                {% set url = field.emailValue == 'cpUrl' ? element.getCpEditUrl() : element.getUrl() %}
+                    
                 <li>
-                    <a href="{{ element.getCpEditUrl() }}">{{ element.name }}</a>
+                    <a href="{{ url }}">{{ element.name }}</a>
                 </li>
             {% endfor %}
         </ul>

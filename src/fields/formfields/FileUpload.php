@@ -359,6 +359,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
                 'help' => Craft::t('formie', 'Limit the number of files a user can upload.'),
