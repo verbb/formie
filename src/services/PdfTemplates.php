@@ -302,7 +302,7 @@ class PdfTemplates extends Component
             $emailRender = Formie::$plugin->getEmails()->renderEmail($notification, $submission);
             $message = $emailRender['email'] ?? '';
 
-            $html = $message->getHtmlBody();
+            $html = $message->getSymfonyEmail()->getHtmlBody();
         }
 
         $dompdf = new Dompdf();

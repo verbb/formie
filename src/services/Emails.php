@@ -609,7 +609,7 @@ class Emails extends Component
             'bcc' => $email->getBcc(),
             'sender' => $email->getSender(),
             'subject' => $email->getSubject(),
-            'body' => $email->getHtmlBody(),
+            'body' => $email->getSymfonyEmail()->getHtmlBody(),
         ];
     }
 

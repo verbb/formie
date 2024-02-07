@@ -92,8 +92,8 @@ class SentNotifications extends Component
             }
         }
 
-        $sentNotification->htmlBody = $email->getHtmlBody();
-        $sentNotification->body = $email->getTextBody();
+        $sentNotification->htmlBody = $email->getSymfonyEmail()->getHtmlBody();
+        $sentNotification->body = $email->getSymfonyEmail()->getTextBody();
 
         $sentNotification->info = $this->getDeliveryInfo($email);
 
