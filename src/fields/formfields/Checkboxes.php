@@ -233,6 +233,12 @@ class Checkboxes extends OptionsField
             ],
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue([
+                'options' => [
+                    ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
+                    ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
+                ],
+            ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Add Toggle Checkbox'),
                 'help' => Craft::t('formie', 'Whether to add an additional checkbox to toggle all checkboxes in this field by.'),

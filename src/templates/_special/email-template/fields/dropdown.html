@@ -10,14 +10,17 @@
         {% if value | length %}
             <ul>
                 {% for item in value %}
-                    <li>{{ item }}</li>
+                    {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
+                        
+                    <li>{{ displayValue }}</li>
                 {% endfor %}
             </ul>
         {% else %}
             {{ notification.getPlaceholder() }}
         {% endif %}
     {% else %}
-        {# Cast `SingleOptionFieldData` as a string #}
-        {{ (value ~ '') ?: notification.getPlaceholder() }}
+        {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
+
+        {{ displayValue ?: notification.getPlaceholder() }}
     {% endif %}
 </p>

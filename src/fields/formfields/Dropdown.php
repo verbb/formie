@@ -253,6 +253,12 @@ class Dropdown extends OptionsField
             ],
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue([
+                'options' => [
+                    ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
+                    ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
+                ],
+            ]),
         ];
     }
 
