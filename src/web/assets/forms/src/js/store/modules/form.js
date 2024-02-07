@@ -752,7 +752,7 @@ const getters = {
     fieldHandles: (state) => {
         const allRows = flatMap(state.pages, 'rows');
         const allFields = flatMap(allRows, 'fields');
-        return flatMap(allFields, 'handle');
+        return flatMap(allFields, 'settings.handle');
     },
 
     fieldHandlesForField: (state, getters, rootState, rootGetters) => {
@@ -764,7 +764,7 @@ const getters = {
             if (field) {
                 const allFields = flatMap(field.settings.rows, 'fields');
 
-                let fieldHandles = flatMap(allFields, 'handle');
+                let fieldHandles = flatMap(allFields, 'settings.handle');
 
                 // Fetch all reserved handles
                 const reservedHandles = rootGetters['formie/reservedHandles']();

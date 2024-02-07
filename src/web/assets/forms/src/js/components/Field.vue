@@ -370,10 +370,12 @@ export default {
             const maxHandleLength = this.$store.getters['formie/maxFieldHandleLength']();
             const newHandle = value.substr(0, maxHandleLength);
 
+            const newSettings = cloneDeep(this.field.settings);
+            newSettings.label = this.field.settings.label;
+            newSettings.handle = newHandle;
+
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {
-                label: this.field.settings.label,
-                handle: newHandle,
-                settings: cloneDeep(this.field.settings),
+                settings: newSettings,
             });
 
             // Clone the old field rows.
