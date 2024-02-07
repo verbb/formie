@@ -97,13 +97,10 @@ export default {
     },
 
     methods: {
-        addVariable(e) {
+        addVariable(data) {
             this.tippy.hide();
 
-            this.editor.chain().focus().setVariableTag({
-                label: e.target.getAttribute('data-label'),
-                value: e.target.getAttribute('data-value'),
-            }).run();
+            this.editor.chain().focus().setVariableTag(data).run();
         },
 
         truncate(string, options) {
