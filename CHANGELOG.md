@@ -2,6 +2,14 @@
 
 ## 3.0.0
 
+### Breaking Changes
+- Repeater and Group fields values now no longer use elements, just plain arrays. This brings several performance improvements and simplification to these fields.
+- OAuth-based integrations now use the [Auth Module](https://verbb.io/packages/auth) to handle authentication under the hood.
+- References to `subfield` is now `subField` for various classes.
+- Element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants) now use their public URL in email notifications.
+- Options fields (Checkboxes, Dropdown, Radio) now use their option labels in email notifications.
+- Changed `fieldInputContainer` to `fieldInputWrapper` for Theme Config and `.fui-input-container` class to `.fui-input-wrapper` for fields.
+
 ### Added
 - You can now get submission field values via dot-notation for nested values. e.g. `submission.getFieldValue('group.text')` or  `submission.getFieldValue('repeater.1.text')`
 - You can now query submission field values via dot-notation for nested values. e.g. `submission.field('group.text').one()` or  `submission.field('repeater.1.text').one()`
@@ -22,14 +30,13 @@
 - Added “Recipients” to the Email Notifications index table.
 - Added `handle` to Email Notifications that can be accessed directly, instead of by their ID.
 - Added Table node to rich text editor settings (used for numerous form, field and notification settings).
+- Added the ability to set the control panel or public URL for element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants).
+- Added the ability to set the label or value for options fields (Checkboxes, Dropdown, Radio).
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
 - Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
-- Repeater and Group fields values now no longer use elements, just plain arrays. This brings several performance improvements and simplification to these fields.
 - Submission content now no longer has their own content tables, thanks to Craft 5 content changes. Content is now in a single column, in your `elements_sites` database table.
-- References to `subfield` is now `subField` for various classes.
-- OAuth-based integrations now use the [Auth Module](https://verbb.io/packages/auth) to handle authentication under the hood.
 - Submissions now have Create/Save/Delete user permissions.
 - Submissions now have separate view and manage user permissions.
 - Sent Notifications now have “All” or per-form user permissions for View/Resend/Delete.
@@ -44,7 +51,6 @@
 - Changed form `Title` references to form `Name`.
 - Front-end form JavaScript now waits until the form has entered the viewable area on the page to be initialized.
 - Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
-- Changed `fieldInputContainer` to `fieldInputWrapper` for Theme Config and `.fui-input-container` class to `.fui-input-wrapper` for fields.
 - HubSpot CRM integration now automatically saves the `hubspotutk` cookie at the time of submission, to be sent with API requests. This means you now no longer need to map a form field to ensure the `hubspotutk` tracking cookie is sent.
 
 ### Fixed
