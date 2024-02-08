@@ -1636,6 +1636,7 @@ class Form extends Element
                     'fui-row fui-page-row',
                     $fields ? false : 'fui-row-empty',
                 ],
+                'data-fui-field-count' => count($fields),
             ]);
         }
 

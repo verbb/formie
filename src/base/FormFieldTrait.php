@@ -930,8 +930,11 @@ trait FormFieldTrait
         }
 
         if ($key === 'subFieldRow') {
+            $fields = $context['row'] ?? [];
+
             return new HtmlTag('div', [
                 'class' => 'fui-row',
+                'data-fui-field-count' => count($fields),
             ]);
         }
 
@@ -942,8 +945,11 @@ trait FormFieldTrait
         }
 
         if ($key === 'nestedFieldRow') {
+            $fields = $context['row']['fields'] ?? [];
+
             return new HtmlTag('div', [
                 'class' => 'fui-row',
+                'data-fui-field-count' => count($fields),
             ]);
         }
 
