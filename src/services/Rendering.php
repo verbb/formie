@@ -488,8 +488,10 @@ class Rendering extends Component
             try {
                 $field = $form->getFieldByHandle($key);
 
-                // Prevent users using long-hand Twig `{{` to prevent injection execution
-                $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
+                // Prevent users using long-hand Twig `{{` to prevent injection execution. Only an issue for 
+                if (is_string($value)) {
+                    $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
+                }
 
                 if ($field) {
                     // Store any visibly disabled fields against the form to apply later
