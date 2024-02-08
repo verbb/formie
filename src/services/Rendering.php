@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FormField;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\elements\Form;
@@ -506,6 +507,13 @@ class Rendering extends Component
                     }
                 }
             } catch (Throwable $e) {
+                Formie::error('Error populating form values for “{key}”. Template error: “{message}” {file}:{line}', [
+                    'key' => $key,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
                 continue;
             }
         }
