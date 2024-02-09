@@ -219,13 +219,14 @@ abstract class Payment extends Integration
     {
         return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
     }
+    
     /**
      * @inheritDoc
      */
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::url(rtrim(UrlHelper::baseCpUrl(), '/') . '/formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+            return UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
         }
 
         return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);

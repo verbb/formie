@@ -15,6 +15,7 @@ use verbb\formie\fields\formfields;
 use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
@@ -112,6 +113,15 @@ class Opayo extends Payment
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
+    }
+
+    public function getReturnUrl(): string
+    {
+        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
+            return UrlHelper::actionUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+        }
+
+        return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
     }
 
     /**
@@ -272,7 +282,6 @@ class Opayo extends Payment
 
                 Formie::$plugin->getPayments()->savePayment($payment);
 
-                $returnUrl = UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
                 $threeDSSessionData = [
                     'submissionId' => $submission->id,
                     'fieldId' => $field->id,
@@ -287,7 +296,7 @@ class Opayo extends Payment
                     'data' => [
                         'acsUrl' => $acsUrl,
                         'creq' => $response['cReq'] ?? '',
-                        'returnUrl' => $returnUrl,
+                        'returnUrl' => $this->getReturnUrl(),
                         'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
                     ],
                 ]);
@@ -815,11 +824,9 @@ class Opayo extends Payment
 
     private function _getRequestDetail(): array
     {
-        $returnUrl = UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
-
-        $data = [
+        return [
             'website' => Craft::$app->getRequest()->getOrigin(),
-            'notificationURL' => $returnUrl,
+            'notificationURL' => $this->getReturnUrl(),
             'browserIP' => Craft::$app->getRequest()->getUserIP(),
             'browserAcceptHeader' => Craft::$app->getRequest()->getHeaders()->get('accept'),
             'browserJavascriptEnabled' => false,
@@ -836,7 +843,5 @@ class Opayo extends Payment
             'transType' => 'GoodsAndServicePurchase',
             'threeDSRequestorDecReqInd' => 'N',
         ];
-
-        return $data;
     }
 }

@@ -491,7 +491,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::url(rtrim(UrlHelper::baseCpUrl(), '/') . '/formie/integrations/callback');
+            return UrlHelper::actionUrl('formie/integrations/callback');
         }
 
         return UrlHelper::siteUrl('formie/integrations/callback');
