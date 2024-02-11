@@ -27,7 +27,6 @@ use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
