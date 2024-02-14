@@ -136,6 +136,9 @@ class ImportExportHelper
             }
         }
 
+        // Handy to keep track of which version of export logic this is, for importing between systems
+        $data['exportVersion'] = 'v2';
+
         return $data;
     }
 
@@ -161,6 +164,7 @@ class ImportExportHelper
         }
 
         // Grab all the extra bits from the export that need to be handles separately
+        $exportVersion = ArrayHelper::remove($data, 'exportVersion');
         $settings = Json::decodeIfJson(ArrayHelper::remove($data, 'settings'));
         $pages = ArrayHelper::remove($data, 'pages');
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
