@@ -660,6 +660,13 @@ export class FormieFormTheme {
 
         // If we're redirecting away, do it immediately for nicer UX
         if (data.redirectUrl) {
+            // If people have provided a redirect behaviour to handle their own redirecting
+            if (data.redirectCallback) {
+                data.redirectCallback();
+
+                return;
+            }
+
             if (this.settings.submitActionTab === 'new-tab') {
                 // Reset values if in a new tab. No need when in the same tab.
                 this.resetForm();
