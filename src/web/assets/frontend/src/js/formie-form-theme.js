@@ -664,9 +664,10 @@ export class FormieFormTheme {
                 // Reset values if in a new tab. No need when in the same tab.
                 this.resetForm();
 
-                window.open(data.redirectUrl, '_blank');
+                // Allow people to modify the target from `window` with `redirectTarget`
+                data.redirectTarget.open(data.redirectUrl, '_blank');
             } else {
-                window.location.href = data.redirectUrl;
+                data.redirectTarget.location.href = data.redirectUrl;
             }
 
             return;

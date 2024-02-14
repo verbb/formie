@@ -110,6 +110,9 @@ export class FormieFormBase {
     }
 
     formAfterSubmit(data = {}) {
+        // Add redirect behaviour for iframes to control the target
+        data.redirectTarget = data.redirectTarget || window;
+
         this.$form.dispatchEvent(new CustomEvent('onAfterFormieSubmit', {
             bubbles: true,
             detail: data,
