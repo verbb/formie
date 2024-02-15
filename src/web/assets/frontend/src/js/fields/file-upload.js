@@ -7,6 +7,7 @@ export class FormieFileUpload {
         this.$field = settings.$field;
 
         this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit'), this.onAfterSubmit.bind(this));
     }
 
     registerValidation(e) {
@@ -112,6 +113,11 @@ export class FormieFileUpload {
                 });
             },
         };
+    }
+
+    onAfterSubmit() {
+        // For multi-page Ajax forms, we don't want to submit the file uploads multiple times, so clear the content after success
+        this.$field.querySelector('[type="file"]').value = null;
     }
 }
 
