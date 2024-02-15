@@ -351,7 +351,6 @@ class Rendering extends Component
             // Field validation messages
             'This field is required.',
             'Please select a value.',
-            'Please select a value.',
             'Please select at least one value.',
             'Please fill out this field.',
             'Please enter a valid email address.',
