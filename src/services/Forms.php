@@ -68,6 +68,11 @@ class Forms extends Component
         return Form::find()->handle($handle)->siteId($siteId)->one();
     }
 
+    public function getFormByUid(string $uid, int $siteId = null): ?Form
+    {
+        return Form::find()->uid($uid)->siteId($siteId)->one();
+    }
+
     /**
      * Returns all active forms.
      *

@@ -171,6 +171,18 @@ class ImportExportController extends Controller
             $form = ImportExportHelper::createFormFromImport($json);
         }
 
+        // Because we also export the UID for forms, we need to check if we're importing a new form, but we've
+        // found a form with the same UID. If this happens, then the original form will be overwritten
+        if ($formAction === 'create') {
+            // Is there already a form that exists with this UID? Then we need to assign a new one.
+            // See discussion https://github.com/verbb/formie/discussions/1696 and actual issue https://github.com/verbb/formie/issues/1725
+            $existingForm = Formie::$plugin->getForms()->getFormByUid($form->uid);
+
+            if ($existingForm) {
+                $form->uid = StringHelper::UUID();
+            }
+        }
+
         if (!Formie::$plugin->getForms()->saveForm($form)) {
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
