@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.1.4 - 2024-02-17
+
+### Added
+- Added `status`, `statusId` and `siteId` to Submission query arguments for GraphQL queries.
+- Added missing translations for some strings.
+- Added `redirectCallback` to `onAfterFormieSubmit` JS event.
+- Added `redirectTarget` to `onAfterFormieSubmit` JS event.
+- Added `exportVersion` to form exports.
+- Added support for `headlessMode` mode for integration redirectUri’s.
+- Added `data-fui-field-count` attribute to `row`, `subFieldRow`, and `nestedFieldRow` theme config elements.
+
+### Changed
+- Update Sent Notifications to use `TEXT` database column types for some values like `cc` and `bcc`.
+- Update Dompdf 2.0.4+.
+- Replace deprecated `utf8_encode` function with `mb_convert_encoding`.
+
+### Fixed
+- Fixed ajax-based, multi-page forms with File Upload fields creating duplicate assets.
+- Fixed an error when importing forms, set to “create” where there was a conflicting UID for an existing form.
+- Fixed changing the submissions status not persisting in the control panel element index view.
+- Fixed sub-field fields not showing custom error messages for required validation.
+- Fixed an error when calling `populateFormValues()` with Repeater fields.
+- Fixed lack of error logging for `populateFormValues()`.
+- Fixed when creating a new form, and an error occurs, the selected stencil not persisting.
+- Fixed order of operations when uninstalling the plugin.
+- Fixed uninstall not removing some database tables.
+- Fixed an error saving notifications with long names.
+- Fixed submissions processing payments when flagged as spam.
+- Fixed HTML field outputting invalid labels.
+- Fixed progress bar not updating when going back to first page.
+
 ## 2.1.3 - 2024-01-25
 
 ### Changed
