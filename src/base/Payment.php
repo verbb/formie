@@ -392,10 +392,10 @@ abstract class Payment extends Integration
         if ($field = $this->getField()) {
             $providerSettings = $field->providerSettings[$this->handle] ?? [];
 
-            return ArrayHelper::getValue($providerSettings, $setting, $default);
+            return ArrayHelper::getValue($providerSettings, $setting, $default) ?: $default;
         }
 
-        return null;
+        return $default;
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
