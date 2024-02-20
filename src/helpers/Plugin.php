@@ -58,64 +58,51 @@ class Plugin
 
             foreach ($page->getRows() as $rowKey => $row) {
                 foreach ($row['fields'] as $fieldKey => $field) {
-                    $newLayoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][] = [
-                        'fieldUid' => $field->uid,
-                        'required' => $field->required,
-                    ];
+                    $newFieldConfig = $field->getSettings();
+                    $newFieldConfig['type'] = get_class($field);
+                    $newFieldConfig['label'] = $field->name;
+                    $newFieldConfig['handle'] = $field->handle;
+                    $newFieldConfig['required'] = $field->required;
+                    $newFieldConfig['instructions'] = $field->instructions;
 
                     if ($field instanceof NestedFieldInterface) {
-                        $nestedFields[] = $field;
+                        if ($fieldLayout = $field->getFieldLayout()) {
+                            foreach ($fieldLayout->getPages() as $nestedPageKey => $nestedPage) {
+                                foreach ($nestedPage->getRows() as $nestedRowKey => $nestedRow) {
+                                    foreach ($nestedRow['fields'] as $nestedFieldKey => $nestedField) {
+                                        $nestedFieldConfig = $nestedField->getSettings();
+                                        $nestedFieldConfig['type'] = get_class($nestedField);
+                                        $nestedFieldConfig['label'] = $nestedField->name;
+                                        $nestedFieldConfig['handle'] = $nestedField->handle;
+                                        $nestedFieldConfig['required'] = $nestedField->required;
+                                        $nestedFieldConfig['instructions'] = $nestedField->instructions;
+
+                                        $newFieldConfig['rows'][$nestedRowKey]['fields'][] = $nestedFieldConfig;
+                                    }
+                                }
+                            }
+                        }
                     }
+
+                    $newLayoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][] = $newFieldConfig;
                 }
             }
         }
 
         $existingLayout = (new Query())->from('{{%formie_newlayout}}')->where(['formId' => $form->id])->one();
 
+        $newLayoutConfig = StringHelper::emojiToShortcodes(Json::encode($newLayoutConfig));
+
         if ($existingLayout) {
             Db::update('{{%formie_newlayout}}', [
                 'formId' => $form->id,
-                'layoutConfig' => Json::encode($newLayoutConfig),
+                'layoutConfig' => $newLayoutConfig,
             ], ['id' => $existingLayout['id']]);
         } else {
             Db::insert('{{%formie_newlayout}}', [
                 'formId' => $form->id,
-                'layoutConfig' => Json::encode($newLayoutConfig),
+                'layoutConfig' => $newLayoutConfig,
             ]);
-        }
-
-        // Do a similar thing for Group/Repeater fields, which have field layouts, but won't in Formie 3.
-        foreach ($nestedFields as $nestedField) {
-            $newNestedConfig = [];
-
-            if ($fieldLayout = $nestedField->getFieldLayout()) {
-                foreach ($fieldLayout->getPages() as $pageKey => $page) {
-                    foreach ($page->getRows() as $rowKey => $row) {
-                        foreach ($row['fields'] as $fieldKey => $field) {
-                            $newNestedConfig['rowsConfig'][$rowKey]['fields'][] = [
-                                'fieldUid' => $field->uid,
-                                'required' => $field->required,
-                            ];
-                        }
-                    }
-                }
-            }
-
-            if ($newNestedConfig) {
-                $existingLayout = (new Query())->from('{{%formie_newnestedlayout}}')->where(['fieldId' => $nestedField->id])->one();
-
-                if ($existingLayout) {
-                    Db::update('{{%formie_newnestedlayout}}', [
-                        'fieldId' => $nestedField->id,
-                        'layoutConfig' => Json::encode($newNestedConfig),
-                    ], ['id' => $existingLayout['id']]);
-                } else {
-                    Db::insert('{{%formie_newnestedlayout}}', [
-                        'fieldId' => $nestedField->id,
-                        'layoutConfig' => Json::encode($newNestedConfig),
-                    ]);
-                }
-            }
         }
     }
 }

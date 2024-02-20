@@ -16,7 +16,7 @@ class m231231_000000_formie3_prep extends Migration
             $this->createTable('{{%formie_newlayout}}', [
                 'id' => $this->primaryKey(),
                 'formId' => $this->integer()->notNull(),
-                'layoutConfig' => $this->text(),
+                'layoutConfig' => $this->longText(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
@@ -27,7 +27,7 @@ class m231231_000000_formie3_prep extends Migration
             $this->createTable('{{%formie_newnestedlayout}}', [
                 'id' => $this->primaryKey(),
                 'fieldId' => $this->integer()->notNull(),
-                'layoutConfig' => $this->text(),
+                'layoutConfig' => $this->longText(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
