@@ -15,7 +15,6 @@ use verbb\formie\fields\formfields;
 use verbb\formie\fields\formfields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\UrlHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
@@ -27,6 +26,7 @@ use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
