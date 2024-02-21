@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.5 - 2024-02-21
+
+### Changed
+- Updated Formie 3 layout prep.
+
+### Fixed
+- Fixed an error with Opayo integration.
+- Fixed payment integrations’ `getFieldSetting()` not always returning a default value.
+- Fixed an error with Stripe payments where a correct ID was not being generated.
+
 ## 2.1.4 - 2024-02-17
 
 ### Added
