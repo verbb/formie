@@ -297,14 +297,14 @@ class MultiLineText extends FormField implements PreviewableFieldInterface
 
         if ($this->limit && $this->max) {
             $modules[] = [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/text-limit.js'),
                 'module' => 'FormieTextLimit',
             ];
         }
 
         if ($this->useRichText) {
             $modules[] = [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/rich-text.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/rich-text.js'),
                 'module' => 'FormieRichText',
                 'settings' => [
                     'buttons' => $this->getRichTextButtons(),

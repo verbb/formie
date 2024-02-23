@@ -176,7 +176,7 @@ class Hidden extends FormField implements PreviewableFieldInterface
     {
         if ($this->defaultOption === 'cookie' && $this->cookieName) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/hidden.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/hidden.js'),
                 'module' => 'FormieHidden',
                 'settings' => [
                     'cookieName' => $this->cookieName,
