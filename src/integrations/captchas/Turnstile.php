@@ -75,7 +75,7 @@ class Turnstile extends Captcha
             'loadingMethod' => $this->scriptLoadingMethod,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/turnstile.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/turnstile.js');
 
         return [
             'src' => $src,

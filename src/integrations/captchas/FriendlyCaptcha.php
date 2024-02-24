@@ -76,7 +76,7 @@ class FriendlyCaptcha extends Captcha
             'language' => $this->_getMatchedLanguageId() ?? 'en',
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/friendly-captcha.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/friendly-captcha.js');
 
         return [
             'src' => $src,

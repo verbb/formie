@@ -285,9 +285,9 @@ class Rendering extends Component
         $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
 
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
 
         $output = [];
 
@@ -645,8 +645,8 @@ class Rendering extends Component
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
 
         $output = [];
 
@@ -671,7 +671,7 @@ class Rendering extends Component
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
 
         $output = [];
 

@@ -42,7 +42,7 @@ abstract class Captcha extends Integration
     {
         $handle = StringHelper::toKebabCase($this->getHandle());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/captchas/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/captchas/{$handle}.svg");
     }
 
     public function getFormSettingsHtml($form): string

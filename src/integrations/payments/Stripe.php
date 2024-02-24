@@ -135,7 +135,7 @@ class Stripe extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/payments/stripe.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/stripe.js'),
             'module' => 'FormieStripe',
             'settings' => $settings,
         ];
