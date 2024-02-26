@@ -1859,7 +1859,7 @@ class Form extends Element
         // See if we have any condition's setup for the form. No need to include otherwise
         if ($this->hasConditions()) {
             $registeredJs[] = [[
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/conditions.js'),
                 'module' => 'FormieConditions',
             ]];
         }

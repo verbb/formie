@@ -36,7 +36,7 @@ abstract class Miscellaneous extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/miscellaneous/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/miscellaneous/{$handle}.svg");
     }
 
     /**

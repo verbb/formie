@@ -85,7 +85,7 @@ class Hcaptcha extends Captcha
             'loadingMethod' => $this->scriptLoadingMethod,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/hcaptcha.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/hcaptcha.js');
 
         return [
             'src' => $src,
