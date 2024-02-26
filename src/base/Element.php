@@ -253,7 +253,7 @@ abstract class Element extends Integration
         if ($updateElementValues) {
             $query = $elementType::find($updateElementValues);
 
-            // Fina elements of any status, like disabled
+            // Find elements of any status, like disabled
             $query->status(null);
 
             Craft::configure($query, $updateElementValues);
