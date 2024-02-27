@@ -13,9 +13,9 @@
         "Android >= 4.4"
     ],
     "scripts": {
-        "dev": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true",
-        "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true",
-        "prod": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true"
+        "dev": "export NODE_OPTIONS=--openssl-legacy-provider && cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true",
+        "watch": "export NODE_OPTIONS=--openssl-legacy-provider && cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true",
+        "prod": "export NODE_OPTIONS=--openssl-legacy-provider && cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js || true"
     },
     "devDependencies": {
         "@pixelandtonic/craftui": "~0.3.8",

@@ -3,7 +3,6 @@ const path = require('path');
 
 // Mix plugins
 const autoprefixer = require('autoprefixer');
-const eslint = require('laravel-mix-eslint-config');
 const polyfill = require('laravel-mix-polyfill');
 const imagemin = require('laravel-mix-imagemin');
 
@@ -135,20 +134,11 @@ mix.options({
     ],
 });
 
-// Setup JS-linting
-mix.eslint({
-    exclude: [
-        'node_modules',
-        path.resolve(__dirname, assetsPath + '/forms/src/js/vendor'),
-    ],
-    options: {
-        fix: true,
-        cache: false,
-    },
-});
-
 // Setup some aliases
 mix.webpackConfig({
+    output: {
+        hashFunction: 'sha256',
+    },
     resolve: {
         alias: {
             // Form Utils
