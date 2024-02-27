@@ -19,6 +19,7 @@ use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
 use verbb\formie\records\Submission as SubmissionRecord;
+use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
 use craft\base\Component;
@@ -616,6 +617,14 @@ class Submission extends Element
         if ($form = $this->getForm()) {
             return $form->title;
         }
+    }
+
+    public function getSidebarHtml(bool $static): string
+    {
+        // For when viewing a submission in a Submissions element select field
+        Craft::$app->getView()->registerAssetBundle(CpAsset::class);
+
+        return parent::getSidebarHtml($static);
     }
 
     /**
