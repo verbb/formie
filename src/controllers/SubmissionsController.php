@@ -1189,11 +1189,10 @@ class SubmissionsController extends Controller
 
     private function _setTitle($submission, $form): void
     {
-        $submission->title = Variables::getParsedValue(
-            $form->settings->submissionTitleFormat,
-            $submission,
-            $form
-        );
+        // Prevent users using long-hand Twig `{{` to prevent injection execution
+        $submissionTitleFormat = str_replace(['{{', '}}'], ['', ''], $form->settings->submissionTitleFormat);
+
+        $submission->title = Variables::getParsedValue($submissionTitleFormat, $submission, $form);
 
         // Set the default title for the submission, so it can save correctly
         if (!$submission->title) {
