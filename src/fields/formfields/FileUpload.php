@@ -9,6 +9,7 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -593,6 +594,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
 
             foreach ($assets as $key => $asset) {
                 $suffix = ($key > 0) ? '_' . $key : '';
+
+                // Introduce an additional suffix for repeaters
+                if ($element instanceof NestedFieldRow) {
+                    if ($element->getField() instanceof Repeater) {
+                        $suffix = '_' . $element->sortOrder . $suffix;
+                    }
+                }
 
                 $filename = $filenameFormat . $suffix;
                 $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
