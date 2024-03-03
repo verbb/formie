@@ -1247,7 +1247,7 @@ class Submission extends CustomElement
     }
 
 
-    // Private methods
+    // Private Methods
     // =========================================================================
 
     private function _callPrivateMethod(string $methodName): mixed
