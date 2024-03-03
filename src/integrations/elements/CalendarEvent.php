@@ -68,16 +68,18 @@ class CalendarEvent extends Element
     {
         $customFields = [];
 
-        $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
+        if (class_exists(Calendar::class)) {
+            $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
 
-        foreach ($calendars as $calendar) {
-            $fields = $this->getFieldLayoutFields($calendar->getFieldLayout());
+            foreach ($calendars as $calendar) {
+                $fields = $this->getFieldLayoutFields($calendar->getFieldLayout());
 
-            $customFields[] = new IntegrationCollection([
-                'id' => $calendar->id,
-                'name' => $calendar->name,
-                'fields' => $fields,
-            ]);
+                $customFields[] = new IntegrationCollection([
+                    'id' => $calendar->id,
+                    'name' => $calendar->name,
+                    'fields' => $fields,
+                ]);
+            }
         }
 
         return new IntegrationFormSettings([
@@ -173,39 +175,41 @@ class CalendarEvent extends Element
     {
         $attributes = [];
 
-        $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
+        if (class_exists(Calendar::class)) {
+            $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
 
-        foreach ($calendars as $calendar) {
-            $attributes[$calendar->id] = [
-                new IntegrationField([
-                    'name' => Craft::t('app', 'ID'),
-                    'handle' => 'id',
-                ]),
-                new IntegrationField([
-                    'name' => Craft::t('app', 'Title'),
-                    'handle' => 'title',
-                ]),
-                new IntegrationField([
-                    'name' => Craft::t('app', 'Slug'),
-                    'handle' => 'slug',
-                ]),
-                new IntegrationField([
-                    'name' => Craft::t('app', 'Site'),
-                    'handle' => 'site',
-                ]),
-            ];
+            foreach ($calendars as $calendar) {
+                $attributes[$calendar->id] = [
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'ID'),
+                        'handle' => 'id',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Title'),
+                        'handle' => 'title',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Slug'),
+                        'handle' => 'slug',
+                    ]),
+                    new IntegrationField([
+                        'name' => Craft::t('app', 'Site'),
+                        'handle' => 'site',
+                    ]),
+                ];
 
-            if ($fieldLayout = $calendar->getFieldLayout()) {
-                foreach ($fieldLayout->getCustomFields() as $field) {
-                    if (!$this->fieldCanBeUniqueId($field)) {
-                        continue;
+                if ($fieldLayout = $calendar->getFieldLayout()) {
+                    foreach ($fieldLayout->getCustomFields() as $field) {
+                        if (!$this->fieldCanBeUniqueId($field)) {
+                            continue;
+                        }
+
+                        $attributes[$calendar->id][] = new IntegrationField([
+                            'handle' => $field->handle,
+                            'name' => $field->name,
+                            'type' => $this->getFieldTypeForField(get_class($field)),
+                        ]);
                     }
-
-                    $attributes[$calendar->id][] = new IntegrationField([
-                        'handle' => $field->handle,
-                        'name' => $field->name,
-                        'type' => $this->getFieldTypeForField(get_class($field)),
-                    ]);
                 }
             }
         }

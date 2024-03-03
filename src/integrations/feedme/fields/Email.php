@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\Email as EmailField;
+use verbb\formie\fields\Email as EmailField;
 
 class Email extends DefaultField
 {

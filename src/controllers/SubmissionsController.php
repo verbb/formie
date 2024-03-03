@@ -2,14 +2,14 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
+use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
 use verbb\formie\web\assets\cp\CpAsset;
@@ -53,7 +53,7 @@ class SubmissionsController extends Controller
     ];
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private string $_namespace = 'fields';
@@ -186,7 +186,7 @@ class SubmissionsController extends Controller
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPage = $this->_getTypedParam('goToPage', 'string');
+        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
@@ -263,10 +263,8 @@ class SubmissionsController extends Controller
             }
 
             // Determine the next page to navigate to
-            if ($goToPage) {
-                $nextPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($goToPage) {
-                    return $page->handle === $goToPage;
-                });
+            if (is_numeric($goToPageId)) {
+                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
             } else if ($submitAction === 'back') {
                 $nextPage = $form->getPreviousPage(null, $submission, true);
             } else if ($submitAction === 'save') {
@@ -409,7 +407,7 @@ class SubmissionsController extends Controller
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string');
         $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPage = $this->_getTypedParam('goToPage', 'string');
+        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
 
@@ -465,10 +463,8 @@ class SubmissionsController extends Controller
         }
 
         // Determine the next page to navigate to
-        if ($goToPage) {
-            $nextPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($goToPage) {
-                return $page->handle === $goToPage;
-            });
+        if (is_numeric($goToPageId)) {
+            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
         } else if ($submitAction === 'back') {
             $nextPage = $form->getPreviousPage(null, $submission, true);
         } else if ($submitAction === 'save') {
@@ -689,7 +685,7 @@ class SubmissionsController extends Controller
 
         // Ensure we validate some params here to prevent potential malicious-ness
         $handle = $this->_getTypedParam('handle', 'string', null, false);
-        $pageHandle = $this->_getTypedParam('page', 'string', null, false);
+        $pageId = $this->_getTypedParam('pageId', 'id', null, false);
         $submissionId = $this->_getTypedParam('submissionId', 'id', null, false);
 
         /* @var Form $form */
@@ -712,11 +708,9 @@ class SubmissionsController extends Controller
             }
         }
 
-        $page = ArrayHelper::firstWhere($form->getPages(), function($page) use ($pageHandle) {
-            return $page->handle === $pageHandle;
-        });
+        $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $pageId);
 
-        $form->setCurrentPage($page);
+        $form->setCurrentPage($nextPage);
 
         return $this->redirect($request->referrer);
     }
@@ -966,7 +960,7 @@ class SubmissionsController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FormPage $nextPage, array $extras = []): Response
+    private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FieldLayoutPage $nextPage, array $extras = []): Response
     {
         // Try and get the redirect from the template, as it might've been altered in templates
         $redirect = $this->request->getValidatedBodyParam('redirect');
@@ -981,8 +975,8 @@ class SubmissionsController extends Controller
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
-            'currentPage' => $form->getCurrentPage()->handle,
-            'nextPageHandle' => $nextPage->handle ?? null,
+            'currentPageId' => $form->getCurrentPage()->id,
+            'nextPageId' => $nextPage->id ?? null,
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
@@ -1032,24 +1026,22 @@ class SubmissionsController extends Controller
 
         $variables['tabs'] = [];
 
-        $pages = $variables['submission']->getPages() ?? [];
-
-        foreach ($pages as $page) {
+        foreach ($variables['submission']->getPages() as $page) {
             // Do any of the fields on this tab have errors?
             $hasErrors = false;
 
             if ($variables['submission']->hasErrors()) {
                 foreach ($page->getFields() as $field) {
-                    /** @var FormField $field */
+                    /** @var Field $field */
                     if ($hasErrors = $variables['submission']->hasErrors($field->handle . '.*')) {
                         break;
                     }
                 }
             }
 
-            $variables['tabs'][$page->handle] = [
+            $variables['tabs'][] = [
                 'label' => Craft::t('formie', $page->label),
-                'url' => '#' . $page->handle,
+                'url' => '#page-' . $page->id,
                 'class' => $hasErrors ? 'error' : null,
             ];
         }
@@ -1068,7 +1060,7 @@ class SubmissionsController extends Controller
         return $form;
     }
 
-    private function _populateSubmission(Form $form, bool $isIncomplete = true): Submission
+    private function _populateSubmission(Form $form, ?bool $isIncomplete = true): Submission
     {
         $request = $this->request;
 
@@ -1128,16 +1120,14 @@ class SubmissionsController extends Controller
         return $submission;
     }
 
-    private function _checkPageFieldErrors(submission $submission, Form $form, ?FormPage $nextPage): ?FormPage
+    private function _checkPageFieldErrors(submission $submission, Form $form, ?FieldLayoutPage $nextPage): ?FieldLayoutPage
     {
         // Find the first page with a field error and set that as the current page
         if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
-            $firstErrorPage = array_keys($pageFieldErrors)[0];
+            $firstErrorPageId = array_keys($pageFieldErrors)[0];
 
-            if ($firstErrorPage) {
-                $errorPage = ArrayHelper::firstWhere($form->getPages(), function($page) use ($firstErrorPage) {
-                    return $page->handle === $firstErrorPage;
-                });
+            if ($firstErrorPageId) {
+                $errorPage = ArrayHelper::firstWhere($form->getPages(), 'id', $firstErrorPageId);
 
                 $form->setCurrentPage($errorPage);
 

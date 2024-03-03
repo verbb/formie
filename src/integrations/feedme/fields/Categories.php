@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\Categories as CategoriesField;
+use verbb\formie\fields\Categories as CategoriesField;
 
 use craft\feedme\fields\Categories as FeedMeCategories;
 

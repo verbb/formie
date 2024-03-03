@@ -4,7 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Payment as PaymentField;
+use verbb\formie\fields\Payment as PaymentField;
 
 use Craft;
 use craft\base\Model;

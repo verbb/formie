@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Password;
+use verbb\formie\fields\Password;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;

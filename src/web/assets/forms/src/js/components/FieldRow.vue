@@ -193,7 +193,7 @@ export default {
             const payload = {
                 rowIndex,
                 data: {
-                    id: newId(),
+                    __id: newId(),
                     fields: [
                         newField,
                     ],
@@ -215,7 +215,7 @@ export default {
                 sourceColumnIndex,
                 rowIndex,
                 data: {
-                    id: newId(),
+                    __id: newId(),
                 },
             };
 

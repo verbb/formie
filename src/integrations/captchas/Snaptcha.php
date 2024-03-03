@@ -3,6 +3,7 @@ namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 
@@ -30,7 +31,7 @@ class Snaptcha extends Captcha
         return Craft::t('formie', 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).');
     }
 
-    public function getFrontEndHtml(Form $form, FormPage $page = null): string
+    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         $model = new SnaptchaModel();
         $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
@@ -39,7 +40,7 @@ class Snaptcha extends Captcha
         return '<input type="hidden" name="' . $fieldName . '" value="' . $fieldValue . '">';
     }
 
-    public function getGqlVariables(Form $form, FormPage $page = null): array
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         $model = new SnaptchaModel();
         $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;

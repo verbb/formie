@@ -2,15 +2,14 @@
     <vue-final-modal
         :modal-id="id"
         v-bind="$attrs"
-        :z-index-auto="true"
-        z-index-base="100"
+        :z-index-fn="zIndexFn"
         :esc-to-close="true"
         :class="['fui-modal', modalClass]"
         content-class="fui-modal-wrap"
         overlay-class="fui-modal-overlay"
         content-transition="vfm-fade"
         overlay-transition="vfm-fade"
-        :focus-trap="true"
+        :focus-trap="focusTrapOptions"
     >
         <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
             <slot name="header"></slot>
@@ -58,6 +57,9 @@ export default {
     data() {
         return {
             id: this.$id('modal'),
+            focusTrapOptions: {
+                allowOutsideClick: true,
+            },
         };
     },
 
@@ -66,6 +68,10 @@ export default {
             setTimeout(() => {
                 this.$vfm.open(this.id);
             }, 10);
+        },
+
+        zIndexFn({ index }) {
+            return 100 + 2 * index;
         },
 
         close() {

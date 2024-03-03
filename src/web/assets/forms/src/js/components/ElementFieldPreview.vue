@@ -1,7 +1,7 @@
 <template>
     <div>
         <div v-if="field.settings.displayType == 'dropdown'">
-            <select class="fui-field-select" :multiple="field.settings.multiple">
+            <select class="fui-field-select" :multiple="field.settings.multi">
                 <option value="">{{ defaultValue.label || field.settings.placeholder }}</option>
 
                 <option v-for="(option, index) in options" :key="index" :selected="defaultValue.value === option.value ? true : false">
@@ -94,7 +94,7 @@ export default {
         // If no elements fetch them. Likely when cloning an existing field, but because we don't
         // store the elements in field settings, we have to re-fetch them on-demand.
         if (this.field.elements) {
-            this.options = this.field.elements.options;
+            this.options = this.field.elements.options || [];
             this.total = this.field.elements.total;
         } else {
             this.updateSources();
@@ -110,7 +110,7 @@ export default {
             const data = { field: this.field };
 
             Craft.sendActionRequest('POST', 'formie/fields/get-element-select-options', { data }).then((response) => {
-                this.options = response.data.options;
+                this.options = response.data.options || [];
                 this.total = response.data.total;
             });
         },

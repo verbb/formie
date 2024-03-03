@@ -2,14 +2,13 @@
     <div class="checkbox-select">
         <div v-for="(option, index) in options" :key="index">
             <input
-                v-if="option.value === '*' || context._value !== '*'"
+                v-if="option.value === '*' || !proxyValues.includes('*')"
                 :id="context.id + '-' + index"
-                :checked="checked(option.value)"
                 :class="['checkbox', { 'all': option.value === '*' }]"
                 type="checkbox"
-                :name="`${context.name}[]`"
                 :value="option.value"
-                @input="onInput"
+                :checked="isChecked(option.value)"
+                @change="handleChange(option.value, $event.target.checked)"
             >
 
             <input
@@ -40,6 +39,12 @@ export default {
         },
     },
 
+    data() {
+        return {
+            proxyValues: [],
+        };
+    },
+
     computed: {
         options() {
             let options = [];
@@ -68,42 +73,44 @@ export default {
         },
     },
 
+    watch: {
+        proxyValues(newValue) {
+            // Change the value out of an array if selecting all for Craft compatibility
+            if (newValue.includes('*')) {
+                this.context.node.input('*');
+            } else {
+                this.context.node.input(newValue);
+            }
+        },
+    },
+
+    created() {
+        // Normalize back to an array for proper reactiveness within this component
+        if (this.context._value === '*') {
+            this.proxyValues = ['*'];
+        } else {
+            this.proxyValues = this.clone(this.context._value);
+        }
+    },
+
     methods: {
-        checked(value) {
-            if (this.context._value === '*') {
+        isChecked(value) {
+            if (this.proxyValues.includes('*')) {
                 return true;
             }
 
-            if (Array.isArray(this.context._value) && this.context._value.includes(value.toString())) {
+            if (this.proxyValues.includes(value.toString())) {
                 return true;
             }
 
             return false;
         },
 
-        onInput(e) {
-            const { checked, value } = e.target;
-
-            if (value === '*') {
-                if (checked) {
-                    this.context.node.input('*');
-                } else {
-                    this.context.node.input([]);
-                }
+        handleChange(value, checked) {
+            if (checked) {
+                this.proxyValues = this.proxyValues.concat(value);
             } else {
-                if (!Array.isArray(this.context._value)) {
-                    this.context.node.input([]);
-                }
-
-                if (checked) {
-                    this.context._value.push(value);
-                } else {
-                    const index = this.context._value.indexOf(value);
-
-                    if (index > -1) {
-                        this.context._value.splice(index, 1);
-                    }
-                }
+                this.proxyValues = this.proxyValues.filter((x) => { return x !== value; });
             }
         },
     },

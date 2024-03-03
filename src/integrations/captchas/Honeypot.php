@@ -4,7 +4,7 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 
@@ -49,7 +49,7 @@ class Honeypot extends Captcha
         return $output;
     }
 
-    public function getRefreshJsVariables(Form $form, FormPage $page = null): array
+    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),
@@ -57,7 +57,7 @@ class Honeypot extends Captcha
         ];
     }
     
-    public function getGqlVariables(Form $form, FormPage $page = null): array
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return $this->getRefreshJsVariables($form, $page);
     }
@@ -85,7 +85,7 @@ class Honeypot extends Captcha
     // Private Methods
     // =========================================================================
 
-    private function getSessionKey(Form $form, FormPage $page = null): string
+    private function getSessionKey(Form $form, FieldLayoutPage $page = null): string
     {
         // Default the page to the last page, if not set.
         if (!$page) {
@@ -96,7 +96,7 @@ class Honeypot extends Captcha
         $array = array_filter([
             self::HONEYPOT_INPUT_NAME . '_',
             $form->id,
-            $page->handle ?? null,
+            $page->id ?? null,
         ]);
 
         return implode('', $array);

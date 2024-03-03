@@ -4,7 +4,7 @@ namespace verbb\formie\gql\types\input;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
-use craft\base\Field;
+use craft\base\Field as CraftField;
 use craft\gql\GqlEntityRegistry;
 use craft\gql\types\QueryArgument;
 use craft\helpers\Assets as AssetsHelper;

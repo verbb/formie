@@ -4,11 +4,11 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\models\EmailTemplate;
-use verbb\formie\models\FormFieldLayout;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
@@ -113,14 +113,15 @@ class ImportExportHelper
 
         foreach ($formElement->getPages() as $page) {
             $pageData = $page->toArray();
+            $pageData['settings'] = $page->getSettings();
 
             // Remove some attributes
-            foreach (['id', 'layoutId', 'elements', 'uid'] as $key) {
+            foreach (['id', 'formId', 'layoutId', 'sortOrder', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
                 ArrayHelper::remove($pageData, $key);
             }
 
             // Get all field settings for all pages/rows (supports nested fields)
-            self::getFieldInfoForExport($page->rows, $pageData);
+            self::getFieldInfoForExport($page->getRows(), $pageData);
 
             $pages[] = $pageData;
         }
@@ -135,22 +136,25 @@ class ImportExportHelper
             }
         }
 
+        // Handy to keep track of which version of export logic this is, for importing between systems
+        $data['exportVersion'] = 'v3';
+
         return $data;
     }
 
     public static function createFormFromImport(array $data, ?Form $form = null): Form
     {
         $existingForm = $form;
-        $existingFormFields = [];
+        $existingFields = [];
 
         // Store the fields on an existing form, so we can retain their IDs later
         if ($existingForm) {
-            $existingFormFields = ArrayHelper::index($existingForm->getFields(), 'handle');
+            $existingFields = ArrayHelper::index($existingForm->getFields(), 'handle');
 
             // Handle any nested fields from Group/Repeater. Save them as `repeaterHandle_fields`.
-            foreach ($existingFormFields as $existingFormField) {
-                if ($existingFormField instanceof NestedFieldInterface) {
-                    $existingFormFields[$existingFormField->handle . '_fields'] = ArrayHelper::index($existingFormField->getFields(), 'handle');
+            foreach ($existingFields as $existingField) {
+                if ($existingField instanceof NestedFieldInterface) {
+                    $existingFields[$existingField->handle . '_fields'] = ArrayHelper::index($existingField->getFields(), 'handle');
                 }
             }
         }
@@ -160,6 +164,7 @@ class ImportExportHelper
         }
 
         // Grab all the extra bits from the export that need to be handles separately
+        $exportVersion = ArrayHelper::remove($data, 'exportVersion');
         $settings = Json::decodeIfJson(ArrayHelper::remove($data, 'settings'));
         $pages = ArrayHelper::remove($data, 'pages');
         $formTemplate = ArrayHelper::remove($data, 'formTemplate');
@@ -200,14 +205,14 @@ class ImportExportHelper
 
         // Check if this is updating an existing form. We want to try and find existing fields
         // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
-        foreach ($existingFormFields as $existingFormField) {
+        foreach ($existingFields as $existingField) {
             // Try to find the field data in the import, and attach the ID
             foreach ($pages as $pageKey => &$page) {
                 if (isset($page['rows'])) {
                     foreach ($page['rows'] as $rowKey => &$row) {
                         if (isset($row['fields'])) {
                             foreach ($row['fields'] as $fieldKey => &$field) {
-                                $existingField = $existingFormFields[$field['handle']] ?? null;
+                                $existingField = $existingFields[$field['handle']] ?? null;
 
                                 if ($existingField) {
                                     $field['id'] = $existingField->id;
@@ -218,7 +223,7 @@ class ImportExportHelper
                                     foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
                                         if (isset($nestedRow['fields'])) {
                                             foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                $existingNestedField = $existingFormFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
+                                                $existingNestedField = $existingFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
 
                                                 if ($existingNestedField) {
                                                     $nestedField['id'] = $existingNestedField->id;
@@ -238,7 +243,7 @@ class ImportExportHelper
         self::prepFieldsForImport($pages);
 
         // Handle field layout and pages
-        $form->setFormFieldLayout(new FormFieldLayout(['pages' => $pages]));
+        $form->getFormLayout()->setPages($pages);
 
         // Handle for template
         if ($formTemplate) {
@@ -340,8 +345,14 @@ class ImportExportHelper
 
                             // Handle Formie v2 exports
                             unset($field['settings']['isNested']);
-                            $field['settings']['label'] = $field['label'] ?? null;
-                            $field['settings']['handle'] = $field['handle'] ?? null;
+
+                            if (isset($field['label'])) {
+                                $field['settings']['label'] = $field['label'];
+                            }
+
+                            if (isset($field['handle'])) {
+                                $field['settings']['handle'] = $field['handle'];
+                            }
 
                             // This will throw an error for Commerce, where the extended class doesn't exist.
                             // Which unfortunately means we can't use `class_exists()` because it's the extended

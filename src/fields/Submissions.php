@@ -23,6 +23,11 @@ class Submissions extends BaseRelationField
         return Craft::t('formie', 'Submissions (Formie)');
     }
 
+    public static function icon(): string
+    {
+        return '@verbb/formie/icon-mask.svg';
+    }
+
     public static function elementType(): string
     {
         return Submission::class;

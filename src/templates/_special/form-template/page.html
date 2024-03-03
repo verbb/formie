@@ -11,7 +11,7 @@
             }) }}
         {% endif %}
 
-        {% for row in page.getRows() %}
+        {% for row in page.getRows(false) %}
             {% formtag 'row' %}
                 {% for field in row.getFields() %}
                     {{ craft.formie.renderField(form, field, renderOptions) }}

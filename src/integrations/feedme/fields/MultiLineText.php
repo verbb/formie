@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\MultiLineText as MultiLineTextField;
+use verbb\formie\fields\MultiLineText as MultiLineTextField;
 
 class MultiLineText extends DefaultField
 {

@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\Hidden as HiddenField;
+use verbb\formie\fields\Hidden as HiddenField;
 
 class Hidden extends DefaultField
 {

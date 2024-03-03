@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
-use verbb\formie\fields\formfields\Address as AddressField;
+use verbb\formie\fields\Address as AddressField;
 use verbb\formie\models\Address as AddressModel;
 
 use craft\gql\GqlEntityRegistry;

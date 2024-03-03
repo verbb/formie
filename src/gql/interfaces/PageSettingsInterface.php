@@ -3,7 +3,7 @@ namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
-use verbb\formie\models\FormPageSettings;
+use verbb\formie\models\FieldLayoutPageSettings;
 
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
@@ -33,7 +33,7 @@ class PageSettingsInterface extends BaseInterfaceType
             'name' => static::getName(),
             'fields' => self::class . '::getFieldDefinitions',
             'description' => 'This is the interface implemented by all pages.',
-            'resolveType' => function(FormPageSettings $value) {
+            'resolveType' => function(FieldLayoutPageSettings $value) {
                 return GqlEntityRegistry::getEntity(PageSettingsGenerator::getName());
             },
         ]));

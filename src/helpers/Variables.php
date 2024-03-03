@@ -2,11 +2,12 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\ElementFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
 
@@ -211,7 +212,7 @@ class Variables
 
         if ($includeSummary) {
             // Populate a collection of fields for "all", "visible" and "with-content"
-            $fieldVariables[] = self::getFormFieldsHtml($form, $notification, $submission);
+            $fieldVariables[] = self::getFieldsHtml($form, $notification, $submission);
         }
 
         // For performance
@@ -235,7 +236,7 @@ class Variables
         }
     }
 
-    public static function getFormFieldsHtml(?Form $form, ?Notification $notification, ?Submission $submission): array
+    public static function getFieldsHtml(?Form $form, ?Notification $notification, ?Submission $submission): array
     {
         $data = [
             'allFields' => '',
@@ -322,7 +323,7 @@ class Variables
         return ArrayHelper::expand($values);
     }
 
-    private static function _getParsedFieldValue(FormFieldInterface $field, mixed $submissionValue, Submission $submission, ?Notification $notification): array
+    private static function _getParsedFieldValue(FieldInterface $field, mixed $submissionValue, Submission $submission, ?Notification $notification): array
     {
         $values = [];
 
@@ -381,7 +382,7 @@ class Variables
             } else {
                 $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
             }
-        } else if ($field instanceof BaseRelationField && $parsedContent) {
+        } else if ($field instanceof ElementFieldInterface && $parsedContent) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;
         } else if ($field instanceof formfields\Repeater && $parsedContent) {
             $values["{$prefix}{$field->handle}"] = $parsedContent;

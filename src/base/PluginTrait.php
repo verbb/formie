@@ -203,3 +203,40 @@ trait PluginTrait
         return $this->get('vite');
     }
 }
+
+// Handle deprecated classes via an alias, until Formie 4
+class_alias('verbb\formie\base\Field', 'verbb\formie\base\FormField');
+class_alias('verbb\formie\base\FieldInterface', 'verbb\formie\base\FormFieldInterface');
+class_alias('verbb\formie\fields\Address', 'verbb\formie\fields\formfields\Address');
+class_alias('verbb\formie\fields\Agree', 'verbb\formie\fields\formfields\Agree');
+class_alias('verbb\formie\fields\Calculations', 'verbb\formie\fields\formfields\Calculations');
+class_alias('verbb\formie\fields\Categories', 'verbb\formie\fields\formfields\Categories');
+class_alias('verbb\formie\fields\Checkboxes', 'verbb\formie\fields\formfields\Checkboxes');
+class_alias('verbb\formie\fields\Date', 'verbb\formie\fields\formfields\Date');
+class_alias('verbb\formie\fields\Dropdown', 'verbb\formie\fields\formfields\Dropdown');
+class_alias('verbb\formie\fields\Email', 'verbb\formie\fields\formfields\Email');
+class_alias('verbb\formie\fields\Entries', 'verbb\formie\fields\formfields\Entries');
+class_alias('verbb\formie\fields\FileUpload', 'verbb\formie\fields\formfields\FileUpload');
+class_alias('verbb\formie\fields\Group', 'verbb\formie\fields\formfields\Group');
+class_alias('verbb\formie\fields\Heading', 'verbb\formie\fields\formfields\Heading');
+class_alias('verbb\formie\fields\Hidden', 'verbb\formie\fields\formfields\Hidden');
+class_alias('verbb\formie\fields\Html', 'verbb\formie\fields\formfields\Html');
+class_alias('verbb\formie\fields\MissingField', 'verbb\formie\fields\formfields\MissingField');
+class_alias('verbb\formie\fields\MultiLineText', 'verbb\formie\fields\formfields\MultiLineText');
+class_alias('verbb\formie\fields\Name', 'verbb\formie\fields\formfields\Name');
+class_alias('verbb\formie\fields\Number', 'verbb\formie\fields\formfields\Number');
+class_alias('verbb\formie\fields\Password', 'verbb\formie\fields\formfields\Password');
+class_alias('verbb\formie\fields\Payment', 'verbb\formie\fields\formfields\Payment');
+class_alias('verbb\formie\fields\Phone', 'verbb\formie\fields\formfields\Phone');
+class_alias('verbb\formie\fields\Products', 'verbb\formie\fields\formfields\Products');
+class_alias('verbb\formie\fields\Radio', 'verbb\formie\fields\formfields\Radio');
+class_alias('verbb\formie\fields\Recipients', 'verbb\formie\fields\formfields\Recipients');
+class_alias('verbb\formie\fields\Repeater', 'verbb\formie\fields\formfields\Repeater');
+class_alias('verbb\formie\fields\Section', 'verbb\formie\fields\formfields\Section');
+class_alias('verbb\formie\fields\Signature', 'verbb\formie\fields\formfields\Signature');
+class_alias('verbb\formie\fields\SingleLineText', 'verbb\formie\fields\formfields\SingleLineText');
+class_alias('verbb\formie\fields\Summary', 'verbb\formie\fields\formfields\Summary');
+class_alias('verbb\formie\fields\Table', 'verbb\formie\fields\formfields\Table');
+class_alias('verbb\formie\fields\Tags', 'verbb\formie\fields\formfields\Tags');
+class_alias('verbb\formie\fields\Users', 'verbb\formie\fields\formfields\Users');
+class_alias('verbb\formie\fields\Variants', 'verbb\formie\fields\formfields\Variants');

@@ -16,7 +16,8 @@ class m231202_000000_auth_module extends Migration
 
     public function safeUp(): bool
     {
-        Auth::$plugin->migrator->up();
+        // Use `Auth::getInstance()` not `Auth::$plugin` as it doesn't seem to work well in migrations
+        Auth::getInstance()->migrator->up();
 
         // Migrate Formie tokens to Auth tokens
         $tokens = (new Query())
@@ -60,6 +61,8 @@ class m231202_000000_auth_module extends Migration
                 }
             }
         }
+
+        $this->dropTableIfExists('{{%formie_tokens}}');
 
         return true;
     }

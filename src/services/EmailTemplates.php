@@ -35,7 +35,7 @@ class EmailTemplates extends Component
     public const CONFIG_TEMPLATES_KEY = 'formie.emailTemplates';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_templates = null;

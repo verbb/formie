@@ -129,7 +129,7 @@ export default {
                 sourceRowIndex,
                 sourceColumnIndex,
                 data: {
-                    id: newId(),
+                    __id: newId(),
                 },
             };
 

@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
-use verbb\formie\fields\formfields\FileUpload;
-use verbb\formie\fields\formfields\Table;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Table;
 use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 

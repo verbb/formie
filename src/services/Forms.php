@@ -4,12 +4,12 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\FormField;
+use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\FormFieldLayout;
+use verbb\formie\models\FormLayout;
 use verbb\formie\models\FormSettings;
 use verbb\formie\records\Form as FormRecord;
 
@@ -42,6 +42,11 @@ class Forms extends Component
     public function getFormByHandle(string $handle, int $siteId = null): ?Form
     {
         return Form::find()->handle($handle)->siteId($siteId)->one();
+    }
+
+    public function getFormByLayoutId(int $layoutId, int $siteId = null): ?Form
+    {
+        return Form::find()->layoutId($layoutId)->siteId($siteId)->one();
     }
 
     public function getAllForms(): array
@@ -78,7 +83,7 @@ class Forms extends Component
 
         // Populate the form builder layout (pages/rows/fields)
         if ($pages = $request->getParam('pages')) {
-            $form->setFormFieldLayout(new FormFieldLayout(['pages' => Json::decodeIfJson($pages)]));
+            $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
         }
 
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.

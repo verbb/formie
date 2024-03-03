@@ -9,7 +9,7 @@ use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
-use verbb\formie\fields\formfields\Agree;
+use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -103,13 +103,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public static function hasFormSettings(): bool
     {
         return true;
-    }
-
-    public static function log(IntegrationInterface $integration, string $message, bool $throwError = false): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'The `log()` function is deprecated. Use `info()` instead.');
-
-        self::info($integration, $message, $throwError);
     }
 
     public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
@@ -801,5 +794,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     private static function isEmpty($value): bool
     {
         return $value === '' || $value === [] || $value === null;
+    }
+
+
+    // Deprecated Methods
+    // =========================================================================
+
+    public static function log(IntegrationInterface $integration, string $message, bool $throwError = false): void
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The `log()` function is deprecated. Use `info()` instead.');
+
+        self::info($integration, $message, $throwError);
     }
 }

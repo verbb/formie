@@ -5,7 +5,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 use craft\helpers\App;
@@ -56,7 +56,7 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, FormPage $page = null): string
+    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'formie-hcaptcha-placeholder',
@@ -64,7 +64,7 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FormPage $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         $settings = [
             'siteKey' => App::parseEnv($this->siteKey),
@@ -86,7 +86,7 @@ class Hcaptcha extends Captcha
         ];
     }
 
-    public function getGqlVariables(Form $form, FormPage $page = null): array
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
             'formId' => $form->getFormId(),

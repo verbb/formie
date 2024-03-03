@@ -1,22 +1,6 @@
 {% from '_includes/forms' import field %}
 
-{% set value = element ? element.getFieldValue(fieldKey) : field.normalizeValue(null) %}
-{% set errors = (element ? element.getErrors(fieldKey) : null) %}
-{% set instructions = (field.instructions ? field.instructions | t('formie') : null) %}
+{% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, null) %}
+{% set errors = element.getErrors(field.fieldKey) ?? [] %}
 
-{% set input = field.getInputHtml(value, element) %}
-
-{% if instructions or input %}
-    {{ field({
-        label: field.name | t('formie') | e,
-        required: required,
-        instructions: instructions | e,
-        id: field.handle,
-        errors: errors,
-        fieldAttributes: {
-            data: {
-                type: className(field),
-            },
-        },
-    }, input) }}
-{% endif %}
+{{ field.getCpInputHtml(value, element) }}

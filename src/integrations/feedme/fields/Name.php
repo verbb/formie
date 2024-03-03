@@ -6,7 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
-use verbb\formie\fields\formfields\Name as NameField;
+use verbb\formie\fields\Name as NameField;
 
 class Name extends Field implements FieldInterface
 {

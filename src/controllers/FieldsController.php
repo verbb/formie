@@ -3,7 +3,7 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Signature;
+use verbb\formie\fields\Signature;
 
 use Craft;
 use craft\web\Controller;

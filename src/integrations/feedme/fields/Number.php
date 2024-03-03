@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Number as FeedMeNumber;
-use verbb\formie\fields\formfields\Number as NumberField;
+use verbb\formie\fields\Number as NumberField;
 
 class Number extends FeedMeNumber
 {

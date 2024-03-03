@@ -42,6 +42,10 @@ class Notifications extends Component
     public const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     public const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
 
+
+    // Properties
+    // =========================================================================
+
     private ?MemoizableArray $_notifications = null;
     private ?array $_existingNotifications = null;
 
@@ -95,7 +99,7 @@ class Notifications extends Component
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
-            $notificationRecord->handle = $notification->handle;
+            $notificationRecord->handle = $notification->handle ?? $this->_getUniqueNotificationHandle($notification);
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
             $notificationRecord->recipients = $notification->recipients;

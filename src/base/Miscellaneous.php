@@ -64,7 +64,7 @@ abstract class Miscellaneous extends Integration
         ]);
     }
 
-    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         return null;
     }

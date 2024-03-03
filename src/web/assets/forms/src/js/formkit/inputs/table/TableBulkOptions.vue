@@ -1,108 +1,114 @@
 <template>
-    <modal ref="modal" :model-value="showModal" modal-class="fui-table-bulk-add-modal" @update:model-value="showModal = $event" @click-outside="onCancelModal">
-        <template #header>
-            <h3 class="fui-modal-title">{{ t('formie', 'Bulk Add Options') }}</h3>
+    <div>
+        <div tabindex="0" class="btn add icon fui-table-bulk-add-btn" @click.prevent="showModal = true">
+            {{ t('formie', 'Bulk add options') }}
+        </div>
 
-            <button class="fui-dialog-close" @click.prevent="onCancelModal"></button>
-        </template>
+        <modal ref="modal" :model-value="showModal" modal-class="fui-table-bulk-add-modal" @update:model-value="showModal = $event" @click-outside="onCancelModal">
+            <template #header>
+                <h3 class="fui-modal-title">{{ t('formie', 'Bulk Add Options') }}</h3>
 
-        <template #body>
-            <div class="fui-modal-content">
-                <div class="fui-field-instructions" style="margin: -10px 0 15px;">
-                    <p>{{ t('formie', 'Select from predefined options and customize or paste your own to bulk add options.') }}</p>
-                </div>
+                <button class="fui-dialog-close" @click.prevent="onCancelModal"></button>
+            </template>
 
-                <div class="fui-row">
-                    <div class="fui-col-6">
-                        <div class="field">
-                            <div class="heading">
-                                <label for="predefined-options">
-                                    {{ t('formie', 'Predefined Options') }}
-                                </label>
+            <template #body>
+                <div class="fui-modal-content">
+                    <div class="fui-field-instructions" style="margin: -10px 0 15px;">
+                        <p>{{ t('formie', 'Select from predefined options and customize or paste your own to bulk add options.') }}</p>
+                    </div>
 
-                                <div id="help-predefined-options" class="instructions">
-                                    <p>{{ t('formie', 'Select from the available predefined options.') }}</p>
-                                </div>
-                            </div>
-
-                            <div class="select">
-                                <select id="predefined-options" class="select" aria-describedby="help-predefined-options" @change="onPredefinedChange">
-                                    <option v-for="(option, index) in predefinedOptions" :key="index" :value="option.value">
-                                        {{ option.label }}
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div v-if="loading" class="fui-loading-pane">
-                            <div class="fui-loading fui-loading-lg"></div>
-                        </div>
-
-                        <div v-if="error" class="fui-error-pane error">
-                            <div class="fui-error-content">
-                                <span data-icon="alert"></span>
-
-                                <span class="error" v-html="errorMessage"></span>
-                            </div>
-                        </div>
-
-                        <div v-if="!loading">
-                            <div v-if="labelOptions.length" class="field">
+                    <div class="fui-row">
+                        <div class="fui-col-6">
+                            <div class="field">
                                 <div class="heading">
-                                    <label for="label-options">
-                                        {{ t('formie', 'Option Label') }}
+                                    <label for="predefined-options">
+                                        {{ t('formie', 'Predefined Options') }}
                                     </label>
 
-                                    <div id="help-label-options" class="instructions">
-                                        <p>{{ t('formie', 'Select the data to be used as the option label.') }}</p>
+                                    <div id="help-predefined-options" class="instructions">
+                                        <p>{{ t('formie', 'Select from the available predefined options.') }}</p>
                                     </div>
                                 </div>
 
                                 <div class="select">
-                                    <select id="label-options" v-model="labelOption" class="select" aria-describedby="help-label-options" @change="onLabelChange">
-                                        <option v-for="(option, index) in labelOptions" :key="index" :value="option.value">
+                                    <select id="predefined-options" class="select" aria-describedby="help-predefined-options" @change="onPredefinedChange">
+                                        <option v-for="(option, index) in predefinedOptions" :key="index" :value="option.value">
                                             {{ option.label }}
                                         </option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div v-if="valueOptions.length" class="field">
-                                <div class="heading">
-                                    <label for="value-options">
-                                        {{ t('formie', 'Option Value') }}
-                                    </label>
+                            <div v-if="loading" class="fui-loading-pane">
+                                <div class="fui-loading fui-loading-lg"></div>
+                            </div>
 
-                                    <div id="help-value-options" class="instructions">
-                                        <p>{{ t('formie', 'Select the data to be used as the option value.') }}</p>
+                            <div v-if="error" class="fui-error-pane error">
+                                <div class="fui-error-content">
+                                    <span data-icon="alert"></span>
+
+                                    <span class="error" v-html="errorMessage"></span>
+                                </div>
+                            </div>
+
+                            <div v-if="!loading">
+                                <div v-if="labelOptions.length" class="field">
+                                    <div class="heading">
+                                        <label for="label-options">
+                                            {{ t('formie', 'Option Label') }}
+                                        </label>
+
+                                        <div id="help-label-options" class="instructions">
+                                            <p>{{ t('formie', 'Select the data to be used as the option label.') }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="select">
+                                        <select id="label-options" v-model="labelOption" class="select" aria-describedby="help-label-options" @change="onLabelChange">
+                                            <option v-for="(option, index) in labelOptions" :key="index" :value="option.value">
+                                                {{ option.label }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
 
-                                <div class="select">
-                                    <select id="value-options" v-model="valueOption" class="select" aria-describedby="help-value-options" @change="onValueChange">
-                                        <option v-for="(option, index) in valueOptions" :key="index" :value="option.value">
-                                            {{ option.label }}
-                                        </option>
-                                    </select>
+                                <div v-if="valueOptions.length" class="field">
+                                    <div class="heading">
+                                        <label for="value-options">
+                                            {{ t('formie', 'Option Value') }}
+                                        </label>
+
+                                        <div id="help-value-options" class="instructions">
+                                            <p>{{ t('formie', 'Select the data to be used as the option value.') }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="select">
+                                        <select id="value-options" v-model="valueOption" class="select" aria-describedby="help-value-options" @change="onValueChange">
+                                            <option v-for="(option, index) in valueOptions" :key="index" :value="option.value">
+                                                {{ option.label }}
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="fui-col-6">
-                        <textarea v-model="preview" class="text fui-table-bulk-preview"></textarea>
+                        <div class="fui-col-6">
+                            <textarea v-model="preview" class="text fui-table-bulk-preview"></textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </template>
+            </template>
 
-        <template #footer>
-            <div class="buttons right">
-                <button class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</button>
-                <button class="btn submit" :class="{ 'fui-loading fui-loading-sm': saveLoading }" role="button" @click.prevent="onSave">{{ t('app', 'Add Options') }}</button>
-            </div>
-        </template>
-    </modal>
+            <template #footer>
+                <div class="buttons right">
+                    <button class="btn" role="button" @click.prevent="onCancelModal">{{ t('app', 'Cancel') }}</button>
+                    <button class="btn submit" :class="{ 'fui-loading fui-loading-sm': saveLoading }" role="button" @click.prevent="onSave">{{ t('app', 'Add Options') }}</button>
+                </div>
+            </template>
+        </modal>
+    </div>
 </template>
 
 <script>
@@ -116,24 +122,20 @@ export default {
     },
 
     props: {
-        showModal: {
-            type: Boolean,
-            default: () => {},
-        },
-
         predefinedOptions: {
             type: Array,
             default: () => { return []; },
         },
 
-        tableField: {
-            type: Object,
+        setRows: {
+            type: Function,
             default: () => {},
         },
     },
 
     data() {
         return {
+            showModal: false,
             success: false,
             error: false,
             errorMessage: '',
@@ -168,7 +170,8 @@ export default {
     methods: {
         closeModal() {
             // Close the modal programatically, which will fire `@closed`
-            this.$refs.modal.close();
+            // this.$refs.modal.close();
+            this.showModal = false;
         },
 
         onCancelModal() {
@@ -187,7 +190,7 @@ export default {
                     return { label: lineValues[0], value: lineValues[1] || lineValues[0], isDefault: false };
                 });
 
-                this.tableField.setItems(values, false);
+                this.setRows(values, false);
 
                 this.closeModal();
 
@@ -285,6 +288,21 @@ export default {
     padding: 5px !important;
     font-size: 12px !important;
     line-height: 1.4 !important;
+}
+
+.fui-table-bulk-add-btn {
+    position: absolute;
+    top: -36px;
+    right: 0;
+    font-size: 12px;
+    border-radius: 3px;
+    padding: 5px 12px;
+    height: auto;
+}
+
+.fui-table-btn-disabled {
+    opacity: 0.2;
+    pointer-events: none;
 }
 
 </style>

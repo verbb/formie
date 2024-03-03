@@ -43,7 +43,7 @@
 </tr>
 
 {% for subField in field.getFields() %}
-    {% set nameLabel = subField.name %}
+    {% set nameLabel = subfield.label %}
     {% set instructionsHandle = handle ~ '[' ~ subField.handle ~ ']' %}
 
     {% set parentPath = prefixPath | merge ([ 'fields', subField.handle ]) %}

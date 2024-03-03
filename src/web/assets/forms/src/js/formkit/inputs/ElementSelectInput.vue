@@ -3,7 +3,7 @@
         <div ref="elements" class="elements" v-html="elementsHtml"></div>
 
         <div class="flex">
-            <button type="button" class="btn add icon dashed">{{ selectionLabel }}</button>
+            <button type="button" class="btn dashed add icon">{{ selectionLabel }}</button>
         </div>
     </div>
 </template>
@@ -179,3 +179,11 @@ export default {
 };
 
 </script>
+
+<style lang="scss">
+
+.field.field-wrapper .elementselect li {
+    list-style: none;
+}
+
+</style>

@@ -29,16 +29,18 @@ class m231129_000000_integrations_mapping extends Migration
                         // Field mapping is stored in different settings, so check them all
                         if (str_contains($integrationProp, 'Mapping') && is_array($integrationValue)) {
                             foreach ($integrationValue as $handle => $mapKey) {
-                                // Rename any old array-like syntax `group[nested][field]` with dot-notation `group.nested.field`
-                                if (str_contains($mapKey, '[')) {
-                                    $hasChanged = true;
-                                    $integrations[$integrationKey][$integrationProp][$handle] = $mapKey = str_replace(['[', ']'], ['.', ''], $mapKey);
-                                }
+                                if (is_string($mapKey)) {
+                                    // Rename any old array-like syntax `group[nested][field]` with dot-notation `group.nested.field`
+                                    if (str_contains($mapKey, '[')) {
+                                        $hasChanged = true;
+                                        $integrations[$integrationKey][$integrationProp][$handle] = $mapKey = str_replace(['[', ']'], ['.', ''], $mapKey);
+                                    }
 
-                                // Rename `{*}` to `{field:*}` - but watch out for `{submission:*}`
-                                if (str_starts_with($mapKey, '{') && !str_starts_with($mapKey, '{submission:') && !str_starts_with($mapKey, '{field:')) {
-                                    $hasChanged = true;
-                                    $integrations[$integrationKey][$integrationProp][$handle] = $mapKey = str_replace('{', '{field:', $mapKey);
+                                    // Rename `{*}` to `{field:*}` - but watch out for `{submission:*}`
+                                    if (str_starts_with($mapKey, '{') && !str_starts_with($mapKey, '{submission:') && !str_starts_with($mapKey, '{field:')) {
+                                        $hasChanged = true;
+                                        $integrations[$integrationKey][$integrationProp][$handle] = $mapKey = str_replace('{', '{field:', $mapKey);
+                                    }
                                 }
                             }
                         }

@@ -105,7 +105,7 @@ export default {
 
             const payload = {
                 data: {
-                    id: newId(),
+                    __id: newId(),
                     fields: [
                         newField,
                     ],

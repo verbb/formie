@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Dropdown as FeedMeDropdown;
-use verbb\formie\fields\formfields\Dropdown as DropdownField;
+use verbb\formie\fields\Dropdown as DropdownField;
 
 class Dropdown extends FeedMeDropdown
 {

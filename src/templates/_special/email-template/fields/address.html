@@ -1,6 +1,6 @@
 <p>
     {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.name | t('formie') }}</strong><br>
+        <strong>{{ field.label | t('formie') }}</strong><br>
     {% endif %}
 
     {% if field.autocompleteEnabled %}

@@ -37,8 +37,8 @@ export default function moveLabelPlugin(node) {
             node.context.requiredClass = node.context.required ? 'required' : '';
             node.context.info = node.props.attrs.info || '';
             node.context.warning = node.props.attrs.warning || '';
-            node.context.markdown = (string) => { return markdown.render(string); };
-            node.context.markdownInline = (string) => { return markdown.renderInline(string); };
+            node.context.markdown = (string) => { return string ? markdown.render(string) : string; };
+            node.context.markdownInline = (string) => { return string ? markdown.renderInline(string) : string; };
 
             let helpElement = {};
             let tabElement = {};

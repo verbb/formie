@@ -53,10 +53,6 @@ class Notification extends Model
     public ?array $conditions = null;
     public ?string $uid = null;
 
-
-    // Private Properties
-    // =========================================================================
-
     private ?EmailTemplate $_template = null;
     private ?PdfTemplate $_pdfTemplate = null;
 

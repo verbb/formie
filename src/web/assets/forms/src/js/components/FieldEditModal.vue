@@ -159,6 +159,8 @@ export default {
         // Store this so we can cancel changes.
         this.originalField = this.clone(this.field);
 
+        // console.log(this.fieldsSchema);
+
         // We need to copy label/handle so FormKit can handle things
         // this.fieldSettings.label = this.field.label;
         // this.fieldSettings.handle = this.field.handle;

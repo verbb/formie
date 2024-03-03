@@ -37,7 +37,7 @@ class FormTemplates extends Component
     public const CONFIG_TEMPLATES_KEY = 'formie.formTemplates';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_templates = null;

@@ -1,4 +1,4 @@
-import { empty } from '@formkit/utils';
+import { empty, clone } from '@formkit/utils';
 
 const checkDuplicates = function(options, field) {
     const occurrences = options.reduce((counter, item) => {
@@ -12,8 +12,8 @@ const checkDuplicates = function(options, field) {
 };
 
 const required = function(node, prop) {
-    const options = node.at(`$root.${node.name}`)?.value;
-    const columns = node.context.attrs?.columns;
+    const options = clone(node.value);
+    const { columns } = node.context;
 
     if (!Array.isArray(options) || !Array.isArray(columns)) {
         return true;
@@ -29,9 +29,9 @@ const required = function(node, prop) {
 
         if (empty(row[valueKey])) {
             if (prop === 'value') {
-                node.config.valuesWithError.push(row[valueKey]);
+                node.context.valuesWithError.push(row[valueKey]);
             } else if (prop === 'label') {
-                node.config.labelsWithError.push(row[valueKey]);
+                node.context.labelsWithError.push(row[valueKey]);
             }
         }
 
@@ -42,13 +42,13 @@ const required = function(node, prop) {
 };
 
 const unique = function(node, prop) {
-    let options = node.at(`$root.${node.name}`)?.value;
-    const columns = node.context.attrs?.columns;
+    let options = clone(node.value);
+    const { columns } = node.context;
 
     if (prop === 'label') {
-        node.config.labelsWithError = [];
+        node.context.labelsWithError = [];
     } else if (prop === 'value') {
-        node.config.valuesWithError = [];
+        node.context.valuesWithError = [];
     }
 
     if (!Array.isArray(options) || !Array.isArray(columns)) {
@@ -65,9 +65,9 @@ const unique = function(node, prop) {
 
     duplicates.forEach((duplicate) => {
         if (prop === 'value') {
-            node.config.valuesWithError.push(duplicate);
+            node.context.valuesWithError.push(duplicate);
         } else if (prop === 'label') {
-            node.config.labelsWithError.push(duplicate);
+            node.context.labelsWithError.push(duplicate);
         }
     });
 

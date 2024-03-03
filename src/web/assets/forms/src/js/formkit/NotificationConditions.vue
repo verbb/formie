@@ -73,7 +73,7 @@
         </tbody>
     </table>
 
-    <div class="btn add icon" @click.prevent="addRow">
+    <div class="btn dashed add icon" @click.prevent="addRow">
         {{ t('formie', 'Add rule') }}
     </div>
 

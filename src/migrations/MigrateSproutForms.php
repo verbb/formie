@@ -2,18 +2,19 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\ElementFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Address;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
@@ -22,7 +23,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
 
 use Craft;
-use craft\base\FieldInterface;
+use craft\base\FieldInterface as CraftFieldInterface;
 use craft\console\Controller;
 use craft\db\Migration;
 use craft\fields\BaseRelationField;
@@ -35,7 +36,7 @@ use Throwable;
 
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 use barrelstrength\sproutforms\elements\Entry as SproutFormsEntry;
-use barrelstrength\sproutforms\fields\formfields as sproutfields;
+use barrelstrength\sproutforms\fields as sproutfields;
 use barrelstrength\sproutbaseemail\elements\NotificationEmail;
 use barrelstrength\sproutbaseemail\SproutBaseEmail;
 use barrelstrength\sproutforms\SproutForms;
@@ -126,7 +127,7 @@ class MigrateSproutForms extends Migration
             $form = $this->_form = $event->newForm;
 
             if ($fieldLayout = $this->_buildFieldLayout($sproutFormsForm)) {
-                $form->setFormFieldLayout($fieldLayout);
+                $form->setFieldLayout($fieldLayout);
             }
 
             if (!$event->isValid) {
@@ -417,7 +418,7 @@ class MigrateSproutForms extends Migration
             $fields = [];
 
             foreach ($sproutFieldLayout->getTabs() as $tabIndex => $tab) {
-                $newPage = new FormPage();
+                $newPage = new FieldLayoutPage();
                 $newPage->name = $tab->name;
                 $newPage->sortOrder = '' . $tabIndex;
 
@@ -478,7 +479,7 @@ class MigrateSproutForms extends Migration
         return $fieldLayout;
     }
 
-    private function _mapField(FieldInterface $field): ?FormFieldInterface
+    private function _mapField(FieldInterface $field): ?FieldInterface
     {
         switch (get_class($field)) {
             case sproutfields\Address::class:
@@ -551,7 +552,7 @@ class MigrateSproutForms extends Migration
                 $newField->options = $field->options;
                 break;
             case sproutfields\Entries::class:
-                /* @var BaseRelationField $field */
+                /* @var ElementFieldInterface $field */
                 $newField = new formfields\Entries();
                 $this->_applyFieldDefaults($newField);
 
@@ -675,7 +676,7 @@ class MigrateSproutForms extends Migration
 
                 break;
             case sproutfields\Tags::class:
-                /* @var BaseRelationField $field */
+                /* @var ElementFieldInterface $field */
                 $newField = new formfields\Tags();
                 $this->_applyFieldDefaults($newField);
 
@@ -691,7 +692,7 @@ class MigrateSproutForms extends Migration
 
                 break;
             case sproutfields\Users::class:
-                /* @var BaseRelationField $field */
+                /* @var ElementFieldInterface $field */
                 $newField = new formfields\Users();
                 $this->_applyFieldDefaults($newField);
 
@@ -745,7 +746,7 @@ class MigrateSproutForms extends Migration
         return $newHandle;
     }
 
-    private function _applyFieldDefaults(FormFieldInterface $field): void
+    private function _applyFieldDefaults(FieldInterface $field): void
     {
         $defaults = $field->getAllFieldDefaults();
         Craft::configure($field, $defaults);

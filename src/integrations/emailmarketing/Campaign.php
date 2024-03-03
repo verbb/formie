@@ -2,11 +2,12 @@
 namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
+use verbb\formie\base\ElementFieldInterface;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields\formfields\MultiLineText;
-use verbb\formie\fields\formfields\Table;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\Table;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
@@ -69,7 +70,7 @@ class Campaign extends EmailMarketing
             }
 
             // Element fields should map 1-for-1, but not as arrays of titles
-            if ($event->field instanceof fields\BaseRelationField) {
+            if ($event->field instanceof ElementFieldInterface) {
                 $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
             }
 

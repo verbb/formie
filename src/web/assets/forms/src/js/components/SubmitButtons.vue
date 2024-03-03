@@ -246,7 +246,6 @@ export default {
                             $formkit: 'table',
                             label: Craft.t('formie', 'Container Attributes'),
                             help: Craft.t('formie', 'Add attributes to be output on the form buttons container.'),
-                            validation: 'min:0',
                             generateValue: false,
                             name: 'containerAttributes',
                             id: 'containerAttributes',
@@ -258,12 +257,12 @@ export default {
                             columns: [
                                 {
                                     type: 'label',
-                                    label: 'Name',
+                                    label: Craft.t('formie', 'Name'),
                                     class: 'singleline-cell textual',
                                 },
                                 {
                                     type: 'value',
-                                    label: 'Value',
+                                    label: Craft.t('formie', 'Value'),
                                     class: 'singleline-cell textual',
                                 },
                             ],
@@ -272,7 +271,6 @@ export default {
                             $formkit: 'table',
                             label: Craft.t('formie', 'Input Attributes'),
                             help: Craft.t('formie', 'Add attributes to be output on the form buttons `input` elements.'),
-                            validation: 'min:0',
                             generateValue: false,
                             name: 'inputAttributes',
                             id: 'inputAttributes',
@@ -284,12 +282,12 @@ export default {
                             columns: [
                                 {
                                     type: 'label',
-                                    label: 'Name',
+                                    label: Craft.t('formie', 'Name'),
                                     class: 'singleline-cell textual',
                                 },
                                 {
                                     type: 'value',
-                                    label: 'Value',
+                                    label: Craft.t('formie', 'Value'),
                                     class: 'singleline-cell textual',
                                 },
                             ],

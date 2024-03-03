@@ -69,6 +69,9 @@ const getters = {
             // Set a new client-side ID for the field
             newField.__id = newId();
 
+            // Typecast some properties
+            newField.errors = {};
+
             // Handle any nested fields to also generate their fields
             if (newField.settings.rows && Array.isArray(newField.settings.rows)) {
                 newField.settings.rows.forEach((nestedRow) => {

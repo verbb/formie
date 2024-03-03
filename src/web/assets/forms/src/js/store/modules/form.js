@@ -400,29 +400,30 @@ const getters = {
         // Filter out some unwanted data
         pages.forEach((page) => {
             delete page.__id;
-            delete page.id;
             delete page.errors;
 
             page.rows.forEach((row) => {
                 delete row.__id;
-                delete row.id;
                 delete row.errors;
 
-                row.fields.forEach((field) => {
-                    delete field.__id;
-                    delete field.icon;
-                    delete field.errors;
+                row.fields.forEach((field, fieldKey) => {
+                    row.fields[fieldKey] = {
+                        id: field.id,
+                        type: field.type,
+                        settings: field.settings,
+                    };
 
                     if (field.settings && field.settings.rows) {
                         field.settings.rows.forEach((nestedRow) => {
                             delete nestedRow.__id;
-                            delete nestedRow.id;
                             delete nestedRow.errors;
 
-                            nestedRow.fields.forEach((nestedField) => {
-                                delete nestedField.__id;
-                                delete nestedField.icon;
-                                delete nestedField.errors;
+                            nestedRow.fields.forEach((nestedField, nestedFieldKey) => {
+                                nestedRow.fields[nestedFieldKey] = {
+                                    id: nestedField.id,
+                                    type: nestedField.type,
+                                    settings: nestedField.settings,
+                                };
                             });
                         });
                     }
@@ -795,7 +796,7 @@ const getters = {
 
             allFields = omitBy(allFields, { __id: id });
 
-            let fieldHandles = flatMap(allFields, 'handle');
+            let fieldHandles = flatMap(allFields, 'settings.handle');
 
             // Fetch all reserved handles
             const reservedHandles = rootGetters['formie/reservedHandles']();

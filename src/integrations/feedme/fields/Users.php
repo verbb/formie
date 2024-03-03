@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Users as FeedMeUsers;
-use verbb\formie\fields\formfields\Users as UsersField;
+use verbb\formie\fields\Users as UsersField;
 
 class Users extends FeedMeUsers
 {

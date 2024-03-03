@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Lightswitch as FeedMeLightswitch;
-use verbb\formie\fields\formfields\Agree as AgreeField;
+use verbb\formie\fields\Agree as AgreeField;
 
 class Agree extends FeedMeLightswitch
 {

@@ -94,7 +94,7 @@ class HubSpotLegacy extends Crm
                     $settings['forms'][] = new IntegrationCollection([
                         'id' => $form['portalId'] . '__' . $form['guid'],
                         'name' => $form['name'],
-                        'fields' => $this->_getFormFields($form),
+                        'fields' => $this->_getFields($form),
                     ]);
                 }
             } else {
@@ -485,7 +485,7 @@ class HubSpotLegacy extends Crm
         return $customFields;
     }
 
-    private function _getFormFields($form): array
+    private function _getFields($form): array
     {
         $fields = [];
 

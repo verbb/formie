@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Table as FeedMeTable;
-use verbb\formie\fields\formfields\Table as TableField;
+use verbb\formie\fields\Table as TableField;
 
 class Table extends FeedMeTable
 {

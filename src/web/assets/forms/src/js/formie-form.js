@@ -6,9 +6,12 @@ if (import.meta.hot) {
     import.meta.hot.accept();
 }
 
-import { get, isEmpty, merge } from 'lodash-es';
+import {
+    get, isEmpty, merge, flattenDeep, map, flatMap, isObject, isArray,
+} from 'lodash-es';
 import { generateHandle, getNextAvailableHandle, newId } from '@utils/string';
 import { clone } from '@utils/object';
+import { getErrorMessage } from '@utils/forms';
 
 import { createVueApp, store } from './config.js';
 
@@ -30,6 +33,8 @@ import FormBuilder from '@components/FormBuilder.vue';
 import FormKitForm from '@formkit-components/FormKitForm.vue';
 import NotificationsBuilder from '@components/NotificationsBuilder.vue';
 import ToggleBlock from '@formkit-components/ToggleBlock.vue';
+import TableBulkOptions from '@formkit-components/inputs/table/TableBulkOptions.vue';
+import TableCell from '@formkit-components/inputs/table/TableCell.vue';
 
 // Field Preview components
 import DatePreview from '@components/DatePreview.vue';
@@ -178,6 +183,9 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     const fieldsValid = true;
                     const notificationsValid = true;
 
+                    // Reset any errors stored on the form
+                    this.form.errors = [];
+
                     const $fieldsTab = document.querySelector('a[href="#tab-fields"]');
                     const $notificationsTab = document.querySelector('a[href="#tab-notifications"]');
                     const $integrationsTab = document.querySelector('a[href="#tab-integrations"]');
@@ -226,7 +234,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     }).catch((error) => {
                         console.error(error);
 
-                        this.onError(error);
+                        this.onError(error, true);
                     });
                 },
 
@@ -259,11 +267,16 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     this.$events.emit('formie:save-form-loading', false);
                 },
 
-                onError(data = {}) {
+                onError(data = {}, serverError = false) {
                     if (this.form.isStencil) {
                         Craft.cp.displayError(Craft.t('formie', 'Couldn’t save stencil.'));
                     } else {
                         Craft.cp.displayError(Craft.t('formie', 'Couldn’t save form.'));
+                    }
+
+                    // Save a formatted error to `serverError` to show users
+                    if (serverError) {
+                        this.form.errors.push({ serverError: getErrorMessage(data) });
                     }
 
                     this.$events.emit('formie:save-form-loading', false);
@@ -329,6 +342,8 @@ Craft.Formie.EditForm = Garnish.Base.extend({
         app.component('ToggleBlock', ToggleBlock);
         app.component('TabPanel', TabPanel);
         app.component('TabPanels', TabPanels);
+        app.component('TableBulkOptions', TableBulkOptions);
+        app.component('TableCell', TableCell);
 
         // Field Preview components
         app.component('DatePreview', DatePreview);
@@ -396,6 +411,16 @@ Craft.Formie.ErrorSummary = Garnish.Base.extend({
                                     });
                                 }
                             });
+                        });
+                    });
+
+                    this.form.errors.forEach((formErrors) => {
+                        Object.entries(formErrors).forEach(([key, value]) => {
+                            if (key === 'serverError') {
+                                const message = [`${value.heading}:`, `${value.text}`, `<br><small>${value.trace}</small>`];
+
+                                errors.push(message.join(' '));
+                            }
                         });
                     });
 

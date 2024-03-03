@@ -3,9 +3,9 @@ namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
-use verbb\formie\base\FormFieldTrait;
+use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
+use verbb\formie\base\FieldTrait;
 use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
@@ -13,10 +13,11 @@ use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\SubmissionMarkedAsSpamEvent;
 use verbb\formie\events\SubmissionRulesEvent;
-use verbb\formie\fields\formfields\FileUpload;
-use verbb\formie\fields\formfields\Payment;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
 use verbb\formie\records\Submission as SubmissionRecord;
@@ -24,7 +25,7 @@ use verbb\formie\records\Submission as SubmissionRecord;
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
-use craft\base\FieldInterface;
+use craft\base\FieldInterface as CraftFieldInterface;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -50,7 +51,7 @@ use Throwable;
 
 use Twig\Markup;
 
-class Submission extends Element
+class Submission extends CustomElement
 {
     // Constants
     // =========================================================================
@@ -200,19 +201,6 @@ class Submission extends Element
         return $actions;
     }
 
-    protected static function defineFieldLayouts(?string $source): array
-    {
-        $fieldLayouts = [];
-
-        if (preg_match('/^form:(.+)$/', $source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
-            if ($fieldLayout = $form->getFormFieldLayout()) {
-                $fieldLayouts[] = $fieldLayout;
-            }
-        }
-
-        return $fieldLayouts;
-    }
-
     protected static function defineTableAttributes(): array
     {
         return [
@@ -289,9 +277,8 @@ class Submission extends Element
     private ?Form $_form = null;
     private ?Status $_status = null;
     private ?User $_user = null;
-    private ?FieldLayout $_fieldLayout = null;
+    private ?FormLayout $_formLayout = null;
     private ?string $_fieldContext = null;
-    private ?string $_contentTable = null;
     private ?array $_pagesForField = null;
     private ?array $_assetsToDelete = [];
 
@@ -551,38 +538,35 @@ class Submission extends Element
         return $this->isIncomplete;
     }
 
-    public function getFieldLayout(): ?FieldLayout
+    public function getFormLayout(): ?FormLayout
     {
-        if (!$this->_fieldLayout) {
-            $this->_fieldLayout = $this->getForm()?->getFormFieldLayout();
+        if (!$this->_formLayout && $form = $this->getForm()) {
+            $this->_formLayout = $form->getFormLayout();
         }
 
-        return $this->_fieldLayout;
+        return $this->_formLayout;
     }
 
     public function getPages(): array
     {
-        return $this->getFieldLayout()?->getPages() ?? [];
+        return $this->getFormLayout()?->getPages() ?? [];
     }
 
     public function getRows(): array
     {
-        return $this->getFieldLayout()?->getRows() ?? [];
+        return $this->getFormLayout()?->getRows() ?? [];
     }
 
     public function getFields(): array
     {
-        return $this->getFieldLayout()?->getFields() ?? [];
+        return $this->getFormLayout()?->getFields() ?? [];
     }
 
-    public function getFieldByHandle(string $handle): ?FormFieldInterface
+    public function getCustomFields(): array
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
-    }
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission’s `getCustomFields()` method has been deprecated. Use `getFields()` instead.');
 
-    public function getFieldById(int $id): ?FormFieldInterface
-    {
-        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
+        return $this->getFields();
     }
 
     public function getFieldValue(string $fieldHandle): mixed
@@ -644,8 +628,7 @@ class Submission extends Element
         if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
             $this->title = $customTitle;
 
-            // Rather than re-save, directly update the submission record
-            Db::update('{{%formie_submissions}}', ['title' => $customTitle], ['id' => $this->id]);
+            // Rather than re-save, directly update the content record
             Db::update('{{%elements_sites}}', ['title' => $customTitle], ['elementId' => $this->id, 'siteId' => $this->siteId]);
         }
     }
@@ -832,7 +815,7 @@ class Submission extends Element
         // Check if we only want to set the fields for the current page. This helps with large
         // forms with lots of Repeater/Group fields not on the current page being saved.
         if ($settings->setOnlyCurrentPagePayload) {
-            $currentPageFields = $this->getForm()->getCurrentPage()->getCustomFields();
+            $currentPageFields = $this->getForm()->getCurrentPage()->getFields();
             $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
 
             if (!in_array($fieldHandle, $currentPageFieldHandles)) {
@@ -858,6 +841,50 @@ class Submission extends Element
         }
 
         return $values;
+    }
+
+    public function getValueAsString(string $fieldHandle): mixed
+    {
+        if ($field = $this->getFieldByHandle($fieldHandle)) {
+            $value = $this->getFieldValue($field->fieldKey);
+
+            return $field->getValueAsString($value, $this);
+        }
+
+        return null;
+    }
+
+    public function getValueAsJson(string $fieldHandle): mixed
+    {
+        if ($field = $this->getFieldByHandle($fieldHandle)) {
+            $value = $this->getFieldValue($field->fieldKey);
+
+            return $field->getValueAsJson($value, $this);
+        }
+
+        return null;
+    }
+
+    public function getValueForExport(string $fieldHandle): mixed
+    {
+        if ($field = $this->getFieldByHandle($fieldHandle)) {
+            $value = $this->getFieldValue($field->fieldKey);
+
+            return $field->getValueForExport($value, $this);
+        }
+
+        return null;
+    }
+
+    public function getValueForSummary(string $fieldHandle): mixed
+    {
+        if ($field = $this->getFieldByHandle($fieldHandle)) {
+            $value = $this->getFieldValue($field->fieldKey);
+
+            return $field->getValueForSummary($value, $this);
+        }
+
+        return null;
     }
 
     public function getValuesAsString(): array
@@ -936,23 +963,6 @@ class Submission extends Element
         }
 
         return $items;
-    }
-
-    public function getFieldPages(): array
-    {
-        if ($this->_pagesForField) {
-            return $this->_pagesForField;
-        }
-
-        $this->_pagesForField = [];
-
-        foreach ($this->getPages() as $page) {
-            foreach ($page->getFields() as $field) {
-                $this->_pagesForField[$field->handle] = $page;
-            }
-        }
-
-        return $this->_pagesForField;
     }
 
     public function getRelations(): array
@@ -1034,7 +1044,7 @@ class Submission extends Element
             $record->id = $this->id;
         }
 
-        $record->title = $this->title;
+        $record->content = $this->serializeFieldValues();
         $record->formId = $this->formId;
         $record->statusId = $this->statusId;
         $record->userId = $this->userId;
@@ -1096,17 +1106,13 @@ class Submission extends Element
 
     public function afterValidate(): void
     {
-        // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator`
-        // message for our custom error message. Might ask the Craft crew if there's a better way...
-        if (
-            Craft::$app->getIsInstalled() &&
-            $fieldLayout = $this->getFieldLayout()
-        ) {
+        // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator` message
+        // for our custom error message. Might ask the Craft crew if there's a better way to access private methods
+        if (Craft::$app->getIsInstalled() && $formLayout = $this->getFormLayout()) {
             $scenario = $this->getScenario();
-            $layoutElements = $fieldLayout->getVisibleCustomFieldElements($this);
+            $fields = $formLayout->getVisiblePageFields($this);
 
-            foreach ($layoutElements as $layoutElement) {
-                $field = $layoutElement->getField();
+            foreach ($fields as $field) {
                 $attribute = "field:$field->handle";
 
                 if (isset($this->_attributeNames) && !isset($this->_attributeNames[$attribute])) {
@@ -1116,7 +1122,7 @@ class Submission extends Element
                 $isEmpty = fn() => $field->isValueEmpty($this->getFieldValue($field->handle), $this);
 
                 // Add the required validator but with our custom message
-                if ($scenario === self::SCENARIO_LIVE && $layoutElement->required) {
+                if ($scenario === self::SCENARIO_LIVE && $field->required) {
                     (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $field->errorMessage]))
                         ->validateAttribute($this, $attribute);
                 }
@@ -1254,5 +1260,16 @@ class Submission extends Element
 
         $params = array_slice(func_get_args(), 1);
         return $reflectionMethod->invokeArgs($object, $params);
+    }
+
+
+    // Deprecated methods
+    // =========================================================================
+
+    public function getFieldLayout(): ?FieldLayout
+    {
+        Craft::$app->getDeprecator()->log(__METHOD__, 'Submissions’ `getFieldLayout()` method has been deprecated. Use `getPages()`, `getRows()` or `getFields()` instead.');
+
+        return $this->getFormLayout()?->getFieldLayout() ?? null;
     }
 }

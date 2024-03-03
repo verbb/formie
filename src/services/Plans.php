@@ -38,7 +38,7 @@ class Plans extends Component
     public const EVENT_ARCHIVE_PLAN = 'archivePlan';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_plans = null;

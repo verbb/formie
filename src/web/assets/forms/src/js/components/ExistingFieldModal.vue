@@ -1,5 +1,5 @@
 <template>
-    <div class="btn add icon dashed" @click="openModal">{{ t('formie', 'Add existing fields') }}</div>
+    <div class="btn dashed add icon" @click="openModal">{{ t('formie', 'Add existing fields') }}</div>
 
     <modal ref="modal" v-model="showModal" :modal-class="['fui-edit-field-modal', 'fui-existing-item-modal']" @click-outside="closeModal">
         <template #header>
@@ -104,7 +104,7 @@
 
                     <ul>
                         <li>
-                            <a @click.prevent="addSynced">
+                            <a href="#" @click.prevent="addSynced">
                                 {{ syncedText }}
                             </a>
                         </li>
@@ -122,6 +122,7 @@ import { mapState } from 'vuex';
 import { findIndex } from 'lodash-es';
 import { newId } from '@utils/string';
 import { clone } from '@utils/object';
+import { clonedFieldSettings } from '@utils/fields';
 
 import Modal from '@components/Modal.vue';
 import MenuBtn from '@components/MenuBtn.vue';
@@ -182,8 +183,8 @@ export default {
             } if (this.totalSelected > 0) {
                 return Craft.t('formie', 'Add {num} as new field', { num: this.totalSelected });
             }
-            return Craft.t('formie', 'Add as new field');
 
+            return Craft.t('formie', 'Add as new field');
         },
 
         syncedText() {
@@ -192,8 +193,8 @@ export default {
             } if (this.totalSelected > 0) {
                 return Craft.t('formie', 'Add {num} as synced field', { num: this.totalSelected });
             }
-            return Craft.t('formie', 'Add as synced field');
 
+            return Craft.t('formie', 'Add as synced field');
         },
     },
 
@@ -286,27 +287,10 @@ export default {
             });
         },
 
-        clonedFieldSettings(field) {
-            const settings = clone(field.settings);
-
-            // A little extra handling here for nested fields, where we don't want to include IDs
-            if (settings.rows && Array.isArray(settings.rows)) {
-                settings.rows.forEach((nestedRow) => {
-                    if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
-                        nestedRow.fields.forEach((nestedField) => {
-                            nestedField.id = null;
-                        });
-                    }
-                });
-            }
-
-            return settings;
-        },
-
         addFields() {
             for (const field of this.selectedFields) {
                 const config = {
-                    settings: this.clonedFieldSettings(field),
+                    settings: clonedFieldSettings(field),
                 };
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
@@ -316,7 +300,7 @@ export default {
                     pageIndex: this.pageIndex,
                     rowIndex: rowCount,
                     data: {
-                        id: newId(),
+                        __id: newId(),
                         fields: [
                             newField,
                         ],
@@ -332,12 +316,11 @@ export default {
         addSynced() {
             for (const field of this.selectedFields) {
                 const config = {
-                    id: field.id,
                     isSynced: true,
-                    settings: this.clonedFieldSettings(field),
+                    settings: clonedFieldSettings(field),
                 };
 
-                config.settings.isSynced = true;
+                config.settings.syncId = field.id;
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
                 const rowCount = this.form.pages[this.pageIndex].rows.length;
@@ -346,7 +329,7 @@ export default {
                     pageIndex: this.pageIndex,
                     rowIndex: rowCount,
                     data: {
-                        id: newId(),
+                        __id: newId(),
                         fields: [
                             newField,
                         ],

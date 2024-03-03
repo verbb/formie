@@ -1,7 +1,7 @@
 {% if value | length %}
     <div style="margin: 1em 0;">
         {% if not (renderOptions.hideName ?? false) %}
-            <strong>{{ field.name | t('formie') }}</strong>
+            <strong>{{ field.label | t('formie') }}</strong>
         {% endif %}
 
         {% set cellStyle = 'text-align: left; font-size: inherit; padding: 4px; border: 1px solid;' %}

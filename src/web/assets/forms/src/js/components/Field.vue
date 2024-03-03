@@ -120,6 +120,7 @@ import { cloneDeep, isEmpty } from 'lodash-es';
 import { generateHandle, getNextAvailableHandle, generateKebab, getDisplayName, newId } from '@utils/string';
 import { isSafari } from '@utils/browser';
 import { canDrag } from '@utils/drag-drop';
+import { clonedFieldSettings } from '@utils/fields';
 
 import FieldEditModal from '@components/FieldEditModal.vue';
 import FieldPreview from '@components/FieldPreview.vue';
@@ -281,9 +282,9 @@ export default {
 
     mounted() {
         // Testing
-        if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 5 && this.columnIndex == 0) {
-            // this.openModal();
-        }
+        // if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 0 && this.columnIndex == 0) {
+        //     this.openModal();
+        // }
     },
 
     beforeUnmount() {
@@ -370,32 +371,20 @@ export default {
             const maxHandleLength = this.$store.getters['formie/maxFieldHandleLength']();
             const newHandle = value.substr(0, maxHandleLength);
 
-            const newSettings = cloneDeep(this.field.settings);
-            newSettings.label = this.field.settings.label;
-            newSettings.handle = newHandle;
+            const config = {
+                settings: clonedFieldSettings(this.field),
+            };
 
-            const newField = this.$store.getters['fieldtypes/newField'](this.field.type, {
-                settings: newSettings,
-            });
+            config.settings.label = this.field.settings.label;
+            config.settings.handle = newHandle;
 
-            // Clone the old field rows.
-            if (this.field.hasNestedFields) {
-                newField.rows = cloneDeep(this.field.rows);
-                newField.rows.forEach((row) => {
-                    row.id = newId();
-
-                    row.fields.forEach((field) => {
-                        delete field.id;
-                        field.__id = newId();
-                    });
-                });
-            }
+            const newField = this.$store.getters['fieldtypes/newField'](this.field.type, config);
 
             // Add a new row after this one
             const payload = {
                 rowIndex: this.rowIndex + 1,
                 data: {
-                    id: newId(),
+                    __id: newId(),
                     fields: [
                         newField,
                     ],

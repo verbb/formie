@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\helpers;
 
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\Formie;
 
 use Craft;
@@ -172,7 +172,7 @@ class SchemaHelper
         ], $config);
     }
 
-    public static function labelPosition(FormFieldInterface $field, array $config = []): array
+    public static function labelPosition(FieldInterface $field, array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Label Position'),
@@ -208,7 +208,7 @@ class SchemaHelper
         ], $config));
     }
 
-    public static function instructionsPosition(FormFieldInterface $field, array $config = []): array
+    public static function instructionsPosition(FieldInterface $field, array $config = []): array
     {
         return self::selectField(array_merge([
             'label' => Craft::t('formie', 'Instructions Position'),
@@ -235,25 +235,25 @@ class SchemaHelper
         return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Container Attributes'),
             'help' => Craft::t('formie', 'Add attributes to be outputted on this field’s container.'),
-            'validation' => 'min:0',
+            'name' => 'containerAttributes',
+            'validation' => '',
+            'generateValue' => false,
             'newRowDefaults' => [
                 'label' => '',
                 'value' => '',
             ],
-            'generateValue' => false,
             'columns' => [
                 [
                     'type' => 'label',
-                    'label' => 'Name',
+                    'label' => Craft::t('formie', 'Name'),
                     'class' => 'singleline-cell textual',
                 ],
                 [
                     'type' => 'value',
-                    'label' => 'Value',
-                    'class' => 'singleline-cell textual',
+                    'label' => Craft::t('formie', 'Value'),
+                    'class' => 'code singleline-cell textual',
                 ],
             ],
-            'name' => 'containerAttributes',
         ], $config));
     }
 
@@ -262,25 +262,25 @@ class SchemaHelper
         return self::tableField(array_merge([
             'label' => Craft::t('formie', 'Input Attributes'),
             'help' => Craft::t('formie', 'Add attributes to be outputted on this field’s input.'),
-            'validation' => 'min:0',
+            'name' => 'inputAttributes',
+            'validation' => '',
+            'generateValue' => false,
             'newRowDefaults' => [
                 'label' => '',
                 'value' => '',
             ],
-            'generateValue' => false,
             'columns' => [
                 [
                     'type' => 'label',
-                    'label' => 'Name',
+                    'label' => Craft::t('formie', 'Name'),
                     'class' => 'singleline-cell textual',
                 ],
                 [
                     'type' => 'value',
-                    'label' => 'Value',
-                    'class' => 'singleline-cell textual',
+                    'label' => Craft::t('formie', 'Value'),
+                    'class' => 'code singleline-cell textual',
                 ],
             ],
-            'name' => 'inputAttributes',
         ], $config));
     }
 

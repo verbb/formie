@@ -20,7 +20,7 @@ use verbb\formie\integrations\emailmarketing;
 use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\payments;
 use verbb\formie\integrations\webhooks;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
@@ -572,7 +572,7 @@ class Integrations extends Component
         return ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
     }
 
-    public function getAllEnabledCaptchasForForm(Form $form, FormPage $page = null, bool $force = false): array
+    public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, bool $force = false): array
     {
         $captchas = [];
         $integrations = $this->getAllEnabledIntegrationsForForm($form);
@@ -608,7 +608,7 @@ class Integrations extends Component
         return $captchas;
     }
 
-    public function getCaptchasHtmlForForm(Form $form, FormPage $page = null): string
+    public function getCaptchasHtmlForForm(Form $form, FieldLayoutPage $page = null): string
     {
         $html = '';
 

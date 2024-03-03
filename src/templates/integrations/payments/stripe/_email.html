@@ -3,7 +3,7 @@
 
 <p>
     {% if not (options.hideName ?? false) %}
-        <strong>{{ field.name | t }}</strong><br>
+        <strong>{{ field.label | t }}</strong><br>
     {% endif %}
 
     <strong>{{ 'Provider' | t }}: </strong>{{ integration.displayName() }}<br>

@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\FormFieldLayout;
+use verbb\formie\models\FieldLayout;
 
 use Craft;
 use craft\base\ElementAction;
@@ -60,11 +60,6 @@ class DuplicateForm extends Duplicate
     {
         $elementsService = Craft::$app->getElements();
 
-        $formHandles = (new Query())
-            ->select(['handle'])
-            ->from('{{%formie_forms}}')
-            ->column();
-
         foreach ($elements as $element) {
             // Make sure this element wasn't already duplicated, which could
             // happen if it's the descendant of a previously duplicated element
@@ -73,78 +68,10 @@ class DuplicateForm extends Duplicate
                 continue;
             }
 
+            $attributes = $element->getDuplicateAttributes();
+
             try {
-                $form = new Form();
-
-                // Get all public properties and apply
-                Craft::configure($form, get_object_vars($element));
-
-                $form->id = null;
-                $form->uid = null;
-                $form->canonicalId = null;
-                $form->dateCreated = null;
-                $form->dateUpdated = null;
-                $form->title = Craft::t('formie', '{title} Copy', ['title' => $element->title]);
-                $form->handle = HandleHelper::getUniqueHandle($formHandles, $element->handle);
-                $form->settings = clone $element->settings;
-                $form->settings->setForm($form);
-
-                // Reset page data IDs
-                $pagesData = $element->getFormBuilderConfig()['pages'];
-
-                // Reset page data IDs
-                foreach ($pagesData as $pageKey => &$page) {
-                    unset($page['id'], $page['errors']);
-
-                    if (isset($page['rows'])) {
-                        foreach ($page['rows'] as $rowKey => &$row) {
-                            unset($row['id'], $row['errors']);
-
-                            if (isset($row['fields'])) {
-                                foreach ($row['fields'] as $fieldKey => &$field) {
-                                    unset($field['id'], $field['errors']);
-
-                                    // Handle Group/Repeater to do the same, but slightly different
-                                    if (isset($field['settings']['rows'])) {
-                                        foreach ($field['settings']['rows'] as $nestedRowKey => &$nestedRow) {
-                                            unset($nestedRow['id'], $nestedRow['errors']);
-
-                                            if (isset($nestedRow['fields'])) {
-                                                foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                    unset($nestedField['id'], $nestedField['errors']);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $fieldLayout = new FormFieldLayout(['pages' => $pagesData]);
-                $fieldLayout->id = null;
-
-                $form->setFormFieldLayout($fieldLayout);
-
-                $notifications = [];
-
-                foreach ($element->getNotifications() as $notification) {
-                    $newNotification = clone $notification;
-                    $newNotification->id = null;
-                    $newNotification->formId = null;
-                    $newNotification->uid = null;
-
-                    $notifications[] = $newNotification;
-                }
-
-                $form->setNotifications($notifications);
-
-                $success = Craft::$app->getElements()->saveElement($form);
-
-                if (!$success) {
-                    $failCount++;
-                }
+                $duplicate = $elementsService->duplicateElement($element, $attributes);
             } catch (Throwable) {
                 // Validation error
                 $failCount++;

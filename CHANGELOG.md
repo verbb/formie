@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.0
+## 3.0.0-beta.1
 
 ### Breaking Changes
 - Repeater and Group fields values now no longer use elements, just plain arrays. This brings several performance improvements and simplification to these fields.
@@ -32,11 +32,18 @@
 - Added Table node to rich text editor settings (used for numerous form, field and notification settings).
 - Added the ability to set the control panel or public URL for element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants).
 - Added the ability to set the label or value for options fields (Checkboxes, Dropdown, Radio).
+- Added `verbb\formie\base\CosmeticField` class.
+- Added `verbb\formie\base\ElementField` class.
+- Added `verbb\formie\base\MultiNestedField` class.
+- Added `verbb\formie\base\OptionsField` class.
+- Added `verbb\formie\base\SingleNestedField` class.
+- Added `verbb\formie\base\SubField` class.
+
 
 ### Changed
 - Compatible with Craft `5.0.0-beta.1`.
 - Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
-- Submission content now no longer has their own content tables, thanks to Craft 5 content changes. Content is now in a single column, in your `elements_sites` database table.
+- Submission content no longer have their own content tables. Content is now in a single `content` column, in your `formie_submissions` database table.
 - Submissions now have Create/Save/Delete user permissions.
 - Submissions now have separate view and manage user permissions.
 - Sent Notifications now have “All” or per-form user permissions for View/Resend/Delete.
@@ -82,6 +89,7 @@
 - Removed `verbb\formie\services\NestedFields` class.
 - Removed `verbb\formie\services\Syncs` class.
 - Removed `verbb\formie\services\Tokens` class.
+- Removed `formie/gc/delete-orphaned-fields` console command.
 - Removed `formie/gc/prune-syncs` console command.
 - Removed `formie/gc/prune-content-tables` console command.
 - Removed `formie/gc/prune-content-table-fields` console command.
@@ -93,6 +101,11 @@
 - Removed `Categories:productsQuery` variable for Product element field templates.
 - Removed `Categories:usersQuery` variable for User element field templates.
 - Removed `Categories:variantsQuery` variable for Variant element field templates.
+
+### Deprecated
+- `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
+- `Field::name` attribute has been deprecated. Use `Field::label` instead.
+- `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
 ## 2.1.1 - 2023-12-29
 

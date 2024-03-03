@@ -107,7 +107,7 @@ abstract class EmailMarketing extends Integration
         return $event->isValid;
     }
 
-    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         return null;
     }

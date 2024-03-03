@@ -26,7 +26,8 @@ class Install extends Migration
     public function safeUp(): bool
     {
         // Ensure that the Auth module kicks off setting up tables
-        Auth::$plugin->migrator->up();
+        // Use `Auth::getInstance()` not `Auth::$plugin` as it doesn't seem to work well in migrations
+        Auth::getInstance()->migrator->up();
 
         $this->createTables();
         $this->createIndexes();
@@ -61,12 +62,60 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
+        $this->archiveTableIfExists('{{%formie_fieldlayout_pages}}');
+        $this->createTable('{{%formie_fieldlayout_pages}}', [
+            'id' => $this->primaryKey(),
+            'layoutId' => $this->integer()->notNull(),
+            'label' => $this->text()->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'settings' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_fieldlayout_rows}}');
+        $this->createTable('{{%formie_fieldlayout_rows}}', [
+            'id' => $this->primaryKey(),
+            'layoutId' => $this->integer()->notNull(),
+            'pageId' => $this->integer()->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_fieldlayouts}}');
+        $this->createTable('{{%formie_fieldlayouts}}', [
+            'id' => $this->primaryKey(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->archiveTableIfExists('{{%formie_fields}}');
+        $this->createTable('{{%formie_fields}}', [
+            'id' => $this->primaryKey(),
+            'layoutId' => $this->integer()->notNull(),
+            'pageId' => $this->integer()->notNull(),
+            'rowId' => $this->integer()->notNull(),
+            'syncId' => $this->integer(),
+            'label' => $this->text()->notNull(),
+            'handle' => $this->string(64)->notNull(),
+            'type' => $this->string()->notNull(),
+            'sortOrder' => $this->smallInteger()->unsigned(),
+            'settings' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
         $this->archiveTableIfExists('{{%formie_forms}}');
         $this->createTable('{{%formie_forms}}', [
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
-            'formFieldLayout' => $this->mediumText(),
             'settings' => $this->mediumText(),
+            'layoutId' => $this->integer(),
             'templateId' => $this->integer(),
             'submitActionEntryId' => $this->integer(),
             'submitActionEntrySiteId' => $this->integer(),
@@ -118,26 +167,6 @@ class Install extends Migration
             'settings' => $this->text(),
             'cache' => $this->longText(),
             'dateDeleted' => $this->dateTime(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_newlayout}}');
-        $this->createTable('{{%formie_newlayout}}', [
-            'id' => $this->primaryKey(),
-            'formId' => $this->integer()->notNull(),
-            'layoutConfig' => $this->text(),
-            'dateCreated' => $this->dateTime()->notNull(),
-            'dateUpdated' => $this->dateTime()->notNull(),
-            'uid' => $this->uid(),
-        ]);
-
-        $this->archiveTableIfExists('{{%formie_newnestedlayout}}');
-        $this->createTable('{{%formie_newnestedlayout}}', [
-            'id' => $this->primaryKey(),
-            'fieldId' => $this->integer()->notNull(),
-            'layoutConfig' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -324,7 +353,7 @@ class Install extends Migration
         $this->archiveTableIfExists('{{%formie_submissions}}');
         $this->createTable('{{%formie_submissions}}', [
             'id' => $this->primaryKey(),
-            'title' => $this->string(255)->notNull(),
+            'content' => $this->json(),
             'formId' => $this->integer()->notNull(),
             'statusId' => $this->integer(),
             'userId' => $this->integer(),
@@ -342,6 +371,15 @@ class Install extends Migration
 
     public function createIndexes(): void
     {
+        $this->createIndex(null, '{{%formie_fieldlayout_pages}}', 'layoutId', false);
+        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'layoutId', false);
+        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'pageId', false);
+        $this->createIndex(null, '{{%formie_fields}}', 'layoutId', false);
+        $this->createIndex(null, '{{%formie_fields}}', 'pageId', false);
+        $this->createIndex(null, '{{%formie_fields}}', 'rowId', false);
+        $this->createIndex(null, '{{%formie_fields}}', 'syncId', false);
+        $this->createIndex(null, '{{%formie_fields}}', 'handle', false);
+        $this->createIndex(null, '{{%formie_forms}}', 'layoutId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'templateId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'defaultStatusId', false);
         $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntryId', false);
@@ -376,7 +414,15 @@ class Install extends Migration
 
     public function addForeignKeys(): void
     {
+        $this->addForeignKey(null, '{{%formie_fieldlayout_pages}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fields}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fields}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fields}}', ['rowId'], '{{%formie_fieldlayout_rows}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_fields}}', ['syncId'], '{{%formie_fields}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, '{{%formie_forms}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_forms}}', ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
@@ -406,13 +452,16 @@ class Install extends Migration
         $this->addForeignKey(null, '{{%formie_submissions}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['statusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
         $this->addForeignKey(null, '{{%formie_submissions}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_syncfields}}', ['syncId'], '{{%formie_syncs}}', ['id'], 'CASCADE', null);
     }
 
     public function removeTables(): void
     {
         $tables = [
             'formie_emailtemplates',
+            'formie_fieldlayout_pages',
+            'formie_fieldlayout_rows',
+            'formie_fieldlayouts',
+            'formie_fields',
             'formie_forms',
             'formie_formtemplates',
             'formie_integrations',
@@ -493,6 +542,10 @@ class Install extends Migration
     {
         $tables = [
             'formie_emailtemplates',
+            'formie_fieldlayout_pages',
+            'formie_fieldlayout_rows',
+            'formie_fieldlayouts',
+            'formie_fields',
             'formie_forms',
             'formie_formtemplates',
             'formie_integrations',

@@ -3,7 +3,7 @@
 
 <div style="margin: 1em 0;">
     {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.name | t('formie') }}</strong>
+        <strong>{{ field.label | t('formie') }}</strong>
     {% endif %}
 
     {% if value %}
@@ -13,7 +13,7 @@
                     {# Update the namespace for the field #}
                     {% do field.setParentField(groupField) %}
 
-                    {% set fieldValue = (submission ? submission.getFieldValue(field.fieldKey) : field.normalizeValue(null)) %}
+                    {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, null) %}
 
                     {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                         hideName: true,
@@ -23,7 +23,7 @@
                         <tr>
                             <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
                                 {% if field.hasLabel %}
-                                    {{ field.name | t('formie') }}
+                                    {{ field.label | t('formie') }}
                                 {% endif %}
                             </th>
 

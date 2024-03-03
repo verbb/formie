@@ -43,7 +43,7 @@ class Subscriptions extends Component
     public const EVENT_RECEIVE_SUBSCRIPTION_PAYMENT = 'receiveSubscriptionPayment';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_subscriptions = null;

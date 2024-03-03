@@ -87,10 +87,6 @@ class FormSettings extends Model
     // Private (template-only)
     public bool $disableCaptchas = false;
 
-
-    // Private Properties
-    // =========================================================================
-
     private ?Form $_form = null;
 
 

@@ -26,8 +26,8 @@
     ],
     "require": {
         "php": "^8.2",
-        "commerceguys/addressing": "^1.2",
-        "craftcms/cms": "^5.0.0-alpha.1",
+        "commerceguys/addressing": "^2.1.1",
+        "craftcms/cms": "^5.0.0-beta.1",
         "dompdf/dompdf": "^1.0.2 || ^2.0.3",
         "ezyang/htmlpurifier": "^4.13",
         "fakerphp/faker": "^1.9.1",

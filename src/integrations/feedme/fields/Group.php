@@ -6,7 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
-use verbb\formie\fields\formfields\Group as GroupField;
+use verbb\formie\fields\Group as GroupField;
 
 class Group extends Field implements FieldInterface
 {

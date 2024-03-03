@@ -6,7 +6,7 @@ use craft\feedme\base\FieldInterface;
 use craft\feedme\helpers\DataHelper;
 
 use Cake\Utility\Hash;
-use verbb\formie\fields\formfields\Repeater as RepeaterField;
+use verbb\formie\fields\Repeater as RepeaterField;
 
 class Repeater extends Field implements FieldInterface
 {

@@ -35,7 +35,7 @@
                             </template>
                         </draggable>
 
-                        <button type="button" class="btn add icon" @click.prevent="newPage">{{ t('formie', 'New Page') }}</button>
+                        <button type="button" class="btn dashed add icon" @click.prevent="newPage">{{ t('formie', 'New Page') }}</button>
                     </div>
 
                     <div class="fui-pages-pane">

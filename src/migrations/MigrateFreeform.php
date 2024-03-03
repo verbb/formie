@@ -2,17 +2,17 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
 use verbb\formie\events\ModifyMigrationFormEvent;
 use verbb\formie\events\ModifyMigrationNotificationEvent;
 use verbb\formie\events\ModifyMigrationSubmissionEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
@@ -120,7 +120,7 @@ class MigrateFreeform extends Migration
             $form = $this->_form = $event->newForm;
 
             if ($fieldLayout = $this->_buildFieldLayout($freeformForm)) {
-                $form->setFormFieldLayout($fieldLayout);
+                $form->setFieldLayout($fieldLayout);
             }
 
             if (!$event->isValid) {
@@ -406,10 +406,10 @@ class MigrateFreeform extends Migration
 
         $pages = [];
         $fields = [];
-        $layout = $form->getFormFieldLayout();
+        $layout = $form->getFieldLayout();
 
         foreach ($layout->getPages() as $pageIndex => $page) {
-            $newPage = new FormPage();
+            $newPage = new FieldLayoutPage();
             $newPage->name = $page->getLabel();
             $newPage->sortOrder = '' . $pageIndex;
 
@@ -528,7 +528,7 @@ class MigrateFreeform extends Migration
         return $fieldLayout;
     }
 
-    private function _mapField(FieldInterface $field): ?FormFieldInterface
+    private function _mapField(FieldInterface $field): ?FieldInterface
     {
         switch (get_class($field)) {
             case freeformfields\CheckboxField::class:
@@ -834,7 +834,7 @@ class MigrateFreeform extends Migration
         return $newHandle;
     }
 
-    private function _applyFieldDefaults(FormFieldInterface $field): void
+    private function _applyFieldDefaults(FieldInterface $field): void
     {
         $defaults = $field->getAllFieldDefaults();
         Craft::configure($field, $defaults);

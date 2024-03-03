@@ -5,9 +5,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields\formfields\MultiLineText;
-use verbb\formie\fields\formfields\SingleLineText;
-use verbb\formie\fields\formfields\Table;
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\fields\SingleLineText;
+use verbb\formie\fields\Table;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -15,7 +15,7 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\FieldInterface;
+use craft\base\FieldInterface as CraftFieldInterface;
 use craft\fields;
 use craft\helpers\Html;
 use craft\helpers\UrlHelper;
@@ -83,7 +83,7 @@ abstract class Element extends Integration
             }
 
             // Element fields should map 1-for-1
-            if ($event->field instanceof fields\BaseRelationField) {
+            if ($event->field instanceof ElementFieldInterface) {
                 $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
             }
 
@@ -180,7 +180,7 @@ abstract class Element extends Integration
         return $fieldTypeMap[$fieldClass] ?? IntegrationField::TYPE_STRING;
     }
 
-    protected function fieldCanBeUniqueId(FieldInterface $field): bool
+    protected function fieldCanBeUniqueId(CraftFieldInterface $field): bool
     {
         $type = $field::class;
 

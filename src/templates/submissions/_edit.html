@@ -105,15 +105,13 @@
 
         <div id="fields">
             {% for page in submission.getPages() %}
-                <div id="{{ page.handle }}"{% if not loop.first %} class="hidden"{% endif %}>
+                <div id="page-{{ page.id }}"{% if not loop.first %} class="hidden"{% endif %}>
                     {% namespace 'fields' %}
                         {% for row in page.getRows() %}
                             {% for field in row.getFields() %}
-                                {% include '_includes/field' with {
-                                    field: field,
-                                    element: submission,
-                                    required: field.required,
-                                } %}
+                                {% set value = submission.getFieldValue(field.fieldKey) %}
+
+                                {{ field.getCpInputHtml(value, submission) }}
                             {% endfor %}
                         {% endfor %}
                     {% endnamespace %}

@@ -39,14 +39,4 @@ class GcController extends Controller
 
         return ExitCode::OK;
     }
-
-    /**
-     * Removes any fields that belong to a form that no longer exists
-     */
-    public function actionDeleteOrphanedFields(): int
-    {
-        Formie::$plugin->getFields()->deleteOrphanedFields($this);
-
-        return ExitCode::OK;
-    }
 }

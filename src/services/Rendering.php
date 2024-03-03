@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\services;
 
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
 use verbb\formie\events\ModifyRenderEvent;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
 
@@ -132,7 +132,7 @@ class Rendering extends Component
         return $output;
     }
 
-    public function renderPage(Form|string|null $form, FormPage|null $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -162,7 +162,7 @@ class Rendering extends Component
         return TemplateHelper::raw($event->html);
     }
 
-    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
+    public function renderField(Form|string|null $form, FieldInterface|string $field, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -185,7 +185,7 @@ class Rendering extends Component
         // Get the active submission.
         $element = $form->getCurrentSubmission();
 
-        /* @var FormField $field */
+        /* @var Field $field */
         $html = $form->renderTemplate('field', [
             'form' => $form,
             'field' => $field,

@@ -36,7 +36,7 @@ class Statuses extends Component
     public const CONFIG_STATUSES_KEY = 'formie.statuses';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_statuses = null;

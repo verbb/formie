@@ -60,6 +60,7 @@ use craft\helpers\Cp;
 use craft\queue\Queue;
 use craft\services\Dashboard;
 use craft\services\Elements;
+use craft\services\ElementSources;
 use craft\services\Fields;
 use craft\services\Gc;
 use craft\services\Gql;
@@ -90,8 +91,8 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '3.0.1';
-    // public string $minVersionRequired = '2.1.2';
+    public string $schemaVersion = '3.1.0';
+    public string $minVersionRequired = '2.1.5';
 
 
     // Traits
@@ -409,9 +410,6 @@ class Formie extends Plugin
     private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
-            // Delete fields with no form.
-            $this->getFields()->deleteOrphanedFields();
-
             // Delete incomplete submissions older than the configured interval.
             $this->getSubmissions()->pruneIncompleteSubmissions();
 
@@ -506,6 +504,7 @@ class Formie extends Plugin
         Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
+        Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
 
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Submission::class, 'defineElementChipHtml']);
 

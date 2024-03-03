@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\RadioButtons as FeedMeRadioButtons;
-use verbb\formie\fields\formfields\Radio as RadioField;
+use verbb\formie\fields\Radio as RadioField;
 
 class Radio extends FeedMeRadioButtons
 {

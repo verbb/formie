@@ -80,7 +80,7 @@
                     {% set fieldClass = craft.feedme.fields.getRegisteredField(className(field)) %}
                     {% set template = fieldClass.getMappingTemplate() %}
 
-                    {% set variables = { name: field.name, handle: field.handle, feed: feed, feedData: feedData, field: field, fieldClass: fieldClass } %}
+                    {% set variables = { name: field.label, handle: field.handle, feed: feed, feedData: feedData, field: field, fieldClass: fieldClass } %}
                     
                     {% include template ignore missing with variables only %}
                 {% endfor %}
@@ -100,7 +100,7 @@
 {% for tab in formTabs %}
     {% for layoutField in tab.getElements() | filter(e => e is instance of('craft\\fieldlayoutelements\\CustomField')) %}
         {% set field = layoutField.getField() %}
-        {% set uniqueFields = uniqueFields | merge([{ name: field.name, handle: field.handle, type: className(field) }]) %}
+        {% set uniqueFields = uniqueFields | merge([{ name: field.label, handle: field.handle, type: className(field) }]) %}
     {% endfor %}
 {% endfor %}
 
@@ -109,7 +109,7 @@
         {% if field and craft.feedme.fieldCanBeUniqueId(field) %}
             {{ forms.checkboxField({
                 name: 'fieldUnique[' ~ field.handle ~ ']',
-                label: field.name,
+                label: field.label,
                 checked: feed.fieldUnique[field.handle] ?? '',
             }) }}
         {% endif %}

@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Assets as FeedMeAssets;
-use verbb\formie\fields\formfields\FileUpload as FileUploadField;
+use verbb\formie\fields\FileUpload as FileUploadField;
 
 class FileUpload extends FeedMeAssets
 {

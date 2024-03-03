@@ -2,8 +2,8 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\helpers\ArrayHelper;
@@ -26,7 +26,7 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-abstract class OptionsField extends FormField implements PreviewableFieldInterface
+abstract class OptionsField extends Field implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -41,10 +41,10 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
     // =========================================================================
 
     public bool $multi = false;
-    public bool $optgroups = false;
     public ?string $layout = null;
-    public bool $hasMultiNamespace = false;
     public array $options = [];
+    public bool $optgroups = false;
+    public bool $hasMultiNamespace = false;
 
 
     // Public Methods
@@ -154,7 +154,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
             $value = [];
         } else if ($value === '__BLANK__') {
             $value = '';
-        } else if ($value === null && $this->isFresh($element)) {
+        } else if ($value === null) {
             $value = $this->defaultValue();
         }
 
@@ -162,13 +162,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         $selectedValues = [];
 
         foreach ((array)$value as $val) {
-            $val = (string)$val;
-
-            if (str_starts_with($val, 'base64:')) {
-                $val = base64_decode(StringHelper::removeLeft($val, 'base64:'));
-            }
-
-            $selectedValues[] = $val;
+            $selectedValues[] = (string)$val;
         }
 
         $selectedBlankOption = false;
@@ -176,7 +170,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         $optionValues = [];
         $optionLabels = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->options as $option) {
             if (!isset($option['optgroup'])) {
                 $selected = $this->isOptionSelected($option, $value, $selectedValues, $selectedBlankOption);
                 $options[] = new OptionData($option['label'], $option['value'], $selected, true);
@@ -234,7 +228,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         // Get all of the acceptable values
         $range = [];
 
-        foreach ($this->options() as $option) {
+        foreach ($this->options as $option) {
             if (!isset($option['optgroup'])) {
                 // Cast the option value to a string in case it is an integer
                 $range[] = (string)$option['value'];
@@ -246,13 +240,11 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
                 'in',
                 'range' => $range,
                 'allowArray' => $this->multi,
-                // Don't allow saving invalid blank values via Selectize
-                'skipOnEmpty' => !($this instanceof Dropdown && Craft::$app->getRequest()->getIsCpRequest()),
             ],
         ];
     }
 
-    public function isValueEmpty(mixed $value, ElementInterface $element): bool
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         /** @var MultiOptionsFieldData|SingleOptionFieldData $value */
         if ($value instanceof SingleOptionFieldData) {
@@ -381,51 +373,24 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         return parent::setPrePopulatedValue($value);
     }
 
-    protected function options(): array
-    {
-        return $this->options ?? [];
-    }
-
     protected function isOptionSelected(array $option, mixed $value, array &$selectedValues, bool &$selectedBlankOption): bool
     {
         return in_array($option['value'], $selectedValues, true);
     }
 
-    protected function searchKeywords(mixed $value, ElementInterface $element): string
+    protected function translatedOptions(): array
     {
-        $keywords = [];
-
-        if ($this->multi) {
-            /** @var MultiOptionsFieldData|OptionData[] $value */
-            foreach ($value as $option) {
-                $keywords[] = $option->value;
-                $keywords[] = $option->label;
-            }
-        } else {
-            /** @var SingleOptionFieldData $value */
-            if ($value->value !== null) {
-                $keywords[] = $value->value;
-                $keywords[] = $value->label;
-            }
-        }
-
-        return implode(' ', $keywords);
-    }
-
-    protected function translatedOptions(bool $encode = false, mixed $value = null, ?ElementInterface $element = null): array
-    {
-        $options = $this->options();
         $translatedOptions = [];
 
-        foreach ($options as $option) {
+        foreach ($this->options as $option) {
             if (isset($option['optgroup'])) {
                 $translatedOptions[] = [
-                    'optgroup' => Craft::t('site', $option['optgroup']),
+                    'optgroup' => Craft::t('formie', $option['optgroup']),
                 ];
             } else {
                 $translatedOptions[] = [
-                    'label' => Craft::t('site', $option['label']),
-                    'value' => $encode ? $this->encodeValue($option['value']) : $option['value'],
+                    'label' => Craft::t('formie', $option['label']),
+                    'value' => $option['value'],
                 ];
             }
         }
@@ -433,31 +398,12 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
         return $translatedOptions;
     }
 
-    protected function encodeValue(OptionData|MultiOptionsFieldData|string|null $value): string|array|null
-    {
-        if ($value instanceof MultiOptionsFieldData) {
-            /** @var OptionData[] $options */
-            $options = (array)$value;
-            return array_map(fn(OptionData $value) => $this->encodeValue($value), $options);
-        }
-
-        if ($value instanceof OptionData) {
-            $value = $value->value;
-        }
-
-        if ($value === null || $value === '') {
-            return $value;
-        }
-
-        return sprintf('base64:%s', base64_encode($value));
-    }
-
     protected function defaultValue(): array|string|null
     {
         if ($this->multi) {
             $defaultValues = [];
 
-            foreach ($this->options() as $option) {
+            foreach ($this->options as $option) {
                 if (!empty($option['default'])) {
                     $defaultValues[] = $option['value'];
                 }
@@ -466,7 +412,7 @@ abstract class OptionsField extends FormField implements PreviewableFieldInterfa
             return $defaultValues;
         }
 
-        foreach ($this->options() as $option) {
+        foreach ($this->options as $option) {
             if (!empty($option['default'])) {
                 return $option['value'];
             }

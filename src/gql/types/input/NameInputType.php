@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
-use verbb\formie\fields\formfields\Name as NameField;
+use verbb\formie\fields\Name as NameField;
 use verbb\formie\models\Name as NameModel;
 
 use craft\gql\GqlEntityRegistry;

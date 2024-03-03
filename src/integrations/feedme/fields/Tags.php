@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\Tags as FeedMeTags;
-use verbb\formie\fields\formfields\Tags as TagsField;
+use verbb\formie\fields\Tags as TagsField;
 
 class Tags extends FeedMeTags
 {

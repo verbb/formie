@@ -11,7 +11,7 @@ use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SubmissionSpamCheckEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
@@ -23,10 +23,12 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
 use Craft;
+use craft\base\PreviewableFieldInterface;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
+use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\Console;
@@ -67,6 +69,21 @@ class Submissions extends Component
     public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
     {
         return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
+    }
+
+    public function defineSourceTableAttributes(DefineSourceTableAttributesEvent $event): void
+    {
+        if ($event->elementType !== Submission::class) {
+            return;
+        }
+
+        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
+            foreach ($form->getFields() as $field) {
+                if ($field instanceof PreviewableFieldInterface) {
+                    $event->attributes["field:{$field->handle}"] = ['label' => $field->label];
+                }
+            }
+        }
     }
 
     public function onBeforeSubmission(Submission $submission, string $submitAction = 'submit'): void
@@ -233,7 +250,7 @@ class Submissions extends Component
     public function processPayments(Submission $submission): bool
     {
         foreach ($submission->getFields() as $field) {
-            if ($field instanceof formfields\Payment) {
+            if ($field instanceof formiefields\Payment) {
                 // No need to proceed further if field is conditionally hidden
                 if ($field->isConditionallyHidden($submission)) {
                     continue;
@@ -576,12 +593,12 @@ class Submissions extends Component
 
         foreach ($fields as $key => $field) {
             switch (get_class($field)) {
-                case formfields\Categories::class:
-                case formfields\Entries::class:
-                case formfields\Products::class:
-                case formfields\Tags::class:
-                case formfields\Users::class:
-                case formfields\Variants::class:
+                case formiefields\Categories::class:
+                case formiefields\Entries::class:
+                case formiefields\Products::class:
+                case formiefields\Tags::class:
+                case formiefields\Users::class:
+                case formiefields\Variants::class:
                     $query = $field->getElementsQuery()->orderBy('RAND()');
 
                     // Check if we should limit to 1 if a (single) dropdown or radio
@@ -592,7 +609,7 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $query;
 
                     break;
-                case formfields\Address::class:
+                case formiefields\Address::class:
                     $fieldContent[$field->handle] = new Address([
                         'address1' => $faker->address,
                         'address2' => $faker->buildingNumber,
@@ -604,16 +621,16 @@ class Submissions extends Component
                     ]);
 
                     break;
-                case formfields\Checkboxes::class:
+                case formiefields\Checkboxes::class:
                     $values = $faker->randomElement($field->options)['value'] ?? '';
                     $fieldContent[$field->handle] = [$values];
 
                     break;
-                case formfields\Date::class:
+                case formiefields\Date::class:
                     $fieldContent[$field->handle] = $faker->dateTime();
 
                     break;
-                case formfields\Dropdown::class:
+                case formiefields\Dropdown::class:
                     $values = $faker->randomElement($field->options)['value'] ?? '';
 
                     if ($field->multi) {
@@ -623,30 +640,30 @@ class Submissions extends Component
                     $fieldContent[$field->handle] = $values;
 
                     break;
-                case formfields\Email::class:
+                case formiefields\Email::class:
                     $fieldContent[$field->handle] = $faker->email;
 
                     break;
-                case formfields\FileUpload::class:
+                case formiefields\FileUpload::class:
                     $fieldContent[$field->handle] = Asset::find()->limit(1);
 
                     break;
-                case formfields\Group::class:
+                case formiefields\Group::class:
                     $fieldContent[$field->handle] = $this->getFakeFieldContent($field->getFields());
 
                     break;
-                case formfields\Repeater::class:
+                case formiefields\Repeater::class:
                     $fieldContent[$field->handle] = [
                         $this->getFakeFieldContent($field->getFields()),
                         $this->getFakeFieldContent($field->getFields()),
                     ];
 
                     break;
-                case formfields\MultiLineText::class:
+                case formiefields\MultiLineText::class:
                     $fieldContent[$field->handle] = $faker->realText;
 
                     break;
-                case formfields\Name::class:
+                case formiefields\Name::class:
                     if ($field->useMultipleFields) {
                         $fieldContent[$field->handle] = new Name([
                             'prefix' => $faker->title,
@@ -659,16 +676,16 @@ class Submissions extends Component
                     }
 
                     break;
-                case formfields\Number::class:
+                case formiefields\Number::class:
                     $fieldContent[$field->handle] = $faker->randomDigit;
 
                     break;
-                case formfields\Payment::class:
+                case formiefields\Payment::class:
                     // Payment fields can't really be previewed without real payment data
                     $fieldContent[$field->handle] = [];
 
                     break;
-                case formfields\Phone::class:
+                case formiefields\Phone::class:
                     if ($field->countryEnabled) {
                         $number = $faker->e164PhoneNumber;
 
@@ -684,11 +701,11 @@ class Submissions extends Component
                     }
 
                     break;
-                case formfields\Radio::class:
+                case formiefields\Radio::class:
                     $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
 
                     break;
-                case formfields\Recipients::class:
+                case formiefields\Recipients::class:
                     if ($field->displayType === 'checkboxes') {
                         $values = $faker->randomElement($field->options)['value'] ?? '';
                         $fieldContent[$field->handle] = [$values];

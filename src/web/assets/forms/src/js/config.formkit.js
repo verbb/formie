@@ -15,7 +15,7 @@ import MultiSelectInput from '@formkit-components/inputs/MultiSelectInput.vue';
 import NotificationRecipientsInput from '@formkit-components/inputs/NotificationRecipientsInput.vue';
 import RichTextInput from '@formkit-components/inputs/RichTextInput.vue';
 import StaticTableInput from '@formkit-components/inputs/StaticTableInput.vue';
-import TableInput from '@formkit-components/inputs/TableInput.vue';
+import TableInput from '@formkit-components/inputs/TableInput';
 import SelectInput from '@formkit-components/inputs/SelectInput';
 import VariableTextInput from '@formkit-components/inputs/VariableTextInput.vue';
 
@@ -28,6 +28,7 @@ import ToggleBlock from '@formkit-components/ToggleBlock.vue';
 // FormKit Validation Rules
 import emailOrVariable from '@formkit-components/rules/emailOrVariable';
 import minBlock from '@formkit-components/rules/minBlock';
+import required from '@formkit-components/rules/required';
 import requiredIf from '@formkit-components/rules/requiredIf';
 import uniqueHandle from '@formkit-components/rules/uniqueHandle';
 import requiredRichText from '@formkit-components/rules/requiredRichText';
@@ -45,11 +46,12 @@ export default defaultConfig({
     rules: {
         emailOrVariable,
         minBlock,
+        required,
+        requiredDate,
         requiredIf,
+        requiredRichText,
         requiredTableCellLabel,
         requiredTableCellValue,
-        requiredRichText,
-        requiredDate,
         uniqueHandle,
         uniqueTableCellLabel,
         uniqueTableCellValue,
@@ -58,27 +60,11 @@ export default defaultConfig({
     messages: {
         en: {
             validation: {
-                requiredIf({ name }) {
-                    return Craft.t('formie', '{name} is required.', { name });
+                minBlock({ name }) {
+                    return Craft.t('formie', 'At least one field is required.');
                 },
 
-                requiredTableCellLabel(options) {
-                    const column = options.node.context.attrs.columns.find((item) => {
-                        return item.type === 'label';
-                    });
-
-                    return Craft.t('formie', '{name} is required.', { name: column.label });
-                },
-
-                requiredTableCellValue(options) {
-                    const column = options.node.context.attrs.columns.find((item) => {
-                        return item.type === 'value';
-                    });
-
-                    return Craft.t('formie', '{name} is required.', { name: column.label });
-                },
-
-                requiredRichText({ name }) {
+                required({ name }) {
                     return Craft.t('formie', '{name} is required.', { name });
                 },
 
@@ -86,8 +72,28 @@ export default defaultConfig({
                     return Craft.t('formie', '{name} is required.', { name });
                 },
 
-                minBlock({ name }) {
-                    return Craft.t('formie', 'At least one field is required.');
+                requiredIf({ name }) {
+                    return Craft.t('formie', '{name} is required.', { name });
+                },
+
+                requiredRichText({ name }) {
+                    return Craft.t('formie', '{name} is required.', { name });
+                },
+
+                requiredTableCellLabel(options) {
+                    const column = options.node.context.columns.find((item) => {
+                        return item.type === 'label';
+                    });
+
+                    return Craft.t('formie', '{name} is required.', { name: column.label });
+                },
+
+                requiredTableCellValue(options) {
+                    const column = options.node.context.columns.find((item) => {
+                        return item.type === 'value';
+                    });
+
+                    return Craft.t('formie', '{name} is required.', { name: column.label });
                 },
 
                 uniqueHandle({ name }) {
@@ -95,7 +101,7 @@ export default defaultConfig({
                 },
 
                 uniqueTableCellLabel(options) {
-                    const column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.columns.find((item) => {
                         return item.type === 'label';
                     });
 
@@ -103,7 +109,7 @@ export default defaultConfig({
                 },
 
                 uniqueTableCellValue(options) {
-                    const column = options.node.context.attrs.columns.find((item) => {
+                    const column = options.node.context.columns.find((item) => {
                         return item.type === 'value';
                     });
 
@@ -144,14 +150,7 @@ export default defaultConfig({
         notificationRecipients: createInput(NotificationRecipientsInput),
         richText: createInput(RichTextInput),
         staticTable: createInput(StaticTableInput),
-        table: createInput(TableInput, {
-            config: {
-                // Allows us to store which labels/value cells have errors
-                // so we can highlight individual ones
-                labelsWithError: [],
-                valuesWithError: [],
-            },
-        }),
+        table: TableInput,
         select: SelectInput,
         variableText: createInput(VariableTextInput),
 

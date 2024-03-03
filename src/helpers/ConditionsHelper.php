@@ -2,11 +2,12 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ElementFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Hidden;
-use verbb\formie\fields\formfields\Group;
-use verbb\formie\fields\formfields\Password;
-use verbb\formie\fields\formfields\Recipients;
+use verbb\formie\fields\Hidden;
+use verbb\formie\fields\Group;
+use verbb\formie\fields\Password;
+use verbb\formie\fields\Recipients;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 
@@ -196,11 +197,11 @@ class ConditionsHelper
                 continue;
             }
 
-            $value = $submission->getFieldValue($field->handle);
+            $value = $submission->getFieldValue($field->fieldKey);
 
             // Special-handling for element fields which for integrations contain their titles
             // (or field setting labels), but we want IDs.
-            if ($field instanceof BaseRelationField) {
+            if ($field instanceof ElementFieldInterface) {
                 $value = $field->serializeValue($value, $submission);
             } else if ($field instanceof Password) {
                 // Don't mess around with passwords for conditions. We don't really "know" the value

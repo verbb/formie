@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\CommerceVariants as FeedMeVariants;
-use verbb\formie\fields\formfields\Variants as VariantsField;
+use verbb\formie\fields\Variants as VariantsField;
 
 class Variants extends FeedMeVariants
 {

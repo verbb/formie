@@ -23,7 +23,7 @@
                     {% endif %}
 
                     {{ forms.selectField({
-                        label: subField.name,
+                        label: subfield.label,
                         name: subField.handle,
                         required: subField.required,
                         placeholder: subField.placeholder,
@@ -50,7 +50,7 @@
                 {% if subField.handle == 'ampm' %}
                     <div class="fui-col-auto">
                         {{ forms.selectField({
-                            label: subField.name,
+                            label: subfield.label,
                             name: subField.handle,
                             required: subField.required,
                             placeholder: subField.placeholder,
@@ -61,7 +61,7 @@
                 {% else %}
                     <div class="fui-col-auto">
                         {{ forms.textField({
-                            label: subField.name,
+                            label: subfield.label,
                             name: subField.handle,
                             required: subField.required,
                             placeholder: subField.placeholder,

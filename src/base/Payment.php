@@ -7,7 +7,7 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\PaymentIntegrationProcessEvent;
 use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentWebhookEvent;
-use verbb\formie\fields\formfields\Payment as PaymentField;
+use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\StringHelper;
@@ -166,7 +166,7 @@ abstract class Payment extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
+    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
     {
         $handle = $this->getIntegrationHandle();
         

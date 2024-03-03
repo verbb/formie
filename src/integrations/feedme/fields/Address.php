@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\Address as AddressField;
+use verbb\formie\fields\Address as AddressField;
 
 use craft\feedme\base\Field;
 use craft\feedme\base\FieldInterface;

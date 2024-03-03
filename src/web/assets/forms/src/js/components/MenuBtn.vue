@@ -11,6 +11,7 @@
 </template>
 
 <script>
+
 export default {
     name: 'MenuBtn',
 
@@ -45,4 +46,13 @@ export default {
         }
     },
 };
+
 </script>
+
+<style scoped>
+
+.menu {
+    z-index: 1000;
+}
+
+</style>

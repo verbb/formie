@@ -2,14 +2,14 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -105,7 +105,7 @@ class Stripe extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with Stripe.');
     }
 
-    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -139,7 +139,7 @@ class Stripe extends Payment
     public function getAmount(Submission $submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
-        return self::toStripeAmount(parent::getAmount(Submission $submission), $this->getCurrency(Submission $submission));
+        return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
     public function processPayment(Submission $submission): bool
@@ -363,8 +363,8 @@ class Stripe extends Payment
             }
 
             // Get the amount from the field, which handles dynamic fields
-            $amount = $this->getAmount(Submission $submission);
-            $currency = $this->getCurrency(Submission $submission);
+            $amount = $this->getAmount($submission);
+            $currency = $this->getCurrency($submission);
 
             if (!$amount) {
                 throw new Exception("Missing `amount` from payload: {$amount}.");
@@ -800,25 +800,24 @@ class Stripe extends Payment
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Metadata'),
                 'help' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
-                'validation' => 'min:0',
+                'generateValue' => false,
+                'name' => 'metadata',
                 'newRowDefaults' => [
                     'label' => '',
                     'value' => '',
                 ],
-                'generateValue' => false,
                 'columns' => [
                     [
                         'type' => 'label',
-                        'label' => 'Option',
+                        'label' => Craft::t('formie', 'Option'),
                         'class' => 'singleline-cell textual',
                     ],
                     [
                         'type' => 'value',
-                        'label' => 'Value',
+                        'label' => Craft::t('formie', 'Value'),
                         'class' => 'singleline-cell textual',
                     ],
                 ],
-                'name' => 'metadata',
             ]),
         ];
     }
@@ -1021,8 +1020,8 @@ class Stripe extends Payment
         $planDescription = $this->getFieldSetting('planDescription', 'Formie: ' . $submission->getForm()->title);
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount(Submission $submission);
-        $currency = $this->getCurrency(Submission $submission);
+        $amount = $this->getAmount($submission);
+        $currency = $this->getCurrency($submission);
 
         $payload = [
             'amount' => $amount,

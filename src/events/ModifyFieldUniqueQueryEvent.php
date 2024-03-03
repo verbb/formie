@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\events;
 
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FieldInterface;
 
 use craft\db\Query;
 
@@ -13,6 +13,6 @@ class ModifyFieldUniqueQueryEvent extends Event
     // =========================================================================
 
     public ?Query $query = null;
-    public ?FormFieldInterface $field = null;
+    public ?FieldInterface $field = null;
     
 }

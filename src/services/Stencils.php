@@ -6,7 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\FormFieldLayout;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Stencil as StencilRecord;
@@ -38,7 +38,7 @@ class Stencils extends Component
     public const CONFIG_STENCILS_KEY = 'formie.stencils';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?array $_stencils = null;
@@ -302,7 +302,7 @@ class Stencils extends Component
         $form->setTemplate($stencil->getTemplate());
         $form->setDefaultStatus($stencil->getDefaultStatus());
 
-        $form->setFormFieldLayout(new FormFieldLayout(['pages' => $stencil->data->pages]));
+        $form->setFieldLayout(new FieldLayout(['pages' => $stencil->data->pages]));
 
         $form->setNotifications($stencil->getNotifications());
     }

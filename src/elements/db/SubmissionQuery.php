@@ -4,14 +4,20 @@ namespace verbb\formie\elements\db;
 use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
-use verbb\formie\models\FormFieldLayout;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Status;
+use verbb\formie\services\Fields;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
+
+use yii\base\UnknownMethodException;
 
 use Throwable;
 
@@ -32,9 +38,27 @@ class SubmissionQuery extends ElementQuery
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
+    private array $_customFieldParams = [];
+
 
     // Public Methods
     // =========================================================================
+
+    public function __call($name, $params)
+    {
+        // Add support for `.fieldHandle()` calls, as we're rolling our own fields, we don't get it automatically
+        try {
+            return parent::__call($name, $params);
+        } catch (UnknownMethodException $e) {
+            if (in_array($name, Fields::getFieldHandles())) {
+                $this->_customFieldParams[$name] = $params[0];
+            } else {
+                throw $e;
+            }
+
+            return $this;
+        }
+    }
 
     public function form(Form|array|string|null $value): static
     {
@@ -168,7 +192,6 @@ class SubmissionQuery extends ElementQuery
 
         $this->query->select([
             'formie_submissions.id',
-            'formie_submissions.title',
             'formie_submissions.formId',
             'formie_submissions.statusId',
             'formie_submissions.userId',
@@ -178,6 +201,9 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
+
+            // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
+            'formie_submissions.content as fieldContent',
         ]);
 
         if ($this->formId) {
@@ -204,16 +230,19 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.isSpam', $this->isSpam));
         }
 
-        if ($this->title) {
-            $this->subQuery->andWhere(Db::parseParam('formie_submissions.title', $this->title));
-        }
-
         if ($this->before) {
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->before, '<'));
         }
 
         if ($this->after) {
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->after, '>='));
+        }
+
+        // Check if we're querying custom fields, we're rolling our own fields
+        if ($this->_customFieldParams) {
+            $query = Craft::$app->getDb()->getQueryBuilder()->jsonContains('formie_submissions.content', $this->_customFieldParams);
+
+            $this->subQuery->andWhere($query);
         }
 
         return parent::beforePrepare();
@@ -235,21 +264,5 @@ class SubmissionQuery extends ElementQuery
         }
 
         return parent::statusCondition($status);
-    }
-
-    protected function fieldLayouts(): array
-    {
-        $layouts = [];
-
-        $layoutConfigs = (new Query())
-            ->select(['formFieldLayout'])
-            ->from(['{{%formie_forms}}'])
-            ->column();
-
-        foreach ($layoutConfigs as $layoutConfig) {
-            $layouts[] = new FormFieldLayout($layoutConfig);
-        }
-
-        return $layouts;
     }
 }

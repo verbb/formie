@@ -2,7 +2,7 @@
 namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\gql\types\generators\PageGenerator;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
@@ -31,7 +31,7 @@ class PageInterface extends BaseInterfaceType
             'name' => static::getName(),
             'fields' => self::class . '::getFieldDefinitions',
             'description' => 'This is the interface implemented by all pages.',
-            'resolveType' => function(FormPage $value) {
+            'resolveType' => function(FieldLayoutPage $value) {
                 return GqlEntityRegistry::getEntity(PageGenerator::getName());
             },
         ]));

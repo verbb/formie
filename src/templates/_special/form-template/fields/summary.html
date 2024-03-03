@@ -8,7 +8,7 @@
         {% for info in submission.getValuesForSummary() %}
             {% fieldtag 'fieldSummaryBlock' %}
                 {{ fieldtag('fieldSummaryLabel', {
-                    text: info.field.name,
+                    text: info.field.label,
                 }) }}<br>
 
                 {{ fieldtag('fieldSummaryValue', {

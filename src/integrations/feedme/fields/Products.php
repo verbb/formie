@@ -2,7 +2,7 @@
 namespace verbb\formie\integrations\feedme\fields;
 
 use craft\feedme\fields\CommerceProducts as FeedMeProducts;
-use verbb\formie\fields\formfields\Products as ProductsField;
+use verbb\formie\fields\Products as ProductsField;
 
 class Products extends FeedMeProducts
 {

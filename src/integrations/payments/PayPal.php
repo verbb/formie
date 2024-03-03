@@ -2,15 +2,15 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -65,7 +65,7 @@ class PayPal extends Payment
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
+    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
     {
         if (!$this->hasValidSettings()) {
             return '';
@@ -79,7 +79,7 @@ class PayPal extends Payment
         ]);
     }
 
-    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
             return null;
@@ -121,7 +121,7 @@ class PayPal extends Payment
         }
 
         // Get the amount from the field, which handles dynamic fields
-        $amount = $this->getAmount(Submission $submission);
+        $amount = $this->getAmount($submission);
         $currency = $this->getFieldSetting('currency');
 
         // Capture the authorized payment

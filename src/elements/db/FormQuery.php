@@ -14,6 +14,7 @@ class FormQuery extends ElementQuery
     // =========================================================================
 
     public mixed $handle = null;
+    public mixed $layoutId = null;
     public mixed $templateId = null;
     public mixed $pageCount = null;
 
@@ -26,6 +27,12 @@ class FormQuery extends ElementQuery
     public function handle($value): static
     {
         $this->handle = $value;
+        return $this;
+    }
+
+    public function layoutId($value): static
+    {
+        $this->layoutId = $value;
         return $this;
     }
 
@@ -69,8 +76,8 @@ class FormQuery extends ElementQuery
         $this->query->select([
             'formie_forms.id',
             'formie_forms.handle',
-            'formie_forms.formFieldLayout',
             'formie_forms.settings',
+            'formie_forms.layoutId',
             'formie_forms.templateId',
             'formie_forms.submitActionEntryId',
             'formie_forms.submitActionEntrySiteId',
@@ -82,18 +89,26 @@ class FormQuery extends ElementQuery
             'formie_forms.uid',
         ]);
 
-        $this->subQuery->addSelect(['JSON_LENGTH(formie_forms.formfieldlayout, "$.pages") AS pageCount']);
+        if ($this->pageCount) {
+            $pageQuery = (new Query())
+                ->select(['COUNT(*)'])
+                ->from(['pages' => '{{%formie_pages}}'])
+                ->where('[[pages.formId]] = [[formie_forms.id]]');
+
+            $this->subQuery->addSelect(['pageCount' => $pageQuery]);
+            $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
+        }
 
         if ($this->handle) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.handle', $this->handle));
         }
 
-        if ($this->templateId) {
-            $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
+        if ($this->layoutId) {
+            $this->subQuery->andWhere(Db::parseParam('formie_forms.layoutId', $this->layoutId));
         }
 
-        if ($this->pageCount) {
-            $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
+        if ($this->templateId) {
+            $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
         }
 
         return parent::beforePrepare();

@@ -45,6 +45,7 @@ class Zoho extends Crm implements OAuthProviderInterface
     // =========================================================================
     
     public bool|string $useDeveloper = false;
+    public ?string $dataCenter = 'US';
     public bool $mapToContact = false;
     public bool $mapToDeal = false;
     public bool $mapToLead = false;
@@ -72,6 +73,11 @@ class Zoho extends Crm implements OAuthProviderInterface
         return App::parseBooleanEnv($this->useDeveloper);
     }
 
+    public function getDataCenter(): ?string
+    {
+        return App::parseEnv($this->dataCenter);
+    }
+
     public function getBaseApiUrl(?Token $token): ?string
     {
         $url = parent::getBaseApiUrl($token);
@@ -82,7 +88,7 @@ class Zoho extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
-        $config['dc'] = 'US';
+        $config['dc'] = $this->getDataCenter();
         $config['useDeveloper'] = $this->getUseDeveloper();
 
         return $config;

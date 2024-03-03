@@ -8,8 +8,8 @@ interface PositionInterface extends ComponentInterface
     // Static Methods
     // =========================================================================
 
-    public static function supports(FormFieldInterface $field = null): bool;
-    public static function fallback(FormFieldInterface $field = null): ?string;
+    public static function supports(FieldInterface $field = null): bool;
+    public static function fallback(FieldInterface $field = null): ?string;
 
 
     // Public Methods

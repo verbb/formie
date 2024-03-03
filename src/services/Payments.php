@@ -36,7 +36,7 @@ class Payments extends Component
     public const EVENT_AFTER_DELETE_PAYMENT = 'afterDeletePayment';
 
 
-    // Private Properties
+    // Properties
     // =========================================================================
 
     private ?MemoizableArray $_payments = null;

@@ -2,7 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
-use verbb\formie\fields\formfields\MissingField;
+use verbb\formie\fields\MissingField;
 use verbb\formie\models\Settings;
 
 use Craft;

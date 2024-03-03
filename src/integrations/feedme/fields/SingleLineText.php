@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\integrations\feedme\fields;
 
-use verbb\formie\fields\formfields\SingleLineText as SingleLineTextField;
+use verbb\formie\fields\SingleLineText as SingleLineTextField;
 
 class SingleLineText extends DefaultField
 {

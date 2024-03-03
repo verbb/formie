@@ -1,47 +1,52 @@
 <template>
-    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-table-modal" :show-header="false" @update:model-value="showModal = $event">
-        <template #header></template>
+    <div>
+        <a class="settings light" role="button" data-icon="settings" @click.prevent="openModal"></a>
 
-        <template #body>
-            <div class="fui-modal-content">
-                <FormKitForm ref="fieldForm" v-model="formValues" name="tableDropdownOptions" @submit="submitHandler">
-                    <FormKit
-                        type="table"
-                        name="options"
-                        :label="t('formie', 'Dropdown Options')"
-                        :help="t('formie', 'Define the available options.')"
-                        validation="+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel|requiredTableCellValue"
-                        :new-row-defaults="{
-                            label: '',
-                            value: '',
-                            isOptgroup: false,
-                            isDefault: false,
-                        }"
-                        :columns="[{
-                            type: 'label',
-                            label: t('formie', 'Option Label'),
-                            class: 'singleline-cell textual',
-                        }, {
-                            type: 'value',
-                            label: t('formie', 'Value'),
-                            class: 'code singleline-cell textual',
-                        }, {
-                            type: 'default',
-                            name: 'default',
-                            label: t('formie', 'Default'),
-                            class: 'thin checkbox-cell',
-                        }]"
-                    />
-                </FormKitForm>
-            </div>
-        </template>
+        <modal ref="modal" :model-value="showModal" modal-class="fui-edit-table-modal" :show-header="false" @update:model-value="showModal = $event">
+            <template #header></template>
 
-        <template #footer>
-            <div class="buttons right">
-                <button class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</button>
-            </div>
-        </template>
-    </modal>
+            <template #body>
+                <div class="fui-modal-content">
+                    <FormKitForm ref="fieldForm" v-model="formValues" ignore="true" @submit="submitHandler">
+                        <FormKit
+                            ref="tableField"
+                            type="table"
+                            name="options"
+                            :label="t('formie', 'Dropdown Options')"
+                            :help="t('formie', 'Define the available options.')"
+                            validation="+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel|requiredTableCellValue"
+                            :new-row-defaults="{
+                                label: '',
+                                value: '',
+                                isOptgroup: false,
+                                isDefault: false,
+                            }"
+                            :columns="[{
+                                type: 'label',
+                                label: t('formie', 'Option Label'),
+                                class: 'singleline-cell textual',
+                            }, {
+                                type: 'value',
+                                label: t('formie', 'Value'),
+                                class: 'code singleline-cell textual',
+                            }, {
+                                type: 'default',
+                                name: 'default',
+                                label: t('formie', 'Default'),
+                                class: 'thin checkbox-cell',
+                            }]"
+                        />
+                    </FormKitForm>
+                </div>
+            </template>
+
+            <template #footer>
+                <div class="buttons right">
+                    <button class="btn submit" role="button" @click.prevent="onSave">{{ t('app', 'Done') }}</button>
+                </div>
+            </template>
+        </modal>
+    </div>
 </template>
 
 <script>
@@ -55,11 +60,6 @@ export default {
     },
 
     props: {
-        showModal: {
-            type: Boolean,
-            default: false,
-        },
-
         values: {
             type: Object,
             default: () => {},
@@ -68,26 +68,25 @@ export default {
 
     data() {
         return {
-            originalValues: null,
-            formValues: this.values,
+            showModal: false,
+            formValues: null,
         };
     },
 
     created() {
-        // Store this so we can cancel changes.
-        this.originalValues = this.clone(this.values);
+        this.formValues = this.clone(this.values);
     },
 
     methods: {
+        openModal() {
+            this.showModal = true;
+        },
+
         closeModal() {
-            // Close the modal programatically, which will fire `@closed`
-            this.$refs.modal.close();
+            this.showModal = false;
         },
 
         onCancelModal() {
-            // Restore original state and exit
-            this.$parent.model.options = this.originalValues.options || [];
-
             this.closeModal();
         },
 
@@ -98,6 +97,8 @@ export default {
 
         submitHandler() {
             this.closeModal();
+
+            this.$emit('update:values', this.clone(this.formValues));
         },
     },
 };

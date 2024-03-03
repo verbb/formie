@@ -2,7 +2,7 @@
 namespace verbb\formie\variables;
 
 use verbb\formie\Formie as FormiePlugin;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\PositionInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -10,7 +10,7 @@ use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 
@@ -80,12 +80,12 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderForm($form, $renderOptions);
     }
 
-    public function renderPage(Form|string|null $form, FormPage $page = null, array $renderOptions = []): ?Markup
+    public function renderPage(Form|string|null $form, FieldLayoutPage $page = null, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }
 
-    public function renderField(Form|string|null $form, FormFieldInterface|string $field, array $renderOptions = []): ?Markup
+    public function renderField(Form|string|null $form, FieldInterface|string $field, array $renderOptions = []): ?Markup
     {
         return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $renderOptions);
     }
@@ -115,12 +115,12 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderJs($inline, $renderOptions);
     }
 
-    public function getFieldOptions(FormFieldInterface $field, array $renderOptions = []): array
+    public function getFieldOptions(FieldInterface $field, array $renderOptions = []): array
     {
         return FormiePlugin::$plugin->getFields()->getFieldOptions($field, $renderOptions);
     }
 
-    public function getLabelPosition(FormFieldInterface $field, Form $form, bool $subField = false): PositionInterface
+    public function getLabelPosition(FieldInterface $field, Form $form, bool $subField = false): PositionInterface
     {
         // A hard error will be thrown if the position class doesn't exist
         try {
@@ -138,7 +138,7 @@ class Formie
         }
     }
 
-    public function getInstructionsPosition(FormFieldInterface $field, Form $form): PositionInterface
+    public function getInstructionsPosition(FieldInterface $field, Form $form): PositionInterface
     {
         // A hard error will be thrown if the position class doesn't exist
         try {
@@ -245,7 +245,7 @@ class Formie
         return FormiePlugin::$plugin->getRelations()->getSubmissionRelations($element);
     }
 
-    public function getFieldNamespaceForScript(FormFieldInterface $field): string
+    public function getFieldNamespaceForScript(FieldInterface $field): string
     {
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }

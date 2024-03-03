@@ -15,14 +15,10 @@ class m231130_000000_conditions_mapping extends Migration
     {
         $fields = (new Query())
             ->select(['*'])
-            ->from(['{{%fields}}'])
+            ->from(['{{%formie_fields}}'])
             ->all();
 
         foreach ($fields as $field) {
-            if (!str_contains($field['context'], 'formie')) {
-                continue;
-            }
-
             $settings = Json::decode($field['settings']);
             $conditionsSettings = $settings['conditions'] ?? [];
             $hasChanged = false;
@@ -32,18 +28,20 @@ class m231130_000000_conditions_mapping extends Migration
 
                 if (is_array($conditions) && $conditions) {
                     foreach ($conditions as $conditionKey => $condition) {
-                        $field = $condition['field'] ?? null;
+                        $conditionField = $condition['field'] ?? null;
 
-                        // Rename any old array-like syntax `group[nested][field]` with dot-notation `group.nested.field`
-                        if (str_contains($field, '[')) {
-                            $hasChanged = true;
-                            $conditionsSettings['conditions'][$conditionKey]['field'] = $field = str_replace(['[', ']'], ['.', ''], $field);
-                        }
+                        if (is_string($conditionField)) {
+                            // Rename any old array-like syntax `group[nested][field]` with dot-notation `group.nested.field`
+                            if (str_contains($conditionField, '[')) {
+                                $hasChanged = true;
+                                $conditionsSettings['conditions'][$conditionKey]['field'] = $conditionField = str_replace(['[', ']'], ['.', ''], $conditionField);
+                            }
 
-                        // Rename `{*}` to `{field:*}` - but watch out for `{submission:*}`
-                        if (str_starts_with($field, '{') && !str_starts_with($field, '{submission:') && !str_starts_with($field, '{field:')) {
-                            $hasChanged = true;
-                            $conditionsSettings['conditions'][$conditionKey]['field'] = $field = str_replace('{', '{field:', $field);
+                            // Rename `{*}` to `{field:*}` - but watch out for `{submission:*}`
+                            if (str_starts_with($conditionField, '{') && !str_starts_with($conditionField, '{submission:') && !str_starts_with($conditionField, '{field:')) {
+                                $hasChanged = true;
+                                $conditionsSettings['conditions'][$conditionKey]['field'] = $conditionField = str_replace('{', '{field:', $conditionField);
+                            }
                         }
                     }
                 }
@@ -52,7 +50,7 @@ class m231130_000000_conditions_mapping extends Migration
             if ($hasChanged) {
                 $settings['conditions'] = $conditionsSettings;
 
-                $this->update('{{%fields}}', [
+                $this->update('{{%formie_fields}}', [
                     'settings' => Json::encode($settings),
                 ], ['id' => $field['id']], [], false);
             }

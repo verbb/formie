@@ -4,7 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\FormPage;
+use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
 
@@ -56,17 +56,17 @@ abstract class Captcha extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(Form $form, FormPage $page = null): string
+    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(Form $form, FormPage $page = null): ?array
+    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         return null;
     }
 
-    public function getGqlVariables(Form $form, FormPage $page = null): ?array
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         return null;
     }

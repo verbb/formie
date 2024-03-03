@@ -56,12 +56,12 @@ abstract class AddressProvider extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(FormFieldInterface $field, array $renderOptions = []): string
+    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(FormFieldInterface $field = null): ?array
+    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         return null;
     }

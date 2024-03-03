@@ -121,9 +121,7 @@ export default {
 
             if (this.editingNotification) {
                 handles = this.$store.getters['notifications/notificationHandlesExcluding'](this.proxyFieldId);
-                console.log(handles);
             }
-
 
             if (this.proxyCollection.length) {
                 handles = this.proxyCollection;

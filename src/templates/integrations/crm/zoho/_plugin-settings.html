@@ -64,3 +64,22 @@
     warning: macros.configWarning('useDeveloper', 'formie'),
     errors: integration.getErrors('useDeveloper'),
 }) }}
+
+{{ forms.selectField({
+    label: 'Data Center' | t('formie'),
+    instructions: 'Select your {provider} Data Center here.' | t('formie', { provider: integration.displayName() }),
+    name: 'dataCenter',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.dataCenter ?? '',
+    options: [
+        { label: 'US' | t('formie'), value: 'US' },
+        { label: 'AU' | t('formie'), value: 'AU' },
+        { label: 'EU' | t('formie'), value: 'EU' },
+        { label: 'IN' | t('formie'), value: 'IN' },
+        { label: 'CN' | t('formie'), value: 'CN' },
+        { label: 'JP' | t('formie'), value: 'JP' },
+    ],
+    warning: macros.configWarning('dataCenter', 'formie'),
+    errors: integration.getErrors('dataCenter'),
+}) }}
