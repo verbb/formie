@@ -1551,7 +1551,6 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'enableAutocomplete',
 
             // Misc
-            'layoutElement',
             'rowUid',
             'formId',
             'searchable',
