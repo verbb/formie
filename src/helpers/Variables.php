@@ -171,7 +171,7 @@ class Variables
 
             Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
                 'formName' => $formName,
-                'submissionUrl' => $submission->getCpEditUrl() ?? '',
+                'submissionUrl' => $submission?->getCpEditUrl() ?? '',
                 'submissionId' => $submission->id ?? null,
                 'submissionUid' => $submission->uid ?? null,
                 'submissionDate' => $dateCreated?->format('Y-m-d H:i:s'),
