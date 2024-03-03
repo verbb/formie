@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.6 - 2024-03-03
+
+### Added
+- Added “Full Name” to User Element integration mapping.
+
+### Changed
+- Changed all instances of dynamic Twig to use safe, sandboxed environment to protect against potential security issues.
+
+### Fixed
+- Fixed an issue with File Upload fields with a custom filename format not working in a Repeater field.
+- Fixed layout issues when editing a submission via a Submissions element select field in other elements.
+
 ## 2.1.5 - 2024-02-21
 
 ### Changed
