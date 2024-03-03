@@ -693,7 +693,7 @@ class SubmissionsController extends Controller
             // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
             // URL, which is set for every page (commonly the first one, once a submission is available)
             if ($settings->pageRedirectUrl) {
-                $url = $this->getView()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
+                $url = Formie::$plugin->getTemplates()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
 
                 return $this->redirect($url);
             }
@@ -1015,7 +1015,7 @@ class SubmissionsController extends Controller
             $redirect = $form->getRedirectUrl();
         }
 
-        $redirectUrl = Craft::$app->getView()->renderObjectTemplate($redirect, $submission);
+        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
 
         $params = array_merge([
             'success' => $success,
@@ -1189,10 +1189,7 @@ class SubmissionsController extends Controller
 
     private function _setTitle($submission, $form): void
     {
-        // Prevent users using long-hand Twig `{{` to prevent injection execution
-        $submissionTitleFormat = str_replace(['{{', '}}'], ['', ''], $form->settings->submissionTitleFormat);
-
-        $submission->title = Variables::getParsedValue($submissionTitleFormat, $submission, $form);
+        $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
 
         // Set the default title for the submission, so it can save correctly
         if (!$submission->title) {

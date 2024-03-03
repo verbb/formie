@@ -263,10 +263,8 @@ class Variables
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
         // Try to parse submission + extra variables
-        $view = Craft::$app->getView();
-
         try {
-            return $view->renderObjectTemplate($value, $submission, $variables);
+            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
             Formie::error(Craft::t('formie', 'Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,

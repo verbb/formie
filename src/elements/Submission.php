@@ -535,10 +535,7 @@ class Submission extends Element
 
     public function updateTitle($form): void
     {
-        // Prevent users using long-hand Twig `{{` to prevent injection execution
-        $submissionTitleFormat = str_replace(['{{', '}}'], ['', ''], $form->settings->submissionTitleFormat);
-
-        if ($customTitle = Variables::getParsedValue($submissionTitleFormat, $this, $form)) {
+        if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
             $this->title = $customTitle;
 
             // Rather than re-save, directly update the submission record

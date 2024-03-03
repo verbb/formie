@@ -356,7 +356,7 @@ class FormsController extends Controller
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Craft::$app->getView()->renderObjectTemplate($url, $form);
+            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $form);
 
             return $this->asJson([
                 'success' => false,

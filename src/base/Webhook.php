@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyWebhookPayloadEvent;
 
@@ -87,7 +88,7 @@ abstract class Webhook extends Integration
 
     protected function getWebhookUrl($url, Submission $submission): bool|string|null
     {
-        $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
+        $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
 
         return App::parseEnv($url);
     }

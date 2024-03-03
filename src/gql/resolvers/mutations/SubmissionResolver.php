@@ -93,10 +93,7 @@ class SubmissionResolver extends ElementMutationResolver
         if (!$submission->title) {
             $settings = $form->settings;
 
-            // Prevent users using long-hand Twig `{{` to prevent injection execution
-            $submissionTitleFormat = str_replace(['{{', '}}'], ['', ''], $settings->submissionTitleFormat);
-
-            $submission->title = Variables::getParsedValue($submissionTitleFormat, $submission, $form);
+            $submission->title = Variables::getParsedValue($settings->submissionTitleFormat, $submission, $form);
 
             if (!$submission->title) {
                 $timeZone = Craft::$app->getTimeZone();

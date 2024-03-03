@@ -658,7 +658,7 @@ class Emails extends Component
 
         // Generate the filename correctly.
         $filenameFormat = $template->filenameFormat ?? 'Submission-{submission.id}';
-        $fileName = Craft::$app->getView()->renderObjectTemplate($filenameFormat, $variables);
+        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
 
         $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
 

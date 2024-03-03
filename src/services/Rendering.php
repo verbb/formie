@@ -487,9 +487,9 @@ class Rendering extends Component
             try {
                 $field = $form->getFieldByHandle($key);
 
-                // Prevent users using long-hand Twig `{{` to prevent injection execution. Only an issue for 
+                // Ensure that we protect against developers using Twig to populate values from query strings
                 if (is_string($value)) {
-                    $value = str_replace(['{{', '}}', '{%', '%}'], ['{', '}', '', ''], $value);
+                    $value = Formie::$plugin->getTemplates()->renderString($value);
                 }
 
                 if ($field) {

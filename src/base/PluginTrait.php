@@ -28,6 +28,7 @@ use verbb\formie\services\Syncs;
 use verbb\formie\services\Tokens;
 use verbb\formie\web\assets\forms\FormsAsset;
 use verbb\base\BaseHelper;
+use verbb\base\services\Templates;
 
 use Craft;
 
@@ -182,6 +183,11 @@ trait PluginTrait
         return $this->get('syncs');
     }
 
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
+    }
+
     public function getTokens(): Tokens
     {
         return $this->get('tokens');
@@ -222,6 +228,10 @@ trait PluginTrait
             'submissions' => Submissions::class,
             'subscriptions' => Subscriptions::class,
             'syncs' => Syncs::class,
+            'templates' => [
+                'class' => Templates::class,
+                'pluginClass' => Formie::class,
+            ],
             'tokens' => Tokens::class,
             'vite' => [
                 'class' => VitePluginService::class,
