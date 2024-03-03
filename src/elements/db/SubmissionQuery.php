@@ -4,6 +4,7 @@ namespace verbb\formie\elements\db;
 use craft\elements\User;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Status;
 use verbb\formie\services\Fields;
@@ -93,7 +94,7 @@ class SubmissionQuery extends ElementQuery
         } else if ($value !== null) {
             $this->statusId = (new Query())
                 ->select(['id'])
-                ->from(['{{%formie_statuses}}'])
+                ->from([Table::FORMIE_STATUSES])
                 ->where(Db::parseParam('handle', $value))
                 ->scalar();
         } else {
@@ -255,7 +256,7 @@ class SubmissionQuery extends ElementQuery
         // let the 'regular' query suffer for this possible querying
         $statusId = (new Query())
             ->select(['id'])
-            ->from(['{{%formie_statuses}}'])
+            ->from([Table::FORMIE_STATUSES])
             ->where(Db::parseParam('handle', $status))
             ->scalar();
 

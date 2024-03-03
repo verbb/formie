@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 
@@ -17,6 +19,6 @@ class Integration extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_integrations}}';
+        return Table::FORMIE_INTEGRATIONS;
     }
 }

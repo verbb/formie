@@ -7,6 +7,7 @@ use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -443,7 +444,7 @@ class FormsController extends Controller
     {
         return (new Query())
             ->select(['handle'])
-            ->from(['{{%formie_forms}}'])
+            ->from([Table::FORMIE_FORMS])
             ->where(['not', ['id' => $formId]])
             ->column();
     }

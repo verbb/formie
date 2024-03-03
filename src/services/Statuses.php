@@ -5,13 +5,13 @@ use verbb\formie\Formie;
 use verbb\formie\events\StatusEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Status;
 use verbb\formie\records\Status as StatusRecord;
 
 use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\db\Table as CraftTable;
 use craft\events\ConfigEvent;
 use craft\helpers\Db;
 
@@ -87,7 +87,7 @@ class Statuses extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_statuses}}', $statusIds);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_STATUSES, $statusIds);
 
         foreach ($statusIds as $statusOrder => $statusId) {
             if (!empty($uidsByIds[$statusId])) {
@@ -105,7 +105,7 @@ class Statuses extends Component
             ->select(['[[s.statusId]]', 'count(s.id) as submissionCount'])
             ->where(['[[e.dateDeleted]]' => null])
             ->from(['{{%formie_submissions}} s'])
-            ->leftJoin([CraftTable::ELEMENTS . ' e'], '[[s.id]] = [[e.id]]')
+            ->leftJoin([Table::ELEMENTS . ' e'], '[[s.id]] = [[e.id]]')
             ->groupBy(['[[s.statusId]]'])
             ->indexBy('statusId')
             ->all();
@@ -150,10 +150,10 @@ class Statuses extends Component
             $status->uid = StringHelper::UUID();
 
             $status->sortOrder = (new Query())
-                ->from(['{{%formie_statuses}}'])
+                ->from([Table::FORMIE_STATUSES])
                 ->max('[[sortOrder]]') + 1;
         } else if (!$status->uid) {
-            $status->uid = Db::uidById('{{%formie_statuses}}', $status->id);
+            $status->uid = Db::uidById(Table::FORMIE_STATUSES, $status->id);
         }
 
         // Make sure no statuses that are not archived share the handle
@@ -168,7 +168,7 @@ class Statuses extends Component
         Craft::$app->getProjectConfig()->set($configPath, $status->getConfig(), "Save the “{$status->handle}” status");
 
         if ($isNewStatus) {
-            $status->id = Db::idByUid('{{%formie_statuses}}', $status->uid);
+            $status->id = Db::idByUid(Table::FORMIE_STATUSES, $status->uid);
         }
 
         return true;
@@ -267,7 +267,7 @@ class Statuses extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete('{{%formie_statuses}}', ['id' => $statusRecord->id])
+                ->softDelete(Table::FORMIE_STATUSES, ['id' => $statusRecord->id])
                 ->execute();
 
             $transaction->commit();
@@ -317,7 +317,7 @@ class Statuses extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->from(['{{%formie_statuses}}'])
+            ->from([Table::FORMIE_STATUSES])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 

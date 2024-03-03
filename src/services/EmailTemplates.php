@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\events\EmailTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\EmailTemplate;
 use verbb\formie\records\EmailTemplate as TemplateRecord;
 
@@ -68,7 +69,7 @@ class EmailTemplates extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_emailtemplates}}', $ids);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_EMAIL_TEMPLATES, $ids);
 
         foreach ($ids as $template => $templateId) {
             if (!empty($uidsByIds[$templateId])) {
@@ -102,10 +103,10 @@ class EmailTemplates extends Component
             $template->uid = StringHelper::UUID();
 
             $template->sortOrder = (new Query())
-                ->from(['{{%formie_emailtemplates}}'])
+                ->from([Table::FORMIE_EMAIL_TEMPLATES])
                 ->max('[[sortOrder]]') + 1;
         } else if (!$template->uid) {
-            $template->uid = Db::uidById('{{%formie_emailtemplates}}', $template->id);
+            $template->uid = Db::uidById(Table::FORMIE_EMAIL_TEMPLATES, $template->id);
         }
 
         // Make sure no templates that are not archived share the handle
@@ -120,7 +121,7 @@ class EmailTemplates extends Component
         Craft::$app->getProjectConfig()->set($configPath, $template->getConfig(), "Save the “{$template->handle}” email template");
 
         if ($isNewTemplate) {
-            $template->id = Db::idByUid('{{%formie_emailtemplates}}', $template->uid);
+            $template->id = Db::idByUid(Table::FORMIE_EMAIL_TEMPLATES, $template->uid);
         }
 
         return true;
@@ -211,7 +212,7 @@ class EmailTemplates extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete('{{%formie_emailtemplates}}', ['id' => $templateRecord->id])
+                ->softDelete(Table::FORMIE_EMAIL_TEMPLATES, ['id' => $templateRecord->id])
                 ->execute();
 
             $transaction->commit();
@@ -259,7 +260,7 @@ class EmailTemplates extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->from(['{{%formie_emailtemplates}}'])
+            ->from([Table::FORMIE_EMAIL_TEMPLATES])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 

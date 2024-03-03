@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\events\PlanEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Plan;
 use verbb\formie\records\Plan as PlanRecord;
 
@@ -142,7 +143,7 @@ class Plans extends Component
             ]));
         }
 
-        Db::delete('{{%formie_payments_plans}}', [
+        Db::delete(Table::FORMIE_PAYMENT_PLANS, [
             'uid' => $plan->uid,
         ]);
 
@@ -217,7 +218,7 @@ class Plans extends Component
                 'uid',
             ])
             ->orderBy('dateCreated')
-            ->from(['{{%formie_payments_plans}}']);
+            ->from([Table::FORMIE_PAYMENT_PLANS]);
     }
 
     private function _getPlanRecord(int|string|null $id): PlanRecord

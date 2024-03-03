@@ -6,11 +6,12 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\ModifyExistingNotificationsEvent;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Notification as NotificationRecord;
@@ -160,7 +161,7 @@ class Notifications extends Component
             ]));
         }
 
-        Db::delete('{{%formie_notifications}}', [
+        Db::delete(Table::FORMIE_NOTIFICATIONS, [
             'uid' => $notification->uid,
         ]);
 
@@ -672,7 +673,7 @@ class Notifications extends Component
                 'uid',
             ])
             ->orderBy('dateCreated')
-            ->from(['{{%formie_notifications}}']);
+            ->from([Table::FORMIE_NOTIFICATIONS]);
     }
 
     private function _getNotificationRecord(int|string|null $id): NotificationRecord
@@ -695,7 +696,7 @@ class Notifications extends Component
         while (true) {
             $existingNotification = (new Query())
                 ->select(['*'])
-                ->from(['{{%formie_notifications}}'])
+                ->from([Table::FORMIE_NOTIFICATIONS])
                 ->where(['handle' => $handle, 'formId' => $notification->formId])
                 ->one();
 

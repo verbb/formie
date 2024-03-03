@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\SubscriptionEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Subscription;
 use verbb\formie\records\Subscription as SubscriptionRecord;
 
@@ -159,7 +160,7 @@ class Subscriptions extends Component
             ]));
         }
 
-        Db::delete('{{%formie_payments_subscriptions}}', [
+        Db::delete(Table::FORMIE_SUBSCRIPTIONS, [
             'uid' => $subscription->uid,
         ]);
 
@@ -265,7 +266,7 @@ class Subscriptions extends Component
                 'uid',
             ])
             ->orderBy('dateCreated')
-            ->from(['{{%formie_payments_subscriptions}}']);
+            ->from([Table::FORMIE_SUBSCRIPTIONS]);
     }
 
     private function _getSubscriptionRecord(int|string|null $id): SubscriptionRecord

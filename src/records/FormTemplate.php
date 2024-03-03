@@ -1,9 +1,12 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 use craft\records\FieldLayout;
+
 use yii\db\ActiveQueryInterface;
 
 class FormTemplate extends ActiveRecord
@@ -19,7 +22,7 @@ class FormTemplate extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_formtemplates}}';
+        return Table::FORMIE_FORM_TEMPLATES;
     }
 
     public function getFieldLayout(): ActiveQueryInterface

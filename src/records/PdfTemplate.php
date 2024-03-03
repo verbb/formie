@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 
@@ -17,6 +19,6 @@ class PdfTemplate extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_pdftemplates}}';
+        return Table::FORMIE_PDF_TEMPLATES;
     }
 }

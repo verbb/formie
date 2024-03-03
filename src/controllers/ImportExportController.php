@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Settings;
 
 use Craft;
@@ -161,7 +162,7 @@ class ImportExportController extends Controller
         if ($formAction === 'create') {
             $formHandles = (new Query())
                 ->select(['handle'])
-                ->from('{{%formie_forms}}')
+                ->from(Table::FORMIE_FORMS)
                 ->column();
 
             $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle']);

@@ -3,6 +3,7 @@ namespace verbb\formie\gql\resolvers;
 
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Gql as GqlHelper;
+use verbb\formie\helpers\Table;
 
 use craft\elements\db\ElementQuery;
 use craft\gql\base\ElementResolver;
@@ -38,7 +39,7 @@ class FormResolver extends ElementResolver
         }
 
         if (!GqlHelper::canSchema('formieForms.all')) {
-            $query->andWhere(['in', 'elements.id', array_values(Db::idsByUids('{{%formie_forms}}', $pairs['formieForms']))]);
+            $query->andWhere(['in', 'elements.id', array_values(Db::idsByUids(Table::FORMIE_FORMS, $pairs['formieForms']))]);
         }
 
         return $query;

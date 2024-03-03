@@ -3,6 +3,7 @@ namespace verbb\formie\gql\resolvers\mutations;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Settings;
 
@@ -180,7 +181,7 @@ class SubmissionResolver extends ElementMutationResolver
             return false;
         }
 
-        $formUid = Db::uidById('{{%formie_forms}}', $submission->getForm()->id);
+        $formUid = Db::uidById(Table::FORMIE_FORMS, $submission->getForm()->id);
 
         $scope = 'formieSubmissions.' . $formUid;
         $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');

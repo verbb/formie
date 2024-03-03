@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\migrations;
 
+use verbb\formie\helpers\Table;
+
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
@@ -27,7 +29,7 @@ class m231202_000000_auth_module extends Migration
         
         $integrationIdMap = (new Query())
             ->select(['tokenId', 'id'])
-            ->from(['{{%formie_integrations}}'])
+            ->from([Table::FORMIE_INTEGRATIONS])
             ->where(['not', ['tokenId' => null]])
             ->pairs();
 

@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\base\Component;
@@ -19,7 +20,7 @@ class Relations extends Component
         $elements = [];
 
         $relations = (new Query())
-            ->from(['{{%formie_relations}}'])
+            ->from([Table::FORMIE_RELATIONS])
             ->where(['targetId' => $submission->id])
             ->all();
 
@@ -39,7 +40,7 @@ class Relations extends Component
         $elements = [];
 
         $relations = (new Query())
-            ->from(['{{%formie_relations}}'])
+            ->from([Table::FORMIE_RELATIONS])
             ->where(['sourceId' => $element->id, 'sourceSiteId' => $element->siteId])
             ->all();
 
@@ -72,10 +73,10 @@ class Relations extends Component
         $values = [];
 
         // Keep relations fresh
-        Db::delete('{{%formie_relations}}', ['targetId' => $submission->id], [], $db);
+        Db::delete(Table::FORMIE_RELATIONS, ['targetId' => $submission->id], [], $db);
 
         // Reset auto-increment
-        $db->createCommand()->resetSequence('{{%formie_relations}}', '1')->execute();
+        $db->createCommand()->resetSequence(Table::FORMIE_RELATIONS, '1')->execute();
 
         foreach ($relations as $relation) {
             $values[] = [
@@ -86,6 +87,6 @@ class Relations extends Component
             ];
         }
 
-        Db::batchInsert('{{%formie_relations}}', ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, $db);
+        Db::batchInsert(Table::FORMIE_RELATIONS, ['type', 'sourceId', 'sourceSiteId', 'targetId'], $values, $db);
     }
 }

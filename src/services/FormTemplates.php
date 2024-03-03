@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\events\FormTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\records\FormTemplate as TemplateRecord;
 
@@ -70,7 +71,7 @@ class FormTemplates extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_formtemplates}}', $ids);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_FORM_TEMPLATES, $ids);
 
         foreach ($ids as $template => $templateId) {
             if (!empty($uidsByIds[$templateId])) {
@@ -104,10 +105,10 @@ class FormTemplates extends Component
             $template->uid = StringHelper::UUID();
 
             $template->sortOrder = (new Query())
-                ->from(['{{%formie_formtemplates}}'])
+                ->from([Table::FORMIE_FORM_TEMPLATES])
                 ->max('[[sortOrder]]') + 1;
         } else if (!$template->uid) {
-            $template->uid = Db::uidById('{{%formie_formtemplates}}', $template->id);
+            $template->uid = Db::uidById(Table::FORMIE_FORM_TEMPLATES, $template->id);
         }
 
         // Make sure no templates that are not archived share the handle
@@ -122,7 +123,7 @@ class FormTemplates extends Component
         Craft::$app->getProjectConfig()->set($configPath, $template->getConfig(), "Save the “{$template->handle}” form template");
 
         if ($isNewTemplate) {
-            $template->id = Db::idByUid('{{%formie_formtemplates}}', $template->uid);
+            $template->id = Db::idByUid(Table::FORMIE_FORM_TEMPLATES, $template->uid);
         }
 
         return true;
@@ -240,7 +241,7 @@ class FormTemplates extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete('{{%formie_formtemplates}}', ['id' => $templateRecord->id])
+                ->softDelete(Table::FORMIE_FORM_TEMPLATES, ['id' => $templateRecord->id])
                 ->execute();
 
             $transaction->commit();
@@ -299,7 +300,7 @@ class FormTemplates extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->from(['{{%formie_formtemplates}}'])
+            ->from([Table::FORMIE_FORM_TEMPLATES])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 

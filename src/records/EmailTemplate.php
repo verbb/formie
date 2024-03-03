@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\db\SoftDeleteTrait;
 
@@ -17,6 +19,6 @@ class EmailTemplate extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_emailtemplates}}';
+        return Table::FORMIE_EMAIL_TEMPLATES;
     }
 }

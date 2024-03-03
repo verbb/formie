@@ -3,6 +3,7 @@ namespace verbb\formie\elements\db;
 
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\helpers\Table;
 
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
@@ -29,7 +30,7 @@ class SentNotificationQuery extends ElementQuery
         } else if ($value !== null) {
             $this->formId = (new Query())
                 ->select(['id'])
-                ->from(['{{%formie_forms}}'])
+                ->from([Table::FORMIE_FORMS])
                 ->where(Db::parseParam('handle', $value))
                 ->scalar();
         } else {

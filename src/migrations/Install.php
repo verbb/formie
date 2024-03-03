@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\SentNotification;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Status;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
@@ -49,8 +50,8 @@ class Install extends Migration
 
     public function createTables(): void
     {
-        $this->archiveTableIfExists('{{%formie_emailtemplates}}');
-        $this->createTable('{{%formie_emailtemplates}}', [
+        $this->archiveTableIfExists(Table::FORMIE_EMAIL_TEMPLATES);
+        $this->createTable(Table::FORMIE_EMAIL_TEMPLATES, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -62,8 +63,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_fieldlayout_pages}}');
-        $this->createTable('{{%formie_fieldlayout_pages}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FIELD_LAYOUT_PAGES);
+        $this->createTable(Table::FORMIE_FIELD_LAYOUT_PAGES, [
             'id' => $this->primaryKey(),
             'layoutId' => $this->integer()->notNull(),
             'label' => $this->text()->notNull(),
@@ -74,8 +75,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_fieldlayout_rows}}');
-        $this->createTable('{{%formie_fieldlayout_rows}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FIELD_LAYOUT_ROWS);
+        $this->createTable(Table::FORMIE_FIELD_LAYOUT_ROWS, [
             'id' => $this->primaryKey(),
             'layoutId' => $this->integer()->notNull(),
             'pageId' => $this->integer()->notNull(),
@@ -85,16 +86,16 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_fieldlayouts}}');
-        $this->createTable('{{%formie_fieldlayouts}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FIELD_LAYOUTS);
+        $this->createTable(Table::FORMIE_FIELD_LAYOUTS, [
             'id' => $this->primaryKey(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_fields}}');
-        $this->createTable('{{%formie_fields}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FIELDS);
+        $this->createTable(Table::FORMIE_FIELDS, [
             'id' => $this->primaryKey(),
             'layoutId' => $this->integer()->notNull(),
             'pageId' => $this->integer()->notNull(),
@@ -110,8 +111,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_forms}}');
-        $this->createTable('{{%formie_forms}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FORMS);
+        $this->createTable(Table::FORMIE_FORMS, [
             'id' => $this->primaryKey(),
             'handle' => $this->string(64)->notNull(),
             'settings' => $this->mediumText(),
@@ -135,8 +136,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_formtemplates}}');
-        $this->createTable('{{%formie_formtemplates}}', [
+        $this->archiveTableIfExists(Table::FORMIE_FORM_TEMPLATES);
+        $this->createTable(Table::FORMIE_FORM_TEMPLATES, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -156,8 +157,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_integrations}}');
-        $this->createTable('{{%formie_integrations}}', [
+        $this->archiveTableIfExists(Table::FORMIE_INTEGRATIONS);
+        $this->createTable(Table::FORMIE_INTEGRATIONS, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -172,8 +173,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_notifications}}');
-        $this->createTable('{{%formie_notifications}}', [
+        $this->archiveTableIfExists(Table::FORMIE_NOTIFICATIONS);
+        $this->createTable(Table::FORMIE_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
             'formId' => $this->integer()->notNull(),
             'templateId' => $this->integer(),
@@ -205,8 +206,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_payments}}');
-        $this->createTable('{{%formie_payments}}', [
+        $this->archiveTableIfExists(Table::FORMIE_PAYMENTS);
+        $this->createTable(Table::FORMIE_PAYMENTS, [
             'id' => $this->primaryKey(),
             'integrationId' => $this->integer()->notNull(),
             'submissionId' => $this->integer()->notNull(),
@@ -225,8 +226,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_payments_plans}}');
-        $this->createTable('{{%formie_payments_plans}}', [
+        $this->archiveTableIfExists(Table::FORMIE_PAYMENT_PLANS);
+        $this->createTable(Table::FORMIE_PAYMENT_PLANS, [
             'id' => $this->primaryKey(),
             'integrationId' => $this->integer()->notNull(),
             'name' => $this->string(),
@@ -242,8 +243,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_payments_subscriptions}}');
-        $this->createTable('{{%formie_payments_subscriptions}}', [
+        $this->archiveTableIfExists(Table::FORMIE_SUBSCRIPTIONS);
+        $this->createTable(Table::FORMIE_SUBSCRIPTIONS, [
             'id' => $this->primaryKey(),
             'integrationId' => $this->integer(),
             'submissionId' => $this->integer(),
@@ -265,8 +266,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_pdftemplates}}');
-        $this->createTable('{{%formie_pdftemplates}}', [
+        $this->archiveTableIfExists(Table::FORMIE_PDF_TEMPLATES);
+        $this->createTable(Table::FORMIE_PDF_TEMPLATES, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -279,8 +280,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_relations}}');
-        $this->createTable('{{%formie_relations}}', [
+        $this->archiveTableIfExists(Table::FORMIE_RELATIONS);
+        $this->createTable(Table::FORMIE_RELATIONS, [
             'id' => $this->primaryKey(),
             'type' => $this->string(255)->notNull(),
             'sourceId' => $this->integer()->notNull(),
@@ -291,8 +292,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_sentnotifications}}');
-        $this->createTable('{{%formie_sentnotifications}}', [
+        $this->archiveTableIfExists(Table::FORMIE_SENT_NOTIFICATIONS);
+        $this->createTable(Table::FORMIE_SENT_NOTIFICATIONS, [
             'id' => $this->primaryKey(),
             'title' => $this->string(),
             'formId' => $this->integer(),
@@ -317,8 +318,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_statuses}}');
-        $this->createTable('{{%formie_statuses}}', [
+        $this->archiveTableIfExists(Table::FORMIE_STATUSES);
+        $this->createTable(Table::FORMIE_STATUSES, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -334,8 +335,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_stencils}}');
-        $this->createTable('{{%formie_stencils}}', [
+        $this->archiveTableIfExists(Table::FORMIE_STENCILS);
+        $this->createTable(Table::FORMIE_STENCILS, [
             'id' => $this->primaryKey(),
             'name' => $this->string()->notNull(),
             'handle' => $this->string(64)->notNull(),
@@ -350,8 +351,8 @@ class Install extends Migration
             'uid' => $this->uid(),
         ]);
 
-        $this->archiveTableIfExists('{{%formie_submissions}}');
-        $this->createTable('{{%formie_submissions}}', [
+        $this->archiveTableIfExists(Table::FORMIE_SUBMISSIONS);
+        $this->createTable(Table::FORMIE_SUBMISSIONS, [
             'id' => $this->primaryKey(),
             'content' => $this->json(),
             'formId' => $this->integer()->notNull(),
@@ -371,87 +372,87 @@ class Install extends Migration
 
     public function createIndexes(): void
     {
-        $this->createIndex(null, '{{%formie_fieldlayout_pages}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'pageId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'pageId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'rowId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'syncId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'handle', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'templateId', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'defaultStatusId', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntryId', false);
-        $this->createIndex(null, '{{%formie_forms}}', 'submitActionEntrySiteId', false);
-        $this->createIndex(null, '{{%formie_formtemplates}}', 'fieldLayoutId', false);
-        $this->createIndex(null, '{{%formie_notifications}}', 'formId', false);
-        $this->createIndex(null, '{{%formie_notifications}}', 'templateId', false);
-        $this->createIndex(null, '{{%formie_payments}}', 'integrationId', false);
-        $this->createIndex(null, '{{%formie_payments}}', 'fieldId', false);
-        $this->createIndex(null, '{{%formie_payments}}', 'reference', false);
-        $this->createIndex(null, '{{%formie_payments_plans}}', 'integrationId', false);
-        $this->createIndex(null, '{{%formie_payments_plans}}', 'handle', true);
-        $this->createIndex(null, '{{%formie_payments_plans}}', 'reference', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'integrationId', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'submissionId', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'fieldId', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'planId', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'reference', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'nextPaymentDate', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'dateExpired', false);
-        $this->createIndex(null, '{{%formie_payments_subscriptions}}', 'dateExpired', false);
-        $this->createIndex(null, '{{%formie_relations}}', ['sourceId', 'sourceSiteId', 'targetId'], true);
-        $this->createIndex(null, '{{%formie_relations}}', ['sourceId'], false);
-        $this->createIndex(null, '{{%formie_relations}}', ['targetId'], false);
-        $this->createIndex(null, '{{%formie_relations}}', ['sourceSiteId'], false);
-        $this->createIndex(null, '{{%formie_stencils}}', 'templateId', false);
-        $this->createIndex(null, '{{%formie_stencils}}', 'defaultStatusId', false);
-        $this->createIndex(null, '{{%formie_submissions}}', 'formId', false);
-        $this->createIndex(null, '{{%formie_submissions}}', 'statusId', false);
-        $this->createIndex(null, '{{%formie_submissions}}', 'userId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'pageId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'rowId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'syncId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'handle', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'templateId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'defaultStatusId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntryId', false);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'submitActionEntrySiteId', false);
+        $this->createIndex(null, Table::FORMIE_FORM_TEMPLATES, 'fieldLayoutId', false);
+        $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'formId', false);
+        $this->createIndex(null, Table::FORMIE_NOTIFICATIONS, 'templateId', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENTS, 'integrationId', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENTS, 'fieldId', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENTS, 'reference', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'integrationId', false);
+        $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'handle', true);
+        $this->createIndex(null, Table::FORMIE_PAYMENT_PLANS, 'reference', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'integrationId', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'submissionId', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'fieldId', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'planId', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'reference', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'nextPaymentDate', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
+        $this->createIndex(null, Table::FORMIE_SUBSCRIPTIONS, 'dateExpired', false);
+        $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId', 'sourceSiteId', 'targetId'], true);
+        $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceId'], false);
+        $this->createIndex(null, Table::FORMIE_RELATIONS, ['targetId'], false);
+        $this->createIndex(null, Table::FORMIE_RELATIONS, ['sourceSiteId'], false);
+        $this->createIndex(null, Table::FORMIE_STENCILS, 'templateId', false);
+        $this->createIndex(null, Table::FORMIE_STENCILS, 'defaultStatusId', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'formId', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'statusId', false);
+        $this->createIndex(null, Table::FORMIE_SUBMISSIONS, 'userId', false);
     }
 
     public function addForeignKeys(): void
     {
-        $this->addForeignKey(null, '{{%formie_fieldlayout_pages}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['rowId'], '{{%formie_fieldlayout_rows}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['syncId'], '{{%formie_fields}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_formtemplates}}', ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_notifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_notifications}}', ['templateId'], '{{%formie_emailtemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_notifications}}', ['pdfTemplateId'], '{{%formie_pdftemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_payments}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_payments}}', ['subscriptionId'], '{{%formie_payments_subscriptions}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_payments}}', ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_payments}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_payments_plans}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['integrationId'], '{{%formie_integrations}}', ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['fieldId'], '{{%fields}}', ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, '{{%formie_payments_subscriptions}}', ['planId'], '{{%formie_payments_plans}}', ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_relations}}', ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
-        $this->addForeignKey(null, '{{%formie_relations}}', ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['formId'], '{{%formie_forms}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['submissionId'], '{{%formie_submissions}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_sentnotifications}}', ['notificationId'], '{{%formie_notifications}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_stencils}}', ['templateId'], '{{%formie_formtemplates}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_stencils}}', ['defaultStatusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['formId'], '{{%formie_forms}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['statusId'], '{{%formie_statuses}}', ['id'], 'SET NULL', null);
-        $this->addForeignKey(null, '{{%formie_submissions}}', ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_PAGES, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['rowId'], Table::FORMIE_FIELD_LAYOUT_ROWS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['syncId'], Table::FORMIE_FIELDS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['submitActionEntryId'], '{{%entries}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FORM_TEMPLATES, ['fieldLayoutId'], '{{%fieldlayouts}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['templateId'], Table::FORMIE_EMAIL_TEMPLATES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['pdfTemplateId'], Table::FORMIE_PDF_TEMPLATES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['subscriptionId'], Table::FORMIE_SUBSCRIPTIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENT_PLANS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], '{{%fields}}', ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
+        $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['targetId'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SENT_NOTIFICATIONS, ['notificationId'], Table::FORMIE_NOTIFICATIONS, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_STENCILS, ['templateId'], Table::FORMIE_FORM_TEMPLATES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_STENCILS, ['defaultStatusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['id'], '{{%elements}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['formId'], Table::FORMIE_FORMS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['statusId'], Table::FORMIE_STATUSES, ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBMISSIONS, ['userId'], '{{%users}}', ['id'], 'SET NULL', null);
     }
 
     public function removeTables(): void

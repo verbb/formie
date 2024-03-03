@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\records\Field;
 
@@ -13,7 +15,7 @@ class Subscription extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_payments_subscriptions}}';
+        return Table::FORMIE_SUBSCRIPTIONS;
     }
 
 

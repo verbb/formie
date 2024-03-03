@@ -16,6 +16,7 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
@@ -30,7 +31,6 @@ use verbb\formie\services\Statuses;
 use Craft;
 use craft\base\Element;
 use craft\db\Query;
-use craft\db\Table;
 use craft\elements\Entry;
 use craft\elements\User;
 use craft\elements\actions\Delete;
@@ -1861,7 +1861,7 @@ class Form extends Element
         // Generate a new handle, nicely
         $formHandles = (new Query())
             ->select(['handle'])
-            ->from('{{%formie_forms}}')
+            ->from(Table::FORMIE_FORMS)
             ->column();
 
         // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs. 
@@ -2011,7 +2011,7 @@ class Form extends Element
         }
 
         // Ensure that when restoring the handle is still valid and unique
-        Db::update('{{%formie_forms}}', ['handle' => $handle], ['id' => $this->id]);
+        Db::update(Table::FORMIE_FORMS, ['handle' => $handle], ['id' => $this->id]);
 
         $this->handle = $handle;
 

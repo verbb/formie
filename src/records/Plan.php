@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 
 use yii\db\ActiveQueryInterface;
@@ -12,7 +14,7 @@ class Plan extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_payments_plans}}';
+        return Table::FORMIE_PAYMENT_PLANS;
     }
 
 

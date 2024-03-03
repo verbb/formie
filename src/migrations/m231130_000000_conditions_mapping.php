@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\migrations;
 
+use verbb\formie\helpers\Table;
+
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
@@ -15,7 +17,7 @@ class m231130_000000_conditions_mapping extends Migration
     {
         $fields = (new Query())
             ->select(['*'])
-            ->from(['{{%formie_fields}}'])
+            ->from([Table::FORMIE_FIELDS])
             ->all();
 
         foreach ($fields as $field) {
@@ -50,7 +52,7 @@ class m231130_000000_conditions_mapping extends Migration
             if ($hasChanged) {
                 $settings['conditions'] = $conditionsSettings;
 
-                $this->update('{{%formie_fields}}', [
+                $this->update(Table::FORMIE_FIELDS, [
                     'settings' => Json::encode($settings),
                 ], ['id' => $field['id']], [], false);
             }

@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\records\Element;
 
@@ -13,7 +15,7 @@ class Submission extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_submissions}}';
+        return Table::FORMIE_SUBMISSIONS;
     }
 
 

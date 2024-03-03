@@ -7,6 +7,7 @@ use verbb\formie\events\PdfRenderOptionsEvent;
 use verbb\formie\events\PdfTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\models\Settings;
@@ -82,7 +83,7 @@ class PdfTemplates extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_pdftemplates}}', $ids);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_PDF_TEMPLATES, $ids);
 
         foreach ($ids as $template => $templateId) {
             if (!empty($uidsByIds[$templateId])) {
@@ -116,10 +117,10 @@ class PdfTemplates extends Component
             $template->uid = StringHelper::UUID();
 
             $template->sortOrder = (new Query())
-                ->from(['{{%formie_pdftemplates}}'])
+                ->from([Table::FORMIE_PDF_TEMPLATES])
                 ->max('[[sortOrder]]') + 1;
         } else if (!$template->uid) {
-            $template->uid = Db::uidById('{{%formie_pdftemplates}}', $template->id);
+            $template->uid = Db::uidById(Table::FORMIE_PDF_TEMPLATES, $template->id);
         }
 
         // Make sure no templates that are not archived share the handle
@@ -134,7 +135,7 @@ class PdfTemplates extends Component
         Craft::$app->getProjectConfig()->set($configPath, $template->getConfig(), "Save the “{$template->handle}” PDF template");
 
         if ($isNewTemplate) {
-            $template->id = Db::idByUid('{{%formie_pdftemplates}}', $template->uid);
+            $template->id = Db::idByUid(Table::FORMIE_PDF_TEMPLATES, $template->uid);
         }
 
         return true;
@@ -226,7 +227,7 @@ class PdfTemplates extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
         try {
             Craft::$app->getDb()->createCommand()
-                ->softDelete('{{%formie_pdftemplates}}', ['id' => $templateRecord->id])
+                ->softDelete(Table::FORMIE_PDF_TEMPLATES, ['id' => $templateRecord->id])
                 ->execute();
 
             $transaction->commit();
@@ -396,7 +397,7 @@ class PdfTemplates extends Component
                 'dateDeleted',
                 'uid',
             ])
-            ->from(['{{%formie_pdftemplates}}'])
+            ->from([Table::FORMIE_PDF_TEMPLATES])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
 

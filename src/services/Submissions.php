@@ -13,6 +13,7 @@ use verbb\formie\events\SubmissionSpamCheckEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
@@ -343,7 +344,7 @@ class Submissions extends Component
         // Find all the forms with data retention settings
         $forms = (new Query())
             ->select(['id', 'handle', 'dataRetention', 'dataRetentionValue'])
-            ->from(['{{%formie_forms}}'])
+            ->from([Table::FORMIE_FORMS])
             ->where(['not', ['dataRetention' => 'forever']])
             ->all();
 
@@ -462,7 +463,7 @@ class Submissions extends Component
 
         if ($inheritorOnDelete) {
             // Re-assign each submission to the new user
-            Db::update('{{%formie_submissions}}', ['userId' => $inheritorOnDelete->id], ['userId' => $user->id]);
+            Db::update(Table::FORMIE_SUBMISSIONS, ['userId' => $inheritorOnDelete->id], ['userId' => $user->id]);
         } else {
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {

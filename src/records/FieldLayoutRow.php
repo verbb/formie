@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 
 class FieldLayoutRow extends ActiveRecord
@@ -10,6 +12,6 @@ class FieldLayoutRow extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_fieldlayout_rows}}';
+        return Table::FORMIE_FIELD_LAYOUT_ROWS;
     }
 }

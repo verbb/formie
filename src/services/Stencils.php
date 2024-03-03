@@ -6,6 +6,7 @@ use verbb\formie\Formie;
 use verbb\formie\events\StencilEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Stencil;
@@ -114,7 +115,7 @@ class Stencils extends Component
         if ($isNewStencil) {
             $stencilUid = StringHelper::UUID();
         } else {
-            $stencilUid = Db::uidById('{{%formie_stencils}}', $stencil->id);
+            $stencilUid = Db::uidById(Table::FORMIE_STENCILS, $stencil->id);
         }
 
         // Make sure no stencils that are not archived share the handle
@@ -148,7 +149,7 @@ class Stencils extends Component
         $projectConfig->set($configPath, $configData);
 
         if ($isNewStencil) {
-            $stencil->id = Db::idByUid('{{%formie_stencils}}', $stencilUid);
+            $stencil->id = Db::idByUid(Table::FORMIE_STENCILS, $stencilUid);
         }
 
         return true;
@@ -326,7 +327,7 @@ class Stencils extends Component
                 'uid',
             ])
             ->orderBy('name ASC')
-            ->from(['{{%formie_stencils}}']);
+            ->from([Table::FORMIE_STENCILS]);
 
         if (!$withTrashed) {
             $query->where(['dateDeleted' => null]);

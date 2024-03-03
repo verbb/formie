@@ -15,6 +15,7 @@ use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\Table;
 use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\models\FieldLayout;
@@ -35,7 +36,6 @@ use craft\base\Component;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
-use craft\db\Table as CraftTable;
 use craft\errors\MissingComponentException;
 use craft\fields\BaseRelationField;
 use craft\fields\PlainText;
@@ -59,7 +59,7 @@ class Fields extends Component
     {
         // Maintain a cache of all Formie field handles, because we can't rely on Craft's customFields behaviour.
         return Craft::$app->getCache()->getOrSet('formie:fieldHandles', function() {
-            return (new Query())->select(['handle'])->from('{{%formie_fields}}')->column();
+            return (new Query())->select(['handle'])->from(Table::FORMIE_FIELDS)->column();
         });
     }
 
@@ -468,9 +468,9 @@ class Fields extends Component
 
         // Query all existing IDs so we can compare to cleanup and deleted items. 
         // Important to do this before saving, so they're not included in the list.
-        $allPageIds = (new Query())->select('id')->from('{{%formie_fieldlayout_pages}}')->where(['layoutId' => $layout->id])->column();
-        $allRowIds = (new Query())->select('id')->from('{{%formie_fieldlayout_rows}}')->where(['layoutId' => $layout->id])->column();
-        $allFieldIds = (new Query())->select('id')->from('{{%formie_fields}}')->where(['layoutId' => $layout->id])->column();
+        $allPageIds = (new Query())->select('id')->from(Table::FORMIE_FIELD_LAYOUT_PAGES)->where(['layoutId' => $layout->id])->column();
+        $allRowIds = (new Query())->select('id')->from(Table::FORMIE_FIELD_LAYOUT_ROWS)->where(['layoutId' => $layout->id])->column();
+        $allFieldIds = (new Query())->select('id')->from(Table::FORMIE_FIELDS)->where(['layoutId' => $layout->id])->column();
 
         // Use a transaction to ensure we don't have any records unless the entire layout succeeds
         $transaction = Craft::$app->getDb()->beginTransaction();
@@ -576,7 +576,7 @@ class Fields extends Component
             return false;
         }
 
-        Db::delete('{{%formie_fieldlayouts}}', ['id' => $layout->id]);
+        Db::delete(Table::FORMIE_FIELD_LAYOUTS, ['id' => $layout->id]);
 
         $layout->afterDelete();
 
@@ -649,7 +649,7 @@ class Fields extends Component
             return false;
         }
 
-        Db::delete('{{%formie_fieldlayout_pages}}', ['id' => $page->id]);
+        Db::delete(Table::FORMIE_FIELD_LAYOUT_PAGES, ['id' => $page->id]);
 
         $page->afterDelete();
 
@@ -722,7 +722,7 @@ class Fields extends Component
             return false;
         }
 
-        Db::delete('{{%formie_fieldlayout_rows}}', ['id' => $row->id]);
+        Db::delete(Table::FORMIE_FIELD_LAYOUT_ROWS, ['id' => $row->id]);
 
         $row->afterDelete();
 
@@ -804,7 +804,7 @@ class Fields extends Component
             return false;
         }
 
-        Db::delete('{{%formie_fields}}', ['id' => $field->id]);
+        Db::delete(Table::FORMIE_FIELDS, ['id' => $field->id]);
 
         $field->afterDelete();
 
@@ -814,12 +814,12 @@ class Fields extends Component
     public function updateSyncedFields(Field $field): bool
     {
         // Do a direct update on the source field for this sync, to ensure it's synced too
-        Db::update('{{%formie_fields}}', ['syncId' => $field->syncId], ['id' => $field->syncId]);
+        Db::update(Table::FORMIE_FIELDS, ['syncId' => $field->syncId], ['id' => $field->syncId]);
 
         // Get all instances of the syncs, whether the source or destination
         $fieldIds = (new Query())
             ->select('id')
-            ->from('{{%formie_fields}}')
+            ->from(Table::FORMIE_FIELDS)
             ->where(['syncId' => $field->syncId])
             ->column();
 

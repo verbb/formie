@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 
 class Field extends ActiveRecord
@@ -10,6 +12,6 @@ class Field extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_fields}}';
+        return Table::FORMIE_FIELDS;
     }
 }

@@ -12,6 +12,7 @@ use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\integrations\addressproviders;
 use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
@@ -285,10 +286,10 @@ class Integrations extends Component
             $integration->uid = StringHelper::UUID();
             
             $integration->sortOrder = (new Query())
-                    ->from(['{{%formie_integrations}}'])
+                    ->from([Table::FORMIE_INTEGRATIONS])
                     ->max('[[sortOrder]]') + 1;
         } else if (!$integration->uid) {
-            $integration->uid = Db::uidById('{{%formie_integrations}}', $integration->id);
+            $integration->uid = Db::uidById(Table::FORMIE_INTEGRATIONS, $integration->id);
         }
 
         $configPath = self::CONFIG_INTEGRATIONS_KEY . '.' . $integration->uid;
@@ -296,7 +297,7 @@ class Integrations extends Component
         Craft::$app->getProjectConfig()->set($configPath, $configData, "Save the “{$integration->handle}” integration");
 
         if ($isNewIntegration) {
-            $integration->id = Db::idByUid('{{%formie_integrations}}', $integration->uid);
+            $integration->id = Db::idByUid(Table::FORMIE_INTEGRATIONS, $integration->uid);
         }
 
         return true;
@@ -370,7 +371,7 @@ class Integrations extends Component
     {
         $projectConfig = Craft::$app->getProjectConfig();
 
-        $uidsByIds = Db::uidsByIds('{{%formie_integrations}}', $integrationIds);
+        $uidsByIds = Db::uidsByIds(Table::FORMIE_INTEGRATIONS, $integrationIds);
 
         foreach ($integrationIds as $integrationOrder => $integrationId) {
             if (!empty($uidsByIds[$integrationId])) {
@@ -462,7 +463,7 @@ class Integrations extends Component
 
             // Delete the integration
             $db->createCommand()
-                ->softDelete('{{%formie_integrations}}', ['id' => $integrationRecord->id])
+                ->softDelete(Table::FORMIE_INTEGRATIONS, ['id' => $integrationRecord->id])
                 ->execute();
 
             $integration->afterDelete();
@@ -698,7 +699,7 @@ class Integrations extends Component
                 'dateUpdated',
                 'uid',
             ])
-            ->from(['{{%formie_integrations}}'])
+            ->from([Table::FORMIE_INTEGRATIONS])
             ->where(['dateDeleted' => null])
             ->orderBy(['sortOrder' => SORT_ASC]);
     }

@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\records\Element;
 
@@ -13,7 +15,7 @@ class SentNotification extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_sentnotifications}}';
+        return Table::FORMIE_SENT_NOTIFICATIONS;
     }
 
 

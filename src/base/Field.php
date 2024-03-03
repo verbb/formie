@@ -17,6 +17,7 @@ use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -489,7 +490,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $query = Craft::$app->getDb()->getQueryBuilder()->jsonContains('s.content', [$this->uid => $value]);
 
         $query = (new Query())
-            ->from(['s' => '{{%formie_submissions}}'])
+            ->from(['s' => Table::FORMIE_SUBMISSIONS])
             ->where([$query, 'isIncomplete' => false, 'e.dateDeleted' => null])
             ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]');
 

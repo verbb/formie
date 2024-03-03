@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\PaymentEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\Payment;
 use verbb\formie\records\Payment as PaymentRecord;
 
@@ -149,7 +150,7 @@ class Payments extends Component
             ]));
         }
 
-        Db::delete('{{%formie_payments}}', [
+        Db::delete(Table::FORMIE_PAYMENTS, [
             'uid' => $payment->uid,
         ]);
 
@@ -207,7 +208,7 @@ class Payments extends Component
                 'uid',
             ])
             ->orderBy('dateCreated')
-            ->from(['{{%formie_payments}}']);
+            ->from([Table::FORMIE_PAYMENTS]);
     }
 
     private function _getPaymentRecord(int|string|null $id): PaymentRecord

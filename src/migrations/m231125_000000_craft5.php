@@ -4,12 +4,12 @@ namespace verbb\formie\migrations;
 use verbb\formie\Formie;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\db\Table;
 use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
@@ -80,8 +80,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _addNewLayoutTables(): void
     {
-        if (!$this->db->tableExists('{{%formie_fieldlayouts}}')) {
-            $this->createTable('{{%formie_fieldlayouts}}', [
+        if (!$this->db->tableExists(Table::FORMIE_FIELD_LAYOUTS)) {
+            $this->createTable(Table::FORMIE_FIELD_LAYOUTS, [
                 'id' => $this->primaryKey(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
@@ -89,8 +89,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             ]);
         }
 
-        if (!$this->db->tableExists('{{%formie_fieldlayout_pages}}')) {
-            $this->createTable('{{%formie_fieldlayout_pages}}', [
+        if (!$this->db->tableExists(Table::FORMIE_FIELD_LAYOUT_PAGES)) {
+            $this->createTable(Table::FORMIE_FIELD_LAYOUT_PAGES, [
                 'id' => $this->primaryKey(),
                 'layoutId' => $this->integer()->notNull(),
                 'label' => $this->text()->notNull(),
@@ -102,8 +102,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             ]);
         }
 
-        if (!$this->db->tableExists('{{%formie_fieldlayout_rows}}')) {
-            $this->createTable('{{%formie_fieldlayout_rows}}', [
+        if (!$this->db->tableExists(Table::FORMIE_FIELD_LAYOUT_ROWS)) {
+            $this->createTable(Table::FORMIE_FIELD_LAYOUT_ROWS, [
                 'id' => $this->primaryKey(),
                 'layoutId' => $this->integer()->notNull(),
                 'pageId' => $this->integer(),
@@ -114,8 +114,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             ]);
         }
 
-        if (!$this->db->tableExists('{{%formie_fields}}')) {
-            $this->createTable('{{%formie_fields}}', [
+        if (!$this->db->tableExists(Table::FORMIE_FIELDS)) {
+            $this->createTable(Table::FORMIE_FIELDS, [
                 'id' => $this->primaryKey(),
                 'layoutId' => $this->integer()->notNull(),
                 'pageId' => $this->integer(),
@@ -132,54 +132,54 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             ]);
         }
 
-        if (!$this->db->columnExists('{{%formie_forms}}', 'layoutId')) {
-            $this->addColumn('{{%formie_forms}}', 'layoutId', $this->integer()->after('settings'));
+        if (!$this->db->columnExists(Table::FORMIE_FORMS, 'layoutId')) {
+            $this->addColumn(Table::FORMIE_FORMS, 'layoutId', $this->integer()->after('settings'));
         }
 
-        if (!$this->db->columnExists('{{%formie_submissions}}', 'content')) {
-            $this->addColumn('{{%formie_submissions}}', 'content', $this->json()->after('id'));
+        if (!$this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'content')) {
+            $this->addColumn(Table::FORMIE_SUBMISSIONS, 'content', $this->json()->after('id'));
         }
         
         // In case the migration is run again
-        MigrationHelper::dropAllForeignKeysOnTable('{{%formie_fieldlayout_pages}}', $this);
-        MigrationHelper::dropAllForeignKeysOnTable('{{%formie_fieldlayout_rows}}', $this);
-        MigrationHelper::dropAllForeignKeysOnTable('{{%formie_fields}}', $this);
-        MigrationHelper::dropAllIndexesOnTable('{{%formie_fieldlayout_pages}}', $this);
-        MigrationHelper::dropAllIndexesOnTable('{{%formie_fieldlayout_rows}}', $this);
-        MigrationHelper::dropAllIndexesOnTable('{{%formie_fields}}', $this);
+        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
+        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
+        MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELDS, $this);
+        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
+        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
+        MigrationHelper::dropAllIndexesOnTable(Table::FORMIE_FIELDS, $this);
 
-        $this->dropForeignKeyIfExists('{{%formie_forms}}', ['layoutId']);
-        $this->dropIndexIfExists('{{%formie_forms}}', ['layoutId']);
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORMS, ['layoutId']);
+        $this->dropIndexIfExists(Table::FORMIE_FORMS, ['layoutId']);
 
-        $this->createIndex(null, '{{%formie_fieldlayout_pages}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fieldlayout_rows}}', 'pageId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'layoutId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'pageId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'rowId', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'handle', false);
-        $this->createIndex(null, '{{%formie_fields}}', 'syncId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_PAGES, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELD_LAYOUT_ROWS, 'pageId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'layoutId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'pageId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'rowId', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'handle', false);
+        $this->createIndex(null, Table::FORMIE_FIELDS, 'syncId', false);
 
-        $this->addForeignKey(null, '{{%formie_fieldlayout_pages}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fieldlayout_rows}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['pageId'], '{{%formie_fieldlayout_pages}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['rowId'], '{{%formie_fieldlayout_rows}}', ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, '{{%formie_fields}}', ['syncId'], '{{%formie_fields}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_PAGES, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELD_LAYOUT_ROWS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['pageId'], Table::FORMIE_FIELD_LAYOUT_PAGES, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['rowId'], Table::FORMIE_FIELD_LAYOUT_ROWS, ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_FIELDS, ['syncId'], Table::FORMIE_FIELDS, ['id'], 'SET NULL', null);
 
         // Alter old field layout specs
-        $this->createIndex(null, '{{%formie_forms}}', 'layoutId', false);
-        $this->addForeignKey(null, '{{%formie_forms}}', ['layoutId'], '{{%formie_fieldlayouts}}', ['id'], 'SET NULL', null);
+        $this->createIndex(null, Table::FORMIE_FORMS, 'layoutId', false);
+        $this->addForeignKey(null, Table::FORMIE_FORMS, ['layoutId'], Table::FORMIE_FIELD_LAYOUTS, ['id'], 'SET NULL', null);
 
         // Remove old field layouts
-        $this->dropForeignKeyIfExists('{{%formie_forms}}', ['fieldLayoutId']);
-        $this->dropIndexIfExists('{{%formie_forms}}', ['fieldLayoutId']);
+        $this->dropForeignKeyIfExists(Table::FORMIE_FORMS, ['fieldLayoutId']);
+        $this->dropIndexIfExists(Table::FORMIE_FORMS, ['fieldLayoutId']);
     }
 
     private function _addPopulateLayouts(): bool
     {
-        $forms = (new Query())->from('{{%formie_forms}}')->all();
+        $forms = (new Query())->from(Table::FORMIE_FORMS)->all();
 
         echo '    > Updating all forms with new field layout.' . PHP_EOL;
 
@@ -203,7 +203,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 return false;
             }
 
-            Db::update('{{%formie_forms}}', ['layoutId' => $formLayout->id], ['id' => $form['id']]);
+            Db::update(Table::FORMIE_FORMS, ['layoutId' => $formLayout->id], ['id' => $form['id']]);
 
             echo '    > Updated Form ' . $form['handle'] . ' field layout.' . PHP_EOL;
         }
@@ -213,7 +213,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _migrateTemplateFieldLayout(): void
     {
-        $forms = (new Query())->from('{{%formie_forms}}')->all();
+        $forms = (new Query())->from(Table::FORMIE_FORMS)->all();
 
         echo '    > Updating all forms with new template field layout.' . PHP_EOL;
 
@@ -222,7 +222,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             $templateId = $form['templateId'];
 
             if ($templateId) {
-                $template = (new Query())->from('{{%formie_formtemplates}}')->where(['id' => $templateId])->one();
+                $template = (new Query())->from(Table::FORMIE_FORM_TEMPLATES)->where(['id' => $templateId])->one();
                 $fieldLayoutId = $template['fieldLayoutId'] ?? null;
 
                 if ($template && $fieldLayoutId) {
@@ -237,7 +237,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
     private function _migrateSubmissionContent(): void
     {
         // Fetch again with new content populated
-        $forms = (new Query())->from('{{%formie_forms}}')->all();
+        $forms = (new Query())->from(Table::FORMIE_FORMS)->all();
 
         echo '    > Updating Submission content to JSON.' . PHP_EOL;
 
@@ -254,14 +254,14 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 continue;
             }
 
-            $submissions = (new Query())->from('{{%formie_submissions}}')->where(['formId' => $form['id']])->all();
+            $submissions = (new Query())->from(Table::FORMIE_SUBMISSIONS)->where(['formId' => $form['id']])->all();
             $layout = Formie::$plugin->getFields()->getLayoutById($form['layoutId']);
 
             foreach ($submissions as $submission) {
                 // Create the content from a custom table to JSON
                 $content = $this->_createContentJson($form['fieldContentTable'], $submission['id'], 'formie:' . $form['uid'], $layout);
 
-                Db::update('{{%formie_submissions}}', ['content' => $content], ['id' => $submission['id']]);
+                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission['id']]);
 
                 echo '    > Updated Submission #' . $submission['id'] . ' content.' . PHP_EOL;
             }
@@ -283,7 +283,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                 // Find the new field
                 $formUid = str_replace('formie:', '', $field['context']);
-                $form = (new Query())->from('{{%formie_forms}}')->where(['uid' => $formUid])->one();
+                $form = (new Query())->from(Table::FORMIE_FORMS)->where(['uid' => $formUid])->one();
 
                 if (!$form) {
                     echo '    > ' . $field['handle'] . ': unable to find owner form.' . PHP_EOL;
@@ -291,7 +291,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                     continue;
                 }
 
-                $newField = (new Query())->from('{{%formie_fields}}')->where(['layoutId' => $form['layoutId'], 'handle' => $field['handle']])->one();
+                $newField = (new Query())->from(Table::FORMIE_FIELDS)->where(['layoutId' => $form['layoutId'], 'handle' => $field['handle']])->one();
 
                 if (!$newField) {
                     echo '    > ' . $field['handle'] . ': unable to find new field.' . PHP_EOL;
@@ -329,12 +329,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 }
 
                 foreach ($submissionContent as $submissionId => $fieldContent) {
-                    $submissionContent = (new Query())->select('content')->from('{{%formie_submissions}}')->where(['id' => $submissionId])->scalar();
+                    $submissionContent = (new Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId])->scalar();
                     $submissionContent = Json::decode($submissionContent);
 
                     $submissionContent = array_merge($submissionContent, $fieldContent);
 
-                    Db::update('{{%formie_submissions}}', ['content' => $submissionContent], ['id' => $submissionId]);
+                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $submissionContent], ['id' => $submissionId]);
 
                     echo '    > Updated Submission ' . $submissionId . ' content for nested content.' . PHP_EOL;
                 }
@@ -456,7 +456,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _updateFormTitles(): void
     {
-        $forms = (new Query())->select('id')->from('{{%formie_forms}}')->all();
+        $forms = (new Query())->select('id')->from(Table::FORMIE_FORMS)->all();
 
         foreach ($forms as $form) {
             $elementId = $form['id'];
@@ -473,7 +473,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _updateSubmissionTitles(): void
     {
-        $submissions = (new Query())->select(['id', 'title'])->from('{{%formie_submissions}}')->all();
+        $submissions = (new Query())->select(['id', 'title'])->from(Table::FORMIE_SUBMISSIONS)->all();
 
         foreach ($submissions as $submission) {
             $elementId = $submission['id'];
@@ -501,10 +501,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 // Find the new field
                 if ($oldField) {
                     $formUid = str_replace('formie:', '', $oldField['context']);
-                    $form = (new Query())->from('{{%formie_forms}}')->where(['uid' => $formUid])->one();
+                    $form = (new Query())->from(Table::FORMIE_FORMS)->where(['uid' => $formUid])->one();
 
                     if ($form) {
-                        $newField = (new Query())->from('{{%formie_fields}}')->where(['layoutId' => $form['layoutId'], 'handle' => $oldField['handle']])->one();
+                        $newField = (new Query())->from(Table::FORMIE_FIELDS)->where(['layoutId' => $form['layoutId'], 'handle' => $oldField['handle']])->one();
 
                         if ($newField) {
                             $syncIds[] = $newField['id'];
@@ -517,7 +517,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 $primarySyncId = $syncIds[0];
 
                 foreach ($syncIds as $syncId) {
-                    $this->update('{{%formie_fields}}', ['syncId' => $primarySyncId], ['id' => $syncId]);
+                    $this->update(Table::FORMIE_FIELDS, ['syncId' => $primarySyncId], ['id' => $syncId]);
                 }
             }
         }
@@ -575,13 +575,13 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         foreach ($elementRelations as $formContext => $elementRelation) {
             $formUid = str_replace('formie:', '', $formContext);
 
-            $form = (new Query())->from('{{%formie_forms}}')->where(['uid' => $formUid])->one();
+            $form = (new Query())->from(Table::FORMIE_FORMS)->where(['uid' => $formUid])->one();
 
             if ($form) {
                 $fieldUidMap = [];
 
                 // Get a field UID map for all fields in this form
-                $fields = (new Query())->from('{{%formie_fields}}')->where(['layoutId' => $form['layoutId']])->all();
+                $fields = (new Query())->from(Table::FORMIE_FIELDS)->where(['layoutId' => $form['layoutId']])->all();
 
                 foreach ($fields as $field) {
                     $fieldUidMap[$field['handle']] = $field['uid'];
@@ -591,7 +591,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         $nestedFieldLayoutId = $nestedFieldSettings['nestedLayoutId'] ?? null;
 
                         if ($nestedFieldLayoutId) {
-                            $nestedFields = (new Query())->from('{{%formie_fields}}')->where(['layoutId' => $nestedFieldLayoutId])->all();
+                            $nestedFields = (new Query())->from(Table::FORMIE_FIELDS)->where(['layoutId' => $nestedFieldLayoutId])->all();
 
                             foreach ($nestedFields as $nestedField) {
                                 $fieldUidMap[$field['handle'] . ':' . $nestedField['handle']] = $nestedField['uid'];
@@ -601,7 +601,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 }
 
                 foreach ($elementRelation as $submissionId => $fieldsContent) {
-                    $submission = (new Query())->from('{{%formie_submissions}}')->where(['id' => $submissionId])->one();
+                    $submission = (new Query())->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId])->one();
 
                     if ($submission) {
                         $content = Json::decode($submission['content']) ?? [];
@@ -619,7 +619,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                         $submissionContent = array_replace_recursive($content, $preppedContent);
 
-                        Db::update('{{%formie_submissions}}', ['content' => $submissionContent], ['id' => $submissionId]);
+                        Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $submissionContent], ['id' => $submissionId]);
 
                         echo '    > Updated Submission ' . $submissionId . ' content for related content.' . PHP_EOL;
                     }
@@ -656,7 +656,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         }
 
         $fieldlayouts = (new Query())->from('{{%fieldlayouts}}')->all();
-        $formTemplateLayoutIds = array_values(array_filter((new Query())->select('fieldLayoutId')->from('{{%formie_formtemplates}}')->column()));
+        $formTemplateLayoutIds = array_values(array_filter((new Query())->select('fieldLayoutId')->from(Table::FORMIE_FORM_TEMPLATES)->column()));
 
         foreach ($fieldlayouts as $fieldlayout) {
             // Delete all Group/Repeater layouts
@@ -685,12 +685,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             }
         }
 
-        if ($this->db->columnExists('{{%formie_forms}}', 'fieldLayoutId')) {
-            $this->dropColumn('{{%formie_forms}}', 'fieldLayoutId');
+        if ($this->db->columnExists(Table::FORMIE_FORMS, 'fieldLayoutId')) {
+            $this->dropColumn(Table::FORMIE_FORMS, 'fieldLayoutId');
         }
 
-        if ($this->db->columnExists('{{%formie_submissions}}', 'title')) {
-            $this->dropColumn('{{%formie_submissions}}', 'title');
+        if ($this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'title')) {
+            $this->dropColumn(Table::FORMIE_SUBMISSIONS, 'title');
         }
     }
 }

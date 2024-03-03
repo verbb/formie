@@ -13,6 +13,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
@@ -632,7 +633,7 @@ class FileUpload extends ElementField
         // We now need to update the submission with the IDs of asset for this field, so do a direct query
         // because this is triggered after the element has been saved, and we don't want to end up in a loop.
         // The easiest method is to just re-serialize all field values and save the content as a whole
-        Db::update('{{%formie_submissions}}', ['content' => $element->serializeFieldValues()], ['id' => $element->id]);
+        Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $element->serializeFieldValues()], ['id' => $element->id]);
     }
 
     public function getContentGqlMutationArgumentType(): array|Type

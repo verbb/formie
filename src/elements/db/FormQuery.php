@@ -1,10 +1,10 @@
 <?php
 namespace verbb\formie\elements\db;
 
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FormTemplate;
 
 use craft\db\Query;
-use craft\db\Table;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
 
@@ -43,7 +43,7 @@ class FormQuery extends ElementQuery
         } else if ($value !== null) {
             $this->templateId = (new Query())
                 ->select(['id'])
-                ->from(['{{%formie_formtemplates}}'])
+                ->from([Table::FORMIE_FORM_TEMPLATES])
                 ->where(Db::parseParam('handle', $value))
                 ->column();
         } else {

@@ -12,6 +12,7 @@ use verbb\formie\events\SendIntegrationPayloadEvent;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Phone;
@@ -779,7 +780,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $data = Json::encode($this->cache);
 
         // Direct DB update to keep it out of PC, plus speed
-        Db::update('{{%formie_integrations}}', ['cache' => $data], ['id' => $this->id]);
+        Db::update(Table::FORMIE_INTEGRATIONS, ['cache' => $data], ['id' => $this->id]);
     }
 
     private function getCache(string $key): mixed

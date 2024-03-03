@@ -1,10 +1,13 @@
 <?php
 namespace verbb\formie\records;
 
+use verbb\formie\helpers\Table;
+
 use craft\db\ActiveRecord;
 use craft\records\Element;
 
 use DateTime;
+
 use yii\db\ActiveQueryInterface;
 
 class Form extends ActiveRecord
@@ -14,7 +17,7 @@ class Form extends ActiveRecord
 
     public static function tableName(): string
     {
-        return '{{%formie_forms}}';
+        return Table::FORMIE_FORMS;
     }
 
 
