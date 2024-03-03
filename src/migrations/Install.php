@@ -565,6 +565,7 @@ class Install extends Migration
         foreach ($tables as $table) {
             if ($this->db->tableExists('{{%' . $table . '}}')) {
                 MigrationHelper::dropAllForeignKeysOnTable('{{%' . $table . '}}', $this);
+                MigrationHelper::dropAllForeignKeysToTable('{{%' . $table . '}}', $this);
             }
         }
     }

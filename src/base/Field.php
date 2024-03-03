@@ -1557,6 +1557,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'searchable',
             'translationMethod',
             'translationKeyFormat',
+            'rowsConfig',
         ];
 
         foreach ($removedProperties as $removedProperty) {
