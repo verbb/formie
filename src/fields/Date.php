@@ -98,7 +98,7 @@ class Date extends SubField implements PreviewableFieldInterface
     public ?string $secondPlaceholder = null;
     public ?string $ampmLabel = null;
     public ?string $ampmPlaceholder = null;
-    public bool $useDatePicker = true;
+    public bool $useDatePicker = false;
     public array $datePickerOptions = [];
     public string $minDateOption = '';
     public ?DateTime $minDate = null;
