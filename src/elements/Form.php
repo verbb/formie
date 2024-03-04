@@ -838,7 +838,9 @@ class Form extends Element
 
         if ($pages) {
             // Check if there's a session variable
-            $pageId = Craft::$app->getSession()->get($this->_getSessionKey('pageId'));
+            $pageId = Craft::$app->getSession()->getHasSessionId()
+                ? Craft::$app->getSession()->get($this->_getSessionKey('pageId'))
+                : null;
 
             if ($pageId) {
                 $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
@@ -981,7 +983,7 @@ class Form extends Element
      */
     public function setCurrentPage($page): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
@@ -999,7 +1001,7 @@ class Form extends Element
      */
     public function resetCurrentPage(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
@@ -1059,7 +1061,9 @@ class Form extends Element
         }
 
         // Check if there's a session variable
-        $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
+        $submissionId = Craft::$app->getSession()->getHasSessionId()
+            ? Craft::$app->getSession()->get($this->_getSessionKey('submissionId'))
+            : null;
 
         if ($submissionId) {
             /* @var Submission $submission */
@@ -1089,7 +1093,7 @@ class Form extends Element
      */
     public function setCurrentSubmission(?Submission $submission): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
@@ -1109,7 +1113,7 @@ class Form extends Element
      */
     public function resetCurrentSubmission(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
@@ -2060,7 +2064,7 @@ class Form extends Element
 
     public function getSnapshotData($key = null)
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return [];
         }
 
@@ -2075,7 +2079,7 @@ class Form extends Element
 
     public function setSnapshotData($key, $data): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
@@ -2089,7 +2093,7 @@ class Form extends Element
 
     public function resetSnapshotData(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Craft::$app->getSession()->getHasSessionId()) {
             return;
         }
 
