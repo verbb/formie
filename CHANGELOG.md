@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.0-beta.1
+## 3.0.0-beta.1 - 2024-03-04
 
 ### Breaking Changes
 - Repeater and Group fields values now no longer use elements, just plain arrays. This brings several performance improvements and simplification to these fields.
@@ -41,7 +41,8 @@
 
 
 ### Changed
-- Compatible with Craft `5.0.0-beta.1`.
+- Now requires PHP `8.2.0+`.
+- Now requires Craft `5.0.0-beta.1+`.
 - Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
 - Submission content no longer have their own content tables. Content is now in a single `content` column, in your `formie_submissions` database table.
 - Submissions now have Create/Save/Delete user permissions.
