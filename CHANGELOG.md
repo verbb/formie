@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0-beta.2 - 2024-03-05
+
+### Fixed
+- Fix an install error related to `nystudio107/craft-plugin-vite`.
+
 ## 3.0.0-beta.1 - 2024-03-04
 
 ### Breaking Changes
