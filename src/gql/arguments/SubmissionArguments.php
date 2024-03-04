@@ -18,6 +18,21 @@ class SubmissionArguments extends ElementArguments
                 'type' => Type::listOf(Type::string()),
                 'description' => 'Narrows the query results based on the submission’s form handle.',
             ],
+            'status' => [
+                'name' => 'status',
+                'type' => Type::string(),
+                'description' => 'Narrows the query results based on the submission’s status.',
+            ],
+            'statusId' => [
+                'name' => 'statusId',
+                'type' => Type::int(),
+                'description' => 'Narrows the query results based on the submission’s status ID.',
+            ],
+            'siteId' => [
+                'name' => 'siteId',
+                'type' => Type::int(),
+                'description' => 'Narrows the query results based on the submission’s site ID.',
+            ],
             'isIncomplete' => [
                 'name' => 'isIncomplete',
                 'type' => Type::boolean(),

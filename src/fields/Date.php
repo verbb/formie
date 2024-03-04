@@ -18,6 +18,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -739,7 +740,7 @@ class Date extends SubField implements PreviewableFieldInterface
             }
 
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/date-picker.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/date-picker.js'),
                 'module' => 'FormieDatePicker',
                 'settings' => [
                     'datePickerOptions' => $datePickerOptions,
@@ -1221,13 +1222,20 @@ class Date extends SubField implements PreviewableFieldInterface
             }
 
             if ($key === 'fieldLabel') {
+                $labelPosition = $context['labelPosition'] ?? null;
+
                 // Don't show the label for calendars, they take care of themselves
                 if ($this->displayType == 'calendar') {
                     return null;
                 }
 
                 return new HtmlTag('legend', [
-                    'class' => 'fui-legend',
+                    'class' => [
+                        'fui-legend',
+                    ],
+                    'data' => [
+                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ],
                 ]);
             }
         }

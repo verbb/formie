@@ -192,7 +192,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface
     {
         if ($this->limit && $this->max) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/text-limit.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/text-limit.js'),
                 'module' => 'FormieTextLimit',
             ];
         }
@@ -318,6 +318,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface
                 'fieldTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
                 'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
@@ -344,7 +345,6 @@ class SingleLineText extends Field implements PreviewableFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
             SchemaHelper::enableContentEncryptionField(),
-            SchemaHelper::includeInEmailField(),
         ];
     }
 

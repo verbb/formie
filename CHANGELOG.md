@@ -107,11 +107,99 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.6 - 2024-03-03
+
+### Added
+- Added “Full Name” to User Element integration mapping.
+
+### Changed
+- Changed all instances of dynamic Twig to use safe, sandboxed environment to protect against potential security issues.
+
+### Fixed
+- Fixed an issue with File Upload fields with a custom filename format not working in a Repeater field.
+- Fixed layout issues when editing a submission via a Submissions element select field in other elements.
+
+## 2.1.5 - 2024-02-21
+
+### Changed
+- Updated Formie 3 layout prep.
+
+### Fixed
+- Fixed an error with Opayo integration.
+- Fixed payment integrations’ `getFieldSetting()` not always returning a default value.
+- Fixed an error with Stripe payments where a correct ID was not being generated.
+
+## 2.1.4 - 2024-02-17
+
+### Added
+- Added `status`, `statusId` and `siteId` to Submission query arguments for GraphQL queries.
+- Added missing translations for some strings.
+- Added `redirectCallback` to `onAfterFormieSubmit` JS event.
+- Added `redirectTarget` to `onAfterFormieSubmit` JS event.
+- Added `exportVersion` to form exports.
+- Added support for `headlessMode` mode for integration redirectUri’s.
+- Added `data-fui-field-count` attribute to `row`, `subFieldRow`, and `nestedFieldRow` theme config elements.
+
+### Changed
+- Update Sent Notifications to use `TEXT` database column types for some values like `cc` and `bcc`.
+- Update Dompdf 2.0.4+.
+- Replace deprecated `utf8_encode` function with `mb_convert_encoding`.
+
+### Fixed
+- Fixed ajax-based, multi-page forms with File Upload fields creating duplicate assets.
+- Fixed an error when importing forms, set to “create” where there was a conflicting UID for an existing form.
+- Fixed changing the submissions status not persisting in the control panel element index view.
+- Fixed sub-field fields not showing custom error messages for required validation.
+- Fixed an error when calling `populateFormValues()` with Repeater fields.
+- Fixed lack of error logging for `populateFormValues()`.
+- Fixed when creating a new form, and an error occurs, the selected stencil not persisting.
+- Fixed order of operations when uninstalling the plugin.
+- Fixed uninstall not removing some database tables.
+- Fixed an error saving notifications with long names.
+- Fixed submissions processing payments when flagged as spam.
+- Fixed HTML field outputting invalid labels.
+- Fixed progress bar not updating when going back to first page.
+
+## 2.1.3 - 2024-01-25
+
+### Changed
+- Improved performance of email notification content parsing for complex fields, and fix Slack integration when rendering complex fields in their rich text message.
+
+### Fixed
+- Fixed hcaptcha executing captcha multiple times, and not working correctly for submitted forms (if filling out the form again).
+- Fixed saving a new form with a UID already in place, not working correctly.
+- Fixed import/export of forms not respecting UIDs of forms or notifications.
+- Fixed an error when showing spam error messages on the front-end.
+- Fixed element fields not working correctly when pre-populating the value for multi-page forms.
+- Fixed .env variable support for email notifications not working correctly.
+- Fixed rich text editor “link to an asset” not working correctly.
+- Fixed `craft.formie.populateFormValues` not sanitizing potentially harmful strings.
+
+## 2.1.2 - 2024-01-16
+
+### Added
+- Added “Page Count” to form conditions when making custom form sources.
+- Added Formie 3 migration prep for field layout changes.
+
+### Fixed
+- Fixed payment fields not filtering out currency symbols for dynamic values.
+- Fixed validation error for Address field Zip subfield not showing correctly for Ajax forms.
+- Fixed label position “hidden” not working work Date fields.
+- Fixed label position “hidden” not working work Checkboxes fields.
+- Fixed an error when sending an email with non-lowercase values for some mailers.
+- Fixed a new `formId` being created when calling `renderFormCss/Js`.
+- Fixed an error for Entry element integrations and setting the `authorId` to a field value.
+- Fixed submissions index not working correctly in some instances.
+- Fixed “Include in Email” field setting for Single-Line Text fields to “Settings” tab.
+- Fixed `ModifyFieldUniqueQueryEvent` error.
+- Fixed submit methods toggling not working correctly in some instances.
+- Fixed autoloading for `ModifyFieldUniqueQueryEvent` class.
+
 ## 2.1.1 - 2023-12-29
 
 ### Fixed
-- Fix a migration error with generating notification handles.
-- Fix custom error messages for field being applied for every error (not just for required value failures).
+- Fixed a migration error with generating notification handles.
+- Fixed custom error messages for field being applied for every error (not just for required value failures).
 
 ## 2.1.0 - 2023-12-27
 

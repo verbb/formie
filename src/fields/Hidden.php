@@ -107,8 +107,6 @@ class Hidden extends Field implements PreviewableFieldInterface
                 $value = $this->defaultValue;
             }
 
-            // Prevent users using long-hand Twig `{{` to prevent injection execution
-            $value = str_replace(['{{', '}}'], ['{', '}'], $value);
             $value = Variables::getParsedValue($value, $element);
 
             // Immediately update the value for the element, so integrations use the up-to-date value
@@ -129,7 +127,7 @@ class Hidden extends Field implements PreviewableFieldInterface
     {
         if ($this->defaultOption === 'cookie' && $this->cookieName) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/hidden.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/hidden.js'),
                 'module' => 'FormieHidden',
                 'settings' => [
                     'cookieName' => $this->cookieName,

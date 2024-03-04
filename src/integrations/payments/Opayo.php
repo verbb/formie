@@ -137,7 +137,7 @@ class Opayo extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/payments/opayo.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/opayo.js'),
             'module' => 'FormieOpayo',
             'settings' => $settings,
         ];
@@ -236,7 +236,6 @@ class Opayo extends Payment
 
                 Formie::$plugin->getPayments()->savePayment($payment);
 
-                $returnUrl = UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
                 $threeDSSessionData = [
                     'submissionId' => $submission->id,
                     'fieldId' => $field->id,
@@ -251,7 +250,7 @@ class Opayo extends Payment
                     'data' => [
                         'acsUrl' => $acsUrl,
                         'creq' => $response['cReq'] ?? '',
-                        'returnUrl' => $returnUrl,
+                        'returnUrl' => $this->getReturnUrl(),
                         'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
                     ],
                 ]);
@@ -780,11 +779,9 @@ class Opayo extends Payment
 
     private function _getRequestDetail(): array
     {
-        $returnUrl = UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
-
-        $data = [
+        return [
             'website' => Craft::$app->getRequest()->getOrigin(),
-            'notificationURL' => $returnUrl,
+            'notificationURL' => $this->getReturnUrl(),
             'browserIP' => Craft::$app->getRequest()->getUserIP(),
             'browserAcceptHeader' => Craft::$app->getRequest()->getHeaders()->get('accept'),
             'browserJavascriptEnabled' => false,
@@ -801,7 +798,5 @@ class Opayo extends Payment
             'transType' => 'GoodsAndServicePurchase',
             'threeDSRequestorDecReqInd' => 'N',
         ];
-
-        return $data;
     }
 }

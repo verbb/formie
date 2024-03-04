@@ -60,7 +60,7 @@ class Signature extends Field implements PreviewableFieldInterface
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/signature.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/signature.js'),
             'module' => 'FormieSignature',
             'settings' => [
                 'backgroundColor' => $this->backgroundColor,

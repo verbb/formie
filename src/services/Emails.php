@@ -537,7 +537,13 @@ class Emails extends Component
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
 
-            $emailsEnv[] = trim(App::parseEnv(trim($email)));
+            // Handle .env variables
+            $email = App::parseEnv(trim($email));
+
+            // Lowercase emails, just in case
+            $email = strtolower(trim($email));
+
+            $emailsEnv[] = $email;
         }
 
         $emailsEnv = array_filter($emailsEnv);
@@ -639,7 +645,7 @@ class Emails extends Component
 
         // Generate the filename correctly.
         $filenameFormat = $template->filenameFormat ?? 'Submission-{submission.id}';
-        $fileName = Craft::$app->getView()->renderObjectTemplate($filenameFormat, $variables);
+        $fileName = Formie::$plugin->getTemplates()->renderObjectTemplate($filenameFormat, $variables);
 
         $message->attach($pdfPath, ['fileName' => $fileName . '.pdf', 'contentType' => 'application/pdf']);
 

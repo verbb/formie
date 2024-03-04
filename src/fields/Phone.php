@@ -106,7 +106,7 @@ class Phone extends SubField implements PreviewableFieldInterface
     {
         if ($this->countryEnabled) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/phone-country.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/phone-country.js'),
                 'module' => 'FormiePhoneCountry',
                 'settings' => [
                     'countryShowDialCode' => $this->countryShowDialCode,
@@ -151,8 +151,10 @@ class Phone extends SubField implements PreviewableFieldInterface
         if ($this->required) {
             $value = $element->getFieldValue($this->fieldKey);
 
+            $errorMessage = $this->errorMessage ?? '"{label}" cannot be blank.';
+
             if (StringHelper::isBlank((string)$value->number)) {
-                $element->addError($this->fieldKey, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($this->fieldKey, Craft::t('formie', $errorMessage, [
                     'label' => $this->name,
                 ]));
             }

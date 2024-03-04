@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyWebhookPayloadEvent;
@@ -43,7 +44,7 @@ abstract class Webhook extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/webhooks/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/webhooks/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -85,7 +86,7 @@ abstract class Webhook extends Integration
 
     protected function getWebhookUrl(string $url, Submission $submission): bool|string|null
     {
-        $url = Craft::$app->getView()->renderObjectTemplate($url, $submission);
+        $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
 
         return App::parseEnv($url);
     }

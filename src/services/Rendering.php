@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
@@ -54,7 +55,7 @@ class Rendering extends Component
     // Public Methods
     // =========================================================================
 
-    public function renderForm(Form|string|null $form, array $renderOptions = []): ?Markup
+    public function renderForm(Form|string|null $form, array $renderOptions = [], bool $fullRender = true): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -62,7 +63,9 @@ class Rendering extends Component
         }
 
         // Give the form a unique ID for each render, to help with multiple renders of the same form
-        $form->setFormId($form->getFormId(false));
+        if ($fullRender) {
+            $form->setFormId($form->getFormId(false));
+        }
 
         // Fire a 'modifyFormRenderOptions' event
         $event = new ModifyFormRenderOptionsEvent([
@@ -208,7 +211,7 @@ class Rendering extends Component
         // So we can easily re-use code, we just call the `renderForm` function
         // This will register any assets, and should be included outside of cached areas.
         // It should be called like `{% do craft.formie.registerAssets(handle) %}`
-        $this->renderForm($form, $renderOptions);
+        $this->renderForm($form, $renderOptions, false);
     }
 
     public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
@@ -226,9 +229,9 @@ class Rendering extends Component
         $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
 
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
 
         $output = [];
 
@@ -291,7 +294,6 @@ class Rendering extends Component
 
             // Field validation messages
             'This field is required.',
-            'Please select a value.',
             'Please select a value.',
             'Please select at least one value.',
             'Please fill out this field.',
@@ -411,6 +413,11 @@ class Rendering extends Component
             try {
                 $field = $form->getFieldByHandle($key);
 
+                // Ensure that we protect against developers using Twig to populate values from query strings
+                if (is_string($value)) {
+                    $value = Formie::$plugin->getTemplates()->renderString($value);
+                }
+
                 if ($field) {
                     // Store any visibly disabled fields against the form to apply later
                     if ($field->visibility === 'disabled') {
@@ -427,6 +434,13 @@ class Rendering extends Component
                     }
                 }
             } catch (Throwable $e) {
+                Formie::error('Error populating form values for “{key}”. Template error: “{message}” {file}:{line}', [
+                    'key' => $key,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+
                 continue;
             }
         }
@@ -473,7 +487,7 @@ class Rendering extends Component
 
         // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
         // This helps when targeting head/body/inline and ensure we output it **here**
-        $this->renderForm($form, $renderOptions);
+        $this->renderForm($form, $renderOptions, false);
 
         $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
         $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
@@ -513,8 +527,8 @@ class Rendering extends Component
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-base.css', true);
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'css/formie-theme.css', true);
+        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
+        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
 
         $output = [];
 
@@ -533,7 +547,7 @@ class Rendering extends Component
     {
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath . 'js/formie.js', true);
+        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
 
         $output = [];
 

@@ -118,7 +118,7 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 The above will create two "blocks" for the repeater field.
 
 ## Forcing Values
-The way populating values work in Formie is by setting the default value for a field. This means that when you start a new submission, the values you set in `populateFormValues()` will be applied to the field, the same way a default value would.
+The method of populating field values in Formie is by setting the default value for a field. This means that when you start a new submission, the values you set in `populateFormValues()` will be applied to the field, the same way a default value would.
 
 However, there's one caveat with this approach, to do with incomplete submissions. If you were to try to populate an incomplete submission with field values, you'll find it won't work. This is because the submission technically already has a value - even if it's a blank value.
 

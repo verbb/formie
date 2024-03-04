@@ -51,7 +51,7 @@ class Summary extends CosmeticField
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/summary.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/summary.js'),
             'module' => 'FormieSummary',
             'settings' => [
                 'fieldId' => $this->id,

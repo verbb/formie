@@ -8,6 +8,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\actions\DuplicateForm;
+use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\events\ModifyFormHtmlTagEvent;
 use verbb\formie\fields\SingleLineText;
@@ -36,6 +37,7 @@ use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Edit;
 use craft\elements\actions\Restore;
+use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
 use craft\helpers\DateTimeHelper;
@@ -97,6 +99,11 @@ class Form extends Element
         return new FormQuery(static::class);
     }
 
+    public static function createCondition(): ElementConditionInterface
+    {
+        return Craft::createObject(FormCondition::class, [static::class]);
+    }
+    
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Form';
@@ -198,7 +205,7 @@ class Form extends Element
             'id' => ['label' => Craft::t('app', 'ID')],
             'handle' => ['label' => Craft::t('app', 'Handle')],
             'template' => ['label' => Craft::t('app', 'Template')],
-            'pageCount' => ['label' => Craft::t('formie', 'Pages')],
+            'pageCount' => ['label' => Craft::t('formie', 'Page Count')],
             'usageCount' => ['label' => Craft::t('formie', 'Usage Count')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -228,7 +235,7 @@ class Form extends Element
             'title' => Craft::t('app', 'Name'),
             'handle' => Craft::t('app', 'Handle'),
             [
-                'label' => Craft::t('app', 'Pages'),
+                'label' => Craft::t('app', 'Page Count'),
                 'orderBy' => 'pageCount',
                 'attribute' => 'pageCount',
             ],
@@ -1008,7 +1015,7 @@ class Form extends Element
         }
 
         // Handle any UTF characters defined in the URL and encode them properly
-        $url = utf8_encode($url);
+        $url = mb_convert_encoding($url, 'UTF-8', 'ISO-8859-1');
 
         return $url;
     }
@@ -1289,6 +1296,7 @@ class Form extends Element
                     'fui-row fui-page-row',
                     $fields ? false : 'fui-row-empty',
                 ],
+                'data-fui-field-count' => count($fields),
             ]);
         }
 
@@ -1517,7 +1525,7 @@ class Form extends Element
         // See if we have any condition's setup for the form. No need to include otherwise
         if ($this->hasConditions()) {
             $registeredJs[] = [[
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/conditions.js', true),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/conditions.js'),
                 'module' => 'FormieConditions',
             ]];
         }

@@ -122,7 +122,7 @@ abstract class Payment extends Integration
     {
         $handle = $this->getIntegrationHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/payments/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/payments/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -184,6 +184,10 @@ abstract class Payment extends Integration
     
     public function getRedirectUri(): string
     {
+        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
+            return UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        }
+
         return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
     }
 
@@ -194,17 +198,23 @@ abstract class Payment extends Integration
 
     public function getAmount(Submission $submission): float
     {
+        $amount = 0;
         $amountType = $this->getFieldSetting('amountType');
         $amountFixed = $this->getFieldSetting('amountFixed');
         $amountVariable = $this->getFieldSetting('amountVariable');
 
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
-            return (float)$amountFixed;
+            $amount = $amountFixed;
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            return (float)Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
+            $amount = Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
+
+            // Just in case there's a currency symbol in the value
+            $symbols = ['$','€','£','¥','₣','₹','₻','₽','₾','₺','₼','₸','฿','원','₫','₱','₳','₵'];
+
+            $amount = str_replace($symbols, '', $amount);
         }
 
-        return 0;
+        return (float)$amount;
     }
 
     public function getCurrency(Submission $submission): ?string
@@ -317,10 +327,10 @@ abstract class Payment extends Integration
         if ($field = $this->getField()) {
             $providerSettings = $field->providerSettings[$this->handle] ?? [];
 
-            return ArrayHelper::getValue($providerSettings, $setting, $default);
+            return ArrayHelper::getValue($providerSettings, $setting, $default) ?: $default;
         }
 
-        return null;
+        return $default;
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag

@@ -111,7 +111,7 @@ abstract class Element extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/elements/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/elements/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -254,7 +254,7 @@ abstract class Element extends Integration
         if ($updateElementValues) {
             $query = $elementType::find($updateElementValues);
 
-            // Fina elements of any status, like disabled
+            // Find elements of any status, like disabled
             $query->status(null);
 
             Craft::configure($query, $updateElementValues);

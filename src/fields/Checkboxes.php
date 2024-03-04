@@ -6,6 +6,7 @@ use verbb\formie\base\OptionsField;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -130,7 +131,7 @@ class Checkboxes extends OptionsField
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/checkbox-radio.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/checkbox-radio.js'),
             'module' => 'FormieCheckboxRadio',
         ];
     }
@@ -314,8 +315,15 @@ class Checkboxes extends OptionsField
         }
 
         if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
             return new HtmlTag('legend', [
-                'class' => 'fui-legend',
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
             ]);
         }
 

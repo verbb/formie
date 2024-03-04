@@ -94,11 +94,7 @@ class SubmissionResolver extends ElementMutationResolver
         if (!$submission->title) {
             $settings = $form->settings;
 
-            $submission->title = Variables::getParsedValue(
-                $settings->submissionTitleFormat,
-                $submission,
-                $form
-            );
+            $submission->title = Variables::getParsedValue($settings->submissionTitleFormat, $submission, $form);
 
             if (!$submission->title) {
                 $timeZone = Craft::$app->getTimeZone();

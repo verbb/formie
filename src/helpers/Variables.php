@@ -223,7 +223,7 @@ class Variables
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
         try {
-            return Craft::$app->getView()->renderObjectTemplate($value, $submission, $variables);
+            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $variables);
         } catch (Throwable $e) {
             Formie::error('Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
@@ -376,25 +376,27 @@ class Variables
                     $values[$handle] = $fieldValue;
                 }
             }
-        } else if ($field instanceof formfields\MultiLineText) {
-            if ($field->useRichText && $parsedContent) {
-                $values["{$prefix}{$field->handle}"] = $parsedContent;
-            } else {
-                $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
-            }
-        } else if ($field instanceof ElementFieldInterface && $parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Repeater && $parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Signature && $parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Payment && $parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else if ($field instanceof formfields\Table && $parsedContent) {
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        } else {
-            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
+        } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
+            $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
         }
+
+        // Some fields use the email template for the field, due to their complexity. 
+        // Also good for performance rendering only when we need to here.
+        if (
+            $field instanceof ElementFieldInterface || 
+            $field instanceof formfields\Table || 
+            ($field instanceof formfields\MultiLineText && $field->useRichText) || 
+            $field instanceof formfields\Repeater || 
+            $field instanceof formfields\Signature || 
+            $field instanceof formfields\Payment
+        ) {
+            // There are some circumstances where we're rendering email content, but not for an email. 
+            // Slack integration rich text is one of them, there are likely more.
+            $notification = $notification ?? new Notification();
+            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
+
+            $values["{$prefix}{$field->handle}"] = $parsedContent;
+        }     
 
         return $values;
     }

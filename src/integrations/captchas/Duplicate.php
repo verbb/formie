@@ -64,7 +64,7 @@ class Duplicate extends Captcha
             'value' => $value,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/captchas/duplicate.js', true);
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/duplicate.js');
 
         return [
             'src' => $src,

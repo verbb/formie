@@ -77,7 +77,7 @@ class Repeater extends MultiNestedField
         $modules = parent::getFrontEndJsModules();
 
         $modules[] = [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/repeater.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/repeater.js'),
             'module' => 'FormieRepeater',
         ];
 

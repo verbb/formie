@@ -71,7 +71,7 @@ class ImportExportHelper
 
         // Get email + pdf templates
         foreach ($data['notifications'] as $i => $notification) {
-            foreach (['id', 'formId', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+            foreach (['id', 'formId', 'dateCreated', 'dateUpdated'] as $key) {
                 ArrayHelper::remove($notification, $key);
             }
 
@@ -87,7 +87,7 @@ class ImportExportHelper
                     ->one();
 
                 // Remove attributes we won't need
-                foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+                foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated'] as $key) {
                     ArrayHelper::remove($notification['emailTemplate'], $key);
                 }
             }
@@ -100,7 +100,7 @@ class ImportExportHelper
                     ->one();
 
                 // Remove attributes we won't need
-                foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+                foreach (['id', 'dateDeleted', 'dateCreated', 'dateUpdated'] as $key) {
                     ArrayHelper::remove($notification['pdfTemplate'], $key);
                 }
             }

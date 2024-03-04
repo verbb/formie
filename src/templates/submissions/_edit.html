@@ -4,7 +4,7 @@
 
 {% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
 
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/formie.js', true) %}
+{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/', true, 'dist/js/formie.js') %}
 {% do view.registerJsFile(jsFile) %}
 
 {% set isNew = submission.id ? false : true %}

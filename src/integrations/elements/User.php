@@ -84,6 +84,10 @@ class User extends Element
                 'handle' => 'lastName',
             ]),
             new IntegrationField([
+                'name' => Craft::t('app', 'Full Name'),
+                'handle' => 'fullName',
+            ]),
+            new IntegrationField([
                 'name' => Craft::t('app', 'Email'),
                 'handle' => 'email',
                 'required' => true,
@@ -120,6 +124,10 @@ class User extends Element
             new IntegrationField([
                 'name' => Craft::t('app', 'Last Name'),
                 'handle' => 'lastName',
+            ]),
+            new IntegrationField([
+                'name' => Craft::t('app', 'Full Name'),
+                'handle' => 'fullName',
             ]),
             new IntegrationField([
                 'name' => Craft::t('app', 'Email'),

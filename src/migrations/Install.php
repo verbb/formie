@@ -40,10 +40,10 @@ class Install extends Migration
 
     public function safeDown(): bool
     {
+        $this->dropProjectConfig();
         $this->dropForeignKeys();
         $this->removeTables();
         $this->removeContent();
-        $this->dropProjectConfig();
 
         return true;
     }
@@ -299,15 +299,15 @@ class Install extends Migration
             'formId' => $this->integer(),
             'submissionId' => $this->integer(),
             'notificationId' => $this->integer(),
-            'subject' => $this->string(),
-            'to' => $this->string(),
-            'cc' => $this->string(),
-            'bcc' => $this->string(),
-            'replyTo' => $this->string(),
-            'replyToName' => $this->string(),
-            'from' => $this->string(),
-            'fromName' => $this->string(),
-            'sender' => $this->string(),
+            'subject' => $this->text(),
+            'to' => $this->text(),
+            'cc' => $this->text(),
+            'bcc' => $this->text(),
+            'replyTo' => $this->text(),
+            'replyToName' => $this->text(),
+            'from' => $this->text(),
+            'fromName' => $this->text(),
+            'sender' => $this->text(),
             'body' => $this->mediumText(),
             'htmlBody' => $this->mediumText(),
             'info' => $this->text(),

@@ -42,7 +42,7 @@ abstract class EmailMarketing extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl("@verbb/formie/web/assets/cp/dist/img/emailmarketing/{$handle}.svg", true);
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/emailmarketing/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string

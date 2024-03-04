@@ -51,8 +51,9 @@ class FormsController extends Controller
 
         $formHandles = ArrayHelper::getColumn(Form::find()->all(), 'handle');
         $stencilArray = Formie::$plugin->getStencils()->getStencilArray();
+        $applyStencilId = $this->request->getParam('applyStencilId');
 
-        $variables = compact('formHandles', 'form', 'stencilArray');
+        $variables = compact('formHandles', 'form', 'stencilArray', 'applyStencilId');
 
         if (!$variables['form']) {
             $variables['form'] = new Form();
@@ -292,7 +293,7 @@ class FormsController extends Controller
 
         if ($this->request->getAcceptsJson()) {
             $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Craft::$app->getView()->renderObjectTemplate($url, $form);
+            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $form);
 
             return $this->asJson([
                 'success' => false,

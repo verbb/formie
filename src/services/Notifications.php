@@ -701,7 +701,7 @@ class Notifications extends Component
                 ->one();
 
             if (!$existingNotification) {
-                return $handle;
+                return substr($handle, 0, 50);
             }
 
             $handle = $notificationHandle . $increment;

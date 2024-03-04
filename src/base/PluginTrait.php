@@ -27,6 +27,7 @@ use verbb\formie\web\assets\forms\FormsAsset;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
+use verbb\base\services\Templates;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
@@ -74,6 +75,10 @@ trait PluginTrait
                 'stencils' => Stencils::class,
                 'submissions' => Submissions::class,
                 'subscriptions' => Subscriptions::class,
+                'templates' => [
+                    'class' => Templates::class,
+                    'pluginClass' => Formie::class,
+                ],
                 'vite' => [
                     'class' => VitePluginService::class,
                     'assetClass' => FormsAsset::class,
@@ -196,6 +201,11 @@ trait PluginTrait
     public function getSubscriptions(): Subscriptions
     {
         return $this->get('subscriptions');
+    }
+
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
     }
 
     public function getVite(): VitePluginService

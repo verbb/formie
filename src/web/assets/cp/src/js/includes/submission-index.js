@@ -97,6 +97,7 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             queryParam = 'drafts';
         } else {
             this.status = $option.data('status');
+            queryParam = this.status;
         }
 
         if (this.activeViewMenu) {
@@ -214,14 +215,14 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
             this.addButton(this.$newSubmissionBtnGroup);
         }
 
-        if (this.settings.context === 'index' && typeof history !== 'undefined') {
+        if (this.settings.context === 'index') {
             var uri = 'formie/submissions';
 
             if (handle) {
                 uri += '/' + handle;
             }
 
-            history.replaceState({}, '', Craft.getUrl(uri));
+            Craft.setPath(uri);
         }
     },
 
@@ -414,7 +415,7 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
     },
 
     loadReport() {
-        const $elements = $(this.elementIndex.$elements).find('.element');
+        const $elements = $(this.elementIndex.$elements).find('[data-titlecell] .element');
 
         if (!$elements.length) {
             this.$explorerContainer.addClass('chart-empty');

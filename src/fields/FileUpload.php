@@ -10,6 +10,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -319,7 +320,7 @@ class FileUpload extends ElementField
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/fields/file-upload.js', true),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/file-upload.js'),
             'module' => 'FormieFileUpload',
         ];
     }
@@ -514,6 +515,13 @@ class FileUpload extends ElementField
 
                 foreach ($assets as $key => $asset) {
                     $suffix = ($key > 0) ? '_' . $key : '';
+
+                    // Introduce an additional suffix for repeaters
+                    // if ($element instanceof NestedFieldRow) {
+                    //     if ($element->getField() instanceof Repeater) {
+                    //         $suffix = '_' . $element->sortOrder . $suffix;
+                    //     }
+                    // }
 
                     $filename = $filenameFormat . $suffix;
                     $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());

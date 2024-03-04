@@ -354,8 +354,8 @@ If you don't want to retain Formie's default classes on tag, you can remove them
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
         field: {
+            resetClass: true,
             attributes: {
-                resetClass: true,
                 class: 'my-field',
             },
         },

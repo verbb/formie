@@ -553,7 +553,7 @@ export class FormieFormTheme {
         this.updateSubmissionInput(data);
 
         // Check if there's any events in the response back, and fire them
-        if (data.events && Array.isArray(data.events)) {
+        if (data.events && Array.isArray(data.events) && data.events.length) {
             // An error message may be shown in some cases (for 3D secure) so remove the form-global level error notice.
             this.removeFormAlert();
 
@@ -648,15 +648,23 @@ export class FormieFormTheme {
             return;
         }
 
+        // If people have provided a redirect behaviour to handle their own redirecting
+        if (data.redirectCallback) {
+            data.redirectCallback();
+
+            return;
+        }
+
         // If we're redirecting away, do it immediately for nicer UX
         if (data.redirectUrl) {
             if (this.settings.submitActionTab === 'new-tab') {
                 // Reset values if in a new tab. No need when in the same tab.
                 this.resetForm();
 
-                window.open(data.redirectUrl, '_blank');
+                // Allow people to modify the target from `window` with `redirectTarget`
+                data.redirectTarget.open(data.redirectUrl, '_blank');
             } else {
-                window.location.href = data.redirectUrl;
+                data.redirectTarget.location.href = data.redirectUrl;
             }
 
             return;
@@ -800,7 +808,7 @@ export class FormieFormTheme {
         // Update tabs and progress bar if we're using them
         const $progress = this.$form.querySelector('[data-fui-progress-bar]');
 
-        if ($progress && data.nextPageIndex) {
+        if ($progress && data.nextPageIndex >= 0) {
             const pageIndex = parseInt(data.nextPageIndex, 10) + 1;
             const progress = Math.round((pageIndex / data.totalPages) * 100);
 

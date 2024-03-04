@@ -237,10 +237,13 @@ class Address extends SubField implements PreviewableFieldInterface
             $labelProp = "{$subField}Label";
             $enabledProp = "{$subField}Enabled";
             $requiredProp = "{$subField}Required";
+            $errorProp = "{$subField}ErrorMessage";
             $fieldValue = $value->$subField ?? '';
 
+            $errorMessage = $this->$errorProp ?? '"{label}" cannot be blank.';
+
             if ($this->$enabledProp && ($this->required || $this->$requiredProp) && StringHelper::isBlank($fieldValue)) {
-                $element->addError($this->fieldKey, Craft::t('formie', '"{label}" cannot be blank.', [
+                $element->addError($this->fieldKey, Craft::t('formie', $errorMessage, [
                     'label' => $this->$labelProp,
                 ]));
             }
