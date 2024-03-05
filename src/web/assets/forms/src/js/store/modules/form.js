@@ -48,6 +48,10 @@ const mutations = {
         // Maybe a better way to prep this instead of the massive nesting below??
         if (config.pages && Array.isArray(config.pages)) {
             config.pages.forEach((page) => {
+                if (!page.__id) {
+                    page.__id = newId();
+                }
+
                 // Normalize some arrays that should be objects
                 if (page.errors && Array.isArray(page.errors)) {
                     page.errors = {};
@@ -55,6 +59,10 @@ const mutations = {
 
                 if (page.rows && Array.isArray(page.rows)) {
                     page.rows.forEach((row) => {
+                        if (!row.__id) {
+                            row.__id = newId();
+                        }
+
                         // Normalize some arrays that should be objects
                         if (row.errors && Array.isArray(row.errors)) {
                             row.errors = {};
@@ -73,6 +81,10 @@ const mutations = {
                                     // For nested fields - more rows/fields!
                                     if (field.settings.rows && Array.isArray(field.settings.rows)) {
                                         field.settings.rows.forEach((nestedRow) => {
+                                            if (!nestedRow.__id) {
+                                                nestedRow.__id = newId();
+                                            }
+
                                             if (nestedRow.fields && Array.isArray(nestedRow.fields)) {
                                                 nestedRow.fields.forEach((nestedField) => {
                                                     if (!nestedField.__id) {
