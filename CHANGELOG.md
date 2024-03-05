@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.0.0-beta.3 - 2024-03-06
+
+### Breaking Changes
+- Date fields now no longer use Flatpickr as a date-picker by default.
+- Changed the value returned for Address fields when queried via GraphQL.
+
+### Added
+- Added `fullName` and `fullAddress` to Name and Address field respectively for GraphQL.
+- Fixed an error when running GraphQL queries.
+- Added support for Name fields to query their subfields via GraphQL.
+- Added better support for responsive fields on the front-end for multi-column fields.
+
+### Fixed
+- Fixed validation errors being thrown for Name subfields.
+- Fixed validation errors being thrown for Date subfields.
+- Fixed button alignment for submissions edit screen.
+- Fixed multi-name Name fields and default values.
+- Fixed row spacing for sub-fields.
+- Fixed subfield label display on some fields.
+- Ensure pages and rows get unique ID in form builder.
+- Fixed an error when creating a new page.
+- Fixed `SubFieldInterface` case insensitivity.
+
 ## 3.0.0-beta.2 - 2024-03-05
 
 ### Fixed
