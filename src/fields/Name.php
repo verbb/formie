@@ -10,6 +10,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\gql\types\NameType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\ArrayHelper;
@@ -309,6 +310,11 @@ class Name extends SubField implements PreviewableFieldInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
             'field' => $this,
         ]);
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        return $this->useMultipleFields ? NameType::getType() : Type::string();
     }
 
     public function getSettingGqlTypes(): array
