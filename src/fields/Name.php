@@ -127,6 +127,19 @@ class Name extends SubField implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $config = [])
+    {
+        // Setuo defaults for some values which can't in in the property definition
+        $config['prefixLabel'] = $config['prefixLabel'] ?? Craft::t('formie', 'Prefix');
+        $config['firstNameLabel'] = $config['firstNameLabel'] ?? Craft::t('formie', 'First Name');
+        $config['middleNameLabel'] = $config['middleNameLabel'] ?? Craft::t('formie', 'Middle Name');
+        $config['lastNameLabel'] = $config['lastNameLabel'] ?? Craft::t('formie', 'Last Name');
+
+        $config['instructionsPosition'] = $config['instructionsPosition'] ?? AboveInput::class;
+
+        parent::__construct($config);
+    }
+
     public function hasSubFields(): bool
     {
         if ($this->useMultipleFields) {
@@ -158,18 +171,6 @@ class Name extends SubField implements PreviewableFieldInterface
         }
 
         return parent::serializeValue($value, $element);
-    }
-
-    public function getFieldDefaults(): array
-    {
-        return [
-            'prefixLabel' => Craft::t('formie', 'Prefix'),
-            'firstNameLabel' => Craft::t('formie', 'First Name'),
-            'middleNameLabel' => Craft::t('formie', 'Middle Name'),
-            'lastNameLabel' => Craft::t('formie', 'Last Name'),
-
-            'instructionsPosition' => AboveInput::class,
-        ];
     }
 
     public function getFrontEndSubFields(mixed $context): array
