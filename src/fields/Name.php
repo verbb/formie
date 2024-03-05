@@ -301,7 +301,7 @@ class Name extends SubField implements PreviewableFieldInterface
             return;
         }
 
-        $this->subFieldValidateRequiredFields($element, $this->fieldKey);
+        parent::validateRequiredFields($element);
     }
 
     public function getPreviewInputHtml(): string
