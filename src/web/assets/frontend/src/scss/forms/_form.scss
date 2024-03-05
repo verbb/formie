@@ -50,19 +50,10 @@
 // Forms - Layout
 // ==========================================================================
 
-.fui-page {
-    &:not(.fui-hidden) + & {
-        margin-top: var(--fui-row-gutter-top);
-    }
-}
-
-.fui-field-rows {
-    margin-bottom: calc(-1 * var(--fui-row-gutter));
-}
-
 .fui-row {
-    margin-left: calc(-1 * var(--fui-field-gutter));
-    margin-right: calc(-1 * var(--fui-field-gutter));
+    &:not(.fui-row-empty) {
+        margin-bottom: var(--fui-field-gutter);
+    }
 }
 
 

@@ -2,11 +2,7 @@
 // Variables
 // ==========================================================================
 
-// TODO
-// Keep for backward compatibility. Remove Sass variables in Formie 2.0
-// in favour of only CSS variables
-$field-gutter: 0.5rem !default;
-$row-gutter: 1.25rem !default;
+$field-gutter: 1rem !default;
 $border-radius: 0.25rem !default;
 
 $primary-color: #516fea !default;
@@ -54,9 +50,10 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     --fui-focus-shadow: #{$focus-shadow};
 
     // Layout/Grid
-    --fui-row-gutter: #{$row-gutter};
-    --fui-row-gutter-top: 1.5rem;
     --fui-field-gutter: #{$field-gutter};
+    --fui-field-min-width-2col: 15rem;
+    --fui-field-min-width-3col: 12rem;
+    --fui-field-min-width-4col: 10rem;
 
     // Loading Spinner
     --fui-loading-min-height: 1rem;
@@ -104,7 +101,7 @@ $focus-shadow: 0 0 0 3px rgba(164, 202, 254, 0.45) !default;
     // --fui-btn-border-radius
 
     // Button Container
-    --fui-btn-container-padding: 1rem 0 0 0;
+    --fui-btn-container-padding: 0;
     --fui-btn-container-margin: 0 -0.5rem 0 -0.5rem;
     --fui-btn-margin: 0 0.5rem 0 0.5rem;
 

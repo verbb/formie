@@ -11,7 +11,7 @@ export class FormieConditions {
 
         this.initFieldConditions(this.$form);
 
-        // Handle dynamics fields like Repeater, which should be evaluated when added
+        // Handle dynamic fields like Repeater, which should be evaluated when added
         this.$form.querySelectorAll('[data-field-type="repeater"]').forEach(($field) => {
             $field.addEventListener('initRow', (e) => {
                 this.initFieldConditions(e.detail.$row);
@@ -216,6 +216,9 @@ export class FormieConditions {
             });
         }
 
+        // Update the parent row to show the correct number of visible fields
+        this.updateRowVisibility($field);
+
         // Fire an event to notify that the field's conditions have been evaluated
         $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', {
             bubbles: true,
@@ -297,6 +300,25 @@ export class FormieConditions {
         }
 
         return output;
+    }
+
+    updateRowVisibility($field) {
+        const $parent = $field.closest('[data-fui-field-count]');
+
+        if ($parent) {
+            const $fields = $parent.querySelectorAll('[data-field-handle]:not([data-conditionally-hidden])');
+
+            $parent.setAttribute('data-fui-field-count', $fields.length);
+
+            // Update the class if we have classes enabled
+            if ($parent.classList.contains('fui-row')) {
+                if ($fields.length === 0) {
+                    $parent.classList.add('fui-row-empty');
+                } else {
+                    $parent.classList.remove('fui-row-empty');
+                }
+            }
+        }
     }
 }
 

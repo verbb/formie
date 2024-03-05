@@ -9,6 +9,11 @@
 // Framework - Instance
 // ==========================================================================
 
+.fui-form {
+    // `<form>` elements have margin by default
+    margin: 0;
+}
+
 .fui-hidden {
     display: none;
 }
@@ -28,8 +33,6 @@
 // ==========================================================================
 
 .fui-field {
-    flex: 1;
-
     // For conditions - better than classes, and doesn't rely on toggling
     // between none/block. Maybe we don't want the field to be display: block?
     &[data-conditionally-hidden] {
@@ -74,8 +77,19 @@
 // ==========================================================================
 
 .fui-row {
-    display: flex;
-    flex-wrap: wrap;
+    --field-min-width: var(--fui-field-min-width-2col);
+
+    display: grid;
+    gap: var(--fui-field-gutter);
+    grid-template-columns: repeat(auto-fit, minmax(var(--field-min-width), 1fr));
+
+    &[data-fui-field-count='3'] {
+        --field-min-width: var(--fui-field-min-width-3col);
+    }
+
+    &[data-fui-field-count='4'] {
+        --field-min-width: var(--fui-field-min-width-4col);
+    }
 }
 
 

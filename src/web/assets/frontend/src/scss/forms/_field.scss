@@ -2,16 +2,6 @@
 // Field Layout
 // ==========================================================================
 
-.fui-field {
-    padding-left: var(--fui-field-gutter);
-    padding-right: var(--fui-field-gutter);
-
-    // No margin for hidden fields
-    &:not(.fui-type-hidden-field) {
-        margin-bottom: var(--fui-row-gutter);
-    }
-}
-
 .fui-label-left-input {
     .fui-input-wrapper {
         margin-left: var(--fui-field-gutter);
