@@ -692,6 +692,12 @@ class Date extends SubField implements PreviewableFieldInterface
         ]);
     }
 
+    public function validateRequiredFields(ElementInterface $element): void
+    {
+        // Disable the parent validation behaviour
+        return;
+    }
+
     public function getDefaultDate(): ?string
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
