@@ -21,6 +21,14 @@ class NameType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                'fullName' => [
+                    'name' => 'fullName',
+                    'type' => Type::string(),
+                    'description' => 'The full name value.',
+                    'resolve' => function($value) {
+                        return (string)$value;
+                    },
+                ],
                 'prefix' => [
                     'name' => 'prefix',
                     'type' => Type::string(),

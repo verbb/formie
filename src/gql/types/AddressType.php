@@ -21,6 +21,14 @@ class AddressType extends ObjectType
         return GqlEntityRegistry::getEntity(self::getName()) ?: GqlEntityRegistry::createEntity(self::getName(), new self([
             'name' => self::getName(),
             'fields' => [
+                'fullAddress' => [
+                    'name' => 'fullAddress',
+                    'type' => Type::string(),
+                    'description' => 'The full address value.',
+                    'resolve' => function($value) {
+                        return (string)$value;
+                    },
+                ],
                 'address1' => [
                     'name' => 'address1',
                     'type' => Type::string(),
