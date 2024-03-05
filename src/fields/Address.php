@@ -9,6 +9,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
+use verbb\formie\gql\types\AddressType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
 use verbb\formie\helpers\SchemaHelper;
@@ -606,6 +607,11 @@ class Address extends SubField implements PreviewableFieldInterface
     public function hasCurrentLocation(): bool
     {
         return $this->supportsCurrentLocation() && $this->autocompleteCurrentLocation;
+    }
+
+    public function getContentGqlType(): Type|array
+    {
+        return AddressType::getType();
     }
 
     public function getSettingGqlTypes(): array
