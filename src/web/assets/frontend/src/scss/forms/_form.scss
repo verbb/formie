@@ -51,7 +51,7 @@
 // ==========================================================================
 
 .fui-row {
-    &:not(.fui-row-empty) {
+    &:not(.fui-row-empty):not(:last-child) {
         margin-bottom: var(--fui-field-gutter);
     }
 }
