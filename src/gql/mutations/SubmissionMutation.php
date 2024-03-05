@@ -76,10 +76,6 @@ class SubmissionMutation extends Mutation
         $resolver->setResolutionData('form', $form);
         $contentFields = $form->getFields();
 
-        foreach ($contentFields as $contentField) {
-            $contentField->formId = $form->id;
-        }
-
         static::prepareResolver($resolver, $contentFields);
 
         $captchaArguments = [];
