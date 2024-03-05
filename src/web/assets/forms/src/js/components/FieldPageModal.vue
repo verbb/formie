@@ -17,12 +17,12 @@
                             handle=".move.icon"
                             animation="150"
                             ghost-class="vue-admin-table-drag"
-                            item-key="id"
+                            item-key="__id"
                             @start="dragging = true"
                             @end="dragging = false"
                         >
                             <template #item="{ element }">
-                                <div class="fui-pages-sidebar-item" :class="{ 'is-active': selectedPage === element.id, 'has-error': !isEmpty(element.errors) }" @click.prevent="selectPage(element.id)">
+                                <div class="fui-pages-sidebar-item" :class="{ 'is-active': selectedPage === element.__id, 'has-error': !isEmpty(element.errors) }" @click.prevent="selectPage(element)">
                                     <div class="fui-pages-sidebar-item-name">
                                         <h4>
                                             {{ element.label }}
@@ -39,7 +39,7 @@
                     </div>
 
                     <div class="fui-pages-pane">
-                        <div v-for="(page) in pages" v-show="selectedPage === page.id" :key="page.id">
+                        <div v-for="(page) in pages" v-show="selectedPage === page.__id" :key="page.__id">
                             <FormKit
                                 :value="get(page, 'label')"
                                 type="text"
@@ -126,7 +126,7 @@ export default {
         // Store this so we can cancel changes.
         this.originalPages = this.clone(this.pages);
 
-        this.selectedPage = this.pages[0].id;
+        this.selectedPage = this.pages[0].__id;
     },
 
     methods: {
@@ -168,7 +168,7 @@ export default {
             const newPageId = newId();
 
             this.pages.push({
-                id: newPageId,
+                __id: newPageId,
                 label: Craft.t('formie', 'New Page'),
                 rows: [],
             });
@@ -176,8 +176,8 @@ export default {
             this.selectedPage = newPageId;
         },
 
-        selectPage(index) {
-            this.selectedPage = index;
+        selectPage(page) {
+            this.selectedPage = page.__id;
         },
 
         submitHandler() {

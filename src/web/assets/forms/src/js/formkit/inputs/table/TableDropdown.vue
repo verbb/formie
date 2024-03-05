@@ -66,6 +66,8 @@ export default {
         },
     },
 
+    emits: ['update:values'],
+
     data() {
         return {
             showModal: false,
