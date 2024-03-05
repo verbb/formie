@@ -180,7 +180,7 @@ class Name extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => Dropdown::class,
-                    'name' => $this->prefixLabel,
+                    'label' => $this->prefixLabel,
                     'handle' => 'prefix',
                     'required' => $this->prefixRequired,
                     'placeholder' => $this->prefixPlaceholder,
@@ -197,7 +197,7 @@ class Name extends SubField implements PreviewableFieldInterface
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->firstNameLabel,
+                    'label' => $this->firstNameLabel,
                     'handle' => 'firstName',
                     'required' => $this->firstNameRequired,
                     'placeholder' => $this->firstNamePlaceholder,
@@ -213,7 +213,7 @@ class Name extends SubField implements PreviewableFieldInterface
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->middleNameLabel,
+                    'label' => $this->middleNameLabel,
                     'handle' => 'middleName',
                     'required' => $this->middleNameRequired,
                     'placeholder' => $this->middleNamePlaceholder,
@@ -229,7 +229,7 @@ class Name extends SubField implements PreviewableFieldInterface
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->lastNameLabel,
+                    'label' => $this->lastNameLabel,
                     'handle' => 'lastName',
                     'required' => $this->lastNameRequired,
                     'placeholder' => $this->lastNamePlaceholder,

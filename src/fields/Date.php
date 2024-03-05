@@ -310,7 +310,7 @@ class Date extends SubField implements PreviewableFieldInterface
             if ($this->includeDate) {
                 $rowConfigs[0][] = [
                     'type' => SingleLineText::class,
-                    'name' => $this->name,
+                    'label' => $this->name,
                     'handle' => 'date',
                     'required' => $this->required,
                     'placeholder' => $this->placeholder,
@@ -333,7 +333,7 @@ class Date extends SubField implements PreviewableFieldInterface
             if ($this->includeTime) {
                 $rowConfigs[0][] = [
                     'type' => SingleLineText::class,
-                    'name' => $this->timeLabel,
+                    'label' => $this->timeLabel,
                     'handle' => 'time',
                     'required' => $this->required,
                     'placeholder' => $this->placeholder,
@@ -367,7 +367,7 @@ class Date extends SubField implements PreviewableFieldInterface
             $inputConfigs = [
                 'Y' => [
                     'type' => Number::class,
-                    'name' => $this->yearLabel,
+                    'label' => $this->yearLabel,
                     'handle' => 'year',
                     'required' => $this->required,
                     'placeholder' => $this->yearPlaceholder,
@@ -377,7 +377,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'm' => [
                     'type' => Number::class,
-                    'name' => $this->monthLabel,
+                    'label' => $this->monthLabel,
                     'handle' => 'month',
                     'required' => $this->required,
                     'placeholder' => $this->monthPlaceholder,
@@ -387,7 +387,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'd' => [
                     'type' => Number::class,
-                    'name' => $this->dayLabel,
+                    'label' => $this->dayLabel,
                     'handle' => 'day',
                     'required' => $this->required,
                     'placeholder' => $this->dayPlaceholder,
@@ -397,7 +397,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'H' => [
                     'type' => Number::class,
-                    'name' => $this->hourLabel,
+                    'label' => $this->hourLabel,
                     'handle' => 'hour',
                     'required' => $this->required,
                     'placeholder' => $this->hourPlaceholder,
@@ -407,7 +407,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'h' => [
                     'type' => Number::class,
-                    'name' => $this->hourLabel,
+                    'label' => $this->hourLabel,
                     'handle' => 'hour',
                     'required' => $this->required,
                     'placeholder' => $this->hourPlaceholder,
@@ -417,7 +417,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'i' => [
                     'type' => Number::class,
-                    'name' => $this->minuteLabel,
+                    'label' => $this->minuteLabel,
                     'handle' => 'minute',
                     'required' => $this->required,
                     'placeholder' => $this->minutePlaceholder,
@@ -427,7 +427,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 's' => [
                     'type' => Number::class,
-                    'name' => $this->secondLabel,
+                    'label' => $this->secondLabel,
                     'handle' => 'second',
                     'required' => $this->required,
                     'placeholder' => $this->secondPlaceholder,
@@ -437,7 +437,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'A' => [
                     'type' => Dropdown::class,
-                    'name' => $this->ampmLabel,
+                    'label' => $this->ampmLabel,
                     'handle' => 'ampm',
                     'required' => $this->required,
                     'placeholder' => $this->ampmPlaceholder,
@@ -452,7 +452,7 @@ class Date extends SubField implements PreviewableFieldInterface
             $dropdownConfigs = [
                 'Y' => [
                     'type' => Dropdown::class,
-                    'name' => $this->yearLabel,
+                    'label' => $this->yearLabel,
                     'handle' => 'year',
                     'required' => $this->required,
                     'placeholder' => $this->yearPlaceholder,
@@ -461,7 +461,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'm' => [
                     'type' => Dropdown::class,
-                    'name' => $this->monthLabel,
+                    'label' => $this->monthLabel,
                     'handle' => 'month',
                     'required' => $this->required,
                     'placeholder' => $this->monthPlaceholder,
@@ -470,7 +470,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'd' => [
                     'type' => Dropdown::class,
-                    'name' => $this->dayLabel,
+                    'label' => $this->dayLabel,
                     'handle' => 'day',
                     'required' => $this->required,
                     'placeholder' => $this->dayPlaceholder,
@@ -479,7 +479,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'H' => [
                     'type' => Dropdown::class,
-                    'name' => $this->hourLabel,
+                    'label' => $this->hourLabel,
                     'handle' => 'hour',
                     'required' => $this->required,
                     'placeholder' => $this->hourPlaceholder,
@@ -488,7 +488,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'h' => [
                     'type' => Dropdown::class,
-                    'name' => $this->hourLabel,
+                    'label' => $this->hourLabel,
                     'handle' => 'hour',
                     'required' => $this->required,
                     'placeholder' => $this->hourPlaceholder,
@@ -497,7 +497,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'i' => [
                     'type' => Dropdown::class,
-                    'name' => $this->minuteLabel,
+                    'label' => $this->minuteLabel,
                     'handle' => 'minute',
                     'required' => $this->required,
                     'placeholder' => $this->minutePlaceholder,
@@ -506,7 +506,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 's' => [
                     'type' => Dropdown::class,
-                    'name' => $this->secondLabel,
+                    'label' => $this->secondLabel,
                     'handle' => 'second',
                     'required' => $this->required,
                     'placeholder' => $this->secondPlaceholder,
@@ -515,7 +515,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 ],
                 'A' => [
                     'type' => Dropdown::class,
-                    'name' => $this->ampmLabel,
+                    'label' => $this->ampmLabel,
                     'handle' => 'ampm',
                     'required' => $this->required,
                     'placeholder' => $this->ampmPlaceholder,

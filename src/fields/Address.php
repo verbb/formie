@@ -280,7 +280,7 @@ class Address extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->address1Label,
+                    'label' => $this->address1Label,
                     'handle' => 'address1',
                     'required' => $this->address1Required,
                     'placeholder' => $this->address1Placeholder,
@@ -302,7 +302,7 @@ class Address extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->address2Label,
+                    'label' => $this->address2Label,
                     'handle' => 'address2',
                     'required' => $this->address2Required,
                     'placeholder' => $this->address2Placeholder,
@@ -324,7 +324,7 @@ class Address extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->address3Label,
+                    'label' => $this->address3Label,
                     'handle' => 'address3',
                     'required' => $this->address3Required,
                     'placeholder' => $this->address3Placeholder,
@@ -346,7 +346,7 @@ class Address extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->cityLabel,
+                    'label' => $this->cityLabel,
                     'handle' => 'city',
                     'required' => $this->cityRequired,
                     'placeholder' => $this->cityPlaceholder,
@@ -366,7 +366,7 @@ class Address extends SubField implements PreviewableFieldInterface
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->zipLabel,
+                    'label' => $this->zipLabel,
                     'handle' => 'zip',
                     'required' => $this->zipRequired,
                     'placeholder' => $this->zipPlaceholder,
@@ -388,7 +388,7 @@ class Address extends SubField implements PreviewableFieldInterface
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->stateLabel,
+                    'label' => $this->stateLabel,
                     'handle' => 'state',
                     'required' => $this->stateRequired,
                     'placeholder' => $this->statePlaceholder,
@@ -408,7 +408,7 @@ class Address extends SubField implements PreviewableFieldInterface
                 ],
                 [
                     'type' => Dropdown::class,
-                    'name' => $this->countryLabel,
+                    'label' => $this->countryLabel,
                     'handle' => 'country',
                     'required' => $this->countryRequired,
                     'placeholder' => $this->countryPlaceholder,
@@ -434,7 +434,7 @@ class Address extends SubField implements PreviewableFieldInterface
             array_unshift($rowConfigs, [
                 [
                     'type' => SingleLineText::class,
-                    'name' => $this->autocompleteLabel,
+                    'label' => $this->autocompleteLabel,
                     'handle' => 'autocomplete',
                     'required' => $this->autocompleteRequired,
                     'placeholder' => $this->autocompletePlaceholder,
