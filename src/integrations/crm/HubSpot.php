@@ -18,6 +18,8 @@ use yii\base\Event;
 
 use GuzzleHttp\Client;
 
+use DateTime;
+use DateTimeZone;
 use Throwable;
 
 class HubSpot extends Crm
@@ -94,6 +96,18 @@ class HubSpot extends Crm
                     $event->value = array_filter($event->value);
                     $event->value = ArrayHelper::recursiveImplode($event->value, ';');
                     $event->value = str_replace('&nbsp;', ' ', $event->value);
+                }
+            }
+
+            // Special handling for dates for HubSpot
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATE) {
+                // HubSpot needs this as a timestamp value (also check if already cast).
+                if (is_string($event->value)) {
+                    // Date must be set to midnight UTC
+                    $date = new DateTime($event->value, new DateTimeZone('UTC'));
+                    $date->setTime(0, 0, 0);
+
+                    $event->value = ($date->getTimestamp() * 1000);
                 }
             }
         });
