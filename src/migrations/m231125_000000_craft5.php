@@ -261,7 +261,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 // Create the content from a custom table to JSON
                 $content = $this->_createContentJson($form['fieldContentTable'], $submission['id'], 'formie:' . $form['uid'], $layout);
 
-                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission['id']]);
+                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($content, $this->db)], ['id' => $submission['id']]);
 
                 echo '    > Updated Submission #' . $submission['id'] . ' content.' . PHP_EOL;
             }
@@ -334,7 +334,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                     $submissionContent = array_merge($submissionContent, $fieldContent);
 
-                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $submissionContent], ['id' => $submissionId]);
+                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($submissionContent, $this->db)], ['id' => $submissionId]);
 
                     echo '    > Updated Submission ' . $submissionId . ' content for nested content.' . PHP_EOL;
                 }
@@ -619,7 +619,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                         $submissionContent = array_replace_recursive($content, $preppedContent);
 
-                        Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $submissionContent], ['id' => $submissionId]);
+                        Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($submissionContent, $this->db)], ['id' => $submissionId]);
 
                         echo '    > Updated Submission ' . $submissionId . ' content for related content.' . PHP_EOL;
                     }
