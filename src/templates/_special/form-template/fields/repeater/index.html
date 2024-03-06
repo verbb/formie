@@ -22,17 +22,17 @@
 
 {% if includeScriptsInline %}
     {# For GraphQL requests we need to render this inline #}
-    <script type="text/x-template" data-repeater-template="{{ field.handle }}">
+    <script type="text/x-template" data-repeater-template="{{ field.handle }}">{% apply spaceless %}
         {{ formieInclude('fields/repeater/_row', {
             id: '__ROW__',
         }) }}
-    </script>
+    {% endapply %}</script>
 {% else %}
     {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
     {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
-    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}
+    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}{% apply spaceless %}
         {{ formieInclude('fields/repeater/_row', {
             id: '__ROW__',
         }) }}
-    {% endscript %}
+    {% endapply %}{% endscript %}
 {% endif %}
