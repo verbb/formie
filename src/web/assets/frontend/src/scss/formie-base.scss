@@ -90,6 +90,13 @@
     &[data-fui-field-count='4'] {
         --field-min-width: var(--fui-field-min-width-4col);
     }
+
+    &[data-fui-field-count='5'],
+    &[data-fui-field-count='6'],
+    &[data-fui-field-count='7'],
+    &[data-fui-field-count='8'] {
+        --field-min-width: var(--fui-field-min-width-5col);
+    }
 }
 
 
