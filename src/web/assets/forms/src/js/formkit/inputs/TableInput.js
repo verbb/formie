@@ -15,7 +15,7 @@ import { dragAndDrop, animations } from '@formkit/drag-and-drop';
 
 import { isEmpty, get } from 'lodash-es';
 
-import { generateHandle, newId, setId } from '@utils/string';
+import { getId, setId } from '@utils/string';
 import { clone } from '@utils/object';
 
 const bulkOptions = createSection('bulkOptions', () => {
@@ -124,6 +124,9 @@ function repeaterField(node) {
     // Enable this to be a dynamic list
     node.sync = true;
 
+    // Assign a unique ID to this field to allow mounting the drag/drop uniquely
+    node.id = getId('table');
+
     node.hook.input((value, next) => {
         // Ensure that values are typecast properly
         return next(Array.isArray(value) ? value : []);
@@ -190,10 +193,10 @@ function repeaterField(node) {
     });
 
     node.on('mounted', () => {
-        const $tbody = document.querySelector(`#table-${node.props.id} tbody`);
+        const $tbody = document.querySelector(`#table-${node.id} tbody`);
 
         if (!$tbody) {
-            console.log(`Unable to find #table-${node.props.id} tbody`);
+            console.log(`Unable to find #table-${node.id} tbody`);
 
             return;
         }
@@ -223,7 +226,7 @@ export default {
             {
                 $el: 'table',
                 attrs: {
-                    id: '$: "table-" + $id',
+                    id: '$: "table-" + $node.id',
                     class: 'editable fullwidth',
                     'data-is-repeatable': '$repeatable',
                 },
