@@ -8,7 +8,13 @@ We recommend reading the [theming overview](docs:theming/overview) docs before g
 The great thing about Formie's custom templates is that it doesn't have to be all-or-nothing. You can choose to override a single template, or all. For instance, you might have very specific markup needs to a Dropdown field. You can override just the template for the dropdown field, and nothing else.
 
 ## Form Templates
-To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. If you're going to use **Use Custom Template**, we recommend you select **Copy Templates** when creating, so you can remove any HTML template you're not overriding, which will resolve back to Formie's defaults. That way, you're starting off with the templates Formie already uses as a basis for your custom templates.
+To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. Enable the **Use Custom Template** setting to be able to define a template directory for your custom templates to sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
+
+:::tip
+Be sure to select a _directory_ when setting the template path, as there are multiple templates Formie can override. You can look at the [directory structure](https://github.com/verbb/formie/tree/craft-4/src/templates/_special/form-template) for more.
+:::
+
+You can also use the **Copy Templates** setting when creating, which will copy all of Formie's default templates into the directory you've specified. That way, you're starting off with the templates Formie already uses as a basis for your custom templates.
 
 :::tip
 You can't modify Formie's default Form Templates. Instead, you must create a new Form Template, and ensure your forms use that. This gives you the benefit of being able to easily manage _multiple_ custom templates across your forms.
@@ -44,7 +50,7 @@ Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie
 :::
 
 ## Overriding Form Templates
-To override the form template, provide a file named `form.html`.
+To override the form template, provide a file named `form.html` in your template directory.
 
 ### Available Template Variables
 Field templates have access to the following variables:
@@ -56,7 +62,7 @@ Variable | Description
 `renderOptions` | A collection of [Render Options](docs:theming/render-options).
 
 ## Overriding Page Templates
-To override the page template, provide a file named `page.html`.
+To override the page template, provide a file named `page.html` in your template directory.
 
 ### Available Template Variables
 Field templates have access to the following variables:
@@ -68,7 +74,7 @@ Variable | Description
 `renderOptions` | A collection of [Render Options](docs:theming/render-options).
 
 ## Overriding Field Wrapper Templates
-To override the field template, provide a file named `field.html`. This is the wrapper template around all fields. You can also override individual field types' templates, rather than changing the template for every field, regardless of type.
+To override the field template, provide a file named `field.html` in your template directory. This is the wrapper template around all fields. You can also override individual field types' templates, rather than changing the template for every field, regardless of type.
 
 ### Available Template Variables
 Field templates have access to the following variables:
