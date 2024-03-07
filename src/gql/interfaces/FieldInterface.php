@@ -52,10 +52,10 @@ class FieldInterface extends BaseInterfaceType
     public static function getFieldDefinitions(): array
     {
         return Craft::$app->getGql()->prepareFieldDefinitions(array_merge(parent::getFieldDefinitions(), [
-            'name' => [
-                'name' => 'name',
+            'label' => [
+                'name' => 'label',
                 'type' => Type::string(),
-                'description' => 'The field’s name.',
+                'description' => 'The field’s label.',
             ],
             'handle' => [
                 'name' => 'handle',
