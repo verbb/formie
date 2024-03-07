@@ -890,8 +890,8 @@ export class FormieFormTheme {
 
     scrollToForm() {
         // Check for scroll-padding-top or `scroll-margin-top`
-        const extraPadding = (document.documentElement.style['scroll-padding-top'] || '0px').replace('px', '');
-        const extraMargin = (document.documentElement.style['scroll-margin-top'] || '0px').replace('px', '');
+        const extraPadding = parseInt(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        const extraMargin = parseInt(getComputedStyle(document.documentElement).scrollMarginTop) || 0;
 
         // Because the form can be hidden, use the parent wrapper
         window.scrollTo({
