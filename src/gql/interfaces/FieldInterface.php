@@ -136,6 +136,11 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s default value as a string. Some fields have different fields for their default value.',
             ],
+            'emailValue' => [
+                'name' => 'emailValue',
+                'type' => Type::string(),
+                'description' => 'The field’s value type to use in email notifications.',
+            ],
             'prePopulate' => [
                 'name' => 'prePopulate',
                 'type' => Type::string(),

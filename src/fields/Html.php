@@ -17,6 +17,8 @@ use craft\helpers\Json;
 
 use yii\base\Exception;
 
+use GraphQL\Type\Definition\Type;
+
 use HTMLPurifier_Config;
 use HTMLPurifier_AttrDef_HTML_Bool;
 
@@ -92,6 +94,16 @@ class Html extends CosmeticField
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'htmlContent' => [
+                'name' => 'htmlContent',
+                'type' => Type::string(),
+            ],
+        ]);
     }
 
     public function defineGeneralSchema(): array

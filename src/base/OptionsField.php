@@ -6,6 +6,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -26,7 +27,7 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-abstract class OptionsField extends Field implements PreviewableFieldInterface
+abstract class OptionsField extends Field implements OptionsFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -277,6 +278,24 @@ abstract class OptionsField extends Field implements PreviewableFieldInterface
     public function getIsMultiOptionsField(): bool
     {
         return $this->multi;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'multi' => [
+                'name' => 'multi',
+                'type' => Type::boolean(),
+            ],
+            'layout' => [
+                'name' => 'layout',
+                'type' => Type::string(),
+            ],
+            'options' => [
+                'name' => 'options',
+                'type' => Type::listOf(FieldOptionGenerator::generateType()),
+            ],
+        ]);
     }
 
     public function getContentGqlType(): Type|array

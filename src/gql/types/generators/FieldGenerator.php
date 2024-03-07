@@ -43,24 +43,6 @@ class FieldGenerator implements GeneratorInterface
             $typeName = $field->getGqlTypeName();
             $contentFieldGqlTypes = $field->getSettingGqlTypes();
 
-            // Special-case for nested fields
-            if ($field instanceof NestedFieldInterface) {
-                $contentFieldGqlTypes['nestedRows'] = [
-                    'name' => 'nestedRows',
-                    'type' => Type::listOf(RowInterface::getType()),
-                    'description' => 'The field’s nested rows.',
-                ];
-
-                $contentFieldGqlTypes['fields'] = [
-                    'name' => 'fields',
-                    'type' => Type::listOf(FieldInterface::getType()),
-                    'description' => 'The field’s nested fields.',
-                    'resolve' => function($source, $arguments) {
-                        return $source->getFields();
-                    },
-                ];
-            }
-
             if (!$field->includeInGqlSchema($schema)) {
                 continue;
             }

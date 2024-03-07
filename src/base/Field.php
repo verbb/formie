@@ -1212,72 +1212,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getSettingGqlTypes(): array
     {
-        $types = [];
-        $excludedProperties = [];
-
-        // Use reflections to grab most (if not all) properties and automate casting. To do this, we need to fetch 
-        // properties that are _just_ from the individual classes not any inherited or through traits. The only way 
-        // to handle this is to fetch all traits first, and diff them later on.
-        $class = new ReflectionClass($this);
-
-        foreach ($class->getTraits() as $trait) {
-            foreach ($trait->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-                $excludedProperties[] = $property->getName();
-            }
-        }
-
-        $typeMap = [
-            'string' => Type::string(),
-            'int' => Type::int(),
-            'float' => Type::float(),
-            'bool' => Type::boolean(),
-            'datetime' => DateTimeType::getType(),
-        ];
-
-        foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if (!$property->isStatic() && !$property->getDeclaringClass()->isAbstract() && !in_array($property->getName(), $excludedProperties)) {
-                // If we haven't defined mapping, don't assume its value. It'll be up to classes to define these
-                $propertyName = $property->getName();
-
-                // Properties can have multiple types
-                $propertyType = $property->getType();
-
-                // Handle _some_ union types
-                if ($propertyType instanceof ReflectionUnionType) {
-                    // Special case for int|float
-                    $names = array_map(fn(ReflectionNamedType $type) => $type->getName(), $propertyType->getTypes());
-                    sort($names);
-
-                    // For numbers, pick the type that can contain the most value
-                    if ($names === ['float', 'int'] || $names === ['float', 'int', 'null']) {
-                        $propertyTypeName = 'float';
-                    }
-                } else {
-                    $propertyTypeName = $propertyType->getName();
-                }
-
-                $gqlType = $typeMap[$propertyTypeName] ?? null;
-
-                if ($gqlType) {
-                    $types[$propertyName] = [
-                        'name' => $propertyName,
-                        'type' => $gqlType,
-                    ];
-                } else if ($propertyTypeName === 'array') {
-                    $types[$propertyName] = [
-                        'name' => $propertyName,
-                        'type' => Type::string(),
-                        'resolve' => function($field) use ($propertyName) {
-                            $value = $field->{$propertyName};
-
-                            return is_array($value) ? Json::encode($value) : $value;
-                        },
-                    ];
-                }
-            }
-        }
-
-        return $types;
+        return [];
     }
 
     public function getGqlTypeName(): string

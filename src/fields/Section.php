@@ -12,6 +12,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\Html;
 
+use GraphQL\Type\Definition\Type;
+
 class Section extends CosmeticField
 {
     // Static Methods
@@ -55,6 +57,24 @@ class Section extends CosmeticField
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
         $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'borderStyle' => [
+                'name' => 'borderStyle',
+                'type' => Type::string(),
+            ],
+            'borderWidth' => [
+                'name' => 'borderWidth',
+                'type' => Type::int(),
+            ],
+            'borderColor' => [
+                'name' => 'borderColor',
+                'type' => Type::string(),
+            ],
+        ]);
     }
 
     public function defineAppearanceSchema(): array

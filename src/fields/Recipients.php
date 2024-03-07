@@ -362,6 +362,33 @@ class Recipients extends Field implements PreviewableFieldInterface
         return parent::getPreviewHtml($value, $element);
     }
 
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
+            ],
+            'multiple' => [
+                'name' => 'multiple',
+                'type' => Type::boolean(),
+            ],
+            'options' => [
+                'name' => 'options',
+                'type' => Type::listOf(FieldOptionGenerator::generateType()),
+            ],
+        ]);
+    }
+
+    public function getContentGqlMutationArgumentType(): array|Type
+    {
+        if ($this->displayType === 'checkboxes') {
+            return Type::listOf(Type::string());
+        }
+
+        return Type::string();
+    }
+
     public function defineGeneralSchema(): array
     {
         return [
@@ -455,25 +482,6 @@ class Recipients extends Field implements PreviewableFieldInterface
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
-    }
-
-    public function getSettingGqlTypes(): array
-    {
-        return array_merge(parent::getSettingGqlTypes(), [
-            'options' => [
-                'name' => 'options',
-                'type' => Type::listOf(FieldOptionGenerator::generateType()),
-            ],
-        ]);
-    }
-
-    public function getContentGqlMutationArgumentType(): array|Type
-    {
-        if ($this->displayType === 'checkboxes') {
-            return Type::listOf(Type::string());
-        }
-
-        return Type::string();
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag

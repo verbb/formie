@@ -21,6 +21,8 @@ use craft\helpers\Template;
 
 use Twig\Markup;
 
+use GraphQL\Type\Definition\Type;
+
 class Payment extends Field
 {
     // Static Methods
@@ -133,6 +135,20 @@ class Payment extends Field
         }
         
         return true;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'paymentIntegration' => [
+                'name' => 'paymentIntegration',
+                'type' => Type::string(),
+            ],
+            'paymentIntegrationType' => [
+                'name' => 'paymentIntegrationType',
+                'type' => Type::string(),
+            ],
+        ]);
     }
 
     public function defineGeneralSchema(): array

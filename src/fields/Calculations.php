@@ -120,6 +120,22 @@ class Calculations extends Field implements PreviewableFieldInterface
                     return Json::encode($field->getFormula());
                 },
             ],
+            'formatting' => [
+                'name' => 'formatting',
+                'type' => Type::string(),
+            ],
+            'prefix' => [
+                'name' => 'prefix',
+                'type' => Type::string(),
+            ],
+            'suffix' => [
+                'name' => 'suffix',
+                'type' => Type::string(),
+            ],
+            'decimals' => [
+                'name' => 'decimals',
+                'type' => Type::int(),
+            ],
         ]);
     }
 

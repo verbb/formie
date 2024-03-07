@@ -12,6 +12,8 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
 
+use GraphQL\Type\Definition\Type;
+
 class SingleLineText extends Field implements PreviewableFieldInterface
 {
     // Constants
@@ -198,6 +200,36 @@ class SingleLineText extends Field implements PreviewableFieldInterface
         }
 
         return null;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'limit' => [
+                'name' => 'limit',
+                'type' => Type::boolean(),
+            ],
+            'min' => [
+                'name' => 'min',
+                'type' => Type::int(),
+            ],
+            'minType' => [
+                'name' => 'minType',
+                'type' => Type::string(),
+            ],
+            'max' => [
+                'name' => 'max',
+                'type' => Type::int(),
+            ],
+            'maxType' => [
+                'name' => 'maxType',
+                'type' => Type::string(),
+            ],
+            'uniqueValue' => [
+                'name' => 'uniqueValue',
+                'type' => Type::boolean(),
+            ],
+        ]);
     }
 
     public function defineGeneralSchema(): array

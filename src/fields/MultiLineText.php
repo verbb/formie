@@ -268,9 +268,37 @@ class MultiLineText extends Field implements PreviewableFieldInterface
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'limit' => [
+                'name' => 'limit',
+                'type' => Type::boolean(),
+            ],
+            'min' => [
+                'name' => 'min',
+                'type' => Type::int(),
+            ],
+            'minType' => [
+                'name' => 'minType',
+                'type' => Type::string(),
+            ],
+            'max' => [
+                'name' => 'max',
+                'type' => Type::int(),
+            ],
+            'maxType' => [
+                'name' => 'maxType',
+                'type' => Type::string(),
+            ],
+            'useRichText' => [
+                'name' => 'useRichText',
+                'type' => Type::boolean(),
+            ],
             'richTextButtons' => [
                 'name' => 'richTextButtons',
                 'type' => Type::listOf(Type::string()),
+            ],
+            'uniqueValue' => [
+                'name' => 'uniqueValue',
+                'type' => Type::boolean(),
             ],
         ]);
     }

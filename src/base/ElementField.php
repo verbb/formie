@@ -484,21 +484,41 @@ abstract class ElementField extends Field implements ElementFieldInterface
         return $sources;
     }
 
-    public function getContentGqlMutationArgumentType(): Type|array
-    {
-        return [
-            'name' => $this->handle,
-            'type' => Type::listOf(Type::int()),
-            'description' => $this->instructions,
-        ];
-    }
-
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'sources' => [
+                'name' => 'sources',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    $value = $field->sources;
+
+                    return is_array($value) ? Json::encode($value) : $value;
+                },
+            ],
+            'source' => [
+                'name' => 'source',
+                'type' => Type::string(),
+            ],
+            'limitOptions' => [
+                'name' => 'limitOptions',
+                'type' => Type::string(),
+            ],
             'displayType' => [
                 'name' => 'displayType',
                 'type' => Type::string(),
+            ],
+            'labelSource' => [
+                'name' => 'labelSource',
+                'type' => Type::string(),
+            ],
+            'orderBy' => [
+                'name' => 'orderBy',
+                'type' => Type::string(),
+            ],
+            'multi' => [
+                'name' => 'multi',
+                'type' => Type::boolean(),
             ],
             'defaultValue' => [
                 'name' => 'defaultValue',
@@ -510,6 +530,15 @@ abstract class ElementField extends Field implements ElementFieldInterface
                 },
             ],
         ]);
+    }
+
+    public function getContentGqlMutationArgumentType(): Type|array
+    {
+        return [
+            'name' => $this->handle,
+            'type' => Type::listOf(Type::int()),
+            'description' => $this->instructions,
+        ];
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag

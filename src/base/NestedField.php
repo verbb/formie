@@ -3,6 +3,8 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
+use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayout;
@@ -26,6 +28,8 @@ use craft\helpers\Template;
 use craft\services\Elements;
 
 use yii\db\ExpressionInterface;
+
+use GraphQL\Type\Definition\Type;
 
 abstract class NestedField extends Field implements NestedFieldInterface
 {
@@ -236,6 +240,25 @@ abstract class NestedField extends Field implements NestedFieldInterface
         }
 
         return array_merge(...$modules);
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'nestedRows' => [
+                'name' => 'nestedRows',
+                'type' => Type::listOf(RowInterface::getType()),
+                'description' => 'The field’s nested rows.',
+            ],
+            'fields' => [
+                'name' => 'fields',
+                'type' => Type::listOf(GqlFieldInterface::getType()),
+                'description' => 'The field’s nested fields.',
+                'resolve' => function($source) {
+                    return $source->getFields();
+                },
+            ],
+        ]);
     }
 
 

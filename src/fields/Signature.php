@@ -18,6 +18,8 @@ use craft\helpers\Html;
 use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 
+use GraphQL\Type\Definition\Type;
+
 class Signature extends Field implements PreviewableFieldInterface
 {
     // Static Methods
@@ -81,6 +83,24 @@ class Signature extends Field implements PreviewableFieldInterface
         return UrlHelper::actionUrl('formie/fields/get-signature-image', [
             'submissionUid' => $submission->uid,
             'fieldId' => $this->id,
+        ]);
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'backgroundColor' => [
+                'name' => 'backgroundColor',
+                'type' => Type::string(),
+            ],
+            'penColor' => [
+                'name' => 'penColor',
+                'type' => Type::string(),
+            ],
+            'penWeight' => [
+                'name' => 'penWeight',
+                'type' => Type::string(),
+            ],
         ]);
     }
 

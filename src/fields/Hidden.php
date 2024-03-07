@@ -16,6 +16,8 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 use craft\web\View;
 
+use GraphQL\Type\Definition\Type;
+
 use Throwable;
 use DateTime;
 
@@ -159,6 +161,24 @@ class Hidden extends Field implements PreviewableFieldInterface
         $inputOptions['defaultValue'] = $defaultValue;
 
         return $inputOptions;
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'defaultOption' => [
+                'name' => 'defaultOption',
+                'type' => Type::string(),
+            ],
+            'queryParameter' => [
+                'name' => 'queryParameter',
+                'type' => Type::string(),
+            ],
+            'cookieName' => [
+                'name' => 'cookieName',
+                'type' => Type::string(),
+            ],
+        ]);
     }
 
     public function defineGeneralSchema(): array

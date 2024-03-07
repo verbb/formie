@@ -8,6 +8,8 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 
+use GraphQL\Type\Definition\Type;
+
 class Heading extends CosmeticField
 {
     // Static Methods
@@ -37,6 +39,16 @@ class Heading extends CosmeticField
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/preview', [
             'field' => $this,
+        ]);
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'headingSize' => [
+                'name' => 'headingSize',
+                'type' => Type::string(),
+            ],
         ]);
     }
 

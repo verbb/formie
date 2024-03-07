@@ -94,6 +94,24 @@ class Repeater extends MultiNestedField
         ]);
     }
 
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'minRows' => [
+                'name' => 'minRows',
+                'type' => Type::int(),
+            ],
+            'maxRows' => [
+                'name' => 'maxRows',
+                'type' => Type::int(),
+            ],
+            'addLabel' => [
+                'name' => 'addLabel',
+                'type' => Type::string(),
+            ],
+        ]);
+    }
+
     public function defineGeneralSchema(): array
     {
         return [
