@@ -49,10 +49,10 @@ class PageInterface extends BaseInterfaceType
     public static function getFieldDefinitions(): array
     {
         $fields = array_merge(parent::getFieldDefinitions(), [
-            'name' => [
-                'name' => 'name',
+            'label' => [
+                'name' => 'label',
                 'type' => Type::string(),
-                'description' => 'The page’s name.',
+                'description' => 'The page’s label.',
             ],
             'rows' => [
                 'name' => 'rows',
