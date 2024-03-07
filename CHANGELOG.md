@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.37 - 2024-03-08
+
+### Fixed
+- Fixed mutli-name fields that are conditionally hidden throwing an error in email notifications.
+- Fixed a JS error when validating File Upload fields.
+
 ## 1.6.36.1 - 2023-12-12
 
 ### Changed
