@@ -68,6 +68,20 @@ trait PluginTrait
     // Public Methods
     // =========================================================================
 
+    public function __construct($id, $parent = null, array $config = [])
+    {
+        // Set the source language to be the current site, not `en-US`. We could have a German site (primary) where all field content
+        // is written in German. Then an English site we translate to. The German site will then show all texts in English as the source
+        // and destination message is the same, because it will translate to the `sourceLanguage` - `en-US`.
+        // This isn't an issue for other plugins, but we use the `formie` translation category to translate user-created content
+        // not just plugin-created content, which is always going to be written in English.
+        if ($currentSite = Craft::$app->getSites()->getCurrentSite()) {
+            $config['sourceLanguage'] = $currentSite->language;
+        }
+
+        return parent::__construct($id, $parent , $config);
+    }
+
     public function getEmails(): Emails
     {
         return $this->get('emails');
