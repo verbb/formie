@@ -271,10 +271,12 @@ trait FormFieldTrait
 
     public function getValueForIntegration(mixed $value, $integrationField, $integration, ?ElementInterface $element = null, $fieldKey = ''): mixed
     {
+        $rawValue = $value;
         $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $value,
+            'rawValue' => $rawValue,
             'field' => $this,
             'submission' => $element,
             'integrationField' => $integrationField,

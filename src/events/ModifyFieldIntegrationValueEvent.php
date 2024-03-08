@@ -16,6 +16,7 @@ class ModifyFieldIntegrationValueEvent extends Event
     // =========================================================================
 
     public mixed $value = null;
+    public mixed $rawValue = null;
     public ?FormFieldInterface $field = null;
     public Submission|NestedFieldRow|FakeElement|null $submission = null;
     public ?IntegrationField $integrationField = null;
