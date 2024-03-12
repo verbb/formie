@@ -15,6 +15,18 @@
     { label: 'Submissions' | t('formie'), url: url('formie/submissions') },
 ] %}
 
+{% if craft.app.getIsMultiSite() %}
+    {% set crumbs = crumbs | unshift({
+        id: 'site-crumb',
+        icon: 'world',
+        label: requestedSite.name | t('site'),
+        menu: {
+            items: siteMenuItems(null, requestedSite),
+            label: 'Select site' | t('site')
+        },
+    }) %}
+{% endif %}
+
 {% if submission.canSave(currentUser) %}
     {% set fullPageForm = true %}
 {% endif %}
@@ -22,27 +34,8 @@
 {% set bodyClass = 'fui-body fui-submission' %}
 {% set selectedSubnavItem = 'submissions' %}
 {% set saveShortcutRedirect = '{cpEditUrl}' %}
-{% set selectedSiteId = submission.siteId %}
-{% set selectedSiteHandle = craft.app.request.getParam('site') %}
-
-{% if selectedSiteHandle %}
-    {% set selectedSite = craft.app.sites.getSiteByHandle(selectedSiteHandle) %}
-
-    {% if selectedSite %}
-        {% set selectedSiteId = selectedSite.id %}
-    {% endif %}
-{% endif %}
 
 {% hook 'formie.cp.submissions.edit' %}
-
-{% block contextMenu %}
-    {% if craft.app.getIsMultiSite() %}
-        {% include '_elements/sitemenu' with {
-            selectedSiteId: selectedSiteId,
-            urlFormat: "formie/submissions/#{form.handle}/#{craft.app.request.getSegment(4)}?site={handle}"
-        } %}
-    {% endif %}
-{% endblock %}
 
 {% block actionButton %}
 
@@ -98,7 +91,7 @@
         {% endif %}
 
         {% if craft.app.getIsMultiSite() %}
-            <input type="hidden" name="siteId" value="{{ selectedSiteId }}">
+            <input type="hidden" name="siteId" value="{{ submission.siteId }}">
         {% endif %}
 
         <div id="fields">
