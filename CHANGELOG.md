@@ -3,7 +3,7 @@
 ## 1.6.38 - 2024-03-13
 
 ### Fixed
-- Fix a Tiptap dependency causing the form builder to not load properly.
+- Fixed a Tiptap dependency causing the form builder to not load properly.
 
 ## 1.6.37 - 2024-03-08
 
