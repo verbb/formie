@@ -419,6 +419,11 @@ class Stripe extends Payment
                 'payment_method' => $paymentMethodId,
             ];
 
+            // Get the Stripe customer. We create a new one each transaction
+            if ($customer = $this->_getCustomer($submission)) {
+                $payload['customer'] = $customer['id'];
+            }
+
             // Add in extra settings configured at the field level
             $this->_setPayloadDetails($payload, $submission);
 
