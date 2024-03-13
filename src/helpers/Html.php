@@ -70,7 +70,7 @@ class Html extends CraftHtmlHelper
         $merged['aria'] = array_merge($aria, $extraAria);
 
         // Filter just `null` and `false` values
-        return ArrayHelper::filterEmptyValues($merged); 
+        return ArrayHelper::filterNullFalseValues($merged); 
     }
 
     public static function getFieldClassKey($class): string

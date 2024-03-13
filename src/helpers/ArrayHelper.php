@@ -189,6 +189,20 @@ class ArrayHelper extends CraftArrayHelper
 
         return $values;
     }
+    public static function filterNullFalseValues($values)
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = self::filterEmptyValues($values[$key]);
+            }
+
+            if ($values[$key] === null || $values[$key] === false) {
+                unset($values[$key]);
+            }
+        }
+
+        return $values;
+    }
 
     public static function arrayFilterRecursive(array $array)
     {
