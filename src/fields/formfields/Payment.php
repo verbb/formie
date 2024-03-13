@@ -120,7 +120,7 @@ class Payment extends FormField
         $integration = $this->getPaymentIntegration();
 
         if (!$integration) {
-            return '';
+            return Template::raw('');
         }
 
         return Template::raw($integration->getFrontEndHtml($this, $renderOptions));
