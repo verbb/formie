@@ -135,6 +135,18 @@ class ActiveCampaign extends Crm
                     ],
                 ]),
                 new IntegrationField([
+                    'handle' => 'subscribed',
+                    'name' => Craft::t('formie', 'Subscribe Status'),
+                    'type' => IntegrationField::TYPE_NUMBER,
+                    'options' => [
+                        'label' => Craft::t('formie', 'Subscribe Status'),
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Subscribe'), 'value' => 1],
+                            ['label' => Craft::t('formie', 'Unsubscribe'), 'value' => 2],
+                        ],
+                    ],
+                ]),
+                new IntegrationField([
                     'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
                     'required' => true,
@@ -271,6 +283,7 @@ class ActiveCampaign extends Crm
                 $phone = ArrayHelper::remove($contactValues, 'phone');
                 $listId = ArrayHelper::remove($contactValues, 'listId');
                 $tags = ArrayHelper::remove($contactValues, 'tags');
+                $subscribed = ArrayHelper::remove($fieldValues, 'subscribed', 1);
 
                 $contactPayload = [
                     'contact' => array_filter([
@@ -305,7 +318,7 @@ class ActiveCampaign extends Crm
                         'contactList' => [
                             'list' => $listId,
                             'contact' => $contactId,
-                            'status' => 1,
+                            'status' => $subscribed,
                         ],
                     ];
 
