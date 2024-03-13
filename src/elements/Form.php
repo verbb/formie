@@ -1745,6 +1745,18 @@ class Form extends Element
             ]);
         }
 
+        if ($key === 'errors') {
+            return new HtmlTag('ul', [
+                'class' => 'fui-errors',
+            ]);
+        }
+
+        if ($key === 'error') {
+            return new HtmlTag('li', [
+                'class' => 'fui-error-message',
+            ]);
+        }
+
         return null;
     }
 
