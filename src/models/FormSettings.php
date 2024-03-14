@@ -337,6 +337,6 @@ class FormSettings extends Model
 
     private function _getHtmlContent($content, $submission = null): string
     {
-        return RichTextHelper::getHtmlContent($content, $submission);
+        return RichTextHelper::getHtmlContent($content, $submission, false);
     }
 }
