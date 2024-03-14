@@ -394,10 +394,12 @@
 
     .fui-field-layout-horizontal {
         display: flex;
+        flex-wrap: wrap;
+        margin: -0.25rem;
 
         .fui-field-checkbox,
         .fui-field-radio {
-            margin-right: 0.5rem;
+            margin: 0.25rem;
         }
     }
 
