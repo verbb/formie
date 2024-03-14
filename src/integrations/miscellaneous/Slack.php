@@ -274,7 +274,7 @@ class Slack extends Miscellaneous
 
     private function _renderMessage($submission): array|string
     {
-        $html = RichTextHelper::getHtmlContent($this->message, $submission);
+        $html = RichTextHelper::getHtmlContent($this->message, $submission, false);
 
         $converter = new HtmlConverter(['strip_tags' => true]);
         $markdown = $converter->convert($html);

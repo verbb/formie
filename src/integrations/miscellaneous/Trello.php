@@ -248,7 +248,7 @@ class Trello extends Miscellaneous
 
     private function _renderMessage($submission): array|string
     {
-        $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission);
+        $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission, false);
 
         $converter = new HtmlConverter(['strip_tags' => true]);
         $markdown = $converter->convert($html);
