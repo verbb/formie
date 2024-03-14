@@ -26,7 +26,7 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="notification" @submit="submitHandler">
+                    <FormKitForm v-if="mounted" ref="fieldForm" :model-value="notification" @update:model-value="notification = $event" @submit="submitHandler">
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
