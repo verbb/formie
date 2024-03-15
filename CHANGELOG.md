@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.39 - 2024-03-16
+
+### Fixed
+- Fixed Tiptap v1 and ProseMirror compatibility.
+
 ## 1.6.38 - 2024-03-13
 
 ### Fixed
