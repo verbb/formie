@@ -450,8 +450,21 @@ class Opayo extends Payment
             ]));
 
             Integration::apiError($this, $e, $this->throwApiError);
-            
+
+            $error = ['message' => $e->getMessage()];
+
             $payment = new PaymentModel();
+            $payment->response = $error;
+
+            // Try and update the existing pending payment to failed, and merge content
+            if ($transactionId) {
+                if ($payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId)) {
+                    if (is_array($payment->response)) {
+                        $payment->response['message'] = $e->getMessage();
+                    }
+                }
+            }
+            
             $payment->integrationId = $this->id;
             $payment->submissionId = $submissionId;
             $payment->fieldId = $fieldId;
@@ -459,11 +472,10 @@ class Opayo extends Payment
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = $transactionId;
-            $payment->response = ['message' => $e->getMessage()];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $responseData['error'] = $payment->response;
+            $responseData['error'] = $error;
         }
 
         // Send back some JS to trigger the iframe to close, and the submission to submit
