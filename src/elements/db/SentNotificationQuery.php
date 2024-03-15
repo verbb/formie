@@ -15,6 +15,8 @@ class SentNotificationQuery extends ElementQuery
 
     public mixed $id = null;
     public mixed $formId = null;
+    public mixed $submissionId = null;
+    public mixed $notificationId = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
@@ -54,6 +56,20 @@ class SentNotificationQuery extends ElementQuery
     public function formId($value): static
     {
         $this->formId = $value;
+
+        return $this;
+    }
+
+    public function submissionId($value): static
+    {
+        $this->submissionId = $value;
+
+        return $this;
+    }
+
+    public function notificationId($value): static
+    {
+        $this->notificationId = $value;
 
         return $this;
     }
@@ -103,6 +119,14 @@ class SentNotificationQuery extends ElementQuery
 
         if ($this->formId) {
             $this->subQuery->andWhere(Db::parseParam('formie_sentnotifications.formId', $this->formId));
+        }
+
+        if ($this->submissionId) {
+            $this->subQuery->andWhere(Db::parseParam('formie_sentnotifications.submissionId', $this->submissionId));
+        }
+
+        if ($this->notificationId) {
+            $this->subQuery->andWhere(Db::parseParam('formie_sentnotifications.notificationId', $this->notificationId));
         }
 
         return parent::beforePrepare();
