@@ -41,7 +41,7 @@
     {% endif %}
 
     {% if subscriptions %}
-        {% set subscription = subscriptions[0] %}
+        {% set subscription = subscriptions | first %}
 
         <div class="data">
             <h5 class="heading">{{ 'Type' | t('formie') }}</h5>
