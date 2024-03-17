@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.1.7 - 2024-03-18
+
+### Added
+- Added the ability to query `SentNotification` elements by `submissionId` and `notificationId`.
+- Added “Subscribe Status” mapping option to ActiveCampaign integrations.
+- Added `ModifyFieldIntegrationValueEvent::rawValue`.
+- Added German Translations. (thanks @alexanderloewe).
+
+### Changed
+- Repeater/Group new-row templates now have spaceless HTML to take up less space in the page source.
+- Update Monday integration mutation to latest API compatibility.
+- Updated Form Template directories setting to auto-complete directories, not single templates.
+
+### Fixed
+- Fixed an error when viewing Stripe subscriptions in the control panel.
+- Fixed failed Opayo 3DS payments creating a new payment model instead of updating the pending payment.
+- Fixed Slack/Trello integration messages not including paragraph nodes.
+- Fixed success/error/other form messages not including paragraph nodes.
+- Fixed a reactivity issue when editing notifications, causing values to not always save.
+- Fixed Slack webhooks not sending.
+- Fixed Checkboxes/Radio field preview for horizontal layout and overflow.
+- Fixed general errors, manually set to a submission’s `form` attribute not showing on the front-end.
+- Fixed Theme Config not working correctly when supplying attributes with empty values (to output just the attribute like `readonly` or `disabled`) on elements.
+- Customer information is now included for single Stripe payments.
+- Fixed an error when rendering Payment fields with an invalid Payment integration.
+- Fixed incorrect value when mapping to a Date field in HubSpot.
+- Fixed `formie` translations not working correctly (defaulting to English) when there is a non-English primary site, and content has been written in non-English.
+- Fixed scroll-offset calculation when scrolling to the top of a form.
+- Fixed incorrect value when mapping to a Date field in HubSpot.
+
 ## 2.1.6 - 2024-03-03
 
 ### Added
