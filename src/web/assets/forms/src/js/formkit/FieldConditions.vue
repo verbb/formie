@@ -204,7 +204,6 @@ export default {
             const options = [];
             const excludedFields = [];
 
-            const fields = this.$store.getters['form/fields'];
             const allStatuses = this.$store.getters['formie/statuses']();
 
             const statuses = allStatuses.map((status) => {
@@ -223,7 +222,7 @@ export default {
                                 page.rows.forEach((row) => {
                                     if (row.fields && Array.isArray(row.fields)) {
                                         row.fields.forEach((field) => {
-                                            excludedFields.push(field.handle);
+                                            excludedFields.push(field.__id);
                                         });
                                     }
                                 });
@@ -233,23 +232,20 @@ export default {
                 }
             }
 
-            const customFieldOptions = this.customFieldOptions(this.clone(fields)).filter((field) => {
-                // Don't allow conditions on _this_ field
-                if (this.field.__id === field.field.__id) {
-                    return false;
-                }
+            // Exclude _this_ field
+            excludedFields.push(this.field.__id);
 
-                // Do the same thing for complex fields like Repeater/Groups
-                if (field.subField && this.field.__id === field.subField.__id) {
-                    return false;
-                }
+            // Include any Sub-Fields for this field as well
+            if (this.field.settings && this.field.settings.rows && Array.isArray(this.field.settings.rows)) {
+                this.field.settings.rows.forEach((row) => {
+                    row.fields.forEach((field) => {
+                        excludedFields.push(field.__id);
+                    });
+                });
+            }
 
-                // Is this an excluded field?
-                if (excludedFields.includes(field.field.handle)) {
-                    return false;
-                }
-
-                return true;
+            const customFieldOptions = this.clone(this.customFieldOptions()).filter((field) => {
+                return (excludedFields.includes(field.__id)) ? false : true;
             });
 
             options.push({

@@ -7,13 +7,13 @@ use verbb\formie\base\Element;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Password;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
-use craft\db\Table;
 use craft\elements\User as UserElement;
 use craft\helpers\Db;
 use craft\helpers\Json;

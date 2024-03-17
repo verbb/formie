@@ -2,11 +2,11 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\elements\Form;
+use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\db\Migration;
 use craft\db\Query;
-use craft\db\Table;
 
 class m240130_000000_permissions extends Migration
 {

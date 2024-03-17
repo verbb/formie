@@ -11,7 +11,7 @@ class Address extends Model
     // Properties
     // =========================================================================
 
-    public ?string $autocomplete = null;
+    public ?string $autoComplete = null;
     public ?string $address1 = null;
     public ?string $address2 = null;
     public ?string $address3 = null;
@@ -26,8 +26,8 @@ class Address extends Model
 
     public function __toString()
     {
-        if ($this->autocomplete) {
-            return (string)$this->autocomplete;
+        if ($this->autoComplete) {
+            return (string)$this->autoComplete;
         }
 
         $address = ArrayHelper::filterEmptyStringsFromArray([

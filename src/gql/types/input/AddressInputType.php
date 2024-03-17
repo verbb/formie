@@ -16,6 +16,10 @@ class AddressInputType extends InputObjectType
 
     public static function getType(AddressField $context): mixed
     {
+        if (!$context->getForm()) {
+            return null;
+        }
+        
         /** @var AddressField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieAddressInput';
 
@@ -25,16 +29,11 @@ class AddressInputType extends InputObjectType
 
         $fields = [];
 
-        $subFields = ['autocomplete', 'address1', 'address2', 'address3', 'city', 'state', 'zip', 'country'];
-
-        foreach ($subFields as $subField) {
-            $required = $subField . 'Required';
-            $enabled = $subField . 'Enabled';
-
-            if ($context->{$enabled}) {
-                $fields[$subField] = [
-                    'name' => $subField,
-                    'type' => $context->{$required} ? Type::nonNull(Type::string()) : Type::string(),
+        foreach ($context->getFields() as $subField) {
+            if ($subField->enabled) {
+                $fields[$subField->handle] = [
+                    'name' => $subField->handle,
+                    'type' => $subField->required ? Type::nonNull(Type::string()) : Type::string(),
                 ];
             }
         }
@@ -55,7 +54,7 @@ class AddressInputType extends InputObjectType
         }
 
         $addressModel = new AddressModel();
-        $addressModel->autocomplete = $value['autocomplete'] ?? null;
+        $addressModel->autoComplete = $value['autoComplete'] ?? null;
         $addressModel->address1 = $value['address1'] ?? null;
         $addressModel->address2 = $value['address2'] ?? null;
         $addressModel->address3 = $value['address3'] ?? null;

@@ -294,6 +294,162 @@ In addition, you can also now access field value directly from the submission, w
 
 The latter example of a Repeater includes the zero-based index of the row you're fetching values for.
 
+
+## Sub-Fields
+Sub-Fields have also received a revamp in their implementation. We wanted to provide the means to manage more advanced settings for sub-fields, along with being able to re-order them.
+
+Sub-Fields feature a new user interface, similar to a Group field. Sub-fields can be enabled/disabled, re-ordered and can have all their settings managed like regular fields. Sub-fields cannot be removed from their parent field, only disabled - which is the main difference between achieving a similar thing with a Group field.
+
+Additionally, sub-fields are now stored in the `formie_fields` database table as fields within their own layout (again, the same as a Group or Repeater field).
+
+We also use a new "type" for sub-fields under the `verbb\formie\fields\subfields` namespace. This allows us to extend existing fields to provide additional functionality specific to that fields' use-case. If you're creating your own sub-fields, this is completely optional, and any Formie field will be able to be used as a sub-field. For example, an Address Country sub-field extends a Dropdown field, but provides an easier way to manage the number of options to automatically generate based on a list of countries, rather than managing them yourself.
+
+Current Sub-Fields are Name (multi-field enabled), Address, and Date (dropdown and input layouts). Phone fields were previously a sub-field, but are now just a regular field. 
+
+Under the hood, a `verbb\formie\base\SubField` extends the `verbb\formie\base\SingleNestedField` class, which in turn extends `verbb\formie\base\NestedField`. The `SingleNestedField` is the same class that a Group field uses, as the two types of fields are almost identical.
+
+All sub-fields are migrated over to this new implementation. If you have custom sub-field's, you'll need to review your implementation to follow the updated behaviour.
+
+As field settings now exist in their respective sub-field classes, we have removed many properties.
+
+### Address Fields
+- `autocompleteIntegration`
+- `autocompleteEnabled`
+- `autocompleteCollapsed`
+- `autocompleteLabel`
+- `autocompletePlaceholder`
+- `autocompleteDefaultValue`
+- `autocompletePrePopulate`
+- `autocompleteRequired`
+- `autocompleteErrorMessage`
+- `autocompleteCurrentLocation`
+- `address1Enabled`
+- `address1Collapsed`
+- `address1Label`
+- `address1Placeholder`
+- `address1DefaultValue`
+- `address1PrePopulate`
+- `address1Required`
+- `address1ErrorMessage`
+- `address1Hidden`
+- `address2Enabled`
+- `address2Collapsed`
+- `address2Label`
+- `address2Placeholder`
+- `address2DefaultValue`
+- `address2PrePopulate`
+- `address2Required`
+- `address2ErrorMessage`
+- `address2Hidden`
+- `address3Enabled`
+- `address3Collapsed`
+- `address3Label`
+- `address3Placeholder`
+- `address3DefaultValue`
+- `address3PrePopulate`
+- `address3Required`
+- `address3ErrorMessage`
+- `address3Hidden`
+- `cityEnabled`
+- `cityCollapsed`
+- `cityLabel`
+- `cityPlaceholder`
+- `cityDefaultValue`
+- `cityPrePopulate`
+- `cityRequired`
+- `cityErrorMessage`
+- `cityHidden`
+- `stateEnabled`
+- `stateCollapsed`
+- `stateLabel`
+- `statePlaceholder`
+- `stateDefaultValue`
+- `statePrePopulate`
+- `stateRequired`
+- `stateErrorMessage`
+- `stateHidden`
+- `zipEnabled`
+- `zipCollapsed`
+- `zipLabel`
+- `zipPlaceholder`
+- `zipDefaultValue`
+- `zipPrePopulate`
+- `zipRequired`
+- `zipErrorMessage`
+- `zipHidden`
+- `countryEnabled`
+- `countryCollapsed`
+- `countryLabel`
+- `countryPlaceholder`
+- `countryDefaultValue`
+- `countryPrePopulate`
+- `countryRequired`
+- `countryErrorMessage`
+- `countryHidden`
+- `countryOptionLabel`
+- `countryOptionValue`
+
+### Date Fields
+- `dayLabel`
+- `dayPlaceholder`
+- `monthLabel`
+- `monthPlaceholder`
+- `yearLabel`
+- `yearPlaceholder`
+- `hourLabel`
+- `hourPlaceholder`
+- `minuteLabel`
+- `minutePlaceholder`
+- `secondLabel`
+- `secondPlaceholder`
+- `ampmLabel`
+- `ampmPlaceholder`
+- `minYearRange`
+- `maxYearRange`
+- `timeLabel`
+- `includeDate`
+- `includeTime`
+
+### Name Fields
+- `prefixEnabled`
+- `prefixCollapsed`
+- `prefixEnabled`
+- `prefixCollapsed`
+- `prefixLabel`
+- `prefixPlaceholder`
+- `prefixDefaultValue`
+- `prefixPrePopulate`
+- `prefixRequired`
+- `prefixErrorMessage`
+- `firstNameEnabled`
+- `firstNameCollapsed`
+- `firstNameLabel`
+- `firstNamePlaceholder`
+- `firstNameDefaultValue`
+- `firstNamePrePopulate`
+- `firstNameRequired`
+- `firstNameErrorMessage`
+- `middleNameEnabled`
+- `middleNameCollapsed`
+- `middleNameLabel`
+- `middleNamePlaceholder`
+- `middleNameDefaultValue`
+- `middleNamePrePopulate`
+- `middleNameRequired`
+- `middleNameErrorMessage`
+- `lastNameEnabled`
+- `lastNameCollapsed`
+- `lastNameLabel`
+- `lastNamePlaceholder`
+- `lastNameDefaultValue`
+- `lastNamePrePopulate`
+- `lastNameRequired`
+- `lastNameErrorMessage`
+
+### Phone Fields
+- `countryCollapsed`
+- `countryShowDialCode`
+
 ## Content Tables
 Inline with Craft's own improvement of removing the content database table and the about Field/Field Layout changes, Formie now no longer stores submission content in a `fmc_*` database table. Instead, it's a single `content` JSON column in your `formie_submissions` database table. This not only has performance benefits, but makes it easy to view your content directly from the database.
 
@@ -348,9 +504,47 @@ Custom Integration classes should now implement a `getOAuthProviderClass()` meth
 
 Refer also to our [OAuth Integrations](https://github.com/verbb/formie/tree/craft-5/src/integrations/crm) for some example implementations.
 
-## Fields
-The `EVENT_MODIFY_FIELD_CONFIG` event had been moved to be on the individual field class, not the `verbb\formie\services\Fields` service.
+## GraphQL
+When querying fields or pages, you should use the `label` property instead of `name`.
 
+```graphql
+// Formie v2
+{
+    formieForm (handle: "contactForm") {
+        title
+        
+        pages {
+            name
+
+            rows {
+                rowFields {
+                    name
+                }
+            }
+        }
+    }
+}
+
+// Formie v3
+{
+    formieForm (handle: "contactForm") {
+        title
+        
+        pages {
+            label
+
+            rows {
+                rowFields {
+                    label
+                }
+            }
+        }
+    }
+}
+```
+
+## Events
+The `EVENT_MODIFY_FIELD_CONFIG` event had been moved to be on the individual field class, not the `verbb\formie\services\Fields` service.
 
 ```php
 // Formie v2
@@ -371,5 +565,166 @@ use yii\base\Event;
 Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_FIELD_CONFIG, function(ModifyFieldConfigEvent $event) {
     $config = $event->config;
     // ...
+});
+```
+
+### Address `modifyFrontEndSubfields` event
+The `EVENT_MODIFY_FRONT_END_SUBFIELDS` event had been renamed to `EVENT_MODIFY_NESTED_FIELD_LAYOUT` and differs slightly. Instead of modifying the config of a field as an array, before it's created as a field, you can now modify the created field in the context of a field layout.
+
+```php
+// Formie v2
+use craft\helpers\ArrayHelper;
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Address;
+use yii\base\Event;
+
+Event::on(Address::class, Address::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $address1 = $event->rows[0][0];
+
+    // Modify the `address1` field - a `SingleLineText` field.
+    $address1->name = 'Address Line 1';
+
+    $event->rows[0][0] = $address1;
+
+    // Change the order of fields - remove them first
+    $address2 = ArrayHelper::remove($event->rows[1], 0);
+    $address3 = ArrayHelper::remove($event->rows[2], 0);
+
+    // Add them to the first row
+    $event->rows[0][] = $address2;
+    $event->rows[0][] = $address3;
+});
+
+// Formie v3
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Address;
+use yii\base\Event;
+
+Event::on(Address::class, Address::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $address1 = $event->fieldLayout->getFieldByHandle('address1');
+
+    // Modify the `address1` field - a `SingleLineText` field.
+    $address1->label = 'Address Line 1';
+});
+```
+
+
+### Date `modifyFrontEndSubfields` event
+The `EVENT_MODIFY_FRONT_END_SUBFIELDS` event had been renamed to `EVENT_MODIFY_NESTED_FIELD_LAYOUT` and differs slightly. Instead of modifying the config of a field as an array, before it's created as a field, you can now modify the created field in the context of a field layout.
+
+```php
+// Formie v2
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Date;
+use yii\base\Event;
+use DateTime;
+
+Event::on(Date::class, Date::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $field = $event->field;
+
+    $defaultValue = $field->defaultValue ? $field->defaultValue : new DateTime();
+    $year = intval($defaultValue->format('Y'));
+    $minYear = $year - 10;
+    $maxYear = $year + 10;
+
+    $yearOptions = [];
+
+    for ($y = $minYear; $y < $maxYear; ++$y) {
+        $yearOptions[] = ['value' => $y, 'label' => $y];
+    }
+
+    $event->rows[0]['Y'] = [
+        'handle' => 'year',
+        'options' => $yearOptions,
+        'min' => $minYear,
+        'max' => $maxYear,
+    ];
+});
+
+// Formie v3
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Date;
+use yii\base\Event;
+
+Event::on(Date::class, Date::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $year = ArrayHelper::firstWhere($event->fields, 'handle', 'year');
+
+    $yearOptions = [];
+    $minYear = 2000;
+    $maxYear = 2050;
+
+    for ($y = $minYear; $y < $maxYear; ++$y) {
+        $yearOptions[] = ['value' => $y, 'label' => $y];
+    }
+
+    // Modify the `year` field - a `SingleLineText` field.
+    $year->options = $yearOptions;
+    $year->min = $minYear;
+    $year->max = $maxYear;
+});
+```
+
+### Name `modifyFrontEndSubfields` event
+The `EVENT_MODIFY_FRONT_END_SUBFIELDS` event had been renamed to `EVENT_MODIFY_NESTED_FIELD_LAYOUT` and differs slightly. Instead of modifying the config of a field as an array, before it's created as a field, you can now modify the created field in the context of a field layout.
+
+```php
+// Formie v2
+use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
+use verbb\formie\fields\formfields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
+    $lastName = $event->rows[0][3];
+
+    // Modify the `lastName` field - a `SingleLineText` field.
+    $lastName->name = 'Surname';
+
+    $event->rows[0][3] = $lastName;
+
+    // Change the order of fields - remove them first
+    $firstName = ArrayHelper::remove($event->rows[0], 1);
+    $lastName = ArrayHelper::remove($event->rows[0], 3);
+
+    // Reverse the order
+    $event->rows[0][1] = $lastName;
+    $event->rows[0]3 = $firstName;
+});
+
+// Formie v3
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $lastName = $event->fieldLayout->getFieldByHandle('lastName');
+
+    // Modify the `lastName` field - a `SingleLineText` field.
+    $lastName->label = 'Surname';
+});
+```
+
+### Name `modifyPrefixOptions` event
+The `EVENT_MODIFY_PREFIX_OPTIONS` has been moved to the inner Prefix sub-field class.
+
+```php
+// Formie v2
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\fields\Name;
+use yii\base\Event;
+
+Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $event) {
+    $event->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
+});
+
+// Formie v3
+use verbb\formie\events\ModifyNamePrefixOptionsEvent;
+use verbb\formie\fields\subfields\NamePrefix;
+use yii\base\Event;
+
+Event::on(NamePrefix::class, NamePrefix::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $event) {
+    $event->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
 });
 ```

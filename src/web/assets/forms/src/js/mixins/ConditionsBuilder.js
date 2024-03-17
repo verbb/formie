@@ -44,7 +44,7 @@ export default {
                 }
 
                 // Special case for agree fields
-                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree' && ['=', '!='].includes(condition)) {
+                if (testField.type === 'verbb\\formie\\fields\\Agree' && ['=', '!='].includes(condition)) {
                     return 'select';
                 }
             }
@@ -76,7 +76,7 @@ export default {
                 options = this.clone(options);
 
                 // Special case for agree fields
-                if (testField.type === 'verbb\\formie\\fields\\formfields\\Agree') {
+                if (testField.type === 'verbb\\formie\\fields\\Agree') {
                     return [
                         { label: 'Checked', value: '1' },
                         { label: 'Unchecked', value: '0' },
@@ -84,7 +84,7 @@ export default {
                 }
 
                 // Special handling for recipients, should use placeholders
-                if (testField.type === 'verbb\\formie\\fields\\formfields\\Recipients') {
+                if (testField.type === 'verbb\\formie\\fields\\Recipients') {
                     for (let i = 0; i < options.length; i++) {
                         options[i].value = `id:${i}`;
                     }
@@ -136,77 +136,8 @@ export default {
             return field;
         },
 
-        customFieldOptions(fields) {
-            const customFields = [];
-
-            fields.forEach((field) => {
-                // Exclude cosmetic fields (with no value)
-                if (field.isCosmetic) {
-                    return;
-                }
-
-                // If this field is nested itself, don't show. The outer field takes care of that below
-                if (!toBoolean(field.isNested)) {
-                    if (field.subFieldOptions && field.hasSubFields) {
-                        field.subFieldOptions.forEach((subField) => {
-                            customFields.push({
-                                field,
-                                subField,
-                                type: field.type,
-                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                value: `{field:${field.settings.handle}.${subField.handle}}`,
-                            });
-                        });
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Repeater' && field.settings.rows) {
-                        const contextField = this.editingField;
-
-                        // Repeaters only allow selecting their sibling fields
-                        if (contextField && contextField.parentFieldId === field.__id) {
-                            field.settings.rows.forEach((row) => {
-                                row.fields.forEach((nestedField) => {
-                                    customFields.push({
-                                        field,
-                                        subField: nestedField,
-                                        type: field.type,
-                                        label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
-                                        value: `{field:${field.settings.handle}.__ROW__.${nestedField.settings.handle}}`,
-                                    });
-                                });
-                            });
-                        }
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.settings.rows) {
-                        // Is this a group field that supports nesting?
-                        field.settings.rows.forEach((row) => {
-                            row.fields.forEach((nestedField) => {
-                                customFields.push({
-                                    field,
-                                    subField: nestedField,
-                                    type: field.type,
-                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
-                                    value: `{field:${field.settings.handle}.${nestedField.settings.handle}}`,
-                                });
-                            });
-                        });
-                    } else if (field.type === 'verbb\\formie\\fields\\formfields\\Date') {
-                        // Special handling for date fields for now
-                        customFields.push({
-                            field,
-                            type: field.type,
-                            label: truncate(field.settings.label, { length: 60 }),
-                            value: `{field:${field.settings.handle}.date}`,
-                        });
-                    } else {
-                        customFields.push({
-                            field,
-                            type: field.type,
-                            label: truncate(field.settings.label, { length: 60 }),
-                            value: `{field:${field.settings.handle}}`,
-                        });
-                    }
-                }
-            });
-
-            return customFields;
+        customFieldOptions() {
+            return this.$store.getters['form/getConditionsFieldOptions']();
         },
     },
 };

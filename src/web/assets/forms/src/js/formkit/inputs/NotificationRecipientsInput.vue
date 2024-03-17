@@ -202,11 +202,9 @@ export default {
                 ],
             });
 
-            const fields = this.$store.getters['form/fields'];
-
             options.push({
                 label: Craft.t('formie', 'Fields'),
-                options: this.customFieldOptions(fields),
+                options: this.customFieldOptions(),
             });
 
             return options;

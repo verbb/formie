@@ -249,7 +249,7 @@ class Number extends Field implements PreviewableFieldInterface
         return NumberType::getType();
     }
 
-    public function getContentGqlMutationArgumentType(): array|Type
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         return [
             'name' => $this->handle,

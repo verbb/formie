@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
 use verbb\formie\models\FieldLayoutPageSettings;
@@ -103,13 +104,8 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'pageConditions' => [
                 'name' => 'pageConditions',
-                'type' => Type::string(),
+                'type' => JsonType::getType(),
                 'description' => 'The page’s conditions as a JSON string.',
-                'resolve' => function($source) {
-                    $value = $source->pageConditions;
-
-                    return is_array($value) ? Json::encode($value) : $value;
-                },
             ],
             'enableNextButtonConditions' => [
                 'name' => 'enableNextButtonConditions',
@@ -118,13 +114,8 @@ class PageSettingsInterface extends BaseInterfaceType
             ],
             'nextButtonConditions' => [
                 'name' => 'nextButtonConditions',
-                'type' => Type::string(),
+                'type' => JsonType::getType(),
                 'description' => 'The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.',
-                'resolve' => function($source) {
-                    $value = $source->nextButtonConditions;
-
-                    return is_array($value) ? Json::encode($value) : $value;
-                },
             ],
         ];
 

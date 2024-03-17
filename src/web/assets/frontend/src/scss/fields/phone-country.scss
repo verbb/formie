@@ -1,7 +1,7 @@
 @import '~intl-tel-input/build/css/intlTelInput.css';
 
 // Target both for front-end and CP
-.field[data-type="verbb\\\\formie\\\\fields\\\\formfields\\\\Phone"],
+.field[data-type="verbb\\\\formie\\\\fields\\\\Phone"],
 .fui-type-phone-number {
     .iti {
         display: block;
@@ -34,9 +34,9 @@
 // Load the flag sprites even when removing classes. We also need this non-scoped
 // in order to not have the original path throw a 404 error. A little bit annoying...
 .iti__flag {
-    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags.png");
+    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.5.6/img/flags.png");
 
     @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/img/flags@2x.png");
+        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.5.6/img/flags@2x.png");
     }
 }

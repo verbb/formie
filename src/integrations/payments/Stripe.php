@@ -651,12 +651,12 @@ class Stripe extends Payment
                             SchemaHelper::fieldSelectField([
                                 'name' => 'amountVariable',
                                 'fieldTypes' => [
-                                    formfields\Calculations::class,
-                                    formfields\Dropdown::class,
-                                    formfields\Hidden::class,
-                                    formfields\Number::class,
-                                    formfields\Radio::class,
-                                    formfields\SingleLineText::class,
+                                    fields\Calculations::class,
+                                    fields\Dropdown::class,
+                                    fields\Hidden::class,
+                                    fields\Number::class,
+                                    fields\Radio::class,
+                                    fields\SingleLineText::class,
                                 ],
                                 'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
                             ]),
@@ -802,6 +802,7 @@ class Stripe extends Payment
                 'help' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
                 'generateValue' => false,
                 'name' => 'metadata',
+                'validation' => '',
                 'newRowDefaults' => [
                     'label' => '',
                     'value' => '',
@@ -843,7 +844,7 @@ class Stripe extends Payment
     {
         if ($key === 'fieldInput') {
             // Extend the Single-Line Text field for sane defaults
-            $textField = new formfields\SingleLineText();
+            $textField = new fields\SingleLineText();
             $textFieldAttributes = $textField->defineHtmlTag($key, $context)->attributes;
 
             return new HtmlTag('div', [

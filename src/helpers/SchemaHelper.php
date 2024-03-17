@@ -118,7 +118,7 @@ class SchemaHelper
     {
         return array_merge([
             '$formkit' => 'table',
-            'validation' => '+min:1|uniqueTableCellLabel|uniqueTableCellValue|requiredTableCellLabel',
+            'validation' => '+min:1|uniqueTableCellLabel|uniqueTableCellValue',
         ], $config);
     }
 
@@ -389,6 +389,24 @@ class SchemaHelper
             'help' => Craft::t('formie', 'Select a field of the same type where its value must match this field.'),
             'name' => 'matchField',
             'excludeSelf' => true,
+        ], $config);
+    }
+
+    public static function subFieldsConfigurationField(array $config = [], array $childConfig = []): array
+    {
+        return array_merge([
+            '$formkit' => 'subFields',
+            'label' => Craft::t('formie', 'Sub-Field Configuration'),
+            'help' => Craft::t('formie', 'Configure the sub-fields for this field. Move to rearrange columns and rows, and click to edit sub-field settings.'),
+            'name' => 'rows',
+            'children' => [
+                [
+                    '$cmp' => 'SubFields',
+                    'props' => array_merge([
+                        'context' => '$node.context',
+                    ], $childConfig),
+                ],
+            ],
         ], $config);
     }
 

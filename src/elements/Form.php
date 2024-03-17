@@ -551,9 +551,9 @@ class Form extends Element
         return $this->getFormLayout()->getPages();
     }
 
-    public function getRows(): array
+    public function getRows(bool $includeDisabled = true): array
     {
-        return $this->getFormLayout()->getRows();
+        return $this->getFormLayout()->getRows($includeDisabled);
     }
 
     public function getFields(): array

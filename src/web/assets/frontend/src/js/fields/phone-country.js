@@ -8,7 +8,6 @@ export class FormiePhoneCountry {
         this.$field = settings.$field.querySelector('input[type="tel"]');
         this.$countryInput = settings.$field.querySelector('[data-country]');
 
-        this.countryShowDialCode = settings.countryShowDialCode;
         this.countryDefaultValue = settings.countryDefaultValue;
         this.countryAllowed = settings.countryAllowed;
 
@@ -25,7 +24,7 @@ export class FormiePhoneCountry {
             autoHideDialCode: true,
             nationalMode: false,
             preferredCountries: [],
-            separateDialCode: false,
+            separateDialCode: true,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
             formatOnDisplay: false,
@@ -49,10 +48,6 @@ export class FormiePhoneCountry {
 
             // Save this on the field so we can check during validation
             this.$field.restrictedCountries = true;
-        }
-
-        if (this.countryShowDialCode) {
-            options.separateDialCode = true;
         }
 
         if (this.countryDefaultValue) {

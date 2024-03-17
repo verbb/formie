@@ -9,12 +9,12 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
-use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\gql\types\NameType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\NameInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Name as NameModel;
@@ -35,14 +35,6 @@ use GraphQL\Type\Definition\Type;
 
 class Name extends SubField implements PreviewableFieldInterface
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubFields';
-    public const EVENT_MODIFY_PREFIX_OPTIONS = 'modifyPrefixOptions';
-
-
-
     // Static Methods
     // =========================================================================
 
@@ -56,27 +48,6 @@ class Name extends SubField implements PreviewableFieldInterface
         return 'formie/_formfields/name/icon.svg';
     }
 
-    public static function getPrefixOptions(): array
-    {
-        $options = [
-            ['label' => Craft::t('formie', 'Mr.'), 'value' => 'mr'],
-            ['label' => Craft::t('formie', 'Mrs.'), 'value' => 'mrs'],
-            ['label' => Craft::t('formie', 'Ms.'), 'value' => 'ms'],
-            ['label' => Craft::t('formie', 'Miss.'), 'value' => 'miss'],
-            ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'],
-            ['label' => Craft::t('formie', 'Dr.'), 'value' => 'dr'],
-            ['label' => Craft::t('formie', 'Prof.'), 'value' => 'prof'],
-        ];
-
-        $event = new ModifyNamePrefixOptionsEvent([
-            'options' => $options,
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_PREFIX_OPTIONS, $event);
-
-        return $event->options;
-    }
-
     public static function dbType(): string
     {
         return Schema::TYPE_JSON;
@@ -88,53 +59,51 @@ class Name extends SubField implements PreviewableFieldInterface
 
     public bool $useMultipleFields = false;
 
-    public bool $prefixEnabled = false;
-    public bool $prefixCollapsed = true;
-    public ?string $prefixLabel = null;
-    public ?string $prefixPlaceholder = null;
-    public ?string $prefixDefaultValue = null;
-    public ?string $prefixPrePopulate = null;
-    public bool $prefixRequired = false;
-    public ?string $prefixErrorMessage = null;
-
-    public bool $firstNameEnabled = true;
-    public bool $firstNameCollapsed = true;
-    public ?string $firstNameLabel = null;
-    public ?string $firstNamePlaceholder = null;
-    public ?string $firstNameDefaultValue = null;
-    public ?string $firstNamePrePopulate = null;
-    public bool $firstNameRequired = false;
-    public ?string $firstNameErrorMessage = null;
-
-    public bool $middleNameEnabled = false;
-    public bool $middleNameCollapsed = true;
-    public ?string $middleNameLabel = null;
-    public ?string $middleNamePlaceholder = null;
-    public ?string $middleNameDefaultValue = null;
-    public ?string $middleNamePrePopulate = null;
-    public bool $middleNameRequired = false;
-    public ?string $middleNameErrorMessage = null;
-
-    public bool $lastNameEnabled = true;
-    public bool $lastNameCollapsed = true;
-    public ?string $lastNameLabel = null;
-    public ?string $lastNamePlaceholder = null;
-    public ?string $lastNameDefaultValue = null;
-    public ?string $lastNamePrePopulate = null;
-    public bool $lastNameRequired = false;
-    public ?string $lastNameErrorMessage = null;
-
 
     // Public Methods
     // =========================================================================
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
-        $config['prefixLabel'] = $config['prefixLabel'] ?? Craft::t('formie', 'Prefix');
-        $config['firstNameLabel'] = $config['firstNameLabel'] ?? Craft::t('formie', 'First Name');
-        $config['middleNameLabel'] = $config['middleNameLabel'] ?? Craft::t('formie', 'Middle Name');
-        $config['lastNameLabel'] = $config['lastNameLabel'] ?? Craft::t('formie', 'Last Name');
+        unset(
+            $config['prefixEnabled'],
+            $config['prefixCollapsed'],
+            $config['prefixEnabled'],
+            $config['prefixCollapsed'],
+            $config['prefixLabel'],
+            $config['prefixPlaceholder'],
+            $config['prefixDefaultValue'],
+            $config['prefixPrePopulate'],
+            $config['prefixRequired'],
+            $config['prefixErrorMessage'],
+
+            $config['firstNameEnabled'],
+            $config['firstNameCollapsed'],
+            $config['firstNameLabel'],
+            $config['firstNamePlaceholder'],
+            $config['firstNameDefaultValue'],
+            $config['firstNamePrePopulate'],
+            $config['firstNameRequired'],
+            $config['firstNameErrorMessage'],
+
+            $config['middleNameEnabled'],
+            $config['middleNameCollapsed'],
+            $config['middleNameLabel'],
+            $config['middleNamePlaceholder'],
+            $config['middleNameDefaultValue'],
+            $config['middleNamePrePopulate'],
+            $config['middleNameRequired'],
+            $config['middleNameErrorMessage'],
+
+            $config['lastNameEnabled'],
+            $config['lastNameCollapsed'],
+            $config['lastNameLabel'],
+            $config['lastNamePlaceholder'],
+            $config['lastNameDefaultValue'],
+            $config['lastNamePrePopulate'],
+            $config['lastNameRequired'],
+            $config['lastNameErrorMessage'],
+        );
 
         $config['instructionsPosition'] = $config['instructionsPosition'] ?? AboveInput::class;
 
@@ -152,12 +121,22 @@ class Name extends SubField implements PreviewableFieldInterface
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        // Quit early if a non-multi Name field, it's just plain text
+        if (!$this->useMultipleFields) {
+            return $value;
+        }
+
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if (is_array($value)) {
             $name = new NameModel($value);
             $name->isMultiple = true;
+
+            // Normalize prefix to null, due to it being a dropdown
+            if ($name->prefix === '') {
+                $name->prefix = null;
+            }
 
             return $name;
         }
@@ -167,142 +146,11 @@ class Name extends SubField implements PreviewableFieldInterface
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if ($value instanceof NameModel) {
-            $value = Json::encode($value);
+        if ($this->useMultipleFields) {
+            return parent::serializeValue($value, $element);
         }
 
-        return parent::serializeValue($value, $element);
-    }
-
-    public function getFrontEndSubFields(mixed $context): array
-    {
-        $subFields = [];
-
-        $rowConfigs = [
-            [
-                [
-                    'type' => Dropdown::class,
-                    'label' => $this->prefixLabel,
-                    'handle' => 'prefix',
-                    'required' => $this->prefixRequired,
-                    'placeholder' => $this->prefixPlaceholder,
-                    'errorMessage' => $this->prefixErrorMessage,
-                    'defaultValue' => $this->getDefaultValue('prefix'),
-                    'labelPosition' => $this->subFieldLabelPosition,
-                    'options' => $this->prefixOptions,
-                    'inputAttributes' => [
-                        [
-                            'label' => 'autocomplete',
-                            'value' => 'honorific-prefix',
-                        ],
-                    ],
-                ],
-                [
-                    'type' => SingleLineText::class,
-                    'label' => $this->firstNameLabel,
-                    'handle' => 'firstName',
-                    'required' => $this->firstNameRequired,
-                    'placeholder' => $this->firstNamePlaceholder,
-                    'errorMessage' => $this->firstNameErrorMessage,
-                    'defaultValue' => $this->getDefaultValue('firstName'),
-                    'labelPosition' => $this->subFieldLabelPosition,
-                    'inputAttributes' => [
-                        [
-                            'label' => 'autocomplete',
-                            'value' => 'given-name',
-                        ],
-                    ],
-                ],
-                [
-                    'type' => SingleLineText::class,
-                    'label' => $this->middleNameLabel,
-                    'handle' => 'middleName',
-                    'required' => $this->middleNameRequired,
-                    'placeholder' => $this->middleNamePlaceholder,
-                    'errorMessage' => $this->middleNameErrorMessage,
-                    'defaultValue' => $this->getDefaultValue('middleName'),
-                    'labelPosition' => $this->subFieldLabelPosition,
-                    'inputAttributes' => [
-                        [
-                            'label' => 'autocomplete',
-                            'value' => 'additional-name',
-                        ],
-                    ],
-                ],
-                [
-                    'type' => SingleLineText::class,
-                    'label' => $this->lastNameLabel,
-                    'handle' => 'lastName',
-                    'required' => $this->lastNameRequired,
-                    'placeholder' => $this->lastNamePlaceholder,
-                    'errorMessage' => $this->lastNameErrorMessage,
-                    'defaultValue' => $this->getDefaultValue('lastName'),
-                    'labelPosition' => $this->subFieldLabelPosition,
-                    'inputAttributes' => [
-                        [
-                            'label' => 'autocomplete',
-                            'value' => 'family-name',
-                        ],
-                    ],
-                ],
-            ],
-        ];
-
-        foreach ($rowConfigs as $key => $rowConfig) {
-            foreach ($rowConfig as $config) {
-                $handle = $config['handle'];
-                $enabledProp = "{$handle}Enabled";
-
-                if ($this->$enabledProp) {
-                    $subField = Component::createComponent($config, FieldInterface::class);
-
-                    // Ensure we set the parent field instance to handle the nested nature of subfields
-                    $subField->setParentField($this);
-
-                    $subFields[$key][] = $subField;
-                }
-            }
-        }
-
-        $event = new ModifyFrontEndSubFieldsEvent([
-            'field' => $this,
-            'rows' => $subFields,
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
-
-        return $event->rows;
-    }
-
-    public function getSubFieldOptions(): array
-    {
-        return [
-            [
-                'label' => Craft::t('formie', 'Prefix'),
-                'handle' => 'prefix',
-            ],
-            [
-                'label' => Craft::t('formie', 'First Name'),
-                'handle' => 'firstName',
-            ],
-            [
-                'label' => Craft::t('formie', 'Middle Name'),
-                'handle' => 'middleName',
-            ],
-            [
-                'label' => Craft::t('formie', 'Last Name'),
-                'handle' => 'lastName',
-            ],
-        ];
-    }
-
-    public function validateRequiredFields(ElementInterface $element): void
-    {
-        if (!$this->useMultipleFields) {
-            return;
-        }
-
-        parent::validateRequiredFields($element);
+        return $value;
     }
 
     public function getPreviewInputHtml(): string
@@ -317,24 +165,19 @@ class Name extends SubField implements PreviewableFieldInterface
         return $this->useMultipleFields ? NameType::getType() : Type::string();
     }
 
-    public function getSettingGqlTypes(): array
-    {
-        return array_merge(parent::getSettingGqlTypes(), [
-            'prefixOptions' => [
-                'name' => 'prefixOptions',
-                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
-            ],
-        ]);
-    }
-
     public function defineGeneralSchema(): array
     {
-        $fields = [
+        return [
             SchemaHelper::labelField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Multiple Name Fields'),
                 'help' => Craft::t('formie', 'Whether this field should use multiple fields for users to enter their details.'),
                 'name' => 'useMultipleFields',
+            ]),
+            SchemaHelper::subFieldsConfigurationField([
+                'if' => '$get(useMultipleFields).value',
+            ], [
+                'type' => static::class,
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
@@ -350,65 +193,11 @@ class Name extends SubField implements PreviewableFieldInterface
                 'if' => '$get(useMultipleFields).value != true',
             ]),
         ];
-
-        $toggleBlocks = [];
-
-        foreach ($this->getSubFieldOptions() as $key => $nestedField) {
-            $subFields = [
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Label'),
-                    'help' => Craft::t('formie', 'The label that describes this field.'),
-                    'name' => $nestedField['handle'] . 'Label',
-                    'validation' => 'requiredIf:' . $nestedField['handle'] . 'Enabled',
-                    'required' => true,
-                ]),
-
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Placeholder'),
-                    'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
-                    'name' => $nestedField['handle'] . 'Placeholder',
-                ]),
-            ];
-
-            if ($nestedField['handle'] === 'prefix') {
-                $subFields[] = SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
-                    'name' => $nestedField['handle'] . 'DefaultValue',
-                    'options' => array_merge(
-                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                        static::getPrefixOptions()
-                    ),
-                ]);
-            } else {
-                $subFields[] = SchemaHelper::variableTextField([
-                    'label' => Craft::t('formie', 'Default Value'),
-                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
-                    'name' => $nestedField['handle'] . 'DefaultValue',
-                    'variables' => 'userVariables',
-                ]);
-            }
-
-            $toggleBlock = SchemaHelper::toggleBlock([
-                'blockLabel' => $nestedField['label'],
-                'blockHandle' => $nestedField['handle'],
-            ], $subFields);
-
-            $toggleBlock['if'] = '$get(useMultipleFields).value';
-
-            $toggleBlocks[] = $toggleBlock;
-        }
-
-        $fields[] = SchemaHelper::toggleBlocks([
-            'subFields' => $this->getSubFieldOptions(),
-        ], $toggleBlocks);
-
-        return $fields;
     }
 
     public function defineSettingsSchema(): array
     {
-        $fields = [
+        return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
                 'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
@@ -426,38 +215,6 @@ class Name extends SubField implements PreviewableFieldInterface
             ]),
             SchemaHelper::includeInEmailField(),
         ];
-
-        foreach ($this->getSubFieldOptions() as $key => $nestedField) {
-            $subFields = [
-                SchemaHelper::lightswitchField([
-                    'label' => Craft::t('formie', 'Required Field'),
-                    'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                    'name' => $nestedField['handle'] . 'Required',
-                ]),
-                SchemaHelper::textField([
-                    'label' => Craft::t('formie', 'Error Message'),
-                    'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                    'name' => $nestedField['handle'] . 'ErrorMessage',
-                    'if' => '$get(' . $nestedField['handle'] . 'Required).value',
-                ]),
-                SchemaHelper::prePopulate([
-                    'name' => $nestedField['handle'] . 'PrePopulate',
-                ]),
-            ];
-
-            $toggleBlock = SchemaHelper::toggleBlock([
-                'blockLabel' => $nestedField['label'],
-                'blockHandle' => $nestedField['handle'],
-                'showToggle' => false,
-                'showEnabled' => false,
-            ], $subFields);
-
-            $toggleBlock['if'] = '$get(' . $nestedField['handle'] . 'Enabled).value && $get(useMultipleFields).value';
-
-            $fields[] = $toggleBlock;
-        }
-
-        return $fields;
     }
 
     public function defineAppearanceSchema(): array
@@ -491,7 +248,7 @@ class Name extends SubField implements PreviewableFieldInterface
         ];
     }
 
-    public function getContentGqlMutationArgumentType(): array|Type
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         if ($this->useMultipleFields) {
             return NameInputType::getType($this);
@@ -556,17 +313,66 @@ class Name extends SubField implements PreviewableFieldInterface
     // Protected Methods
     // =========================================================================
 
-    protected function defineRules(): array
+    protected function defineSubFields(): array
     {
-        $rules = parent::defineRules();
-        $rules[] = [
-            ['subFieldLabelPosition'],
-            'in',
-            'range' => Formie::$plugin->getFields()->getLabelPositions(),
-            'skipOnEmpty' => true,
+        return [
+            [
+                'fields' => [
+                    [
+                        'type' => subfields\NamePrefix::class,
+                        'label' => Craft::t('formie', 'Prefix'),
+                        'handle' => 'prefix',
+                        'enabled' => false,
+                        'labelPosition' => $this->subFieldLabelPosition,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'honorific-prefix',
+                            ],
+                        ],
+                    ],
+                    [
+                        'type' => subfields\NameFirst::class,
+                        'label' => Craft::t('formie', 'First Name'),
+                        'handle' => 'firstName',
+                        'enabled' => true,
+                        'labelPosition' => $this->subFieldLabelPosition,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'given-name',
+                            ],
+                        ],
+                    ],
+                    [
+                        'type' => subfields\NameMiddle::class,
+                        'label' => Craft::t('formie', 'Middle Name'),
+                        'handle' => 'middleName',
+                        'enabled' => false,
+                        'labelPosition' => $this->subFieldLabelPosition,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'additional-name',
+                            ],
+                        ],
+                    ],
+                    [
+                        'type' => subfields\NameLast::class,
+                        'label' => Craft::t('formie', 'Last Name'),
+                        'handle' => 'lastName',
+                        'enabled' => true,
+                        'labelPosition' => $this->subFieldLabelPosition,
+                        'inputAttributes' => [
+                            [
+                                'label' => 'autocomplete',
+                                'value' => 'family-name',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
         ];
-
-        return $rules;
     }
 
     protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
@@ -582,15 +388,7 @@ class Name extends SubField implements PreviewableFieldInterface
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
-            $values = [];
-
-            foreach ($this->getSubFieldOptions() as $subField) {
-                if ($this->{$subField['handle'] . 'Enabled'}) {
-                    $values[$this->getExportLabel($element) . ': ' . $subField['label']] = $value[$subField['handle']] ?? '';
-                }
-            }
-
-            return $values;
+            return parent::defineValueForExport($value, $element);
         }
 
         return $value;

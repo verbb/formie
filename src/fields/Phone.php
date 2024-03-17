@@ -3,7 +3,6 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInterface;
-use verbb\formie\base\SubField;
 use verbb\formie\base\Field;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
@@ -22,7 +21,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends SubField implements PreviewableFieldInterface
+class Phone extends Field implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -47,19 +46,51 @@ class Phone extends SubField implements PreviewableFieldInterface
         return Schema::TYPE_JSON;
     }
 
+    public static function getFieldSelectOptions(): array
+    {
+        return [
+            [
+                'label' => Craft::t('formie', 'Country (ISO)'),
+                'handle' => 'country',
+            ],
+            [
+                'label' => Craft::t('formie', 'Country (Full)'),
+                'handle' => 'countryName',
+            ],
+            [
+                'label' => Craft::t('formie', 'Country Code'),
+                'handle' => 'countryCode',
+            ],
+            [
+                'label' => Craft::t('formie', 'Number'),
+                'handle' => 'number',
+            ],
+        ];
+    }
+
 
     // Properties
     // =========================================================================
 
     public bool $countryEnabled = true;
-    public bool $countryCollapsed = true;
-    public bool $countryShowDialCode = true;
     public ?string $countryDefaultValue = null;
     public array $countryAllowed = [];
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        unset(
+            $config['subfieldLabelPosition'],
+            $config['subFieldLabelPosition'],
+            $config['countryCollapsed'],
+            $config['countryShowDialCode'],
+        );
+
+        parent::__construct($config);
+    }
 
     public function hasSubFields(): bool
     {
@@ -93,15 +124,6 @@ class Phone extends SubField implements PreviewableFieldInterface
         return $phone;
     }
 
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        if ($value instanceof PhoneModel) {
-            $value = Json::encode($value);
-        }
-
-        return parent::serializeValue($value, $element);
-    }
-
     public function getFrontEndJsModules(): ?array
     {
         if ($this->countryEnabled) {
@@ -109,7 +131,6 @@ class Phone extends SubField implements PreviewableFieldInterface
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/phone-country.js'),
                 'module' => 'FormiePhoneCountry',
                 'settings' => [
-                    'countryShowDialCode' => $this->countryShowDialCode,
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->countryAllowed,
                 ],
@@ -117,48 +138,6 @@ class Phone extends SubField implements PreviewableFieldInterface
         }
 
         return null;
-    }
-
-    public function getFrontEndSubFields(mixed $context): array
-    {
-        return [];
-    }
-
-    public function getSubFieldOptions(): array
-    {
-        return [
-            [
-                'label' => Craft::t('formie', 'Country (ISO)'),
-                'handle' => 'country',
-            ],
-            [
-                'label' => Craft::t('formie', 'Country (Full)'),
-                'handle' => 'countryName',
-            ],
-            [
-                'label' => Craft::t('formie', 'Country Code'),
-                'handle' => 'countryCode',
-            ],
-            [
-                'label' => Craft::t('formie', 'Number'),
-                'handle' => 'number',
-            ],
-        ];
-    }
-
-    public function validateRequiredFields(ElementInterface $element): void
-    {
-        if ($this->required) {
-            $value = $element->getFieldValue($this->fieldKey);
-
-            $errorMessage = $this->errorMessage ?? '"{label}" cannot be blank.';
-
-            if (StringHelper::isBlank((string)$value->number)) {
-                $element->addError($this->fieldKey, Craft::t('formie', $errorMessage, [
-                    'label' => $this->name,
-                ]));
-            }
-        }
     }
 
     public function getPreviewInputHtml(): string
@@ -192,31 +171,28 @@ class Phone extends SubField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
-            SchemaHelper::toggleBlock([
-                'blockLabel' => Craft::t('formie', 'Country Code Dropdown'),
-                'blockHandle' => 'country',
-            ], [
-                SchemaHelper::lightswitchField([
-                    'label' => Craft::t('formie', 'Show Country Dial Code'),
-                    'help' => Craft::t('formie', 'Whether to show the dial code on the country dropdown.'),
-                    'name' => 'countryShowDialCode',
-                ]),
-                SchemaHelper::multiSelectField([
-                    'label' => Craft::t('formie', 'Allowed Countries'),
-                    'help' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
-                    'name' => 'countryAllowed',
-                    'placeholder' => Craft::t('formie', 'Select an option'),
-                    'options' => static::getCountryOptions(),
-                ]),
-                SchemaHelper::selectField([
-                    'label' => Craft::t('formie', 'Country Default Value'),
-                    'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
-                    'name' => 'countryDefaultValue',
-                    'options' => array_merge(
-                        [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                        static::getCountryOptions()
-                    ),
-                ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Country Enabled'),
+                'help' => Craft::t('formie', 'Whether to show the dial code on the country dropdown.'),
+                'name' => 'countryEnabled',
+            ]),
+            SchemaHelper::multiSelectField([
+                'label' => Craft::t('formie', 'Allowed Countries'),
+                'help' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
+                'name' => 'countryAllowed',
+                'if' => '$get(countryEnabled).value',
+                'placeholder' => Craft::t('formie', 'Select an option'),
+                'options' => static::getCountryOptions(),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Country Default Value'),
+                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'name' => 'countryDefaultValue',
+                'if' => '$get(countryEnabled).value',
+                'options' => array_merge(
+                    [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
+                    static::getCountryOptions()
+                ),
             ]),
         ];
     }
@@ -322,6 +298,7 @@ class Phone extends SubField implements PreviewableFieldInterface
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
+            'element' => $element,
         ]);
     }
 }

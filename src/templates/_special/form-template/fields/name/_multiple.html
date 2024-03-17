@@ -1,11 +1,14 @@
+{# Keep track of the outer field #}
+{% set nameField = field %}
+
 {% fieldtag 'subFieldRows' %}
-    {% for row in field.getFrontEndSubFields(_context) %}
+    {% for row in field.getRows(false) %}
         {% fieldtag 'subFieldRow' %}
-            {% for subField in row %}
-                {{ craft.formie.renderField(form, subField, {
-                    element: submission ?? element ?? null,
-                    value: value[subField.handle] ?? null,
-                }) }}
+            {% for field in row.getFields(false) %}
+                {# Update the namespace for the field #}
+                {% do field.setParentField(nameField) %}
+
+                {{ craft.formie.renderField(form, field) }}
             {% endfor %}
         {% endfieldtag %}
     {% endfor %}

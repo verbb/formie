@@ -1,59 +1,24 @@
-{% import '_includes/forms' as forms %}
+{% extends 'formie/_formfields/field' %}
 
-{% if field.settings.useMultipleFields %}
+{% block field %}
 
-    {% namespace field.handle %}
-        <div class="fui-row">
-            {% if field.prefixEnabled %}
-                {% set prefixOptions = [{ label: 'Select' | t('formie'), value: '' }] | merge(field.prefixOptions) %}
+    {% if field.settings.useMultipleFields %}
+        {% namespace field.handle %}
+            {% for row in field.getRows(false) %}
+                <div class="fui-row">
+                    {% for field in row.getFields(false) %}
+                        <div class="fui-col-auto">
+                            {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, null) %}
+                            {% set errors = element.getErrors(field.fieldKey) ?? [] %}
 
-                <div class="fui-col-2">
-                    {{ forms.selectField({
-                        label: field.prefixLabel,
-                        value: value.prefix ?? '',
-                        name: 'prefix',
-                        required: field.prefixRequired,
-                        options: prefixOptions,
-                    }) }}
+                            {{ field.getCpInputHtml(value, element) }}
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endif %}
+            {% endfor %}
+        {% endnamespace %}
+    {% else %}
+        {% include '_includes/forms/text' %}
+    {% endif %}
 
-            {% if field.firstNameEnabled %}
-                <div class="fui-col-auto">
-                    {{ forms.textField({
-                        label: field.firstNameLabel,
-                        name: 'firstName',
-                        required: field.firstNameRequired,
-                        value: value.firstName ?? '',
-                    }) }}
-                </div>
-            {% endif %}
-
-            {% if field.middleNameEnabled %}
-                <div class="fui-col-auto">
-                    {{ forms.textField({
-                        label: field.middleNameLabel,
-                        name: 'middleName',
-                        required: field.middleNameRequired,
-                        value: value.middleName ?? '',
-                    }) }}
-                </div>
-            {% endif %}
-
-            {% if field.lastNameEnabled %}
-                <div class="fui-col-auto">
-                    {{ forms.textField({
-                        label: field.lastNameLabel,
-                        name: 'lastName',
-                        required: field.lastNameRequired,
-                        value: value.lastName ?? '',
-                    }) }}
-                </div>
-            {% endif %}
-        </div>
-    {% endnamespace %}
-
-{% else %}
-    {% include '_includes/forms/text' %}
-{% endif %}
-
+{% endblock %}

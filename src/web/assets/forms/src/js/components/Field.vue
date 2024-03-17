@@ -32,7 +32,7 @@
             @on-dragstart="dragStart"
             @on-dragend="dragEnd"
         >
-            <div v-if="!fieldtype.hasNestedFields" class="fui-edit-overlay" @click.prevent="openModal"></div>
+            <div v-if="fieldtype.hasEditableFields" class="fui-edit-overlay" @click.prevent="openModal"></div>
 
             <div class="fui-field-info">
                 <label v-if="fieldtype.hasLabel" class="fui-field-label">
@@ -228,13 +228,13 @@ export default {
 
         fieldCanRequire() {
             const disallowedFields = {
-                'verbb\\formie\\fields\\formfields\\Address': false,
-                'verbb\\formie\\fields\\formfields\\Heading': false,
-                'verbb\\formie\\fields\\formfields\\Hidden': false,
-                'verbb\\formie\\fields\\formfields\\Html': false,
-                'verbb\\formie\\fields\\formfields\\Repeater': false,
-                'verbb\\formie\\fields\\formfields\\Section': false,
-                'verbb\\formie\\fields\\formfields\\Name': (field) => {
+                'verbb\\formie\\fields\\Address': false,
+                'verbb\\formie\\fields\\Heading': false,
+                'verbb\\formie\\fields\\Hidden': false,
+                'verbb\\formie\\fields\\Html': false,
+                'verbb\\formie\\fields\\Repeater': false,
+                'verbb\\formie\\fields\\Section': false,
+                'verbb\\formie\\fields\\Name': (field) => {
                     return !field.settings.useMultipleFields;
                 },
             };

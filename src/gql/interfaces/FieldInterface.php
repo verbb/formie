@@ -5,6 +5,7 @@ use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Table;
 use verbb\formie\gql\types\generators\FieldGenerator;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\gql\types\Json as JsonType;
 
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
@@ -72,6 +73,11 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::boolean(),
                 'description' => 'Whether the field is required.',
             ],
+            'enabled' => [
+                'name' => 'enabled',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field is enabled.',
+            ],
             'type' => [
                 'name' => 'type',
                 'type' => Type::string(),
@@ -103,7 +109,7 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s full GQL input type. Useful for mutations.',
                 'resolve' => function($field) {
-                    $inputType = $field->getContentGqlMutationArgumentType();
+                    $inputType = $field->getContentGqlMutationArgument();
 
                     // Table fields don't seem to resolve correctly?
                     if ($field instanceof Table) {
@@ -188,13 +194,8 @@ class FieldInterface extends BaseInterfaceType
             ],
             'conditions' => [
                 'name' => 'conditions',
-                'type' => Type::string(),
+                'type' => JsonType::getType(),
                 'description' => 'The field’s conditions as a JSON string.',
-                'resolve' => function($field) {
-                    $value = $field->conditions;
-
-                    return is_array($value) ? Json::encode($value) : $value;
-                },
             ],
             'enableContentEncryption' => [
                 'name' => 'enableContentEncryption',

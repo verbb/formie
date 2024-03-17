@@ -2,10 +2,10 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\Table;
 
 use Craft;
 use craft\base\Element;
-use craft\db\Table;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\queue\BaseJob as CraftBaseJob;

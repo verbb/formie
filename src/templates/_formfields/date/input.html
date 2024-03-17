@@ -1,5 +1,12 @@
 {% import '_includes/forms' as forms %}
 
+{% extends 'formie/_formfields/field' %}
+
+{% block field %}
+
+{# Keep track of the outer date field #}
+{% set dateField = field %}
+
 {% if field.displayType == 'calendar' %}
     {% if field.getIsDate() or field.getIsDateTime() %}
         {% include 'formie/_formfields/date/_date' %}
@@ -10,71 +17,36 @@
     {% endif %}
 {% endif %}
 
-{% if field.displayType == 'dropdowns' %}
+{% if field.displayType == 'dropdowns' or field.displayType == 'inputs' %}
     {% namespace field.handle %}
-        <div class="fui-row">
-            {% for subField in field.getFrontEndSubFields(_context)[0] %}
-                <div class="fui-col-auto" style="flex: 0;">
-                    {% set dateValue = null %}
-                    {% set char = field.getFormattingChar(subField.handle) %}
+        {% for row in field.getRows(false) %}
+            <div class="fui-row">
+                {% for field in row.getFields(false) %}
+                    {# Update the namespace for the field #}
+                    {% do field.setParentField(dateField) %}
+                    
+                    <div class="fui-col-auto">
+                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, element) %}
+                        {% set errors = element.getErrors(field.fieldKey) ?? [] %}
 
-                    {% if subField.handle != 'ampm' %}
-                        {% set dateValue = value ? (value | date(char, false) * 1) : null %}
-                    {% endif %}
+                        {# Format the DateTime according to what this field needs #}
+                        {% set char = dateField.getFormattingChar(field.handle) %}
+                        {% set dateValue = value ? (value | date(char, false)) : null %}
 
-                    {{ forms.selectField({
-                        label: subfield.label,
-                        name: subField.handle,
-                        required: subField.required,
-                        placeholder: subField.placeholder,
-                        options: subField.options,
-                        value: dateValue,
-                    }) }}
-                </div>
-            {% endfor %}
-        </div>
+                        {# Cast the value properly to remove and zero padding #}
+                        {% if field.handle != 'ampm' and dateValue %}
+                            {% set dateValue = dateValue * 1 %}
+                        {% endif %}
+
+                        {# Be sure to normalize it for the sub-field #}
+                        {% set dateValue = field.normalizeValue(dateValue, element) %}
+
+                        {{ field.getCpInputHtml(dateValue, element) }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
     {% endnamespace %}
 {% endif %}
 
-{% if field.displayType == 'inputs' %}
-    {% namespace field.handle %}
-        <div class="fui-row">
-            {% for subField in field.getFrontEndSubFields(_context)[0] %}
-                {% set dateValue = null %}
-                {% set char = field.getFormattingChar(subField.handle) %}
-
-                {% if subField.handle != 'ampm' %}
-                    {% set dateValue = value ? (value | date(char, false) * 1) : null %}
-                {% endif %}
-
-                {% if subField.handle == 'ampm' %}
-                    <div class="fui-col-auto">
-                        {{ forms.selectField({
-                            label: subfield.label,
-                            name: subField.handle,
-                            required: subField.required,
-                            placeholder: subField.placeholder,
-                            options: subField.options,
-                            value: dateValue,
-                        }) }}
-                    </div>
-                {% else %}
-                    <div class="fui-col-auto">
-                        {{ forms.textField({
-                            label: subfield.label,
-                            name: subField.handle,
-                            required: subField.required,
-                            placeholder: subField.placeholder,
-                            value: dateValue,
-                            type: 'number',
-                            min: subField.min,
-                            max: subField.max,
-                            step: 1,
-                            pattern: '[0-9]+',
-                        }) }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% endnamespace %}
-{% endif %}
+{% endblock %}

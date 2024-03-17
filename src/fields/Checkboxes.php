@@ -74,7 +74,7 @@ class Checkboxes extends OptionsField
     {
         $options = [];
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             $disabled = $option['disabled'] ?? false;
 
             if (!$disabled) {

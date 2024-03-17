@@ -36,8 +36,6 @@ export class FormieDatePicker {
         this.datePickerOptions = settings.datePickerOptions || [];
         this.dateFormat = settings.dateFormat;
         this.timeFormat = settings.timeFormat;
-        this.includeTime = settings.includeTime;
-        this.includeDate = settings.includeDate;
         this.getIsDate = settings.getIsDate;
         this.getIsTime = settings.getIsTime;
         this.getIsDateTime = settings.getIsDateTime;

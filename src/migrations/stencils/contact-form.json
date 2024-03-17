@@ -50,7 +50,7 @@
                                 "prefixLabel":"Prefix",
                                 "useMultipleFields":true
                             },
-                            "type":"verbb\\formie\\fields\\formfields\\Name"
+                            "type":"verbb\\formie\\fields\\Name"
                         }
                     ]
                 },
@@ -66,7 +66,7 @@
                                 "placeholder":"e.g. psherman@wallaby.com",
                                 "required":true
                             },
-                            "type":"verbb\\formie\\fields\\formfields\\Email"
+                            "type":"verbb\\formie\\fields\\Email"
                         }
                     ]
                 },
@@ -82,7 +82,7 @@
                                 "placeholder":"e.g. The reason for my enquiry is...",
                                 "required":true
                             },
-                            "type":"verbb\\formie\\fields\\formfields\\MultiLineText"
+                            "type":"verbb\\formie\\fields\\MultiLineText"
                         }
                     ]
                 }

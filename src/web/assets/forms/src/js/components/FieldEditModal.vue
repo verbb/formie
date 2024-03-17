@@ -34,7 +34,14 @@
                 <div class="fui-modal-content" :style="{ height: (!mounted) ? '80%' : '' }">
                     <div v-if="!mounted" class="fui-loading fui-loading-lg" style="height: 100%;"></div>
 
-                    <FormKitForm v-if="mounted" ref="fieldForm" v-model="fieldSettings" @submit="submitHandler" @submit-raw="submitHandlerRaw">
+                    <FormKitForm
+                        v-if="mounted"
+                        ref="fieldForm"
+                        v-model="fieldSettings"
+                        :ignore="ignoreForm"
+                        @submit="submitHandler"
+                        @submit-raw="submitHandlerRaw"
+                    >
                         <FormKitSchema :schema="fieldsSchema" />
                     </FormKitForm>
                 </div>
@@ -82,6 +89,16 @@ export default {
         showFieldType: {
             type: Boolean,
             default: true,
+        },
+
+        ignoreForm: {
+            type: Boolean,
+            default: false,
+        },
+
+        isSubField: {
+            type: Boolean,
+            default: false,
         },
 
         fieldRef: {
@@ -143,12 +160,6 @@ export default {
             },
 
             set(fieldSettings) {
-                // if (!this.fieldRef.submitButton) {
-                //     // We still use label/handle at the top level, so copy those over
-                //     this.field.label = fieldSettings.label;
-                //     this.field.handle = fieldSettings.handle;
-                // }
-
                 // Update the field settings as 'normal'
                 this.field.settings = fieldSettings;
             },
@@ -159,14 +170,12 @@ export default {
         // Store this so we can cancel changes.
         this.originalField = this.clone(this.field);
 
-        // console.log(this.fieldsSchema);
-
-        // We need to copy label/handle so FormKit can handle things
-        // this.fieldSettings.label = this.field.label;
-        // this.fieldSettings.handle = this.field.handle;
-
-        // Add this to the global Vue instance so we can access it inside fields
-        this.$store.dispatch('formie/setEditingField', this.fieldRef);
+        // If this is a subfield, don't handle setting the editing field - at least for now until we can figure out
+        // a better system to get the current, top-level field we're editing (handles get generated on both for example)
+        if (!this.isSubField) {
+            // Add this to the global Vue instance so we can access it inside fields
+            this.$store.dispatch('formie/setEditingField', this.fieldRef);
+        }
     },
 
     mounted() {
@@ -233,7 +242,9 @@ export default {
             // Validation has already cleared the form
 
             // Update the state of Vuex to mark the field as no longer brand-new
-            this.fieldRef.markAsSaved();
+            if (typeof this.fieldRef.markAsSaved === 'function') {
+                this.fieldRef.markAsSaved();
+            }
 
             // Hide the modal
             this.closeModal();
@@ -284,3 +295,15 @@ export default {
 };
 
 </script>
+<style lang="scss">
+
+.fui-edit-subfield-modal {
+    .fui-modal-wrap {
+        width: 56%;
+        height: 56%;
+        min-width: 500px;
+        min-height: 300px;
+    }
+}
+
+</style>

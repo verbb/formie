@@ -19,6 +19,7 @@ use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\Model;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
 use craft\helpers\Template;
@@ -66,7 +67,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if (!is_array($value)) {
+        if (!is_array($value) && !$value instanceof Model) {
             $value = [];
         }
 
@@ -88,7 +89,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        if (!is_array($value)) {
+        if (!is_array($value) && !$value instanceof Model) {
             $value = [];
         }
 

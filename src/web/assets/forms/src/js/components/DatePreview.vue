@@ -1,32 +1,11 @@
 <template>
     <div>
         <div v-if="field.settings.displayType === 'calendar'" class="fui-row">
-            <div v-if="field.settings.includeDate" class="fui-col-auto">
-                <label v-if="field.settings.includeTime && field.settings.timeLabel" class="fui-field-label">{{ field.name }}</label>
-
+            <div v-for="subField in calendarFields" :key="subField.__id" class="fui-col-auto">
                 <div class="fui-field-preview">
-                    <input
-                        type="text"
-                        class="fui-field-input"
-                        :value="date"
-                    >
+                    <label v-if="subField.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
 
-                    <span class="fui-field-icon">
-                        <slot></slot>
-                    </span>
-                </div>
-            </div>
-
-            <div v-if="field.settings.includeTime" class="fui-col-auto">
-                <label v-if="field.settings.timeLabel && field.settings.includeDate" class="fui-field-label">{{ field.settings.timeLabel }}</label>
-
-                <div class="fui-field-preview">
-                    <input
-                        v-if="field.settings.includeTime"
-                        type="text"
-                        class="fui-field-input"
-                        :value="time"
-                    >
+                    <input type="text" class="fui-field-input" :placeholder="subField.placeholder" :value="subField.value !== null ? subField.value : subField.placeholder">
 
                     <span class="fui-field-icon">
                         <slot></slot>
@@ -37,9 +16,9 @@
 
         <div v-else-if="field.settings.displayType === 'dropdowns'">
             <div class="fui-row">
-                <div v-for="subField in fields" :key="subField.char" class="fui-col-auto">
+                <div v-for="subField in dropdownFields" :key="subField.__id" class="fui-col-auto">
                     <div class="fui-field-preview">
-                        <label class="fui-field-label">{{ subField.label }}</label>
+                        <label v-if="subField.settings.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
 
                         <select class="fui-field-select">
                             <option value="" selected>
@@ -53,9 +32,9 @@
 
         <div v-else-if="field.settings.displayType === 'inputs'">
             <div class="fui-row">
-                <div v-for="subField in fields" :key="subField.char" class="fui-col-auto">
+                <div v-for="subField in dropdownFields" :key="subField.__id" class="fui-col-auto">
                     <div class="fui-field-preview">
-                        <label class="fui-field-label">{{ subField.label }}</label>
+                        <label v-if="subField.settings.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
 
                         <input type="text" class="fui-field-input" :placeholder="subField.placeholder" :value="subField.value !== null ? subField.value : subField.placeholder">
                     </div>
@@ -117,7 +96,24 @@ export default {
             return `${hour}:${min}:${sec}`;
         },
 
-        fields() {
+        calendarFields() {
+            const fields = [];
+
+            const dateField = this.getSubFieldByHandle('date');
+            const timeField = this.getSubFieldByHandle('time');
+
+            if (dateField && dateField.settings.enabled) {
+                fields.push(dateField.settings);
+            }
+
+            if (timeField && timeField.settings.enabled) {
+                fields.push(timeField.settings);
+            }
+
+            return fields;
+        },
+
+        dropdownFields() {
             const chars = {
                 Y: 'year',
                 m: 'month',
@@ -129,7 +125,7 @@ export default {
                 A: 'ampm',
             };
 
-            const format = (this.field.settings.includeDate ? this.field.settings.dateFormat : '') + (this.field.settings.includeTime ? this.field.settings.timeFormat : '');
+            const format = this.field.settings.dateFormat + this.field.settings.timeFormat;
 
             const dateFields = [];
 
@@ -170,15 +166,39 @@ export default {
                     }
                 }
 
+                const handle = chars[char];
+                const subField = this.getSubFieldByHandle(handle);
+
                 dateFields.push({
                     char,
                     value,
-                    label: this.field.settings[`${chars[char]}Label`],
-                    placeholder: this.field.settings[`${chars[char]}Placeholder`],
+                    label: subField?.settings.label ?? '',
+                    placeholder: subField?.settings.placeholder ?? '',
+                    settings: subField?.settings ?? {},
                 });
             }
 
             return dateFields;
+        },
+    },
+
+    methods: {
+        getSubFieldByHandle(handle) {
+            for (let i = 0; i < this.field.settings.rows.length; i++) {
+                const obj = this.field.settings.rows[i];
+
+                if (obj.fields) {
+                    for (let j = 0; j < obj.fields.length; j++) {
+                        const field = obj.fields[j];
+
+                        if (field.settings && field.settings.handle === handle) {
+                            return field;
+                        }
+                    }
+                }
+            }
+
+            return null;
         },
     },
 };

@@ -57,25 +57,14 @@ export default {
         },
 
         getFieldOptions() {
-            const fields = [];
-            const allFields = this.$store.getters['form/fields'];
-
             const excludeSelf = this.context.attrs.excludeSelf || false;
-            const fieldTypes = this.context.attrs.fieldTypes || [];
+            const excludedFields = excludeSelf ? [this.field.__id] : [];
+            const includedTypes = this.context.attrs.fieldTypes || [];
 
-            allFields.forEach((field) => {
-                if (fieldTypes.length && !fieldTypes.includes(field.type)) {
-                    return;
-                }
-
-                if (excludeSelf && this.field && (this.field.handle === field.handle)) {
-                    return;
-                }
-
-                fields.push({ label: field.label, value: `{${field.handle}}` });
+            return this.$store.getters['form/getFieldSelectOptions']({
+                excludedFields,
+                includedTypes,
             });
-
-            return fields;
         },
     },
 };

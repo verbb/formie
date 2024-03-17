@@ -47,7 +47,7 @@ const getters = {
             let fieldtype = find(state, { type });
 
             if (!fieldtype) {
-                fieldtype = find(state, { type: 'verbb\\formie\\fields\\formfields\\MissingField' });
+                fieldtype = find(state, { type: 'verbb\\formie\\fields\\MissingField' });
             }
 
             return fieldtype;

@@ -95,12 +95,14 @@ export default {
         },
 
         plainTextVariables() {
-            return this.$store.getters['form/allFields'](true);
+            return this.$store.getters['form/allFieldOptions']({
+                includeGeneral: true,
+            });
         },
 
         calculationsVariables() {
             return this.$store.getters['form/plainTextFields'](false, [
-                'verbb\\formie\\fields\\formfields\\Checkboxes',
+                'verbb\\formie\\fields\\Checkboxes',
             ]);
         },
 

@@ -95,6 +95,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         return $attributes;
     }
 
+    public function options(): array
+    {
+        return $this->options;
+    }
+
     public function validateOptions(): void
     {
         $labels = [];
@@ -103,7 +108,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         $hasDuplicateValues = false;
         $optgroup = '__root__';
 
-        foreach ($this->options as &$option) {
+        foreach ($this->options() as &$option) {
             // Ignore optgroups
             if (array_key_exists('optgroup', $option)) {
                 $optgroup = $option['optgroup'];
@@ -171,7 +176,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         $optionValues = [];
         $optionLabels = [];
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 $selected = $this->isOptionSelected($option, $value, $selectedValues, $selectedBlankOption);
                 $options[] = new OptionData($option['label'], $option['value'], $selected, true);
@@ -195,7 +200,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         } else if (!empty($selectedValues)) {
             // Convert the value to a SingleOptionFieldData object
             $selectedValue = reset($selectedValues);
-            $index = array_search($selectedValue, $optionValues, true);
+            $index = array_search($selectedValue, $optionValues, false);
             $valid = $index !== false;
             $label = $valid ? $optionLabels[$index] : null;
             $value = new SingleOptionFieldData($label, $selectedValue, true, $valid);
@@ -229,7 +234,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         // Get all of the acceptable values
         $range = [];
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 // Cast the option value to a string in case it is an integer
                 $range[] = (string)$option['value'];
@@ -252,7 +257,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return $value->value === null || $value->value === '';
         }
 
-        return count($value) === 0;
+        if ($value instanceof MultiOptionFieldData) {
+            return count($value) === 0;
+        }
+
+        return parent::isValueEmpty($value, $element);
     }
 
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
@@ -308,11 +317,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         ];
     }
 
-    public function getContentGqlMutationArgumentType(): Type|array
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         $values = [];
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 $values[] = '“' . $option['value'] . '”';
             }
@@ -401,7 +410,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     {
         $translatedOptions = [];
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             if (isset($option['optgroup'])) {
                 $translatedOptions[] = [
                     'optgroup' => Craft::t('formie', $option['optgroup']),
@@ -422,7 +431,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         if ($this->multi) {
             $defaultValues = [];
 
-            foreach ($this->options as $option) {
+            foreach ($this->options() as $option) {
                 if (!empty($option['default'])) {
                     $defaultValues[] = $option['value'];
                 }
@@ -431,7 +440,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return $defaultValues;
         }
 
-        foreach ($this->options as $option) {
+        foreach ($this->options() as $option) {
             if (!empty($option['default'])) {
                 return $option['value'];
             }

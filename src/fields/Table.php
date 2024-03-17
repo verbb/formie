@@ -326,7 +326,7 @@ class Table extends Field
         return Type::listOf($type);
     }
 
-    public function getContentGqlMutationArgumentType(): Type|array
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         $typeName = $this->handle . '_TableRowInput';
 

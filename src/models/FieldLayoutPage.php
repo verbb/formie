@@ -71,7 +71,7 @@ class FieldLayoutPage extends SavableComponent
     public function getSettings(): array
     {
         // Override `SavableComponent::getSettings()` behaviour to use our settings
-        return $this->getPageSettings()?->toArray();
+        return $this->getPageSettings()?->toArray() ?? [];
     }
 
     public function getPageSettings(): ?FieldLayoutPageSettings
@@ -94,24 +94,15 @@ class FieldLayoutPage extends SavableComponent
 
     public function getRows(bool $includeDisabled = true): array
     {
-        // Filter out rows that have disabled/hidden fields
+        // Filter out rows that have disabled/hidden fields or are disabled altogether
         if ($includeDisabled) {
             return $this->_rows;
         }
 
-        $rows = [];
-
         foreach ($this->_rows as $rowKey => $row) {
-            $fields = $row->getFields();
-            $hiddenFields = [];
-
-            foreach ($row->getFields() as $fieldKey => $field) {
-                if ($field->visibility === 'disabled') {
-                    $hiddenFields[] = $field;
-                }
-            }
-
-            if (count($fields) === count($hiddenFields)) {
+            $fields = $row->getFields($includeDisabled);
+            
+            if (!$fields) {
                 unset($this->_rows[$rowKey]);
             }
         }
@@ -128,17 +119,30 @@ class FieldLayoutPage extends SavableComponent
         }
     }
 
-    public function getFields(): array
+    public function getFields(bool $includeDisabled = true): array
     {
         $fields = [];
 
-        foreach ($this->getRows() as $row) {
-            foreach ($row->getFields() as $field) {
+        foreach ($this->getRows($includeDisabled) as $row) {
+            foreach ($row->getFields($includeDisabled) as $field) {
                 $fields[] = $field;
             }
         }
 
         return $fields;
+    }
+
+    public function getFieldByHandle(string $handle): ?FieldInterface
+    {
+        $foundField = null;
+
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                $foundField = $field;
+            }
+        }
+
+        return $foundField;
     }
 
     public function getCustomFields(): array

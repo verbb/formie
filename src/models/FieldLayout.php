@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -71,12 +72,12 @@ class FieldLayout extends SavableComponent
         }
     }
 
-    public function getRows(): array
+    public function getRows(bool $includeDisabled = true): array
     {
         $rows = [];
 
         foreach ($this->getPages() as $page) {
-            foreach ($page->getRows() as $row) {
+            foreach ($page->getRows($includeDisabled) as $row) {
                 $rows[] = $row;
             }
         }
@@ -84,19 +85,32 @@ class FieldLayout extends SavableComponent
         return $rows;
     }
 
-    public function getFields(): array
+    public function getFields(bool $includeDisabled = true): array
     {
         $fields = [];
 
         foreach ($this->getPages() as $page) {
-            foreach ($page->getRows() as $row) {
-                foreach ($row->getFields() as $field) {
+            foreach ($page->getRows($includeDisabled) as $row) {
+                foreach ($row->getFields($includeDisabled) as $field) {
                     $fields[] = $field;
                 }
             }
         }
 
         return $fields;
+    }
+
+    public function getFieldByHandle(string $handle): ?FieldInterface
+    {
+        $foundField = null;
+
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                $foundField = $field;
+            }
+        }
+
+        return $foundField;
     }
 
     public function getCustomFields(): array

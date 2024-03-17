@@ -13,7 +13,7 @@
 
         {% for row in page.getRows(false) %}
             {% formtag 'row' %}
-                {% for field in row.getFields() %}
+                {% for field in row.getFields(false) %}
                     {{ craft.formie.renderField(form, field, renderOptions) }}
                 {% endfor %}
             {% endformtag %}

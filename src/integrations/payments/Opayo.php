@@ -494,12 +494,12 @@ class Opayo extends Payment
                             SchemaHelper::fieldSelectField([
                                 'name' => 'amountVariable',
                                 'fieldTypes' => [
-                                    formfields\Calculations::class,
-                                    formfields\Dropdown::class,
-                                    formfields\Hidden::class,
-                                    formfields\Number::class,
-                                    formfields\Radio::class,
-                                    formfields\SingleLineText::class,
+                                    fields\Calculations::class,
+                                    fields\Dropdown::class,
+                                    fields\Hidden::class,
+                                    fields\Number::class,
+                                    fields\Radio::class,
+                                    fields\SingleLineText::class,
                                 ],
                                 'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
                             ]),

@@ -23,7 +23,7 @@ import VariableTextInput from '@formkit-components/inputs/VariableTextInput.vue'
 import Collapse from '@formkit-components/Collapse.vue';
 import FieldConditions from '@formkit-components/FieldConditions.vue';
 import NotificationConditions from '@formkit-components/NotificationConditions.vue';
-import ToggleBlock from '@formkit-components/ToggleBlock.vue';
+import ToggleBlock from '@formkit-components/inputs/toggle-blocks/ToggleBlock.vue';
 
 // FormKit Validation Rules
 import emailOrVariable from '@formkit-components/rules/emailOrVariable';
@@ -167,5 +167,10 @@ export default defaultConfig({
             children: '$slots.default',
         }),
         toggleBlock: createInput(ToggleBlock),
+
+        subFields: createInput({
+            $el: 'div',
+            children: '$slots.default',
+        }),
     },
 });

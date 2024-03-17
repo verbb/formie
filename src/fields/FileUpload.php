@@ -10,7 +10,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\Repeater;
+use verbb\formie\fields\Repeater;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -644,7 +644,7 @@ class FileUpload extends ElementField
         Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $element->serializeFieldValues()], ['id' => $element->id]);
     }
 
-    public function getContentGqlMutationArgumentType(): array|Type
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         return FileUploadInputType::getType($this);
     }

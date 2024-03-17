@@ -34,7 +34,7 @@ class MissingField extends Field implements MissingComponentInterface
         return '';
     }
 
-    public function getFormBuilderSettings(): array
+    public function getFieldTypeConfig(): array
     {
         return [];
     }

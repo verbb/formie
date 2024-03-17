@@ -104,7 +104,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             $optionValues = [];
             $optionLabels = [];
 
-            foreach ($this->options as $option) {
+            foreach ($this->options() as $option) {
                 $selected = in_array($option['value'], $selectedValues, true);
                 $options[] = new OptionData($option['label'], $option['value'], $selected, true);
                 $optionValues[] = (string)$option['value'];
@@ -173,7 +173,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         // Don't expose the value (email address) in the front end to prevent scraping
         $options = [];
 
-        foreach ($this->options as $key => $value) {
+        foreach ($this->options() as $key => $value) {
             $options[$key] = $value;
 
             // Swap the value with the index - if there is a value, otherwise leave blank
@@ -250,7 +250,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         if (!$this->getIsHidden() && $value === '') {
             $value = [];
 
-            foreach ($this->options as $option) {
+            foreach ($this->options() as $option) {
                 if (!empty($option['isDefault'])) {
                     $value[] = $option['value'];
                 }
@@ -282,7 +282,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             $value = preg_replace_callback('/id:(\d+)/m', function(array $match) use ($value): string {
                 $index = $match[1] ?? 0;
 
-                return $this->options[$index]['value'] ?? $value;
+                return $this->options()[$index]['value'] ?? $value;
             }, $value);
         }
 
@@ -302,7 +302,7 @@ class Recipients extends Field implements PreviewableFieldInterface
     public function getFakeValue($value)
     {
         if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            foreach ($this->options as $key => $option) {
+            foreach ($this->options() as $key => $option) {
                 $id = 'id:' . $key;
 
                 if ((string)$option['value'] === (string)$value) {
@@ -321,7 +321,7 @@ class Recipients extends Field implements PreviewableFieldInterface
 
             $options = [];
 
-            foreach ($this->options as $key => $option) {
+            foreach ($this->options() as $key => $option) {
                 $id = 'id:' . $key;
 
                 if (in_array((string)$option['value'], $selectedValues, true)) {
@@ -380,7 +380,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function getContentGqlMutationArgumentType(): array|Type
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         if ($this->displayType === 'checkboxes') {
             return Type::listOf(Type::string());
@@ -525,7 +525,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-            'options' => $this->options,
+            'options' => $this->options(),
         ]);
     }
 

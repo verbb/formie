@@ -1,17 +1,22 @@
+{# Keep track of the outer field #}
+{% set dateField = field %}
+
 {% fieldtag 'subFieldRows' %}
-    {% for row in field.getFrontEndSubFields(_context) %}
+    {% for row in field.getRows(false) %}
         {% fieldtag 'subFieldRow' %}
-            {% for subField in row %}
+            {% for field in row.getFields(false) %}
+                {# Update the namespace for the field #}
+                {% do field.setParentField(dateField) %}
+
                 {% set dateValue = null %}
                 
-                {% if subField.handle == 'date' %}
+                {% if field.handle == 'date' %}
                     {% set dateValue = value ? (value | date('Y-m-d', false)) : null %}
-                {% elseif subField.handle == 'time' %}
+                {% elseif field.handle == 'time' %}
                     {% set dateValue = value ? (value | date('H:i', false)) : null %}
                 {% endif %}
 
-                {{ craft.formie.renderField(form, subField, {
-                    element: submission ?? element ?? null,
+                {{ craft.formie.renderField(form, field, {
                     value: dateValue ?? null,
                 }) }}
             {% endfor %}

@@ -7,8 +7,7 @@ A Field object represents a form field of a particular type. Each field has its 
 Attribute | Description
 --- | ---
 `id` | ID of the field.
-`name` | The name of the field.
-`label` | An alias to `name`.
+`label` | The label of the field.
 `handle` | The handle of the field.
 `type` | The type of the field.
 `form` | The [Form](docs:developers/form) this field belongs to.
@@ -52,78 +51,6 @@ Attribute | Description
 `cssClasses` | Any CSS classes, applied on the outer container of a field.
 `containerAttributes` | A collection of attributes added to the outer container of a field.
 `inputAttributes` | A collection of attributes added to the `input` element of a field - where applicable.
-
-### Address
-Setting | Description
---- | ---
-`autocompleteLabel` | The label for the Autocomplete sub-field.
-`autocompletePlaceholder` | The placeholder for the Autocomplete sub-field.
-`autocompleteDefaultValue` | The default value for the Autocomplete sub-field.
-`autocompleteRequired` | Whether the Autocomplete sub-field should be required.
-`autocompleteErrorMessage` | The error message for the Autocomplete sub-field.
-`autocompleteCollapsed` | Whether the Autocomplete sub-field is collapsed in the control panel.
-`autocompleteEnabled` | Whether the Autocomplete sub-field is enabled in the control panel.
-`autocompleteCurrentLocation` | Whether the Autocomplete sub-field should show a "Show location" link.
-`autocompletePrePopulate` | The field’s pre-populated value extracted from the query string.
-`autocompleteIntegration` | The handle of the Address Provider integration, if set.
-`address1Label` | The label for the Address 1 sub-field.
-`address1Placeholder` | The placeholder for the Address 1 sub-field.
-`address1DefaultValue` | The default value for the Address 1 sub-field.
-`address1Required` | Whether the Address 1 sub-field should be required.
-`address1ErrorMessage` | The error message for the Address 1 sub-field.
-`address1Collapsed` | Whether the Address 1 sub-field is collapsed in the control panel.
-`address1Enabled` | Whether the Address 1 sub-field is enabled in the control panel.
-`address1Hidden` | Whether the Address 1 sub-field is hidden.
-`address2Label` | The label for the Address 2 sub-field.
-`address2Placeholder` | The placeholder for the Address 2 sub-field.
-`address2DefaultValue` | The default value for the Address 2 sub-field.
-`address2Required` | Whether the Address 2 sub-field should be required.
-`address2ErrorMessage` | The error message for the Address 2 sub-field.
-`address2Collapsed` | Whether the Address 2 sub-field is collapsed in the control panel.
-`address2Enabled` | Whether the Address 2 sub-field is enabled in the control panel.
-`address2Hidden` | Whether the Address 2 sub-field is hidden.
-`address3Label` | The label for the Address 3 sub-field.
-`address3Placeholder` | The placeholder for the Address 3 sub-field.
-`address3DefaultValue` | The default value for the Address 3 sub-field.
-`address3Required` | Whether the Address 3 sub-field should be required.
-`address3ErrorMessage` | The error message for the Address 3 sub-field.
-`address3Collapsed` | Whether the Address 3 sub-field is collapsed in the control panel.
-`address3Enabled` | Whether the Address 3 sub-field is enabled in the control panel.
-`address3Hidden` | Whether the Address 3 sub-field is hidden.
-`cityLabel` | The label for the City sub-field.
-`cityPlaceholder` | The placeholder for the City sub-field.
-`cityDefaultValue` | The default value for the City sub-field.
-`cityRequired` | Whether the City sub-field should be required.
-`cityErrorMessage` | The error message for the City sub-field.
-`cityCollapsed` | Whether the City sub-field is collapsed in the control panel.
-`cityEnabled` | Whether the City sub-field is enabled in the control panel.
-`cityHidden` | Whether the City sub-field is hidden.
-`stateLabel` | The label for the State sub-field.
-`statePlaceholder` | The placeholder for the State sub-field.
-`stateDefaultValue` | The default value for the State sub-field.
-`stateRequired` | Whether the State sub-field should be required.
-`stateErrorMessage` | The error message for the State sub-field.
-`stateCollapsed` | Whether the State sub-field is collapsed in the control panel.
-`stateEnabled` | Whether the State sub-field is enabled in the control panel.
-`stateHidden` | Whether the State sub-field is hidden.
-`zipLabel` | The label for the Zip sub-field.
-`zipPlaceholder` | The placeholder for the Zip sub-field.
-`zipDefaultValue` | The default value for the Zip sub-field.
-`zipRequired` | Whether the Zip sub-field should be required.
-`zipErrorMessage` | The error message for the Zip sub-field.
-`zipCollapsed` | Whether the Zip sub-field is collapsed in the control panel.
-`zipEnabled` | Whether the Zip sub-field is enabled in the control panel.
-`zipHidden` | Whether the Zip sub-field is hidden.
-`countryLabel` | The label for the Country sub-field.
-`countryPlaceholder` | The placeholder for the Country sub-field.
-`countryDefaultValue` | The default value for the Country sub-field.
-`countryRequired` | Whether the Country sub-field should be required.
-`countryErrorMessage` | The error message for the Country sub-field.
-`countryCollapsed` | Whether the Country sub-field is collapsed in the control panel.
-`countryEnabled` | Whether the Country sub-field is enabled in the control panel.
-`countryHidden` | Whether the Country sub-field is hidden.
-`countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
-
 
 ### Agree
 Setting | Description
@@ -171,23 +98,6 @@ Setting | Description
 `displayType` | The display layout for this field. Either `calendar`, `dropdowns` or `inputs`.
 `dateFormat` | The chosen format for the date.
 `timeFormat` | The chosen format for the time.
-`includeDate` | Whether this field should include the date.
-`includeTime` | Whether this field should include the time.
-`timeLabel` | The label for the time sub-field.
-`dayLabel` | The label for the day sub-field.
-`dayPlaceholder` | The placeholder for the day sub-field.
-`monthLabel` | The label for the month sub-field.
-`monthPlaceholder` | The placeholder for the month sub-field.
-`yearLabel` | The label for the year sub-field.
-`yearPlaceholder` | The placeholder for the year sub-field.
-`hourLabel` | The label for the hour sub-field.
-`hourPlaceholder` | The placeholder for the hour sub-field.
-`minuteLabel` | The label for the minute sub-field.
-`minutePlaceholder` | The placeholder for the minute sub-field.
-`secondLabel` | The label for the second sub-field.
-`secondPlaceholder` | The placeholder for the second sub-field.
-`ampmLabel` | The label for the AM/PM sub-field.
-`ampmPlaceholder` | The placeholder for the AM/PM sub-field.
 `useDatePicker` | Whether this field should use the Flatpickr datepicker.
 `datePickerOptions` | A collection of options for the Flatpickr datepicker.
 `minDate` | The minimum allowed date.
@@ -268,35 +178,6 @@ Setting | Description
 Setting | Description
 --- | ---
 `useMultipleFields` | Whether this field should use multiple fields for users to enter their details.
-`prefixLabel` | The label for the Prefix sub-field.
-`prefixPlaceholder` | The placeholder for the Prefix sub-field.
-`prefixDefaultValue` | The default value for the Prefix sub-field.
-`prefixRequired` | Whether the Prefix sub-field should be required.
-`prefixErrorMessage` | The error message for the Prefix sub-field.
-`prefixCollapsed` | Whether the Prefix sub-field is collapsed in the control panel.
-`prefixEnabled` | Whether the Prefix sub-field is enabled in the control panel.
-`prefixOptions` | An array of options available to pick a prefix from.
-`firstNameLabel` | The label for the First Name sub-field.
-`firstNamePlaceholder` | The placeholder for the First Name sub-field.
-`firstNameDefaultValue` | The default value for the First Name sub-field.
-`firstNameRequired` | Whether the First Name sub-field should be required.
-`firstNameErrorMessage` | The error message for the First Name sub-field.
-`firstNameCollapsed` | Whether the First Name sub-field is collapsed in the control panel.
-`firstNameEnabled` | Whether the First Name sub-field is enabled in the control panel.
-`middleNameLabel` | The label for the Middle Name sub-field.
-`middleNamePlaceholder` | The placeholder for the Middle Name sub-field.
-`middleNameDefaultValue` | The default value for the Middle Name sub-field.
-`middleNameRequired` | Whether the Middle Name sub-field should be required.
-`middleNameErrorMessage` | The error message for the Middle Name sub-field.
-`middleNameCollapsed` | Whether the Middle Name sub-field is collapsed in the control panel.
-`middleNameEnabled` | Whether the Middle Name sub-field is enabled in the control panel.
-`lastNameLabel` | The label for the Last Name sub-field.
-`lastNamePlaceholder` | The placeholder for the Last Name sub-field.
-`lastNameDefaultValue` | The default value for the Last Name sub-field.
-`lastNameRequired` | Whether the Last Name sub-field should be required.
-`lastNameErrorMessage` | The error message for the Last Name sub-field.
-`lastNameCollapsed` | Whether the Last Name sub-field is collapsed in the control panel.
-`lastNameEnabled` | Whether the Last Name sub-field is enabled in the control panel.
 
 
 ### Number
@@ -329,19 +210,9 @@ Method | Description
 ### Phone
 Setting | Description
 --- | ---
-`showCountryCode` | Whether to show an additional dropdown for selecting the country code.
-`countryShowDialCode` | Whether to show an the dial code.
 `countryAllowed` | A collection of allowed countries.
-`countryLabel` | The label for the Country sub-field.
-`countryPlaceholder` | The placeholder for the Country sub-field.
 `countryDefaultValue` | The default value for the Country sub-field.
-`countryCollapsed` | Whether the Country sub-field is collapsed in the control panel.
 `countryEnabled` | Whether the Country sub-field is enabled in the control panel.
-`countryOptions` | An array of options available to pick a country from.
-`numberLabel` | The label for the Number sub-field.
-`numberPlaceholder` | The placeholder for the Number sub-field.
-`numberDefaultValue` | The default value for the Number sub-field.
-`numberCollapsed` | Whether the Number sub-field is collapsed in the control panel.
 
 
 ### Products
@@ -505,7 +376,7 @@ Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(Submission
             }
 
             // Or, for a more global-check - against the type of the field
-            if ($field instanceof \verbb\formie\fields\formfields\Email) {
+            if ($field instanceof \verbb\formie\fields\Email) {
                 $event->rules[] = [['field:emailAddress'], 'required'];
             }
         }

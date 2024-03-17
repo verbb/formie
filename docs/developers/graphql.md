@@ -21,20 +21,21 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
         }
         
         pages {
-            name
+            label
 
             rows {
                 rowFields {
-                    name
+                    label
                     handle
                     type
                     displayName
 
                     ... on Field_Name {
-                        firstNameLabel
-                        firstNameRequired
-                        lastNameLabel
-                        lastNameRequired
+                        fields {
+                            label
+                            enabled
+                            required
+                        }
                     }
 
                     ... on Field_Email {
@@ -58,28 +59,46 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
             },
             "pages": [
                 {
-                    "name": "Page 1",
+                    "label": "Page 1",
                     "rows": [
                         {
                             "rowFields": [
                                 {
-                                    "name": "Your Name",
+                                    "label": "Your Name",
                                     "handle": "yourName",
-                                    "type": "verbb\\formie\\fields\\formfields\\Name",
+                                    "type": "verbb\\formie\\fields\\Name",
                                     "displayName": "Name",
-                                    "firstNameLabel": "First Name",
-                                    "firstNameRequired": true,
-                                    "lastNameLabel": "Last Name",
-                                    "lastNameRequired": true
+                                    "fields": [
+                                        {
+                                            "label": "Prefix",
+                                            "enabled": false,
+                                            "required": false
+                                        },
+                                        {
+                                            "label": "First Name",
+                                            "enabled": true,
+                                            "required": true
+                                        },
+                                        {
+                                            "label": "Middle Name",
+                                            "enabled": false,
+                                            "required": false
+                                        },
+                                        {
+                                            "label": "Last Name",
+                                            "enabled": true,
+                                            "required": true
+                                        }
+                                    ]
                                 }
                             ]
                         },
                         {
                             "rowFields": [
                                 {
-                                    "name": "Email Address",
+                                    "label": "Email Address",
                                     "handle": "emailAddress",
-                                    "type": "verbb\\formie\\fields\\formfields\\Email",
+                                    "type": "verbb\\formie\\fields\\Email",
                                     "displayName": "Email",
                                     "placeholder": "eg. psherman@wallaby.com"
                                 }
@@ -88,9 +107,9 @@ Have a look at our [headless Formie demo](https://formie-headless.verbb.io/?form
                         {
                             "rowFields": [
                                 {
-                                    "name": "Message",
+                                    "label": "Message",
                                     "handle": "message",
-                                    "type": "verbb\\formie\\fields\\formfields\\MultiLineText",
+                                    "type": "verbb\\formie\\fields\\MultiLineText",
                                     "displayName": "MultiLineText"
                                 }
                             ]
@@ -222,7 +241,7 @@ This is the interface implemented by all pages.
 | `uid`| `String` | The uid of the entity.
 | `dateCreated`| `DateTime` | The date the element was created.
 | `dateUpdated`| `DateTime` | The date the element was last updated.
-| `name`| `String` | The name of the page.
+| `label`| `String` | The label of the page.
 | `rows`| `[RowInterface]` | The pages’s rows.
 | `pageFields`| `[FieldInterface]` | The pages’s fields.
 | `settings`| `[PageSettingsInterface]` | The pages’s settings, including buttons.
@@ -276,7 +295,7 @@ This is the interface implemented by all fields. Note that as settings are speci
 | - | - | -
 | `id`| `ID` | The id of the entity.
 | `uid`| `String` | The uid of the entity.
-| `name`| `String` | The field’s name.
+| `label`| `String` | The field’s label.
 | `handle`| `String` | The field’s handle.
 | `instructions`| `String` | The field’s instructions.
 | `required`| `Boolean` | Whether the field is required or not.
@@ -301,78 +320,6 @@ This is the interface implemented by all fields. Note that as settings are speci
 | `visibility`| `String!` | The field’s visibility.
 
 Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#inline-fragments) for each field type, you'll have access to the same variables as described on the [Field](docs:developers/field) docs.
-
-#### Address Fields
-| Field | Type | Description
-| - | - | -
-| `autocompleteLabel` | `String!` | The label for the Autocomplete sub-field.
-| `autocompletePlaceholder` | `String!` | The placeholder for the Autocomplete sub-field.
-| `autocompleteDefaultValue` | `String!` | The default value for the Autocomplete sub-field.
-| `autocompleteRequired` | `Boolean` | Whether the Autocomplete sub-field should be required.
-| `autocompleteErrorMessage` | `String!` | The error message for the Autocomplete sub-field.
-| `autocompleteCollapsed` | `Boolean` | Whether the Autocomplete sub-field is collapsed in the control panel.
-| `autocompleteEnabled` | `Boolean` | Whether the Autocomplete sub-field is enabled in the control panel.
-| `autocompleteCurrentLocation` | `Boolean` | Whether the Autocomplete sub-field should show a "Show location" link.
-| `autocompletePrePopulate` | `String!` | The field’s pre-populated value extracted from the query string.
-| `autocompleteIntegration` | `String!` | The handle of the Address Provider integration, if set.
-| `address1Label` | `String!` | The label for the Address 1 sub-field.
-| `address1Placeholder` | `String!` | The placeholder for the Address 1 sub-field.
-| `address1DefaultValue` | `String!` | The default value for the Address 1 sub-field.
-| `address1Required` | `Boolean` | Whether the Address 1 sub-field should be required.
-| `address1ErrorMessage` | `String!` | The error message for the Address 1 sub-field.
-| `address1Collapsed` | `Boolean` | Whether the Address 1 sub-field is collapsed in the control panel.
-| `address1Enabled` | `Boolean` | Whether the Address 1 sub-field is enabled in the control panel.
-| `address1Hidden` | `Boolean` | Whether the Address 1 sub-field is hidden.
-| `address2Label` | `String!` | The label for the Address 2 sub-field.
-| `address2Placeholder` | `String!` | The placeholder for the Address 2 sub-field.
-| `address2DefaultValue` | `String!` | The default value for the Address 2 sub-field.
-| `address2Required` | `Boolean` | Whether the Address 2 sub-field should be required.
-| `address2ErrorMessage` | `String!` | The error message for the Address 2 sub-field.
-| `address2Collapsed` | `Boolean` | Whether the Address 2 sub-field is collapsed in the control panel.
-| `address2Enabled` | `Boolean` | Whether the Address 2 sub-field is enabled in the control panel.
-| `address2Hidden` | `Boolean` | Whether the Address 2 sub-field is hidden.
-| `address3Label` | `String!` | The label for the Address 3 sub-field.
-| `address3Placeholder` | `String!` | The placeholder for the Address 3 sub-field.
-| `address3DefaultValue` | `String!` | The default value for the Address 3 sub-field.
-| `address3Required` | `Boolean` | Whether the Address 3 sub-field should be required.
-| `address3ErrorMessage` | `String!` | The error message for the Address 3 sub-field.
-| `address3Collapsed` | `Boolean` | Whether the Address 3 sub-field is collapsed in the control panel.
-| `address3Enabled` | `Boolean` | Whether the Address 3 sub-field is enabled in the control panel.
-| `address3Hidden` | `Boolean` | Whether the Address 3 sub-field is hidden.
-| `cityLabel` | `String!` | The label for the City sub-field.
-| `cityPlaceholder` | `String!` | The placeholder for the City sub-field.
-| `cityDefaultValue` | `String!` | The default value for the City sub-field.
-| `cityRequired` | `Boolean` | Whether the City sub-field should be required.
-| `cityErrorMessage` | `String!` | The error message for the City sub-field.
-| `cityCollapsed` | `Boolean` | Whether the City sub-field is collapsed in the control panel.
-| `cityEnabled` | `Boolean` | Whether the City sub-field is enabled in the control panel.
-| `cityHidden` | `Boolean` | Whether the City sub-field is hidden.
-| `stateLabel` | `String!` | The label for the State sub-field.
-| `statePlaceholder` | `String!` | The placeholder for the State sub-field.
-| `stateDefaultValue` | `String!` | The default value for the State sub-field.
-| `stateRequired` | `Boolean` | Whether the State sub-field should be required.
-| `stateErrorMessage` | `String!` | The error message for the State sub-field.
-| `stateCollapsed` | `Boolean` | Whether the State sub-field is collapsed in the control panel.
-| `stateEnabled` | `Boolean` | Whether the State sub-field is enabled in the control panel.
-| `stateHidden` | `Boolean` | Whether the State sub-field is hidden.
-| `zipLabel` | `String!` | The label for the Zip sub-field.
-| `zipPlaceholder` | `String!` | The placeholder for the Zip sub-field.
-| `zipDefaultValue` | `String!` | The default value for the Zip sub-field.
-| `zipRequired` | `Boolean` | Whether the Zip sub-field should be required.
-| `zipErrorMessage` | `String!` | The error message for the Zip sub-field.
-| `zipCollapsed` | `Boolean` | Whether the Zip sub-field is collapsed in the control panel.
-| `zipEnabled` | `Boolean` | Whether the Zip sub-field is enabled in the control panel.
-| `zipHidden` | `Boolean` | Whether the Zip sub-field is hidden.
-| `countryLabel` | `String!` | The label for the Country sub-field.
-| `countryPlaceholder` | `String!` | The placeholder for the Country sub-field.
-| `countryDefaultValue` | `String!` | The default value for the Country sub-field.
-| `countryRequired` | `Boolean` | Whether the Country sub-field should be required.
-| `countryErrorMessage` | `String!` | The error message for the Country sub-field.
-| `countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
-| `countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
-| `countryHidden` | `Boolean` | Whether the Country sub-field is hidden.
-| `countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
-
 
 #### Agree
 | Field | Type | Description
@@ -416,29 +363,11 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | `displayType` | `String` | The display layout for this field. Either `calendar`, `dropdowns` or `inputs`.
 | `dateFormat` | `String` | The chosen format for the date.
 | `timeFormat` | `String` | The chosen format for the time.
-| `includeDate` | `Boolean` | Whether this field should include the date.
-| `includeTime` | `Boolean` | Whether this field should include the time.
-| `timeLabel` | `String!` | The label for the time sub-field.
-| `dayLabel` | `String!` | The label for the day sub-field.
-| `dayPlaceholder` | `String!` | The placeholder for the day sub-field.
-| `monthLabel` | `String!` | The label for the month sub-field.
-| `monthPlaceholder` | `String!` | The placeholder for the month sub-field.
-| `yearLabel` | `String!` | The label for the year sub-field.
-| `yearPlaceholder` | `String!` | The placeholder for the year sub-field.
-| `hourLabel` | `String!` | The label for the hour sub-field.
-| `hourPlaceholder` | `String!` | The placeholder for the hour sub-field.
-| `minuteLabel` | `String!` | The label for the minute sub-field.
-| `minutePlaceholder` | `String!` | The placeholder for the minute sub-field.
-| `secondLabel` | `String!` | The label for the second sub-field.
-| `secondPlaceholder` | `String!` | The placeholder for the second sub-field.
-| `ampmLabel` | `String!` | The label for the AM/PM sub-field.
-| `ampmPlaceholder` | `String!` | The placeholder for the AM/PM sub-field.
 | `useDatePicker` | `Boolean` | Whether this field should use the Flatpickr datepicker.
 | `datePickerOptions` | `Boolean` | A collection of options for the Flatpickr datepicker.
 | `minDate` | `DateTime` | The minimum allowed date.
 | `maxDate` | `DateTime` | The maximum allowed date.
 | `availableDaysOfWeek` | `String` | A JSON string of available days of the week enabled.
-
 
 #### Dropdown
 | Field | Type | Description
@@ -521,35 +450,6 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | Field | Type | Description
 | - | - | -
 | `useMultipleFields` | `Boolean` | Whether this field should use multiple fields for users to enter their details.
-| `prefixLabel` | `String` | The label for the Prefix sub-field.
-| `prefixPlaceholder` | `String` | The placeholder for the Prefix sub-field.
-| `prefixDefaultValue` | `String` | The default value for the Prefix sub-field.
-| `prefixRequired` | `Boolean` | Whether the Prefix sub-field should be required.
-| `prefixErrorMessage` | `String` | The error message for the Prefix sub-field.
-| `prefixCollapsed` | `Boolean` | Whether the Prefix sub-field is collapsed in the control panel.
-| `prefixEnabled` | `Boolean` | Whether the Prefix sub-field is enabled in the control panel.
-| `prefixOptions` | `[FieldAttribute]` | An array of options available to pick a prefix from.
-| `firstNameLabel` | `String` | The label for the First Name sub-field.
-| `firstNamePlaceholder` | `String` | The placeholder for the First Name sub-field.
-| `firstNameDefaultValue` | `String` | The default value for the First Name sub-field.
-| `firstNameRequired` | `Boolean` | Whether the First Name sub-field should be required.
-| `firstNameErrorMessage` | `String` | The error message for the First Name sub-field.
-| `firstNameCollapsed` | `Boolean` | Whether the First Name sub-field is collapsed in the control panel.
-| `firstNameEnabled` | `Boolean` | Whether the First Name sub-field is enabled in the control panel.
-| `middleNameLabel` | `String` | The label for the Middle Name sub-field.
-| `middleNamePlaceholder` | `String` | The placeholder for the Middle Name sub-field.
-| `middleNameDefaultValue` | `String` | The default value for the Middle Name sub-field.
-| `middleNameRequired` | `Boolean` | Whether the Middle Name sub-field should be required.
-| `middleNameErrorMessage` | `String` | The error message for the Middle Name sub-field.
-| `middleNameCollapsed` | `Boolean` | Whether the Middle Name sub-field is collapsed in the control panel.
-| `middleNameEnabled` | `Boolean` | Whether the Middle Name sub-field is enabled in the control panel.
-| `lastNameLabel` | `String` | The label for the Last Name sub-field.
-| `lastNamePlaceholder` | `String` | The placeholder for the Last Name sub-field.
-| `lastNameDefaultValue` | `String` | The default value for the Last Name sub-field.
-| `lastNameRequired` | `Boolean` | Whether the Last Name sub-field should be required.
-| `lastNameErrorMessage` | `String` | The error message for the Last Name sub-field.
-| `lastNameCollapsed` | `Boolean` | Whether the Last Name sub-field is collapsed in the control panel.
-| `lastNameEnabled` | `Boolean` | Whether the Last Name sub-field is enabled in the control panel.
 
 
 #### Number
@@ -578,14 +478,8 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `countryLabel` | `String` | The label for the Country sub-field.
 | `countryPlaceholder` | `String` | The placeholder for the Country sub-field.
 | `countryDefaultValue` | `String` | The default value for the Country sub-field.
-| `countryCollapsed` | `Boolean` | Whether the Country sub-field is collapsed in the control panel.
 | `countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
 | `countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
-| `numberLabel` | `String` | The label for the Number sub-field.
-| `numberPlaceholder` | `String` | The placeholder for the Number sub-field.
-| `numberDefaultValue` | `String!` | The default value for the Number sub-field.
-| `numberCollapsed` | `Boolean` | Whether the Number sub-field is collapsed in the control panel.
-
 
 #### Products
 | Field | Type | Description
@@ -681,6 +575,37 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `displayType` | `String` | What sort of field to show on the front-end for users. Either `dropdown`, `checkboxes` or `radio`.
 
 
+#### Sub-Fields
+For sub-fields like Address and multi-Name, you have access to `nestedRows` and `fields`.
+
+```graphql
+{
+    formieForm (handle: "contactForm") {
+        title
+        handle
+        
+        formFields {
+            label
+
+            ... on Field_Name {
+                nestedRows {
+                    fields {
+                        label
+                    }
+                }
+            }
+
+            ... on Field_Address {
+                fields {
+                    label
+                }
+            }
+        }
+    }
+}
+```
+
+
 #### Nested Fields
 For nested fields like Group and Repeater, you have access to `nestedRows` and `fields`.
 
@@ -691,12 +616,12 @@ For nested fields like Group and Repeater, you have access to `nestedRows` and `
         handle
         
         formFields {
-            name
+            label
 
             ... on Field_Group {
                 nestedRows {
                     fields {
-                        name
+                        label
                     }
                 }
             }

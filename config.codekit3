@@ -1501,6 +1501,22 @@
       "oAP" : "\/src\/base\/Captcha.php",
       "oF" : 0
     },
+    "\/src\/base\/CosmeticField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/base\/CosmeticField.php",
+      "oF" : 0
+    },
+    "\/src\/base\/CosmeticFieldInterface.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/base\/CosmeticFieldInterface.php",
+      "oF" : 0
+    },
     "\/src\/base\/Crm.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -1995,6 +2011,22 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/elements\/actions\/SetSubmissionStatus.php",
+      "oF" : 0
+    },
+    "\/src\/elements\/conditions\/FormCondition.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/elements\/conditions\/FormCondition.php",
+      "oF" : 0
+    },
+    "\/src\/elements\/conditions\/PageCountConditionRule.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/elements\/conditions\/PageCountConditionRule.php",
       "oF" : 0
     },
     "\/src\/elements\/CustomElement.php" : {
@@ -3021,6 +3053,14 @@
       "oAP" : "\/src\/gql\/resolvers\/SubmissionResolver.php",
       "oF" : 0
     },
+    "\/src\/gql\/types\/AddressType.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/gql\/types\/AddressType.php",
+      "oF" : 0
+    },
     "\/src\/gql\/types\/ArrayType.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -3219,6 +3259,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/gql\/types\/KeyValueType.php",
+      "oF" : 0
+    },
+    "\/src\/gql\/types\/NameType.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/gql\/types\/NameType.php",
       "oF" : 0
     },
     "\/src\/gql\/types\/PageSettingsType.php" : {
@@ -4535,6 +4583,22 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/models\/StencilData.php",
+      "oF" : 0
+    },
+    "\/src\/models\/SubField.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/models\/SubField.php",
+      "oF" : 0
+    },
+    "\/src\/models\/SubFields.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/models\/SubFields.php",
       "oF" : 0
     },
     "\/src\/models\/Subscription.php" : {
@@ -10897,26 +10961,26 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-aIwQQs2q.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-aIwQQs2q.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-fg3XCxUP.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-aIwQQs2q.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-aIwQQs2q.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-Hv3sy8MI.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-nLiORiMW.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10924,7 +10988,7 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-Hv3sy8MI-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-nLiORiMW-min.css",
       "oF" : 0,
       "pg" : 0
     },
@@ -11012,45 +11076,26 @@
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-XkfFaza8.ttf",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-8Aw4lTHz.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-8Aw4lTHz.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-CmHb0edu.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-8Aw4lTHz.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-8Aw4lTHz.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-TrZPBsMt.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-TrZPBsMt.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-TrZPBsMt.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-TrZPBsMt.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-nMvXpFef.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-g7X7yeK9.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -11058,9 +11103,28 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-nMvXpFef-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-g7X7yeK9-min.css",
       "oF" : 0,
       "pg" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-ipQEoor4.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js.map",
+      "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
       "aP" : 1,
@@ -11074,24 +11138,55 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-cl7P4HeP.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-cl7P4HeP.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-yXNr6Hpy.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-cl7P4HeP.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-cl7P4HeP.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js.map",
       "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/Modal-uXgisi33.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js.map",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-wf1uLiFE.css" : {
+      "aP" : 1,
+      "bl" : 0,
+      "ci" : 0,
+      "co" : 0,
+      "ft" : 16,
+      "ma" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-wf1uLiFE-min.css",
+      "oF" : 0,
+      "pg" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/manifest.json" : {
       "ft" : 524288,
@@ -11500,6 +11595,14 @@
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/components\/SlideUpDown.vue",
       "oF" : 0
     },
+    "\/src\/web\/assets\/forms\/src\/js\/components\/SubFieldEditModal.vue" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/components\/SubFieldEditModal.vue",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/forms\/src\/js\/components\/SubmitButtons.vue" : {
       "cB" : 0,
       "ft" : 8192,
@@ -11651,17 +11754,6 @@
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/NotificationRecipientsInput.vue",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/RepeaterTable.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/RepeaterTable.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/richtext\/link\/Link.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -11807,6 +11899,14 @@
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableBulkOptions.vue",
       "oF" : 0
     },
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableCell.vue" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableCell.vue",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableDropdown.vue" : {
       "cB" : 0,
       "ft" : 8192,
@@ -11815,20 +11915,23 @@
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableDropdown.vue",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableRow.vue" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/TableInput.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/table\/TableRow.vue",
-      "oF" : 0
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/TableInput.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/TableInput.vue" : {
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/toggle-blocks\/ToggleBlock.vue" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/TableInput.vue",
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/toggle-blocks\/ToggleBlock.vue",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/inputs\/VariableTextInput.vue" : {
@@ -11887,17 +11990,6 @@
       "mi" : 1,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/minBlock.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/rules\/minTable.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/dist\/js\/minTable.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
@@ -11968,12 +12060,20 @@
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/src\/js\/formkit\/ToggleBlock.vue" : {
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubField.vue" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/ToggleBlock.vue",
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubField.vue",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubFields.vue" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubFields.vue",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/mixins\/ConditionsBuilder.js" : {
@@ -13143,6 +13243,14 @@
       "oF" : 0,
       "oO" : 1,
       "oS" : 1
+    },
+    "\/src\/web\/assets\/frontend\/FrontendAsset.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/frontend\/FrontendAsset.php",
+      "oF" : 0
     },
     "\/src\/web\/assets\/frontend\/node_modules" : {
       "ft" : 65536,

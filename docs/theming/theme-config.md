@@ -526,7 +526,7 @@ For field-level tags:
 
 ```php
 use verbb\formie\base\FormField;
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
 use yii\base\Event;
 

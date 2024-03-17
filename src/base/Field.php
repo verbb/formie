@@ -144,6 +144,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return [];
     }
 
+    public static function getFieldSelectOptions(): array
+    {
+        return [];
+    }
+
 
     // Properties
     // =========================================================================
@@ -161,6 +166,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public ?string $instructions = null;
     public bool $required = false;
+    public bool $enabled = true;
     public ?string $matchField = null;
     public ?string $placeholder = null;
     public mixed $defaultValue = null;
@@ -203,6 +209,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     {
         $names = parent::settingsAttributes();
         $names[] = 'instructions';
+        $names[] = 'enabled';
         $names[] = 'required';
         $names[] = 'matchField';
         $names[] = 'placeholder';
@@ -584,9 +591,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'hasLabel' => $this->hasLabel(),
             'hasSubFields' => $this->hasSubFields(),
             'hasNestedFields' => $this->hasNestedFields(),
+            'hasEditableFields' => !($this instanceof NestedFieldInterface && !($this instanceof SubFieldInterface)),
             'schema' => $this->getFieldSchema(),
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
+            'fieldSelectOptions' => static::getFieldSelectOptions(),
 
             // Load in the regular field data, but for a new field
             'newField' => $this->getFormBuilderConfig(),
@@ -616,20 +625,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'isCosmetic' => $this->getIsCosmetic(),
             'isSynced' => $this->getIsSynced(),
             'isNested' => $this->getIsNested(),
+            'isMultiNested' => $this instanceof MultiNestedFieldInterface,
+            'isSingleNested' => $this instanceof SingleNestedFieldInterface,
 
             // Any writeable settings should be in `settings` to work with FormKit.
             'settings' => $this->getFormBuilderSettings(),
         ];
-
-        // Allow fields to provide subField options for mapping
-        if ($this instanceof SubFieldInterface) {
-            $config['subFieldOptions'] = $this->getSubFieldOptions();
-        }
-
-        // Whether this is an element field
-        if ($this instanceof ElementFieldInterface) {
-            $config['isElementField'] = true;
-        }
 
         // Fire a 'modifyFieldConfig' event
         $event = new ModifyFieldConfigEvent([
@@ -651,6 +652,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $settings['handle'] = $this->handle;
         $settings['required'] = $this->required;
         $settings['instructions'] = $this->instructions;
+        $settings['enabled'] = $this->enabled;
 
         return $settings;
     }
@@ -903,7 +905,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         if ($key === 'subFieldRow') {
-            $fields = $context['row'] ?? [];
+            $fields = $context['row']['fields'] ?? [];
 
             return new HtmlTag('div', [
                 'class' => 'fui-row',
@@ -1223,6 +1225,15 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return 'Field_' . $end;
     }
 
+    public function getContentGqlMutationArgumentType(): Type|array
+    {
+        return [
+            'name' => $this->handle,
+            'type' => Type::string(),
+            'description' => $this->instructions,
+        ];
+    }
+
     public function getExportLabel(ElementInterface $element): string
     {
         // Check to see if there's another field with the same label
@@ -1401,21 +1412,48 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         $supportedLimitConfigTypes = [
-            formfields\MultiLineText::class,
-            formfields\SingleLineText::class,
+            fields\MultiLineText::class,
+            fields\SingleLineText::class,
         ];
 
         $supportedLimitTypes = [
-            formfields\Categories::class,
-            formfields\Entries::class,
-            formfields\FileUpload::class,
-            formfields\MultiLineText::class,
-            formfields\Number::class,
-            formfields\Products::class,
-            formfields\SingleLineText::class,
-            formfields\Tags::class,
-            formfields\Users::class,
-            formfields\Variants::class,
+            fields\Categories::class,
+            fields\Entries::class,
+            fields\FileUpload::class,
+            fields\MultiLineText::class,
+            fields\Number::class,
+            fields\Products::class,
+            fields\SingleLineText::class,
+            fields\Tags::class,
+            fields\Users::class,
+            fields\Variants::class,
+    
+            fields\subfields\AddressAutoComplete::class,
+            fields\subfields\Address1::class,
+            fields\subfields\Address2::class,
+            fields\subfields\Address3::class,
+            fields\subfields\AddressCity::class,
+            fields\subfields\AddressZip::class,
+            fields\subfields\AddressState::class,
+            fields\subfields\AddressCountry::class,
+            fields\subfields\DateYearDropdown::class,
+            fields\subfields\DateMonthDropdown::class,
+            fields\subfields\DateDayDropdown::class,
+            fields\subfields\DateHourDropdown::class,
+            fields\subfields\DateMinuteDropdown::class,
+            fields\subfields\DateSecondDropdown::class,
+            fields\subfields\DateAmPmDropdown::class,
+            fields\subfields\DateYearNumber::class,
+            fields\subfields\DateMonthNumber::class,
+            fields\subfields\DateDayNumber::class,
+            fields\subfields\DateHourNumber::class,
+            fields\subfields\DateMinuteNumber::class,
+            fields\subfields\DateSecondNumber::class,
+            fields\subfields\DateAmPmNumber::class,
+            fields\subfields\NamePrefix::class,
+            fields\subfields\NameFirst::class,
+            fields\subfields\NameMiddle::class,
+            fields\subfields\NameLast::class,
         ];
 
         if (array_key_exists('limitType', $config)) {

@@ -51,7 +51,7 @@ class Dropdown extends OptionsField
             }
         }
 
-        if (!array_key_exists('options', $config) || empty($config['options'])) {
+        if (!array_key_exists('options', $config) && empty($config['options'])) {
             $config['options'] = [
                 [
                     'label' => Craft::t('formie', 'Select an option'),
@@ -78,7 +78,7 @@ class Dropdown extends OptionsField
             }
         }
 
-        return array_merge($options, $this->options);
+        return array_merge($options, $this->options());
     }
 
     public function getElementValidationRules(): array

@@ -606,7 +606,7 @@ The event that is triggered when preparing a field's default value. You can use 
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
@@ -627,7 +627,7 @@ Modify the `tag` event property change for a field's HTML is rendered.
 For more examples, consult the [theming](docs:template-guides/theming) docs.
 
 ```php
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldHtmlTagEvent;
 use yii\base\Event;
 
@@ -661,7 +661,7 @@ The event that is triggered when preparing a field's value to be represented as 
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
@@ -681,7 +681,7 @@ The event that is triggered when preparing a field's value to be represented as 
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
@@ -701,7 +701,7 @@ The event that is triggered when preparing a field's value to be exported. You c
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\MultiLineText;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
@@ -721,7 +721,7 @@ The event that is triggered when preparing a field's value to be used in integra
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\MultiLineText;
+use verbb\formie\fields\MultiLineText;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use yii\base\Event;
 
@@ -743,7 +743,7 @@ The event that is triggered when preparing a field's value to be represented in 
 Modify the `value` event property to set the value used.
 
 ```php
-use verbb\formie\fields\formfields\Dropdown;
+use verbb\formie\fields\Dropdown;
 use verbb\formie\events\ModifyFieldValueEvent;
 use yii\base\Event;
 
@@ -760,30 +760,20 @@ Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(Mo
 
 ## Address Field Events
 
-### The `modifyFrontEndSubfields` event
-The event that is triggered to modify the front-end subfields for the field.
+### The `modifyNestedFieldLayout` event
+The event that is triggered to modify the nested field layout for the field.
 
 ```php
-use craft\helpers\ArrayHelper;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
-use verbb\formie\fields\formfields\Address;
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Address;
 use yii\base\Event;
 
-Event::on(Address::class, Address::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $address1 = $event->rows[0][0];
+Event::on(Address::class, Address::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $address1 = $event->fieldLayout->getFieldByHandle('address1');
 
     // Modify the `address1` field - a `SingleLineText` field.
-    $address1->name = 'Address Line 1';
-
-    $event->rows[0][0] = $address1;
-
-    // Change the order of fields - remove them first
-    $address2 = ArrayHelper::remove($event->rows[1], 0);
-    $address3 = ArrayHelper::remove($event->rows[2], 0);
-
-    // Add them to the first row
-    $event->rows[0][] = $address2;
-    $event->rows[0][] = $address3;
+    $address1->label = 'Address Line 1';
 });
 ```
 
@@ -796,7 +786,7 @@ The event that is triggered to modify the Date Format for the field.
 
 ```php
 use verbb\formie\events\ModifyDateTimeFormatEvent;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\Date;
 use yii\base\Event;
 
 Event::on(Date::class, Date::EVENT_MODIFY_DATE_FORMAT, function(ModifyDateTimeFormatEvent $event) {
@@ -809,7 +799,7 @@ The event that is triggered to modify the Time Format for the field.
 
 ```php
 use verbb\formie\events\ModifyDateTimeFormatEvent;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\Date;
 use yii\base\Event;
 
 Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFormatEvent $event) {
@@ -822,7 +812,7 @@ The event that is triggered to register the available options to select for date
 
 ```php
 use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\Date;
 use yii\base\Event;
 
 Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
@@ -835,7 +825,7 @@ The event that is triggered to register the available options to select for time
 
 ```php
 use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\Date;
 use yii\base\Event;
 
 Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
@@ -843,35 +833,30 @@ Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(Regist
 });
 ```
 
-### The `modifyFrontEndSubfields` event
-The event that is triggered to modify the front-end subfields for the field.
+### The `modifyNestedFieldLayout` event
+The event that is triggered to modify the nested field layout for the field.
 
 ```php
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Date;
 use yii\base\Event;
-use DateTime;
 
-Event::on(Date::class, Date::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $field = $event->field;
-
-    $defaultValue = $field->defaultValue ? $field->defaultValue : new DateTime();
-    $year = intval($defaultValue->format('Y'));
-    $minYear = $year - 10;
-    $maxYear = $year + 10;
+Event::on(Date::class, Date::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $year = ArrayHelper::firstWhere($event->fields, 'handle', 'year');
 
     $yearOptions = [];
+    $minYear = 2000;
+    $maxYear = 2050;
 
     for ($y = $minYear; $y < $maxYear; ++$y) {
         $yearOptions[] = ['value' => $y, 'label' => $y];
     }
 
-    $event->rows[0]['Y'] = [
-        'handle' => 'year',
-        'options' => $yearOptions,
-        'min' => $minYear,
-        'max' => $maxYear,
-    ];
+    // Modify the `year` field - a `SingleLineText` field.
+    $year->options = $yearOptions;
+    $year->min = $minYear;
+    $year->max = $maxYear;
 });
 ```
 
@@ -883,7 +868,7 @@ The event that is triggered to modify the Submission query that determines wheth
 
 ```php
 use verbb\formie\events\ModifyEmailFieldUniqueQueryEvent;
-use verbb\formie\fields\formfields\Email;
+use verbb\formie\fields\Email;
 use yii\base\Event;
 
 Event::on(Email::class, Email::EVENT_MODIFY_UNIQUE_QUERY, function(ModifyEmailFieldUniqueQueryEvent $event) {
@@ -904,7 +889,7 @@ The event that is triggered to modify the query for element fields, for when ren
 
 ```php
 use verbb\formie\events\ModifyElementFieldQueryEvent;
-use verbb\formie\fields\formfields\Entries;
+use verbb\formie\fields\Entries;
 use yii\base\Event;
 
 Event::on(Entries::class, Entries::EVENT_MODIFY_ELEMENT_QUERY, function(ModifyElementFieldQueryEvent $event) {
@@ -922,7 +907,7 @@ The event that is triggered to modify the HTML Purifier config.
 
 ```php
 use verbb\formie\events\ModifyPurifierConfigEvent;
-use verbb\formie\fields\formfields\Html;
+use verbb\formie\fields\Html;
 use HTMLPurifier_AttrDef_Text;
 use yii\base\Event;
 
@@ -939,37 +924,28 @@ The event that is triggered to modify the Prefix options for the field.
 
 ```php
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
-use verbb\formie\fields\formfields\Name;
+use verbb\formie\fields\subfields\NamePrefix;
 use yii\base\Event;
 
-Event::on(Name::class, Name::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $event) {
+Event::on(NamePrefix::class, NamePrefix::EVENT_MODIFY_PREFIX_OPTIONS, function(ModifyNamePrefixOptionsEvent $event) {
     $event->options[] = ['label' => Craft::t('formie', 'Mx.'), 'value' => 'mx'];
 });
 ```
 
-### The `modifyFrontEndSubfields` event
-The event that is triggered to modify the front-end subfields for the field.
+### The `modifyNestedFieldLayout` event
+The event that is triggered to modify the nested field layout for the field.
 
 ```php
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
-use verbb\formie\fields\formfields\Name;
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
+use verbb\formie\fields\Name;
 use yii\base\Event;
 
-Event::on(Name::class, Name::EVENT_MODIFY_FRONT_END_SUBFIELDS, function(ModifyFrontEndSubfieldsEvent $event) {
-    $lastName = $event->rows[0][3];
+Event::on(Name::class, Name::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(ModifyNestedFieldLayoutEvent $event) {
+    // Lookup the last name sub-field. We can no longer rely on a static order
+    $lastName = $event->fieldLayout->getFieldByHandle('lastName');
 
     // Modify the `lastName` field - a `SingleLineText` field.
-    $lastName->name = 'Surname';
-
-    $event->rows[0][3] = $lastName;
-
-    // Change the order of fields - remove them first
-    $firstName = ArrayHelper::remove($event->rows[0], 1);
-    $lastName = ArrayHelper::remove($event->rows[0], 3);
-
-    // Reverse the order
-    $event->rows[0][1] = $lastName;
-    $event->rows[0]3 = $firstName;
+    $lastName->label = 'Surname';
 });
 ```
 
@@ -1005,39 +981,6 @@ Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED
     $event->options[] = CustomOptions::class;
 });
 ```
-
-
-
-## Synced Field Events
-
-### The `beforeSaveSyncedField` event
-The event that is triggered before a synced field is saved.
-
-```php
-use verbb\formie\events\SyncedFieldEvent;
-use verbb\formie\services\Syncs;
-use yii\base\Event;
-
-Event::on(Syncs::class, Syncs::EVENT_BEFORE_SAVE_SYNCED_FIELD, function(SyncedFieldEvent $event) {
-    $field = $event->field;
-    // ...
-});
-```
-
-### The `afterSaveSyncedField` event
-The event that is triggered after a synced field is saved.
-
-```php
-use verbb\formie\events\SyncedFieldEvent;
-use verbb\formie\services\Syncs;
-use yii\base\Event;
-
-Event::on(Syncs::class, Syncs::EVENT_AFTER_SAVE_SYNCED_FIELD, function(SyncedFieldEvent $event) {
-    $field = $event->field;
-    // ...
-});
-```
-
 
 
 ## Submission Status Events

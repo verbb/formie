@@ -32,7 +32,8 @@ import { TabPanels, TabPanel } from '@vendor/vue-accessible-tabs';
 import FormBuilder from '@components/FormBuilder.vue';
 import FormKitForm from '@formkit-components/FormKitForm.vue';
 import NotificationsBuilder from '@components/NotificationsBuilder.vue';
-import ToggleBlock from '@formkit-components/ToggleBlock.vue';
+import SubFields from '@formkit-components/SubFields.vue';
+import ToggleBlock from '@formkit-components/inputs/toggle-blocks/ToggleBlock.vue';
 import TableBulkOptions from '@formkit-components/inputs/table/TableBulkOptions.vue';
 import TableCell from '@formkit-components/inputs/table/TableCell.vue';
 
@@ -155,10 +156,10 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
                 forcedAjax() {
                     // Stripe/Opayo requires Ajax to cater for 3DS payments for some cards.
-                    const allFields = this.$store.getters['form/fields'];
+                    const allFields = this.$store.getters['form/fields']();
 
                     const stripeFields = allFields.filter((field) => {
-                        return field.type === 'verbb\\formie\\fields\\formfields\\Payment' && (field.settings.paymentIntegration === 'stripe' || field.settings.paymentIntegration === 'opayo');
+                        return field.type === 'verbb\\formie\\fields\\Payment' && (field.settings.paymentIntegration === 'stripe' || field.settings.paymentIntegration === 'opayo');
                     });
 
                     return stripeFields.length;
@@ -339,6 +340,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
 
         // Define global components
         app.component('FormKitForm', FormKitForm);
+        app.component('SubFields', SubFields);
         app.component('ToggleBlock', ToggleBlock);
         app.component('TabPanel', TabPanel);
         app.component('TabPanels', TabPanels);

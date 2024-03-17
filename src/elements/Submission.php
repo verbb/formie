@@ -27,6 +27,7 @@ use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\base\FieldInterface as CraftFieldInterface;
+use craft\base\Model;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -561,9 +562,9 @@ class Submission extends CustomElement
         return $this->getFormLayout()?->getPages() ?? [];
     }
 
-    public function getRows(): array
+    public function getRows(bool $includeDisabled = true): array
     {
-        return $this->getFormLayout()?->getRows() ?? [];
+        return $this->getFormLayout()?->getRows($includeDisabled) ?? [];
     }
 
     public function getFields(): array
@@ -587,8 +588,10 @@ class Submission extends CustomElement
 
         $fieldValue = parent::getFieldValue($handle);
 
-        if (is_array($fieldValue) && $fieldKey) {
-            return ArrayHelper::getValue($fieldValue, $fieldKey);
+        if ($fieldKey) {
+            if (is_array($fieldValue) || $fieldValue instanceof Model) {
+                return ArrayHelper::getValue($fieldValue, $fieldKey);
+            }
         }
 
         return $fieldValue;

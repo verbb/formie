@@ -357,7 +357,7 @@ class ImportExportHelper
                             // This will throw an error for Commerce, where the extended class doesn't exist.
                             // Which unfortunately means we can't use `class_exists()` because it's the extended
                             // class that doesn't exist, and that can't be caught for some reason.
-                            if (in_array($type, [formfields\Products::class, formfields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
+                            if (in_array($type, [fields\Products::class, fields\Variants::class]) && !Plugin::isPluginInstalledAndEnabled('commerce')) {
                                 unset($row['fields'][$fieldKey]);
                             } else if (!class_exists($type)) {
                                 // Check if the class doesn't exist

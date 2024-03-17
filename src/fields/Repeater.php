@@ -170,7 +170,7 @@ class Repeater extends MultiNestedField
         ];
     }
 
-    public function getContentGqlMutationArgumentType(): array|Type
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         return RepeaterInputType::getType($this);
     }

@@ -1,16 +1,26 @@
-{% fieldtag 'subFieldRows' %}
-    {% for row in field.getFrontEndSubFields(_context) %}
-        {% fieldtag 'subFieldRow' %}
-            {% for subField in row %}
-                {% set dateValue = null %}
-                {% set char = field.getFormattingChar(subField.handle) %}
+ {# Keep track of the outer field #}
+{% set dateField = field %}
 
-                {% if subField.handle != 'ampm' %}
-                    {% set dateValue = value ? (value | date(char, false) * 1) : null %}
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getRows(false) %}
+        {% fieldtag 'subFieldRow' %}
+            {% for field in row.getFields(false) %}
+                {# Update the namespace for the field #}
+                {% do field.setParentField(dateField) %}
+
+                {# Format the DateTime according to what this field needs #}
+                {% set char = dateField.getFormattingChar(field.handle) %}
+                {% set dateValue = value ? (value | date(char, false)) : null %}
+
+                {# Cast the value properly to remove and zero padding #}
+                {% if field.handle != 'ampm' and dateValue %}
+                    {% set dateValue = dateValue * 1 %}
                 {% endif %}
 
-                {{ craft.formie.renderField(form, subField, {
-                    element: submission ?? element ?? null,
+                {# Be sure to normalize it for the sub-field #}
+                {% set dateValue = field.normalizeValue(dateValue, null) %}
+
+                {{ craft.formie.renderField(form, field, {
                     value: dateValue ?? null,
                 }) }}
             {% endfor %}

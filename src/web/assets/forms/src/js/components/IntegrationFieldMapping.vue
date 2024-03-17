@@ -153,7 +153,7 @@ export default {
         },
 
         getFieldOptions(providerOptions) {
-            const fields = this.$store.getters['form/fields'];
+            const fields = this.$store.getters['form/getIntegrationFieldSelectOptions']();
 
             const options = [];
 
@@ -170,54 +170,9 @@ export default {
                 ],
             });
 
-            const customFields = [];
-
-            fields.forEach((field) => {
-                // Exclude cosmetic fields (with no value)
-                if (field.isCosmetic) {
-                    return;
-                }
-
-                // If this field is nested itself, don't show. The outer field takes care of that below
-                if (!toBoolean(field.isNested)) {
-                    // Don't show a nested field on its own
-                    customFields.push({ label: truncate(field.settings.label, { length: 60 }), value: `{field:${field.settings.handle}}` });
-
-                    if (field.subFieldOptions && field.hasSubFields) {
-                        field.subFieldOptions.forEach((subField) => {
-                            customFields.push({
-                                label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                value: `{field:${field.settings.handle}.${subField.handle}}`,
-                            });
-                        });
-                    }
-
-                    // Is this a repeater or field that supports nesting?
-                    if (toBoolean(field.hasNestedFields) && field.settings.rows) {
-                        field.settings.rows.forEach((row) => {
-                            row.fields.forEach((nestedField) => {
-                                customFields.push({
-                                    label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}`,
-                                    value: `{field:${field.settings.handle}.${nestedField.settings.handle}}`,
-                                });
-
-                                if (nestedField.subFieldOptions && nestedField.hasSubFields) {
-                                    nestedField.subFieldOptions.forEach((subField) => {
-                                        customFields.push({
-                                            label: `${truncate(field.settings.label, { length: 60 })}: ${truncate(nestedField.settings.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                            value: `{field:${field.settings.handle}.${nestedField.settings.handle}.${subField.handle}}`,
-                                        });
-                                    });
-                                }
-                            });
-                        });
-                    }
-                }
-            });
-
             options.push({
                 label: Craft.t('formie', 'Fields'),
-                options: customFields,
+                options: fields,
             });
 
             return options;

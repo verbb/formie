@@ -70,8 +70,18 @@ class FieldLayoutRow extends SavableComponent
         return $this->_page = Formie::$plugin->getFields()->getPageById($this->pageId);
     }
 
-    public function getFields(): array
+    public function getFields(bool $includeDisabled = true): array
     {
+        if ($includeDisabled) {
+            return $this->_fields;
+        }
+
+        foreach ($this->_fields as $fieldKey => $field) {
+            if ($field->visibility === 'disabled' || !$field->enabled) {
+                unset($this->_fields[$fieldKey]);
+            }
+        }
+
         return $this->_fields;
     }
 
@@ -82,8 +92,21 @@ class FieldLayoutRow extends SavableComponent
         $fieldsService = Formie::$plugin->getFields();
 
         foreach ($fields as $field) {
-            $this->_fields[] = $fieldsService->createField($field);
+            $this->_fields[] = $field instanceof FieldInterface ? $field : $fieldsService->createField($field);
         }
+    }
+
+    public function getFieldByHandle(string $handle): ?FieldInterface
+    {
+        $foundField = null;
+
+        foreach ($this->getFields() as $field) {
+            if ($field->handle === $handle) {
+                $foundField = $field;
+            }
+        }
+
+        return $foundField;
     }
 
     public function getCustomFields(): array

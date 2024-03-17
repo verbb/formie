@@ -168,11 +168,17 @@ class CustomElement extends Element
             if ($field::dbType() !== null) {
                 $serializedValue = $field->serializeValue($this->getFieldValue($field->handle), $this);
                 
-                if ($serializedValue !== null) {
-                    $content[$field->uid] = $serializedValue;
-                }
+                $content[$field->uid] = $serializedValue;
             }
         }
+
+        // Recursively filter any null values
+        $content = ArrayHelper::filterNull($content);
+
+        // Cleanup any empty arrays as a result
+        $content = ArrayHelper::recursiveFilter($content, function($value): bool {
+            return $value !== [];
+        });
 
         return $content;
     }

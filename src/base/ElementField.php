@@ -23,7 +23,6 @@ use craft\base\InlineEditableFieldInterface;
 use craft\base\NestedElementInterface;
 use craft\behaviors\EventBehavior;
 use craft\db\Query;
-use craft\db\Table as DbTable;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
 use craft\elements\ElementCollection;
@@ -84,6 +83,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
     public string|array|null $sources = '*';
     public ?string $source = null;
     public bool $allowMultipleSources = true;
+    public bool $limit = false;
     public ?string $limitOptions = null;
     public string $displayType = 'dropdown';
     public string $labelSource = 'title';
@@ -124,9 +124,10 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public function getFormBuilderConfig(): array
     {
-        $settings = parent::getFormBuilderConfig();
+        $config = parent::getFormBuilderConfig();
+        $config['isElementField'] = true;
 
-        return $this->modifyFieldSettings($settings);
+        return $this->modifyFieldSettings($config);
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
@@ -532,7 +533,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
         ]);
     }
 
-    public function getContentGqlMutationArgumentType(): Type|array
+    public function getContentGqlMutationArgument(): Type|array|null
     {
         return [
             'name' => $this->handle,

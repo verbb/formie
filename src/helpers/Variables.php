@@ -336,7 +336,7 @@ class Variables
 
         $prefix = 'field.';
 
-        if ($field instanceof formfields\Date) {
+        if ($field instanceof fields\Date) {
             // Generate additional values
             if ($field->displayType !== 'calendar') {
                 $props = [
@@ -360,12 +360,17 @@ class Variables
                 }
             }
         } else if ($field instanceof SubFieldInterface && $field->hasSubFields()) {
-            foreach ($field->getSubFieldOptions() as $subField) {
-                $handle = "{$prefix}{$field->handle}.{$subField['handle']}";
+            foreach ($field->getFields() as $subField) {
+                $submissionValue = $submission->getFieldValue("$field->handle.$subField->handle");
+                $fieldValues = self::_getParsedFieldValue($subField, $submissionValue, $submission, $notification);
 
-                $values[$handle] = $submissionValue[$subField['handle']] ?? '';
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
+
+                    $values[$handle] = $fieldValue;
+                }
             }
-        } else if ($field instanceof formfields\Group) {
+        } else if ($field instanceof fields\Group) {
             foreach ($field->getFields() as $nestedField) {
                 $submissionValue = $submission->getFieldValue("$field->handle.$nestedField->handle");
                 $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
@@ -376,7 +381,7 @@ class Variables
                     $values[$handle] = $fieldValue;
                 }
             }
-        } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
+        } else if ($field instanceof fields\MultiLineText && !$field->useRichText) {
             $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
         }
 
@@ -384,11 +389,11 @@ class Variables
         // Also good for performance rendering only when we need to here.
         if (
             $field instanceof ElementFieldInterface || 
-            $field instanceof formfields\Table || 
-            ($field instanceof formfields\MultiLineText && $field->useRichText) || 
-            $field instanceof formfields\Repeater || 
-            $field instanceof formfields\Signature || 
-            $field instanceof formfields\Payment
+            $field instanceof fields\Table || 
+            ($field instanceof fields\MultiLineText && $field->useRichText) || 
+            $field instanceof fields\Repeater || 
+            $field instanceof fields\Signature || 
+            $field instanceof fields\Payment
         ) {
             // There are some circumstances where we're rendering email content, but not for an email. 
             // Slack integration rich text is one of them, there are likely more.

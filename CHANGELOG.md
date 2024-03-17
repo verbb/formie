@@ -1,5 +1,38 @@
 # Changelog
 
+## 3.0.0-beta.4 - 
+
+### Breaking Changes
+- Change Field’s `name` to `label` for GraphQL queries.
+- Change Page’s `name` to `label` for GraphQL queries.
+
+### Added
+- Added new user interface for sub-field (Address, Date, and Name).
+- Added the ability to re-order sub-fields.
+- Added the ability to edit the full settings of sub-field fields.
+- Added the `Field::enabled` property to allow you to disable a field.
+- Added new `verbb\formie\fields\subfields` classes to better handle sub-field inner fields.
+- Added `NestedField::EVENT_MODIFY_NESTED_FIELD_LAYOUT` to modify the field layout of Nested or Sub-Fields.
+
+### Changed
+- Sub-fields now extend from the `verbb\formie\base\SingleNestedField` and inherit many behaviours from Group fields.
+- Phone fields are no longer `verbb\formie\base\SubField` fields.
+- Sub-field fields now store their field config in their own row in the `formie_fields` database table, under their own layout.
+- Update GraphQL interfaces for all fields to explicitly define fields to query.
+
+### Fixed
+- Fixed submission values not being fetched correctly for Name, Address and Phone fields.
+- Fixed an issue where Dropdown fields were having their default options being overridden.
+- Fixed missing fields not showing the correct error in the form builder.
+- Fixed breadcrumb display when editing a submission in the control panel.
+- Fixed an error when uninstalling
+- Fixed FormKit table input with multiple same name fields.
+- Fixed `ModifyFrontEndSubFieldsEvent` case insensitivity.
+- Fixed content migration from Formie 2 not respecting always JSON columns, proving an issue for MariaDB installs.
+
+### Removed
+- Removed `verbb\formie\eventsModifyFrontEndSubFieldsEvent`.
+
 ## 3.0.0-beta.3 - 2024-03-06
 
 ### Breaking Changes
@@ -130,6 +163,8 @@
 - Removed `Categories:productsQuery` variable for Product element field templates.
 - Removed `Categories:usersQuery` variable for User element field templates.
 - Removed `Categories:variantsQuery` variable for Variant element field templates.
+- Removed `Syncs::EVENT_BEFORE_SAVE_SYNCED_FIELD` event
+- Removed `Syncs::EVENT_AFTER_SAVE_SYNCED_FIELD` event
 
 ### Deprecated
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.

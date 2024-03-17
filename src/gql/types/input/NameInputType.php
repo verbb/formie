@@ -16,6 +16,10 @@ class NameInputType extends InputObjectType
 
     public static function getType(NameField $context): mixed
     {
+        if (!$context->getForm()) {
+            return null;
+        }
+        
         /** @var NameField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieNameInput';
 
@@ -26,16 +30,11 @@ class NameInputType extends InputObjectType
         $fields = [];
 
         if ($context->useMultipleFields) {
-            $subFields = ['prefix', 'firstName', 'middleName', 'lastName'];
-
-            foreach ($subFields as $subField) {
-                $required = $subField . 'Required';
-                $enabled = $subField . 'Enabled';
-
-                if ($context->{$enabled}) {
-                    $fields[$subField] = [
-                        'name' => $subField,
-                        'type' => $context->{$required} ? Type::nonNull(Type::string()) : Type::string(),
+            foreach ($context->getFields() as $subField) {
+                if ($subField->enabled) {
+                    $fields[$subField->handle] = [
+                        'name' => $subField->handle,
+                        'type' => $subField->required ? Type::nonNull(Type::string()) : Type::string(),
                     ];
                 }
             }

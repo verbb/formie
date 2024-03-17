@@ -7,6 +7,7 @@ use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\events\ModifyNestedFieldLayoutEvent;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutRow;
 
@@ -17,7 +18,6 @@ use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\db\Query;
 use craft\db\QueryParam;
-use craft\db\Table;
 use craft\elements\ElementCollection;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
@@ -33,6 +33,12 @@ use GraphQL\Type\Definition\Type;
 
 abstract class NestedField extends Field implements NestedFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_NESTED_FIELD_LAYOUT = 'modifyNestedFieldLayout';
+
+
     // Static Methods
     // =========================================================================
 
@@ -104,9 +110,9 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $settings;
     }
 
-    public function getRows(): array
+    public function getRows(bool $includeDisabled = true): array
     {
-        return $this->getFieldLayout()->getRows();
+        return $this->getFieldLayout()->getRows($includeDisabled);
     }
 
     public function setRows(array $rows): void
@@ -119,12 +125,12 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $this->getFieldLayout()->getPages()[0]->setRows($rows);
     }
 
-    public function getFields(): array
+    public function getFields(bool $includeDisabled = true): array
     {
         $fields = [];
 
-        foreach ($this->getRows() as $row) {
-            foreach ($row->getFields() as $field) {
+        foreach ($this->getRows($includeDisabled) as $row) {
+            foreach ($row->getFields($includeDisabled) as $field) {
                 $fields[] = $field;
             }
         }
@@ -168,7 +174,14 @@ abstract class NestedField extends Field implements NestedFieldInterface
             $field->setParentField($this);
         }
 
-        return $this->_fieldLayout;
+        // Allow plugins to modify the field layout
+        $event = new ModifyNestedFieldLayoutEvent([
+            'fieldLayout' => $this->_fieldLayout,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_NESTED_FIELD_LAYOUT, $event);
+
+        return $this->_fieldLayout = $event->fieldLayout;
     }
 
     public function setFieldLayout(FieldLayout $fieldLayout): void

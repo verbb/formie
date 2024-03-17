@@ -91,65 +91,18 @@ export default {
 
     methods: {
         fieldSelectOptions() {
+            const includedTypes = this.context.attrs.fieldTypes || [];
+            const excludedFields = [this.field.__id];
+
+            const fields = this.$store.getters['form/getFieldSelectOptions']({
+                excludedFields,
+                includedTypes,
+            });
+
             const options = [
                 { label: this.t('formie', 'Select an option'), value: '' },
+                ...fields,
             ];
-
-            const allFields = this.$store.getters['form/fields'];
-
-            const excludeSelf = true;
-            const fieldTypes = this.context.attrs.fieldTypes || [];
-
-            allFields.forEach((field) => {
-                if (fieldTypes.length && !fieldTypes.includes(field.type)) {
-                    return;
-                }
-
-                if (excludeSelf && this.field && (this.field.handle === field.handle)) {
-                    return;
-                }
-
-                // Exclude cosmetic fields (with no value)
-                if (field.isCosmetic) {
-                    return;
-                }
-
-                // If this field is nested itself, don't show. The outer field takes care of that below
-                if (!toBoolean(field.isNested)) {
-                    // Don't show a nested field on its own
-                    options.push({ label: truncate(field.label, { length: 60 }), value: `{${field.handle}}` });
-
-                    if (field.subFieldOptions && field.hasSubFields) {
-                        field.subFieldOptions.forEach((subField) => {
-                            options.push({
-                                label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                value: `{${field.handle}[${subField.handle}]}`,
-                            });
-                        });
-                    }
-
-                    // Is this a repeater or field that supports nesting?
-                    if (toBoolean(field.hasNestedFields) && field.rows) {
-                        field.rows.forEach((row) => {
-                            row.fields.forEach((subField) => {
-                                options.push({
-                                    label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}`,
-                                    value: `{${field.handle}[${subField.handle}]}`,
-                                });
-
-                                if (subField.subFieldOptions && subField.hasSubFields) {
-                                    subField.subFieldOptions.forEach((subsubField) => {
-                                        options.push({
-                                            label: `${truncate(field.label, { length: 60 })}: ${truncate(subField.label, { length: 60 })}: ${truncate(subsubField.label, { length: 60 })}`,
-                                            value: `{${field.handle}[${subField.handle}[${subsubField.handle}]]}`,
-                                        });
-                                    });
-                                }
-                            });
-                        });
-                    }
-                }
-            });
 
             return options;
         },

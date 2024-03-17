@@ -79,13 +79,13 @@ export class FormieCalculations {
             // they're a list of a single element. Radio fields are special though.
             $targets.forEach(($target) => {
                 // Handle some fields differently and check for type-casting
-                if (type === 'verbb\\formie\\fields\\formfields\\Number') {
+                if (type === 'verbb\\formie\\fields\\Number') {
                     variables[variableKey] = Number($target.value);
-                } else if (type === 'verbb\\formie\\fields\\formfields\\Radio') {
+                } else if (type === 'verbb\\formie\\fields\\Radio') {
                     if ($target.checked) {
                         variables[variableKey] = $target.value;
                     }
-                } else if (type === 'verbb\\formie\\fields\\formfields\\Checkboxes') {
+                } else if (type === 'verbb\\formie\\fields\\Checkboxes') {
                     if ($target.checked) {
                         if (!Array.isArray(variables[variableKey])) {
                             variables[variableKey] = [];
