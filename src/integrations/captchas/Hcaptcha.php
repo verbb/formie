@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\App;
@@ -48,7 +49,7 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml(Form|Stencil $form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_form-settings', [
             'integration' => $this,

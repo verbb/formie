@@ -5,6 +5,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\Stencil;
 
 use Craft;
 
@@ -48,7 +49,7 @@ abstract class Captcha extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/captchas/{$handle}.svg");
     }
 
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml(Form|Stencil $form): string
     {
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
             'integration' => $this,

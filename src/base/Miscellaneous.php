@@ -5,6 +5,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\Stencil;
 
 use Craft;
 use craft\helpers\Html;
@@ -54,7 +55,7 @@ abstract class Miscellaneous extends Integration
         ]);
     }
 
-    public function getFormSettingsHtml(Form $form): string
+    public function getFormSettingsHtml(Form|Stencil $form): string
     {
         $handle = $this->getClassHandle();
 
