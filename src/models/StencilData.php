@@ -1,13 +1,96 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\NestedField;
+use verbb\formie\elements\Form;
+use verbb\formie\models\FieldLayout;
+use verbb\formie\models\Notification;
+
 use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
+
 use DateTime;
 
 class StencilData extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function getSerializedNotifications(array $notifications): array
+    {
+        foreach ($notifications as $key => $notification) {
+            if ($notification instanceof Notification) {
+                $notification = $notification->toArray();
+            }
+
+            unset($notification['id']);
+            unset($notification['formId']);
+            unset($notification['uid']);
+
+            $notifications[$key] = $notification;
+        }
+
+        return $notifications;
+    }
+
+    public static function getSerializedFormSettings(array $settings): array
+    {
+        $integrations = $settings['integrations'] ?? [];
+
+        $settings['integrations'] = array_filter($integrations, function($integration) {
+            return isset($integration['enabled']) && $integration['enabled'];
+        });
+
+        return $settings;
+    }
+
+    public static function getSerializedLayout(FieldLayout $layout): array
+    {
+        $layoutData = [];
+
+        $serializeRows = function($rows) use (&$serializeRows) {
+            $pageData = [];
+
+            foreach ($rows as $rowKey => $row) {
+                $rowData = [];
+
+                foreach ($row->getFields() as $fieldKey => $field) {
+                    $settings = $field->getSettings();
+                    $settings['label'] = $field->label;
+                    $settings['handle'] = $field->handle;
+
+                    if ($field instanceof NestedField) {
+                        $settings['rows'] = $serializeRows($field->getRows());
+                    }
+
+                    $rowData['fields'][] = [
+                        'type' => get_class($field),
+                        'settings' => $settings,
+                    ];
+                }
+
+                $pageData[] = $rowData;
+            }
+
+            return $pageData;
+        };
+
+        foreach ($layout->getPages() as $pageKey => $page) {
+            $pageData = [
+                'label' => $page->label,
+                'settings' => $page->getPageSettings()?->toArray(),
+            ];
+
+            $pageData['rows'] = $serializeRows($page->getRows());
+
+            $layoutData[] = $pageData;
+        }
+
+        return $layoutData;
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -58,24 +141,21 @@ class StencilData extends Model
             $settings = Json::decodeIfJson($this->settings);
             $this->settings = new FormSettings($settings);
         }
+    }
 
-        if (empty($this->pages)) {
-            $this->pages = [
-                [
-                    'id' => 'new' . mt_rand(),
-                    'label' => Craft::t('formie', 'Page 1'),
-                    'sortOrder' => 0,
-                    'rows' => [],
-                ],
-            ];
-        }
+    public function populateFormData(Form $form): void
+    {
+        $notifications = $form->getNotifications();
+        $layout = $form->getFormLayout();
+        $settings = $form->getSettings()->toArray();
 
-        // Ensure all pages have a rows array as project config strips
-        // out empty arrays.
-        foreach ($this->pages as &$page) {
-            if (empty($page['rows'])) {
-                $page['rows'] = [];
-            }
-        }
+        // Serialize the form settings
+        $this->settings = static::getSerializedFormSettings($settings);
+
+        // Serialize the notifications
+        $this->notifications = static::getSerializedNotifications($notifications);
+
+        // Serialize the form layout
+        $this->pages = static::getSerializedLayout($layout);
     }
 }

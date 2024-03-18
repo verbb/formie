@@ -94,13 +94,21 @@ class Stencil extends Model
 
     public function getSettings(): FormSettings
     {
-        return $this->data->settings;
+        $settings = $this->data->settings;
+
+        if (is_array($settings)) {
+            $settings = new FormSettings($settings);
+        }
+
+        return $settings;
     }
 
     public function setSettings(FormSettings|array|string $settings): void
     {
         if ($settings instanceof FormSettings) {
             $this->data->settings = $settings;
+        } else if (is_array($settings)) {
+            $this->data->settings = new FormSettings($settings);
         } else {
             $settings = Json::decodeIfJson($settings);
             $this->data->settings = new FormSettings($settings);
@@ -139,41 +147,6 @@ class Stencil extends Model
     public function getConfig(): array
     {
         $data = $this->data->getAttributes();
-        $data['settings'] = $data['settings']->getAttributes();
-
-        // It's important to not store actual IDs in stencil data. Ensure they're marked as 'new'
-        // for pages, rows and fields.
-        $pages = $data['pages'] ?? [];
-
-        foreach ($pages as $pageKey => $page) {
-            $pageId = $page['id'] ?? '';
-
-            if (!str_starts_with($pageId, 'new')) {
-                $pages[$pageKey]['id'] = 'new' . mt_rand();
-            }
-
-            $rows = $page['rows'] ?? [];
-
-            foreach ($rows as $rowKey => $row) {
-                $rowId = $row['id'] ?? '';
-
-                if (!str_starts_with($rowId, 'new')) {
-                    $pages[$pageKey]['rows'][$rowKey]['id'] = 'new' . mt_rand();
-                }
-
-                $fields = $row['fields'] ?? [];
-
-                foreach ($fields as $fieldKey => $field) {
-                    $fieldId = $field['id'] ?? '';
-
-                    if (!str_starts_with($fieldId, 'new')) {
-                        $pages[$pageKey]['rows'][$rowKey]['fields'][$fieldKey]['id'] = 'new' . mt_rand();
-                    }
-                }
-            }
-        }
-
-        $data['pages'] = $pages;
 
         return [
             'name' => $this->name,

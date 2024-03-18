@@ -303,7 +303,7 @@ class Stencils extends Component
         $form->setTemplate($stencil->getTemplate());
         $form->setDefaultStatus($stencil->getDefaultStatus());
 
-        $form->setFieldLayout(new FieldLayout(['pages' => $stencil->data->pages]));
+        $form->setFormLayout(new FieldLayout(['pages' => $stencil->data->pages]));
 
         $form->setNotifications($stencil->getNotifications());
     }

@@ -34,7 +34,6 @@ class FieldLayout extends SavableComponent
 
     public function __construct(mixed $config = [])
     {
-
         // Otherwise, we should always set defaults on a form's field layout
         if (!isset($config['pages'])) {
             $config['pages'] = [

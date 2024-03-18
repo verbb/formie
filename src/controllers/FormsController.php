@@ -206,12 +206,8 @@ class FormsController extends Controller
             $stencil->setDefaultStatus($status);
         }
 
-        $settings = $this->request->getParam('settings');
-        $pages = Json::decode($this->request->getParam('pages'));
-        $notifications = Json::decode($this->request->getParam('notifications'));
-
         // Set form data.
-        $stencil->data = new StencilData(compact('settings', 'pages', 'notifications'));
+        $stencil->data = new StencilData();
         $stencil->data->userDeletedAction = $this->request->getParam('userDeletedAction', $stencil->data->userDeletedAction);
         $stencil->data->fileUploadsAction = $this->request->getParam('fileUploadsAction', $stencil->data->fileUploadsAction);
         $stencil->data->dataRetention = $this->request->getParam('dataRetention', $stencil->data->dataRetention);
@@ -219,6 +215,9 @@ class FormsController extends Controller
 
         // Build temp form for validation.
         $form = Formie::$plugin->getForms()->buildFormFromPost();
+
+        // Populate the stencil data with data prepped for the form
+        $stencil->data->populateFormData($form);
 
         // Don't validate the handle.
         $form->handle .= random_int(0, mt_getrandmax());
