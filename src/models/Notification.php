@@ -60,6 +60,14 @@ class Notification extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Normalize the options
+        unset($config['attachAssetsHtml']);
+
+        parent::__construct($config);
+    }
+
     public function __toString()
     {
         return (string)$this->name;
