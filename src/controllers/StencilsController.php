@@ -32,6 +32,11 @@ class StencilsController extends Controller
     {
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
 
+        // Sort stencils by name
+        usort($stencils, function($a, $b) {
+            return strcmp($a->name, $b->name);
+        });
+
         return $this->renderTemplate('formie/settings/stencils', compact('stencils'));
     }
 
