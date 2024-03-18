@@ -689,6 +689,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             $this->dropColumn(Table::FORMIE_FORMS, 'fieldLayoutId');
         }
 
+        if ($this->db->columnExists(Table::FORMIE_FORMS, 'fieldContentTable')) {
+            $this->dropColumn(Table::FORMIE_FORMS, 'fieldContentTable');
+        }
+
         if ($this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'title')) {
             $this->dropColumn(Table::FORMIE_SUBMISSIONS, 'title');
         }

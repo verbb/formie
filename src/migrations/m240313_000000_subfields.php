@@ -4,7 +4,6 @@ namespace verbb\formie\migrations;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
-use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\subfields;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -119,6 +118,10 @@ class m240313_000000_subfields extends Migration
 
         return false;
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private function _getFieldLayout(array $settings): FieldLayout
     {
@@ -313,7 +316,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => SingleLineText::class,
+                        'type' => fields\SingleLineText::class,
                         'label' => $settings['dateLabel'] ?? Craft::t('formie', 'Date'),
                         'handle' => 'date',
                         'required' => $settings['required'] ?? false,
@@ -333,7 +336,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => SingleLineText::class,
+                        'type' => fields\SingleLineText::class,
                         'label' => $settings['timeLabel'] ?? Craft::t('formie', 'Time'),
                         'handle' => 'time',
                         'required' => $settings['required'] ?? false,
