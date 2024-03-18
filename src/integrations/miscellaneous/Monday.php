@@ -130,21 +130,17 @@ class Monday extends Miscellaneous
                 return false;
             }
 
+            $boardId = (int)$boardId;
+            $groupId = Json::encode($groupId);
+            $itemName = Json::encode(ArrayHelper::remove($boardValues, 'name:name'));
+            $columns = Json::encode($this->_prepColumns($boardValues));
+
             $itemPayload = [
-                'query' => '
-                    mutation CreateItemMutation($boardId: ID!, $groupId: String, $itemName: String!, $columns: JSON) {
-                        create_item(board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columns) {
-                            id
-                        }
+                'query' => "mutation {
+                    create_item(board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columns) {
+                        id
                     }
-                ',
-                'operationName' => 'CreateItemMutation',
-                'variables' => [
-                    'boardId' => (int)$boardId,
-                    'groupId' => $groupId,
-                    'itemName' => ArrayHelper::remove($boardValues, 'name:name'),
-                    'columns' => $this->_prepColumns($boardValues),
-                ],
+                }",
             ];
 
             $response = $this->deliverPayload($submission, '/', $itemPayload);
