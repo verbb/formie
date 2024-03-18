@@ -87,6 +87,7 @@ class Phone extends Field implements PreviewableFieldInterface
             $config['subFieldLabelPosition'],
             $config['countryCollapsed'],
             $config['countryShowDialCode'],
+            $config['countryRestrict'],
         );
 
         parent::__construct($config);
