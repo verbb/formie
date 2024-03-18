@@ -650,9 +650,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $settings['syncId'] = $this->syncId;
         $settings['label'] = $this->label;
         $settings['handle'] = $this->handle;
-        $settings['required'] = $this->required;
-        $settings['instructions'] = $this->instructions;
-        $settings['enabled'] = $this->enabled;
+        $settings['sortOrder'] = $this->sortOrder;
 
         return $settings;
     }
