@@ -354,6 +354,16 @@ class Form extends Element
         return true;
     }
 
+    public function getConsolidatedErrors()
+    {
+        $errors = [
+            $this->getErrors(),
+            $this->_findErrors($this->getFormBuilderConfig()),
+        ];
+
+        return array_values(ArrayHelper::recursiveFilter(array_merge(...$errors)));
+    }
+
     public function getSettings(): ?FormSettings
     {
         return $this->settings;
@@ -2139,5 +2149,20 @@ class Form extends Element
         }
 
         return [];
+    }
+
+    private function _findErrors($array, &$errors = [])
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $this->_findErrors($value, $errors);
+            }
+
+            if ($key === 'errors') {
+                $errors[] = $value;
+            }
+        }
+
+        return $errors;
     }
 }

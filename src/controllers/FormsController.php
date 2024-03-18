@@ -125,6 +125,8 @@ class FormsController extends Controller
             $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
 
             if (!$duplicatedForm) {
+                Formie::error('Couldn’t duplicate form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]);
+
                 // Important not to return back the duplicated form (which failed to be created). Use the original form.
                 if ($this->request->getAcceptsJson()) {
                     return $this->asJson([
@@ -144,6 +146,8 @@ class FormsController extends Controller
             }
         } else {
             if (!Craft::$app->getElements()->saveElement($form)) {
+                Formie::error('Couldn’t save form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]);
+
                 if ($this->request->getAcceptsJson()) {
                     return $this->asJson([
                         'success' => false,
