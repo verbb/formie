@@ -77,6 +77,11 @@ class MicrosoftDynamics365 extends Crm
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle()
+    {
+        return 'microsoft-dynamics-365';
+    }
+
     public function getClientId(): string
     {
         return App::parseEnv($this->clientId);

@@ -48,6 +48,11 @@ class Agile extends Crm
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle()
+    {
+        return 'agile-crm';
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your Agile customers by providing important information on their conversion on your site.');
