@@ -114,7 +114,7 @@ class Section extends FormField
     public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
-        $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
+        $this->handle = StringHelper::appendUniqueIdentifier('sectionHandle');
     }
 
     /**

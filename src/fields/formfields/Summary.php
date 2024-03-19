@@ -110,7 +110,7 @@ class Summary extends FormField
     public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
-        $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
+        $this->handle = StringHelper::appendUniqueIdentifier('summaryHandle');
     }
 
     public function defineGeneralSchema(): array
