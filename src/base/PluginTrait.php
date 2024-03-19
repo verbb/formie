@@ -75,8 +75,11 @@ trait PluginTrait
         // and destination message is the same, because it will translate to the `sourceLanguage` - `en-US`.
         // This isn't an issue for other plugins, but we use the `formie` translation category to translate user-created content
         // not just plugin-created content, which is always going to be written in English.
-        if ($currentSite = Craft::$app->getSites()->getCurrentSite()) {
-            $config['sourceLanguage'] = $currentSite->language;
+        // Also, only do this for the front-end, so that the users' language preference is respected in the CP
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            if ($currentSite = Craft::$app->getSites()->getCurrentSite()) {
+                $config['sourceLanguage'] = $currentSite->language;
+            }
         }
 
         return parent::__construct($id, $parent , $config);
