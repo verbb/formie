@@ -57,6 +57,7 @@ export default {
     data() {
         return {
             id: this.$id('modal'),
+
             focusTrapOptions: {
                 allowOutsideClick: true,
             },
