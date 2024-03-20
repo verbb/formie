@@ -504,10 +504,9 @@ class HubSpot extends Crm
 
         foreach ($fields as $key => $field) {
             $readOnlyValue = $field['modificationMetadata']['readOnlyValue'] ?? false;
-            $hidden = $field['hidden'] ?? false;
             $calculated = $field['calculated'] ?? false;
 
-            if ($readOnlyValue || $hidden || $calculated) {
+            if ($readOnlyValue || $calculated) {
                 continue;
             }
 
