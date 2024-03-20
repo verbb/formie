@@ -124,11 +124,11 @@ Old Class | New Class
 --- | ---
 | `verbb\formie\base\FormField` | `verbb\formie\base\Field`
 | `verbb\formie\base\FormFieldInterface` | `verbb\formie\base\FieldInterface`
-| `verbb\formie\base\FormFieldTrait` | Removed
-| `verbb\formie\base\NestedFieldTrait` | Removed
-| `verbb\formie\base\RelationFieldTrait` | Removed
+| `verbb\formie\base\FormFieldTrait` | Removed. Use `verbb\formie\base\Field`
+| `verbb\formie\base\NestedFieldTrait` | Removed. `verbb\formie\base\NestedField`
+| `verbb\formie\base\RelationFieldTrait` | Removed. `verbb\formie\base\ElementField`
 | `verbb\formie\base\SubfieldInterface` | `verbb\formie\base\SubFieldInterface`
-| `verbb\formie\base\SubfieldTrait` | Removed
+| `verbb\formie\base\SubfieldTrait` | Removed. `verbb\formie\base\SubField`
 | `verbb\formie\fields\formfields\Address` | `verbb\formie\fields\Address`
 | `verbb\formie\fields\formfields\Agree` | `verbb\formie\fields\Agree`
 | `verbb\formie\fields\formfields\Calculations` | `verbb\formie\fields\Calculations`
@@ -310,7 +310,7 @@ Under the hood, a `verbb\formie\base\SubField` extends the `verbb\formie\base\Si
 
 All sub-fields are migrated over to this new implementation. If you have custom sub-field's, you'll need to review your implementation to follow the updated behaviour.
 
-As field settings now exist in their respective sub-field classes, we have removed many properties.
+As field settings now exist in their respective sub-field classes and fields, we have removed many properties.
 
 ### Address Fields
 - `autocompleteIntegration`
@@ -449,6 +449,25 @@ As field settings now exist in their respective sub-field classes, we have remov
 ### Phone Fields
 - `countryCollapsed`
 - `countryShowDialCode`
+
+### Example
+If you wish to access the sub-field settings, you'll need to access the sub-field first. For example, if you were in the context of a field class:
+
+```php
+// Formie v2
+$firstNameEnabled = $this->firstNameEnabled;
+
+if ($firstNameEnabled) {
+    $label = $this->firstNameLabel;
+}
+
+// Formie v3
+$firstName = $this->getFieldByHandle('firstName');
+
+if ($firstName && $firstName->enabled) {
+    $label = $firstName->label;
+}
+```
 
 ## Content Tables
 Inline with Craft's own improvement of removing the content database table and the about Field/Field Layout changes, Formie now no longer stores submission content in a `fmc_*` database table. Instead, it's a single `content` JSON column in your `formie_submissions` database table. This not only has performance benefits, but makes it easy to view your content directly from the database.
