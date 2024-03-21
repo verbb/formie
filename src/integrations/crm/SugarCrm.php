@@ -438,6 +438,7 @@ class SugarCrm extends Crm
         $supportedFields = [
             'text',
             'varchar',
+            'enum',
             'phone',
             'exact',
             'email',
