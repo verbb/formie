@@ -52,25 +52,23 @@ trait FormFieldTrait
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
+    public static function className(): string
+    {
+        $classNameParts = explode('\\', static::class);
+
+        return array_pop($classNameParts);
+    }
+
     public static function getFrontEndInputTemplatePath(): string
     {
         return 'fields/' . static::_getKebabName();
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getEmailTemplatePath(): string
     {
         return 'fields/' . static::_getKebabName();
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIcon(): string
     {
         if (static::getSvgIconPath()) {
@@ -80,17 +78,11 @@ trait FormFieldTrait
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return '';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getRequiredPlugins(): array
     {
         return [];

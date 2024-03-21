@@ -68,9 +68,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
+    public static function className(): string
+    {
+        $classNameParts = explode('\\', static::class);
+
+        return array_pop($classNameParts);
+    }
+
     public static function isSelectable(): bool
     {
         return false;

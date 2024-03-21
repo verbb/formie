@@ -75,7 +75,7 @@ class Html extends CraftHtmlHelper
 
     public static function getFieldClassKey($class): string
     {
-        return StringHelper::toCamelCase(StringHelper::toKebabCase($class::displayName()));
+        return StringHelper::toCamelCase(StringHelper::toKebabCase($class::className()));
     }
 
     public static function getFieldClassHandles(): array
