@@ -412,9 +412,6 @@ export class FormieFormTheme {
     showFormAlert(text, type) {
         let $alert = this.$form.parentNode.querySelector('[data-fui-alert]');
 
-        // Strip <p> tags
-        text = text.replace(/<p[^>]*>/g, '').replace(/<\/p>/g, '');
-
         if ($alert) {
             // We have to cater for HTML entities - quick-n-dirty
             if ($alert.innerHTML !== this.decodeHtml(text)) {
