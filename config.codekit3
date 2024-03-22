@@ -1645,6 +1645,14 @@
       "oAP" : "\/src\/base\/OptionsField.php",
       "oF" : 0
     },
+    "\/src\/base\/OptionsFieldInterface.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/base\/OptionsFieldInterface.php",
+      "oF" : 0
+    },
     "\/src\/base\/Payment.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2309,14 +2317,6 @@
       "oAP" : "\/src\/events\/ModifyFormRenderOptionsEvent.php",
       "oF" : 0
     },
-    "\/src\/events\/ModifyFrontEndSubFieldsEvent.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/events\/ModifyFrontEndSubFieldsEvent.php",
-      "oF" : 0
-    },
     "\/src\/events\/ModifyIntegrationsEvent.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2373,6 +2373,14 @@
       "oAP" : "\/src\/events\/ModifyNamePrefixOptionsEvent.php",
       "oF" : 0
     },
+    "\/src\/events\/ModifyNestedFieldLayoutEvent.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/events\/ModifyNestedFieldLayoutEvent.php",
+      "oF" : 0
+    },
     "\/src\/events\/ModifyPayloadEvent.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2419,6 +2427,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/events\/ModifyRenderEvent.php",
+      "oF" : 0
+    },
+    "\/src\/events\/ModifySubFieldsEvent.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/events\/ModifySubFieldsEvent.php",
       "oF" : 0
     },
     "\/src\/events\/ModifySubmissionExportDataEvent.php" : {
@@ -2877,6 +2893,214 @@
       "oAP" : "\/src\/fields\/SingleLineText.php",
       "oF" : 0
     },
+    "\/src\/fields\/subfields\/Address1.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/Address1.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/Address2.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/Address2.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/Address3.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/Address3.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/AddressAutoComplete.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/AddressAutoComplete.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/AddressCity.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/AddressCity.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/AddressCountry.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/AddressCountry.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/AddressState.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/AddressState.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/AddressZip.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/AddressZip.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateAmPmDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateAmPmDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateAmPmNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateAmPmNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateDayDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateDayDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateDayNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateDayNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateHourDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateHourDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateHourNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateHourNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateMinuteDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateMinuteDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateMinuteNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateMinuteNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateMonthDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateMonthDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateMonthNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateMonthNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateSecondDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateSecondDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateSecondNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateSecondNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateYearDropdown.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateYearDropdown.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/DateYearNumber.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/DateYearNumber.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/NameFirst.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/NameFirst.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/NameLast.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/NameLast.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/NameMiddle.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/NameMiddle.php",
+      "oF" : 0
+    },
+    "\/src\/fields\/subfields\/NamePrefix.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/fields\/subfields\/NamePrefix.php",
+      "oF" : 0
+    },
     "\/src\/fields\/Submissions.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -3251,6 +3475,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/gql\/types\/input\/RepeaterInputType.php",
+      "oF" : 0
+    },
+    "\/src\/gql\/types\/Json.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/gql\/types\/Json.php",
       "oF" : 0
     },
     "\/src\/gql\/types\/KeyValueType.php" : {
@@ -4345,6 +4577,38 @@
       "oAP" : "\/src\/migrations\/m240130_000000_permissions.php",
       "oF" : 0
     },
+    "\/src\/migrations\/m240313_000000_subfields.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240313_000000_subfields.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m240318_000000_fix_content_table.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240318_000000_fix_content_table.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m240318_000000_migrate_stencils.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240318_000000_migrate_stencils.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m240318_000000_notification_fields.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240318_000000_notification_fields.php",
+      "oF" : 0
+    },
     "\/src\/migrations\/MigrateFreeform.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -4583,22 +4847,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/models\/StencilData.php",
-      "oF" : 0
-    },
-    "\/src\/models\/SubField.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/models\/SubField.php",
-      "oF" : 0
-    },
-    "\/src\/models\/SubFields.php" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/models\/SubFields.php",
       "oF" : 0
     },
     "\/src\/models\/Subscription.php" : {
@@ -10961,26 +11209,26 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-8NFQj9mJ.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-fg3XCxUP.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-8NFQj9mJ.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-8NFQj9mJ.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-fg3XCxUP.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-8NFQj9mJ.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-nLiORiMW.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-krCpAD3t.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -10988,7 +11236,7 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-nLiORiMW-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-krCpAD3t-min.css",
       "oF" : 0,
       "pg" : 0
     },
@@ -11076,26 +11324,26 @@
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/fa-solid-900-XkfFaza8.ttf",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-a68uVysi.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-CmHb0edu.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-a68uVysi.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-a68uVysi.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-CmHb0edu.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-a68uVysi.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-g7X7yeK9.css" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-pjT-Sd73.css" : {
       "aP" : 1,
       "bl" : 0,
       "ci" : 0,
@@ -11103,27 +11351,27 @@
       "ft" : 16,
       "ma" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-g7X7yeK9-min.css",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-pjT-Sd73-min.css",
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-XWRreclC.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-ipQEoor4.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-XWRreclC.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-XWRreclC.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ipQEoor4.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-XWRreclC.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
@@ -11138,42 +11386,42 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-JAXbVfhI.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-yXNr6Hpy.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-JAXbVfhI.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-JAXbVfhI.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-yXNr6Hpy.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-JAXbVfhI.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uB7SpzkN.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/Modal-uXgisi33.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/Modal-uB7SpzkN.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uB7SpzkN.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uXgisi33.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-uB7SpzkN.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/Modal-wf1uLiFE.css" : {
@@ -11593,14 +11841,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/components\/SlideUpDown.vue",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/src\/js\/components\/SubFieldEditModal.vue" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/components\/SubFieldEditModal.vue",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/components\/SubmitButtons.vue" : {
@@ -12066,6 +12306,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubField.vue",
+      "oF" : 0
+    },
+    "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubFieldRow.vue" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubFieldRow.vue",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/src\/js\/formkit\/SubFields.vue" : {

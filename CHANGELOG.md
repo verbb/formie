@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.0-beta.4 - 
+## 3.0.0-beta.4 - 2024-03-22
 
 ### Breaking Changes
 - Change Field’s `name` to `label` for GraphQL queries.
@@ -17,8 +17,8 @@
 ### Changed
 - Sub-fields now extend from the `verbb\formie\base\SingleNestedField` and inherit many behaviours from Group fields.
 - Phone fields are no longer `verbb\formie\base\SubField` fields.
-- Sub-field fields now store their field config in their own row in the `formie_fields` database table, under their own layout.
-- Update GraphQL interfaces for all fields to explicitly define fields to query.
+- Sub-field fields now store their field config in their own row in the `formie_fields` database table, under their own layout (page, row, field).
+- Update GraphQL interfaces for all fields to explicitly define fields to query. Previously these were automatically done via Reflection.
 
 ### Fixed
 - Fixed submission values not being fetched correctly for Name, Address and Phone fields.
@@ -28,7 +28,7 @@
 - Fixed an error when uninstalling
 - Fixed FormKit table input with multiple same name fields.
 - Fixed `ModifyFrontEndSubFieldsEvent` case insensitivity.
-- Fixed content migration from Formie 2 not respecting always JSON columns, proving an issue for MariaDB installs.
+- Fixed content migration from Formie 2 not always respecting JSON columns, proving an issue for MariaDB installs.
 
 ### Removed
 - Removed `verbb\formie\eventsModifyFrontEndSubFieldsEvent`.
