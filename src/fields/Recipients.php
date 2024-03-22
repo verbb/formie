@@ -595,4 +595,18 @@ class Recipients extends Field implements PreviewableFieldInterface
 
         return $value->label ?? '';
     }
+
+    protected function setPrePopulatedValue(mixed $value): mixed
+    {
+        // Allow populating via label to keep things private
+        if (is_string($value)) {
+            foreach ($this->options() as $key => $option) {
+                if ((string)$option['label'] === (string)$value) {
+                    $value = $option['value'];
+                }
+            }
+        }
+
+        return parent::setPrePopulatedValue($value);
+    }
 }
