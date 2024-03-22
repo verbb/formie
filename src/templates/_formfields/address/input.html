@@ -7,7 +7,7 @@
             <div class="fui-row">
                 {% for field in row.getFields(false) %}
                     <div class="fui-col-auto">
-                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, null) %}
+                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
                         {% set errors = element.getErrors(field.fieldKey) ?? [] %}
 
                         {{ field.getCpInputHtml(value, element) }}

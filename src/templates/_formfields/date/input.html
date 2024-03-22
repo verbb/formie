@@ -26,7 +26,7 @@
                     {% do field.setParentField(dateField) %}
                     
                     <div class="fui-col-auto">
-                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, element) %}
+                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), element) %}
                         {% set errors = element.getErrors(field.fieldKey) ?? [] %}
 
                         {# Format the DateTime according to what this field needs #}

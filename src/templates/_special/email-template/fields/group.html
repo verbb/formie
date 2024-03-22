@@ -13,7 +13,7 @@
                     {# Update the namespace for the field #}
                     {% do field.setParentField(groupField) %}
 
-                    {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(null, null) %}
+                    {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
                     {% set html = field.getEmailHtml(submission, notification, fieldValue, {
                         hideName: true,
