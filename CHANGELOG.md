@@ -31,7 +31,7 @@
 - Fixed content migration from Formie 2 not always respecting JSON columns, proving an issue for MariaDB installs.
 
 ### Removed
-- Removed `verbb\formie\eventsModifyFrontEndSubFieldsEvent`.
+- Removed `verbb\formie\events\ModifyFrontEndSubFieldsEvent`.
 
 ## 3.0.0-beta.3 - 2024-03-06
 
