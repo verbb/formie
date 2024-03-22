@@ -168,6 +168,11 @@ class Recipients extends Field implements PreviewableFieldInterface
         return false;
     }
 
+    public function options(): array
+    {
+        return $this->options;
+    }
+
     public function getFieldOptions(): array
     {
         // Don't expose the value (email address) in the front end to prevent scraping
