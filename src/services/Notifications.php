@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\ModifyExistingNotificationsEvent;
+use verbb\formie\events\ModifyNotificationSchemaEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
@@ -42,6 +43,7 @@ class Notifications extends Component
     public const EVENT_BEFORE_DELETE_NOTIFICATION = 'beforeDeleteNotification';
     public const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     public const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
+    public const EVENT_MODIFY_NOTIFICATION_SCHEMA = 'modifyNotificationSchema';
 
 
     // Properties
@@ -395,16 +397,23 @@ class Notifications extends Component
             }
         }
 
+        // Fire a 'modifyNotificationSchema' event
+        $event = new ModifyNotificationSchemaEvent([
+            'tabs' => $tabs,
+            'fields' => $fields,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_NOTIFICATION_SCHEMA, $event);
+
         // Return the DOM schema for Vue to render
         return [
-            'tabsSchema' => $tabs,
+            'tabsSchema' => $event->tabs,
             'fieldsSchema' => [
                 [
                     '$cmp' => 'TabPanels',
                     'attrs' => [
                         'class' => 'fui-modal-content',
                     ],
-                    'children' => $fields,
+                    'children' => $event->fields,
                 ],
             ],
         ];
