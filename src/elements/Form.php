@@ -1998,6 +1998,9 @@ class Form extends Element
             }
         }
 
+        // Check if we need to update any submission content due to field changes
+        Formie::$plugin->getSubmissions()->updateSubmissionContent($this);
+
         parent::afterSave($isNew);
     }
 

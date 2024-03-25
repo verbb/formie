@@ -3,6 +3,8 @@ namespace verbb\formie\services;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\SingleNestedFieldInterface;
+use verbb\formie\base\SubFieldInterface;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -17,6 +19,7 @@ use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
 use verbb\formie\jobs\TriggerIntegration;
+use verbb\formie\jobs\UpdateSubmissionContent;
 use verbb\formie\models\Address;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Name;
@@ -580,6 +583,24 @@ class Submissions extends Component
         // Set some submission attributes as well
         $submission->id = '1234';
         $submission->dateCreated = new DateTime();
+    }
+
+    public function updateSubmissionContent(Form $form): void
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        // Check if we've moved fields in or our of Group fields. Their content needs to be re-arranged.
+        // More performant if we don't spin up the queue job unless we need to
+        $hasGroupField = array_filter($form->getFields(), function($field) {
+            return $field instanceof formiefields\Group;
+        });
+
+        if ($hasGroupField) {
+            Queue::push(new UpdateSubmissionContent([
+                'formId' => $form->id,
+            ]), $settings->queuePriority);
+        }
     }
 
 
