@@ -205,6 +205,7 @@ class Install extends Migration
             'attachAssets' => $this->text(),
             'enableConditions' => $this->boolean()->defaultValue(false),
             'conditions' => $this->text(),
+            'customSettings' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

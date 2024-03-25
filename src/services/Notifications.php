@@ -121,6 +121,7 @@ class Notifications extends Component
             $notificationRecord->attachAssets = $notification->attachAssets;
             $notificationRecord->enableConditions = $notification->enableConditions;
             $notificationRecord->conditions = $notification->conditions;
+            $notificationRecord->customSettings = $notification->customSettings;
 
             $notificationRecord->save(false);
 
@@ -382,18 +383,8 @@ class Notifications extends Component
                 // Add `name` and `id` attributes automatically for every FormKit input
                 SchemaHelper::setFieldAttributes($fieldSchema);
 
-                $fields[] = [
-                    '$cmp' => 'TabPanel',
-                    'attrs' => [
-                        'data-tab-panel' => $tabLabel,
-                    ],
-                    'children' => $fieldSchema,
-                ];
-
-                $tabs[] = [
-                    'label' => $tabLabel,
-                    'fields' => SchemaHelper::extractFieldsFromSchema($fieldSchema),
-                ];
+                $tabs[] = SchemaHelper::tab($tabLabel, $fieldSchema);
+                $fields[] = SchemaHelper::tabPanel($tabLabel, $fieldSchema);
             }
         }
 
@@ -679,6 +670,7 @@ class Notifications extends Component
                 'attachAssets',
                 'enableConditions',
                 'conditions',
+                'customSettings',
                 'uid',
             ])
             ->orderBy('dateCreated')

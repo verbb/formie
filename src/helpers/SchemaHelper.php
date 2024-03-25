@@ -413,6 +413,34 @@ class SchemaHelper
         ], $config);
     }
 
+    public static function customSettingsField(array $children = []): array
+    {
+        return [
+            '$formkit' => 'group',
+            'name' => 'customSettings',
+            'children' => $children,
+        ];
+    }
+
+    public static function tab(string $label, array $fields): array
+    {
+        return [
+            'label' => $label,
+            'fields' => static::extractFieldsFromSchema($fields),
+        ];
+    }
+
+    public static function tabPanel(string $label, array $fields): array
+    {
+        return [
+            '$cmp' => 'TabPanel',
+            'attrs' => [
+                'data-tab-panel' => $label,
+            ],
+            'children' => $fields,
+        ];
+    }
+
     public static function extractFieldsFromSchema(array $fieldSchema, array $names = []): array
     {
         foreach ($fieldSchema as $field) {

@@ -51,6 +51,7 @@ class Notification extends Model
     public ?array $attachAssets = null;
     public ?bool $enableConditions = null;
     public ?array $conditions = null;
+    public array $customSettings = [];
     public ?string $uid = null;
 
     private ?EmailTemplate $_template = null;

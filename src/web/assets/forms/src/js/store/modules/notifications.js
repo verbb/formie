@@ -17,6 +17,11 @@ const mutations = {
         for (const prop in config) {
             state[prop] = config[prop];
 
+            // Typecast properly
+            if (state[prop].customSettings && Array.isArray(state[prop].customSettings)) {
+                state[prop].customSettings = {};
+            }
+
             // Add a private ID to keep track of things in Vue
             state[prop].__id = newId();
         }
