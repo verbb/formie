@@ -149,7 +149,39 @@ export default {
         },
 
         canDrag(data) {
-            return !(data.hasNestedFields && this.isNested);
+            // Disable nested Group/Repeater fields
+            if (data.hasNestedFields && this.isNested) {
+                return false;
+            }
+            // When moving a field from outside a nested field into a nested field, only allow this for Group
+            // fields, or within the same parent (Repeater).
+            // Adding a new field is fair game for any field, so only guard for moving.
+            if (data.trigger === 'field') {
+                if (this.parentId) {
+                    const parentField = this.$store.getters['form/field'](this.parentId);
+
+                    if (parentField && parentField.type !== 'verbb\\formie\\fields\\Group') {
+                        // Only allow moving in the same parent field
+                        if (data.parentFieldId === this.parentId) {
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+
+                // When moving a nested field, prevent it from being moved outside for anything other than a Group
+                // but allow moving inside the parent (Repeater)
+                if (data.parentFieldId) {
+                    const parentField = this.$store.getters['form/field'](data.parentFieldId);
+
+                    if (parentField && parentField.type !== 'verbb\\formie\\fields\\Group') {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         },
     },
 };
