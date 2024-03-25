@@ -256,6 +256,10 @@ export default {
         hasError() {
             return !isEmpty(this.field.errors);
         },
+
+        parentField() {
+            return this.$store.getters['form/field'](this.parentFieldId);
+        },
     },
 
     created() {

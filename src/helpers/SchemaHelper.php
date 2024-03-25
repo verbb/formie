@@ -290,6 +290,9 @@ class SchemaHelper
             'label' => Craft::t('formie', 'Pre-Populate Value'),
             'help' => Craft::t('formie', 'Specify a query parameter to pre-populate the value of this field.'),
             'name' => 'prePopulate',
+
+            // Disable pre-population in fields nested in Repeater
+            'if' => '$isInRepeater === false',
         ], $config));
     }
 

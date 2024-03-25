@@ -42,7 +42,7 @@
                         @submit="submitHandler"
                         @submit-raw="submitHandlerRaw"
                     >
-                        <FormKitSchema :schema="fieldsSchema" />
+                        <FormKitSchema :schema="fieldsSchema" :data="fieldsSchemaData" />
                     </FormKitForm>
                 </div>
             </tabs>
@@ -152,6 +152,28 @@ export default {
             }
 
             return null;
+        },
+
+        fieldsSchemaData() {
+            let isInGroup = false;
+            let isInRepeater = false;
+            const { parentField } = this.fieldRef;
+
+            if (parentField) {
+                isInGroup = parentField.type === 'verbb\\formie\\fields\\Group';
+                isInRepeater = parentField.type === 'verbb\\formie\\fields\\Repeater';
+            }
+
+            return {
+                hasNestedFields: this.field.hasNestedFields,
+                hasSubFields: this.field.hasSubFields,
+                isNested: this.field.isNested,
+                isSingleNested: this.field.isSingleNested,
+                isMultiNested: this.field.isMultiNested,
+                fieldtype: this.field.type,
+                isInGroup,
+                isInRepeater,
+            };
         },
 
         fieldSettings: {
