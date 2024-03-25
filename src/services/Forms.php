@@ -86,6 +86,11 @@ class Forms extends Component
             $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
         }
 
+        // Deleted pages/rows/fields are sent separately for convenience, but add them to the field layout for processing
+        if ($deleted = $request->getParam('deleted')) {
+            $form->getFormLayout()->setDeletedItems(Json::decodeIfJson($deleted));
+        }
+
         // Merge in any new settings, while retaining existing ones. Important for users with permissions.
         if ($newSettings = $request->getParam('settings')) {
             // Retain any integration form settings before wiping them

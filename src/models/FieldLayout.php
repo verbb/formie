@@ -26,6 +26,7 @@ class FieldLayout extends SavableComponent
 
     public ?string $uid = null;
 
+    private array $_deletedItems = [];
     private array $_pages = [];
 
 
@@ -117,6 +118,16 @@ class FieldLayout extends SavableComponent
         Craft::$app->getDeprecator()->log(__METHOD__, 'Layout’s `getCustomFields()` method has been deprecated. Use `getFields()` instead.');
 
         return $this->getFields();
+    }
+
+    public function getDeletedItems(): array
+    {
+        return $this->_deletedItems;
+    }
+
+    public function setDeletedItems(array $deletedItems): void
+    {
+        $this->_deletedItems = $deletedItems;
     }
 
     public function getFieldLayout(): CraftFieldLayout

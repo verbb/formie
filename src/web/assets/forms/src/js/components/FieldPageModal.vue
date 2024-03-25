@@ -160,7 +160,7 @@ export default {
             if (confirm(confirmationMessage)) {
                 const index = this.pages.indexOf(page);
 
-                this.pages.splice(index, 1);
+                this.$store.dispatch('form/deletePage', { pageIndex: index });
             }
         },
 

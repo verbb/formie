@@ -6,7 +6,6 @@
 
 <script>
 import { newId } from '@utils/string';
-import { canDrag } from '@utils/drag-drop';
 import { Drop } from '@vendor/vue-drag-drop';
 
 export default {
@@ -17,13 +16,8 @@ export default {
     },
 
     props: {
-        pageIndex: {
-            type: Number,
-            default: -1,
-        },
-
-        fieldId: {
-            type: [String, Number],
+        parentId: {
+            type: String,
             default: '',
         },
 
@@ -40,12 +34,6 @@ export default {
         };
     },
 
-    computed: {
-        sourceField() {
-            return this.$store.getters['form/field'](this.fieldId);
-        },
-    },
-
     created() {
         this.$events.on('formie:dragging-active', this.draggingActive);
         this.$events.on('formie:dragging-inactive', this.draggingInactive);
@@ -58,7 +46,7 @@ export default {
 
     methods: {
         draggingActive(data) {
-            if (!this.canDrag(data)) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
@@ -71,14 +59,12 @@ export default {
         },
 
         dragEnter(data, event) {
-            // Protect against anything being dragged in
-            if (!data) {
+            // Nesting Group/Repeater fields aren't supported
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
-            if (this.canDrag(data)) {
-                this.dropzoneHover = true;
-            }
+            this.dropzoneHover = true;
         },
 
         dragLeave() {
@@ -87,42 +73,83 @@ export default {
 
         dragDrop(data, event) {
             // Protect against anything being dragged in
-            if (!data) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
             // Reset the state
             this.$events.emit('formie:dragging-inactive');
 
-            if (!this.canDrag(data)) {
-                return;
-            }
+            // Is this a pill? If so, we need to insert
+            const isPill = (data.trigger === 'pill');
+            const rowIndex = event.target.getAttribute('data-row');
 
-            const newField = this.$store.getters['fieldtypes/newField'](data.type, {
+            if (isPill) {
+                const fieldtype = this.$store.getters['fieldtypes/fieldtype'](data.type);
+
+                this.addRows(fieldtype.type);
+            } else {
+                this.moveRows(data.fieldId);
+            }
+        },
+
+        addRows(type) {
+            const newField = this.$store.getters['fieldtypes/newField'](type, {
                 brandNewField: true,
-                isNested: this.isNested,
             });
 
-            const payload = {
-                data: {
-                    __id: newId(),
-                    fields: [
-                        newField,
-                    ],
-                },
+            const newRow = {
+                __id: newId(),
+                fields: [newField],
             };
 
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
+            const destinationPath = this.$store.getters['form/keyPath'](this.parentId);
+
+            // Check for Group/Repeater fields
+            if (this.isNested) {
+                destinationPath.push('settings');
             }
 
-            this.$store.dispatch('form/appendRow', payload);
+            // Add a new row to the path to set
+            destinationPath.push(...['rows', '0']);
+
+            this.$store.dispatch('form/addField', {
+                destinationPath,
+                value: newRow,
+            });
+        },
+
+        moveRows(fieldId) {
+            // Get the source field to move
+            const sourcePath = this.$store.getters['form/keyPath'](fieldId);
+
+            const destinationPath = this.$store.getters['form/keyPath'](this.parentId);
+
+            // Check for Group/Repeater fields
+            if (this.isNested) {
+                destinationPath.push('settings');
+            }
+
+            // Add a new row to the path to set
+            destinationPath.push(...['rows', '0']);
+
+            // Get the parent `rows` so that we can insert it at the index
+            const fieldToMove = this.$store.getters['form/valueByKeyPath'](sourcePath);
+
+            const newRow = {
+                __id: newId(),
+                fields: [fieldToMove],
+            };
+
+            this.$store.dispatch('form/moveField', {
+                sourcePath,
+                destinationPath,
+                value: newRow,
+            });
         },
 
         canDrag(data) {
-            return canDrag(this.pageIndex, this.sourceField, data);
+            return !(data.hasNestedFields && this.isNested);
         },
     },
 };

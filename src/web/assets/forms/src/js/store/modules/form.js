@@ -2,7 +2,7 @@ import md5Hex from 'md5-hex';
 import { ref } from 'vue';
 
 // eslint-disable-next-line
-import { find, flatMap, forEach, filter, omitBy, truncate } from 'lodash-es';
+import { get, set, unset, find, isObject, flatMap, forEach, filter, omitBy, truncate } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
 import { newId } from '@utils/string';
@@ -13,6 +13,13 @@ import { clone } from '@utils/object';
 // See: https://vuex.vuejs.org/en/modules.html#module-reuse
 const state = {
     pages: [],
+
+    // Keep track of deleted things separately for server-side convenience
+    deleted: {
+        fields: [],
+        rows: [],
+        pages: [],
+    },
 };
 
 const getRows = (payload) => {
@@ -32,6 +39,62 @@ const getRows = (payload) => {
     }
 
     return ref(state.pages[payload.pageIndex].rows);
+};
+
+const cleanupEmptyRows = (data, state) => {
+    if (Array.isArray(data)) {
+        data.forEach((item) => {
+            cleanupEmptyRows(item, state);
+        });
+    }
+
+    if (isObject(data)) {
+        for (const key in data) {
+            if (key === 'rows') {
+                if (Array.isArray(data[key])) {
+                    data[key].forEach((row, rowIndex) => {
+                        if (Array.isArray(row.fields) && row.fields.length === 0) {
+                            const deletedRows = data[key].splice(rowIndex, 1);
+
+                            // Mark it as deleted server-side too
+                            state.deleted.rows.push(...deletedRows);
+                        }
+                    });
+                }
+            }
+
+            if (Array.isArray(data[key]) || isObject(data[key])) {
+                cleanupEmptyRows(data[key], state);
+            }
+        }
+    }
+};
+
+const getKeyPath = (obj, id, path = []) => {
+    for (const key in obj) {
+        if (key === '__id' && obj[key] === id) {
+            return path;
+        }
+
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+            const result = getKeyPath(obj[key], id, [...path, key]);
+
+            if (result !== null) {
+                return result;
+            }
+        }
+    }
+
+    return null;
+};
+
+const removeAtKeyPath = (state, path) => {
+    // In order to remove an item at the provided path, we need to bubble up to the parent
+    // and then splice it from there. So remove the last index item, then get the parent
+    const index = parseInt(path.pop());
+    const parent = get(state, path.join('.'));
+
+    return parent.splice(index, 1);
 };
 
 // Mutations are functions responsible in directly mutating store state.
@@ -82,6 +145,9 @@ const mutations = {
                 state[prop] = config[prop];
             }
         }
+
+        // Cleanup any empty rows on populate, in case something was gone awry
+        cleanupEmptyRows(state.pages, state);
     },
 
     ADD_PAGE(state, payload) {
@@ -103,7 +169,9 @@ const mutations = {
     DELETE_PAGE(state, payload) {
         const { pageIndex } = payload;
 
-        state.pages.splice(pageIndex, 1);
+        const deletedPages = state.pages.splice(pageIndex, 1);
+
+        state.deleted.pages.push(...deletedPages);
     },
 
     ADD_PAGE_SETTINGS(state, payload) {
@@ -112,188 +180,47 @@ const mutations = {
         state.pages[pageIndex].settings = data;
     },
 
-    APPEND_ROW(state, payload) {
-        const { rowIndex, data } = payload;
-        const rows = getRows(payload).value;
+    ADD_FIELD(state, { destinationPath, value }) {
+        // Get the index where we want to insert the content into
+        const fieldIndex = parseInt(destinationPath.pop());
 
-        if (rowIndex) {
-            rows.splice(rowIndex, 0, data);
+        // Get the parent `fields` so that we can insert it at the index
+        const fields = get(state, destinationPath.join('.'));
+
+        if (!fields) {
+            // If the key path doesn't exist yet, create it and set the value
+            set(state, `${destinationPath.join('.')}.${fieldIndex}`, value);
         } else {
-            rows.push(data);
+            // Insert the new field in-place at the index
+            fields.splice(fieldIndex, 0, value);
         }
     },
 
-    APPEND_ROW_TO_PAGE(state, payload) {
-        // eslint-disable-next-line
-        const { sourcePageIndex, sourceRowIndex, sourceColumnIndex, pageIndex, data } = payload;
+    MOVE_FIELD(state, { sourcePath, destinationPath, value }) {
+        // Remove the source item from its position
+        removeAtKeyPath(state, sourcePath);
 
-        if (state.pages[pageIndex].rows === undefined) {
-            state.pages[pageIndex].rows = [];
-        }
-
-        // Remove the old column - but also insert it to our new field/row data
-        // Remember using splice with `1` will remove 1 element from the array
-        data.fields = state.pages[sourcePageIndex].rows[sourceRowIndex].fields.splice(sourceColumnIndex, 1);
-
-        // Check to see if there are no more fields - delete the row too
-        if (state.pages[sourcePageIndex].rows[sourceRowIndex].fields.length === 0) {
-            state.pages[sourcePageIndex].rows.splice(sourceRowIndex, 1);
-        }
-
-        // Add the new row
-        state.pages[pageIndex].rows.push(data);
-    },
-
-    ADD_ROW(state, payload) {
-        const { rowIndex, data } = payload;
-        const rows = getRows(payload).value;
-
-        rows.splice(rowIndex, 0, data);
-    },
-
-    MOVE_ROW(state, payload) {
-        // eslint-disable-next-line
-        let { sourceRowIndex, sourceColumnIndex, rowIndex, data } = payload;
-
-        const rows = getRows(payload).value;
-
-        // Just guard against not actually moving rows - but only if its a full-width field
-        if (sourceRowIndex === rowIndex || sourceRowIndex === (rowIndex - 1)) {
-            // We need to factor in moving a column from columns to a single row
-            // even if that's directly above it. You want to break it out into its own row
-            if (rows[sourceRowIndex].fields.length === 1) {
-                return;
-            }
-        }
-
-        // Remove the old column - but also insert it to our new field/row data
-        // Remember using splice with `1` will remove 1 element from the array
-        data.fields = rows[sourceRowIndex].fields.splice(sourceColumnIndex, 1);
-
-        // Check to see if there are no more fields - delete the row too
-        if (rows[sourceRowIndex].fields.length === 0) {
-            rows.splice(sourceRowIndex, 1);
-
-            // If we've completely removed the row, and we're moving down the list
-            // be sure to account for the now incorrect array size
-            if (sourceRowIndex < rowIndex) {
-                rowIndex = rowIndex - 1;
-            }
-        }
-
-        // Add the new row
-        rows.splice(rowIndex, 0, data);
-    },
-
-    ADD_COLUMN(state, payload) {
-        const { rowIndex, columnIndex, data } = payload;
-        const rows = getRows(payload).value;
-
-        rows[rowIndex].fields.splice(columnIndex, 0, data);
-    },
-
-    MOVE_COLUMN(state, payload) {
-        // eslint-disable-next-line
-        let { sourceRowIndex, sourceColumnIndex, rowIndex, columnIndex } = payload;
-
-        // Just guard against not actually moving columns
-        if (sourceRowIndex === rowIndex && sourceColumnIndex === columnIndex) {
-            return;
-        }
-
-        // Just guard against not actually moving columns
-        if (sourceRowIndex === rowIndex && sourceColumnIndex === (columnIndex - 1)) {
-            return;
-        }
-
-        const rows = getRows(payload).value;
-
-        // noinspection EqualityComparisonWithCoercionJS
-        if (sourceRowIndex == rowIndex && rows[sourceRowIndex].fields.length === 1) {
-            // Not moving the field anywhere.
-            return;
-        }
-
-        // Remove the old column
-        const [fieldData] = rows[sourceRowIndex].fields.splice(sourceColumnIndex, 1);
-
-        // Check to see if there are no more fields - delete the row too
-        if (rows[sourceRowIndex].fields.length === 0) {
-            rows.splice(sourceRowIndex, 1);
-
-            // If we've completely removed the row, and we're moving down the list
-            // be sure to account for the now incorrect array size
-            if (sourceRowIndex < rowIndex) {
-                rowIndex = rowIndex - 1;
-            }
-        }
-
-        // Add the new row
-        rows[rowIndex].fields.splice(columnIndex, 0, fieldData);
-    },
-
-    DELETE_FIELD(state, payload) {
-        const { id } = payload;
-
-        forEach(state.pages, (page) => {
-            forEach(page.rows, (row) => {
-                forEach(row.fields, (field, key) => {
-                    if (field && field.__id == id) {
-                        row.fields.splice(key, 1);
-                        return false;
-                    }
-
-                    if (field.hasNestedFields) {
-                        forEach(field.settings.rows, (repeaterRow) => {
-                            forEach(repeaterRow.fields, (repeaterField, repeaterKey) => {
-                                if (repeaterField && repeaterField.__id == id) {
-                                    repeaterRow.fields.splice(repeaterKey, 1);
-                                    return false;
-                                }
-                            });
-                        });
-                    }
-                });
-            });
+        // Add the remove at the index (like we're adding a new one)
+        this.dispatch('form/addField', {
+            destinationPath,
+            value,
         });
 
-        // Check for cleanup of rows
-        forEach(state.pages, (page) => {
-            forEach(page.rows, (row, key) => {
-                if (row && row.fields.length === 0) {
-                    page.rows.splice(key, 1);
-                    return false;
-                }
-
-                forEach(row.fields, (field) => {
-                    if (field.hasNestedFields) {
-                        forEach(field.settings.rows, (repeaterRow, repeaterKey) => {
-                            if (repeaterRow && repeaterRow.fields.length === 0) {
-                                field.settings.rows.splice(repeaterKey, 1);
-                                return false;
-                            }
-                        });
-                    }
-                });
-            });
-        });
+        // Cleanup any empty rows
+        cleanupEmptyRows(state.pages, state);
     },
 
-    UPDATE_FIELD_SETTINGS(state, payload) {
-        // eslint-disable-next-line
-        const { rowIndex, columnIndex, prop, value } = payload;
-        const rows = getRows(payload).value;
+    DELETE_FIELD(state, { id }) {
+        // Find the field in the entire layout and remove it
+        const keyPath = this.getters['form/keyPath'](id);
 
-        // Make sure to use Vue.set - the prop might not exist
-        rows[rowIndex].fields[columnIndex].settings[prop] = value;
-    },
+        // Get the parent so that we can remove it
+        const deletedFields = removeAtKeyPath(state, keyPath);
 
-    SET_FIELD_PROP(state, payload) {
-        // eslint-disable-next-line
-        const { rowIndex, columnIndex, prop, value } = payload;
-        const rows = getRows(payload).value;
+        state.deleted.fields.push(...deletedFields);
 
-        rows[rowIndex].fields[columnIndex][prop] = value;
+        // Cleanup any empty rows
+        cleanupEmptyRows(state.pages, state);
     },
 
     SET_VARIABLES(state, config) {
@@ -326,40 +253,16 @@ const actions = {
         context.commit('ADD_PAGE_SETTINGS', payload);
     },
 
-    appendRow(context, payload) {
-        context.commit('APPEND_ROW', payload);
+    addField(context, payload) {
+        context.commit('ADD_FIELD', payload);
     },
 
-    appendRowToPage(context, payload) {
-        context.commit('APPEND_ROW_TO_PAGE', payload);
-    },
-
-    addRow(context, payload) {
-        context.commit('ADD_ROW', payload);
-    },
-
-    moveRow(context, payload) {
-        context.commit('MOVE_ROW', payload);
-    },
-
-    addColumn(context, payload) {
-        context.commit('ADD_COLUMN', payload);
-    },
-
-    moveColumn(context, payload) {
-        context.commit('MOVE_COLUMN', payload);
+    moveField(context, payload) {
+        context.commit('MOVE_FIELD', payload);
     },
 
     deleteField(context, payload) {
         context.commit('DELETE_FIELD', payload);
-    },
-
-    updateFieldSettings(context, payload) {
-        context.commit('UPDATE_FIELD_SETTINGS', payload);
-    },
-
-    setFieldProp(context, payload) {
-        context.commit('SET_FIELD_PROP', payload);
     },
 
     setVariables(context, config) {
@@ -375,13 +278,35 @@ const getters = {
         return state;
     },
 
+    keyPath: (state) => {
+        return (id, extra = []) => {
+            // Get the path to _this_ row, which is close to where we want to insert the new row
+            return getKeyPath({ pages: state.pages }, id);
+        };
+    },
+
+    parentKeyPath: (state, getters) => {
+        return (id, extra = []) => {
+            const keyPath = getters.keyPath(id);
+            keyPath.pop();
+
+            return keyPath.concat(extra);
+        };
+    },
+
+    valueByKeyPath: (state) => {
+        return (path) => {
+            return get(state, path.join('.'));
+        };
+    },
+
     formHash: (state, getters, store) => {
         // Generate a hash of Vue data, used for unload warnings
         return md5Hex(JSON.stringify(state.pages) + JSON.stringify(store.notifications));
     },
 
     serializedPayload: (state) => {
-    // Function to remove unwanted properties from a given object
+        // Function to remove unwanted properties from a given object
         const removeUnwantedProperties = (obj) => {
             delete obj.__id;
             delete obj.errors;
@@ -390,7 +315,7 @@ const getters = {
         // Recursive function to filter out unwanted data from fields
         const filterFields = (fields) => {
             fields.forEach((field, fieldKey) => {
-            // Modify the fields to only return what we need
+                // Modify the fields to only return what we need
                 fields[fieldKey] = {
                     id: field.id,
                     type: field.type,
@@ -423,6 +348,23 @@ const getters = {
         });
 
         return pages;
+    },
+
+    serializedDeleted: (state) => {
+        // Only return items that have been saved in the database with IDs
+        return {
+            pages: state.deleted.pages.map((page) => {
+                return page.id;
+            }),
+
+            rows: state.deleted.rows.map((row) => {
+                return row.id;
+            }),
+
+            fields: state.deleted.fields.map((field) => {
+                return field.id;
+            }),
+        };
     },
 
     pageSettings: (state) => {

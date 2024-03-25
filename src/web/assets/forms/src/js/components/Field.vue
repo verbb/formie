@@ -1,11 +1,11 @@
 <template>
     <div :class="'fui-col-' + columnWidth" style="display: flex;">
-        <div v-show="columnIndex === 0 && showDropzones" class="form-field-drop-target" :class="{ 'is-active': dropzonesActive, 'is-hover': dropzoneLeftHover }">
+        <div v-show="fieldIndex === 0 && showDropzones" class="form-field-drop-target" :class="{ 'is-active': dropzonesActive, 'is-hover': dropzoneLeftHover }">
             <div class="dropzone-holder">
                 <drop
                     ref="dropzoneLeft"
                     class="form-field-dropzone form-field-dropzone-vertical"
-                    :data-column="columnIndex"
+                    :data-field="fieldIndex"
                     :data-row="rowIndex"
                     @on-drop="dragDrop"
                     @on-dragenter="dragEnter"
@@ -23,10 +23,7 @@
             :transfer-data="{
                 trigger: 'field',
                 hasNestedFields: fieldtype.hasNestedFields,
-                rowIndex,
-                fieldId,
-                pageIndex,
-                columnIndex,
+                fieldId: field.__id,
             }"
             :hide-image-html="!isSafari"
             @on-dragstart="dragStart"
@@ -99,7 +96,7 @@
                 <drop
                     ref="dropzoneRight"
                     class="form-field-dropzone form-field-dropzone-vertical"
-                    :data-column="columnIndex + 1"
+                    :data-field="fieldIndex + 1"
                     :data-row="rowIndex"
                     @on-drop="dragDrop"
                     @on-dragenter="dragEnter"
@@ -119,7 +116,6 @@ import { cloneDeep, isEmpty } from 'lodash-es';
 // eslint-disable-next-line
 import { generateHandle, getNextAvailableHandle, generateKebab, getDisplayName, newId } from '@utils/string';
 import { isSafari } from '@utils/browser';
-import { canDrag } from '@utils/drag-drop';
 import { clonedFieldSettings } from '@utils/fields';
 
 import FieldEditModal from '@components/FieldEditModal.vue';
@@ -145,11 +141,6 @@ export default {
             default: () => {},
         },
 
-        columnIndex: {
-            type: Number,
-            default: 0,
-        },
-
         pageIndex: {
             type: Number,
             default: null,
@@ -160,9 +151,9 @@ export default {
             default: 0,
         },
 
-        fieldId: {
-            type: [String, Number],
-            default: '',
+        fieldIndex: {
+            type: Number,
+            default: 0,
         },
 
         expectedType: {
@@ -208,10 +199,6 @@ export default {
 
         fieldtype() {
             return this.$store.getters['fieldtypes/fieldtype'](this.field.type);
-        },
-
-        sourceField() {
-            return this.$store.getters['form/field'](this.fieldId);
         },
 
         displayName() {
@@ -276,13 +263,11 @@ export default {
             // this.field.settings.label = this.fieldtype.label;
             // this.field.settings.handle = generateHandle(this.fieldtype.label);
         }
-        // this.field.settings.label = '';
-        // this.field.settings.handle = '';
     },
 
     mounted() {
         // Testing
-        // if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 0 && this.columnIndex == 0) {
+        // if (this.$parent.$parent.pageIndex == 0 && this.$parent.rowIndex == 0 && this.fieldIndex == 0) {
         //     this.openModal();
         // }
     },
@@ -294,7 +279,7 @@ export default {
 
     methods: {
         draggingActive(data) {
-            if (!this.canDrag(data)) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
@@ -321,37 +306,11 @@ export default {
         },
 
         requireField() {
-            const payload = {
-                rowIndex: this.rowIndex,
-                columnIndex: this.columnIndex,
-                prop: 'required',
-                value: true,
-            };
-
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/updateFieldSettings', payload);
+            this.field.settings.required = true;
         },
 
         unrequireField() {
-            const payload = {
-                rowIndex: this.rowIndex,
-                columnIndex: this.columnIndex,
-                prop: 'required',
-                value: false,
-            };
-
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/updateFieldSettings', payload);
+            this.field.settings.required = false;
         },
 
         cloneField() {
@@ -380,24 +339,20 @@ export default {
 
             const newField = this.$store.getters['fieldtypes/newField'](this.field.type, config);
 
-            // Add a new row after this one
-            const payload = {
-                rowIndex: this.rowIndex + 1,
-                data: {
-                    __id: newId(),
-                    fields: [
-                        newField,
-                    ],
-                },
+            const newRow = {
+                __id: newId(),
+                fields: [newField],
             };
 
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
+            // Get this current field's key path, and bubble up twice to `rows`, then place immediately after this field
+            const destinationPath = this.$store.getters['form/keyPath'](this.field.__id);
+            destinationPath.splice(-3);
+            destinationPath.push(this.rowIndex + 1);
 
-            this.$store.dispatch('form/appendRow', payload);
+            this.$store.dispatch('form/addField', {
+                destinationPath,
+                value: newRow,
+            });
         },
 
         deleteField() {
@@ -448,21 +403,19 @@ export default {
 
             // Is this a pill? If so, we need to insert
             const isPill = (data.trigger === 'pill');
-            const columnIndex = event.target.getAttribute('data-column');
-            const rowIndex = event.target.getAttribute('data-row');
+            const fieldIndex = event.target.getAttribute('data-field');
 
             if (isPill) {
-                this.addColumn(columnIndex, data.type);
-            } else {
-                const sourceRowIndex = data.rowIndex;
-                const sourceColumnIndex = data.columnIndex;
+                const fieldtype = this.$store.getters['fieldtypes/fieldtype'](data.type);
 
-                this.moveColumn(sourceRowIndex, sourceColumnIndex, rowIndex, columnIndex);
+                this.addField(fieldIndex, fieldtype.type);
+            } else {
+                this.moveField(fieldIndex, data.fieldId);
             }
         },
 
         canDrag(data) {
-            return canDrag(this.pageIndex, this.sourceField, data);
+            return !(data.hasNestedFields && this.field.isNested);
         },
 
         toggleDropzone(event, state) {
@@ -473,83 +426,43 @@ export default {
             }
         },
 
-        addColumn(columnIndex, type) {
-            const newColumns = 12 / (this.$parent.fields.length + 1);
+        addField(fieldIndex, type) {
+            // Get the path to _this_ row, which is close to where we want to insert the new row
+            const destinationPath = this.$store.getters['form/parentKeyPath'](this.field.__id, [fieldIndex]);
 
             const newField = this.$store.getters['fieldtypes/newField'](type, {
-                columnWidth: newColumns,
                 brandNewField: true,
-                isNested: this.field.isNested,
             });
 
-            const payload = {
-                rowIndex: this.rowIndex,
-                data: newField,
-                columnIndex,
-            };
-
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/addColumn', payload);
+            this.$store.dispatch('form/addField', {
+                destinationPath,
+                value: newField,
+            });
         },
 
-        moveColumn(sourceRowIndex, sourceColumnIndex, rowIndex, columnIndex) {
-            const payload = {
-                sourceRowIndex,
-                sourceColumnIndex,
-                rowIndex,
-                columnIndex,
-            };
+        moveField(fieldIndex, fieldId) {
+            // Get the source field to move
+            const sourcePath = this.$store.getters['form/keyPath'](fieldId);
 
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
+            // Get the path to _this_ row, which is close to where we want to insert the new row
+            const destinationPath = this.$store.getters['form/parentKeyPath'](this.field.__id, [fieldIndex]);
 
-            this.$store.dispatch('form/moveColumn', payload);
+            // Get the parent `rows` so that we can insert it at the index
+            const fieldToMove = this.$store.getters['form/valueByKeyPath'](sourcePath);
+
+            this.$store.dispatch('form/moveField', {
+                sourcePath,
+                destinationPath,
+                value: fieldToMove,
+            });
         },
 
         markAsSaved() {
-            // Update the state of Vuex to mark the field as no longer brand-new
-            // Used for when a brand-new field is saved for the first time
-            const payload = {
-                rowIndex: this.rowIndex,
-                columnIndex: this.columnIndex,
-                prop: 'brandNewField',
-                value: false,
-            };
-
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/setFieldProp', payload);
+            this.field.brandNewField = false;
         },
 
         markAsError(error) {
-            const payload = {
-                rowIndex: this.rowIndex,
-                columnIndex: this.columnIndex,
-                prop: 'hasError',
-                value: error,
-            };
-
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            // This payload is for updating the field status, particularly to deal with validation triggering on
-            // various items. This is called in the modal when editing a form, and when saving the overall form.
-            this.$store.dispatch('form/setFieldProp', payload);
+            this.field.hasError = error;
         },
     },
 

@@ -4,7 +4,7 @@
             <field-row
                 v-for="(row, index) in rows"
                 ref="rows"
-                :key="row.id"
+                :key="row.__id"
                 :row-index="index"
                 :field-id="id"
                 :parent-field-id="field.__id"
@@ -14,7 +14,7 @@
 
             <div class="fui-row no-padding">
                 <div class="fui-col-12">
-                    <dropzone-new-field v-if="!rows.length" :field-id="id" :is-nested="true" />
+                    <dropzone-new-field v-if="!rows.length" :parent-id="field.__id" :is-nested="true" />
                 </div>
             </div>
         </div>

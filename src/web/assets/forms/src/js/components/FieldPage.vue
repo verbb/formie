@@ -3,7 +3,7 @@
         <field-row
             v-for="(row, index) in rows"
             ref="rows"
-            :key="row.id"
+            :key="row.__id"
             :row-index="index"
             :page-index="pageIndex"
             v-bind="row"
@@ -11,7 +11,7 @@
 
         <div class="fui-row no-padding">
             <div class="fui-col-12">
-                <dropzone-new-field v-if="!rows.length" :page-index="pageIndex" />
+                <dropzone-new-field v-if="!rows.length" :parent-id="__id" />
             </div>
         </div>
 
@@ -38,6 +38,11 @@ export default {
     },
 
     props: {
+        __id: {
+            type: String,
+            default: '',
+        },
+
         id: {
             type: [String, Number],
             default: '',

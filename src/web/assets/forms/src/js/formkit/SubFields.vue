@@ -182,20 +182,24 @@ export default {
     width: 0;
     z-index: 1;
     transform: translateY(11px) translateX(-3px);
+    height: calc(100% - 21px);
 
     &.is-active {
         z-index: 10;
     }
 
-    .dashed-dropzone-vertical {
-        width: 6px;
+    .form-field-dropzone-vertical {
+        top: -9px;
+        left: -7px;
+        width: 20px;
+        bottom: -7px;
     }
 }
 
 .fui-subfield-layout .form-field-drop-target-container {
     position: relative;
-    padding-left: 0;
-    padding-right: 0;
+    padding-left: 10px;
+    padding-right: 10px;
     width: 100%;
     height: 6px;
 
@@ -204,12 +208,8 @@ export default {
     }
 
     .form-field-dropzone-horizontal {
-        height: 45px;
-        top: -17px;
-    }
-
-    .dashed-dropzone-horizontal {
-        height: 6px;
+        height: 30px;
+        top: -11px;
     }
 }
 

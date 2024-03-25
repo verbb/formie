@@ -39,8 +39,6 @@
 <script>
 import { Drop } from '@vendor/vue-drag-drop';
 
-import { canDrag } from '@utils/drag-drop';
-
 import SubField from '@formkit-components/SubField.vue';
 
 export default {
@@ -83,10 +81,6 @@ export default {
 
     methods: {
         draggingActive(data) {
-            if (!this.canDrag(data)) {
-                return;
-            }
-
             this.dropzonesActive = true;
         },
 
@@ -98,7 +92,7 @@ export default {
 
         dragEnter(data, event) {
             // Protect against anything being dragged in
-            if (!data || !this.canDrag(data)) {
+            if (!data) {
                 return;
             }
 
@@ -111,7 +105,7 @@ export default {
 
         dragDrop(data, event) {
             // Protect against anything being dragged in
-            if (!data || !this.canDrag(data)) {
+            if (!data) {
                 return;
             }
 
@@ -131,10 +125,6 @@ export default {
             } else if (event.target === this.$refs.dropzoneBottom.$el) {
                 this.dropzoneBottomHover = state;
             }
-        },
-
-        canDrag(data) {
-            return canDrag(this.pageIndex, this.sourceField, data);
         },
     },
 };

@@ -416,7 +416,7 @@ class Fields extends Component
         return $this->_existingFields = $event->fields;
     }
 
-    public function createField(array $config): FieldInterface
+    public function createField(array $config = []): FieldInterface
     {
         if (is_string($config)) {
             $config = ['type' => $config];
@@ -454,15 +454,19 @@ class Fields extends Component
 
     public function getFieldById(int $id): ?FieldInterface
     {
-        return $this->createField(FieldRecord::findOne(['id' => $id])?->attributes ?? []);
+        $fieldRecord = FieldRecord::findOne(['id' => $id])?->attributes ?? [];
+
+        return $fieldRecord ? $this->createField($fieldRecord) : null;
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        return $this->createField(FieldRecord::findOne(['handle' => $handle])?->attributes ?? []);
+        $fieldRecord = FieldRecord::findOne(['handle' => $handle])?->attributes ?? [];
+
+        return $fieldRecord ? $this->createField($fieldRecord) : null;
     }
 
-    public function saveLayout(FieldLayout $layout, bool $commit = true): bool
+    public function saveLayout(FieldLayout $layout): bool
     {
         $isNewLayout = !$layout->id;
 
@@ -493,12 +497,6 @@ class Fields extends Component
         $layout->id = $layoutRecord->id;
 
         $layout->afterSave($isNewLayout);
-
-        // Query all existing IDs so we can compare to cleanup and deleted items. 
-        // Important to do this before saving, so they're not included in the list.
-        $allPageIds = (new Query())->select('id')->from(Table::FORMIE_FIELD_LAYOUT_PAGES)->where(['layoutId' => $layout->id])->column();
-        $allRowIds = (new Query())->select('id')->from(Table::FORMIE_FIELD_LAYOUT_ROWS)->where(['layoutId' => $layout->id])->column();
-        $allFieldIds = (new Query())->select('id')->from(Table::FORMIE_FIELDS)->where(['layoutId' => $layout->id])->column();
 
         // Use a transaction to ensure we don't have any records unless the entire layout succeeds
         $transaction = Craft::$app->getDb()->beginTransaction();
@@ -562,26 +560,18 @@ class Fields extends Component
         $transaction->commit();
 
         // Cleanup any deleted pages/rows/fields. Done here as we need to wait until everything is processed.
-        $savedPageIds = ArrayHelper::getColumn($layout->getPages(), 'id');
-        $savedRowIds = ArrayHelper::getColumn($layout->getRows(), 'id');
-        $savedFieldIds = ArrayHelper::getColumn($layout->getFields(), 'id');
+        if ($deletedItems = $layout->getDeletedItems()) {
+            foreach (($deletedItems['fields'] ?? []) as $id) {
+                $this->deleteFieldById($id);
+            }
 
-        // Delete in reverse order due to foreign key constraints. i.e. removing a page or row will trickle-down
-        // but it won't fire any of our handling. If you delete the page, it can't find the field to delete.
-        $deletePageIds = array_diff($allPageIds, $savedPageIds);
-        $deleteRowIds = array_diff($allRowIds, $savedRowIds);
-        $deleteFieldIds = array_diff($allFieldIds, $savedFieldIds);
+            foreach (($deletedItems['rows'] ?? []) as $id) {
+                $this->deleteRowById($id);
+            }
 
-        foreach ($deleteFieldIds as $id) {
-            $this->deleteFieldById($id);
-        }
-
-        foreach ($deleteRowIds as $id) {
-            $this->deleteRowById($id);
-        }
-
-        foreach ($deletePageIds as $id) {
-            $this->deletePageById($id);
+            foreach (($deletedItems['pages'] ?? []) as $id) {
+                $this->deletePageById($id);
+            }
         }
 
         return true;
@@ -1151,6 +1141,12 @@ class Fields extends Component
             ])
             ->all();
 
+        $pages = [];
+        $rows = [];
+        $fields = [];
+
+        // While we could use the `sortOrder` for things, we don't want to rely on it. If something goes
+        // wrong with it, we end up overwriting pages/rows/fields due to the same `sortOrder` value.
         if ($dataItems) {
             foreach ($dataItems as $item) {
                 $layoutData['id'] = $item['layoutId'];
@@ -1158,23 +1154,42 @@ class Fields extends Component
                 $layoutData['dateUpdated'] = $item['layoutDateUpdated'];
                 $layoutData['uid'] = $item['layoutUid'];
 
-                $pageKey = $item['pageSortOrder'];
-                $rowKey = $item['rowSortOrder'];
-                $fieldKey = $item['fieldSortOrder'];
+                $pageId = $item['pageId'];
+                $rowId = $item['rowId'];
+                $fieldId = $item['fieldId'];
 
-                if ($pageKey !== null && !isset($layoutData['pages'][$pageKey])) {
-                    $layoutData['pages'][$pageKey] = $this->_getPopulatedPage($item);
+                if ($pageId && !isset($pages[$pageId])) {
+                    $pages[$pageId] = $this->_getPopulatedPage($item);
                 }
 
-                if ($rowKey !== null && !isset($layoutData['pages'][$pageKey]['rows'][$rowKey])) {
-                    $layoutData['pages'][$pageKey]['rows'][$rowKey] = $this->_getPopulatedRow($item);
+                if ($rowId && !isset($rows[$rowId])) {
+                    $rows[$rowId] = $this->_getPopulatedRow($item);
                 }
 
-                if ($fieldKey !== null) {
-                    $layoutData['pages'][$pageKey]['rows'][$rowKey]['fields'][$fieldKey] = $this->_getPopulatedField($item);
+                if ($fieldId && !isset($fields[$fieldId])) {
+                    $fields[$fieldId] = $this->_getPopulatedField($item);
                 }
             }
         }
+
+        // Stitch pages/rows/fields together into a single nested array
+        foreach ($fields as $field) {
+            $rowId = $field['rowId'];
+
+            if (isset($rows[$rowId])) {
+                $rows[$rowId]['fields'][] = $field;
+            }
+        }
+
+        foreach ($rows as $row) {
+            $pageId = $row['pageId'];
+
+            if (isset($pages[$pageId])) {
+                $pages[$pageId]['rows'][] = $row;
+            }
+        }
+
+        $layoutData['pages'] = array_values($pages);
 
         return $layoutData ? new FieldLayout($layoutData) : null;
     }
@@ -1202,22 +1217,38 @@ class Fields extends Component
             ])
             ->all();
 
+        $rows = [];
+        $fields = [];
+
+        // While we could use the `sortOrder` for things, we don't want to rely on it. If something goes
+        // wrong with it, we end up overwriting pages/rows/fields due to the same `sortOrder` value.
         if ($dataItems) {
             foreach ($dataItems as $item) {
-                $rowKey = $item['rowSortOrder'];
-                $fieldKey = $item['fieldSortOrder'];
-
                 $layoutData = $this->_getPopulatedPage($item);
 
-                if ($rowKey !== null && !isset($layoutData['rows'][$rowKey])) {
-                    $layoutData['rows'][$rowKey] = $this->_getPopulatedRow($item);
+                $rowId = $item['rowId'];
+                $fieldId = $item['fieldId'];
+
+                if ($rowId && !isset($rows[$rowId])) {
+                    $rows[$rowId] = $this->_getPopulatedRow($item);
                 }
 
-                if ($fieldKey !== null) {
-                    $layoutData['rows'][$rowKey]['fields'][$fieldKey] = $this->_getPopulatedField($item);
+                if ($fieldId && !isset($fields[$fieldId])) {
+                    $fields[$fieldId] = $this->_getPopulatedField($item);
                 }
             }
         }
+
+        // Stitch pages/rows/fields together into a single nested array
+        foreach ($fields as $field) {
+            $rowId = $field['rowId'];
+
+            if (isset($rows[$rowId])) {
+                $rows[$rowId]['fields'][] = $field;
+            }
+        }
+
+        $layoutData['rows'] = array_values($rows);
 
         return $layoutData ? new FieldLayoutPage($layoutData) : null;
     }
@@ -1242,17 +1273,23 @@ class Fields extends Component
             ])
             ->all();
 
+        $fields = [];
+
+        // While we could use the `sortOrder` for things, we don't want to rely on it. If something goes
+        // wrong with it, we end up overwriting pages/rows/fields due to the same `sortOrder` value.
         if ($dataItems) {
             foreach ($dataItems as $item) {
-                $fieldKey = $item['fieldSortOrder'];
-
                 $layoutData = $this->_getPopulatedRow($item);
 
-                if ($fieldKey !== null) {
-                    $layoutData['fields'][$fieldKey] = $this->_getPopulatedField($item);
+                $fieldId = $item['fieldId'];
+
+                if ($fieldId && !isset($fields[$fieldId])) {
+                    $fields[$fieldId] = $this->_getPopulatedField($item);
                 }
             }
         }
+
+        $layoutData['fields'] = array_values($fields);
 
         return $layoutData ? new FieldLayoutRow($layoutData) : null;
     }

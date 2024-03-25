@@ -20,7 +20,7 @@
                 v-for="(field, index) in fields"
                 ref="fields"
                 :key="field.__id"
-                :column-index="index"
+                :field-index="index"
                 :page-index="pageIndex"
                 :row-index="rowIndex"
                 :field-id="fieldId"
@@ -49,7 +49,6 @@
 
 <script>
 import { newId } from '@utils/string';
-import { canDrag } from '@utils/drag-drop';
 
 import Field from '@components/Field.vue';
 import { Drop } from '@vendor/vue-drag-drop';
@@ -63,6 +62,11 @@ export default {
     },
 
     props: {
+        __id: {
+            type: String,
+            default: '',
+        },
+
         id: {
             type: [String, Number],
             default: '',
@@ -107,12 +111,6 @@ export default {
         };
     },
 
-    computed: {
-        sourceField() {
-            return this.$store.getters['form/field'](this.fieldId);
-        },
-    },
-
     created() {
         this.$events.on('formie:dragging-active', this.draggingActive);
         this.$events.on('formie:dragging-inactive', this.draggingInactive);
@@ -125,7 +123,7 @@ export default {
 
     methods: {
         draggingActive(data) {
-            if (!this.canDrag(data)) {
+            if (!data || !this.canDrag(data)) {
                 return;
             }
 
@@ -169,10 +167,7 @@ export default {
 
                 this.addRow(rowIndex, fieldtype.type);
             } else {
-                const sourceRowIndex = data.rowIndex;
-                const sourceColumnIndex = data.columnIndex;
-
-                this.moveRow(sourceRowIndex, sourceColumnIndex, rowIndex);
+                this.moveRow(rowIndex, data.fieldId);
             }
         },
 
@@ -185,51 +180,48 @@ export default {
         },
 
         addRow(rowIndex, type) {
+            // Get the path to _this_ row, which is close to where we want to insert the new row
+            const destinationPath = this.$store.getters['form/parentKeyPath'](this.__id, [rowIndex]);
+
             const newField = this.$store.getters['fieldtypes/newField'](type, {
                 brandNewField: true,
-                isNested: this.isNested,
             });
 
-            const payload = {
-                rowIndex,
-                data: {
-                    __id: newId(),
-                    fields: [
-                        newField,
-                    ],
-                },
+            const newRow = {
+                __id: newId(),
+                fields: [newField],
             };
 
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/addRow', payload);
+            this.$store.dispatch('form/addField', {
+                destinationPath,
+                value: newRow,
+            });
         },
 
-        moveRow(sourceRowIndex, sourceColumnIndex, rowIndex) {
-            const payload = {
-                sourceRowIndex,
-                sourceColumnIndex,
-                rowIndex,
-                data: {
-                    __id: newId(),
-                },
+        moveRow(rowIndex, fieldId) {
+            // Get the source field to move
+            const sourcePath = this.$store.getters['form/keyPath'](fieldId);
+
+            // Get the path to _this_ row, which is close to where we want to insert the new row
+            const destinationPath = this.$store.getters['form/parentKeyPath'](this.__id, [rowIndex]);
+
+            // Get the parent `rows` so that we can insert it at the index
+            const fieldToMove = this.$store.getters['form/valueByKeyPath'](sourcePath);
+
+            const newRow = {
+                __id: newId(),
+                fields: [fieldToMove],
             };
 
-            if (this.fieldId) {
-                payload.fieldId = this.fieldId;
-            } else {
-                payload.pageIndex = this.pageIndex;
-            }
-
-            this.$store.dispatch('form/moveRow', payload);
+            this.$store.dispatch('form/moveField', {
+                sourcePath,
+                destinationPath,
+                value: newRow,
+            });
         },
 
         canDrag(data) {
-            return canDrag(this.pageIndex, this.sourceField, data);
+            return !(data.hasNestedFields && this.isNested);
         },
     },
 

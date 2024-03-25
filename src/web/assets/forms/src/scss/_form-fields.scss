@@ -140,6 +140,7 @@
 
 .dropzone-holder {
     position: relative;
+    height: 100%;
 }
 
 .form-field-dropzone {
@@ -155,8 +156,8 @@
 }
 
 .dashed-dropzone {
-    border: 1px dashed #0D99F2;
-    border-radius: 1px;
+    border: 1px solid lighten(#0D99F2, 20%);
+    border-radius: 2px;
     background-color: #e5f5f8;
     opacity: 0;
     visibility: hidden;
@@ -174,17 +175,19 @@
 
     .is-hover & {
         background-color: #0D99F2;
+        border-color: #0D99F2;
     }
 }
 
 .dashed-dropzone-horizontal {
-    height: 11px;
+    height: 6px;
 }
 
 .form-field-drop-target {
     width: 0;
     z-index: 1;
     transform: translateY(2.4em) translateX(-5px);
+    height: calc(100% - 3.1em);
 
     &.is-active {
         z-index: 10;
@@ -196,12 +199,12 @@
     top: -20px;
     left: -10px;
     width: 30px;
-    height: 80px;
+    bottom: -20px;
 }
 
 .dashed-dropzone-vertical {
-    width: 11px;
-    height: 40px;
+    width: 6px;
+    height: 100%;
 }
 
 //

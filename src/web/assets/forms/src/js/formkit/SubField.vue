@@ -109,7 +109,6 @@ import { Drag, Drop } from '@vendor/vue-drag-drop';
 
 import { newId } from '@utils/string';
 import { isSafari } from '@utils/browser';
-import { canDrag } from '@utils/drag-drop';
 
 import FieldEditModal from '@components/FieldEditModal.vue';
 import FieldDropdown from '@components/FieldDropdown.vue';
@@ -222,10 +221,6 @@ export default {
 
     methods: {
         draggingActive(data) {
-            if (!this.canDrag(data)) {
-                return;
-            }
-
             this.dropzonesActive = true;
         },
 
@@ -288,10 +283,6 @@ export default {
             this.$parent.$parent.moveField(sourceRowIndex, sourceFieldIndex, rowIndex, fieldIndex);
         },
 
-        canDrag(data) {
-            return canDrag(this.pageIndex, this.sourceField, data);
-        },
-
         toggleDropzone(event, state) {
             if (event.target === this.$refs.dropzoneLeft.$el) {
                 this.dropzoneLeftHover = state;
@@ -302,41 +293,11 @@ export default {
 
 
         requireField() {
-            // const payload = {
-            //     rowIndex: this.rowIndex,
-            //     columnIndex: this.columnIndex,
-            //     prop: 'required',
-            //     value: true,
-            // };
-
-            // if (this.fieldId) {
-            //     payload.fieldId = this.fieldId;
-            // } else {
-            //     payload.pageIndex = this.pageIndex;
-            // }
-
             this.field.settings.required = true;
-
-            // this.$store.dispatch('form/updateFieldSettings', payload);
         },
 
         unrequireField() {
-
             this.field.settings.required = false;
-            // const payload = {
-            //     rowIndex: this.rowIndex,
-            //     columnIndex: this.columnIndex,
-            //     prop: 'required',
-            //     value: false,
-            // };
-
-            // if (this.fieldId) {
-            //     payload.fieldId = this.fieldId;
-            // } else {
-            //     payload.pageIndex = this.pageIndex;
-            // }
-
-            // this.$store.dispatch('form/updateFieldSettings', payload);
         },
     },
 };

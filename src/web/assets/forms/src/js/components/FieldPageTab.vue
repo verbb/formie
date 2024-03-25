@@ -118,22 +118,35 @@ export default {
             this.$events.emit('formie:dragging-inactive');
             this.dropzoneHover = false;
 
-            const pageIndex = event.target.getAttribute('data-page');
-            const sourcePageIndex = data.pageIndex;
-            const sourceRowIndex = data.rowIndex;
-            const sourceColumnIndex = data.columnIndex;
+            // Get the field key path
+            const sourcePath = this.$store.getters['form/keyPath'](data.fieldId);
+            const fieldToMove = this.$store.getters['form/valueByKeyPath'](sourcePath);
 
-            const payload = {
-                pageIndex,
-                sourcePageIndex,
-                sourceRowIndex,
-                sourceColumnIndex,
-                data: {
-                    __id: newId(),
-                },
+            // Construct the key path for the new page manually
+            const destinationPath = ['pages', this.pageIndex, 'rows'];
+
+            // Find the last row on the destination page and use that as the ID
+            const destinationRows = this.$store.getters['form/valueByKeyPath'](destinationPath);
+
+            // Figure out how to append it, by getting the last item index
+            if (destinationRows && Array.isArray(destinationRows) && destinationRows.length) {
+                destinationPath.push(destinationRows.length);
+            } else {
+                destinationPath.push(0);
+            }
+
+            const newRow = {
+                __id: newId(),
+                fields: [fieldToMove],
             };
 
-            this.$store.dispatch('form/appendRowToPage', payload);
+            this.$store.dispatch('form/moveField', {
+                sourcePath,
+                destinationPath,
+                value: newRow,
+            });
+
+
         },
     },
 };

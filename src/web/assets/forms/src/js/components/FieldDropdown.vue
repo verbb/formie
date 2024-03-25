@@ -4,7 +4,7 @@
             <div :id="$id('edit-field-anchor')"></div>
         </button>
 
-        <div class="fui-menu menu" data-align="right">
+        <div class="fui-menu menu menu--disclosure" data-align="right">
             <ul class="padded">
                 <!-- Use `v-show` not `v-if` as Craft's bindings won't play well here otherwise -->
                 <field-dropdown-item v-show="canEdit" icon="edit" action="edit" label="Edit" @clicked="selectOption" />
