@@ -351,19 +351,19 @@ const getters = {
     },
 
     serializedDeleted: (state) => {
+        const filterNonNullIds = (array) => {
+            return array.map((item) => {
+                return item.id;
+            }).filter((id) => {
+                return id !== null && id !== undefined;
+            });
+        };
+
         // Only return items that have been saved in the database with IDs
         return {
-            pages: state.deleted.pages.map((page) => {
-                return page.id;
-            }),
-
-            rows: state.deleted.rows.map((row) => {
-                return row.id;
-            }),
-
-            fields: state.deleted.fields.map((field) => {
-                return field.id;
-            }),
+            pages: filterNonNullIds(state.deleted.pages),
+            rows: filterNonNullIds(state.deleted.rows),
+            fields: filterNonNullIds(state.deleted.fields),
         };
     },
 
