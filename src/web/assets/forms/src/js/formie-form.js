@@ -173,8 +173,6 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     data.append('notifications', JSON.stringify(this.$store.getters['notifications/serializedPayload']));
                     data.append('deleted', JSON.stringify(this.$store.getters['form/serializedDeleted']));
 
-                    console.log(this.$store.getters['form/serializedDeleted']);
-
                     Object.keys(options).forEach((option) => {
                         data.append(option, options[option]);
                     });

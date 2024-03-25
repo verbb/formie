@@ -209,7 +209,6 @@ export default {
     },
 
     created() {
-        // console.log(this.field);
         this.$events.on('formie:subfield-dragging-active', this.draggingActive);
         this.$events.on('formie:subfield-dragging-inactive', this.draggingInactive);
     },
