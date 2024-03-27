@@ -147,6 +147,7 @@ class Stencil extends Model
     public function getConfig(): array
     {
         $data = $this->data->getAttributes();
+        $data['settings'] = $data['settings']->getAttributes();
 
         return [
             'name' => $this->name,
