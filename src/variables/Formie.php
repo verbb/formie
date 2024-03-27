@@ -11,6 +11,7 @@ use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Plugin;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 
@@ -248,5 +249,18 @@ class Formie
     public function getFieldNamespaceForScript(FieldInterface $field): string
     {
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
+    }
+
+    public function getVisibleFields(FieldLayoutRow $row): array
+    {
+        $fields = [];
+
+        foreach ($row->getFields(false) as $field) {
+            if (!$field->getIsHidden()) {
+                $fields[] = $field;
+            }
+        }
+
+        return $fields;
     }
 }
