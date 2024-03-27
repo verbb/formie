@@ -50,7 +50,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     public function validateBlocks(ElementInterface $element): void
     {
         foreach ($this->getFields() as $field) {
-            $fieldKey = "$this->handle.$field->handle";
+            $fieldKey = $field->fieldKey;
             $value = $element->getFieldValue($fieldKey);
             $isEmpty = $field->isValueEmpty($value, $element);
 
