@@ -1615,11 +1615,9 @@ class Form extends Element
                 $allAttributes[$configKey] = Html::getTagAttributes($fieldTag->attributes);
                 $allAttributes[$configKey]['class'] = implode(' ', $classes);
             } else {
-                $allAttributes[$configKey]['class'] = $fallback;
-            }
-
-            if ($this->resetClasses) {
-                unset($allAttributes[$configKey]['class']);
+                if (!$this->resetClasses) {
+                    $allAttributes[$configKey]['class'] = $fallback;
+                }
             }
         }
 
