@@ -1292,21 +1292,12 @@ class Form extends Element
         if ($key === 'row') {
             $row = $context['row'] ?? null;
 
-            $fields = [];
-            $rowFields = $row['fields'] ?? [];
-
-            foreach ($rowFields as $field) {
-                if (!$field->getIsHidden()) {
-                    $fields[] = $field;
-                }
-            }
-
             return new HtmlTag('div', [
                 'class' => [
                     'fui-row fui-page-row',
-                    $fields ? false : 'fui-row-empty',
+                     $row->getIsHidden() ? 'fui-row-empty' : false,
                 ],
-                'data-fui-field-count' => count($fields),
+                'data-fui-field-count' => count($row->getFields(false, false)),
             ]);
         }
 

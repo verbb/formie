@@ -70,14 +70,14 @@ class FieldLayoutRow extends SavableComponent
         return $this->_page = Formie::$plugin->getFields()->getPageById($this->pageId);
     }
 
-    public function getFields(bool $includeDisabled = true): array
+    public function getFields(bool $includeDisabled = true, bool $includeHidden = true): array
     {
-        if ($includeDisabled) {
-            return $this->_fields;
-        }
-
         foreach ($this->_fields as $fieldKey => $field) {
-            if ($field->visibility === 'disabled' || !$field->enabled) {
+            if (!$includeDisabled && ($field->visibility === 'disabled' || !$field->enabled)) {
+                unset($this->_fields[$fieldKey]);
+            }
+
+            if (!$includeHidden && $field->getIsHidden()) {
                 unset($this->_fields[$fieldKey]);
             }
         }
