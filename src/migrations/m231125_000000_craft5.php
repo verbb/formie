@@ -17,6 +17,7 @@ use craft\helpers\Json;
 use craft\helpers\MigrationHelper;
 use craft\migrations\BaseContentRefactorMigration;
 
+use Exception;
 use Throwable;
 
 class m231125_000000_craft5 extends BaseContentRefactorMigration
@@ -193,6 +194,9 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             }
 
             $layoutConfig = Json::decode($layoutConfig);
+
+            // Check for legacy field layout format, introduced before the beta
+            $layoutConfig = $this->_processLegacyLayout($layoutConfig);
 
             $formLayout = new FieldLayout($layoutConfig);
 
@@ -429,6 +433,41 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         }
 
         return $newContent;
+    }
+
+    private function _processLegacyLayout(array $layoutConfig): array
+    {
+        foreach (($layoutConfig['pages'] ?? []) as $pageKey => $page) {
+            foreach (($page['rows'] ?? []) as $rowKey => $row) {
+                foreach (($row['fields'] ?? []) as $fieldKey => $field) {
+                    $fieldUid = $field['fieldUid'] ?? null;
+                    $required = $field['required'] ?? null;
+
+                    if (!$fieldUid) {
+                        continue;
+                    }
+
+                    // Find the old field by its UID
+                    $oldField = (new Query())->from('{{%fields}}')->where(['uid' => $fieldUid])->one();
+
+                    if (!$oldField) {
+                        throw new Exception('Unable to find legacy field for UID: ' . $fieldUid);
+                    }
+
+                    // Serialize the field again.
+                    $newFieldConfig = Json::decode($oldField['settings']);
+                    $newFieldConfig['type'] = $oldField['type'];
+                    $newFieldConfig['label'] = $oldField['name'];
+                    $newFieldConfig['handle'] = $oldField['handle'];
+                    $newFieldConfig['required'] = $required;
+                    $newFieldConfig['instructions'] = $oldField['instructions'];
+
+                    $layoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][$fieldKey] = $newFieldConfig;
+                }
+            }
+        }
+
+        return $layoutConfig;
     }
 
     private function _getNestedContentTableName(array $field): string
