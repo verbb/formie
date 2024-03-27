@@ -138,8 +138,6 @@ class SentNotifications extends Component
             $info['host'] = $transportType->host;
             $info['port'] = $transportType->port;
             $info['username'] = $transportType->username;
-            $info['encryptionMethod'] = $transportType->encryptionMethod;
-            $info['timeout'] = $transportType->timeout;
         }
 
         return $info;
