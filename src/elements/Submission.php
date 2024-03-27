@@ -573,10 +573,15 @@ class Submission extends CustomElement
         return $this->getFormLayout()?->getFields() ?? [];
     }
 
+    public function getFieldLayout(): ?FieldLayout
+    {
+        // For compatibility with essential element services like search
+        return $this->getFormLayout()?->getFieldLayout() ?? null;
+    }
+
     public function getCustomFields(): array
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submission’s `getCustomFields()` method has been deprecated. Use `getFields()` instead.');
-
+        // For compatibility with essential element services like search
         return $this->getFields();
     }
 
@@ -1273,16 +1278,5 @@ class Submission extends CustomElement
 
         $params = array_slice(func_get_args(), 1);
         return $reflectionMethod->invokeArgs($object, $params);
-    }
-
-
-    // Deprecated methods
-    // =========================================================================
-
-    public function getFieldLayout(): ?FieldLayout
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Submissions’ `getFieldLayout()` method has been deprecated. Use `getPages()`, `getRows()` or `getFields()` instead.');
-
-        return $this->getFormLayout()?->getFieldLayout() ?? null;
     }
 }
