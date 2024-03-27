@@ -24,7 +24,9 @@
     {% if render %}
         <tr class="{{ class }}">
             <th>
-                {%- include '_elements/element' with { element: element, single: true } -%}
+                {{ elementChip(element, {
+                    single: true,
+                }) }}
             </th>
 
             <td>{{ element.displayName() }}</td>

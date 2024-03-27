@@ -1,7 +1,7 @@
 {% for element in elements %}
-    {% include "_elements/element" with {
+    {{ elementChip(element, {
         context: 'field',
         size: 'small',
         name: 'elementSelect',
-    } %}
+    }) }}
 {% endfor %}
