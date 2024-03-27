@@ -80,6 +80,8 @@
 <script>
 import { mapState } from 'vuex';
 
+import { getErrorMessage } from '@utils/forms';
+
 export default {
     name: 'NotificationPreview',
 
@@ -149,11 +151,8 @@ export default {
                 if (response.data.error) {
                     this.error = true;
 
-                    this.errorMessage = Craft.t('formie', 'An error occurred.');
-
-                    if (response.data.error) {
-                        this.errorMessage += `<br><br><code>${response.data.error}</code>`;
-                    }
+                    const info = getErrorMessage(response.data.error);
+                    this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
 
                     return;
                 }
@@ -165,11 +164,8 @@ export default {
                 this.loading = false;
                 this.error = true;
 
-                this.errorMessage = error;
-
-                if (error.response.data.error) {
-                    this.errorMessage += `<br><br><code>${error.response.data.error}</code>`;
-                }
+                const info = getErrorMessage(error);
+                this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
             });
         },
 
