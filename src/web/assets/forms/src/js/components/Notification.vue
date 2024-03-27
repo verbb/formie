@@ -1,6 +1,6 @@
 <template>
     <tr class="fui-notification-row">
-        <td>
+        <td class="flex">
             <a href="#" :class="{ 'error': hasError }" @click.prevent="openModal">
                 <strong><FormKit type="variableText" variables="plainTextVariables" :value="notification.name" readonly="true" /></strong>
             </a>
@@ -187,7 +187,6 @@ export default {
     text-transform: uppercase;
     font-weight: 700;
     border: 1px #c8d3e0 solid;
-    margin-left: 10px;
 }
 
 </style>
