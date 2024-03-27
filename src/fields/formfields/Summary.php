@@ -121,6 +121,7 @@ class Summary extends FormField
                 'help' => Craft::t('formie', 'The description text shown at the top of the field.'),
                 'name' => 'description',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

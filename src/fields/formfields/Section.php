@@ -165,6 +165,7 @@ class Section extends FormField
     public function defineAdvancedSchema(): array
     {
         return [
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];

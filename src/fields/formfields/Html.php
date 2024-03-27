@@ -163,6 +163,7 @@ class Html extends FormField
                 'name' => 'htmlContent',
                 'rows' => '10',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

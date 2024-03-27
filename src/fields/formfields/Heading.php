@@ -114,6 +114,7 @@ class Heading extends FormField
                     ['label' => Craft::t('formie', 'H6'), 'value' => 'h6'],
                 ],
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 
