@@ -118,6 +118,13 @@ class Variables
             return $value;
         }
 
+        // Convert any fields defined as `{field:number}` to `{field.number}` to be compatible with Twig
+        if (is_string($value)) {
+            $value = preg_replace_callback('/\{field:([^\}]+)\}/', function($matches) {
+                return '{field.' . $matches[1] . '}';
+            }, $value);
+        }
+
         // Try and get the form from the submission if not set
         if ($submission && !$form) {
             $form = $submission->form;

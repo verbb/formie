@@ -83,9 +83,9 @@ class Calculations extends Field implements PreviewableFieldInterface
         $variables = [];
 
         // Extract the field handles from a formula
-        preg_match_all('/{field\.(.*?[^}])}/m', $formula, $matches);
+        preg_match_all('/{field:(.*?[^}])}/m', $formula, $matches);
 
-        // `$keys` will be `{field.handle}`, `$values` will be `handle`.
+        // `$keys` will be `{field:handle}`, `$values` will be `handle`.
         $keys = $matches[0] ?? [];
         $values = $matches[1] ?? [];
         $handles = array_combine($keys, $values);
@@ -97,11 +97,11 @@ class Calculations extends Field implements PreviewableFieldInterface
             $variables[$newHandle] = $this->_getFieldVariable($handle);
         }
 
-        // Replace `{field.handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
+        // Replace `{field:handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
         // and because some characters won't work well with the expressionLanguage parser
         $formula = preg_replace_callback('/({.*?})/', function($matches) {
             $string = $matches[1] ?? '';
-            return str_replace(['.', '{', '}'], ['_', '', ''], $string);
+            return str_replace([':', '{', '}'], ['_', '', ''], $string);
         }, $formula);
 
         return $this->_renderedFormula = [
