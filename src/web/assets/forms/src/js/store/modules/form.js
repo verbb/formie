@@ -604,7 +604,7 @@ const getters = {
     },
 
     allFields: (state, getters) => {
-        return (includeGeneral = false) => {
+        return (includeGeneral = false, excludedTypes = []) => {
             let fields = [
                 { label: Craft.t('formie', 'Fields'), heading: true },
             ];
@@ -614,13 +614,15 @@ const getters = {
                 if (!toBoolean(field.isNested)) {
                     if (field.subfieldOptions && field.hasSubfields) {
                         field.subfieldOptions.forEach((subfield) => {
-                            fields.push({
-                                id: field.id,
-                                vid: field.vid,
-                                type: field.type,
-                                label: `${field.label}: ${subfield.label}`,
-                                value: `{field.${field.handle}.${subfield.handle}}`,
-                            });
+                            if (!excludedTypes.includes(field.type)) {
+                                fields.push({
+                                    id: field.id,
+                                    vid: field.vid,
+                                    type: field.type,
+                                    label: `${field.label}: ${subfield.label}`,
+                                    value: `{field.${field.handle}.${subfield.handle}}`,
+                                });
+                            }
                         });
                     } else if (field.type === 'verbb\\formie\\fields\\formfields\\Group' && field.rows) {
                         // Is this a group field that supports nesting?
@@ -628,15 +630,17 @@ const getters = {
                             row.fields.forEach((groupfield) => {
                                 if (groupfield.subfieldOptions && groupfield.hasSubfields) {
                                     groupfield.subfieldOptions.forEach((subfield) => {
-                                        fields.push({
-                                            id: field.id,
-                                            vid: field.vid,
-                                            type: field.type,
-                                            label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
-                                            value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
-                                        });
+                                        if (!excludedTypes.includes(field.type)) {
+                                            fields.push({
+                                                id: field.id,
+                                                vid: field.vid,
+                                                type: field.type,
+                                                label: `${field.label}: ${groupfield.label}: ${subfield.label}`,
+                                                value: `{field.${field.handle}.${groupfield.handle}.${subfield.handle}}`,
+                                            });
+                                        }
                                     });
-                                } else {
+                                } else if (!excludedTypes.includes(field.type)) {
                                     fields.push({
                                         id: field.id,
                                         vid: field.vid,
@@ -647,7 +651,7 @@ const getters = {
                                 }
                             });
                         });
-                    } else {
+                    } else if (!excludedTypes.includes(field.type)) {
                         fields.push({
                             id: field.id,
                             vid: field.vid,

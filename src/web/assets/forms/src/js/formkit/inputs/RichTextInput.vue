@@ -91,7 +91,10 @@ export default {
         },
 
         plainTextVariables() {
-            return this.$store.getters['form/allFields'](true);
+            return this.$store.getters['form/allFields'](true, [
+                'verbb\\formie\\fields\\formfields\\Section',
+                'verbb\\formie\\fields\\formfields\\Summary',
+            ]);
         },
 
         calculationsVariables() {
