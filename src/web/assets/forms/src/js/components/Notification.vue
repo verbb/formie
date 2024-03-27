@@ -2,8 +2,7 @@
     <tr class="fui-notification-row">
         <td>
             <a href="#" :class="{ 'error': hasError }" @click.prevent="openModal">
-                <span class="status" :class="{ 'on': !!+notification.enabled }"></span>
-                <strong>{{ notification.name }}</strong>
+                <strong><FormKit type="variableText" variables="plainTextVariables" :value="notification.name" readonly="true" /></strong>
             </a>
 
             <span v-if="isUnsaved" class="fui-unsaved-pill">{{ t('formie', 'Unsaved') }}</span>
@@ -14,7 +13,7 @@
         </td>
 
         <td>
-            <span>{{ notification.subject }}</span>
+            <FormKit type="variableText" variables="plainTextVariables" :value="notification.subject" readonly="true" />
         </td>
 
         <td>
