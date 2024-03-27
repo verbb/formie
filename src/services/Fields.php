@@ -1129,10 +1129,10 @@ class Fields extends Component
                 ...$this->_getRowQuerySelect(),
                 ...$this->_getFieldQuerySelect(),
             ])
-            ->from(['{{%formie_fieldlayouts}} l'])
-            ->leftJoin('{{%formie_fieldlayout_pages}} p', 'p.layoutId = l.id')
-            ->leftJoin('{{%formie_fieldlayout_rows}} r', 'r.pageId = p.id')
-            ->leftJoin('{{%formie_fields}} f', 'f.rowId = r.id')
+            ->from(['l' => Table::FORMIE_FIELD_LAYOUTS])
+            ->leftJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], 'p.layoutId = l.id')
+            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], 'r.pageId = p.id')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
@@ -1206,9 +1206,9 @@ class Fields extends Component
                 ...$this->_getRowQuerySelect(),
                 ...$this->_getFieldQuerySelect(),
             ])
-            ->from(['{{%formie_fieldlayout_pages}} p'])
-            ->leftJoin('{{%formie_fieldlayout_rows}} r', 'r.pageId = p.id')
-            ->leftJoin('{{%formie_fields}} f', 'f.rowId = r.id')
+            ->from(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES])
+            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], 'r.pageId = p.id')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
@@ -1264,8 +1264,8 @@ class Fields extends Component
                 ...$this->_getRowQuerySelect(),
                 ...$this->_getFieldQuerySelect(),
             ])
-            ->from(['{{%formie_fieldlayout_rows}} r'])
-            ->leftJoin('{{%formie_fields}} f', 'f.rowId = r.id')
+            ->from(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS])
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
             ->where($params)
             ->orderBy([
                 'r.sortOrder' => SORT_ASC,

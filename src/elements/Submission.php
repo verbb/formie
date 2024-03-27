@@ -16,6 +16,7 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
@@ -641,7 +642,7 @@ class Submission extends CustomElement
             $this->title = $customTitle;
 
             // Rather than re-save, directly update the content record
-            Db::update('{{%elements_sites}}', ['title' => $customTitle], ['elementId' => $this->id, 'siteId' => $this->siteId]);
+            Db::update(Table::ELEMENTS_SITES, ['title' => $customTitle], ['elementId' => $this->id, 'siteId' => $this->siteId]);
         }
     }
 

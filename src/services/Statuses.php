@@ -104,8 +104,8 @@ class Statuses extends Component
         $countGroupedByStatusId = (new Query())
             ->select(['[[s.statusId]]', 'count(s.id) as submissionCount'])
             ->where(['[[e.dateDeleted]]' => null])
-            ->from(['{{%formie_submissions}} s'])
-            ->leftJoin([Table::ELEMENTS . ' e'], '[[s.id]] = [[e.id]]')
+            ->from(['s' => Table::FORMIE_SUBMISSIONS])
+            ->leftJoin(['e' => Table::ELEMENTS], '[[s.id]] = [[e.id]]')
             ->groupBy(['[[s.statusId]]'])
             ->indexBy('statusId')
             ->all();

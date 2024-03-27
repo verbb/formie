@@ -68,9 +68,9 @@ class SubmissionQuery extends ElementQuery
         } else if ($value !== null) {
             $this->formId = (new Query())
                 ->select(['forms.id'])
-                ->from(['{{%formie_forms}} forms'])
+                ->from(['forms' => Table::FORMIE_FORMS])
                 ->where(Db::parseParam('handle', $value))
-                ->leftJoin(['{{%elements}} elements'], '[[forms.id]] = [[elements.id]]')
+                ->leftJoin(['elements' => Table::ELEMENTS], '[[forms.id]] = [[elements.id]]')
                 ->andWhere(['dateDeleted' => null])
                 ->scalar();
         } else {

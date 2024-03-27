@@ -499,7 +499,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])
             ->where([$query, 'isIncomplete' => false, 'e.dateDeleted' => null])
-            ->leftJoin('{{%elements}} e', '[[e.id]] = [[s.id]]');
+            ->leftJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[s.id]]');
 
         // Exclude _this_ element, if there is one
         if ($element->id) {

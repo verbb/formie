@@ -491,13 +491,13 @@ class Install extends Migration
     public function removeContent(): void
     {
         // Delete Sent Notification Elements
-        $this->delete('{{%elements}}', ['type' => SentNotification::class]);
+        $this->delete(Table::ELEMENTS, ['type' => SentNotification::class]);
 
         // Delete Form Submission Elements
-        $this->delete('{{%elements}}', ['type' => Submission::class]);
+        $this->delete(Table::ELEMENTS, ['type' => Submission::class]);
 
         // Delete Form Elements
-        $this->delete('{{%elements}}', ['type' => Form::class]);
+        $this->delete(Table::ELEMENTS, ['type' => Form::class]);
     }
 
     public function dropProjectConfig(): void

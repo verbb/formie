@@ -4,6 +4,7 @@ namespace verbb\formie\widgets;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\web\assets\cp\WidgetsAsset;
 
 use Craft;
@@ -235,8 +236,8 @@ class RecentSubmissions extends Widget
         }
 
         $query = (new Query)
-            ->from('{{%formie_submissions}} submissions')
-            ->innerJoin('{{%elements}} elements', '[[elements.id]] = [[submissions.id]]')
+            ->from(['submissions' => Table::FORMIE_SUBMISSIONS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[submissions.id]]')
             ->where(['formId' => $form->id])
             ->andWhere(['elements.dateDeleted' => null]);
 

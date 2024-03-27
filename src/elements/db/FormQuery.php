@@ -92,7 +92,7 @@ class FormQuery extends ElementQuery
         if ($this->pageCount) {
             $pageQuery = (new Query())
                 ->select(['COUNT(*)'])
-                ->from(['pages' => '{{%formie_pages}}'])
+                ->from(['pages' => Table::FORMIE_FIELD_LAYOUT_PAGES])
                 ->where('[[pages.formId]] = [[formie_forms.id]]');
 
             $this->subQuery->addSelect(['pageCount' => $pageQuery]);
