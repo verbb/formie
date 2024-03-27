@@ -180,7 +180,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
                 $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $sourceKey);
 
                 // Check for custom sources, which use conditions directly on the query
-                if ($elementSource['type'] === ElementSources::TYPE_CUSTOM) {
+                if ($elementSource && $elementSource['type'] === ElementSources::TYPE_CUSTOM) {
                     // Handle conditions by parsing the rules and applying to query
                     $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
                     $sourceCondition->modifyQuery($query);
