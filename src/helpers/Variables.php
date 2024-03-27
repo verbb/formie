@@ -361,7 +361,7 @@ class Variables
             }
         } else if ($field instanceof SubFieldInterface && $field->hasSubFields()) {
             foreach ($field->getFields() as $subField) {
-                $submissionValue = $submission->getFieldValue("$field->handle.$subField->handle");
+                $submissionValue = $submission->getFieldValue($subField->fieldKey);
                 $fieldValues = self::_getParsedFieldValue($subField, $submissionValue, $submission, $notification);
 
                 foreach ($fieldValues as $key => $fieldValue) {
@@ -372,7 +372,7 @@ class Variables
             }
         } else if ($field instanceof fields\Group) {
             foreach ($field->getFields() as $nestedField) {
-                $submissionValue = $submission->getFieldValue("$field->handle.$nestedField->handle");
+                $submissionValue = $submission->getFieldValue($nestedField->fieldKey);
                 $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
 
                 foreach ($fieldValues as $key => $fieldValue) {
@@ -383,6 +383,8 @@ class Variables
             }
         } else if ($field instanceof fields\MultiLineText && !$field->useRichText) {
             $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
+        } else {
+            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
         }
 
         // Some fields use the email template for the field, due to their complexity. 
