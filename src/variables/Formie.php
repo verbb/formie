@@ -253,6 +253,8 @@ class Formie
 
     public function getVisibleFields(FieldLayoutRow $row): array
     {
+        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.getVisibleFields()` has been deprecated. Use `row.getIsHidden()` instead.');
+
         $fields = [];
 
         foreach ($row->getFields(false) as $field) {
