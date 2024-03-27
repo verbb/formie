@@ -624,7 +624,7 @@ class Submissions extends Component
                     $query = $field->getElementsQuery()->orderBy('RAND()');
 
                     // Check if we should limit to 1 if a (single) dropdown or radio
-                    if ($field->displayType === 'radio' || ($field->displayType === 'dropdown' && !$field->multiple)) {
+                    if ($field->displayType === 'radio' || ($field->displayType === 'dropdown' && !$field->multi)) {
                         $query->limit(1);
                     }
 
