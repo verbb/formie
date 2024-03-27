@@ -116,6 +116,19 @@ class FieldLayoutRow extends SavableComponent
         return $this->getFields();
     }
 
+    public function getIsHidden(): bool
+    {
+        $fields = [];
+
+        foreach ($this->getFields(false) as $field) {
+            if (!$field->getIsHidden()) {
+                $fields[] = $field;
+            }
+        }
+
+        return !(bool)$fields;
+    }
+
     public function getFormBuilderConfig(): array
     {
         return [
