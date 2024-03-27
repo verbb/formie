@@ -434,7 +434,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getToken(): ?Token
     {
         if ($this->id) {
-            return Auth::$plugin->getTokens()->getTokenByOwnerReference('formie', $this->id);
+            return Auth::getInstance()->getTokens()->getTokenByOwnerReference('formie', $this->id);
         }
 
         return null;

@@ -190,7 +190,7 @@ class IntegrationsController extends Controller
             // Keep track of which integration instance is for, so we can fetch it in the callback
             Session::set('integrationHandle', $integrationHandle);
 
-            return Auth::$plugin->getOAuth()->connect('formie', $integration);
+            return Auth::getInstance()->getOAuth()->connect('formie', $integration);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Unable to authorize connect “{integration}”: “{message}” {file}:{line}', [
                 'integration' => $integrationHandle,
@@ -230,7 +230,7 @@ class IntegrationsController extends Controller
 
         try {
             // Fetch the access token from the integration and create a Token for us to use
-            $token = Auth::$plugin->getOAuth()->callback('formie', $integration);
+            $token = Auth::getInstance()->getOAuth()->callback('formie', $integration);
 
             if (!$token) {
                 Session::setError('formie', Craft::t('formie', 'Unable to fetch token.'), true);
@@ -240,7 +240,7 @@ class IntegrationsController extends Controller
 
             // Save the token to the Auth plugin, with a reference to this integration
             $token->reference = $integration->id;
-            Auth::$plugin->getTokens()->upsertToken($token);
+            Auth::getInstance()->getTokens()->upsertToken($token);
         } catch (Throwable $e) {
             // Check if there are any meaningful errors returned from providers
             $message = implode(', ', array_filter([$e->getMessage(), $this->request->getParam('error'), $this->request->getParam('error_description')]));
@@ -274,7 +274,7 @@ class IntegrationsController extends Controller
         }
 
         // Delete all tokens for this integration
-        Auth::$plugin->getTokens()->deleteTokenByOwnerReference('formie', $integration->id);
+        Auth::getInstance()->getTokens()->deleteTokenByOwnerReference('formie', $integration->id);
 
         return $this->asModelSuccess($integration, Craft::t('formie', '{name} disconnected.', ['name' => $integration->name]), 'integration');
     }
