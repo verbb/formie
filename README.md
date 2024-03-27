@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **Formie 3** for **Craft 5** has some breaking changes. Consult our [Upgrading from v2](https://github.com/verbb/formie/blob/craft-5/docs/get-started/upgrading-from-v2.md) the details.
+>
+> Most aspects are backwards compatible and deprecated, but **Custom Fields** and **Custom Integrations** will be affected the most.
+
 <p align="center"><img src="https://verbb.imgix.net/plugins/formie/formie-icon.svg" width="100" height="100" alt="Formie icon"></p>
 <h1 align="center">Formie for Craft CMS</h1>
 
