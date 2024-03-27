@@ -160,4 +160,34 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
     {
         return [];
     }
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        // Bubble-up to the main field method, as we don't want to use `SingleNestedField` definitions
+        return Field::defineValueAsString($value, $element);
+    }
+
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    {
+        // Bubble-up to the main field method, as we don't want to use `SingleNestedField` definitions
+        return Field::defineValueAsJson($value, $element);
+    }
+
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    {
+        // Bubble-up to the main field method, as we don't want to use `SingleNestedField` definitions
+        return Field::defineValueForExport($value, $element);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        // Bubble-up to the main field method, as we don't want to use `SingleNestedField` definitions
+        return Field::defineValueForSummary($value, $element);
+    }
+
+    protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
+    {
+        // Bubble-up to the main field method, as we don't want to use `SingleNestedField` definitions
+        return Field::defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
+    }
 }
