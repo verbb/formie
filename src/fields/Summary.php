@@ -61,8 +61,8 @@ class Summary extends CosmeticField
 
     public function afterCreateField(array $data): void
     {
-        $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
-        $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
+        $this->label = $this->label ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
+        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
     }
 
     public function defineGeneralSchema(): array

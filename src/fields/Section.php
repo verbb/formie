@@ -55,8 +55,8 @@ class Section extends CosmeticField
 
     public function afterCreateField(array $data): void
     {
-        $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
-        $this->handle = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
+        $this->label = $this->label ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
+        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
     }
 
     public function getSettingGqlTypes(): array
