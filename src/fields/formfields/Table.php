@@ -687,8 +687,6 @@ class Table extends CraftTable implements FormFieldInterface
         }
 
         $this->defaultValue = $value;
-
-        parent::populateValue($value);
     }
 
 
