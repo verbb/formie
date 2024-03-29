@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.40 - 2024-03-29
+
+### Added
+- Add support for additional SugarCRM fields.
+
 ## 1.6.39 - 2024-03-16
 
 ### Fixed
