@@ -1,5 +1,63 @@
 # Changelog
 
+## 3.0.0-beta.5 - 2024-03-29
+
+### Added
+- Added `row.getIsHidden()`.
+- Added back `craft.formie.getVisibleFields()`.
+- Added the ability to store custom data (`customSettings`) on a Notification, to store extra data against a Notification.
+- Added the ability to modify Notification tabs and field settings (schema) via `Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA`.
+- Fields moved in and out of Group fields now have their content moved as well.
+- Fields can now be moved to and from Group/Repeater fields.
+- Added the ability for Recipients fields to pre-populate the field via their option label.
+- Added “Source” to Klaviyo Email Marketing integration.
+- Added support for additional SugarCRM fields.
+- Added the ability for cosmetic fields (Heading, HTML, etc) to be included in email notifications.
+- Added the ability to map to HubSpot Hidden fields.
+
+### Changed
+- Updated db table references.
+- Updated `Auth::getInstance()` references.
+- Updated `elementChip()` references.
+- Updated email notifications index to show Name and Subject variable previews when used.
+- Improved email notification preview error message.
+- Updated `stripe/stripe-php` to be compatible with (commerce-stripe)[https://github.com/craftcms/commerce-stripe].
+- Remove Section and Summary fields from rich text editor and variable picker options.
+
+### Fixed
+- Fixed notification alignment.
+- Fixed an error when installing the plugin, or when saving a stencil.
+- Fixed an error when saving a sent notification for an SMTP mailer email.
+- Fixed variable parsing plugin-wide.
+- Fixed an error when rendering entries fields in the email notification preview.
+- Fixed deprecation notice for Submissions.
+- Fixed some Theme Config classes not applying correctly.
+- Fixed Formie 3 migrations for where forms from Formie 2 were using the older field layout format.
+- Fixed an error with element fields and custom sources.
+- Fixed Section and Summary field label/handles re-generating.
+- Fixed Group inner field validation for Sub-Fields.
+- Fixed variable-parsing of sub-fields, nested fields and regular fields.
+- Fixed an error for Sub-Fields and generating summary and integration values.
+- Fixed hidden fields and rows with only hidden fields being shown in the form layout.
+- Fixed Pre-Populate field settings showing in nested Repeater fields, when they have no effect.
+- Fixed filtering deleted pages/rows/fields.
+- Fixed Recipients field error.
+- Fixed field defaults not being applied.
+- Fixed Opayo and `1017` error responses.
+- Fixed Algolia and Google address provider templates.
+- Fixed Table fields not populating properly with `populateFormValues()` and allow usage of the column `handle`.
+- Fixed Date/Time columns in Table field with timezone information when editing a submission in the control panel.
+- Fixed Salesforce DateTime fields throwing an error.
+- Fixed renamed theme config keys for some fields (wait until Formie 3).
+- Fixed success/error messages containing paragraph tags not displaying correctly for Ajax-based forms.
+- Fixed field and integration handles using the translated class name when they shouldn’t.
+- Fixed cosmetic field handles not working correctly for non-English-default installs.
+- Fixed a translation error in the control panel when the users language or site is set to German.
+- Fixed some integrations throwing errors when the control panel language was set to non-English.
+
+### Deprecated
+- Deprecated `craft.formie.getVisibleFields()`.
+
 ## 3.0.0-beta.4 - 2024-03-22
 
 ### Breaking Changes
