@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.1.8 - 2024-03-29
+
+### Added
+- Added “Source” to Klaviyo Email Marketing integration.
+- Added support for additional SugarCRM fields.
+- Added the ability for cosmetic fields (Heading, HTML, etc) to be included in email notifications.
+- Added the ability to map to HubSpot Hidden fields.
+
+### Changed
+- Remove Section and Summary fields from rich text editor and variable picker options.
+
+### Fixed
+- Fixed Opayo and `1017` error responses.
+- Fixed Algolia and Google address provider templates.
+- Fixed Table fields not populating properly with `populateFormValues()` and allow usage of the column `handle`.
+- Fixed Date/Time columns in Table field with timezone information when editing a submission in the control panel.
+- Fixed Salesforce DateTime fields throwing an error.
+- Fixed renamed theme config keys for some fields (wait until Formie 3).
+- Fixed success/error messages containing paragraph tags not displaying correctly for Ajax-based forms.
+- Fixed field and integration handles using the translated class name when they shouldn’t.
+- Fixed cosmetic field handles not working correctly for non-English-default installs.
+- Fixed a translation error in the control panel when the users language or site is set to German.
+- Fixed some integrations throwing errors when the control panel language was set to non-English.
+
 ## 2.1.7 - 2024-03-18
 
 ### Added
