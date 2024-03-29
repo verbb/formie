@@ -661,6 +661,36 @@ class Table extends CraftTable implements FormFieldInterface
         return Template::raw(Html::tag('table', $thead . $tbody));
     }
 
+    public function populateValue($value): void
+    {
+        // In case tables have the older format before `col*` indexes
+        $columns = [];
+
+        foreach ($this->columns as $key => $col) {
+            $columns[$col['handle']] = $key;
+        }
+
+        // Allow population via either `col1` or the handle of the column
+        if (is_array($value)) {
+            foreach ($value as $rowKey => $row) {
+                foreach ($row as $colKey => $colValue) {
+                    if (!str_starts_with($colKey, 'col')) {
+                        $col = $columns[$colKey] ?? null;
+
+                        if ($col) {
+                            $value[$rowKey][$col] = $colValue;
+                            $value[$rowKey]['col' . $col] = $colValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        $this->defaultValue = $value;
+
+        parent::populateValue($value);
+    }
+
 
     // Private Methods
     // =========================================================================

@@ -118,18 +118,18 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 The above will create two "blocks" for the repeater field.
 
 ## Table
-To populate a Table field, you'll also be creating the "rows", as well as defining the inner column values. The inner column values follow a numerical pattern like `col1` and `col2`, and **not** the `handle` for the column as defined in your field settings.
+To populate a Table field, you'll also be creating the "rows", as well as defining the inner column values. The inner column values should be the `handle` for the column as defined in your field settings.
 
 ```twig
 {% do craft.formie.populateFormValues(form, {
     tableFieldHandle: [
         {
-            col1: 'Some Value',
-            col2: 'Option 1',
+            textColumnHandle: 'Some Value',
+            dropdownColumnHandle: 'Option 1',
         },
         {
-            col1: 'Another Value',
-            col2: 'Option 2',
+            textColumnHandle: 'Another Value',
+            dropdownColumnHandle: 'Option 2',
         },
     ],
 }) %}
