@@ -1323,6 +1323,42 @@
 - Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
 - Fix an issue using `populateFormValues` for Repeater fields.
 
+## 1.6.40 - 2024-03-29
+
+### Added
+- Add support for additional SugarCRM fields.
+
+## 1.6.39 - 2024-03-16
+
+### Fixed
+- Fixed Tiptap v1 and ProseMirror compatibility.
+
+## 1.6.38 - 2024-03-13
+
+### Fixed
+- Fixed a Tiptap dependency causing the form builder to not load properly.
+
+## 1.6.37 - 2024-03-08
+
+### Fixed
+- Fixed mutli-name fields that are conditionally hidden throwing an error in email notifications.
+- Fixed a JS error when validating File Upload fields.
+
+## 1.6.36.1 - 2023-12-12
+
+### Changed
+- Improve error message when failing to save a form.
+
+### Fixed
+- Fixed an error when creating new forms.
+
+## 1.6.36 - 2023-12-12
+
+### Fixed
+- Fixed an error when form message settings contained emoji’s.
+- Fixed lack of enter key accessibility for sent notification and submission modals in the control panel.
+- Fixed an issue using `populateFormValues` for Repeater fields.
+
 ## 1.6.35 - 2023-10-25
 
 ### Added
