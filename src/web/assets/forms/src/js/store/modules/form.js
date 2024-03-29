@@ -427,9 +427,9 @@ const getters = {
     },
 
     emailFields: (state, getters) => {
-        return (includeGeneral = false) => {
+        return (options = {}) => {
             // TODO refactor this, probably server-side
-            const includedTypes = [
+            options.includedTypes = [
                 'verbb\\formie\\fields\\Email',
                 'verbb\\formie\\fields\\Hidden',
                 'verbb\\formie\\fields\\Recipients',
@@ -437,7 +437,7 @@ const getters = {
 
             let fields = [
                 { label: Craft.t('formie', 'Fields'), heading: true },
-                ...getters.getFieldSelectOptions({ includedTypes }),
+                ...getters.getFieldSelectOptions(options),
             ];
 
             // Check if there's only a heading
@@ -445,7 +445,7 @@ const getters = {
                 fields = [];
             }
 
-            if (includeGeneral) {
+            if (options.includeGeneral) {
                 fields = fields.concat(getters.generalFields);
             } else {
                 fields = fields.concat(state.variables.email);
@@ -456,16 +456,16 @@ const getters = {
     },
 
     numberFields: (state, getters) => {
-        return () => {
+        return (options = {}) => {
             // TODO refactor this, probably server-side
-            const includedTypes = [
+            options.includedTypes = [
                 'verbb\\formie\\fields\\Number',
                 'verbb\\formie\\fields\\Hidden',
             ];
 
             let fields = [
                 { label: Craft.t('formie', 'Fields'), heading: true },
-                ...getters.getFieldSelectOptions({ includedTypes }),
+                ...getters.getFieldSelectOptions(options),
             ];
 
             // Check if there's only a heading
@@ -473,14 +473,20 @@ const getters = {
                 fields = [];
             }
 
+            if (options.includeGeneral) {
+                fields = fields.concat(getters.generalFields);
+            } else {
+                fields = fields.concat(state.variables.email);
+            }
+
             return fields;
         };
     },
 
     plainTextFields: (state, getters) => {
-        return (includeGeneral = false, extra = []) => {
+        return (options = {}) => {
             // TODO refactor this, probably server-side
-            const includedTypes = [
+            options.includedTypes = [
                 'verbb\\formie\\fields\\Date',
                 'verbb\\formie\\fields\\Dropdown',
                 'verbb\\formie\\fields\\Email',
@@ -494,12 +500,12 @@ const getters = {
                 // Some fields that's values have __toString implemented.
                 'verbb\\formie\\fields\\Name',
 
-                ...extra,
+                ...options.extra ?? [],
             ];
 
             let fields = [
                 { label: Craft.t('formie', 'Fields'), heading: true },
-                ...getters.getFieldSelectOptions({ includedTypes }),
+                ...getters.getFieldSelectOptions(options),
             ];
 
             // Check if there's only a heading
@@ -507,7 +513,7 @@ const getters = {
                 fields = [];
             }
 
-            if (includeGeneral) {
+            if (options.includeGeneral) {
                 fields = fields.concat(getters.generalFields);
             }
 
@@ -540,7 +546,7 @@ const getters = {
             let fieldOptions = [];
 
             getters.fields().forEach((field) => {
-                getters.getFieldSelectOption(fieldOptions, field);
+                getters.getFieldSelectOption(fieldOptions, field, options);
             });
 
             if (options.includedTypes && options.includedTypes.length) {
@@ -566,9 +572,15 @@ const getters = {
     },
 
     getFieldSelectOption: (state, getters, rootState, rootGetters) => {
-        return (fieldOptions, field, labelPrefix = '', handlePrefix = '') => {
+        return (fieldOptions, field, options, labelPrefix = '', handlePrefix = '') => {
             if (field.isCosmetic) {
                 return;
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                if (options.excludedTypes.includes(field.type)) {
+                    return;
+                }
             }
 
             if (field.type === 'verbb\\formie\\fields\\Name' && !field.settings.useMultipleFields) {
@@ -577,11 +589,12 @@ const getters = {
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
-            } else if (field.settings.rows) {
+            } else if (field.settings.rows && !field.isMultiNested) {
+                // Unable to select inner Repeater fields, until we design a better UI to handle repeatable values.
                 // Handle Group fields (single-nesting field types) and Sub-Fields
                 field.settings.rows.forEach((row) => {
                     row.fields.forEach((nestedField) => {
-                        getters.getConditionsFieldOption(fieldOptions, nestedField, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
+                        getters.getFieldSelectOption(fieldOptions, nestedField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
                     });
                 });
             } else {
@@ -611,12 +624,18 @@ const getters = {
             let fieldOptions = [];
 
             getters.fields().forEach((field) => {
-                getters.getIntegrationFieldSelectOption(fieldOptions, field);
+                getters.getIntegrationFieldSelectOption(fieldOptions, field, options);
             });
 
             if (options.includedTypes && options.includedTypes.length) {
                 fieldOptions = fieldOptions.filter((fieldOption) => {
                     return options.includedTypes.includes(fieldOption.type);
+                });
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                fieldOptions = fieldOptions.filter((fieldOption) => {
+                    return !options.excludedTypes.includes(fieldOption.type);
                 });
             }
 
@@ -631,9 +650,15 @@ const getters = {
     },
 
     getIntegrationFieldSelectOption: (state, getters, rootState, rootGetters) => {
-        return (fieldOptions, field, labelPrefix = '', handlePrefix = '') => {
+        return (fieldOptions, field, options, labelPrefix = '', handlePrefix = '') => {
             if (field.isCosmetic) {
                 return;
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                if (options.excludedTypes.includes(field.type)) {
+                    return;
+                }
             }
 
             if (field.type === 'verbb\\formie\\fields\\Name' && !field.settings.useMultipleFields) {
@@ -652,7 +677,7 @@ const getters = {
 
                 field.settings.rows.forEach((row) => {
                     row.fields.forEach((subField) => {
-                        getters.getIntegrationFieldSelectOption(fieldOptions, subField, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
+                        getters.getIntegrationFieldSelectOption(fieldOptions, subField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
                     });
                 });
             } else {
@@ -682,12 +707,18 @@ const getters = {
             let fieldOptions = [];
 
             getters.fields().forEach((field) => {
-                getters.getConditionsFieldOption(fieldOptions, field);
+                getters.getConditionsFieldOption(fieldOptions, field, options);
             });
 
             if (options.includedTypes && options.includedTypes.length) {
                 fieldOptions = fieldOptions.filter((fieldOption) => {
                     return options.includedTypes.includes(fieldOption.type);
+                });
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                fieldOptions = fieldOptions.filter((fieldOption) => {
+                    return !options.excludedTypes.includes(fieldOption.type);
                 });
             }
 
@@ -702,9 +733,15 @@ const getters = {
     },
 
     getConditionsFieldOption: (state, getters, rootState, rootGetters) => {
-        return (fieldOptions, field, labelPrefix = '', handlePrefix = '') => {
+        return (fieldOptions, field, options, labelPrefix = '', handlePrefix = '') => {
             if (field.isCosmetic) {
                 return;
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                if (options.excludedTypes.includes(field.type)) {
+                    return;
+                }
             }
 
             if (field.type === 'verbb\\formie\\fields\\Name' && !field.settings.useMultipleFields) {
@@ -721,7 +758,7 @@ const getters = {
                     if (contextField && contextField.parentFieldId === field.__id) {
                         field.settings.rows.forEach((row) => {
                             row.fields.forEach((nestedField) => {
-                                getters.getConditionsFieldOption(fieldOptions, nestedField, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `__ROW__.${handlePrefix}${field.settings.handle}.`);
+                                getters.getConditionsFieldOption(fieldOptions, nestedField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `__ROW__.${handlePrefix}${field.settings.handle}.`);
                             });
                         });
                     }
@@ -729,7 +766,7 @@ const getters = {
                     // Handle Group fields (single-nesting field types) and Sub-Fields
                     field.settings.rows.forEach((row) => {
                         row.fields.forEach((nestedField) => {
-                            getters.getConditionsFieldOption(fieldOptions, nestedField, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
+                            getters.getConditionsFieldOption(fieldOptions, nestedField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.`);
                         });
                     });
                 }

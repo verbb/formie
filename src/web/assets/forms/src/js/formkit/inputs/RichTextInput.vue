@@ -98,16 +98,19 @@ export default {
             return this.$store.getters['form/allFieldOptions']({
                 includeGeneral: true,
                 excludedTypes: [
-                    'verbb\\formie\\fields\\formfields\\Section',
-                    'verbb\\formie\\fields\\formfields\\Summary',
+                    'verbb\\formie\\fields\\Section',
+                    'verbb\\formie\\fields\\Summary',
                 ],
             });
         },
 
         calculationsVariables() {
-            return this.$store.getters['form/plainTextFields'](false, [
-                'verbb\\formie\\fields\\Checkboxes',
-            ]);
+            return this.$store.getters['form/plainTextFields']({
+                includeGeneral: false,
+                excludedTypes: [
+                    'verbb\\formie\\fields\\Checkboxes',
+                ],
+            });
         },
 
         allowSource() {
