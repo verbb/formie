@@ -82,6 +82,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Static Methods
     // =========================================================================
 
+    public static function className(): string
+    {
+        $classNameParts = explode('\\', static::class);
+
+        return array_pop($classNameParts);
+    }
+
     public static function isSelectable(): bool
     {
         return false;
@@ -261,7 +268,10 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function getClassHandle(): string
     {
-        return StringHelper::toKebabCase(static::displayName());
+        $classNameParts = explode('\\', static::class);
+        $end = array_pop($classNameParts);
+
+        return StringHelper::toKebabCase($end);
     }
 
     public function getEnabled(bool $parse = true): bool|string

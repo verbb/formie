@@ -56,7 +56,7 @@ class Section extends CosmeticField
     public function afterCreateField(array $data): void
     {
         $this->label = $this->label ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
-        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'sectionHandle'));
+        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier('sectionHandle');
     }
 
     public function getSettingGqlTypes(): array
@@ -119,6 +119,7 @@ class Section extends CosmeticField
     public function defineAdvancedSchema(): array
     {
         return [
+            SchemaHelper::includeInEmailField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];

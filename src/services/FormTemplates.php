@@ -261,6 +261,21 @@ class FormTemplates extends Component
         }
     }
 
+    public function getTemplateSuggestions(): array
+    {
+        $data = [];
+
+        $path = Craft::$app->getPath()->getSiteTemplatesPath();
+        $directories = $this->_getRelativeDirectories($path, $path);
+        sort($directories);
+
+        foreach ($directories as $directory) {
+            $data[] = ['name' => $directory];
+        }
+
+        return [['label' => Craft::t('formie', 'Directories'), 'data' => $data]];
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -313,5 +328,30 @@ class FormTemplates extends Component
         $query->andWhere(['uid' => $uid]);
 
         return $query->one() ?? new TemplateRecord();
+    }
+
+    private function _getRelativeDirectories(string $basePath, string $path): array
+    {
+        $directories = [];
+
+        if ($handle = opendir($path)) {
+            while (false !== ($entry = readdir($handle))) {
+                if ($entry == "." || $entry == "..") {
+                    continue;
+                }
+
+                $fullPath = $path . DIRECTORY_SEPARATOR . $entry;
+
+                if (is_dir($fullPath)) {
+                    $directories[] = substr($fullPath, strlen($basePath) + 1);
+                    $subDirectories = $this->_getRelativeDirectories($basePath, $fullPath);
+                    $directories = array_merge($directories, $subDirectories);
+                }
+            }
+
+            closedir($handle);
+        }
+
+        return $directories;
     }
 }

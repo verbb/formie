@@ -55,6 +55,18 @@ class ActiveCampaign extends EmailMarketing
             foreach ($lists as $list) {
                 $listFields = array_merge([
                     new IntegrationField([
+                        'handle' => 'subscribed',
+                        'name' => Craft::t('formie', 'Subscribe Status'),
+                        'type' => IntegrationField::TYPE_NUMBER,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Subscribe Status'),
+                            'options' => [
+                                ['label' => Craft::t('formie', 'Subscribe'), 'value' => 1],
+                                ['label' => Craft::t('formie', 'Unsubscribe'), 'value' => 2],
+                            ],
+                        ],
+                    ]),
+                    new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
                         'required' => true,
@@ -101,6 +113,7 @@ class ActiveCampaign extends EmailMarketing
             $firstName = ArrayHelper::remove($fieldValues, 'firstName');
             $lastName = ArrayHelper::remove($fieldValues, 'lastName');
             $phone = ArrayHelper::remove($fieldValues, 'phone');
+            $subscribed = ArrayHelper::remove($fieldValues, 'subscribed', 1);
 
             $tags = ArrayHelper::remove($fieldValues, 'tags');
 
@@ -135,7 +148,7 @@ class ActiveCampaign extends EmailMarketing
                 'contactList' => [
                     'list' => $this->listId,
                     'contact' => $contactId,
-                    'status' => 1,
+                    'status' => $subscribed,
                 ],
             ];
 

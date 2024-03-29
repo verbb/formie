@@ -91,6 +91,10 @@ class Klaviyo extends EmailMarketing
                         'handle' => '$title',
                         'name' => Craft::t('formie', 'Title'),
                     ]),
+                    new IntegrationField([
+                        'handle' => '$source',
+                        'name' => Craft::t('formie', 'Source'),
+                    ]),
                 ];
 
                 $settings['lists'][] = new IntegrationCollection([
@@ -125,9 +129,16 @@ class Klaviyo extends EmailMarketing
 
             // Subscribe the user to the list
             $email = ArrayHelper::remove($fieldValues, '$email');
+            $source = ArrayHelper::remove($fieldValues, '$source');
+
+            $profile = ['email' => $email];
+
+            if ($source) {
+                $profile['$source'] = $source;
+            }
 
             $payload = [
-                'profiles' => [['email' => $email]],
+                'profiles' => [$profile],
             ];
 
             $response = $this->deliverPayload($submission, "v2/list/{$this->listId}/subscribe", $payload);

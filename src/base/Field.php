@@ -105,6 +105,13 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     // Static Methods
     // =========================================================================
 
+    public static function className(): string
+    {
+        $classNameParts = explode('\\', static::class);
+
+        return array_pop($classNameParts);
+    }
+
     public static function phpType(): string
     {
         return 'mixed';
@@ -404,10 +411,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ?ElementInterface $element = null, string $fieldKey = ''): mixed
     {
+        $rawValue = $value;
         $value = $this->defineValueForIntegration($value, $integrationField, $integration, $element, $fieldKey);
 
         $event = new ModifyFieldIntegrationValueEvent([
             'value' => $value,
+            'rawValue' => $rawValue,
             'field' => $this,
             'submission' => $element,
             'integrationField' => $integrationField,

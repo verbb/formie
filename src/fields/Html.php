@@ -116,6 +116,7 @@ class Html extends CosmeticField
                 'name' => 'htmlContent',
                 'rows' => '10',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

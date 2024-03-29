@@ -25,6 +25,8 @@ use verbb\formie\services\Submissions;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\web\assets\forms\FormsAsset;
 
+use Craft;
+
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
 use verbb\base\services\Templates;
@@ -97,6 +99,23 @@ trait PluginTrait
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($id, $parent = null, array $config = [])
+    {
+        // Set the source language to be the current site, not `en-US`. We could have a German site (primary) where all field content
+        // is written in German. Then an English site we translate to. The German site will then show all texts in English as the source
+        // and destination message is the same, because it will translate to the `sourceLanguage` - `en-US`.
+        // This isn't an issue for other plugins, but we use the `formie` translation category to translate user-created content
+        // not just plugin-created content, which is always going to be written in English.
+        // Also, only do this for the front-end, so that the users' language preference is respected in the CP
+        if (Craft::$app->getRequest()->getIsSiteRequest()) {
+            if ($currentSite = Craft::$app->getSites()->getCurrentSite()) {
+                $config['sourceLanguage'] = $currentSite->language;
+            }
+        }
+
+        return parent::__construct($id, $parent , $config);
+    }
 
     public function getEmails(): Emails
     {

@@ -37,6 +37,11 @@ class Algolia extends AddressProvider
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle(): string
+    {
+        return 'algolia-places';
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Algolia Places](https://community.algolia.com/places/) to suggest addresses, for address fields.');

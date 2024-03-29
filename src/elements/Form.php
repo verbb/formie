@@ -43,6 +43,7 @@ use craft\errors\MissingComponentException;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\Session;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
@@ -645,7 +646,7 @@ class Form extends Element
 
         if ($pages) {
             // Check if there's a session variable
-            $pageId = Craft::$app->getSession()->get($this->_getSessionKey('pageId'));
+            $pageId = Session::get($this->_getSessionKey('pageId'));
 
             if ($pageId) {
                 $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
@@ -760,7 +761,7 @@ class Form extends Element
 
     public function setCurrentPage(FieldLayoutPage $page = null): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
@@ -768,16 +769,16 @@ class Form extends Element
             return;
         }
 
-        Craft::$app->getSession()->set($this->_getSessionKey('pageId'), $page->id);
+        Session::set($this->_getSessionKey('pageId'), $page->id);
     }
 
     public function resetCurrentPage(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
-        Craft::$app->getSession()->remove($this->_getSessionKey('pageId'));
+        Session::remove($this->_getSessionKey('pageId'));
     }
 
     public function isLastPage(FieldLayoutPage $currentPage = null): bool
@@ -817,7 +818,7 @@ class Form extends Element
         }
 
         // Check if there's a session variable
-        $submissionId = Craft::$app->getSession()->get($this->_getSessionKey('submissionId'));
+        $submissionId = Session::get($this->_getSessionKey('submissionId'));
 
         if ($submissionId) {
             /* @var Submission $submission */
@@ -841,14 +842,14 @@ class Form extends Element
 
     public function setCurrentSubmission(?Submission $submission): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
         if (!$submission) {
             $this->resetCurrentSubmission();
         } else {
-            Craft::$app->getSession()->set($this->_getSessionKey('submissionId'), $submission->id);
+            Session::set($this->_getSessionKey('submissionId'), $submission->id);
         }
 
         $this->_currentSubmission = $submission;
@@ -856,12 +857,12 @@ class Form extends Element
 
     public function resetCurrentSubmission(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
         $this->resetCurrentPage();
-        Craft::$app->getSession()->remove($this->_getSessionKey('submissionId'));
+        Session::remove($this->_getSessionKey('submissionId'));
 
         $this->_currentSubmission = null;
     }
@@ -1405,6 +1406,18 @@ class Form extends Element
             ]);
         }
 
+        if ($key === 'errors') {
+            return new HtmlTag('ul', [
+                'class' => 'fui-errors',
+            ]);
+        }
+
+        if ($key === 'error') {
+            return new HtmlTag('li', [
+                'class' => 'fui-error-message',
+            ]);
+        }
+
         return null;
     }
 
@@ -1741,11 +1754,11 @@ class Form extends Element
 
     public function getSnapshotData(string $key = null)
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return [];
         }
 
-        $snapshotData = Craft::$app->getSession()->get($this->_getSessionKey('snapshot'));
+        $snapshotData = Session::get($this->_getSessionKey('snapshot'));
 
         if ($key) {
             return $snapshotData[$key] ?? [];
@@ -1756,7 +1769,7 @@ class Form extends Element
 
     public function setSnapshotData(string $key, mixed $data): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
@@ -1765,16 +1778,16 @@ class Form extends Element
         $currentData = $snapshotData[$key] ?? [];
         $snapshotData[$key] = array_merge($currentData, $data);
 
-        Craft::$app->getSession()->set($this->_getSessionKey('snapshot'), $snapshotData);
+        Session::set($this->_getSessionKey('snapshot'), $snapshotData);
     }
 
     public function resetSnapshotData(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
             return;
         }
 
-        Craft::$app->getSession()->remove($this->_getSessionKey('snapshot'));
+        Session::remove($this->_getSessionKey('snapshot'));
     }
 
     public function isAvailable(): bool

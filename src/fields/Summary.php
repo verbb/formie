@@ -62,7 +62,7 @@ class Summary extends CosmeticField
     public function afterCreateField(array $data): void
     {
         $this->label = $this->label ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
-        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'summaryHandle'));
+        $this->handle = $this->handle ?? StringHelper::appendUniqueIdentifier('summaryHandle');
     }
 
     public function defineGeneralSchema(): array
@@ -73,6 +73,7 @@ class Summary extends CosmeticField
                 'help' => Craft::t('formie', 'The description text shown at the top of the field.'),
                 'name' => 'description',
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

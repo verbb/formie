@@ -71,6 +71,7 @@ class Heading extends CosmeticField
                     ['label' => Craft::t('formie', 'H6'), 'value' => 'h6'],
                 ],
             ]),
+            SchemaHelper::includeInEmailField(),
         ];
     }
 

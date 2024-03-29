@@ -42,6 +42,11 @@ class Google extends AddressProvider
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle(): string
+    {
+        return 'google-places';
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Use [Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete) to suggest addresses, for address fields.');

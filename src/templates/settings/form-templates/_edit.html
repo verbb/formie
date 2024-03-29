@@ -66,12 +66,12 @@
 
     <div id="custom-templates" class="{{ not template.useCustomTemplates ? 'hidden' }}">
         {{ forms.autosuggestField({
-            label: 'HTML Template' | t('formie'),
+            label: 'Template Directory' | t('formie'),
             instructions: 'The template directory that will be used to render the form.' | t('formie'),
             tip: templateTip,
             id: 'template',
             name: 'template',
-            suggestions: craft.cp.getTemplateSuggestions(),
+            suggestions: craft.formie.plugin.getFormTemplates().getTemplateSuggestions(),
             suggestEnvVars: false,
             value: template.template,
             errors: template.getErrors('template'),

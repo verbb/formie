@@ -229,6 +229,60 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.8 - 2024-03-29
+
+### Added
+- Added “Source” to Klaviyo Email Marketing integration.
+- Added support for additional SugarCRM fields.
+- Added the ability for cosmetic fields (Heading, HTML, etc) to be included in email notifications.
+- Added the ability to map to HubSpot Hidden fields.
+
+### Changed
+- Remove Section and Summary fields from rich text editor and variable picker options.
+
+### Fixed
+- Fixed Opayo and `1017` error responses.
+- Fixed Algolia and Google address provider templates.
+- Fixed Table fields not populating properly with `populateFormValues()` and allow usage of the column `handle`.
+- Fixed Date/Time columns in Table field with timezone information when editing a submission in the control panel.
+- Fixed Salesforce DateTime fields throwing an error.
+- Fixed renamed theme config keys for some fields (wait until Formie 3).
+- Fixed success/error messages containing paragraph tags not displaying correctly for Ajax-based forms.
+- Fixed field and integration handles using the translated class name when they shouldn’t.
+- Fixed cosmetic field handles not working correctly for non-English-default installs.
+- Fixed a translation error in the control panel when the users language or site is set to German.
+- Fixed some integrations throwing errors when the control panel language was set to non-English.
+
+## 2.1.7 - 2024-03-18
+
+### Added
+- Added the ability to query `SentNotification` elements by `submissionId` and `notificationId`.
+- Added “Subscribe Status” mapping option to ActiveCampaign integrations.
+- Added `ModifyFieldIntegrationValueEvent::rawValue`.
+- Added German Translations. (thanks @alexanderloewe).
+
+### Changed
+- Repeater/Group new-row templates now have spaceless HTML to take up less space in the page source.
+- Update Monday integration mutation to latest API compatibility.
+- Updated Form Template directories setting to auto-complete directories, not single templates.
+
+### Fixed
+- Fixed an error when viewing Stripe subscriptions in the control panel.
+- Fixed failed Opayo 3DS payments creating a new payment model instead of updating the pending payment.
+- Fixed Slack/Trello integration messages not including paragraph nodes.
+- Fixed success/error/other form messages not including paragraph nodes.
+- Fixed a reactivity issue when editing notifications, causing values to not always save.
+- Fixed Slack webhooks not sending.
+- Fixed Checkboxes/Radio field preview for horizontal layout and overflow.
+- Fixed general errors, manually set to a submission’s `form` attribute not showing on the front-end.
+- Fixed Theme Config not working correctly when supplying attributes with empty values (to output just the attribute like `readonly` or `disabled`) on elements.
+- Customer information is now included for single Stripe payments.
+- Fixed an error when rendering Payment fields with an invalid Payment integration.
+- Fixed incorrect value when mapping to a Date field in HubSpot.
+- Fixed `formie` translations not working correctly (defaulting to English) when there is a non-English primary site, and content has been written in non-English.
+- Fixed scroll-offset calculation when scrolling to the top of a form.
+- Fixed incorrect value when mapping to a Date field in HubSpot.
+
 ## 2.1.6 - 2024-03-03
 
 ### Added
@@ -1521,6 +1575,42 @@
 - Fix an error when form message settings contained emoji’s.
 - Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
 - Fix an issue using `populateFormValues` for Repeater fields.
+
+## 1.6.40 - 2024-03-29
+
+### Added
+- Add support for additional SugarCRM fields.
+
+## 1.6.39 - 2024-03-16
+
+### Fixed
+- Fixed Tiptap v1 and ProseMirror compatibility.
+
+## 1.6.38 - 2024-03-13
+
+### Fixed
+- Fixed a Tiptap dependency causing the form builder to not load properly.
+
+## 1.6.37 - 2024-03-08
+
+### Fixed
+- Fixed mutli-name fields that are conditionally hidden throwing an error in email notifications.
+- Fixed a JS error when validating File Upload fields.
+
+## 1.6.36.1 - 2023-12-12
+
+### Changed
+- Improve error message when failing to save a form.
+
+### Fixed
+- Fixed an error when creating new forms.
+
+## 1.6.36 - 2023-12-12
+
+### Fixed
+- Fixed an error when form message settings contained emoji’s.
+- Fixed lack of enter key accessibility for sent notification and submission modals in the control panel.
+- Fixed an issue using `populateFormValues` for Repeater fields.
 
 ## 1.6.35 - 2023-10-25
 

@@ -519,7 +519,7 @@ const getters = {
         return (options = {}) => {
             let fields = [
                 { label: Craft.t('formie', 'Fields'), heading: true },
-                ...getters.getFieldSelectOptions(),
+                ...getters.getFieldSelectOptions(options),
             ];
 
             // Check if there's only a heading
@@ -546,6 +546,12 @@ const getters = {
             if (options.includedTypes && options.includedTypes.length) {
                 fieldOptions = fieldOptions.filter((fieldOption) => {
                     return options.includedTypes.includes(fieldOption.type);
+                });
+            }
+
+            if (options.excludedTypes && options.excludedTypes.length) {
+                fieldOptions = fieldOptions.filter((fieldOption) => {
+                    return !options.excludedTypes.includes(fieldOption.type);
                 });
             }
 

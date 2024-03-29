@@ -108,7 +108,7 @@ class Monday extends Miscellaneous
 
             $itemPayload = [
                 'query' => '
-                    mutation CreateItemMutation($boardId: Int!, $groupId: String, $itemName: String, $columns: JSON) {
+                    mutation CreateItemMutation($boardId: ID!, $groupId: String, $itemName: String!, $columns: JSON) {
                         create_item(board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columns) {
                             id
                         }

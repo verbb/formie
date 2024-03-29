@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -13,6 +14,8 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+
+use yii\base\Event;
 
 use DateTime;
 use Throwable;
@@ -73,6 +76,22 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     // Public Methods
     // =========================================================================
+
+    public function init(): void
+    {
+        parent::init();
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            // Salesforce need DateTime to be in standard format.
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+                if ($event->rawValue instanceof DateTime) {
+                    $date = clone $event->rawValue;
+
+                    $event->value = $date->format('Y-m-d\TH:i:s');
+                }
+            }
+        });
+    }
 
     public function getUseSandbox(): string
     {

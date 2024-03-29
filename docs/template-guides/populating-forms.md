@@ -117,6 +117,26 @@ To populate a Repeater field, you'll also be creating the "blocks", as well as d
 
 The above will create two "blocks" for the repeater field.
 
+## Table
+To populate a Table field, you'll also be creating the "rows", as well as defining the inner column values. The inner column values should be the `handle` for the column as defined in your field settings.
+
+```twig
+{% do craft.formie.populateFormValues(form, {
+    tableFieldHandle: [
+        {
+            textColumnHandle: 'Some Value',
+            dropdownColumnHandle: 'Option 1',
+        },
+        {
+            textColumnHandle: 'Another Value',
+            dropdownColumnHandle: 'Option 2',
+        },
+    ],
+}) %}
+```
+
+The above will create two "blocks" for the repeater field.
+
 ## Forcing Values
 The method of populating field values in Formie is by setting the default value for a field. This means that when you start a new submission, the values you set in `populateFormValues()` will be applied to the field, the same way a default value would.
 

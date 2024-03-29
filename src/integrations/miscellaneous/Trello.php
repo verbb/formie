@@ -165,7 +165,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
 
     private function _renderMessage($submission): array|string
     {
-        $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission);
+        $html = RichTextHelper::getHtmlContent($this->cardDescription, $submission, false);
 
         $converter = new HtmlConverter(['strip_tags' => true]);
         $markdown = $converter->convert($html);

@@ -76,6 +76,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     // Public Methods
     // =========================================================================
 
+    public function getClassHandle()
+    {
+        return 'microsoft-dynamics-365';
+    }
+
     public function getApiDomain(): string
     {
         return App::parseEnv($this->apiDomain);

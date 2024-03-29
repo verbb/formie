@@ -97,6 +97,10 @@ export default {
         plainTextVariables() {
             return this.$store.getters['form/allFieldOptions']({
                 includeGeneral: true,
+                excludedTypes: [
+                    'verbb\\formie\\fields\\formfields\\Section',
+                    'verbb\\formie\\fields\\formfields\\Summary',
+                ],
             });
         },
 

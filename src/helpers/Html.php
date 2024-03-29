@@ -69,13 +69,36 @@ class Html extends CraftHtmlHelper
         $merged['style'] = array_merge($style, $extraStyle);
         $merged['aria'] = array_merge($aria, $extraAria);
 
-        // Filter `null`, `false` and empty string values
-        return ArrayHelper::filterEmptyFalse($merged);
+        // Filter just `null` and `false` values
+        return ArrayHelper::filterNullFalse($merged); 
     }
 
     public static function getFieldClassKey(object $class): string
     {
-        return StringHelper::toCamelCase(StringHelper::toKebabCase($class::displayName()));
+        $className = StringHelper::toCamelCase(StringHelper::toKebabCase($class::className()));
+
+        // TODO: remove this extra handling for the next version, but will be a breaking change
+        if ($className === 'radio') {
+            return 'radioButtons';
+        }
+
+        if ($className === 'date') {
+            return 'dateTime';
+        }
+
+        if ($className === 'email') {
+            return 'emailAddress';
+        }
+
+        if ($className === 'hidden') {
+            return 'hiddenField';
+        }
+
+        if ($className === 'phone') {
+            return 'phoneNumber';
+        }
+
+        return $className;
     }
 
     public static function getFieldClassHandles(): array

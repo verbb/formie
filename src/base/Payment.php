@@ -344,7 +344,7 @@ abstract class Payment extends Integration
     
     protected function getIntegrationHandle(): string
     {
-        return StringHelper::toKebabCase(static::displayName());
+        return StringHelper::toKebabCase(static::className());
     }
     
     /**
