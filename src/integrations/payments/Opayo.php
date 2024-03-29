@@ -32,6 +32,7 @@ use craft\web\Response;
 use yii\base\Event;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 use Exception;
@@ -389,6 +390,7 @@ class Opayo extends Payment
             return $callbackResponse;
         }
         
+        $response = [];
         $responseData = [];
 
         $cres = $request->getParam('cres');
@@ -449,33 +451,64 @@ class Opayo extends Payment
                 'response' => Json::encode($response),
             ]));
 
-            Integration::apiError($this, $e, $this->throwApiError);
+            $shouldShowError = true;
 
-            $error = ['message' => $e->getMessage()];
+            // There's a scenario we need to ignore with Opayo, where we get the response `{"description":"Operation not allowed for this transaction","code":1017}`
+            // but the transaction has actually gone through successfully.
+            if ($e instanceof RequestException && $e->getResponse()) {
+                $rawResponse = $e->getResponse();
+                $messageText = (string)$rawResponse->getBody()->getContents();
+                $response = Json::decode($messageText);
+                $code = $response['code'] ?? null;
 
-            $payment = new PaymentModel();
-            $payment->response = $error;
+                if ($code == '1017') {
+                    $shouldShowError = false;
 
-            // Try and update the existing pending payment to failed, and merge content
-            if ($transactionId) {
-                if ($payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId)) {
-                    if (is_array($payment->response)) {
-                        $payment->response['message'] = $e->getMessage();
+                    // Record the payment
+                    $payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId);
+
+                    if ($payment) {
+                        $payment->status = PaymentModel::STATUS_SUCCESS;
+                        $payment->reference = $transactionId;
+                        $payment->response = $response;
+
+                        Formie::$plugin->getPayments()->savePayment($payment);
                     }
+
+                    $responseData['success'] = true;
+                    $responseData['transactionId'] = $transactionId;
                 }
             }
-            
-            $payment->integrationId = $this->id;
-            $payment->submissionId = $submissionId;
-            $payment->fieldId = $fieldId;
-            $payment->amount = self::fromOpayoAmount($amount, $currency);
-            $payment->currency = $currency;
-            $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->reference = $transactionId;
 
-            Formie::$plugin->getPayments()->savePayment($payment);
+            if ($shouldShowError) {
+                Integration::apiError($this, $e, $this->throwApiError);
 
-            $responseData['error'] = $error;
+                $error = ['message' => $e->getMessage()];
+
+                $payment = new PaymentModel();
+                $payment->response = $error;
+
+                // Try and update the existing pending payment to failed, and merge content
+                if ($transactionId) {
+                    if ($payment = Formie::$plugin->getPayments()->getPaymentByReference($transactionId)) {
+                        if (is_array($payment->response)) {
+                            $payment->response['message'] = $e->getMessage();
+                        }
+                    }
+                }
+                
+                $payment->integrationId = $this->id;
+                $payment->submissionId = $submissionId;
+                $payment->fieldId = $fieldId;
+                $payment->amount = self::fromOpayoAmount($amount, $currency);
+                $payment->currency = $currency;
+                $payment->status = PaymentModel::STATUS_FAILED;
+                $payment->reference = $transactionId;
+
+                Formie::$plugin->getPayments()->savePayment($payment);
+
+                $responseData['error'] = $error;
+            }
         }
 
         // Send back some JS to trigger the iframe to close, and the submission to submit
