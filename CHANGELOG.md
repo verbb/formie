@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.9 - 2024-03-29
+
+### Fixed
+- Fixed a dependency error with `verbb/base` version.
+- Fixed user permissions being incorrect for view submissions in the control panel.
+- Fixed an error when populating Table fields.
+
 ## 2.1.8 - 2024-03-29
 
 ### Added
