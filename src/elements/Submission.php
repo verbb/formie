@@ -284,6 +284,8 @@ class Submission extends CustomElement
     private ?string $_fieldContext = null;
     private ?array $_pagesForField = null;
     private ?array $_assetsToDelete = [];
+    private bool $_previousIsSpam = false;
+    private ?int $_previousStatusId = null;
 
 
     // Public Methods
@@ -1016,6 +1018,22 @@ class Submission extends CustomElement
         return $attributes;
     }
 
+    public function hasStatusChanged(): bool
+    {
+        return $this->_previousStatusId !== $this->statusId;
+    }
+
+    public function hasSpamChanged(?bool $previousState = null, ?bool $currentState = null): bool
+    {
+        // We want to check if we've marked this as not-spam, when it was spam
+        if ($previousState !== null && $currentState !== null) {
+            return $this->_previousIsSpam === $previousState && $this->isSpam === $currentState;
+        }
+
+        // Otherwise, just if it was different
+        return $this->_previousIsSpam !== $this->isSpam;
+    }
+
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */
@@ -1043,6 +1061,18 @@ class Submission extends CustomElement
                     return false;
                 }
             }
+        }
+
+        // Save the current status and spam state before saving so we can compare
+        if ($this->id) {
+            $previousSettings = (new Query())
+                ->select(['statusId', 'isSpam'])
+                ->from([Table::FORMIE_SUBMISSIONS])
+                ->where(['id' => $this->id])
+                ->one();
+
+            $this->_previousStatusId = $previousSettings['statusId'] ?? null;
+            $this->_previousIsSpam = (bool)($previousSettings['isSpam'] ?? false);
         }
 
         return parent::beforeSave($isNew);
