@@ -213,6 +213,9 @@ export class Formie {
             return;
         }
 
+        // Mark the form as being destroyed, so no more events get added while we try and remove them
+        form.destroyed = true;
+
         // Delete any additional scripts for the form - if any
         if (form.$registeredJs && form.$registeredJs.parentNode) {
             form.$registeredJs.parentNode.removeChild(form.$registeredJs);

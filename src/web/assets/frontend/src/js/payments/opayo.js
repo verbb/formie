@@ -11,6 +11,7 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.form = this.$form.form;
         this.$field = settings.$field;
 
+        this.boundEvents = false;
         this.useSandbox = settings.useSandbox;
         this.integrationHandle = settings.handle;
         this.currency = settings.currency;
@@ -29,6 +30,8 @@ export class FormieOpayo extends FormiePaymentProvider {
     }
 
     onHide() {
+        this.boundEvents = false;
+
         // Field is hidden, so reset everything
         this.onAfterSubmit();
 
@@ -58,9 +61,14 @@ export class FormieOpayo extends FormiePaymentProvider {
         }
 
         // Attach custom event listeners on the form
-        this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'opayo'), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'opayo'), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('FormiePaymentOpayo3DS', 'opayo'), this.onValidate3DS.bind(this));
+        // Prevent binding multiple times. This can cause multiple payments!
+        if (!this.boundEvents) {
+            this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'opayo'), this.onValidate.bind(this));
+            this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'opayo'), this.onAfterSubmit.bind(this));
+            this.form.addEventListener(this.$form, eventKey('FormiePaymentOpayo3DS', 'opayo'), this.onValidate3DS.bind(this));
+
+            this.boundEvents = true;
+        }
 
         // Listen to events sent from the iframe to complete 3DS challenge
         window.addEventListener('message', this.onMessage.bind(this), false);

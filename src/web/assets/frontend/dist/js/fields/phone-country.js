@@ -1,1 +1,1743 @@
-!function(){var t={3200:function(t,e,n){var r=n(7230),i=n(933),o=n(321),a=r.TypeError;t.exports=function(t){if(i(t))return t;throw a(o(t)+" is not a function")}},4831:function(t,e,n){var r=n(7230),i=n(3538),o=n(321),a=r.TypeError;t.exports=function(t){if(i(t))return t;throw a(o(t)+" is not a constructor")}},8563:function(t,e,n){var r=n(7230),i=n(933),o=r.String,a=r.TypeError;t.exports=function(t){if("object"==typeof t||i(t))return t;throw a("Can't set "+o(t)+" as a prototype")}},186:function(t,e,n){var r=n(7952),i=n(6997),o=n(7108),a=r("unscopables"),s=Array.prototype;null==s[a]&&o.f(s,a,{configurable:!0,value:i(null)}),t.exports=function(t){s[a][t]=!0}},3264:function(t,e,n){"use strict";var r=n(2370).charAt;t.exports=function(t,e,n){return e+(n?r(t,e).length:1)}},5209:function(t,e,n){var r=n(7230),i=n(2346),o=r.TypeError;t.exports=function(t,e){if(i(e,t))return t;throw o("Incorrect invocation")}},3536:function(t,e,n){var r=n(7230),i=n(6913),o=r.String,a=r.TypeError;t.exports=function(t){if(i(t))return t;throw a(o(t)+" is not an object")}},866:function(t,e,n){"use strict";var r=n(1569).forEach,i=n(2245)("forEach");t.exports=i?[].forEach:function(t){return r(this,t,arguments.length>1?arguments[1]:void 0)}},8897:function(t,e,n){"use strict";var r=n(7230),i=n(1248),o=n(4225),a=n(987),s=n(6996),u=n(1855),c=n(3538),l=n(1646),f=n(3859),d=n(9853),h=n(6418),p=r.Array;t.exports=function(t){var e=a(t),n=c(this),r=arguments.length,v=r>1?arguments[1]:void 0,y=void 0!==v;y&&(v=i(v,r>2?arguments[2]:void 0));var g,m,b,C,w,_,x=h(e),I=0;if(!x||this==p&&u(x))for(g=l(e),m=n?new this(g):p(g);g>I;I++)_=y?v(e[I],I):e[I],f(m,I,_);else for(w=(C=d(e,x)).next,m=n?new this:[];!(b=o(w,C)).done;I++)_=y?s(C,v,[b.value,I],!0):b.value,f(m,I,_);return m.length=I,m}},7945:function(t,e,n){var r=n(9164),i=n(2966),o=n(1646),a=function(t){return function(e,n,a){var s,u=r(e),c=o(u),l=i(a,c);if(t&&n!=n){for(;c>l;)if((s=u[l++])!=s)return!0}else for(;c>l;l++)if((t||l in u)&&u[l]===n)return t||l||0;return!t&&-1}};t.exports={includes:a(!0),indexOf:a(!1)}},1569:function(t,e,n){var r=n(1248),i=n(1916),o=n(6801),a=n(987),s=n(1646),u=n(1204),c=i([].push),l=function(t){var e=1==t,n=2==t,i=3==t,l=4==t,f=6==t,d=7==t,h=5==t||f;return function(p,v,y,g){for(var m,b,C=a(p),w=o(C),_=r(v,y),x=s(w),I=0,S=g||u,E=e?S(p,x):n||d?S(p,0):void 0;x>I;I++)if((h||I in w)&&(b=_(m=w[I],I,C),t))if(e)E[I]=b;else if(b)switch(t){case 3:return!0;case 5:return m;case 6:return I;case 2:c(E,m)}else switch(t){case 4:return!1;case 7:c(E,m)}return f?-1:i||l?l:E}};t.exports={forEach:l(0),map:l(1),filter:l(2),some:l(3),every:l(4),find:l(5),findIndex:l(6),filterReject:l(7)}},9321:function(t,e,n){var r=n(3694),i=n(7952),o=n(7806),a=i("species");t.exports=function(t){return o>=51||!r((function(){var e=[];return(e.constructor={})[a]=function(){return{foo:1}},1!==e[t](Boolean).foo}))}},2245:function(t,e,n){"use strict";var r=n(3694);t.exports=function(t,e){var n=[][t];return!!n&&r((function(){n.call(null,e||function(){return 1},1)}))}},696:function(t,e,n){var r=n(7230),i=n(2966),o=n(1646),a=n(3859),s=r.Array,u=Math.max;t.exports=function(t,e,n){for(var r=o(t),c=i(e,r),l=i(void 0===n?r:n,r),f=s(u(l-c,0)),d=0;c<l;c++,d++)a(f,d,t[c]);return f.length=d,f}},9663:function(t,e,n){var r=n(1916);t.exports=r([].slice)},3824:function(t,e,n){var r=n(7230),i=n(4893),o=n(3538),a=n(6913),s=n(7952)("species"),u=r.Array;t.exports=function(t){var e;return i(t)&&(e=t.constructor,(o(e)&&(e===u||i(e.prototype))||a(e)&&null===(e=e[s]))&&(e=void 0)),void 0===e?u:e}},1204:function(t,e,n){var r=n(3824);t.exports=function(t,e){return new(r(t))(0===e?0:e)}},6996:function(t,e,n){var r=n(3536),i=n(5635);t.exports=function(t,e,n,o){try{return o?e(r(n)[0],n[1]):e(n)}catch(e){i(t,"throw",e)}}},1964:function(t,e,n){var r=n(7952)("iterator"),i=!1;try{var o=0,a={next:function(){return{done:!!o++}},return:function(){i=!0}};a[r]=function(){return this},Array.from(a,(function(){throw 2}))}catch(t){}t.exports=function(t,e){if(!e&&!i)return!1;var n=!1;try{var o={};o[r]=function(){return{next:function(){return{done:n=!0}}}},t(o)}catch(t){}return n}},2248:function(t,e,n){var r=n(1916),i=r({}.toString),o=r("".slice);t.exports=function(t){return o(i(t),8,-1)}},996:function(t,e,n){var r=n(7230),i=n(6695),o=n(933),a=n(2248),s=n(7952)("toStringTag"),u=r.Object,c="Arguments"==a(function(){return arguments}());t.exports=i?a:function(t){var e,n,r;return void 0===t?"Undefined":null===t?"Null":"string"==typeof(n=function(t,e){try{return t[e]}catch(t){}}(e=u(t),s))?n:c?a(e):"Object"==(r=a(e))&&o(e.callee)?"Arguments":r}},1831:function(t,e,n){var r=n(3225),i=n(3697),o=n(5027),a=n(7108);t.exports=function(t,e,n){for(var s=i(e),u=a.f,c=o.f,l=0;l<s.length;l++){var f=s[l];r(t,f)||n&&r(n,f)||u(t,f,c(e,f))}}},937:function(t,e,n){var r=n(7952)("match");t.exports=function(t){var e=/./;try{"/./"[t](e)}catch(n){try{return e[r]=!1,"/./"[t](e)}catch(t){}}return!1}},560:function(t,e,n){var r=n(3694);t.exports=!r((function(){function t(){}return t.prototype.constructor=null,Object.getPrototypeOf(new t)!==t.prototype}))},1623:function(t,e,n){"use strict";var r=n(7824).IteratorPrototype,i=n(6997),o=n(8828),a=n(5411),s=n(3019),u=function(){return this};t.exports=function(t,e,n,c){var l=e+" Iterator";return t.prototype=i(r,{next:o(+!c,n)}),a(t,l,!1,!0),s[l]=u,t}},5399:function(t,e,n){var r=n(6079),i=n(7108),o=n(8828);t.exports=r?function(t,e,n){return i.f(t,e,o(1,n))}:function(t,e,n){return t[e]=n,t}},8828:function(t){t.exports=function(t,e){return{enumerable:!(1&t),configurable:!(2&t),writable:!(4&t),value:e}}},3859:function(t,e,n){"use strict";var r=n(5831),i=n(7108),o=n(8828);t.exports=function(t,e,n){var a=r(e);a in t?i.f(t,a,o(0,n)):t[a]=n}},6272:function(t,e,n){var r=n(7230),i=n(933),o=n(5399),a=n(2484),s=n(746);t.exports=function(t,e,n,u){var c=!!u&&!!u.unsafe,l=!!u&&!!u.enumerable,f=!!u&&!!u.noTargetGet,d=u&&void 0!==u.name?u.name:e;return i(n)&&a(n,d,u),t===r?(l?t[e]=n:s(e,n),t):(c?!f&&t[e]&&(l=!0):delete t[e],l?t[e]=n:o(t,e,n),t)}},3392:function(t,e,n){"use strict";var r=n(5302),i=n(4225),o=n(7442),a=n(567),s=n(933),u=n(1623),c=n(5024),l=n(1403),f=n(5411),d=n(5399),h=n(6272),p=n(7952),v=n(3019),y=n(7824),g=a.PROPER,m=a.CONFIGURABLE,b=y.IteratorPrototype,C=y.BUGGY_SAFARI_ITERATORS,w=p("iterator"),_="keys",x="values",I="entries",S=function(){return this};t.exports=function(t,e,n,a,p,y,E){u(n,e,a);var k,L,O,T=function(t){if(t===p&&N)return N;if(!C&&t in P)return P[t];switch(t){case _:case x:case I:return function(){return new n(this,t)}}return function(){return new n(this)}},A=e+" Iterator",D=!1,P=t.prototype,j=P[w]||P["@@iterator"]||p&&P[p],N=!C&&j||T(p),M="Array"==e&&P.entries||j;if(M&&(k=c(M.call(new t)))!==Object.prototype&&k.next&&(o||c(k)===b||(l?l(k,b):s(k[w])||h(k,w,S)),f(k,A,!0,!0),o&&(v[A]=S)),g&&p==x&&j&&j.name!==x&&(!o&&m?d(P,"name",x):(D=!0,N=function(){return i(j,this)})),p)if(L={values:T(x),keys:y?N:T(_),entries:T(I)},E)for(O in L)(C||D||!(O in P))&&h(P,O,L[O]);else r({target:e,proto:!0,forced:C||D},L);return o&&!E||P[w]===N||h(P,w,N,{name:p}),v[e]=N,L}},4832:function(t,e,n){var r=n(5030),i=n(3225),o=n(3081),a=n(7108).f;t.exports=function(t){var e=r.Symbol||(r.Symbol={});i(e,t)||a(e,t,{value:o.f(t)})}},6079:function(t,e,n){var r=n(3694);t.exports=!r((function(){return 7!=Object.defineProperty({},1,{get:function(){return 7}})[1]}))},2200:function(t,e,n){var r=n(7230),i=n(6913),o=r.document,a=i(o)&&i(o.createElement);t.exports=function(t){return a?o.createElement(t):{}}},5941:function(t){t.exports={CSSRuleList:0,CSSStyleDeclaration:0,CSSValueList:0,ClientRectList:0,DOMRectList:0,DOMStringList:0,DOMTokenList:1,DataTransferItemList:0,FileList:0,HTMLAllCollection:0,HTMLCollection:0,HTMLFormElement:0,HTMLSelectElement:0,MediaList:0,MimeTypeArray:0,NamedNodeMap:0,NodeList:1,PaintRequestList:0,Plugin:0,PluginArray:0,SVGLengthList:0,SVGNumberList:0,SVGPathSegList:0,SVGPointList:0,SVGStringList:0,SVGTransformList:0,SourceBufferList:0,StyleSheetList:0,TextTrackCueList:0,TextTrackList:0,TouchList:0}},3050:function(t,e,n){var r=n(2200)("span").classList,i=r&&r.constructor&&r.constructor.prototype;t.exports=i===Object.prototype?void 0:i},417:function(t){t.exports="object"==typeof window&&"object"!=typeof Deno},4370:function(t,e,n){var r=n(7749),i=n(7230);t.exports=/ipad|iphone|ipod/i.test(r)&&void 0!==i.Pebble},4619:function(t,e,n){var r=n(7749);t.exports=/(?:ipad|iphone|ipod).*applewebkit/i.test(r)},5009:function(t,e,n){var r=n(2248),i=n(7230);t.exports="process"==r(i.process)},2811:function(t,e,n){var r=n(7749);t.exports=/web0s(?!.*chrome)/i.test(r)},7749:function(t,e,n){var r=n(1223);t.exports=r("navigator","userAgent")||""},7806:function(t,e,n){var r,i,o=n(7230),a=n(7749),s=o.process,u=o.Deno,c=s&&s.versions||u&&u.version,l=c&&c.v8;l&&(i=(r=l.split("."))[0]>0&&r[0]<4?1:+(r[0]+r[1])),!i&&a&&(!(r=a.match(/Edge\/(\d+)/))||r[1]>=74)&&(r=a.match(/Chrome\/(\d+)/))&&(i=+r[1]),t.exports=i},9799:function(t){t.exports=["constructor","hasOwnProperty","isPrototypeOf","propertyIsEnumerable","toLocaleString","toString","valueOf"]},5302:function(t,e,n){var r=n(7230),i=n(5027).f,o=n(5399),a=n(6272),s=n(746),u=n(1831),c=n(4545);t.exports=function(t,e){var n,l,f,d,h,p=t.target,v=t.global,y=t.stat;if(n=v?r:y?r[p]||s(p,{}):(r[p]||{}).prototype)for(l in e){if(d=e[l],f=t.noTargetGet?(h=i(n,l))&&h.value:n[l],!c(v?l:p+(y?".":"#")+l,t.forced)&&void 0!==f){if(typeof d==typeof f)continue;u(d,f)}(t.sham||f&&f.sham)&&o(d,"sham",!0),a(n,l,d,t)}}},3694:function(t){t.exports=function(t){try{return!!t()}catch(t){return!0}}},4430:function(t,e,n){"use strict";n(5098);var r=n(1916),i=n(6272),o=n(9735),a=n(3694),s=n(7952),u=n(5399),c=s("species"),l=RegExp.prototype;t.exports=function(t,e,n,f){var d=s(t),h=!a((function(){var e={};return e[d]=function(){return 7},7!=""[t](e)})),p=h&&!a((function(){var e=!1,n=/a/;return"split"===t&&((n={}).constructor={},n.constructor[c]=function(){return n},n.flags="",n[d]=/./[d]),n.exec=function(){return e=!0,null},n[d](""),!e}));if(!h||!p||n){var v=r(/./[d]),y=e(d,""[t],(function(t,e,n,i,a){var s=r(t),u=e.exec;return u===o||u===l.exec?h&&!a?{done:!0,value:v(e,n,i)}:{done:!0,value:s(n,e,i)}:{done:!1}}));i(String.prototype,t,y[0]),i(l,d,y[1])}f&&u(l[d],"sham",!0)}},251:function(t,e,n){var r=n(592),i=Function.prototype,o=i.apply,a=i.call;t.exports="object"==typeof Reflect&&Reflect.apply||(r?a.bind(o):function(){return a.apply(o,arguments)})},1248:function(t,e,n){var r=n(1916),i=n(3200),o=n(592),a=r(r.bind);t.exports=function(t,e){return i(t),void 0===e?t:o?a(t,e):function(){return t.apply(e,arguments)}}},592:function(t,e,n){var r=n(3694);t.exports=!r((function(){var t=function(){}.bind();return"function"!=typeof t||t.hasOwnProperty("prototype")}))},4225:function(t,e,n){var r=n(592),i=Function.prototype.call;t.exports=r?i.bind(i):function(){return i.apply(i,arguments)}},567:function(t,e,n){var r=n(6079),i=n(3225),o=Function.prototype,a=r&&Object.getOwnPropertyDescriptor,s=i(o,"name"),u=s&&"something"===function(){}.name,c=s&&(!r||r&&a(o,"name").configurable);t.exports={EXISTS:s,PROPER:u,CONFIGURABLE:c}},1916:function(t,e,n){var r=n(592),i=Function.prototype,o=i.bind,a=i.call,s=r&&o.bind(a,a);t.exports=r?function(t){return t&&s(t)}:function(t){return t&&function(){return a.apply(t,arguments)}}},1223:function(t,e,n){var r=n(7230),i=n(933),o=function(t){return i(t)?t:void 0};t.exports=function(t,e){return arguments.length<2?o(r[t]):r[t]&&r[t][e]}},6418:function(t,e,n){var r=n(996),i=n(5048),o=n(3019),a=n(7952)("iterator");t.exports=function(t){if(null!=t)return i(t,a)||i(t,"@@iterator")||o[r(t)]}},9853:function(t,e,n){var r=n(7230),i=n(4225),o=n(3200),a=n(3536),s=n(321),u=n(6418),c=r.TypeError;t.exports=function(t,e){var n=arguments.length<2?u(t):e;if(o(n))return a(i(n,t));throw c(s(t)+" is not iterable")}},5048:function(t,e,n){var r=n(3200);t.exports=function(t,e){var n=t[e];return null==n?void 0:r(n)}},6968:function(t,e,n){var r=n(1916),i=n(987),o=Math.floor,a=r("".charAt),s=r("".replace),u=r("".slice),c=/\$([$&'`]|\d{1,2}|<[^>]*>)/g,l=/\$([$&'`]|\d{1,2})/g;t.exports=function(t,e,n,r,f,d){var h=n+t.length,p=r.length,v=l;return void 0!==f&&(f=i(f),v=c),s(d,v,(function(i,s){var c;switch(a(s,0)){case"$":return"$";case"&":return t;case"`":return u(e,0,n);case"'":return u(e,h);case"<":c=f[u(s,1,-1)];break;default:var l=+s;if(0===l)return i;if(l>p){var d=o(l/10);return 0===d?i:d<=p?void 0===r[d-1]?a(s,1):r[d-1]+a(s,1):i}c=r[l-1]}return void 0===c?"":c}))}},7230:function(t,e,n){var r=function(t){return t&&t.Math==Math&&t};t.exports=r("object"==typeof globalThis&&globalThis)||r("object"==typeof window&&window)||r("object"==typeof self&&self)||r("object"==typeof n.g&&n.g)||function(){return this}()||Function("return this")()},3225:function(t,e,n){var r=n(1916),i=n(987),o=r({}.hasOwnProperty);t.exports=Object.hasOwn||function(t,e){return o(i(t),e)}},7076:function(t){t.exports={}},5812:function(t,e,n){var r=n(7230);t.exports=function(t,e){var n=r.console;n&&n.error&&(1==arguments.length?n.error(t):n.error(t,e))}},6507:function(t,e,n){var r=n(1223);t.exports=r("document","documentElement")},4253:function(t,e,n){var r=n(6079),i=n(3694),o=n(2200);t.exports=!r&&!i((function(){return 7!=Object.defineProperty(o("div"),"a",{get:function(){return 7}}).a}))},6801:function(t,e,n){var r=n(7230),i=n(1916),o=n(3694),a=n(2248),s=r.Object,u=i("".split);t.exports=o((function(){return!s("z").propertyIsEnumerable(0)}))?function(t){return"String"==a(t)?u(t,""):s(t)}:s},4335:function(t,e,n){var r=n(1916),i=n(933),o=n(1393),a=r(Function.toString);i(o.inspectSource)||(o.inspectSource=function(t){return a(t)}),t.exports=o.inspectSource},21:function(t,e,n){var r,i,o,a=n(5506),s=n(7230),u=n(1916),c=n(6913),l=n(5399),f=n(3225),d=n(1393),h=n(375),p=n(7076),v="Object already initialized",y=s.TypeError,g=s.WeakMap;if(a||d.state){var m=d.state||(d.state=new g),b=u(m.get),C=u(m.has),w=u(m.set);r=function(t,e){if(C(m,t))throw new y(v);return e.facade=t,w(m,t,e),e},i=function(t){return b(m,t)||{}},o=function(t){return C(m,t)}}else{var _=h("state");p[_]=!0,r=function(t,e){if(f(t,_))throw new y(v);return e.facade=t,l(t,_,e),e},i=function(t){return f(t,_)?t[_]:{}},o=function(t){return f(t,_)}}t.exports={set:r,get:i,has:o,enforce:function(t){return o(t)?i(t):r(t,{})},getterFor:function(t){return function(e){var n;if(!c(e)||(n=i(e)).type!==t)throw y("Incompatible receiver, "+t+" required");return n}}}},1855:function(t,e,n){var r=n(7952),i=n(3019),o=r("iterator"),a=Array.prototype;t.exports=function(t){return void 0!==t&&(i.Array===t||a[o]===t)}},4893:function(t,e,n){var r=n(2248);t.exports=Array.isArray||function(t){return"Array"==r(t)}},933:function(t){t.exports=function(t){return"function"==typeof t}},3538:function(t,e,n){var r=n(1916),i=n(3694),o=n(933),a=n(996),s=n(1223),u=n(4335),c=function(){},l=[],f=s("Reflect","construct"),d=/^\s*(?:class|function)\b/,h=r(d.exec),p=!d.exec(c),v=function(t){if(!o(t))return!1;try{return f(c,l,t),!0}catch(t){return!1}},y=function(t){if(!o(t))return!1;switch(a(t)){case"AsyncFunction":case"GeneratorFunction":case"AsyncGeneratorFunction":return!1}try{return p||!!h(d,u(t))}catch(t){return!0}};y.sham=!0,t.exports=!f||i((function(){var t;return v(v.call)||!v(Object)||!v((function(){t=!0}))||t}))?y:v},4545:function(t,e,n){var r=n(3694),i=n(933),o=/#|\.prototype\./,a=function(t,e){var n=u[s(t)];return n==l||n!=c&&(i(e)?r(e):!!e)},s=a.normalize=function(t){return String(t).replace(o,".").toLowerCase()},u=a.data={},c=a.NATIVE="N",l=a.POLYFILL="P";t.exports=a},6913:function(t,e,n){var r=n(933);t.exports=function(t){return"object"==typeof t?null!==t:r(t)}},7442:function(t){t.exports=!1},385:function(t,e,n){var r=n(6913),i=n(2248),o=n(7952)("match");t.exports=function(t){var e;return r(t)&&(void 0!==(e=t[o])?!!e:"RegExp"==i(t))}},7581:function(t,e,n){var r=n(7230),i=n(1223),o=n(933),a=n(2346),s=n(9264),u=r.Object;t.exports=s?function(t){return"symbol"==typeof t}:function(t){var e=i("Symbol");return o(e)&&a(e.prototype,u(t))}},5103:function(t,e,n){var r=n(7230),i=n(1248),o=n(4225),a=n(3536),s=n(321),u=n(1855),c=n(1646),l=n(2346),f=n(9853),d=n(6418),h=n(5635),p=r.TypeError,v=function(t,e){this.stopped=t,this.result=e},y=v.prototype;t.exports=function(t,e,n){var r,g,m,b,C,w,_,x=n&&n.that,I=!(!n||!n.AS_ENTRIES),S=!(!n||!n.IS_ITERATOR),E=!(!n||!n.INTERRUPTED),k=i(e,x),L=function(t){return r&&h(r,"normal",t),new v(!0,t)},O=function(t){return I?(a(t),E?k(t[0],t[1],L):k(t[0],t[1])):E?k(t,L):k(t)};if(S)r=t;else{if(!(g=d(t)))throw p(s(t)+" is not iterable");if(u(g)){for(m=0,b=c(t);b>m;m++)if((C=O(t[m]))&&l(y,C))return C;return new v(!1)}r=f(t,g)}for(w=r.next;!(_=o(w,r)).done;){try{C=O(_.value)}catch(t){h(r,"throw",t)}if("object"==typeof C&&C&&l(y,C))return C}return new v(!1)}},5635:function(t,e,n){var r=n(4225),i=n(3536),o=n(5048);t.exports=function(t,e,n){var a,s;i(t);try{if(!(a=o(t,"return"))){if("throw"===e)throw n;return n}a=r(a,t)}catch(t){s=!0,a=t}if("throw"===e)throw n;if(s)throw a;return i(a),n}},7824:function(t,e,n){"use strict";var r,i,o,a=n(3694),s=n(933),u=n(6997),c=n(5024),l=n(6272),f=n(7952),d=n(7442),h=f("iterator"),p=!1;[].keys&&("next"in(o=[].keys())?(i=c(c(o)))!==Object.prototype&&(r=i):p=!0),null==r||a((function(){var t={};return r[h].call(t)!==t}))?r={}:d&&(r=u(r)),s(r[h])||l(r,h,(function(){return this})),t.exports={IteratorPrototype:r,BUGGY_SAFARI_ITERATORS:p}},3019:function(t){t.exports={}},1646:function(t,e,n){var r=n(6092);t.exports=function(t){return r(t.length)}},2484:function(t,e,n){var r=n(3694),i=n(933),o=n(3225),a=n(7108).f,s=n(567).CONFIGURABLE,u=n(4335),c=n(21),l=c.enforce,f=c.get,d=!r((function(){return 8!==a((function(){}),"length",{value:8}).length})),h=String(String).split("String"),p=t.exports=function(t,e,n){"Symbol("===String(e).slice(0,7)&&(e="["+String(e).replace(/^Symbol\(([^)]*)\)/,"$1")+"]"),n&&n.getter&&(e="get "+e),n&&n.setter&&(e="set "+e),(!o(t,"name")||s&&t.name!==e)&&a(t,"name",{value:e,configurable:!0}),d&&n&&o(n,"arity")&&t.length!==n.arity&&a(t,"length",{value:n.arity});var r=l(t);return o(r,"source")||(r.source=h.join("string"==typeof e?e:"")),t};Function.prototype.toString=p((function(){return i(this)&&f(this).source||u(this)}),"toString")},3012:function(t,e,n){var r,i,o,a,s,u,c,l,f=n(7230),d=n(1248),h=n(5027).f,p=n(7823).set,v=n(4619),y=n(4370),g=n(2811),m=n(5009),b=f.MutationObserver||f.WebKitMutationObserver,C=f.document,w=f.process,_=f.Promise,x=h(f,"queueMicrotask"),I=x&&x.value;I||(r=function(){var t,e;for(m&&(t=w.domain)&&t.exit();i;){e=i.fn,i=i.next;try{e()}catch(t){throw i?a():o=void 0,t}}o=void 0,t&&t.enter()},v||m||g||!b||!C?!y&&_&&_.resolve?((c=_.resolve(void 0)).constructor=_,l=d(c.then,c),a=function(){l(r)}):m?a=function(){w.nextTick(r)}:(p=d(p,f),a=function(){p(r)}):(s=!0,u=C.createTextNode(""),new b(r).observe(u,{characterData:!0}),a=function(){u.data=s=!s})),t.exports=I||function(t){var e={fn:t,next:void 0};o&&(o.next=e),i||(i=e,a()),o=e}},61:function(t,e,n){var r=n(8724);t.exports=r&&!!Symbol.for&&!!Symbol.keyFor},8724:function(t,e,n){var r=n(7806),i=n(3694);t.exports=!!Object.getOwnPropertySymbols&&!i((function(){var t=Symbol();return!String(t)||!(Object(t)instanceof Symbol)||!Symbol.sham&&r&&r<41}))},5506:function(t,e,n){var r=n(7230),i=n(933),o=n(4335),a=r.WeakMap;t.exports=i(a)&&/native code/.test(o(a))},6935:function(t,e,n){"use strict";var r=n(3200),i=function(t){var e,n;this.promise=new t((function(t,r){if(void 0!==e||void 0!==n)throw TypeError("Bad Promise constructor");e=t,n=r})),this.resolve=r(e),this.reject=r(n)};t.exports.f=function(t){return new i(t)}},6487:function(t,e,n){var r=n(7230),i=n(385),o=r.TypeError;t.exports=function(t){if(i(t))throw o("The method doesn't accept regular expressions");return t}},6997:function(t,e,n){var r,i=n(3536),o=n(7673),a=n(9799),s=n(7076),u=n(6507),c=n(2200),l=n(375),f=l("IE_PROTO"),d=function(){},h=function(t){return"<script>"+t+"</"+"script>"},p=function(t){t.write(h("")),t.close();var e=t.parentWindow.Object;return t=null,e},v=function(){try{r=new ActiveXObject("htmlfile")}catch(t){}var t,e;v="undefined"!=typeof document?document.domain&&r?p(r):((e=c("iframe")).style.display="none",u.appendChild(e),e.src=String("javascript:"),(t=e.contentWindow.document).open(),t.write(h("document.F=Object")),t.close(),t.F):p(r);for(var n=a.length;n--;)delete v.prototype[a[n]];return v()};s[f]=!0,t.exports=Object.create||function(t,e){var n;return null!==t?(d.prototype=i(t),n=new d,d.prototype=null,n[f]=t):n=v(),void 0===e?n:o.f(n,e)}},7673:function(t,e,n){var r=n(6079),i=n(3202),o=n(7108),a=n(3536),s=n(9164),u=n(6127);e.f=r&&!i?Object.defineProperties:function(t,e){a(t);for(var n,r=s(e),i=u(e),c=i.length,l=0;c>l;)o.f(t,n=i[l++],r[n]);return t}},7108:function(t,e,n){var r=n(7230),i=n(6079),o=n(4253),a=n(3202),s=n(3536),u=n(5831),c=r.TypeError,l=Object.defineProperty,f=Object.getOwnPropertyDescriptor,d="enumerable",h="configurable",p="writable";e.f=i?a?function(t,e,n){if(s(t),e=u(e),s(n),"function"==typeof t&&"prototype"===e&&"value"in n&&p in n&&!n.writable){var r=f(t,e);r&&r.writable&&(t[e]=n.value,n={configurable:h in n?n.configurable:r.configurable,enumerable:d in n?n.enumerable:r.enumerable,writable:!1})}return l(t,e,n)}:l:function(t,e,n){if(s(t),e=u(e),s(n),o)try{return l(t,e,n)}catch(t){}if("get"in n||"set"in n)throw c("Accessors not supported");return"value"in n&&(t[e]=n.value),t}},5027:function(t,e,n){var r=n(6079),i=n(4225),o=n(5486),a=n(8828),s=n(9164),u=n(5831),c=n(3225),l=n(4253),f=Object.getOwnPropertyDescriptor;e.f=r?f:function(t,e){if(t=s(t),e=u(e),l)try{return f(t,e)}catch(t){}if(c(t,e))return a(!i(o.f,t,e),t[e])}},3959:function(t,e,n){var r=n(2248),i=n(9164),o=n(7852).f,a=n(696),s="object"==typeof window&&window&&Object.getOwnPropertyNames?Object.getOwnPropertyNames(window):[];t.exports.f=function(t){return s&&"Window"==r(t)?function(t){try{return o(t)}catch(t){return a(s)}}(t):o(i(t))}},7852:function(t,e,n){var r=n(3821),i=n(9799).concat("length","prototype");e.f=Object.getOwnPropertyNames||function(t){return r(t,i)}},7375:function(t,e){e.f=Object.getOwnPropertySymbols},5024:function(t,e,n){var r=n(7230),i=n(3225),o=n(933),a=n(987),s=n(375),u=n(560),c=s("IE_PROTO"),l=r.Object,f=l.prototype;t.exports=u?l.getPrototypeOf:function(t){var e=a(t);if(i(e,c))return e[c];var n=e.constructor;return o(n)&&e instanceof n?n.prototype:e instanceof l?f:null}},2346:function(t,e,n){var r=n(1916);t.exports=r({}.isPrototypeOf)},3821:function(t,e,n){var r=n(1916),i=n(3225),o=n(9164),a=n(7945).indexOf,s=n(7076),u=r([].push);t.exports=function(t,e){var n,r=o(t),c=0,l=[];for(n in r)!i(s,n)&&i(r,n)&&u(l,n);for(;e.length>c;)i(r,n=e[c++])&&(~a(l,n)||u(l,n));return l}},6127:function(t,e,n){var r=n(3821),i=n(9799);t.exports=Object.keys||function(t){return r(t,i)}},5486:function(t,e){"use strict";var n={}.propertyIsEnumerable,r=Object.getOwnPropertyDescriptor,i=r&&!n.call({1:2},1);e.f=i?function(t){var e=r(this,t);return!!e&&e.enumerable}:n},1403:function(t,e,n){var r=n(1916),i=n(3536),o=n(8563);t.exports=Object.setPrototypeOf||("__proto__"in{}?function(){var t,e=!1,n={};try{(t=r(Object.getOwnPropertyDescriptor(Object.prototype,"__proto__").set))(n,[]),e=n instanceof Array}catch(t){}return function(n,r){return i(n),o(r),e?t(n,r):n.__proto__=r,n}}():void 0)},4168:function(t,e,n){"use strict";var r=n(6695),i=n(996);t.exports=r?{}.toString:function(){return"[object "+i(this)+"]"}},7013:function(t,e,n){var r=n(7230),i=n(4225),o=n(933),a=n(6913),s=r.TypeError;t.exports=function(t,e){var n,r;if("string"===e&&o(n=t.toString)&&!a(r=i(n,t)))return r;if(o(n=t.valueOf)&&!a(r=i(n,t)))return r;if("string"!==e&&o(n=t.toString)&&!a(r=i(n,t)))return r;throw s("Can't convert object to primitive value")}},3697:function(t,e,n){var r=n(1223),i=n(1916),o=n(7852),a=n(7375),s=n(3536),u=i([].concat);t.exports=r("Reflect","ownKeys")||function(t){var e=o.f(s(t)),n=a.f;return n?u(e,n(t)):e}},5030:function(t,e,n){var r=n(7230);t.exports=r},7731:function(t){t.exports=function(t){try{return{error:!1,value:t()}}catch(t){return{error:!0,value:t}}}},3306:function(t,e,n){var r=n(7230),i=n(3657),o=n(933),a=n(4545),s=n(4335),u=n(7952),c=n(417),l=n(7442),f=n(7806),d=i&&i.prototype,h=u("species"),p=!1,v=o(r.PromiseRejectionEvent),y=a("Promise",(function(){var t=s(i),e=t!==String(i);if(!e&&66===f)return!0;if(l&&(!d.catch||!d.finally))return!0;if(f>=51&&/native code/.test(t))return!1;var n=new i((function(t){t(1)})),r=function(t){t((function(){}),(function(){}))};return(n.constructor={})[h]=r,!(p=n.then((function(){}))instanceof r)||!e&&c&&!v}));t.exports={CONSTRUCTOR:y,REJECTION_EVENT:v,SUBCLASSING:p}},3657:function(t,e,n){var r=n(7230);t.exports=r.Promise},8888:function(t,e,n){var r=n(3536),i=n(6913),o=n(6935);t.exports=function(t,e){if(r(t),i(e)&&e.constructor===t)return e;var n=o.f(t);return(0,n.resolve)(e),n.promise}},3560:function(t,e,n){var r=n(3657),i=n(1964),o=n(3306).CONSTRUCTOR;t.exports=o||!i((function(t){r.all(t).then(void 0,(function(){}))}))},5818:function(t){var e=function(){this.head=null,this.tail=null};e.prototype={add:function(t){var e={item:t,next:null};this.head?this.tail.next=e:this.head=e,this.tail=e},get:function(){var t=this.head;if(t)return this.head=t.next,this.tail===t&&(this.tail=null),t.item}},t.exports=e},5731:function(t,e,n){var r=n(7230),i=n(4225),o=n(3536),a=n(933),s=n(2248),u=n(9735),c=r.TypeError;t.exports=function(t,e){var n=t.exec;if(a(n)){var r=i(n,t,e);return null!==r&&o(r),r}if("RegExp"===s(t))return i(u,t,e);throw c("RegExp#exec called on incompatible receiver")}},9735:function(t,e,n){"use strict";var r,i,o=n(4225),a=n(1916),s=n(9851),u=n(8608),c=n(9154),l=n(3268),f=n(6997),d=n(21).get,h=n(5021),p=n(2916),v=l("native-string-replace",String.prototype.replace),y=RegExp.prototype.exec,g=y,m=a("".charAt),b=a("".indexOf),C=a("".replace),w=a("".slice),_=(i=/b*/g,o(y,r=/a/,"a"),o(y,i,"a"),0!==r.lastIndex||0!==i.lastIndex),x=c.BROKEN_CARET,I=void 0!==/()??/.exec("")[1];(_||I||x||h||p)&&(g=function(t){var e,n,r,i,a,c,l,h=this,p=d(h),S=s(t),E=p.raw;if(E)return E.lastIndex=h.lastIndex,e=o(g,E,S),h.lastIndex=E.lastIndex,e;var k=p.groups,L=x&&h.sticky,O=o(u,h),T=h.source,A=0,D=S;if(L&&(O=C(O,"y",""),-1===b(O,"g")&&(O+="g"),D=w(S,h.lastIndex),h.lastIndex>0&&(!h.multiline||h.multiline&&"\n"!==m(S,h.lastIndex-1))&&(T="(?: "+T+")",D=" "+D,A++),n=new RegExp("^(?:"+T+")",O)),I&&(n=new RegExp("^"+T+"$(?!\\s)",O)),_&&(r=h.lastIndex),i=o(y,L?n:h,D),L?i?(i.input=w(i.input,A),i[0]=w(i[0],A),i.index=h.lastIndex,h.lastIndex+=i[0].length):h.lastIndex=0:_&&i&&(h.lastIndex=h.global?i.index+i[0].length:r),I&&i&&i.length>1&&o(v,i[0],n,(function(){for(a=1;a<arguments.length-2;a++)void 0===arguments[a]&&(i[a]=void 0)})),i&&k)for(i.groups=c=f(null),a=0;a<k.length;a++)c[(l=k[a])[0]]=i[l[1]];return i}),t.exports=g},8608:function(t,e,n){"use strict";var r=n(3536);t.exports=function(){var t=r(this),e="";return t.hasIndices&&(e+="d"),t.global&&(e+="g"),t.ignoreCase&&(e+="i"),t.multiline&&(e+="m"),t.dotAll&&(e+="s"),t.unicode&&(e+="u"),t.sticky&&(e+="y"),e}},4688:function(t,e,n){var r=n(4225),i=n(3225),o=n(2346),a=n(8608),s=RegExp.prototype;t.exports=function(t){var e=t.flags;return void 0!==e||"flags"in s||i(t,"flags")||!o(s,t)?e:r(a,t)}},9154:function(t,e,n){var r=n(3694),i=n(7230).RegExp,o=r((function(){var t=i("a","y");return t.lastIndex=2,null!=t.exec("abcd")})),a=o||r((function(){return!i("a","y").sticky})),s=o||r((function(){var t=i("^r","gy");return t.lastIndex=2,null!=t.exec("str")}));t.exports={BROKEN_CARET:s,MISSED_STICKY:a,UNSUPPORTED_Y:o}},5021:function(t,e,n){var r=n(3694),i=n(7230).RegExp;t.exports=r((function(){var t=i(".","s");return!(t.dotAll&&t.exec("\n")&&"s"===t.flags)}))},2916:function(t,e,n){var r=n(3694),i=n(7230).RegExp;t.exports=r((function(){var t=i("(?<a>b)","g");return"b"!==t.exec("b").groups.a||"bc"!=="b".replace(t,"$<a>c")}))},7105:function(t,e,n){var r=n(7230).TypeError;t.exports=function(t){if(null==t)throw r("Can't call method on "+t);return t}},746:function(t,e,n){var r=n(7230),i=Object.defineProperty;t.exports=function(t,e){try{i(r,t,{value:e,configurable:!0,writable:!0})}catch(n){r[t]=e}return e}},6898:function(t,e,n){"use strict";var r=n(1223),i=n(7108),o=n(7952),a=n(6079),s=o("species");t.exports=function(t){var e=r(t),n=i.f;a&&e&&!e[s]&&n(e,s,{configurable:!0,get:function(){return this}})}},5411:function(t,e,n){var r=n(7108).f,i=n(3225),o=n(7952)("toStringTag");t.exports=function(t,e,n){t&&!n&&(t=t.prototype),t&&!i(t,o)&&r(t,o,{configurable:!0,value:e})}},375:function(t,e,n){var r=n(3268),i=n(4525),o=r("keys");t.exports=function(t){return o[t]||(o[t]=i(t))}},1393:function(t,e,n){var r=n(7230),i=n(746),o="__core-js_shared__",a=r[o]||i(o,{});t.exports=a},3268:function(t,e,n){var r=n(7442),i=n(1393);(t.exports=function(t,e){return i[t]||(i[t]=void 0!==e?e:{})})("versions",[]).push({version:"3.22.4",mode:r?"pure":"global",copyright:"© 2014-2022 Denis Pushkarev (zloirock.ru)",license:"https://github.com/zloirock/core-js/blob/v3.22.4/LICENSE",source:"https://github.com/zloirock/core-js"})},640:function(t,e,n){var r=n(3536),i=n(4831),o=n(7952)("species");t.exports=function(t,e){var n,a=r(t).constructor;return void 0===a||null==(n=r(a)[o])?e:i(n)}},2370:function(t,e,n){var r=n(1916),i=n(4982),o=n(9851),a=n(7105),s=r("".charAt),u=r("".charCodeAt),c=r("".slice),l=function(t){return function(e,n){var r,l,f=o(a(e)),d=i(n),h=f.length;return d<0||d>=h?t?"":void 0:(r=u(f,d))<55296||r>56319||d+1===h||(l=u(f,d+1))<56320||l>57343?t?s(f,d):r:t?c(f,d,d+2):l-56320+(r-55296<<10)+65536}};t.exports={codeAt:l(!1),charAt:l(!0)}},511:function(t,e,n){var r=n(567).PROPER,i=n(3694),o=n(1152);t.exports=function(t){return i((function(){return!!o[t]()||"​᠎"!=="​᠎"[t]()||r&&o[t].name!==t}))}},7011:function(t,e,n){var r=n(1916),i=n(7105),o=n(9851),a=n(1152),s=r("".replace),u="["+a+"]",c=RegExp("^"+u+u+"*"),l=RegExp(u+u+"*$"),f=function(t){return function(e){var n=o(i(e));return 1&t&&(n=s(n,c,"")),2&t&&(n=s(n,l,"")),n}};t.exports={start:f(1),end:f(2),trim:f(3)}},8252:function(t,e,n){var r=n(4225),i=n(1223),o=n(7952),a=n(6272);t.exports=function(){var t=i("Symbol"),e=t&&t.prototype,n=e&&e.valueOf,s=o("toPrimitive");e&&!e[s]&&a(e,s,(function(t){return r(n,this)}),{arity:1})}},7823:function(t,e,n){var r,i,o,a,s=n(7230),u=n(251),c=n(1248),l=n(933),f=n(3225),d=n(3694),h=n(6507),p=n(9663),v=n(2200),y=n(2234),g=n(4619),m=n(5009),b=s.setImmediate,C=s.clearImmediate,w=s.process,_=s.Dispatch,x=s.Function,I=s.MessageChannel,S=s.String,E=0,k={},L="onreadystatechange";try{r=s.location}catch(t){}var O=function(t){if(f(k,t)){var e=k[t];delete k[t],e()}},T=function(t){return function(){O(t)}},A=function(t){O(t.data)},D=function(t){s.postMessage(S(t),r.protocol+"//"+r.host)};b&&C||(b=function(t){y(arguments.length,1);var e=l(t)?t:x(t),n=p(arguments,1);return k[++E]=function(){u(e,void 0,n)},i(E),E},C=function(t){delete k[t]},m?i=function(t){w.nextTick(T(t))}:_&&_.now?i=function(t){_.now(T(t))}:I&&!g?(a=(o=new I).port2,o.port1.onmessage=A,i=c(a.postMessage,a)):s.addEventListener&&l(s.postMessage)&&!s.importScripts&&r&&"file:"!==r.protocol&&!d(D)?(i=D,s.addEventListener("message",A,!1)):i=L in v("script")?function(t){h.appendChild(v("script")).onreadystatechange=function(){h.removeChild(this),O(t)}}:function(t){setTimeout(T(t),0)}),t.exports={set:b,clear:C}},2966:function(t,e,n){var r=n(4982),i=Math.max,o=Math.min;t.exports=function(t,e){var n=r(t);return n<0?i(n+e,0):o(n,e)}},9164:function(t,e,n){var r=n(6801),i=n(7105);t.exports=function(t){return r(i(t))}},4982:function(t){var e=Math.ceil,n=Math.floor;t.exports=function(t){var r=+t;return r!=r||0===r?0:(r>0?n:e)(r)}},6092:function(t,e,n){var r=n(4982),i=Math.min;t.exports=function(t){return t>0?i(r(t),9007199254740991):0}},987:function(t,e,n){var r=n(7230),i=n(7105),o=r.Object;t.exports=function(t){return o(i(t))}},5962:function(t,e,n){var r=n(7230),i=n(4225),o=n(6913),a=n(7581),s=n(5048),u=n(7013),c=n(7952),l=r.TypeError,f=c("toPrimitive");t.exports=function(t,e){if(!o(t)||a(t))return t;var n,r=s(t,f);if(r){if(void 0===e&&(e="default"),n=i(r,t,e),!o(n)||a(n))return n;throw l("Can't convert object to primitive value")}return void 0===e&&(e="number"),u(t,e)}},5831:function(t,e,n){var r=n(5962),i=n(7581);t.exports=function(t){var e=r(t,"string");return i(e)?e:e+""}},6695:function(t,e,n){var r={};r[n(7952)("toStringTag")]="z",t.exports="[object z]"===String(r)},9851:function(t,e,n){var r=n(7230),i=n(996),o=r.String;t.exports=function(t){if("Symbol"===i(t))throw TypeError("Cannot convert a Symbol value to a string");return o(t)}},321:function(t,e,n){var r=n(7230).String;t.exports=function(t){try{return r(t)}catch(t){return"Object"}}},4525:function(t,e,n){var r=n(1916),i=0,o=Math.random(),a=r(1..toString);t.exports=function(t){return"Symbol("+(void 0===t?"":t)+")_"+a(++i+o,36)}},9264:function(t,e,n){var r=n(8724);t.exports=r&&!Symbol.sham&&"symbol"==typeof Symbol.iterator},3202:function(t,e,n){var r=n(6079),i=n(3694);t.exports=r&&i((function(){return 42!=Object.defineProperty((function(){}),"prototype",{value:42,writable:!1}).prototype}))},2234:function(t,e,n){var r=n(7230).TypeError;t.exports=function(t,e){if(t<e)throw r("Not enough arguments");return t}},3081:function(t,e,n){var r=n(7952);e.f=r},7952:function(t,e,n){var r=n(7230),i=n(3268),o=n(3225),a=n(4525),s=n(8724),u=n(9264),c=i("wks"),l=r.Symbol,f=l&&l.for,d=u?l:l&&l.withoutSetter||a;t.exports=function(t){if(!o(c,t)||!s&&"string"!=typeof c[t]){var e="Symbol."+t;s&&o(l,t)?c[t]=l[t]:c[t]=u&&f?f(e):d(e)}return c[t]}},1152:function(t){t.exports="\t\n\v\f\r                　\u2028\u2029\ufeff"},9655:function(t,e,n){"use strict";var r=n(5302),i=n(7230),o=n(3694),a=n(4893),s=n(6913),u=n(987),c=n(1646),l=n(3859),f=n(1204),d=n(9321),h=n(7952),p=n(7806),v=h("isConcatSpreadable"),y=9007199254740991,g="Maximum allowed index exceeded",m=i.TypeError,b=p>=51||!o((function(){var t=[];return t[v]=!1,t.concat()[0]!==t})),C=d("concat"),w=function(t){if(!s(t))return!1;var e=t[v];return void 0!==e?!!e:a(t)};r({target:"Array",proto:!0,arity:1,forced:!b||!C},{concat:function(t){var e,n,r,i,o,a=u(this),s=f(a,0),d=0;for(e=-1,r=arguments.length;e<r;e++)if(w(o=-1===e?a:arguments[e])){if(d+(i=c(o))>y)throw m(g);for(n=0;n<i;n++,d++)n in o&&l(s,d,o[n])}else{if(d>=y)throw m(g);l(s,d++,o)}return s.length=d,s}})},7505:function(t,e,n){"use strict";var r=n(5302),i=n(1569).filter;r({target:"Array",proto:!0,forced:!n(9321)("filter")},{filter:function(t){return i(this,t,arguments.length>1?arguments[1]:void 0)}})},5991:function(t,e,n){var r=n(5302),i=n(8897);r({target:"Array",stat:!0,forced:!n(1964)((function(t){Array.from(t)}))},{from:i})},6025:function(t,e,n){"use strict";var r=n(5302),i=n(7945).includes,o=n(3694),a=n(186);r({target:"Array",proto:!0,forced:o((function(){return!Array(1).includes()}))},{includes:function(t){return i(this,t,arguments.length>1?arguments[1]:void 0)}}),a("includes")},4836:function(t,e,n){"use strict";var r=n(9164),i=n(186),o=n(3019),a=n(21),s=n(7108).f,u=n(3392),c=n(7442),l=n(6079),f="Array Iterator",d=a.set,h=a.getterFor(f);t.exports=u(Array,"Array",(function(t,e){d(this,{type:f,target:r(t),index:0,kind:e})}),(function(){var t=h(this),e=t.target,n=t.kind,r=t.index++;return!e||r>=e.length?(t.target=void 0,{value:void 0,done:!0}):"keys"==n?{value:r,done:!1}:"values"==n?{value:e[r],done:!1}:{value:[r,e[r]],done:!1}}),"values");var p=o.Arguments=o.Array;if(i("keys"),i("values"),i("entries"),!c&&l&&"values"!==p.name)try{s(p,"name",{value:"values"})}catch(t){}},372:function(t,e,n){"use strict";var r=n(5302),i=n(1569).map;r({target:"Array",proto:!0,forced:!n(9321)("map")},{map:function(t){return i(this,t,arguments.length>1?arguments[1]:void 0)}})},3289:function(t,e,n){"use strict";var r=n(5302),i=n(7230),o=n(4893),a=n(3538),s=n(6913),u=n(2966),c=n(1646),l=n(9164),f=n(3859),d=n(7952),h=n(9321),p=n(9663),v=h("slice"),y=d("species"),g=i.Array,m=Math.max;r({target:"Array",proto:!0,forced:!v},{slice:function(t,e){var n,r,i,d=l(this),h=c(d),v=u(t,h),b=u(void 0===e?h:e,h);if(o(d)&&(n=d.constructor,(a(n)&&(n===g||o(n.prototype))||s(n)&&null===(n=n[y]))&&(n=void 0),n===g||void 0===n))return p(d,v,b);for(r=new(void 0===n?g:n)(m(b-v,0)),i=0;v<b;v++,i++)v in d&&f(r,i,d[v]);return r.length=i,r}})},8855:function(t,e,n){var r=n(6079),i=n(567).EXISTS,o=n(1916),a=n(7108).f,s=Function.prototype,u=o(s.toString),c=/function\b(?:\s|\/\*[\S\s]*?\*\/|\/\/[^\n\r]*[\n\r]+)*([^\s(/]*)/,l=o(c.exec);r&&!i&&a(s,"name",{configurable:!0,get:function(){try{return l(c,u(this))[1]}catch(t){return""}}})},4546:function(t,e,n){var r=n(5302),i=n(1223),o=n(251),a=n(4225),s=n(1916),u=n(3694),c=n(4893),l=n(933),f=n(6913),d=n(7581),h=n(9663),p=n(8724),v=i("JSON","stringify"),y=s(/./.exec),g=s("".charAt),m=s("".charCodeAt),b=s("".replace),C=s(1..toString),w=/[\uD800-\uDFFF]/g,_=/^[\uD800-\uDBFF]$/,x=/^[\uDC00-\uDFFF]$/,I=!p||u((function(){var t=i("Symbol")();return"[null]"!=v([t])||"{}"!=v({a:t})||"{}"!=v(Object(t))})),S=u((function(){return'"\\udf06\\ud834"'!==v("\udf06\ud834")||'"\\udead"'!==v("\udead")})),E=function(t,e){var n=h(arguments),r=e;if((f(e)||void 0!==t)&&!d(t))return c(e)||(e=function(t,e){if(l(r)&&(e=a(r,this,t,e)),!d(e))return e}),n[1]=e,o(v,null,n)},k=function(t,e,n){var r=g(n,e-1),i=g(n,e+1);return y(_,t)&&!y(x,i)||y(x,t)&&!y(_,r)?"\\u"+C(m(t,0),16):t};v&&r({target:"JSON",stat:!0,arity:3,forced:I||S},{stringify:function(t,e,n){var r=h(arguments),i=o(I?E:v,null,r);return S&&"string"==typeof i?b(i,w,k):i}})},7558:function(t,e,n){var r=n(5302),i=n(3694),o=n(9164),a=n(5027).f,s=n(6079),u=i((function(){a(1)}));r({target:"Object",stat:!0,forced:!s||u,sham:!s},{getOwnPropertyDescriptor:function(t,e){return a(o(t),e)}})},1071:function(t,e,n){var r=n(5302),i=n(6079),o=n(3697),a=n(9164),s=n(5027),u=n(3859);r({target:"Object",stat:!0,sham:!i},{getOwnPropertyDescriptors:function(t){for(var e,n,r=a(t),i=s.f,c=o(r),l={},f=0;c.length>f;)void 0!==(n=i(r,e=c[f++]))&&u(l,e,n);return l}})},7808:function(t,e,n){var r=n(5302),i=n(8724),o=n(3694),a=n(7375),s=n(987);r({target:"Object",stat:!0,forced:!i||o((function(){a.f(1)}))},{getOwnPropertySymbols:function(t){var e=a.f;return e?e(s(t)):[]}})},7186:function(t,e,n){var r=n(5302),i=n(987),o=n(6127);r({target:"Object",stat:!0,forced:n(3694)((function(){o(1)}))},{keys:function(t){return o(i(t))}})},2981:function(t,e,n){var r=n(6695),i=n(6272),o=n(4168);r||i(Object.prototype,"toString",o,{unsafe:!0})},7769:function(t,e,n){"use strict";var r=n(5302),i=n(4225),o=n(3200),a=n(6935),s=n(7731),u=n(5103);r({target:"Promise",stat:!0,forced:n(3560)},{all:function(t){var e=this,n=a.f(e),r=n.resolve,c=n.reject,l=s((function(){var n=o(e.resolve),a=[],s=0,l=1;u(t,(function(t){var o=s++,u=!1;l++,i(n,e,t).then((function(t){u||(u=!0,a[o]=t,--l||r(a))}),c)})),--l||r(a)}));return l.error&&c(l.value),n.promise}})},3714:function(t,e,n){"use strict";var r=n(5302),i=n(7442),o=n(3306).CONSTRUCTOR,a=n(3657),s=n(1223),u=n(933),c=n(6272),l=a&&a.prototype;if(r({target:"Promise",proto:!0,forced:o,real:!0},{catch:function(t){return this.then(void 0,t)}}),!i&&u(a)){var f=s("Promise").prototype.catch;l.catch!==f&&c(l,"catch",f,{unsafe:!0})}},7229:function(t,e,n){"use strict";var r,i,o,a=n(5302),s=n(7442),u=n(5009),c=n(7230),l=n(4225),f=n(6272),d=n(1403),h=n(5411),p=n(6898),v=n(3200),y=n(933),g=n(6913),m=n(5209),b=n(640),C=n(7823).set,w=n(3012),_=n(5812),x=n(7731),I=n(5818),S=n(21),E=n(3657),k=n(3306),L=n(6935),O="Promise",T=k.CONSTRUCTOR,A=k.REJECTION_EVENT,D=k.SUBCLASSING,P=S.getterFor(O),j=S.set,N=E&&E.prototype,M=E,F=N,R=c.TypeError,U=c.document,B=c.process,G=L.f,$=G,z=!!(U&&U.createEvent&&c.dispatchEvent),V="unhandledrejection",K=function(t){var e;return!(!g(t)||!y(e=t.then))&&e},H=function(t,e){var n,r,i,o=e.value,a=1==e.state,s=a?t.ok:t.fail,u=t.resolve,c=t.reject,f=t.domain;try{s?(a||(2===e.rejection&&Z(e),e.rejection=1),!0===s?n=o:(f&&f.enter(),n=s(o),f&&(f.exit(),i=!0)),n===t.promise?c(R("Promise-chain cycle")):(r=K(n))?l(r,n,u,c):u(n)):c(o)}catch(t){f&&!i&&f.exit(),c(t)}},q=function(t,e){t.notified||(t.notified=!0,w((function(){for(var n,r=t.reactions;n=r.get();)H(n,t);t.notified=!1,e&&!t.rejection&&J(t)})))},W=function(t,e,n){var r,i;z?((r=U.createEvent("Event")).promise=e,r.reason=n,r.initEvent(t,!1,!0),c.dispatchEvent(r)):r={promise:e,reason:n},!A&&(i=c["on"+t])?i(r):t===V&&_("Unhandled promise rejection",n)},J=function(t){l(C,c,(function(){var e,n=t.facade,r=t.value;if(Y(t)&&(e=x((function(){u?B.emit("unhandledRejection",r,n):W(V,n,r)})),t.rejection=u||Y(t)?2:1,e.error))throw e.value}))},Y=function(t){return 1!==t.rejection&&!t.parent},Z=function(t){l(C,c,(function(){var e=t.facade;u?B.emit("rejectionHandled",e):W("rejectionhandled",e,t.value)}))},X=function(t,e,n){return function(r){t(e,r,n)}},Q=function(t,e,n){t.done||(t.done=!0,n&&(t=n),t.value=e,t.state=2,q(t,!0))},tt=function(t,e,n){if(!t.done){t.done=!0,n&&(t=n);try{if(t.facade===e)throw R("Promise can't be resolved itself");var r=K(e);r?w((function(){var n={done:!1};try{l(r,e,X(tt,n,t),X(Q,n,t))}catch(e){Q(n,e,t)}})):(t.value=e,t.state=1,q(t,!1))}catch(e){Q({done:!1},e,t)}}};if(T&&(F=(M=function(t){m(this,F),v(t),l(r,this);var e=P(this);try{t(X(tt,e),X(Q,e))}catch(t){Q(e,t)}}).prototype,(r=function(t){j(this,{type:O,done:!1,notified:!1,parent:!1,reactions:new I,rejection:!1,state:0,value:void 0})}).prototype=f(F,"then",(function(t,e){var n=P(this),r=G(b(this,M));return n.parent=!0,r.ok=!y(t)||t,r.fail=y(e)&&e,r.domain=u?B.domain:void 0,0==n.state?n.reactions.add(r):w((function(){H(r,n)})),r.promise})),i=function(){var t=new r,e=P(t);this.promise=t,this.resolve=X(tt,e),this.reject=X(Q,e)},L.f=G=function(t){return t===M||undefined===t?new i(t):$(t)},!s&&y(E)&&N!==Object.prototype)){o=N.then,D||f(N,"then",(function(t,e){var n=this;return new M((function(t,e){l(o,n,t,e)})).then(t,e)}),{unsafe:!0});try{delete N.constructor}catch(t){}d&&d(N,F)}a({global:!0,wrap:!0,forced:T},{Promise:M}),h(M,O,!1,!0),p(O)},5754:function(t,e,n){n(7229),n(7769),n(3714),n(7300),n(4126),n(671)},7300:function(t,e,n){"use strict";var r=n(5302),i=n(4225),o=n(3200),a=n(6935),s=n(7731),u=n(5103);r({target:"Promise",stat:!0,forced:n(3560)},{race:function(t){var e=this,n=a.f(e),r=n.reject,c=s((function(){var a=o(e.resolve);u(t,(function(t){i(a,e,t).then(n.resolve,r)}))}));return c.error&&r(c.value),n.promise}})},4126:function(t,e,n){"use strict";var r=n(5302),i=n(4225),o=n(6935);r({target:"Promise",stat:!0,forced:n(3306).CONSTRUCTOR},{reject:function(t){var e=o.f(this);return i(e.reject,void 0,t),e.promise}})},671:function(t,e,n){"use strict";var r=n(5302),i=n(1223),o=n(7442),a=n(3657),s=n(3306).CONSTRUCTOR,u=n(8888),c=i("Promise"),l=o&&!s;r({target:"Promise",stat:!0,forced:o||s},{resolve:function(t){return u(l&&this===c?a:this,t)}})},5098:function(t,e,n){"use strict";var r=n(5302),i=n(9735);r({target:"RegExp",proto:!0,forced:/./.exec!==i},{exec:i})},6858:function(t,e,n){"use strict";var r=n(567).PROPER,i=n(6272),o=n(3536),a=n(9851),s=n(3694),u=n(4688),c="toString",l=RegExp.prototype.toString,f=s((function(){return"/a/b"!=l.call({source:"a",flags:"b"})})),d=r&&l.name!=c;(f||d)&&i(RegExp.prototype,c,(function(){var t=o(this);return"/"+a(t.source)+"/"+a(u(t))}),{unsafe:!0})},9470:function(t,e,n){"use strict";var r=n(5302),i=n(1916),o=n(6487),a=n(7105),s=n(9851),u=n(937),c=i("".indexOf);r({target:"String",proto:!0,forced:!u("includes")},{includes:function(t){return!!~c(s(a(this)),s(o(t)),arguments.length>1?arguments[1]:void 0)}})},270:function(t,e,n){"use strict";var r=n(2370).charAt,i=n(9851),o=n(21),a=n(3392),s="String Iterator",u=o.set,c=o.getterFor(s);a(String,"String",(function(t){u(this,{type:s,string:i(t),index:0})}),(function(){var t,e=c(this),n=e.string,i=e.index;return i>=n.length?{value:void 0,done:!0}:(t=r(n,i),e.index+=t.length,{value:t,done:!1})}))},9544:function(t,e,n){"use strict";var r=n(251),i=n(4225),o=n(1916),a=n(4430),s=n(3694),u=n(3536),c=n(933),l=n(4982),f=n(6092),d=n(9851),h=n(7105),p=n(3264),v=n(5048),y=n(6968),g=n(5731),m=n(7952)("replace"),b=Math.max,C=Math.min,w=o([].concat),_=o([].push),x=o("".indexOf),I=o("".slice),S="$0"==="a".replace(/./,"$0"),E=!!/./[m]&&""===/./[m]("a","$0");a("replace",(function(t,e,n){var o=E?"$":"$0";return[function(t,n){var r=h(this),o=null==t?void 0:v(t,m);return o?i(o,t,r,n):i(e,d(r),t,n)},function(t,i){var a=u(this),s=d(t);if("string"==typeof i&&-1===x(i,o)&&-1===x(i,"$<")){var h=n(e,a,s,i);if(h.done)return h.value}var v=c(i);v||(i=d(i));var m=a.global;if(m){var S=a.unicode;a.lastIndex=0}for(var E=[];;){var k=g(a,s);if(null===k)break;if(_(E,k),!m)break;""===d(k[0])&&(a.lastIndex=p(s,f(a.lastIndex),S))}for(var L,O="",T=0,A=0;A<E.length;A++){for(var D=d((k=E[A])[0]),P=b(C(l(k.index),s.length),0),j=[],N=1;N<k.length;N++)_(j,void 0===(L=k[N])?L:String(L));var M=k.groups;if(v){var F=w([D],j,P,s);void 0!==M&&_(F,M);var R=d(r(i,void 0,F))}else R=y(D,s,P,j,M,i);P>=T&&(O+=I(s,T,P)+R,T=P+D.length)}return O+I(s,T)}]}),!!s((function(){var t=/./;return t.exec=function(){var t=[];return t.groups={a:"7"},t},"7"!=="".replace(t,"$<a>")}))||!S||E)},200:function(t,e,n){"use strict";var r=n(5302),i=n(7011).trim;r({target:"String",proto:!0,forced:n(511)("trim")},{trim:function(){return i(this)}})},8087:function(t,e,n){"use strict";var r=n(5302),i=n(7230),o=n(4225),a=n(1916),s=n(7442),u=n(6079),c=n(8724),l=n(3694),f=n(3225),d=n(2346),h=n(3536),p=n(9164),v=n(5831),y=n(9851),g=n(8828),m=n(6997),b=n(6127),C=n(7852),w=n(3959),_=n(7375),x=n(5027),I=n(7108),S=n(7673),E=n(5486),k=n(6272),L=n(3268),O=n(375),T=n(7076),A=n(4525),D=n(7952),P=n(3081),j=n(4832),N=n(8252),M=n(5411),F=n(21),R=n(1569).forEach,U=O("hidden"),B="Symbol",G=F.set,$=F.getterFor(B),z=Object.prototype,V=i.Symbol,K=V&&V.prototype,H=i.TypeError,q=i.QObject,W=x.f,J=I.f,Y=w.f,Z=E.f,X=a([].push),Q=L("symbols"),tt=L("op-symbols"),et=L("wks"),nt=!q||!q.prototype||!q.prototype.findChild,rt=u&&l((function(){return 7!=m(J({},"a",{get:function(){return J(this,"a",{value:7}).a}})).a}))?function(t,e,n){var r=W(z,e);r&&delete z[e],J(t,e,n),r&&t!==z&&J(z,e,r)}:J,it=function(t,e){var n=Q[t]=m(K);return G(n,{type:B,tag:t,description:e}),u||(n.description=e),n},ot=function(t,e,n){t===z&&ot(tt,e,n),h(t);var r=v(e);return h(n),f(Q,r)?(n.enumerable?(f(t,U)&&t[U][r]&&(t[U][r]=!1),n=m(n,{enumerable:g(0,!1)})):(f(t,U)||J(t,U,g(1,{})),t[U][r]=!0),rt(t,r,n)):J(t,r,n)},at=function(t,e){h(t);var n=p(e),r=b(n).concat(lt(n));return R(r,(function(e){u&&!o(st,n,e)||ot(t,e,n[e])})),t},st=function(t){var e=v(t),n=o(Z,this,e);return!(this===z&&f(Q,e)&&!f(tt,e))&&(!(n||!f(this,e)||!f(Q,e)||f(this,U)&&this[U][e])||n)},ut=function(t,e){var n=p(t),r=v(e);if(n!==z||!f(Q,r)||f(tt,r)){var i=W(n,r);return!i||!f(Q,r)||f(n,U)&&n[U][r]||(i.enumerable=!0),i}},ct=function(t){var e=Y(p(t)),n=[];return R(e,(function(t){f(Q,t)||f(T,t)||X(n,t)})),n},lt=function(t){var e=t===z,n=Y(e?tt:p(t)),r=[];return R(n,(function(t){!f(Q,t)||e&&!f(z,t)||X(r,Q[t])})),r};c||(V=function(){if(d(K,this))throw H("Symbol is not a constructor");var t=arguments.length&&void 0!==arguments[0]?y(arguments[0]):void 0,e=A(t),n=function(t){this===z&&o(n,tt,t),f(this,U)&&f(this[U],e)&&(this[U][e]=!1),rt(this,e,g(1,t))};return u&&nt&&rt(z,e,{configurable:!0,set:n}),it(e,t)},k(K=V.prototype,"toString",(function(){return $(this).tag})),k(V,"withoutSetter",(function(t){return it(A(t),t)})),E.f=st,I.f=ot,S.f=at,x.f=ut,C.f=w.f=ct,_.f=lt,P.f=function(t){return it(D(t),t)},u&&(J(K,"description",{configurable:!0,get:function(){return $(this).description}}),s||k(z,"propertyIsEnumerable",st,{unsafe:!0}))),r({global:!0,wrap:!0,forced:!c,sham:!c},{Symbol:V}),R(b(et),(function(t){j(t)})),r({target:B,stat:!0,forced:!c},{useSetter:function(){nt=!0},useSimple:function(){nt=!1}}),r({target:"Object",stat:!0,forced:!c,sham:!u},{create:function(t,e){return void 0===e?m(t):at(m(t),e)},defineProperty:ot,defineProperties:at,getOwnPropertyDescriptor:ut}),r({target:"Object",stat:!0,forced:!c},{getOwnPropertyNames:ct}),N(),M(V,B),T[U]=!0},3373:function(t,e,n){"use strict";var r=n(5302),i=n(6079),o=n(7230),a=n(1916),s=n(3225),u=n(933),c=n(2346),l=n(9851),f=n(7108).f,d=n(1831),h=o.Symbol,p=h&&h.prototype;if(i&&u(h)&&(!("description"in p)||void 0!==h().description)){var v={},y=function(){var t=arguments.length<1||void 0===arguments[0]?void 0:l(arguments[0]),e=c(p,this)?new h(t):void 0===t?h():h(t);return""===t&&(v[e]=!0),e};d(y,h),y.prototype=p,p.constructor=y;var g="Symbol(test)"==String(h("test")),m=a(p.toString),b=a(p.valueOf),C=/^Symbol\((.*)\)[^)]+$/,w=a("".replace),_=a("".slice);f(p,"description",{configurable:!0,get:function(){var t=b(this),e=m(t);if(s(v,t))return"";var n=g?_(e,7,-1):w(e,C,"$1");return""===n?void 0:n}}),r({global:!0,forced:!0},{Symbol:y})}},2414:function(t,e,n){var r=n(5302),i=n(1223),o=n(3225),a=n(9851),s=n(3268),u=n(61),c=s("string-to-symbol-registry"),l=s("symbol-to-string-registry");r({target:"Symbol",stat:!0,forced:!u},{for:function(t){var e=a(t);if(o(c,e))return c[e];var n=i("Symbol")(e);return c[e]=n,l[n]=e,n}})},1881:function(t,e,n){n(4832)("iterator")},8689:function(t,e,n){n(8087),n(2414),n(9257),n(4546),n(7808)},9257:function(t,e,n){var r=n(5302),i=n(3225),o=n(7581),a=n(321),s=n(3268),u=n(61),c=s("symbol-to-string-registry");r({target:"Symbol",stat:!0,forced:!u},{keyFor:function(t){if(!o(t))throw TypeError(a(t)+" is not a symbol");if(i(c,t))return c[t]}})},570:function(t,e,n){var r=n(7230),i=n(5941),o=n(3050),a=n(866),s=n(5399),u=function(t){if(t&&t.forEach!==a)try{s(t,"forEach",a)}catch(e){t.forEach=a}};for(var c in i)i[c]&&u(r[c]&&r[c].prototype);u(o)},8127:function(t,e,n){var r=n(7230),i=n(5941),o=n(3050),a=n(4836),s=n(5399),u=n(7952),c=u("iterator"),l=u("toStringTag"),f=a.values,d=function(t,e){if(t){if(t[c]!==f)try{s(t,c,f)}catch(e){t[c]=f}if(t[l]||s(t,l,e),i[e])for(var n in a)if(t[n]!==a[n])try{s(t,n,a[n])}catch(e){t[n]=a[n]}}};for(var h in i)d(r[h]&&r[h].prototype,h);d(o,"DOMTokenList")},1136:function(t){var e;e=function(t){"use strict";return function(){for(var e=[["Afghanistan (‫افغانستان‬‎)","af","93"],["Albania (Shqipëri)","al","355"],["Algeria (‫الجزائر‬‎)","dz","213"],["American Samoa","as","1",5,["684"]],["Andorra","ad","376"],["Angola","ao","244"],["Anguilla","ai","1",6,["264"]],["Antigua and Barbuda","ag","1",7,["268"]],["Argentina","ar","54"],["Armenia (Հայաստան)","am","374"],["Aruba","aw","297"],["Ascension Island","ac","247"],["Australia","au","61",0],["Austria (Österreich)","at","43"],["Azerbaijan (Azərbaycan)","az","994"],["Bahamas","bs","1",8,["242"]],["Bahrain (‫البحرين‬‎)","bh","973"],["Bangladesh (বাংলাদেশ)","bd","880"],["Barbados","bb","1",9,["246"]],["Belarus (Беларусь)","by","375"],["Belgium (België)","be","32"],["Belize","bz","501"],["Benin (Bénin)","bj","229"],["Bermuda","bm","1",10,["441"]],["Bhutan (འབྲུག)","bt","975"],["Bolivia","bo","591"],["Bosnia and Herzegovina (Босна и Херцеговина)","ba","387"],["Botswana","bw","267"],["Brazil (Brasil)","br","55"],["British Indian Ocean Territory","io","246"],["British Virgin Islands","vg","1",11,["284"]],["Brunei","bn","673"],["Bulgaria (България)","bg","359"],["Burkina Faso","bf","226"],["Burundi (Uburundi)","bi","257"],["Cambodia (កម្ពុជា)","kh","855"],["Cameroon (Cameroun)","cm","237"],["Canada","ca","1",1,["204","226","236","249","250","289","306","343","365","387","403","416","418","431","437","438","450","506","514","519","548","579","581","587","604","613","639","647","672","705","709","742","778","780","782","807","819","825","867","873","902","905"]],["Cape Verde (Kabu Verdi)","cv","238"],["Caribbean Netherlands","bq","599",1,["3","4","7"]],["Cayman Islands","ky","1",12,["345"]],["Central African Republic (République centrafricaine)","cf","236"],["Chad (Tchad)","td","235"],["Chile","cl","56"],["China (中国)","cn","86"],["Christmas Island","cx","61",2,["89164"]],["Cocos (Keeling) Islands","cc","61",1,["89162"]],["Colombia","co","57"],["Comoros (‫جزر القمر‬‎)","km","269"],["Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)","cd","243"],["Congo (Republic) (Congo-Brazzaville)","cg","242"],["Cook Islands","ck","682"],["Costa Rica","cr","506"],["Côte d’Ivoire","ci","225"],["Croatia (Hrvatska)","hr","385"],["Cuba","cu","53"],["Curaçao","cw","599",0],["Cyprus (Κύπρος)","cy","357"],["Czech Republic (Česká republika)","cz","420"],["Denmark (Danmark)","dk","45"],["Djibouti","dj","253"],["Dominica","dm","1",13,["767"]],["Dominican Republic (República Dominicana)","do","1",2,["809","829","849"]],["Ecuador","ec","593"],["Egypt (‫مصر‬‎)","eg","20"],["El Salvador","sv","503"],["Equatorial Guinea (Guinea Ecuatorial)","gq","240"],["Eritrea","er","291"],["Estonia (Eesti)","ee","372"],["Eswatini","sz","268"],["Ethiopia","et","251"],["Falkland Islands (Islas Malvinas)","fk","500"],["Faroe Islands (Føroyar)","fo","298"],["Fiji","fj","679"],["Finland (Suomi)","fi","358",0],["France","fr","33"],["French Guiana (Guyane française)","gf","594"],["French Polynesia (Polynésie française)","pf","689"],["Gabon","ga","241"],["Gambia","gm","220"],["Georgia (საქართველო)","ge","995"],["Germany (Deutschland)","de","49"],["Ghana (Gaana)","gh","233"],["Gibraltar","gi","350"],["Greece (Ελλάδα)","gr","30"],["Greenland (Kalaallit Nunaat)","gl","299"],["Grenada","gd","1",14,["473"]],["Guadeloupe","gp","590",0],["Guam","gu","1",15,["671"]],["Guatemala","gt","502"],["Guernsey","gg","44",1,["1481","7781","7839","7911"]],["Guinea (Guinée)","gn","224"],["Guinea-Bissau (Guiné Bissau)","gw","245"],["Guyana","gy","592"],["Haiti","ht","509"],["Honduras","hn","504"],["Hong Kong (香港)","hk","852"],["Hungary (Magyarország)","hu","36"],["Iceland (Ísland)","is","354"],["India (भारत)","in","91"],["Indonesia","id","62"],["Iran (‫ایران‬‎)","ir","98"],["Iraq (‫العراق‬‎)","iq","964"],["Ireland","ie","353"],["Isle of Man","im","44",2,["1624","74576","7524","7924","7624"]],["Israel (‫ישראל‬‎)","il","972"],["Italy (Italia)","it","39",0],["Jamaica","jm","1",4,["876","658"]],["Japan (日本)","jp","81"],["Jersey","je","44",3,["1534","7509","7700","7797","7829","7937"]],["Jordan (‫الأردن‬‎)","jo","962"],["Kazakhstan (Казахстан)","kz","7",1,["33","7"]],["Kenya","ke","254"],["Kiribati","ki","686"],["Kosovo","xk","383"],["Kuwait (‫الكويت‬‎)","kw","965"],["Kyrgyzstan (Кыргызстан)","kg","996"],["Laos (ລາວ)","la","856"],["Latvia (Latvija)","lv","371"],["Lebanon (‫لبنان‬‎)","lb","961"],["Lesotho","ls","266"],["Liberia","lr","231"],["Libya (‫ليبيا‬‎)","ly","218"],["Liechtenstein","li","423"],["Lithuania (Lietuva)","lt","370"],["Luxembourg","lu","352"],["Macau (澳門)","mo","853"],["North Macedonia (Македонија)","mk","389"],["Madagascar (Madagasikara)","mg","261"],["Malawi","mw","265"],["Malaysia","my","60"],["Maldives","mv","960"],["Mali","ml","223"],["Malta","mt","356"],["Marshall Islands","mh","692"],["Martinique","mq","596"],["Mauritania (‫موريتانيا‬‎)","mr","222"],["Mauritius (Moris)","mu","230"],["Mayotte","yt","262",1,["269","639"]],["Mexico (México)","mx","52"],["Micronesia","fm","691"],["Moldova (Republica Moldova)","md","373"],["Monaco","mc","377"],["Mongolia (Монгол)","mn","976"],["Montenegro (Crna Gora)","me","382"],["Montserrat","ms","1",16,["664"]],["Morocco (‫المغرب‬‎)","ma","212",0],["Mozambique (Moçambique)","mz","258"],["Myanmar (Burma) (မြန်မာ)","mm","95"],["Namibia (Namibië)","na","264"],["Nauru","nr","674"],["Nepal (नेपाल)","np","977"],["Netherlands (Nederland)","nl","31"],["New Caledonia (Nouvelle-Calédonie)","nc","687"],["New Zealand","nz","64"],["Nicaragua","ni","505"],["Niger (Nijar)","ne","227"],["Nigeria","ng","234"],["Niue","nu","683"],["Norfolk Island","nf","672"],["North Korea (조선 민주주의 인민 공화국)","kp","850"],["Northern Mariana Islands","mp","1",17,["670"]],["Norway (Norge)","no","47",0],["Oman (‫عُمان‬‎)","om","968"],["Pakistan (‫پاکستان‬‎)","pk","92"],["Palau","pw","680"],["Palestine (‫فلسطين‬‎)","ps","970"],["Panama (Panamá)","pa","507"],["Papua New Guinea","pg","675"],["Paraguay","py","595"],["Peru (Perú)","pe","51"],["Philippines","ph","63"],["Poland (Polska)","pl","48"],["Portugal","pt","351"],["Puerto Rico","pr","1",3,["787","939"]],["Qatar (‫قطر‬‎)","qa","974"],["Réunion (La Réunion)","re","262",0],["Romania (România)","ro","40"],["Russia (Россия)","ru","7",0],["Rwanda","rw","250"],["Saint Barthélemy","bl","590",1],["Saint Helena","sh","290"],["Saint Kitts and Nevis","kn","1",18,["869"]],["Saint Lucia","lc","1",19,["758"]],["Saint Martin (Saint-Martin (partie française))","mf","590",2],["Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)","pm","508"],["Saint Vincent and the Grenadines","vc","1",20,["784"]],["Samoa","ws","685"],["San Marino","sm","378"],["São Tomé and Príncipe (São Tomé e Príncipe)","st","239"],["Saudi Arabia (‫المملكة العربية السعودية‬‎)","sa","966"],["Senegal (Sénégal)","sn","221"],["Serbia (Србија)","rs","381"],["Seychelles","sc","248"],["Sierra Leone","sl","232"],["Singapore","sg","65"],["Sint Maarten","sx","1",21,["721"]],["Slovakia (Slovensko)","sk","421"],["Slovenia (Slovenija)","si","386"],["Solomon Islands","sb","677"],["Somalia (Soomaaliya)","so","252"],["South Africa","za","27"],["South Korea (대한민국)","kr","82"],["South Sudan (‫جنوب السودان‬‎)","ss","211"],["Spain (España)","es","34"],["Sri Lanka (ශ්‍රී ලංකාව)","lk","94"],["Sudan (‫السودان‬‎)","sd","249"],["Suriname","sr","597"],["Svalbard and Jan Mayen","sj","47",1,["79"]],["Sweden (Sverige)","se","46"],["Switzerland (Schweiz)","ch","41"],["Syria (‫سوريا‬‎)","sy","963"],["Taiwan (台灣)","tw","886"],["Tajikistan","tj","992"],["Tanzania","tz","255"],["Thailand (ไทย)","th","66"],["Timor-Leste","tl","670"],["Togo","tg","228"],["Tokelau","tk","690"],["Tonga","to","676"],["Trinidad and Tobago","tt","1",22,["868"]],["Tunisia (‫تونس‬‎)","tn","216"],["Turkey (Türkiye)","tr","90"],["Turkmenistan","tm","993"],["Turks and Caicos Islands","tc","1",23,["649"]],["Tuvalu","tv","688"],["U.S. Virgin Islands","vi","1",24,["340"]],["Uganda","ug","256"],["Ukraine (Україна)","ua","380"],["United Arab Emirates (‫الإمارات العربية المتحدة‬‎)","ae","971"],["United Kingdom","gb","44",0],["United States","us","1",0],["Uruguay","uy","598"],["Uzbekistan (Oʻzbekiston)","uz","998"],["Vanuatu","vu","678"],["Vatican City (Città del Vaticano)","va","39",1,["06698"]],["Venezuela","ve","58"],["Vietnam (Việt Nam)","vn","84"],["Wallis and Futuna (Wallis-et-Futuna)","wf","681"],["Western Sahara (‫الصحراء الغربية‬‎)","eh","212",1,["5288","5289"]],["Yemen (‫اليمن‬‎)","ye","967"],["Zambia","zm","260"],["Zimbabwe","zw","263"],["Åland Islands","ax","358",1,["18"]]],n=0;n<e.length;n++){var r=e[n];e[n]={name:r[0],iso2:r[1],dialCode:r[2],priority:r[3]||0,areaCodes:r[4]||null}}function i(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}var o={getInstance:function(t){var e=t.getAttribute("data-intl-tel-input-id");return window.intlTelInputGlobals.instances[e]},instances:{},documentReady:function(){return"complete"===document.readyState}};"object"==typeof window&&(window.intlTelInputGlobals=o);var a=0,s={allowDropdown:!0,autoHideDialCode:!0,autoPlaceholder:"polite",customContainer:"",customPlaceholder:null,dropdownContainer:null,excludeCountries:[],formatOnDisplay:!0,geoIpLookup:null,hiddenInput:"",initialCountry:"",localizedCountries:null,nationalMode:!0,onlyCountries:[],placeholderNumberType:"MOBILE",preferredCountries:["us","gb"],separateDialCode:!1,utilsScript:""},u=["800","822","833","844","855","866","877","880","881","882","883","884","885","886","887","888","889"],c=function(t,e){for(var n=Object.keys(t),r=0;r<n.length;r++)e(n[r],t[n[r]])},l=function(t){c(window.intlTelInputGlobals.instances,(function(e){window.intlTelInputGlobals.instances[e][t]()}))},f=function(){function n(t,e){var r=this;!function(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}(this,n),this.id=a++,this.telInput=t,this.activeItem=null,this.highlightedItem=null;var i=e||{};this.options={},c(s,(function(t,e){r.options[t]=i.hasOwnProperty(t)?i[t]:e})),this.hadInitialPlaceholder=Boolean(t.getAttribute("placeholder"))}var r,o,f;return r=n,o=[{key:"_init",value:function(){var t=this;if(this.options.nationalMode&&(this.options.autoHideDialCode=!1),this.options.separateDialCode&&(this.options.autoHideDialCode=this.options.nationalMode=!1),this.isMobile=/Android.+Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),this.isMobile&&(document.body.classList.add("iti-mobile"),this.options.dropdownContainer||(this.options.dropdownContainer=document.body)),"undefined"!=typeof Promise){var e=new Promise((function(e,n){t.resolveAutoCountryPromise=e,t.rejectAutoCountryPromise=n})),n=new Promise((function(e,n){t.resolveUtilsScriptPromise=e,t.rejectUtilsScriptPromise=n}));this.promise=Promise.all([e,n])}else this.resolveAutoCountryPromise=this.rejectAutoCountryPromise=function(){},this.resolveUtilsScriptPromise=this.rejectUtilsScriptPromise=function(){};this.selectedCountryData={},this._processCountryData(),this._generateMarkup(),this._setInitialState(),this._initListeners(),this._initRequests()}},{key:"_processCountryData",value:function(){this._processAllCountries(),this._processCountryCodes(),this._processPreferredCountries(),this.options.localizedCountries&&this._translateCountriesByLocale(),(this.options.onlyCountries.length||this.options.localizedCountries)&&this.countries.sort(this._countryNameSort)}},{key:"_addCountryCode",value:function(e,n,r){n.length>this.countryCodeMaxLen&&(this.countryCodeMaxLen=n.length),this.countryCodes.hasOwnProperty(n)||(this.countryCodes[n]=[]);for(var i=0;i<this.countryCodes[n].length;i++)if(this.countryCodes[n][i]===e)return;var o=r!==t?r:this.countryCodes[n].length;this.countryCodes[n][o]=e}},{key:"_processAllCountries",value:function(){if(this.options.onlyCountries.length){var t=this.options.onlyCountries.map((function(t){return t.toLowerCase()}));this.countries=e.filter((function(e){return t.indexOf(e.iso2)>-1}))}else if(this.options.excludeCountries.length){var n=this.options.excludeCountries.map((function(t){return t.toLowerCase()}));this.countries=e.filter((function(t){return-1===n.indexOf(t.iso2)}))}else this.countries=e}},{key:"_translateCountriesByLocale",value:function(){for(var t=0;t<this.countries.length;t++){var e=this.countries[t].iso2.toLowerCase();this.options.localizedCountries.hasOwnProperty(e)&&(this.countries[t].name=this.options.localizedCountries[e])}}},{key:"_countryNameSort",value:function(t,e){return t.name.localeCompare(e.name)}},{key:"_processCountryCodes",value:function(){this.countryCodeMaxLen=0,this.dialCodes={},this.countryCodes={};for(var t=0;t<this.countries.length;t++){var e=this.countries[t];this.dialCodes[e.dialCode]||(this.dialCodes[e.dialCode]=!0),this._addCountryCode(e.iso2,e.dialCode,e.priority)}for(var n=0;n<this.countries.length;n++){var r=this.countries[n];if(r.areaCodes)for(var i=this.countryCodes[r.dialCode][0],o=0;o<r.areaCodes.length;o++){for(var a=r.areaCodes[o],s=1;s<a.length;s++){var u=r.dialCode+a.substr(0,s);this._addCountryCode(i,u),this._addCountryCode(r.iso2,u)}this._addCountryCode(r.iso2,r.dialCode+a)}}}},{key:"_processPreferredCountries",value:function(){this.preferredCountries=[];for(var t=0;t<this.options.preferredCountries.length;t++){var e=this.options.preferredCountries[t].toLowerCase(),n=this._getCountryData(e,!1,!0);n&&this.preferredCountries.push(n)}}},{key:"_createEl",value:function(t,e,n){var r=document.createElement(t);return e&&c(e,(function(t,e){return r.setAttribute(t,e)})),n&&n.appendChild(r),r}},{key:"_generateMarkup",value:function(){this.telInput.hasAttribute("autocomplete")||this.telInput.form&&this.telInput.form.hasAttribute("autocomplete")||this.telInput.setAttribute("autocomplete","off");var t="iti";this.options.allowDropdown&&(t+=" iti--allow-dropdown"),this.options.separateDialCode&&(t+=" iti--separate-dial-code"),this.options.customContainer&&(t+=" ",t+=this.options.customContainer);var e=this._createEl("div",{class:t});if(this.telInput.parentNode.insertBefore(e,this.telInput),this.flagsContainer=this._createEl("div",{class:"iti__flag-container"},e),e.appendChild(this.telInput),this.selectedFlag=this._createEl("div",{class:"iti__selected-flag",role:"combobox","aria-controls":"iti-".concat(this.id,"__country-listbox"),"aria-owns":"iti-".concat(this.id,"__country-listbox"),"aria-expanded":"false"},this.flagsContainer),this.selectedFlagInner=this._createEl("div",{class:"iti__flag"},this.selectedFlag),this.options.separateDialCode&&(this.selectedDialCode=this._createEl("div",{class:"iti__selected-dial-code"},this.selectedFlag)),this.options.allowDropdown&&(this.selectedFlag.setAttribute("tabindex","0"),this.dropdownArrow=this._createEl("div",{class:"iti__arrow"},this.selectedFlag),this.countryList=this._createEl("ul",{class:"iti__country-list iti__hide",id:"iti-".concat(this.id,"__country-listbox"),role:"listbox","aria-label":"List of countries"}),this.preferredCountries.length&&(this._appendListItems(this.preferredCountries,"iti__preferred",!0),this._createEl("li",{class:"iti__divider",role:"separator","aria-disabled":"true"},this.countryList)),this._appendListItems(this.countries,"iti__standard"),this.options.dropdownContainer?(this.dropdown=this._createEl("div",{class:"iti iti--container"}),this.dropdown.appendChild(this.countryList)):this.flagsContainer.appendChild(this.countryList)),this.options.hiddenInput){var n=this.options.hiddenInput,r=this.telInput.getAttribute("name");if(r){var i=r.lastIndexOf("[");-1!==i&&(n="".concat(r.substr(0,i),"[").concat(n,"]"))}this.hiddenInput=this._createEl("input",{type:"hidden",name:n}),e.appendChild(this.hiddenInput)}}},{key:"_appendListItems",value:function(t,e,n){for(var r="",i=0;i<t.length;i++){var o=t[i],a=n?"-preferred":"";r+="<li class='iti__country ".concat(e,"' tabIndex='-1' id='iti-").concat(this.id,"__item-").concat(o.iso2).concat(a,"' role='option' data-dial-code='").concat(o.dialCode,"' data-country-code='").concat(o.iso2,"' aria-selected='false'>"),r+="<div class='iti__flag-box'><div class='iti__flag iti__".concat(o.iso2,"'></div></div>"),r+="<span class='iti__country-name'>".concat(o.name,"</span>"),r+="<span class='iti__dial-code'>+".concat(o.dialCode,"</span>"),r+="</li>"}this.countryList.insertAdjacentHTML("beforeend",r)}},{key:"_setInitialState",value:function(){var t=this.telInput.getAttribute("value"),e=this.telInput.value,n=!t||"+"!==t.charAt(0)||e&&"+"===e.charAt(0)?e:t,r=this._getDialCode(n),i=this._isRegionlessNanp(n),o=this.options,a=o.initialCountry,s=o.nationalMode,u=o.autoHideDialCode,c=o.separateDialCode;r&&!i?this._updateFlagFromNumber(n):"auto"!==a&&(a?this._setFlag(a.toLowerCase()):r&&i?this._setFlag("us"):(this.defaultCountry=this.preferredCountries.length?this.preferredCountries[0].iso2:this.countries[0].iso2,n||this._setFlag(this.defaultCountry)),n||s||u||c||(this.telInput.value="+".concat(this.selectedCountryData.dialCode))),n&&this._updateValFromNumber(n)}},{key:"_initListeners",value:function(){this._initKeyListeners(),this.options.autoHideDialCode&&this._initBlurListeners(),this.options.allowDropdown&&this._initDropdownListeners(),this.hiddenInput&&this._initHiddenInputListener()}},{key:"_initHiddenInputListener",value:function(){var t=this;this._handleHiddenInputSubmit=function(){t.hiddenInput.value=t.getNumber()},this.telInput.form&&this.telInput.form.addEventListener("submit",this._handleHiddenInputSubmit)}},{key:"_getClosestLabel",value:function(){for(var t=this.telInput;t&&"LABEL"!==t.tagName;)t=t.parentNode;return t}},{key:"_initDropdownListeners",value:function(){var t=this;this._handleLabelClick=function(e){t.countryList.classList.contains("iti__hide")?t.telInput.focus():e.preventDefault()};var e=this._getClosestLabel();e&&e.addEventListener("click",this._handleLabelClick),this._handleClickSelectedFlag=function(){!t.countryList.classList.contains("iti__hide")||t.telInput.disabled||t.telInput.readOnly||t._showDropdown()},this.selectedFlag.addEventListener("click",this._handleClickSelectedFlag),this._handleFlagsContainerKeydown=function(e){t.countryList.classList.contains("iti__hide")&&-1!==["ArrowUp","Up","ArrowDown","Down"," ","Enter"].indexOf(e.key)&&(e.preventDefault(),e.stopPropagation(),t._showDropdown()),"Tab"===e.key&&t._closeDropdown()},this.flagsContainer.addEventListener("keydown",this._handleFlagsContainerKeydown)}},{key:"_initRequests",value:function(){var t=this;this.options.utilsScript&&!window.intlTelInputUtils?window.intlTelInputGlobals.documentReady()?window.intlTelInputGlobals.loadUtils(this.options.utilsScript):window.addEventListener("load",(function(){window.intlTelInputGlobals.loadUtils(t.options.utilsScript)})):this.resolveUtilsScriptPromise(),"auto"===this.options.initialCountry?this._loadAutoCountry():this.resolveAutoCountryPromise()}},{key:"_loadAutoCountry",value:function(){window.intlTelInputGlobals.autoCountry?this.handleAutoCountry():window.intlTelInputGlobals.startedLoadingAutoCountry||(window.intlTelInputGlobals.startedLoadingAutoCountry=!0,"function"==typeof this.options.geoIpLookup&&this.options.geoIpLookup((function(t){window.intlTelInputGlobals.autoCountry=t.toLowerCase(),setTimeout((function(){return l("handleAutoCountry")}))}),(function(){return l("rejectAutoCountryPromise")})))}},{key:"_initKeyListeners",value:function(){var t=this;this._handleKeyupEvent=function(){t._updateFlagFromNumber(t.telInput.value)&&t._triggerCountryChange()},this.telInput.addEventListener("keyup",this._handleKeyupEvent),this._handleClipboardEvent=function(){setTimeout(t._handleKeyupEvent)},this.telInput.addEventListener("cut",this._handleClipboardEvent),this.telInput.addEventListener("paste",this._handleClipboardEvent)}},{key:"_cap",value:function(t){var e=this.telInput.getAttribute("maxlength");return e&&t.length>e?t.substr(0,e):t}},{key:"_initBlurListeners",value:function(){var t=this;this._handleSubmitOrBlurEvent=function(){t._removeEmptyDialCode()},this.telInput.form&&this.telInput.form.addEventListener("submit",this._handleSubmitOrBlurEvent),this.telInput.addEventListener("blur",this._handleSubmitOrBlurEvent)}},{key:"_removeEmptyDialCode",value:function(){if("+"===this.telInput.value.charAt(0)){var t=this._getNumeric(this.telInput.value);t&&this.selectedCountryData.dialCode!==t||(this.telInput.value="")}}},{key:"_getNumeric",value:function(t){return t.replace(/\D/g,"")}},{key:"_trigger",value:function(t){var e=document.createEvent("Event");e.initEvent(t,!0,!0),this.telInput.dispatchEvent(e)}},{key:"_showDropdown",value:function(){this.countryList.classList.remove("iti__hide"),this.selectedFlag.setAttribute("aria-expanded","true"),this._setDropdownPosition(),this.activeItem&&(this._highlightListItem(this.activeItem,!1),this._scrollTo(this.activeItem,!0)),this._bindDropdownListeners(),this.dropdownArrow.classList.add("iti__arrow--up"),this._trigger("open:countrydropdown")}},{key:"_toggleClass",value:function(t,e,n){n&&!t.classList.contains(e)?t.classList.add(e):!n&&t.classList.contains(e)&&t.classList.remove(e)}},{key:"_setDropdownPosition",value:function(){var t=this;if(this.options.dropdownContainer&&this.options.dropdownContainer.appendChild(this.dropdown),!this.isMobile){var e=this.telInput.getBoundingClientRect(),n=window.pageYOffset||document.documentElement.scrollTop,r=e.top+n,i=this.countryList.offsetHeight,o=r+this.telInput.offsetHeight+i<n+window.innerHeight,a=r-i>n;if(this._toggleClass(this.countryList,"iti__country-list--dropup",!o&&a),this.options.dropdownContainer){var s=!o&&a?0:this.telInput.offsetHeight;this.dropdown.style.top="".concat(r+s,"px"),this.dropdown.style.left="".concat(e.left+document.body.scrollLeft,"px"),this._handleWindowScroll=function(){return t._closeDropdown()},window.addEventListener("scroll",this._handleWindowScroll)}}}},{key:"_getClosestListItem",value:function(t){for(var e=t;e&&e!==this.countryList&&!e.classList.contains("iti__country");)e=e.parentNode;return e===this.countryList?null:e}},{key:"_bindDropdownListeners",value:function(){var t=this;this._handleMouseoverCountryList=function(e){var n=t._getClosestListItem(e.target);n&&t._highlightListItem(n,!1)},this.countryList.addEventListener("mouseover",this._handleMouseoverCountryList),this._handleClickCountryList=function(e){var n=t._getClosestListItem(e.target);n&&t._selectListItem(n)},this.countryList.addEventListener("click",this._handleClickCountryList);var e=!0;this._handleClickOffToClose=function(){e||t._closeDropdown(),e=!1},document.documentElement.addEventListener("click",this._handleClickOffToClose);var n="",r=null;this._handleKeydownOnDropdown=function(e){e.preventDefault(),"ArrowUp"===e.key||"Up"===e.key||"ArrowDown"===e.key||"Down"===e.key?t._handleUpDownKey(e.key):"Enter"===e.key?t._handleEnterKey():"Escape"===e.key?t._closeDropdown():/^[a-zA-ZÀ-ÿа-яА-Я ]$/.test(e.key)&&(r&&clearTimeout(r),n+=e.key.toLowerCase(),t._searchForCountry(n),r=setTimeout((function(){n=""}),1e3))},document.addEventListener("keydown",this._handleKeydownOnDropdown)}},{key:"_handleUpDownKey",value:function(t){var e="ArrowUp"===t||"Up"===t?this.highlightedItem.previousElementSibling:this.highlightedItem.nextElementSibling;e&&(e.classList.contains("iti__divider")&&(e="ArrowUp"===t||"Up"===t?e.previousElementSibling:e.nextElementSibling),this._highlightListItem(e,!0))}},{key:"_handleEnterKey",value:function(){this.highlightedItem&&this._selectListItem(this.highlightedItem)}},{key:"_searchForCountry",value:function(t){for(var e=0;e<this.countries.length;e++)if(this._startsWith(this.countries[e].name,t)){var n=this.countryList.querySelector("#iti-".concat(this.id,"__item-").concat(this.countries[e].iso2));this._highlightListItem(n,!1),this._scrollTo(n,!0);break}}},{key:"_startsWith",value:function(t,e){return t.substr(0,e.length).toLowerCase()===e}},{key:"_updateValFromNumber",value:function(t){var e=t;if(this.options.formatOnDisplay&&window.intlTelInputUtils&&this.selectedCountryData){var n=!this.options.separateDialCode&&(this.options.nationalMode||"+"!==e.charAt(0)),r=intlTelInputUtils.numberFormat,i=r.NATIONAL,o=r.INTERNATIONAL,a=n?i:o;e=intlTelInputUtils.formatNumber(e,this.selectedCountryData.iso2,a)}e=this._beforeSetNumber(e),this.telInput.value=e}},{key:"_updateFlagFromNumber",value:function(t){var e=t,n=this.selectedCountryData.dialCode,r="1"===n;e&&this.options.nationalMode&&r&&"+"!==e.charAt(0)&&("1"!==e.charAt(0)&&(e="1".concat(e)),e="+".concat(e)),this.options.separateDialCode&&n&&"+"!==e.charAt(0)&&(e="+".concat(n).concat(e));var i=this._getDialCode(e,!0),o=this._getNumeric(e),a=null;if(i){var s=this.countryCodes[this._getNumeric(i)],u=-1!==s.indexOf(this.selectedCountryData.iso2)&&o.length<=i.length-1;if(!("1"===n&&this._isRegionlessNanp(o)||u))for(var c=0;c<s.length;c++)if(s[c]){a=s[c];break}}else"+"===e.charAt(0)&&o.length?a="":e&&"+"!==e||(a=this.defaultCountry);return null!==a&&this._setFlag(a)}},{key:"_isRegionlessNanp",value:function(t){var e=this._getNumeric(t);if("1"===e.charAt(0)){var n=e.substr(1,3);return-1!==u.indexOf(n)}return!1}},{key:"_highlightListItem",value:function(t,e){var n=this.highlightedItem;n&&n.classList.remove("iti__highlight"),this.highlightedItem=t,this.highlightedItem.classList.add("iti__highlight"),e&&this.highlightedItem.focus()}},{key:"_getCountryData",value:function(t,n,r){for(var i=n?e:this.countries,o=0;o<i.length;o++)if(i[o].iso2===t)return i[o];if(r)return null;throw new Error("No country data for '".concat(t,"'"))}},{key:"_setFlag",value:function(t){var e=this.selectedCountryData.iso2?this.selectedCountryData:{};this.selectedCountryData=t?this._getCountryData(t,!1,!1):{},this.selectedCountryData.iso2&&(this.defaultCountry=this.selectedCountryData.iso2),this.selectedFlagInner.setAttribute("class","iti__flag iti__".concat(t));var n=t?"".concat(this.selectedCountryData.name,": +").concat(this.selectedCountryData.dialCode):"Unknown";if(this.selectedFlag.setAttribute("title",n),this.options.separateDialCode){var r=this.selectedCountryData.dialCode?"+".concat(this.selectedCountryData.dialCode):"";this.selectedDialCode.innerHTML=r;var i=this.selectedFlag.offsetWidth||this._getHiddenSelectedFlagWidth();this.telInput.style.paddingLeft="".concat(i+6,"px")}if(this._updatePlaceholder(),this.options.allowDropdown){var o=this.activeItem;if(o&&(o.classList.remove("iti__active"),o.setAttribute("aria-selected","false")),t){var a=this.countryList.querySelector("#iti-".concat(this.id,"__item-").concat(t,"-preferred"))||this.countryList.querySelector("#iti-".concat(this.id,"__item-").concat(t));a.setAttribute("aria-selected","true"),a.classList.add("iti__active"),this.activeItem=a,this.selectedFlag.setAttribute("aria-activedescendant",a.getAttribute("id"))}}return e.iso2!==t}},{key:"_getHiddenSelectedFlagWidth",value:function(){var t=this.telInput.parentNode.cloneNode();t.style.visibility="hidden",document.body.appendChild(t);var e=this.flagsContainer.cloneNode();t.appendChild(e);var n=this.selectedFlag.cloneNode(!0);e.appendChild(n);var r=n.offsetWidth;return t.parentNode.removeChild(t),r}},{key:"_updatePlaceholder",value:function(){var t="aggressive"===this.options.autoPlaceholder||!this.hadInitialPlaceholder&&"polite"===this.options.autoPlaceholder;if(window.intlTelInputUtils&&t){var e=intlTelInputUtils.numberType[this.options.placeholderNumberType],n=this.selectedCountryData.iso2?intlTelInputUtils.getExampleNumber(this.selectedCountryData.iso2,this.options.nationalMode,e):"";n=this._beforeSetNumber(n),"function"==typeof this.options.customPlaceholder&&(n=this.options.customPlaceholder(n,this.selectedCountryData)),this.telInput.setAttribute("placeholder",n)}}},{key:"_selectListItem",value:function(t){var e=this._setFlag(t.getAttribute("data-country-code"));this._closeDropdown(),this._updateDialCode(t.getAttribute("data-dial-code"),!0),this.telInput.focus();var n=this.telInput.value.length;this.telInput.setSelectionRange(n,n),e&&this._triggerCountryChange()}},{key:"_closeDropdown",value:function(){this.countryList.classList.add("iti__hide"),this.selectedFlag.setAttribute("aria-expanded","false"),this.dropdownArrow.classList.remove("iti__arrow--up"),document.removeEventListener("keydown",this._handleKeydownOnDropdown),document.documentElement.removeEventListener("click",this._handleClickOffToClose),this.countryList.removeEventListener("mouseover",this._handleMouseoverCountryList),this.countryList.removeEventListener("click",this._handleClickCountryList),this.options.dropdownContainer&&(this.isMobile||window.removeEventListener("scroll",this._handleWindowScroll),this.dropdown.parentNode&&this.dropdown.parentNode.removeChild(this.dropdown)),this._trigger("close:countrydropdown")}},{key:"_scrollTo",value:function(t,e){var n=this.countryList,r=window.pageYOffset||document.documentElement.scrollTop,i=n.offsetHeight,o=n.getBoundingClientRect().top+r,a=o+i,s=t.offsetHeight,u=t.getBoundingClientRect().top+r,c=u+s,l=u-o+n.scrollTop,f=i/2-s/2;if(u<o)e&&(l-=f),n.scrollTop=l;else if(c>a){e&&(l+=f);var d=i-s;n.scrollTop=l-d}}},{key:"_updateDialCode",value:function(t,e){var n,r=this.telInput.value,i="+".concat(t);if("+"===r.charAt(0)){var o=this._getDialCode(r);n=o?r.replace(o,i):i}else{if(this.options.nationalMode||this.options.separateDialCode)return;if(r)n=i+r;else{if(!e&&this.options.autoHideDialCode)return;n=i}}this.telInput.value=n}},{key:"_getDialCode",value:function(t,e){var n="";if("+"===t.charAt(0))for(var r="",i=0;i<t.length;i++){var o=t.charAt(i);if(!isNaN(parseInt(o,10))){if(r+=o,e)this.countryCodes[r]&&(n=t.substr(0,i+1));else if(this.dialCodes[r]){n=t.substr(0,i+1);break}if(r.length===this.countryCodeMaxLen)break}}return n}},{key:"_getFullNumber",value:function(){var t=this.telInput.value.trim(),e=this.selectedCountryData.dialCode,n=this._getNumeric(t);return(this.options.separateDialCode&&"+"!==t.charAt(0)&&e&&n?"+".concat(e):"")+t}},{key:"_beforeSetNumber",value:function(t){var e=t;if(this.options.separateDialCode){var n=this._getDialCode(e);if(n){var r=" "===e[(n="+".concat(this.selectedCountryData.dialCode)).length]||"-"===e[n.length]?n.length+1:n.length;e=e.substr(r)}}return this._cap(e)}},{key:"_triggerCountryChange",value:function(){this._trigger("countrychange")}},{key:"handleAutoCountry",value:function(){"auto"===this.options.initialCountry&&(this.defaultCountry=window.intlTelInputGlobals.autoCountry,this.telInput.value||this.setCountry(this.defaultCountry),this.resolveAutoCountryPromise())}},{key:"handleUtils",value:function(){window.intlTelInputUtils&&(this.telInput.value&&this._updateValFromNumber(this.telInput.value),this._updatePlaceholder()),this.resolveUtilsScriptPromise()}},{key:"destroy",value:function(){var t=this.telInput.form;if(this.options.allowDropdown){this._closeDropdown(),this.selectedFlag.removeEventListener("click",this._handleClickSelectedFlag),this.flagsContainer.removeEventListener("keydown",this._handleFlagsContainerKeydown);var e=this._getClosestLabel();e&&e.removeEventListener("click",this._handleLabelClick)}this.hiddenInput&&t&&t.removeEventListener("submit",this._handleHiddenInputSubmit),this.options.autoHideDialCode&&(t&&t.removeEventListener("submit",this._handleSubmitOrBlurEvent),this.telInput.removeEventListener("blur",this._handleSubmitOrBlurEvent)),this.telInput.removeEventListener("keyup",this._handleKeyupEvent),this.telInput.removeEventListener("cut",this._handleClipboardEvent),this.telInput.removeEventListener("paste",this._handleClipboardEvent),this.telInput.removeAttribute("data-intl-tel-input-id");var n=this.telInput.parentNode;n.parentNode.insertBefore(this.telInput,n),n.parentNode.removeChild(n),delete window.intlTelInputGlobals.instances[this.id]}},{key:"getExtension",value:function(){return window.intlTelInputUtils?intlTelInputUtils.getExtension(this._getFullNumber(),this.selectedCountryData.iso2):""}},{key:"getNumber",value:function(t){if(window.intlTelInputUtils){var e=this.selectedCountryData.iso2;return intlTelInputUtils.formatNumber(this._getFullNumber(),e,t)}return""}},{key:"getNumberType",value:function(){return window.intlTelInputUtils?intlTelInputUtils.getNumberType(this._getFullNumber(),this.selectedCountryData.iso2):-99}},{key:"getSelectedCountryData",value:function(){return this.selectedCountryData}},{key:"getValidationError",value:function(){if(window.intlTelInputUtils){var t=this.selectedCountryData.iso2;return intlTelInputUtils.getValidationError(this._getFullNumber(),t)}return-99}},{key:"isValidNumber",value:function(){var t=this._getFullNumber().trim(),e=this.options.nationalMode?this.selectedCountryData.iso2:"";return window.intlTelInputUtils?intlTelInputUtils.isValidNumber(t,e):null}},{key:"setCountry",value:function(t){var e=t.toLowerCase();this.selectedFlagInner.classList.contains("iti__".concat(e))||(this._setFlag(e),this._updateDialCode(this.selectedCountryData.dialCode,!1),this._triggerCountryChange())}},{key:"setNumber",value:function(t){var e=this._updateFlagFromNumber(t);this._updateValFromNumber(t),e&&this._triggerCountryChange()}},{key:"setPlaceholderNumberType",value:function(t){this.options.placeholderNumberType=t,this._updatePlaceholder()}}],o&&i(r.prototype,o),f&&i(r,f),n}();o.getCountryData=function(){return e};var d=function(t,e,n){var r=document.createElement("script");r.onload=function(){l("handleUtils"),e&&e()},r.onerror=function(){l("rejectUtilsScriptPromise"),n&&n()},r.className="iti-load-utils",r.async=!0,r.src=t,document.body.appendChild(r)};return o.loadUtils=function(t){if(!window.intlTelInputUtils&&!window.intlTelInputGlobals.startedLoadingUtilsScript){if(window.intlTelInputGlobals.startedLoadingUtilsScript=!0,"undefined"!=typeof Promise)return new Promise((function(e,n){return d(t,e,n)}));d(t)}return null},o.defaults=s,o.version="17.0.16",function(t,e){var n=new f(t,e);return n._init(),t.setAttribute("data-intl-tel-input-id",n.id),window.intlTelInputGlobals.instances[n.id]=n,n}}()},t.exports?t.exports=e():window.intlTelInput=e()},1648:function(t,e,n){t.exports=n(1136)}},e={};function n(r){var i=e[r];if(void 0!==i)return i.exports;var o=e[r]={exports:{}};return t[r](o,o.exports,n),o.exports}n.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(e,{a:e}),e},n.d=function(t,e){for(var r in e)n.o(e,r)&&!n.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},n.g=function(){if("object"==typeof globalThis)return globalThis;try{return this||new Function("return this")()}catch(t){if("object"==typeof window)return window}}(),n.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},function(){"use strict";n(372),n(6025),n(9470),n(200),n(8689),n(3373),n(2981),n(1881),n(4836),n(270),n(8127),n(3289),n(8855),n(5991),n(5098),n(7186),n(7505),n(7558),n(570),n(1071),n(6858),n(9655),n(9544),n(5754);var t=function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:null;return e||(e=Math.random().toString(36).substr(2,5)),"".concat(t,".").concat(e)},e=n(1648),r=n.n(e);function i(t,e){var n=Object.keys(t);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(t);e&&(r=r.filter((function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable}))),n.push.apply(n,r)}return n}function o(t){for(var e=1;e<arguments.length;e++){var n=null!=arguments[e]?arguments[e]:{};e%2?i(Object(n),!0).forEach((function(e){a(t,e,n[e])})):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(n)):i(Object(n)).forEach((function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(n,e))}))}return t}function a(t,e,n){return e in t?Object.defineProperty(t,e,{value:n,enumerable:!0,configurable:!0,writable:!0}):t[e]=n,t}function s(t,e){return function(t){if(Array.isArray(t))return t}(t)||function(t,e){var n=null==t?null:"undefined"!=typeof Symbol&&t[Symbol.iterator]||t["@@iterator"];if(null==n)return;var r,i,o=[],a=!0,s=!1;try{for(n=n.call(t);!(a=(r=n.next()).done)&&(o.push(r.value),!e||o.length!==e);a=!0);}catch(t){s=!0,i=t}finally{try{a||null==n.return||n.return()}finally{if(s)throw i}}return o}(t,e)||function(t,e){if(!t)return;if("string"==typeof t)return u(t,e);var n=Object.prototype.toString.call(t).slice(8,-1);"Object"===n&&t.constructor&&(n=t.constructor.name);if("Map"===n||"Set"===n)return Array.from(t);if("Arguments"===n||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n))return u(t,e)}(t,e)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function u(t,e){(null==e||e>t.length)&&(e=t.length);for(var n=0,r=new Array(e);n<e;n++)r[n]=t[n];return r}function c(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function l(t,e){for(var n=0;n<e.length;n++){var r=e[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(t,r.key,r)}}var f=function(){function e(){var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};c(this,e),this.$form=t.$form,this.form=this.$form.form,this.$field=t.$field.querySelector('input[type="tel"]'),this.$countryInput=t.$field.querySelector("[data-country]"),this.countryShowDialCode=t.countryShowDialCode,this.countryDefaultValue=t.countryDefaultValue,this.countryAllowed=t.countryAllowed,this.$field&&this.$countryInput?this.initValidator():console.error('Unable to find country field “input[type="tel"]” or “[data-country]”')}var n,i,a;return n=e,i=[{key:"initValidator",value:function(){var e={allowDropdown:!0,autoHideDialCode:!0,nationalMode:!1,preferredCountries:[],separateDialCode:!1,initialCountry:"auto",autoPlaceholder:"off",formatOnDisplay:!1,utilsScript:"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js"};if(this.countryAllowed&&this.countryAllowed.length){e.onlyCountries=this.countryAllowed.map((function(t){return t.value.toLowerCase()}));var n=s(e.onlyCountries,1);e.initialCountry=n[0],1===e.onlyCountries.length&&(e.allowDropdown=!1,e.nationalMode=!0),this.$field.restrictedCountries=!0}this.countryShowDialCode&&(e.separateDialCode=!0),this.countryDefaultValue&&(e.initialCountry=this.countryDefaultValue),e.onlyCountries&&e.onlyCountries.length&&e.initialCountry&&(e.onlyCountries.includes(e.initialCountry)||e.onlyCountries.push(e.initialCountry.toLowerCase())),this.validator=r()(this.$field,e),this.$field.validator=this.validator,this.$field.$countryInput=this.$countryInput,this.$field.$countryInput&&this.$field.$countryInput.value&&this.validator.setCountry(this.$field.$countryInput.value),this.$field.dispatchEvent(new CustomEvent("init",{bubbles:!0,detail:{phoneCountry:this,validator:this.validator,validatorOptions:e}})),this.form.addEventListener(this.$field,t("countrychange"),this.countryChange.bind(this)),this.form.addEventListener(this.$form,t("registerFormieValidation"),this.registerValidation.bind(this)),this.$field.dispatchEvent(new Event("countrychange",{bubbles:!0})),this.form.formTheme&&this.form.formTheme.updateFormHash()}},{key:"countryChange",value:function(t){var e=this.validator.getSelectedCountryData().iso2;this.$countryInput&&e&&(this.$countryInput.value=e.toUpperCase())}},{key:"registerValidation",value:function(t){t.detail.validatorSettings.customValidations=o(o({},t.detail.validatorSettings.customValidations),this.getPhoneRule()),t.detail.validatorSettings.messages=o(o({},t.detail.validatorSettings.messages),this.getPhoneMessage())}},{key:"getPhoneRule",value:function(){return{phoneCountry:function(t){if(t.value.trim()&&t.validator){if(!t.validator.isValidNumber())return!0;var e=t.validator.getSelectedCountryData().iso2;if(t.restrictedCountries&&!t.validator.options.onlyCountries.includes(e))return!0;t.$countryInput&&e&&(t.$countryInput.value=e.toUpperCase())}}}}},{key:"getPhoneMessage",value:function(){return{phoneCountry:function(t){return function(t){var e=arguments.length>1&&void 0!==arguments[1]?arguments[1]:{};return window.FormieTranslations&&(t=window.FormieTranslations[t]||t),t.replace(/{([a-zA-Z0-9]+)}/g,(function(t,n){return e[n]?e[n]:t}))}(["Invalid number","Invalid country code","Too short","Too long"][t.validator.getValidationError()]||"Invalid number")}}}}],i&&l(n.prototype,i),a&&l(n,a),Object.defineProperty(n,"prototype",{writable:!1}),e}();window.FormiePhoneCountry=f}()}();
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/js/utils/utils.js":
+/*!*******************************!*\
+  !*** ./src/js/utils/utils.js ***!
+  \*******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "ensureVariable": () => (/* binding */ ensureVariable),
+/* harmony export */   "eventKey": () => (/* binding */ eventKey),
+/* harmony export */   "isEmpty": () => (/* binding */ isEmpty),
+/* harmony export */   "t": () => (/* binding */ t),
+/* harmony export */   "toBoolean": () => (/* binding */ toBoolean),
+/* harmony export */   "waitForElement": () => (/* binding */ waitForElement)
+/* harmony export */ });
+var isEmpty = function isEmpty(obj) {
+  return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
+};
+var toBoolean = function toBoolean(val) {
+  return !/^(?:f(?:alse)?|no?|0+)$/i.test(val) && !!val;
+};
+var eventKey = function eventKey(eventName) {
+  var namespace = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+  if (!namespace) {
+    namespace = Math.random().toString(36).substr(2, 5);
+  }
+
+  return "".concat(eventName, ".").concat(namespace);
+};
+var t = function t(string) {
+  var replacements = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  if (window.FormieTranslations) {
+    string = window.FormieTranslations[string] || string;
+  }
+
+  return string.replace(/{([a-zA-Z0-9]+)}/g, function (match, p1) {
+    if (replacements[p1]) {
+      return replacements[p1];
+    }
+
+    return match;
+  });
+};
+var ensureVariable = function ensureVariable(variable) {
+  var timeout = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 100000;
+  var start = Date.now(); // Function to allow us to wait for a global variable to be available. Useful for third-party scripts.
+
+  var waitForVariable = function waitForVariable(resolve, reject) {
+    if (window[variable]) {
+      resolve(window[variable]);
+    } else if (timeout && Date.now() - start >= timeout) {
+      reject(new Error('timeout'));
+    } else {
+      setTimeout(waitForVariable.bind(this, resolve, reject), 30);
+    }
+  };
+
+  return new Promise(waitForVariable);
+};
+var waitForElement = function waitForElement(selector, $element) {
+  $element = $element || document;
+  return new Promise(function (resolve) {
+    if ($element.querySelector(selector)) {
+      return resolve($element.querySelector(selector));
+    }
+
+    var observer = new MutationObserver(function (mutations) {
+      if ($element.querySelector(selector)) {
+        observer.disconnect();
+        resolve($element.querySelector(selector));
+      }
+    });
+    observer.observe($element, {
+      childList: true,
+      subtree: true
+    });
+  });
+};
+
+/***/ }),
+
+/***/ "../../../../node_modules/intl-tel-input/build/js/intlTelInput.js":
+/*!************************************************************************!*\
+  !*** ../../../../node_modules/intl-tel-input/build/js/intlTelInput.js ***!
+  \************************************************************************/
+/***/ ((module) => {
+
+/*
+ * International Telephone Input v17.0.16
+ * https://github.com/jackocnr/intl-tel-input.git
+ * Licensed under the MIT license
+ */
+
+// wrap in UMD
+(function(factory) {
+    if ( true && module.exports) module.exports = factory(); else window.intlTelInput = factory();
+})(function(undefined) {
+    "use strict";
+    return function() {
+        // Array of country objects for the flag dropdown.
+        // Here is the criteria for the plugin to support a given country/territory
+        // - It has an iso2 code: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+        // - It has it's own country calling code (it is not a sub-region of another country): https://en.wikipedia.org/wiki/List_of_country_calling_codes
+        // - It has a flag in the region-flags project: https://github.com/behdad/region-flags/tree/gh-pages/png
+        // - It is supported by libphonenumber (it must be listed on this page): https://github.com/googlei18n/libphonenumber/blob/master/resources/ShortNumberMetadata.xml
+        // Each country array has the following information:
+        // [
+        //    Country name,
+        //    iso2 code,
+        //    International dial code,
+        //    Order (if >1 country with same dial code),
+        //    Area codes
+        // ]
+        var allCountries = [ [ "Afghanistan (‫افغانستان‬‎)", "af", "93" ], [ "Albania (Shqipëri)", "al", "355" ], [ "Algeria (‫الجزائر‬‎)", "dz", "213" ], [ "American Samoa", "as", "1", 5, [ "684" ] ], [ "Andorra", "ad", "376" ], [ "Angola", "ao", "244" ], [ "Anguilla", "ai", "1", 6, [ "264" ] ], [ "Antigua and Barbuda", "ag", "1", 7, [ "268" ] ], [ "Argentina", "ar", "54" ], [ "Armenia (Հայաստան)", "am", "374" ], [ "Aruba", "aw", "297" ], [ "Ascension Island", "ac", "247" ], [ "Australia", "au", "61", 0 ], [ "Austria (Österreich)", "at", "43" ], [ "Azerbaijan (Azərbaycan)", "az", "994" ], [ "Bahamas", "bs", "1", 8, [ "242" ] ], [ "Bahrain (‫البحرين‬‎)", "bh", "973" ], [ "Bangladesh (বাংলাদেশ)", "bd", "880" ], [ "Barbados", "bb", "1", 9, [ "246" ] ], [ "Belarus (Беларусь)", "by", "375" ], [ "Belgium (België)", "be", "32" ], [ "Belize", "bz", "501" ], [ "Benin (Bénin)", "bj", "229" ], [ "Bermuda", "bm", "1", 10, [ "441" ] ], [ "Bhutan (འབྲུག)", "bt", "975" ], [ "Bolivia", "bo", "591" ], [ "Bosnia and Herzegovina (Босна и Херцеговина)", "ba", "387" ], [ "Botswana", "bw", "267" ], [ "Brazil (Brasil)", "br", "55" ], [ "British Indian Ocean Territory", "io", "246" ], [ "British Virgin Islands", "vg", "1", 11, [ "284" ] ], [ "Brunei", "bn", "673" ], [ "Bulgaria (България)", "bg", "359" ], [ "Burkina Faso", "bf", "226" ], [ "Burundi (Uburundi)", "bi", "257" ], [ "Cambodia (កម្ពុជា)", "kh", "855" ], [ "Cameroon (Cameroun)", "cm", "237" ], [ "Canada", "ca", "1", 1, [ "204", "226", "236", "249", "250", "289", "306", "343", "365", "387", "403", "416", "418", "431", "437", "438", "450", "506", "514", "519", "548", "579", "581", "587", "604", "613", "639", "647", "672", "705", "709", "742", "778", "780", "782", "807", "819", "825", "867", "873", "902", "905" ] ], [ "Cape Verde (Kabu Verdi)", "cv", "238" ], [ "Caribbean Netherlands", "bq", "599", 1, [ "3", "4", "7" ] ], [ "Cayman Islands", "ky", "1", 12, [ "345" ] ], [ "Central African Republic (République centrafricaine)", "cf", "236" ], [ "Chad (Tchad)", "td", "235" ], [ "Chile", "cl", "56" ], [ "China (中国)", "cn", "86" ], [ "Christmas Island", "cx", "61", 2, [ "89164" ] ], [ "Cocos (Keeling) Islands", "cc", "61", 1, [ "89162" ] ], [ "Colombia", "co", "57" ], [ "Comoros (‫جزر القمر‬‎)", "km", "269" ], [ "Congo (DRC) (Jamhuri ya Kidemokrasia ya Kongo)", "cd", "243" ], [ "Congo (Republic) (Congo-Brazzaville)", "cg", "242" ], [ "Cook Islands", "ck", "682" ], [ "Costa Rica", "cr", "506" ], [ "Côte d’Ivoire", "ci", "225" ], [ "Croatia (Hrvatska)", "hr", "385" ], [ "Cuba", "cu", "53" ], [ "Curaçao", "cw", "599", 0 ], [ "Cyprus (Κύπρος)", "cy", "357" ], [ "Czech Republic (Česká republika)", "cz", "420" ], [ "Denmark (Danmark)", "dk", "45" ], [ "Djibouti", "dj", "253" ], [ "Dominica", "dm", "1", 13, [ "767" ] ], [ "Dominican Republic (República Dominicana)", "do", "1", 2, [ "809", "829", "849" ] ], [ "Ecuador", "ec", "593" ], [ "Egypt (‫مصر‬‎)", "eg", "20" ], [ "El Salvador", "sv", "503" ], [ "Equatorial Guinea (Guinea Ecuatorial)", "gq", "240" ], [ "Eritrea", "er", "291" ], [ "Estonia (Eesti)", "ee", "372" ], [ "Eswatini", "sz", "268" ], [ "Ethiopia", "et", "251" ], [ "Falkland Islands (Islas Malvinas)", "fk", "500" ], [ "Faroe Islands (Føroyar)", "fo", "298" ], [ "Fiji", "fj", "679" ], [ "Finland (Suomi)", "fi", "358", 0 ], [ "France", "fr", "33" ], [ "French Guiana (Guyane française)", "gf", "594" ], [ "French Polynesia (Polynésie française)", "pf", "689" ], [ "Gabon", "ga", "241" ], [ "Gambia", "gm", "220" ], [ "Georgia (საქართველო)", "ge", "995" ], [ "Germany (Deutschland)", "de", "49" ], [ "Ghana (Gaana)", "gh", "233" ], [ "Gibraltar", "gi", "350" ], [ "Greece (Ελλάδα)", "gr", "30" ], [ "Greenland (Kalaallit Nunaat)", "gl", "299" ], [ "Grenada", "gd", "1", 14, [ "473" ] ], [ "Guadeloupe", "gp", "590", 0 ], [ "Guam", "gu", "1", 15, [ "671" ] ], [ "Guatemala", "gt", "502" ], [ "Guernsey", "gg", "44", 1, [ "1481", "7781", "7839", "7911" ] ], [ "Guinea (Guinée)", "gn", "224" ], [ "Guinea-Bissau (Guiné Bissau)", "gw", "245" ], [ "Guyana", "gy", "592" ], [ "Haiti", "ht", "509" ], [ "Honduras", "hn", "504" ], [ "Hong Kong (香港)", "hk", "852" ], [ "Hungary (Magyarország)", "hu", "36" ], [ "Iceland (Ísland)", "is", "354" ], [ "India (भारत)", "in", "91" ], [ "Indonesia", "id", "62" ], [ "Iran (‫ایران‬‎)", "ir", "98" ], [ "Iraq (‫العراق‬‎)", "iq", "964" ], [ "Ireland", "ie", "353" ], [ "Isle of Man", "im", "44", 2, [ "1624", "74576", "7524", "7924", "7624" ] ], [ "Israel (‫ישראל‬‎)", "il", "972" ], [ "Italy (Italia)", "it", "39", 0 ], [ "Jamaica", "jm", "1", 4, [ "876", "658" ] ], [ "Japan (日本)", "jp", "81" ], [ "Jersey", "je", "44", 3, [ "1534", "7509", "7700", "7797", "7829", "7937" ] ], [ "Jordan (‫الأردن‬‎)", "jo", "962" ], [ "Kazakhstan (Казахстан)", "kz", "7", 1, [ "33", "7" ] ], [ "Kenya", "ke", "254" ], [ "Kiribati", "ki", "686" ], [ "Kosovo", "xk", "383" ], [ "Kuwait (‫الكويت‬‎)", "kw", "965" ], [ "Kyrgyzstan (Кыргызстан)", "kg", "996" ], [ "Laos (ລາວ)", "la", "856" ], [ "Latvia (Latvija)", "lv", "371" ], [ "Lebanon (‫لبنان‬‎)", "lb", "961" ], [ "Lesotho", "ls", "266" ], [ "Liberia", "lr", "231" ], [ "Libya (‫ليبيا‬‎)", "ly", "218" ], [ "Liechtenstein", "li", "423" ], [ "Lithuania (Lietuva)", "lt", "370" ], [ "Luxembourg", "lu", "352" ], [ "Macau (澳門)", "mo", "853" ], [ "North Macedonia (Македонија)", "mk", "389" ], [ "Madagascar (Madagasikara)", "mg", "261" ], [ "Malawi", "mw", "265" ], [ "Malaysia", "my", "60" ], [ "Maldives", "mv", "960" ], [ "Mali", "ml", "223" ], [ "Malta", "mt", "356" ], [ "Marshall Islands", "mh", "692" ], [ "Martinique", "mq", "596" ], [ "Mauritania (‫موريتانيا‬‎)", "mr", "222" ], [ "Mauritius (Moris)", "mu", "230" ], [ "Mayotte", "yt", "262", 1, [ "269", "639" ] ], [ "Mexico (México)", "mx", "52" ], [ "Micronesia", "fm", "691" ], [ "Moldova (Republica Moldova)", "md", "373" ], [ "Monaco", "mc", "377" ], [ "Mongolia (Монгол)", "mn", "976" ], [ "Montenegro (Crna Gora)", "me", "382" ], [ "Montserrat", "ms", "1", 16, [ "664" ] ], [ "Morocco (‫المغرب‬‎)", "ma", "212", 0 ], [ "Mozambique (Moçambique)", "mz", "258" ], [ "Myanmar (Burma) (မြန်မာ)", "mm", "95" ], [ "Namibia (Namibië)", "na", "264" ], [ "Nauru", "nr", "674" ], [ "Nepal (नेपाल)", "np", "977" ], [ "Netherlands (Nederland)", "nl", "31" ], [ "New Caledonia (Nouvelle-Calédonie)", "nc", "687" ], [ "New Zealand", "nz", "64" ], [ "Nicaragua", "ni", "505" ], [ "Niger (Nijar)", "ne", "227" ], [ "Nigeria", "ng", "234" ], [ "Niue", "nu", "683" ], [ "Norfolk Island", "nf", "672" ], [ "North Korea (조선 민주주의 인민 공화국)", "kp", "850" ], [ "Northern Mariana Islands", "mp", "1", 17, [ "670" ] ], [ "Norway (Norge)", "no", "47", 0 ], [ "Oman (‫عُمان‬‎)", "om", "968" ], [ "Pakistan (‫پاکستان‬‎)", "pk", "92" ], [ "Palau", "pw", "680" ], [ "Palestine (‫فلسطين‬‎)", "ps", "970" ], [ "Panama (Panamá)", "pa", "507" ], [ "Papua New Guinea", "pg", "675" ], [ "Paraguay", "py", "595" ], [ "Peru (Perú)", "pe", "51" ], [ "Philippines", "ph", "63" ], [ "Poland (Polska)", "pl", "48" ], [ "Portugal", "pt", "351" ], [ "Puerto Rico", "pr", "1", 3, [ "787", "939" ] ], [ "Qatar (‫قطر‬‎)", "qa", "974" ], [ "Réunion (La Réunion)", "re", "262", 0 ], [ "Romania (România)", "ro", "40" ], [ "Russia (Россия)", "ru", "7", 0 ], [ "Rwanda", "rw", "250" ], [ "Saint Barthélemy", "bl", "590", 1 ], [ "Saint Helena", "sh", "290" ], [ "Saint Kitts and Nevis", "kn", "1", 18, [ "869" ] ], [ "Saint Lucia", "lc", "1", 19, [ "758" ] ], [ "Saint Martin (Saint-Martin (partie française))", "mf", "590", 2 ], [ "Saint Pierre and Miquelon (Saint-Pierre-et-Miquelon)", "pm", "508" ], [ "Saint Vincent and the Grenadines", "vc", "1", 20, [ "784" ] ], [ "Samoa", "ws", "685" ], [ "San Marino", "sm", "378" ], [ "São Tomé and Príncipe (São Tomé e Príncipe)", "st", "239" ], [ "Saudi Arabia (‫المملكة العربية السعودية‬‎)", "sa", "966" ], [ "Senegal (Sénégal)", "sn", "221" ], [ "Serbia (Србија)", "rs", "381" ], [ "Seychelles", "sc", "248" ], [ "Sierra Leone", "sl", "232" ], [ "Singapore", "sg", "65" ], [ "Sint Maarten", "sx", "1", 21, [ "721" ] ], [ "Slovakia (Slovensko)", "sk", "421" ], [ "Slovenia (Slovenija)", "si", "386" ], [ "Solomon Islands", "sb", "677" ], [ "Somalia (Soomaaliya)", "so", "252" ], [ "South Africa", "za", "27" ], [ "South Korea (대한민국)", "kr", "82" ], [ "South Sudan (‫جنوب السودان‬‎)", "ss", "211" ], [ "Spain (España)", "es", "34" ], [ "Sri Lanka (ශ්‍රී ලංකාව)", "lk", "94" ], [ "Sudan (‫السودان‬‎)", "sd", "249" ], [ "Suriname", "sr", "597" ], [ "Svalbard and Jan Mayen", "sj", "47", 1, [ "79" ] ], [ "Sweden (Sverige)", "se", "46" ], [ "Switzerland (Schweiz)", "ch", "41" ], [ "Syria (‫سوريا‬‎)", "sy", "963" ], [ "Taiwan (台灣)", "tw", "886" ], [ "Tajikistan", "tj", "992" ], [ "Tanzania", "tz", "255" ], [ "Thailand (ไทย)", "th", "66" ], [ "Timor-Leste", "tl", "670" ], [ "Togo", "tg", "228" ], [ "Tokelau", "tk", "690" ], [ "Tonga", "to", "676" ], [ "Trinidad and Tobago", "tt", "1", 22, [ "868" ] ], [ "Tunisia (‫تونس‬‎)", "tn", "216" ], [ "Turkey (Türkiye)", "tr", "90" ], [ "Turkmenistan", "tm", "993" ], [ "Turks and Caicos Islands", "tc", "1", 23, [ "649" ] ], [ "Tuvalu", "tv", "688" ], [ "U.S. Virgin Islands", "vi", "1", 24, [ "340" ] ], [ "Uganda", "ug", "256" ], [ "Ukraine (Україна)", "ua", "380" ], [ "United Arab Emirates (‫الإمارات العربية المتحدة‬‎)", "ae", "971" ], [ "United Kingdom", "gb", "44", 0 ], [ "United States", "us", "1", 0 ], [ "Uruguay", "uy", "598" ], [ "Uzbekistan (Oʻzbekiston)", "uz", "998" ], [ "Vanuatu", "vu", "678" ], [ "Vatican City (Città del Vaticano)", "va", "39", 1, [ "06698" ] ], [ "Venezuela", "ve", "58" ], [ "Vietnam (Việt Nam)", "vn", "84" ], [ "Wallis and Futuna (Wallis-et-Futuna)", "wf", "681" ], [ "Western Sahara (‫الصحراء الغربية‬‎)", "eh", "212", 1, [ "5288", "5289" ] ], [ "Yemen (‫اليمن‬‎)", "ye", "967" ], [ "Zambia", "zm", "260" ], [ "Zimbabwe", "zw", "263" ], [ "Åland Islands", "ax", "358", 1, [ "18" ] ] ];
+        // loop over all of the countries above, restructuring the data to be objects with named keys
+        for (var i = 0; i < allCountries.length; i++) {
+            var c = allCountries[i];
+            allCountries[i] = {
+                name: c[0],
+                iso2: c[1],
+                dialCode: c[2],
+                priority: c[3] || 0,
+                areaCodes: c[4] || null
+            };
+        }
+        "use strict";
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) {
+                throw new TypeError("Cannot call a class as a function");
+            }
+        }
+        function _defineProperties(target, props) {
+            for (var i = 0; i < props.length; i++) {
+                var descriptor = props[i];
+                descriptor.enumerable = descriptor.enumerable || false;
+                descriptor.configurable = true;
+                if ("value" in descriptor) descriptor.writable = true;
+                Object.defineProperty(target, descriptor.key, descriptor);
+            }
+        }
+        function _createClass(Constructor, protoProps, staticProps) {
+            if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+            if (staticProps) _defineProperties(Constructor, staticProps);
+            return Constructor;
+        }
+        var intlTelInputGlobals = {
+            getInstance: function getInstance(input) {
+                var id = input.getAttribute("data-intl-tel-input-id");
+                return window.intlTelInputGlobals.instances[id];
+            },
+            instances: {},
+            // using a global like this allows us to mock it in the tests
+            documentReady: function documentReady() {
+                return document.readyState === "complete";
+            }
+        };
+        if (typeof window === "object") window.intlTelInputGlobals = intlTelInputGlobals;
+        // these vars persist through all instances of the plugin
+        var id = 0;
+        var defaults = {
+            // whether or not to allow the dropdown
+            allowDropdown: true,
+            // if there is just a dial code in the input: remove it on blur
+            autoHideDialCode: true,
+            // add a placeholder in the input with an example number for the selected country
+            autoPlaceholder: "polite",
+            // modify the parentClass
+            customContainer: "",
+            // modify the auto placeholder
+            customPlaceholder: null,
+            // append menu to specified element
+            dropdownContainer: null,
+            // don't display these countries
+            excludeCountries: [],
+            // format the input value during initialisation and on setNumber
+            formatOnDisplay: true,
+            // geoIp lookup function
+            geoIpLookup: null,
+            // inject a hidden input with this name, and on submit, populate it with the result of getNumber
+            hiddenInput: "",
+            // initial country
+            initialCountry: "",
+            // localized country names e.g. { 'de': 'Deutschland' }
+            localizedCountries: null,
+            // don't insert international dial codes
+            nationalMode: true,
+            // display only these countries
+            onlyCountries: [],
+            // number type to use for placeholders
+            placeholderNumberType: "MOBILE",
+            // the countries at the top of the list. defaults to united states and united kingdom
+            preferredCountries: [ "us", "gb" ],
+            // display the country dial code next to the selected flag so it's not part of the typed number
+            separateDialCode: false,
+            // specify the path to the libphonenumber script to enable validation/formatting
+            utilsScript: ""
+        };
+        // https://en.wikipedia.org/wiki/List_of_North_American_Numbering_Plan_area_codes#Non-geographic_area_codes
+        var regionlessNanpNumbers = [ "800", "822", "833", "844", "855", "866", "877", "880", "881", "882", "883", "884", "885", "886", "887", "888", "889" ];
+        // utility function to iterate over an object. can't use Object.entries or native forEach because
+        // of IE11
+        var forEachProp = function forEachProp(obj, callback) {
+            var keys = Object.keys(obj);
+            for (var i = 0; i < keys.length; i++) {
+                callback(keys[i], obj[keys[i]]);
+            }
+        };
+        // run a method on each instance of the plugin
+        var forEachInstance = function forEachInstance(method) {
+            forEachProp(window.intlTelInputGlobals.instances, function(key) {
+                window.intlTelInputGlobals.instances[key][method]();
+            });
+        };
+        // this is our plugin class that we will create an instance of
+        // eslint-disable-next-line no-unused-vars
+        var Iti = /*#__PURE__*/
+        function() {
+            function Iti(input, options) {
+                var _this = this;
+                _classCallCheck(this, Iti);
+                this.id = id++;
+                this.telInput = input;
+                this.activeItem = null;
+                this.highlightedItem = null;
+                // process specified options / defaults
+                // alternative to Object.assign, which isn't supported by IE11
+                var customOptions = options || {};
+                this.options = {};
+                forEachProp(defaults, function(key, value) {
+                    _this.options[key] = customOptions.hasOwnProperty(key) ? customOptions[key] : value;
+                });
+                this.hadInitialPlaceholder = Boolean(input.getAttribute("placeholder"));
+            }
+            _createClass(Iti, [ {
+                key: "_init",
+                value: function _init() {
+                    var _this2 = this;
+                    // if in nationalMode, disable options relating to dial codes
+                    if (this.options.nationalMode) this.options.autoHideDialCode = false;
+                    // if separateDialCode then doesn't make sense to A) insert dial code into input
+                    // (autoHideDialCode), and B) display national numbers (because we're displaying the country
+                    // dial code next to them)
+                    if (this.options.separateDialCode) {
+                        this.options.autoHideDialCode = this.options.nationalMode = false;
+                    }
+                    // we cannot just test screen size as some smartphones/website meta tags will report desktop
+                    // resolutions
+                    // Note: for some reason jasmine breaks if you put this in the main Plugin function with the
+                    // rest of these declarations
+                    // Note: to target Android Mobiles (and not Tablets), we must find 'Android' and 'Mobile'
+                    this.isMobile = /Android.+Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    if (this.isMobile) {
+                        // trigger the mobile dropdown css
+                        document.body.classList.add("iti-mobile");
+                        // on mobile, we want a full screen dropdown, so we must append it to the body
+                        if (!this.options.dropdownContainer) this.options.dropdownContainer = document.body;
+                    }
+                    // these promises get resolved when their individual requests complete
+                    // this way the dev can do something like iti.promise.then(...) to know when all requests are
+                    // complete
+                    if (typeof Promise !== "undefined") {
+                        var autoCountryPromise = new Promise(function(resolve, reject) {
+                            _this2.resolveAutoCountryPromise = resolve;
+                            _this2.rejectAutoCountryPromise = reject;
+                        });
+                        var utilsScriptPromise = new Promise(function(resolve, reject) {
+                            _this2.resolveUtilsScriptPromise = resolve;
+                            _this2.rejectUtilsScriptPromise = reject;
+                        });
+                        this.promise = Promise.all([ autoCountryPromise, utilsScriptPromise ]);
+                    } else {
+                        // prevent errors when Promise doesn't exist
+                        this.resolveAutoCountryPromise = this.rejectAutoCountryPromise = function() {};
+                        this.resolveUtilsScriptPromise = this.rejectUtilsScriptPromise = function() {};
+                    }
+                    // in various situations there could be no country selected initially, but we need to be able
+                    // to assume this variable exists
+                    this.selectedCountryData = {};
+                    // process all the data: onlyCountries, excludeCountries, preferredCountries etc
+                    this._processCountryData();
+                    // generate the markup
+                    this._generateMarkup();
+                    // set the initial state of the input value and the selected flag
+                    this._setInitialState();
+                    // start all of the event listeners: autoHideDialCode, input keydown, selectedFlag click
+                    this._initListeners();
+                    // utils script, and auto country
+                    this._initRequests();
+                }
+            }, {
+                key: "_processCountryData",
+                value: function _processCountryData() {
+                    // process onlyCountries or excludeCountries array if present
+                    this._processAllCountries();
+                    // process the countryCodes map
+                    this._processCountryCodes();
+                    // process the preferredCountries
+                    this._processPreferredCountries();
+                    // translate countries according to localizedCountries option
+                    if (this.options.localizedCountries) this._translateCountriesByLocale();
+                    // sort countries by name
+                    if (this.options.onlyCountries.length || this.options.localizedCountries) {
+                        this.countries.sort(this._countryNameSort);
+                    }
+                }
+            }, {
+                key: "_addCountryCode",
+                value: function _addCountryCode(iso2, countryCode, priority) {
+                    if (countryCode.length > this.countryCodeMaxLen) {
+                        this.countryCodeMaxLen = countryCode.length;
+                    }
+                    if (!this.countryCodes.hasOwnProperty(countryCode)) {
+                        this.countryCodes[countryCode] = [];
+                    }
+                    // bail if we already have this country for this countryCode
+                    for (var i = 0; i < this.countryCodes[countryCode].length; i++) {
+                        if (this.countryCodes[countryCode][i] === iso2) return;
+                    }
+                    // check for undefined as 0 is falsy
+                    var index = priority !== undefined ? priority : this.countryCodes[countryCode].length;
+                    this.countryCodes[countryCode][index] = iso2;
+                }
+            }, {
+                key: "_processAllCountries",
+                value: function _processAllCountries() {
+                    if (this.options.onlyCountries.length) {
+                        var lowerCaseOnlyCountries = this.options.onlyCountries.map(function(country) {
+                            return country.toLowerCase();
+                        });
+                        this.countries = allCountries.filter(function(country) {
+                            return lowerCaseOnlyCountries.indexOf(country.iso2) > -1;
+                        });
+                    } else if (this.options.excludeCountries.length) {
+                        var lowerCaseExcludeCountries = this.options.excludeCountries.map(function(country) {
+                            return country.toLowerCase();
+                        });
+                        this.countries = allCountries.filter(function(country) {
+                            return lowerCaseExcludeCountries.indexOf(country.iso2) === -1;
+                        });
+                    } else {
+                        this.countries = allCountries;
+                    }
+                }
+            }, {
+                key: "_translateCountriesByLocale",
+                value: function _translateCountriesByLocale() {
+                    for (var i = 0; i < this.countries.length; i++) {
+                        var iso = this.countries[i].iso2.toLowerCase();
+                        if (this.options.localizedCountries.hasOwnProperty(iso)) {
+                            this.countries[i].name = this.options.localizedCountries[iso];
+                        }
+                    }
+                }
+            }, {
+                key: "_countryNameSort",
+                value: function _countryNameSort(a, b) {
+                    return a.name.localeCompare(b.name);
+                }
+            }, {
+                key: "_processCountryCodes",
+                value: function _processCountryCodes() {
+                    this.countryCodeMaxLen = 0;
+                    // here we store just dial codes
+                    this.dialCodes = {};
+                    // here we store "country codes" (both dial codes and their area codes)
+                    this.countryCodes = {};
+                    // first: add dial codes
+                    for (var i = 0; i < this.countries.length; i++) {
+                        var c = this.countries[i];
+                        if (!this.dialCodes[c.dialCode]) this.dialCodes[c.dialCode] = true;
+                        this._addCountryCode(c.iso2, c.dialCode, c.priority);
+                    }
+                    // next: add area codes
+                    // this is a second loop over countries, to make sure we have all of the "root" countries
+                    // already in the map, so that we can access them, as each time we add an area code substring
+                    // to the map, we also need to include the "root" country's code, as that also matches
+                    for (var _i = 0; _i < this.countries.length; _i++) {
+                        var _c = this.countries[_i];
+                        // area codes
+                        if (_c.areaCodes) {
+                            var rootCountryCode = this.countryCodes[_c.dialCode][0];
+                            // for each area code
+                            for (var j = 0; j < _c.areaCodes.length; j++) {
+                                var areaCode = _c.areaCodes[j];
+                                // for each digit in the area code to add all partial matches as well
+                                for (var k = 1; k < areaCode.length; k++) {
+                                    var partialDialCode = _c.dialCode + areaCode.substr(0, k);
+                                    // start with the root country, as that also matches this dial code
+                                    this._addCountryCode(rootCountryCode, partialDialCode);
+                                    this._addCountryCode(_c.iso2, partialDialCode);
+                                }
+                                // add the full area code
+                                this._addCountryCode(_c.iso2, _c.dialCode + areaCode);
+                            }
+                        }
+                    }
+                }
+            }, {
+                key: "_processPreferredCountries",
+                value: function _processPreferredCountries() {
+                    this.preferredCountries = [];
+                    for (var i = 0; i < this.options.preferredCountries.length; i++) {
+                        var countryCode = this.options.preferredCountries[i].toLowerCase();
+                        var countryData = this._getCountryData(countryCode, false, true);
+                        if (countryData) this.preferredCountries.push(countryData);
+                    }
+                }
+            }, {
+                key: "_createEl",
+                value: function _createEl(name, attrs, container) {
+                    var el = document.createElement(name);
+                    if (attrs) forEachProp(attrs, function(key, value) {
+                        return el.setAttribute(key, value);
+                    });
+                    if (container) container.appendChild(el);
+                    return el;
+                }
+            }, {
+                key: "_generateMarkup",
+                value: function _generateMarkup() {
+                    // if autocomplete does not exist on the element and its form, then
+                    // prevent autocomplete as there's no safe, cross-browser event we can react to, so it can
+                    // easily put the plugin in an inconsistent state e.g. the wrong flag selected for the
+                    // autocompleted number, which on submit could mean wrong number is saved (esp in nationalMode)
+                    if (!this.telInput.hasAttribute("autocomplete") && !(this.telInput.form && this.telInput.form.hasAttribute("autocomplete"))) {
+                        this.telInput.setAttribute("autocomplete", "off");
+                    }
+                    // containers (mostly for positioning)
+                    var parentClass = "iti";
+                    if (this.options.allowDropdown) parentClass += " iti--allow-dropdown";
+                    if (this.options.separateDialCode) parentClass += " iti--separate-dial-code";
+                    if (this.options.customContainer) {
+                        parentClass += " ";
+                        parentClass += this.options.customContainer;
+                    }
+                    var wrapper = this._createEl("div", {
+                        "class": parentClass
+                    });
+                    this.telInput.parentNode.insertBefore(wrapper, this.telInput);
+                    this.flagsContainer = this._createEl("div", {
+                        "class": "iti__flag-container"
+                    }, wrapper);
+                    wrapper.appendChild(this.telInput);
+                    // selected flag (displayed to left of input)
+                    this.selectedFlag = this._createEl("div", {
+                        "class": "iti__selected-flag",
+                        role: "combobox",
+                        "aria-controls": "iti-".concat(this.id, "__country-listbox"),
+                        "aria-owns": "iti-".concat(this.id, "__country-listbox"),
+                        "aria-expanded": "false"
+                    }, this.flagsContainer);
+                    this.selectedFlagInner = this._createEl("div", {
+                        "class": "iti__flag"
+                    }, this.selectedFlag);
+                    if (this.options.separateDialCode) {
+                        this.selectedDialCode = this._createEl("div", {
+                            "class": "iti__selected-dial-code"
+                        }, this.selectedFlag);
+                    }
+                    if (this.options.allowDropdown) {
+                        // make element focusable and tab navigable
+                        this.selectedFlag.setAttribute("tabindex", "0");
+                        this.dropdownArrow = this._createEl("div", {
+                            "class": "iti__arrow"
+                        }, this.selectedFlag);
+                        // country dropdown: preferred countries, then divider, then all countries
+                        this.countryList = this._createEl("ul", {
+                            "class": "iti__country-list iti__hide",
+                            id: "iti-".concat(this.id, "__country-listbox"),
+                            role: "listbox",
+                            "aria-label": "List of countries"
+                        });
+                        if (this.preferredCountries.length) {
+                            this._appendListItems(this.preferredCountries, "iti__preferred", true);
+                            this._createEl("li", {
+                                "class": "iti__divider",
+                                role: "separator",
+                                "aria-disabled": "true"
+                            }, this.countryList);
+                        }
+                        this._appendListItems(this.countries, "iti__standard");
+                        // create dropdownContainer markup
+                        if (this.options.dropdownContainer) {
+                            this.dropdown = this._createEl("div", {
+                                "class": "iti iti--container"
+                            });
+                            this.dropdown.appendChild(this.countryList);
+                        } else {
+                            this.flagsContainer.appendChild(this.countryList);
+                        }
+                    }
+                    if (this.options.hiddenInput) {
+                        var hiddenInputName = this.options.hiddenInput;
+                        var name = this.telInput.getAttribute("name");
+                        if (name) {
+                            var i = name.lastIndexOf("[");
+                            // if input name contains square brackets, then give the hidden input the same name,
+                            // replacing the contents of the last set of brackets with the given hiddenInput name
+                            if (i !== -1) hiddenInputName = "".concat(name.substr(0, i), "[").concat(hiddenInputName, "]");
+                        }
+                        this.hiddenInput = this._createEl("input", {
+                            type: "hidden",
+                            name: hiddenInputName
+                        });
+                        wrapper.appendChild(this.hiddenInput);
+                    }
+                }
+            }, {
+                key: "_appendListItems",
+                value: function _appendListItems(countries, className, preferred) {
+                    // we create so many DOM elements, it is faster to build a temp string
+                    // and then add everything to the DOM in one go at the end
+                    var tmp = "";
+                    // for each country
+                    for (var i = 0; i < countries.length; i++) {
+                        var c = countries[i];
+                        var idSuffix = preferred ? "-preferred" : "";
+                        // open the list item
+                        tmp += "<li class='iti__country ".concat(className, "' tabIndex='-1' id='iti-").concat(this.id, "__item-").concat(c.iso2).concat(idSuffix, "' role='option' data-dial-code='").concat(c.dialCode, "' data-country-code='").concat(c.iso2, "' aria-selected='false'>");
+                        // add the flag
+                        tmp += "<div class='iti__flag-box'><div class='iti__flag iti__".concat(c.iso2, "'></div></div>");
+                        // and the country name and dial code
+                        tmp += "<span class='iti__country-name'>".concat(c.name, "</span>");
+                        tmp += "<span class='iti__dial-code'>+".concat(c.dialCode, "</span>");
+                        // close the list item
+                        tmp += "</li>";
+                    }
+                    this.countryList.insertAdjacentHTML("beforeend", tmp);
+                }
+            }, {
+                key: "_setInitialState",
+                value: function _setInitialState() {
+                    // fix firefox bug: when first load page (with input with value set to number with intl dial
+                    // code) and initialising plugin removes the dial code from the input, then refresh page,
+                    // and we try to init plugin again but this time on number without dial code so get grey flag
+                    var attributeValue = this.telInput.getAttribute("value");
+                    var inputValue = this.telInput.value;
+                    var useAttribute = attributeValue && attributeValue.charAt(0) === "+" && (!inputValue || inputValue.charAt(0) !== "+");
+                    var val = useAttribute ? attributeValue : inputValue;
+                    var dialCode = this._getDialCode(val);
+                    var isRegionlessNanp = this._isRegionlessNanp(val);
+                    var _this$options = this.options, initialCountry = _this$options.initialCountry, nationalMode = _this$options.nationalMode, autoHideDialCode = _this$options.autoHideDialCode, separateDialCode = _this$options.separateDialCode;
+                    // if we already have a dial code, and it's not a regionlessNanp, we can go ahead and set the
+                    // flag, else fall back to the default country
+                    if (dialCode && !isRegionlessNanp) {
+                        this._updateFlagFromNumber(val);
+                    } else if (initialCountry !== "auto") {
+                        // see if we should select a flag
+                        if (initialCountry) {
+                            this._setFlag(initialCountry.toLowerCase());
+                        } else {
+                            if (dialCode && isRegionlessNanp) {
+                                // has intl dial code, is regionless nanp, and no initialCountry, so default to US
+                                this._setFlag("us");
+                            } else {
+                                // no dial code and no initialCountry, so default to first in list
+                                this.defaultCountry = this.preferredCountries.length ? this.preferredCountries[0].iso2 : this.countries[0].iso2;
+                                if (!val) {
+                                    this._setFlag(this.defaultCountry);
+                                }
+                            }
+                        }
+                        // if empty and no nationalMode and no autoHideDialCode then insert the default dial code
+                        if (!val && !nationalMode && !autoHideDialCode && !separateDialCode) {
+                            this.telInput.value = "+".concat(this.selectedCountryData.dialCode);
+                        }
+                    }
+                    // NOTE: if initialCountry is set to auto, that will be handled separately
+                    // format - note this wont be run after _updateDialCode as that's only called if no val
+                    if (val) this._updateValFromNumber(val);
+                }
+            }, {
+                key: "_initListeners",
+                value: function _initListeners() {
+                    this._initKeyListeners();
+                    if (this.options.autoHideDialCode) this._initBlurListeners();
+                    if (this.options.allowDropdown) this._initDropdownListeners();
+                    if (this.hiddenInput) this._initHiddenInputListener();
+                }
+            }, {
+                key: "_initHiddenInputListener",
+                value: function _initHiddenInputListener() {
+                    var _this3 = this;
+                    this._handleHiddenInputSubmit = function() {
+                        _this3.hiddenInput.value = _this3.getNumber();
+                    };
+                    if (this.telInput.form) this.telInput.form.addEventListener("submit", this._handleHiddenInputSubmit);
+                }
+            }, {
+                key: "_getClosestLabel",
+                value: function _getClosestLabel() {
+                    var el = this.telInput;
+                    while (el && el.tagName !== "LABEL") {
+                        el = el.parentNode;
+                    }
+                    return el;
+                }
+            }, {
+                key: "_initDropdownListeners",
+                value: function _initDropdownListeners() {
+                    var _this4 = this;
+                    // hack for input nested inside label (which is valid markup): clicking the selected-flag to
+                    // open the dropdown would then automatically trigger a 2nd click on the input which would
+                    // close it again
+                    this._handleLabelClick = function(e) {
+                        // if the dropdown is closed, then focus the input, else ignore the click
+                        if (_this4.countryList.classList.contains("iti__hide")) _this4.telInput.focus(); else e.preventDefault();
+                    };
+                    var label = this._getClosestLabel();
+                    if (label) label.addEventListener("click", this._handleLabelClick);
+                    // toggle country dropdown on click
+                    this._handleClickSelectedFlag = function() {
+                        // only intercept this event if we're opening the dropdown
+                        // else let it bubble up to the top ("click-off-to-close" listener)
+                        // we cannot just stopPropagation as it may be needed to close another instance
+                        if (_this4.countryList.classList.contains("iti__hide") && !_this4.telInput.disabled && !_this4.telInput.readOnly) {
+                            _this4._showDropdown();
+                        }
+                    };
+                    this.selectedFlag.addEventListener("click", this._handleClickSelectedFlag);
+                    // open dropdown list if currently focused
+                    this._handleFlagsContainerKeydown = function(e) {
+                        var isDropdownHidden = _this4.countryList.classList.contains("iti__hide");
+                        if (isDropdownHidden && [ "ArrowUp", "Up", "ArrowDown", "Down", " ", "Enter" ].indexOf(e.key) !== -1) {
+                            // prevent form from being submitted if "ENTER" was pressed
+                            e.preventDefault();
+                            // prevent event from being handled again by document
+                            e.stopPropagation();
+                            _this4._showDropdown();
+                        }
+                        // allow navigation from dropdown to input on TAB
+                        if (e.key === "Tab") _this4._closeDropdown();
+                    };
+                    this.flagsContainer.addEventListener("keydown", this._handleFlagsContainerKeydown);
+                }
+            }, {
+                key: "_initRequests",
+                value: function _initRequests() {
+                    var _this5 = this;
+                    // if the user has specified the path to the utils script, fetch it on window.load, else resolve
+                    if (this.options.utilsScript && !window.intlTelInputUtils) {
+                        // if the plugin is being initialised after the window.load event has already been fired
+                        if (window.intlTelInputGlobals.documentReady()) {
+                            window.intlTelInputGlobals.loadUtils(this.options.utilsScript);
+                        } else {
+                            // wait until the load event so we don't block any other requests e.g. the flags image
+                            window.addEventListener("load", function() {
+                                window.intlTelInputGlobals.loadUtils(_this5.options.utilsScript);
+                            });
+                        }
+                    } else this.resolveUtilsScriptPromise();
+                    if (this.options.initialCountry === "auto") this._loadAutoCountry(); else this.resolveAutoCountryPromise();
+                }
+            }, {
+                key: "_loadAutoCountry",
+                value: function _loadAutoCountry() {
+                    // 3 options:
+                    // 1) already loaded (we're done)
+                    // 2) not already started loading (start)
+                    // 3) already started loading (do nothing - just wait for loading callback to fire)
+                    if (window.intlTelInputGlobals.autoCountry) {
+                        this.handleAutoCountry();
+                    } else if (!window.intlTelInputGlobals.startedLoadingAutoCountry) {
+                        // don't do this twice!
+                        window.intlTelInputGlobals.startedLoadingAutoCountry = true;
+                        if (typeof this.options.geoIpLookup === "function") {
+                            this.options.geoIpLookup(function(countryCode) {
+                                window.intlTelInputGlobals.autoCountry = countryCode.toLowerCase();
+                                // tell all instances the auto country is ready
+                                // TODO: this should just be the current instances
+                                // UPDATE: use setTimeout in case their geoIpLookup function calls this callback straight
+                                // away (e.g. if they have already done the geo ip lookup somewhere else). Using
+                                // setTimeout means that the current thread of execution will finish before executing
+                                // this, which allows the plugin to finish initialising.
+                                setTimeout(function() {
+                                    return forEachInstance("handleAutoCountry");
+                                });
+                            }, function() {
+                                return forEachInstance("rejectAutoCountryPromise");
+                            });
+                        }
+                    }
+                }
+            }, {
+                key: "_initKeyListeners",
+                value: function _initKeyListeners() {
+                    var _this6 = this;
+                    // update flag on keyup
+                    this._handleKeyupEvent = function() {
+                        if (_this6._updateFlagFromNumber(_this6.telInput.value)) {
+                            _this6._triggerCountryChange();
+                        }
+                    };
+                    this.telInput.addEventListener("keyup", this._handleKeyupEvent);
+                    // update flag on cut/paste events (now supported in all major browsers)
+                    this._handleClipboardEvent = function() {
+                        // hack because "paste" event is fired before input is updated
+                        setTimeout(_this6._handleKeyupEvent);
+                    };
+                    this.telInput.addEventListener("cut", this._handleClipboardEvent);
+                    this.telInput.addEventListener("paste", this._handleClipboardEvent);
+                }
+            }, {
+                key: "_cap",
+                value: function _cap(number) {
+                    var max = this.telInput.getAttribute("maxlength");
+                    return max && number.length > max ? number.substr(0, max) : number;
+                }
+            }, {
+                key: "_initBlurListeners",
+                value: function _initBlurListeners() {
+                    var _this7 = this;
+                    // on blur or form submit: if just a dial code then remove it
+                    this._handleSubmitOrBlurEvent = function() {
+                        _this7._removeEmptyDialCode();
+                    };
+                    if (this.telInput.form) this.telInput.form.addEventListener("submit", this._handleSubmitOrBlurEvent);
+                    this.telInput.addEventListener("blur", this._handleSubmitOrBlurEvent);
+                }
+            }, {
+                key: "_removeEmptyDialCode",
+                value: function _removeEmptyDialCode() {
+                    if (this.telInput.value.charAt(0) === "+") {
+                        var numeric = this._getNumeric(this.telInput.value);
+                        // if just a plus, or if just a dial code
+                        if (!numeric || this.selectedCountryData.dialCode === numeric) {
+                            this.telInput.value = "";
+                        }
+                    }
+                }
+            }, {
+                key: "_getNumeric",
+                value: function _getNumeric(s) {
+                    return s.replace(/\D/g, "");
+                }
+            }, {
+                key: "_trigger",
+                value: function _trigger(name) {
+                    // have to use old school document.createEvent as IE11 doesn't support `new Event()` syntax
+                    var e = document.createEvent("Event");
+                    e.initEvent(name, true, true);
+                    // can bubble, and is cancellable
+                    this.telInput.dispatchEvent(e);
+                }
+            }, {
+                key: "_showDropdown",
+                value: function _showDropdown() {
+                    this.countryList.classList.remove("iti__hide");
+                    this.selectedFlag.setAttribute("aria-expanded", "true");
+                    this._setDropdownPosition();
+                    // update highlighting and scroll to active list item
+                    if (this.activeItem) {
+                        this._highlightListItem(this.activeItem, false);
+                        this._scrollTo(this.activeItem, true);
+                    }
+                    // bind all the dropdown-related listeners: mouseover, click, click-off, keydown
+                    this._bindDropdownListeners();
+                    // update the arrow
+                    this.dropdownArrow.classList.add("iti__arrow--up");
+                    this._trigger("open:countrydropdown");
+                }
+            }, {
+                key: "_toggleClass",
+                value: function _toggleClass(el, className, shouldHaveClass) {
+                    if (shouldHaveClass && !el.classList.contains(className)) el.classList.add(className); else if (!shouldHaveClass && el.classList.contains(className)) el.classList.remove(className);
+                }
+            }, {
+                key: "_setDropdownPosition",
+                value: function _setDropdownPosition() {
+                    var _this8 = this;
+                    if (this.options.dropdownContainer) {
+                        this.options.dropdownContainer.appendChild(this.dropdown);
+                    }
+                    if (!this.isMobile) {
+                        var pos = this.telInput.getBoundingClientRect();
+                        // windowTop from https://stackoverflow.com/a/14384091/217866
+                        var windowTop = window.pageYOffset || document.documentElement.scrollTop;
+                        var inputTop = pos.top + windowTop;
+                        var dropdownHeight = this.countryList.offsetHeight;
+                        // dropdownFitsBelow = (dropdownBottom < windowBottom)
+                        var dropdownFitsBelow = inputTop + this.telInput.offsetHeight + dropdownHeight < windowTop + window.innerHeight;
+                        var dropdownFitsAbove = inputTop - dropdownHeight > windowTop;
+                        // by default, the dropdown will be below the input. If we want to position it above the
+                        // input, we add the dropup class.
+                        this._toggleClass(this.countryList, "iti__country-list--dropup", !dropdownFitsBelow && dropdownFitsAbove);
+                        // if dropdownContainer is enabled, calculate postion
+                        if (this.options.dropdownContainer) {
+                            // by default the dropdown will be directly over the input because it's not in the flow.
+                            // If we want to position it below, we need to add some extra top value.
+                            var extraTop = !dropdownFitsBelow && dropdownFitsAbove ? 0 : this.telInput.offsetHeight;
+                            // calculate placement
+                            this.dropdown.style.top = "".concat(inputTop + extraTop, "px");
+                            this.dropdown.style.left = "".concat(pos.left + document.body.scrollLeft, "px");
+                            // close menu on window scroll
+                            this._handleWindowScroll = function() {
+                                return _this8._closeDropdown();
+                            };
+                            window.addEventListener("scroll", this._handleWindowScroll);
+                        }
+                    }
+                }
+            }, {
+                key: "_getClosestListItem",
+                value: function _getClosestListItem(target) {
+                    var el = target;
+                    while (el && el !== this.countryList && !el.classList.contains("iti__country")) {
+                        el = el.parentNode;
+                    }
+                    // if we reached the countryList element, then return null
+                    return el === this.countryList ? null : el;
+                }
+            }, {
+                key: "_bindDropdownListeners",
+                value: function _bindDropdownListeners() {
+                    var _this9 = this;
+                    // when mouse over a list item, just highlight that one
+                    // we add the class "highlight", so if they hit "enter" we know which one to select
+                    this._handleMouseoverCountryList = function(e) {
+                        // handle event delegation, as we're listening for this event on the countryList
+                        var listItem = _this9._getClosestListItem(e.target);
+                        if (listItem) _this9._highlightListItem(listItem, false);
+                    };
+                    this.countryList.addEventListener("mouseover", this._handleMouseoverCountryList);
+                    // listen for country selection
+                    this._handleClickCountryList = function(e) {
+                        var listItem = _this9._getClosestListItem(e.target);
+                        if (listItem) _this9._selectListItem(listItem);
+                    };
+                    this.countryList.addEventListener("click", this._handleClickCountryList);
+                    // click off to close
+                    // (except when this initial opening click is bubbling up)
+                    // we cannot just stopPropagation as it may be needed to close another instance
+                    var isOpening = true;
+                    this._handleClickOffToClose = function() {
+                        if (!isOpening) _this9._closeDropdown();
+                        isOpening = false;
+                    };
+                    document.documentElement.addEventListener("click", this._handleClickOffToClose);
+                    // listen for up/down scrolling, enter to select, or letters to jump to country name.
+                    // use keydown as keypress doesn't fire for non-char keys and we want to catch if they
+                    // just hit down and hold it to scroll down (no keyup event).
+                    // listen on the document because that's where key events are triggered if no input has focus
+                    var query = "";
+                    var queryTimer = null;
+                    this._handleKeydownOnDropdown = function(e) {
+                        // prevent down key from scrolling the whole page,
+                        // and enter key from submitting a form etc
+                        e.preventDefault();
+                        // up and down to navigate
+                        if (e.key === "ArrowUp" || e.key === "Up" || e.key === "ArrowDown" || e.key === "Down") _this9._handleUpDownKey(e.key); else if (e.key === "Enter") _this9._handleEnterKey(); else if (e.key === "Escape") _this9._closeDropdown(); else if (/^[a-zA-ZÀ-ÿа-яА-Я ]$/.test(e.key)) {
+                            // jump to countries that start with the query string
+                            if (queryTimer) clearTimeout(queryTimer);
+                            query += e.key.toLowerCase();
+                            _this9._searchForCountry(query);
+                            // if the timer hits 1 second, reset the query
+                            queryTimer = setTimeout(function() {
+                                query = "";
+                            }, 1e3);
+                        }
+                    };
+                    document.addEventListener("keydown", this._handleKeydownOnDropdown);
+                }
+            }, {
+                key: "_handleUpDownKey",
+                value: function _handleUpDownKey(key) {
+                    var next = key === "ArrowUp" || key === "Up" ? this.highlightedItem.previousElementSibling : this.highlightedItem.nextElementSibling;
+                    if (next) {
+                        // skip the divider
+                        if (next.classList.contains("iti__divider")) {
+                            next = key === "ArrowUp" || key === "Up" ? next.previousElementSibling : next.nextElementSibling;
+                        }
+                        this._highlightListItem(next, true);
+                    }
+                }
+            }, {
+                key: "_handleEnterKey",
+                value: function _handleEnterKey() {
+                    if (this.highlightedItem) this._selectListItem(this.highlightedItem);
+                }
+            }, {
+                key: "_searchForCountry",
+                value: function _searchForCountry(query) {
+                    for (var i = 0; i < this.countries.length; i++) {
+                        if (this._startsWith(this.countries[i].name, query)) {
+                            var listItem = this.countryList.querySelector("#iti-".concat(this.id, "__item-").concat(this.countries[i].iso2));
+                            // update highlighting and scroll
+                            this._highlightListItem(listItem, false);
+                            this._scrollTo(listItem, true);
+                            break;
+                        }
+                    }
+                }
+            }, {
+                key: "_startsWith",
+                value: function _startsWith(a, b) {
+                    return a.substr(0, b.length).toLowerCase() === b;
+                }
+            }, {
+                key: "_updateValFromNumber",
+                value: function _updateValFromNumber(originalNumber) {
+                    var number = originalNumber;
+                    if (this.options.formatOnDisplay && window.intlTelInputUtils && this.selectedCountryData) {
+                        var useNational = !this.options.separateDialCode && (this.options.nationalMode || number.charAt(0) !== "+");
+                        var _intlTelInputUtils$nu = intlTelInputUtils.numberFormat, NATIONAL = _intlTelInputUtils$nu.NATIONAL, INTERNATIONAL = _intlTelInputUtils$nu.INTERNATIONAL;
+                        var format = useNational ? NATIONAL : INTERNATIONAL;
+                        number = intlTelInputUtils.formatNumber(number, this.selectedCountryData.iso2, format);
+                    }
+                    number = this._beforeSetNumber(number);
+                    this.telInput.value = number;
+                }
+            }, {
+                key: "_updateFlagFromNumber",
+                value: function _updateFlagFromNumber(originalNumber) {
+                    // if we're in nationalMode and we already have US/Canada selected, make sure the number starts
+                    // with a +1 so _getDialCode will be able to extract the area code
+                    // update: if we dont yet have selectedCountryData, but we're here (trying to update the flag
+                    // from the number), that means we're initialising the plugin with a number that already has a
+                    // dial code, so fine to ignore this bit
+                    var number = originalNumber;
+                    var selectedDialCode = this.selectedCountryData.dialCode;
+                    var isNanp = selectedDialCode === "1";
+                    if (number && this.options.nationalMode && isNanp && number.charAt(0) !== "+") {
+                        if (number.charAt(0) !== "1") number = "1".concat(number);
+                        number = "+".concat(number);
+                    }
+                    // update flag if user types area code for another country
+                    if (this.options.separateDialCode && selectedDialCode && number.charAt(0) !== "+") {
+                        number = "+".concat(selectedDialCode).concat(number);
+                    }
+                    // try and extract valid dial code from input
+                    var dialCode = this._getDialCode(number, true);
+                    var numeric = this._getNumeric(number);
+                    var countryCode = null;
+                    if (dialCode) {
+                        var countryCodes = this.countryCodes[this._getNumeric(dialCode)];
+                        // check if the right country is already selected. this should be false if the number is
+                        // longer than the matched dial code because in this case we need to make sure that if
+                        // there are multiple country matches, that the first one is selected (note: we could
+                        // just check that here, but it requires the same loop that we already have later)
+                        var alreadySelected = countryCodes.indexOf(this.selectedCountryData.iso2) !== -1 && numeric.length <= dialCode.length - 1;
+                        var isRegionlessNanpNumber = selectedDialCode === "1" && this._isRegionlessNanp(numeric);
+                        // only update the flag if:
+                        // A) NOT (we currently have a NANP flag selected, and the number is a regionlessNanp)
+                        // AND
+                        // B) the right country is not already selected
+                        if (!isRegionlessNanpNumber && !alreadySelected) {
+                            // if using onlyCountries option, countryCodes[0] may be empty, so we must find the first
+                            // non-empty index
+                            for (var j = 0; j < countryCodes.length; j++) {
+                                if (countryCodes[j]) {
+                                    countryCode = countryCodes[j];
+                                    break;
+                                }
+                            }
+                        }
+                    } else if (number.charAt(0) === "+" && numeric.length) {
+                        // invalid dial code, so empty
+                        // Note: use getNumeric here because the number has not been formatted yet, so could contain
+                        // bad chars
+                        countryCode = "";
+                    } else if (!number || number === "+") {
+                        // empty, or just a plus, so default
+                        countryCode = this.defaultCountry;
+                    }
+                    if (countryCode !== null) {
+                        return this._setFlag(countryCode);
+                    }
+                    return false;
+                }
+            }, {
+                key: "_isRegionlessNanp",
+                value: function _isRegionlessNanp(number) {
+                    var numeric = this._getNumeric(number);
+                    if (numeric.charAt(0) === "1") {
+                        var areaCode = numeric.substr(1, 3);
+                        return regionlessNanpNumbers.indexOf(areaCode) !== -1;
+                    }
+                    return false;
+                }
+            }, {
+                key: "_highlightListItem",
+                value: function _highlightListItem(listItem, shouldFocus) {
+                    var prevItem = this.highlightedItem;
+                    if (prevItem) prevItem.classList.remove("iti__highlight");
+                    this.highlightedItem = listItem;
+                    this.highlightedItem.classList.add("iti__highlight");
+                    if (shouldFocus) this.highlightedItem.focus();
+                }
+            }, {
+                key: "_getCountryData",
+                value: function _getCountryData(countryCode, ignoreOnlyCountriesOption, allowFail) {
+                    var countryList = ignoreOnlyCountriesOption ? allCountries : this.countries;
+                    for (var i = 0; i < countryList.length; i++) {
+                        if (countryList[i].iso2 === countryCode) {
+                            return countryList[i];
+                        }
+                    }
+                    if (allowFail) {
+                        return null;
+                    }
+                    throw new Error("No country data for '".concat(countryCode, "'"));
+                }
+            }, {
+                key: "_setFlag",
+                value: function _setFlag(countryCode) {
+                    var prevCountry = this.selectedCountryData.iso2 ? this.selectedCountryData : {};
+                    // do this first as it will throw an error and stop if countryCode is invalid
+                    this.selectedCountryData = countryCode ? this._getCountryData(countryCode, false, false) : {};
+                    // update the defaultCountry - we only need the iso2 from now on, so just store that
+                    if (this.selectedCountryData.iso2) {
+                        this.defaultCountry = this.selectedCountryData.iso2;
+                    }
+                    this.selectedFlagInner.setAttribute("class", "iti__flag iti__".concat(countryCode));
+                    // update the selected country's title attribute
+                    var title = countryCode ? "".concat(this.selectedCountryData.name, ": +").concat(this.selectedCountryData.dialCode) : "Unknown";
+                    this.selectedFlag.setAttribute("title", title);
+                    if (this.options.separateDialCode) {
+                        var dialCode = this.selectedCountryData.dialCode ? "+".concat(this.selectedCountryData.dialCode) : "";
+                        this.selectedDialCode.innerHTML = dialCode;
+                        // offsetWidth is zero if input is in a hidden container during initialisation
+                        var selectedFlagWidth = this.selectedFlag.offsetWidth || this._getHiddenSelectedFlagWidth();
+                        // add 6px of padding after the grey selected-dial-code box, as this is what we use in the css
+                        this.telInput.style.paddingLeft = "".concat(selectedFlagWidth + 6, "px");
+                    }
+                    // and the input's placeholder
+                    this._updatePlaceholder();
+                    // update the active list item
+                    if (this.options.allowDropdown) {
+                        var prevItem = this.activeItem;
+                        if (prevItem) {
+                            prevItem.classList.remove("iti__active");
+                            prevItem.setAttribute("aria-selected", "false");
+                        }
+                        if (countryCode) {
+                            // check if there is a preferred item first, else fall back to standard
+                            var nextItem = this.countryList.querySelector("#iti-".concat(this.id, "__item-").concat(countryCode, "-preferred")) || this.countryList.querySelector("#iti-".concat(this.id, "__item-").concat(countryCode));
+                            nextItem.setAttribute("aria-selected", "true");
+                            nextItem.classList.add("iti__active");
+                            this.activeItem = nextItem;
+                            this.selectedFlag.setAttribute("aria-activedescendant", nextItem.getAttribute("id"));
+                        }
+                    }
+                    // return if the flag has changed or not
+                    return prevCountry.iso2 !== countryCode;
+                }
+            }, {
+                key: "_getHiddenSelectedFlagWidth",
+                value: function _getHiddenSelectedFlagWidth() {
+                    // to get the right styling to apply, all we need is a shallow clone of the container,
+                    // and then to inject a deep clone of the selectedFlag element
+                    var containerClone = this.telInput.parentNode.cloneNode();
+                    containerClone.style.visibility = "hidden";
+                    document.body.appendChild(containerClone);
+                    var flagsContainerClone = this.flagsContainer.cloneNode();
+                    containerClone.appendChild(flagsContainerClone);
+                    var selectedFlagClone = this.selectedFlag.cloneNode(true);
+                    flagsContainerClone.appendChild(selectedFlagClone);
+                    var width = selectedFlagClone.offsetWidth;
+                    containerClone.parentNode.removeChild(containerClone);
+                    return width;
+                }
+            }, {
+                key: "_updatePlaceholder",
+                value: function _updatePlaceholder() {
+                    var shouldSetPlaceholder = this.options.autoPlaceholder === "aggressive" || !this.hadInitialPlaceholder && this.options.autoPlaceholder === "polite";
+                    if (window.intlTelInputUtils && shouldSetPlaceholder) {
+                        var numberType = intlTelInputUtils.numberType[this.options.placeholderNumberType];
+                        var placeholder = this.selectedCountryData.iso2 ? intlTelInputUtils.getExampleNumber(this.selectedCountryData.iso2, this.options.nationalMode, numberType) : "";
+                        placeholder = this._beforeSetNumber(placeholder);
+                        if (typeof this.options.customPlaceholder === "function") {
+                            placeholder = this.options.customPlaceholder(placeholder, this.selectedCountryData);
+                        }
+                        this.telInput.setAttribute("placeholder", placeholder);
+                    }
+                }
+            }, {
+                key: "_selectListItem",
+                value: function _selectListItem(listItem) {
+                    // update selected flag and active list item
+                    var flagChanged = this._setFlag(listItem.getAttribute("data-country-code"));
+                    this._closeDropdown();
+                    this._updateDialCode(listItem.getAttribute("data-dial-code"), true);
+                    // focus the input
+                    this.telInput.focus();
+                    // put cursor at end - this fix is required for FF and IE11 (with nationalMode=false i.e. auto
+                    // inserting dial code), who try to put the cursor at the beginning the first time
+                    var len = this.telInput.value.length;
+                    this.telInput.setSelectionRange(len, len);
+                    if (flagChanged) {
+                        this._triggerCountryChange();
+                    }
+                }
+            }, {
+                key: "_closeDropdown",
+                value: function _closeDropdown() {
+                    this.countryList.classList.add("iti__hide");
+                    this.selectedFlag.setAttribute("aria-expanded", "false");
+                    // update the arrow
+                    this.dropdownArrow.classList.remove("iti__arrow--up");
+                    // unbind key events
+                    document.removeEventListener("keydown", this._handleKeydownOnDropdown);
+                    document.documentElement.removeEventListener("click", this._handleClickOffToClose);
+                    this.countryList.removeEventListener("mouseover", this._handleMouseoverCountryList);
+                    this.countryList.removeEventListener("click", this._handleClickCountryList);
+                    // remove menu from container
+                    if (this.options.dropdownContainer) {
+                        if (!this.isMobile) window.removeEventListener("scroll", this._handleWindowScroll);
+                        if (this.dropdown.parentNode) this.dropdown.parentNode.removeChild(this.dropdown);
+                    }
+                    this._trigger("close:countrydropdown");
+                }
+            }, {
+                key: "_scrollTo",
+                value: function _scrollTo(element, middle) {
+                    var container = this.countryList;
+                    // windowTop from https://stackoverflow.com/a/14384091/217866
+                    var windowTop = window.pageYOffset || document.documentElement.scrollTop;
+                    var containerHeight = container.offsetHeight;
+                    var containerTop = container.getBoundingClientRect().top + windowTop;
+                    var containerBottom = containerTop + containerHeight;
+                    var elementHeight = element.offsetHeight;
+                    var elementTop = element.getBoundingClientRect().top + windowTop;
+                    var elementBottom = elementTop + elementHeight;
+                    var newScrollTop = elementTop - containerTop + container.scrollTop;
+                    var middleOffset = containerHeight / 2 - elementHeight / 2;
+                    if (elementTop < containerTop) {
+                        // scroll up
+                        if (middle) newScrollTop -= middleOffset;
+                        container.scrollTop = newScrollTop;
+                    } else if (elementBottom > containerBottom) {
+                        // scroll down
+                        if (middle) newScrollTop += middleOffset;
+                        var heightDifference = containerHeight - elementHeight;
+                        container.scrollTop = newScrollTop - heightDifference;
+                    }
+                }
+            }, {
+                key: "_updateDialCode",
+                value: function _updateDialCode(newDialCodeBare, hasSelectedListItem) {
+                    var inputVal = this.telInput.value;
+                    // save having to pass this every time
+                    var newDialCode = "+".concat(newDialCodeBare);
+                    var newNumber;
+                    if (inputVal.charAt(0) === "+") {
+                        // there's a plus so we're dealing with a replacement (doesn't matter if nationalMode or not)
+                        var prevDialCode = this._getDialCode(inputVal);
+                        if (prevDialCode) {
+                            // current number contains a valid dial code, so replace it
+                            newNumber = inputVal.replace(prevDialCode, newDialCode);
+                        } else {
+                            // current number contains an invalid dial code, so ditch it
+                            // (no way to determine where the invalid dial code ends and the rest of the number begins)
+                            newNumber = newDialCode;
+                        }
+                    } else if (this.options.nationalMode || this.options.separateDialCode) {
+                        // don't do anything
+                        return;
+                    } else {
+                        // nationalMode is disabled
+                        if (inputVal) {
+                            // there is an existing value with no dial code: prefix the new dial code
+                            newNumber = newDialCode + inputVal;
+                        } else if (hasSelectedListItem || !this.options.autoHideDialCode) {
+                            // no existing value and either they've just selected a list item, or autoHideDialCode is
+                            // disabled: insert new dial code
+                            newNumber = newDialCode;
+                        } else {
+                            return;
+                        }
+                    }
+                    this.telInput.value = newNumber;
+                }
+            }, {
+                key: "_getDialCode",
+                value: function _getDialCode(number, includeAreaCode) {
+                    var dialCode = "";
+                    // only interested in international numbers (starting with a plus)
+                    if (number.charAt(0) === "+") {
+                        var numericChars = "";
+                        // iterate over chars
+                        for (var i = 0; i < number.length; i++) {
+                            var c = number.charAt(i);
+                            // if char is number (https://stackoverflow.com/a/8935649/217866)
+                            if (!isNaN(parseInt(c, 10))) {
+                                numericChars += c;
+                                // if current numericChars make a valid dial code
+                                if (includeAreaCode) {
+                                    if (this.countryCodes[numericChars]) {
+                                        // store the actual raw string (useful for matching later)
+                                        dialCode = number.substr(0, i + 1);
+                                    }
+                                } else {
+                                    if (this.dialCodes[numericChars]) {
+                                        dialCode = number.substr(0, i + 1);
+                                        // if we're just looking for a dial code, we can break as soon as we find one
+                                        break;
+                                    }
+                                }
+                                // stop searching as soon as we can - in this case when we hit max len
+                                if (numericChars.length === this.countryCodeMaxLen) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    return dialCode;
+                }
+            }, {
+                key: "_getFullNumber",
+                value: function _getFullNumber() {
+                    var val = this.telInput.value.trim();
+                    var dialCode = this.selectedCountryData.dialCode;
+                    var prefix;
+                    var numericVal = this._getNumeric(val);
+                    if (this.options.separateDialCode && val.charAt(0) !== "+" && dialCode && numericVal) {
+                        // when using separateDialCode, it is visible so is effectively part of the typed number
+                        prefix = "+".concat(dialCode);
+                    } else {
+                        prefix = "";
+                    }
+                    return prefix + val;
+                }
+            }, {
+                key: "_beforeSetNumber",
+                value: function _beforeSetNumber(originalNumber) {
+                    var number = originalNumber;
+                    if (this.options.separateDialCode) {
+                        var dialCode = this._getDialCode(number);
+                        // if there is a valid dial code
+                        if (dialCode) {
+                            // in case _getDialCode returned an area code as well
+                            dialCode = "+".concat(this.selectedCountryData.dialCode);
+                            // a lot of numbers will have a space separating the dial code and the main number, and
+                            // some NANP numbers will have a hyphen e.g. +1 684-733-1234 - in both cases we want to get
+                            // rid of it
+                            // NOTE: don't just trim all non-numerics as may want to preserve an open parenthesis etc
+                            var start = number[dialCode.length] === " " || number[dialCode.length] === "-" ? dialCode.length + 1 : dialCode.length;
+                            number = number.substr(start);
+                        }
+                    }
+                    return this._cap(number);
+                }
+            }, {
+                key: "_triggerCountryChange",
+                value: function _triggerCountryChange() {
+                    this._trigger("countrychange");
+                }
+            }, {
+                key: "handleAutoCountry",
+                value: function handleAutoCountry() {
+                    if (this.options.initialCountry === "auto") {
+                        // we must set this even if there is an initial val in the input: in case the initial val is
+                        // invalid and they delete it - they should see their auto country
+                        this.defaultCountry = window.intlTelInputGlobals.autoCountry;
+                        // if there's no initial value in the input, then update the flag
+                        if (!this.telInput.value) {
+                            this.setCountry(this.defaultCountry);
+                        }
+                        this.resolveAutoCountryPromise();
+                    }
+                }
+            }, {
+                key: "handleUtils",
+                value: function handleUtils() {
+                    // if the request was successful
+                    if (window.intlTelInputUtils) {
+                        // if there's an initial value in the input, then format it
+                        if (this.telInput.value) {
+                            this._updateValFromNumber(this.telInput.value);
+                        }
+                        this._updatePlaceholder();
+                    }
+                    this.resolveUtilsScriptPromise();
+                }
+            }, {
+                key: "destroy",
+                value: function destroy() {
+                    var form = this.telInput.form;
+                    if (this.options.allowDropdown) {
+                        // make sure the dropdown is closed (and unbind listeners)
+                        this._closeDropdown();
+                        this.selectedFlag.removeEventListener("click", this._handleClickSelectedFlag);
+                        this.flagsContainer.removeEventListener("keydown", this._handleFlagsContainerKeydown);
+                        // label click hack
+                        var label = this._getClosestLabel();
+                        if (label) label.removeEventListener("click", this._handleLabelClick);
+                    }
+                    // unbind hiddenInput listeners
+                    if (this.hiddenInput && form) form.removeEventListener("submit", this._handleHiddenInputSubmit);
+                    // unbind autoHideDialCode listeners
+                    if (this.options.autoHideDialCode) {
+                        if (form) form.removeEventListener("submit", this._handleSubmitOrBlurEvent);
+                        this.telInput.removeEventListener("blur", this._handleSubmitOrBlurEvent);
+                    }
+                    // unbind key events, and cut/paste events
+                    this.telInput.removeEventListener("keyup", this._handleKeyupEvent);
+                    this.telInput.removeEventListener("cut", this._handleClipboardEvent);
+                    this.telInput.removeEventListener("paste", this._handleClipboardEvent);
+                    // remove attribute of id instance: data-intl-tel-input-id
+                    this.telInput.removeAttribute("data-intl-tel-input-id");
+                    // remove markup (but leave the original input)
+                    var wrapper = this.telInput.parentNode;
+                    wrapper.parentNode.insertBefore(this.telInput, wrapper);
+                    wrapper.parentNode.removeChild(wrapper);
+                    delete window.intlTelInputGlobals.instances[this.id];
+                }
+            }, {
+                key: "getExtension",
+                value: function getExtension() {
+                    if (window.intlTelInputUtils) {
+                        return intlTelInputUtils.getExtension(this._getFullNumber(), this.selectedCountryData.iso2);
+                    }
+                    return "";
+                }
+            }, {
+                key: "getNumber",
+                value: function getNumber(format) {
+                    if (window.intlTelInputUtils) {
+                        var iso2 = this.selectedCountryData.iso2;
+                        return intlTelInputUtils.formatNumber(this._getFullNumber(), iso2, format);
+                    }
+                    return "";
+                }
+            }, {
+                key: "getNumberType",
+                value: function getNumberType() {
+                    if (window.intlTelInputUtils) {
+                        return intlTelInputUtils.getNumberType(this._getFullNumber(), this.selectedCountryData.iso2);
+                    }
+                    return -99;
+                }
+            }, {
+                key: "getSelectedCountryData",
+                value: function getSelectedCountryData() {
+                    return this.selectedCountryData;
+                }
+            }, {
+                key: "getValidationError",
+                value: function getValidationError() {
+                    if (window.intlTelInputUtils) {
+                        var iso2 = this.selectedCountryData.iso2;
+                        return intlTelInputUtils.getValidationError(this._getFullNumber(), iso2);
+                    }
+                    return -99;
+                }
+            }, {
+                key: "isValidNumber",
+                value: function isValidNumber() {
+                    var val = this._getFullNumber().trim();
+                    var countryCode = this.options.nationalMode ? this.selectedCountryData.iso2 : "";
+                    return window.intlTelInputUtils ? intlTelInputUtils.isValidNumber(val, countryCode) : null;
+                }
+            }, {
+                key: "setCountry",
+                value: function setCountry(originalCountryCode) {
+                    var countryCode = originalCountryCode.toLowerCase();
+                    // check if already selected
+                    if (!this.selectedFlagInner.classList.contains("iti__".concat(countryCode))) {
+                        this._setFlag(countryCode);
+                        this._updateDialCode(this.selectedCountryData.dialCode, false);
+                        this._triggerCountryChange();
+                    }
+                }
+            }, {
+                key: "setNumber",
+                value: function setNumber(number) {
+                    // we must update the flag first, which updates this.selectedCountryData, which is used for
+                    // formatting the number before displaying it
+                    var flagChanged = this._updateFlagFromNumber(number);
+                    this._updateValFromNumber(number);
+                    if (flagChanged) {
+                        this._triggerCountryChange();
+                    }
+                }
+            }, {
+                key: "setPlaceholderNumberType",
+                value: function setPlaceholderNumberType(type) {
+                    this.options.placeholderNumberType = type;
+                    this._updatePlaceholder();
+                }
+            } ]);
+            return Iti;
+        }();
+        /********************
+ *  STATIC METHODS
+ ********************/
+        // get the country data object
+        intlTelInputGlobals.getCountryData = function() {
+            return allCountries;
+        };
+        // inject a <script> element to load utils.js
+        var injectScript = function injectScript(path, handleSuccess, handleFailure) {
+            // inject a new script element into the page
+            var script = document.createElement("script");
+            script.onload = function() {
+                forEachInstance("handleUtils");
+                if (handleSuccess) handleSuccess();
+            };
+            script.onerror = function() {
+                forEachInstance("rejectUtilsScriptPromise");
+                if (handleFailure) handleFailure();
+            };
+            script.className = "iti-load-utils";
+            script.async = true;
+            script.src = path;
+            document.body.appendChild(script);
+        };
+        // load the utils script
+        intlTelInputGlobals.loadUtils = function(path) {
+            // 2 options:
+            // 1) not already started loading (start)
+            // 2) already started loading (do nothing - just wait for the onload callback to fire, which will
+            // trigger handleUtils on all instances, invoking their resolveUtilsScriptPromise functions)
+            if (!window.intlTelInputUtils && !window.intlTelInputGlobals.startedLoadingUtilsScript) {
+                // only do this once
+                window.intlTelInputGlobals.startedLoadingUtilsScript = true;
+                // if we have promises, then return a promise
+                if (typeof Promise !== "undefined") {
+                    return new Promise(function(resolve, reject) {
+                        return injectScript(path, resolve, reject);
+                    });
+                }
+                injectScript(path);
+            }
+            return null;
+        };
+        // default options
+        intlTelInputGlobals.defaults = defaults;
+        // version
+        intlTelInputGlobals.version = "17.0.16";
+        // convenience wrapper
+        return function(input, options) {
+            var iti = new Iti(input, options);
+            iti._init();
+            input.setAttribute("data-intl-tel-input-id", iti.id);
+            window.intlTelInputGlobals.instances[iti.id] = iti;
+            return iti;
+        };
+    }();
+});
+
+/***/ }),
+
+/***/ "../../../../node_modules/intl-tel-input/index.js":
+/*!********************************************************!*\
+  !*** ../../../../node_modules/intl-tel-input/index.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/**
+ * Exposing intl-tel-input as a component
+ */
+module.exports = __webpack_require__(/*! ./build/js/intlTelInput */ "../../../../node_modules/intl-tel-input/build/js/intlTelInput.js");
+
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+/*!****************************************!*\
+  !*** ./src/js/fields/phone-country.js ***!
+  \****************************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "FormiePhoneCountry": () => (/* binding */ FormiePhoneCountry)
+/* harmony export */ });
+/* harmony import */ var _utils_utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/utils */ "./src/js/utils/utils.js");
+/* harmony import */ var intl_tel_input__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! intl-tel-input */ "../../../../node_modules/intl-tel-input/index.js");
+/* harmony import */ var intl_tel_input__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(intl_tel_input__WEBPACK_IMPORTED_MODULE_1__);
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
+
+
+
+var FormiePhoneCountry = /*#__PURE__*/function () {
+  function FormiePhoneCountry() {
+    var settings = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+    _classCallCheck(this, FormiePhoneCountry);
+
+    this.$form = settings.$form;
+    this.form = this.$form.form;
+    this.$field = settings.$field.querySelector('input[type="tel"]');
+    this.$countryInput = settings.$field.querySelector('[data-country]');
+    this.countryShowDialCode = settings.countryShowDialCode;
+    this.countryDefaultValue = settings.countryDefaultValue;
+    this.countryAllowed = settings.countryAllowed;
+
+    if (this.$field && this.$countryInput) {
+      this.initValidator();
+    } else {
+      console.error('Unable to find country field “input[type="tel"]” or “[data-country]”');
+    }
+  }
+
+  _createClass(FormiePhoneCountry, [{
+    key: "initValidator",
+    value: function initValidator() {
+      var options = {
+        allowDropdown: true,
+        autoHideDialCode: true,
+        nationalMode: false,
+        preferredCountries: [],
+        separateDialCode: false,
+        initialCountry: 'auto',
+        autoPlaceholder: 'off',
+        formatOnDisplay: false,
+        utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js'
+      };
+
+      if (this.countryAllowed && this.countryAllowed.length) {
+        options.onlyCountries = this.countryAllowed.map(function (item) {
+          return item.value.toLowerCase();
+        }); // Set the initial country to the first in collection
+
+        var _options$onlyCountrie = _slicedToArray(options.onlyCountries, 1);
+
+        options.initialCountry = _options$onlyCountrie[0];
+
+        // Not much point showing a dropdown if a single option.
+        // Also put it into national mode for input-ease
+        if (options.onlyCountries.length === 1) {
+          options.allowDropdown = false;
+          options.nationalMode = true;
+        } // Save this on the field so we can check during validation
+
+
+        this.$field.restrictedCountries = true;
+      }
+
+      if (this.countryShowDialCode) {
+        options.separateDialCode = true;
+      }
+
+      if (this.countryDefaultValue) {
+        options.initialCountry = this.countryDefaultValue;
+      } // Ensure the initial country (if set) is in the only countries (if also set)
+
+
+      if (options.onlyCountries && options.onlyCountries.length && options.initialCountry) {
+        if (!options.onlyCountries.includes(options.initialCountry)) {
+          options.onlyCountries.push(options.initialCountry.toLowerCase());
+        }
+      }
+
+      this.validator = intl_tel_input__WEBPACK_IMPORTED_MODULE_1___default()(this.$field, options); // Attach the validator to the field so we can access later
+
+      this.$field.validator = this.validator; // Also add the hidden input for the country code
+
+      this.$field.$countryInput = this.$countryInput; // If the country input has a value, set the country
+
+      if (this.$field.$countryInput && this.$field.$countryInput.value) {
+        this.validator.setCountry(this.$field.$countryInput.value);
+      } // Emit an "init" event
+
+
+      this.$field.dispatchEvent(new CustomEvent('init', {
+        bubbles: true,
+        detail: {
+          phoneCountry: this,
+          validator: this.validator,
+          validatorOptions: options
+        }
+      })); // Update the hidden country field when selected
+
+      this.form.addEventListener(this.$field, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_0__.eventKey)('countrychange'), this.countryChange.bind(this)); // Attach custom validation
+
+      this.form.addEventListener(this.$form, (0,_utils_utils__WEBPACK_IMPORTED_MODULE_0__.eventKey)('registerFormieValidation'), this.registerValidation.bind(this)); // Trigger the country changing now, in case it's been populated
+
+      this.$field.dispatchEvent(new Event('countrychange', {
+        bubbles: true
+      })); // Update the form hash, so we don't get change warnings
+
+      if (this.form.formTheme) {
+        this.form.formTheme.updateFormHash();
+      }
+    }
+  }, {
+    key: "countryChange",
+    value: function countryChange(e) {
+      var countryData = this.validator.getSelectedCountryData();
+      var selectedCountryCode = countryData.iso2; // Save the country code to the hidden input
+
+      if (this.$countryInput && selectedCountryCode) {
+        this.$countryInput.value = selectedCountryCode.toUpperCase();
+      }
+    }
+  }, {
+    key: "registerValidation",
+    value: function registerValidation(e) {
+      // Add our custom validations logic and methods
+      e.detail.validatorSettings.customValidations = _objectSpread(_objectSpread({}, e.detail.validatorSettings.customValidations), this.getPhoneRule()); // Add our custom messages
+
+      e.detail.validatorSettings.messages = _objectSpread(_objectSpread({}, e.detail.validatorSettings.messages), this.getPhoneMessage());
+    }
+  }, {
+    key: "getPhoneRule",
+    value: function getPhoneRule() {
+      return {
+        phoneCountry: function phoneCountry(field) {
+          if (field.value.trim() && field.validator) {
+            if (field.validator.isValidNumber()) {
+              var countryData = field.validator.getSelectedCountryData();
+              var selectedCountryCode = countryData.iso2; // The library doesn't provide a method to check if it's a valid number against restricted countries
+              // so we need to do that ourselves.
+
+              if (field.restrictedCountries) {
+                // Check if this country code is in our allowed codes. Note `selectedCountryCode` will
+                // be empty if it matches a valid phone for a non-allowed country.
+                if (!field.validator.options.onlyCountries.includes(selectedCountryCode)) {
+                  return true;
+                }
+              } // Save the country code to the hidden input
+
+
+              if (field.$countryInput && selectedCountryCode) {
+                field.$countryInput.value = selectedCountryCode.toUpperCase();
+              }
+            } else {
+              return true;
+            }
+          }
+        }
+      };
+    }
+  }, {
+    key: "getPhoneMessage",
+    value: function getPhoneMessage() {
+      return {
+        phoneCountry: function phoneCountry(field) {
+          var errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
+          var errorCode = field.validator.getValidationError();
+          var errorMessage = errorMap[errorCode] || 'Invalid number';
+          return (0,_utils_utils__WEBPACK_IMPORTED_MODULE_0__.t)(errorMessage);
+        }
+      };
+    }
+  }]);
+
+  return FormiePhoneCountry;
+}();
+window.FormiePhoneCountry = FormiePhoneCountry;
+})();
+
+/******/ })()
+;

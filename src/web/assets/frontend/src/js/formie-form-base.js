@@ -185,10 +185,14 @@ export class FormieFormBase {
     }
 
     addEventListener(element, event, func) {
-        this.listeners[event] = { element, func };
-        const eventName = event.split('.')[0];
+        // If the form is marked as destroyed, don't add any more event listeners.
+        // This can often happen with captchas or payment integrations which are done as they appear on page.
+        if (!this.destroyed) {
+            this.listeners[event] = { element, func };
+            const eventName = event.split('.')[0];
 
-        element.addEventListener(eventName, this.listeners[event].func);
+            element.addEventListener(eventName, this.listeners[event].func);
+        }
     }
 
     removeEventListener(event) {
