@@ -89,6 +89,14 @@ const getters = {
         return notifications;
     },
 
+    notificationIds: (state) => {
+        return flatMap(state, 'id');
+    },
+
+    notificationHandles: (state) => {
+        return flatMap(state, 'handle');
+    },
+
     notificationHandlesExcluding: (state, getters, rootState, rootGetters) => {
         return (id) => {
             const allNotifications = omitBy(state, { __id: id });

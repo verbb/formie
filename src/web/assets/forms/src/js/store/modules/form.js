@@ -867,10 +867,6 @@ const getters = {
             return fieldHandles;
         };
     },
-
-    notificationIds: (state) => {
-        return flatMap(state.notifications, 'id');
-    },
 };
 
 export default {

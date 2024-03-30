@@ -50,7 +50,7 @@
 <script>
 import { isEmpty } from 'lodash-es';
 
-import { newId } from '@utils/string';
+import { generateHandle, getNextAvailableHandle, newId } from '@utils/string';
 
 import NotificationEditModal from '@components/NotificationEditModal.vue';
 
@@ -145,6 +145,11 @@ export default {
             delete newNotification.hasError;
             delete newNotification.id;
             delete newNotification.uid;
+
+            // Generate a unique handle
+            const generatedHandle = generateHandle(newNotification.name);
+            const handles = this.$store.getters['notifications/notificationHandles'];
+            newNotification.handle = getNextAvailableHandle(handles, generatedHandle, 0);
 
             this.$store.dispatch('notifications/addNotification', {
                 data: newNotification,

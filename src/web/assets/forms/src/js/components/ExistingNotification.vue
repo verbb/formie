@@ -49,7 +49,7 @@ export default {
 
     computed: {
         notificationIds() {
-            return this.$store.getters['form/notificationIds'];
+            return this.$store.getters['notifications/notificationIds'];
         },
 
         isDisabled() {
