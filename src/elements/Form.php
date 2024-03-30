@@ -2071,6 +2071,7 @@ class Form extends Element
         $rules[] = [['templateId', 'submitActionEntryId', 'submitActionEntrySiteId', 'defaultStatusId'], 'number', 'integerOnly' => true];
         $rules[] = [['formLayout'], 'validateFormLayout'];
         $rules[] = [['settings'], 'validateFormSettings'];
+        $rules[] = [['notifications'], 'validateNotifications'];
 
         // Make sure the column name is under the database’s maximum allowed column length
         $rules[] = [['handle'], 'string', 'max' => HandleHelper::getMaxFormHandle()];
