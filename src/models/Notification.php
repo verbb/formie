@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
@@ -82,7 +83,7 @@ class Notification extends Model
         return RichTextHelper::getHtmlContent($this->content, null, false);
     }
 
-    public function getToEmail($submission): ?string
+    public function getToEmail(Submission $submission): ?string
     {
         if ($this->recipients === self::RECIPIENTS_EMAIL) {
             return $this->to;
@@ -102,6 +103,21 @@ class Notification extends Model
 
                 return implode(',', $results);
             }
+        }
+
+        return null;
+    }
+
+    public function getStatusCondition(Submission $submission): ?string
+    {
+        $conditionSettings = $this->conditions ?? [];
+
+        if ($conditionSettings) {
+            $conditions = $conditionSettings['conditions'] ?? [];
+
+            if ($condition = ArrayHelper::firstWhere($conditions, 'field', '{submission:status}')) {
+                return $condition['value'];
+            };
         }
 
         return null;

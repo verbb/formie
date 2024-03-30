@@ -166,27 +166,32 @@ class Submissions extends Component
 
     public function sendNotifications(Submission $submission): void
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
         // Get all enabled notifications, and push them to the queue for performance
         $form = $submission->getForm();
         $notifications = $form->getEnabledNotifications();
 
         foreach ($notifications as $notification) {
-            // Evaluate conditions for each notification
-            if (!Formie::$plugin->getNotifications()->evaluateConditions($notification, $submission)) {
-                continue;
-            }
+            $this->sendNotification($notification, $submission);
+        }
+    }
 
-            if ($settings->useQueueForNotifications) {
-                Queue::push(new SendNotification([
-                    'submissionId' => $submission->id,
-                    'notificationId' => $notification->id,
-                ]), $settings->queuePriority);
-            } else {
-                $this->sendNotificationEmail($notification, $submission);
-            }
+    public function sendNotification(Notification $notification, Submission $submission): void
+    {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        // Evaluate conditions for each notification
+        if (!Formie::$plugin->getNotifications()->evaluateConditions($notification, $submission)) {
+            return;
+        }
+
+        if ($settings->useQueueForNotifications) {
+            Queue::push(new SendNotification([
+                'submissionId' => $submission->id,
+                'notificationId' => $notification->id,
+            ]), $settings->queuePriority);
+        } else {
+            $this->sendNotificationEmail($notification, $submission);
         }
     }
 

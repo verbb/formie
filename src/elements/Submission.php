@@ -29,6 +29,7 @@ use craft\base\Component;
 use craft\base\Element;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\base\Model;
+use craft\db\Query;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
@@ -1109,6 +1110,21 @@ class Submission extends CustomElement
 
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
+
+        // If the status has changed, fire any applicable email notifications
+        if ($this->hasStatusChanged()) {
+            // Only send notifications that match a status-change condition
+            $form = $this->getForm();
+            $notifications = $form->getEnabledNotifications();
+
+            foreach ($notifications as $notification) {
+                if ($status = $notification->getStatusCondition($this)) {
+                    if ($status === $this->getStatus()) {
+                        Formie::$plugin->getSubmissions()->sendNotification($notification, $this);
+                    }
+                }
+            }
+        }
 
         parent::afterSave($isNew);
     }
