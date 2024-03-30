@@ -3,36 +3,10 @@
         <strong>{{ field.label | t('formie') }}</strong><br>
     {% endif %}
 
-    {% if field.autocompleteEnabled %}
-        <strong>{{ field.autocompleteLabel | t('formie') }}: </strong>{{ value.autocomplete ?: notification.getPlaceholder() }}<br>
-    {% endif %}
+    {% for field in field.getFields(false) %}
+        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-    {% if field.address1Enabled %}
-        <strong>{{ field.address1Label | t('formie') }}: </strong>{{ value.address1 ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.address2Enabled %}
-        <strong>{{ field.address2Label | t('formie') }}: </strong>{{ value.address2 ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.address3Enabled %}
-        <strong>{{ field.address3Label | t('formie') }}: </strong>{{ value.address3 ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.cityEnabled %}
-        <strong>{{ field.cityLabel | t('formie') }}: </strong>{{ value.city ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.stateEnabled %}
-        <strong>{{ field.stateLabel | t('formie') }}: </strong>{{ value.state ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.zipEnabled %}
-        <strong>{{ field.zipLabel | t('formie') }}: </strong>{{ value.zip ?: notification.getPlaceholder() }}<br>
-    {% endif %}
-
-    {% if field.countryEnabled %}
-        <strong>{{ field.countryLabel | t('formie') }}: </strong>{{ value.country ?: notification.getPlaceholder() }}<br>
-    {% endif %}
+        <strong>{{ field.label | t('formie') }}: </strong>{{ value ?: notification.getPlaceholder() }}<br>
+    {% endfor %}
 </p>
 

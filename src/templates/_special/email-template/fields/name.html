@@ -4,21 +4,11 @@
     {% endif %}
 
     {% if value and field.settings.useMultipleFields %}
-        {% if field.prefixEnabled %}
-            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefix ?: notification.getPlaceholder() }}<br>
-        {% endif %}
+        {% for field in field.getFields(false) %}
+            {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-        {% if field.firstNameEnabled %}
-            <strong>{{ field.firstNameLabel | t('formie') }}: </strong>{{ value.firstName ?: notification.getPlaceholder() }}<br>
-        {% endif %}
-
-        {% if field.middleNameEnabled %}
-            <strong>{{ field.middleNameLabel | t('formie') }}: </strong>{{ value.middleName ?: notification.getPlaceholder() }}<br>
-        {% endif %}
-
-        {% if field.lastNameEnabled %}
-            <strong>{{ field.lastNameLabel | t('formie') }}: </strong>{{ value.lastName ?: notification.getPlaceholder() }}<br>
-        {% endif %}
+            <strong>{{ field.label | t('formie') }}: </strong>{{ value ?: notification.getPlaceholder() }}<br>
+        {% endfor %}
     {% else %}
         {{ value ?: notification.getPlaceholder() }}
     {% endif %}
