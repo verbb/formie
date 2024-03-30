@@ -5,10 +5,13 @@ use verbb\formie\Formie;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
+use craft\validators\HandleValidator;
+use craft\validators\UniqueValidator;
 use craft\web\View;
 
 use Twig\Error\LoaderError;
@@ -225,9 +228,13 @@ class Notification extends Model
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['name', 'subject'], 'required'];
+        $rules[] = [['name', 'subject', 'handle'], 'required'];
         $rules[] = [['name', 'subject', 'to', 'cc', 'bcc', 'replyTo', 'replyToName', 'from', 'fromName', 'sender'], 'string'];
         $rules[] = [['formId', 'templateId', 'pdfTemplateId'], 'number', 'integerOnly' => true];
+
+        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title']];
+        $rules[] = [['handle'], UniqueValidator::class, 'targetClass' => NotificationRecord::class, 'targetAttribute' => ['handle', 'formId']];
+        $rules[] = [['handle'], 'string', 'max' => 255];
 
         $rules[] = [
             ['to'], 'required', 'when' => function($model) {
