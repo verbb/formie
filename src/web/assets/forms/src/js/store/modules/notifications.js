@@ -1,7 +1,7 @@
 // import Vue from 'vue';
 import { findIndex, flatMap, omitBy } from 'lodash-es';
 
-import { newId } from '@utils/string';
+import { generateHandle, getNextAvailableHandle, newId } from '@utils/string';
 import { clone } from '@utils/object';
 
 // State is simply an object that contains the properties that need to be shared within the application:
@@ -95,6 +95,25 @@ const getters = {
 
     notificationHandles: (state) => {
         return flatMap(state, 'handle');
+    },
+
+    cloneNotification: (state, getters, rootState, rootGetters) => {
+        return (notification) => {
+            const newNotification = clone(notification);
+            newNotification.id = newId();
+
+            delete newNotification.errors;
+            delete newNotification.hasError;
+            delete newNotification.uid;
+            delete newNotification.formId;
+
+            // Generate a unique handle
+            const generatedHandle = generateHandle(newNotification.name);
+            const handles = getters.notificationHandles;
+            newNotification.handle = getNextAvailableHandle(handles, generatedHandle, 0);
+
+            return newNotification;
+        };
     },
 
     notificationHandlesExcluding: (state, getters, rootState, rootGetters) => {

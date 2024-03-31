@@ -241,12 +241,7 @@ export default {
 
         addNotifications() {
             for (const element of this.selectedNotifications) {
-                const newNotification = this.clone(element.notification);
-                newNotification.id = newId();
-
-                delete newNotification.errors;
-                delete newNotification.hasError;
-                delete newNotification.uid;
+                const newNotification = this.$store.getters['notifications/cloneNotification'](element.notification);
 
                 this.$store.dispatch('notifications/addNotification', {
                     data: newNotification,

@@ -139,18 +139,7 @@ export default {
         },
 
         duplicateNotification() {
-            const newNotification = this.clone(this.notification);
-            newNotification.__id = newId();
-
-            delete newNotification.errors;
-            delete newNotification.hasError;
-            delete newNotification.id;
-            delete newNotification.uid;
-
-            // Generate a unique handle
-            const generatedHandle = generateHandle(newNotification.name);
-            const handles = this.$store.getters['notifications/notificationHandles'];
-            newNotification.handle = getNextAvailableHandle(handles, generatedHandle, 0);
+            const newNotification = this.$store.getters['notifications/cloneNotification'](this.notification);
 
             this.$store.dispatch('notifications/addNotification', {
                 data: newNotification,
