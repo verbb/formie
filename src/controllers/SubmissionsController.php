@@ -342,6 +342,15 @@ class SubmissionsController extends Controller
             return null;
         }
 
+        // Check if we should trigger email notifications or integrations if this was spam
+        if ($request->getBodyParam('sendNotifications')) {
+            Formie::$plugin->getSubmissions()->sendNotifications($submission);
+        }
+
+        if ($request->getBodyParam('triggerIntegrations')) {
+            Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+        }
+
         // Check if this is a front-end edit
         if ($request->getIsSiteRequest()) {
             if (!empty($nextPage)) {

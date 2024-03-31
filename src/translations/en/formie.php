@@ -1157,7 +1157,7 @@ return [
     'You must save your form before sending a test payload.' => 'You must save your form before sending a test payload.',
     'Success!' => 'Success!',
     'Mark as spam' => 'Mark as spam',
-    'Mark as not spam' => 'Mark as not spam',
+    'Unark as spam' => 'Unark as spam',
     'Set status' => 'Set status',
     'Are you sure you want to delete this submission?' => 'Are you sure you want to delete this submission?',
     'Submission ID' => 'Submission ID',

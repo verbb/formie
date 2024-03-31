@@ -220,9 +220,44 @@
                 id: 'isSpam',
                 name: 'isSpam',
                 on: submission.isSpam,
+                reverseToggle: '.send-notifications',
             }) }}
         </div>
     </div>
+
+    {% if submission.isSpam %}
+        <div class="field send-notifications">
+            <div class="heading" style="flex: 0 0 150px;">
+                <label class="">
+                    {{ 'Send Notifications' | t('formie') }}
+                    <span class="info">{{ 'Whether any Email Notifications should be sent.' | t('formie') }}</span>
+                </label>
+            </div>
+
+            <div>
+                {{ forms.lightswitchField({
+                    id: 'sendNotifications',
+                    name: 'sendNotifications',
+                }) }}
+            </div>
+        </div>
+
+        <div class="field send-notifications">
+            <div class="heading" style="flex: 0 0 150px;">
+                <label class="">
+                    {{ 'Trigger Integrations' | t('formie') }}
+                    <span class="info">{{ 'Whether any Integrations should be triggered.' | t('formie') }}</span>
+                </label>
+            </div>
+
+            <div>
+                {{ forms.lightswitchField({
+                    id: 'triggerIntegrations',
+                    name: 'triggerIntegrations',
+                }) }}
+            </div>
+        </div>
+    {% endif %}
 </div>
 
 {% set notifications = form.getNotifications() %}

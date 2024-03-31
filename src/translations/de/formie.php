@@ -1158,7 +1158,7 @@ return [
 	'You must save your form before sending a test payload.' => 'Du musst dein Formular speichern, bevor du Testdaten sendest.',
 	'Success!' => 'Erfolg!',
     'Mark as spam' => 'Als Spam markieren',
-    'Mark as not spam' => 'Als kein Spam markieren',
+    'Unmark as spam' => 'Als kein Spam markieren',
     'Set status' => 'Status festlegen',
     'Are you sure you want to delete this submission?' => 'Sind Sie sicher, dass Sie diese Einreichung löschen möchten?',
     'Submission ID' => 'Einreichungs-ID',

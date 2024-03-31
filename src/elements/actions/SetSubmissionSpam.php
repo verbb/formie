@@ -15,6 +15,8 @@ class SetSubmissionSpam extends ElementAction
     // =========================================================================
 
     public ?string $spam = null;
+    public bool $sendNotifications = false;
+    public bool $triggerIntegrations = false;
 
 
     // Public Methods
@@ -27,6 +29,28 @@ class SetSubmissionSpam extends ElementAction
 
     public function getTriggerHtml(): ?string
     {
+        Craft::$app->getView()->registerJsWithVars(fn($type) => <<<JS
+(() => {
+    new Craft.ElementActionTrigger({
+        type: $type + '-MarkAsNotSpam',
+        bulk: true,
+        activate: function(selectedItems, elementIndex) {
+            const modal = new Craft.Formie.UnmarkSpamUserModal({
+                onSubmit: () => {
+                    elementIndex.submitAction($type, Garnish.getPostData(modal.\$container));
+                    modal.hide();
+
+                    return false;
+                },
+            });
+        },
+    });
+})();
+JS,
+        [
+            static::class,
+        ]);
+
         return Craft::$app->getView()->renderTemplate('formie/_components/actions/mark-spam/trigger');
     }
 
@@ -51,6 +75,17 @@ class SetSubmissionSpam extends ElementAction
 
                     // Validation error
                     $failCount++;
+
+                    continue;
+                }
+
+                // Check if we should trigger email notifications or integrations if this was spam
+                if ($this->sendNotifications) {
+                    Formie::$plugin->getSubmissions()->sendNotifications($element);
+                }
+
+                if ($this->triggerIntegrations) {
+                    Formie::$plugin->getSubmissions()->triggerIntegrations($element);
                 }
             }
         }

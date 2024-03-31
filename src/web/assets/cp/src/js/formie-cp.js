@@ -9,6 +9,7 @@
 import '../scss/formie-cp.scss';
 
 import './includes/submission-index';
+import './includes/submission-unmark-spam';
 import './includes/sent-notifications';
 
 if (typeof Craft.Formie === typeof undefined) {
