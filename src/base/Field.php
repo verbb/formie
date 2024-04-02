@@ -863,7 +863,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
                     $this->getParentField() ? 'fui-' . StringHelper::toKebabCase($this->getParentField()->displayName() . ' ' . $this->handle) : 'fui-page-field',
                 ],
                 'data' => [
-                    'field-handle' => $this->handle,
+                    'field-handle' => $this->fieldKey,
                     'field-type' => StringHelper::toKebabCase($this->displayName()),
                     'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
