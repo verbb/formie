@@ -13,6 +13,7 @@ So — Formie now stores all Fields, Rows, Pages and Field Layouts in its own da
 We've strived to make things backward compatible, and deprecated existing behaviour to ease the migration. This should only affect you if:
 
 - You have created a custom field class
+- You have custom JavaScript validation for fields
 - You iterate through or access [submission content](https://verbb.io/craft-plugins/formie/user-guides/the-complete-guide-to-rendering-submission-content)
 - You call `getCustomFields()` in your templates for Submissions
 - You call `getFieldLayout()` in your templates for Submissions
@@ -250,6 +251,125 @@ protected function defineValueForEmail($value, $notification, ElementInterface $
 protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): string
 ```
 
+## Custom JavaScript Validation
+
+:::tip
+If you haven't created your own custom JavaScript validation handlers, you can skip this section.
+:::
+
+Client-side validation has been greatly improved, and now aligns more closely to server-side validation from Craft/Yii. Previously, we used [`bouncer.js`](https://github.com/cferdinandi/bouncer) to handle client-side validation, which while excellent wasn't really translating well to some opinionated Formie concepts, or being used to compliment Craft/Yii's server-side validation. 
+
+In fact, we used `bouncer.js` as inspiration for our own validation library.
+
+This breaking change affects how you register your custom validators.
+
+```js
+// Formie v2
+import { t } from 'vendor/formie/frontend/utils/utils';
+
+let $form = document.querySelector('#formie-form-1');
+
+function customRule() {
+    return {
+        minLength(field) {
+            const limit = field.getAttribute('data-limit');
+
+            // Don't trigger this validation unless there's the `data-limit` attribute
+            if (!limit) {
+                return false;
+            }
+
+            return !(field.value.length > limit);
+        },
+    };
+}
+
+function customMessage() {
+    return {
+        minLength(field) {
+            return t('The value entered must be at least {limit} characters long.', {
+                limit: field.getAttribute('data-limit'),
+            });
+        },
+    };
+}
+
+$form.addEventListener('registerFormieValidation', (e) => {
+    e.preventDefault();
+
+    // Add our custom validations logic and methods
+    e.detail.validatorSettings.customValidations = {
+        ...e.detail.validatorSettings.customValidations,
+        ...this.customRule(),
+    };
+
+    // Add our custom messages
+    e.detail.validatorSettings.messages = {
+        ...e.detail.validatorSettings.messages,
+        ...this.customMessage(),
+    };
+
+    // ...
+});
+
+// Formie v3
+let $form = document.querySelector('#formie-form-1');
+
+$form.addEventListener('onFormieThemeReady', (event) => {
+    event.detail.addValidator('minLength', ({ input }) => {
+        const limit = input.getAttribute('data-limit');
+
+        // Don't trigger this validation unless there's the `data-limit` attribute
+        if (!limit) {
+            return true;
+        }
+
+        return input.value.length > limit;
+    }, ({ label, input, t }) => {
+        const limit = input.getAttribute('data-limit');
+
+        return t('The value entered in {label} must be at least {limit} characters long.', { label, limit });
+    });
+});
+```
+
+Now, we use a single registration function `addValidator()` to register our custom validator and message. This is in contrast to separate registration functions for the validation logic and message. We also have access to more variables in the respective callbacks for the `field` (Formie's outer field wrapper) the `input` (the `<input>` or similar HTML element) and the `label` of the field.
+
+We can also make use of Craft's translations far easier with the `t()` function available. You could also use string interpolation as well (i.e. `${label} is invalid.`) along with accessing other aspects of the DOM.
+
+We also use the new `onFormieThemeReady` event to register these validations only if you're using Formie's Theme JS (where client-side validation is enabled).
+
+### Return Value
+The returned value is now the opposite of what it was. Previously, a `true` return was used if the validation were to be applied. This was somewhat confusing, as returning `true` from a cognitive point of view usually means a positive change. Returning `true` for something that meant a failure didn't seem to make sense. 
+
+As such, validators should now return `true` for passing and `false` for failing. Essentially, describing whether the field value passed validation or not.
+
+```js
+// Formie v3
+function customRule() {
+    return {
+        minLength(field) {
+            // Don't trigger this validation unless there's the `data-limit` attribute
+            if (!field.getAttribute('data-limit')) {
+                return false;
+            }
+
+            return !(field.value.length > 5);
+        },
+    };
+}
+
+// Formie v3
+function({ input }) {
+    // Don't trigger this validation unless there's the `data-limit` attribute
+    if (!input.getAttribute('data-limit')) {
+        return true;
+    }
+
+    return input.value.length > 5;
+}
+```
+
 
 ## Repeater & Group Fields
 Repeater and Group fields have had a major overhaul in Formie 3, most notably that their values are no longer elements. This is to simplify the field, provide a lower learning curve to dealing with them, and performance. They also don't use nested field layouts for the same goals. Instead, they are simple arrays.
@@ -474,7 +594,7 @@ Inline with Craft's own improvement of removing the content database table and t
 
 Importantly, this change also means that you can now have **unlimited** fields in a form, so if you've been hanging out to make the biggest web form in history - your time is now!
 
-This won't mean anything for day-to-day use of Formie, but is useful to know if you're familiar with looking at the raw content of a submission
+This won't mean anything for day-to-day use of Formie, but is useful to know if you're familiar with looking at the raw content of a submission.
 
 ## Theme Config
 The `fieldInputContainer` key for Theme Config has been renamed to `fieldInputWrapper` to follow clear consistency with the terms "wrapper" and "container".
@@ -521,7 +641,7 @@ For the `Integration` class, the following applies:
 
 Custom Integration classes should now implement a `getOAuthProviderClass()` method which is a [Auth Provider](https://verbb.io/packages/auth/docs/feature-tour/providers).
 
-Refer also to our [OAuth Integrations](https://github.com/verbb/formie/tree/craft-5/src/integrations/crm) for some example implementations.
+Refer also to our [OAuth Integrations](https://github.com/verbb/formie/tree/craft-5/src/integrations/crm) for some existing implementations. We also have an [example](https://github.com/verbb/example-formie-oauth-integration) integration to get started with.
 
 ## GraphQL
 When querying fields or pages, you should use the `label` property instead of `name`.

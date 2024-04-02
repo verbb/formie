@@ -1,5 +1,5 @@
 import { t } from './utils/utils';
-import { Bouncer } from './utils/bouncer';
+import FormieValidator from './utils/validator';
 
 export class FormieFormTheme {
     constructor($form, config = {}) {
@@ -48,126 +48,40 @@ export class FormieFormTheme {
         if (this.settings.submitMethod === 'ajax') {
             this.formTabEventListener();
         }
+
+        // Emit a custom event to let scripts know the Formie class is ready
+        this.$form.dispatchEvent(new CustomEvent('onFormieThemeReady', {
+            bubbles: true,
+            detail: {
+                theme: this,
+                addValidator: this.addValidator.bind(this),
+            },
+        }));
     }
 
     initValidator() {
-        // Kick off validation - use this even if disabling client-side validation
-        // so we can use a nice API handle server-side errprs
         const validatorSettings = {
-            fieldClass: 'fui-error',
-            errorClass: this.form.getClasses('fieldError'),
-            fieldPrefix: 'fui-field-',
-            errorPrefix: 'fui-error-',
-            messageAfterField: true,
-            messageCustom: 'data-fui-message',
-            messageTarget: 'data-fui-target',
-            validateOnBlur: this.validationOnFocus,
+            live: this.validationOnFocus,
 
-            // Call validation on-demand
-            validateOnSubmit: false,
-            disableSubmit: false,
-
-            customValidations: {},
-
-            messages: {
-                missingValue: {
-                    checkbox: t('This field is required.'),
-                    radio: t('Please select a value.'),
-                    select: t('Please select a value.'),
-                    'select-multiple': t('Please select at least one value.'),
-                    default: t('Please fill out this field.'),
-                },
-
-                patternMismatch: {
-                    email: t('Please enter a valid email address.'),
-                    url: t('Please enter a URL.'),
-                    number: t('Please enter a number'),
-                    color: t('Please match the following format: #rrggbb'),
-                    date: t('Please use the YYYY-MM-DD format'),
-                    time: t('Please use the 24-hour time format. Ex. 23:00'),
-                    month: t('Please use the YYYY-MM format'),
-                    default: t('Please match the requested format.'),
-                },
-
-                outOfRange: {
-                    over: t('Please select a value that is no more than {max}.'),
-                    under: t('Please select a value that is no less than {min}.'),
-                },
-
-                wrongLength: {
-                    over: t('Please shorten this text to no more than {maxLength} characters. You are currently using {length} characters.'),
-                    under: t('Please lengthen this text to {minLength} characters or more. You are currently using {length} characters.'),
-                },
-
-                fallback: t('There was an error with this field.'),
-            },
+            fieldContainerErrorClass: 'fui-error',
+            inputErrorClass: 'fui-error',
+            messagesClass: this.form.getClasses('fieldErrors'),
+            messageClass: this.form.getClasses('errorMessage'),
         };
 
-        // Allow other modules to modify our validator settings (for custom rules and messages)
-        const registerFormieValidation = new CustomEvent('registerFormieValidation', {
-            bubbles: true,
-            detail: {
-                validatorSettings,
-            },
+        this.validator = new FormieValidator(this.$form, validatorSettings);
+
+        // Allow other modules to modify our validator. Use `triggerEvent` to support calling `registerEvent` as different
+        // times during the app, as some fields or custom validators can be registered after this call.
+        this.form.triggerEvent('registerFormieValidation', {
+            validator: this.validator,
         });
+    }
 
-        // Give a small amount of time for other JS scripts to register validations. These are lazy-loaded.
-        // Maybe re-think this so we don't have to deal with event listener registration before/after dispatch?
-        setTimeout(() => {
-            this.$form.dispatchEvent(registerFormieValidation);
-
-            this.validator = new Bouncer(this.$form, registerFormieValidation.detail.validatorSettings);
-        }, 500);
-
-        // After we clear any error, validate the fielset again. Mostly so we can remove global errors
-        this.form.addEventListener(this.$form, 'bouncerRemoveError', (e) => {
-            // Prevent an infinite loop (check behaviour with an Agree field)
-            // https://github.com/verbb/formie/issues/905
-            if (!this.submitDebounce) {
-                this.validate(false);
-            }
+    addValidator() {
+        this.form.registerEvent('registerFormieValidation', (e) => {
+            e.validator.addValidator(...arguments);
         });
-
-        // Override error messages defined in DOM - Bouncer only uses these as a last resort
-        // In future updates, we can probably remove this
-        this.form.addEventListener(this.$form, 'bouncerShowError', (e) => {
-            let message = null;
-            const $field = e.target;
-            const $fieldContainer = $field.closest('[data-field-type]');
-
-            // Check if we need to move the error out of the .fui-input-wrapper node.
-            // Only the input itself should be in here.
-            const $errorToMove = $field.parentNode.querySelector('[data-error-message]');
-
-            if ($errorToMove && $errorToMove.parentNode.parentNode) {
-                $errorToMove.parentNode.parentNode.appendChild($errorToMove);
-            }
-
-            // Only swap out any custom error message for "required" fields, so as not to override other messages
-            if (e.detail && e.detail.errors && (e.detail.errors.missingValue || e.detail.errors.serverMessage)) {
-                // Get the error message as defined on the input element. Use the parent to find the element
-                // just to cater for some edge-cases where there might be multiple inputs (Datepicker).
-                const $message = $field.parentNode.querySelector('[data-fui-message]');
-
-                if ($message) {
-                    message = $message.getAttribute('data-fui-message');
-                }
-
-                // If there's a server error, it takes priority.
-                if (e.detail.errors.serverMessage) {
-                    message = e.detail.errors.serverMessage;
-                }
-
-                // The error has been moved, find it again
-                if ($fieldContainer) {
-                    const $error = $fieldContainer.querySelector('[data-error-message]');
-
-                    if ($error && message) {
-                        $error.textContent = message;
-                    }
-                }
-            }
-        }, false);
     }
 
     addSubmitEventListener() {
@@ -331,27 +245,22 @@ export class FormieFormTheme {
             $fieldset = this.$currentPage;
         }
 
-        const invalidFields = this.validator.validateAll($fieldset);
+        // Validate just the current page (if there is one) or the entire form
+        this.validator.validate($fieldset);
 
-        // If there are errors, focus on the first one
-        if (invalidFields.length > 0 && focus) {
-            invalidFields[0].focus();
+        const errors = this.validator.getErrors();
+
+        // // If there are errors, focus on the first one
+        if (errors.length > 0 && focus) {
+            errors[0].input.focus();
         }
 
         // Remove any global errors if none - just in case
-        if (invalidFields.length === 0) {
+        if (errors.length === 0) {
             this.removeFormAlert();
         }
 
-        // Set the debounce after a little bit, to prevent an infinite loop, as this method
-        // is called on `bouncerRemoveError`.
-        this.submitDebounce = true;
-
-        setTimeout(() => {
-            this.submitDebounce = false;
-        }, 500);
-
-        return !invalidFields.length;
+        return !errors.length;
     }
 
     hideSuccess() {
@@ -483,10 +392,7 @@ export class FormieFormTheme {
     }
 
     beforeSubmit() {
-        // Remove all validation errors
-        Array.prototype.filter.call(this.$form.querySelectorAll('input, select, textarea'), (($field) => {
-            this.validator.removeError($field);
-        }));
+        this.validator?.removeAllErrors();
 
         this.removeFormAlert();
         this.removeTabErrors();
@@ -608,7 +514,7 @@ export class FormieFormTheme {
             }
 
             if ($field) {
-                this.validator.showError($field, { serverMessage: error });
+                this.validator?.showError($field, 'server', error);
 
                 // Focus on the first error
                 if (index === 0) {

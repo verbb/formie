@@ -2,12 +2,64 @@ import { t } from './utils/utils';
 
 import { FormieFormTheme } from './formie-form-theme';
 
+// Create an event dispatcher for registering and triggering events, no matter the `dispatchEvent` or `addEventListener` order.
+// This is useful for registering validation rules, where fields that are lazy-loaded might register validators, but are
+// triggered after the Form Theme's `dispatchEvent`.
+class EventDispatcher {
+    constructor() {
+        this.listeners = new Map();
+        this.dispatchedEvents = new Map();
+    }
+
+    addEventListener(eventName, callback) {
+        if (!this.listeners.has(eventName)) {
+            this.listeners.set(eventName, []);
+        }
+
+        this.listeners.get(eventName).push(callback);
+
+        // If there are pending events, execute the callbacks for those events
+        if (this.dispatchedEvents.has(eventName)) {
+            const eventDetail = this.dispatchedEvents.get(eventName);
+
+            callback(eventDetail);
+        }
+    }
+
+    removeEventListener(eventName, callback) {
+        if (!this.listeners.has(eventName)) {
+            return;
+        }
+
+        const index = this.listeners.get(eventName).indexOf(callback);
+
+        if (index !== -1) {
+            this.listeners.get(eventName).splice(index, 1);
+        }
+    }
+
+    dispatchEvent(eventName, eventDetail) {
+        if (!this.listeners.has(eventName)) {
+            // If there are no listeners, store the event for future listeners
+            this.dispatchedEvents.set(eventName, eventDetail);
+            return;
+        }
+
+        const callbacks = this.listeners.get(eventName);
+
+        callbacks.forEach((callback) => {
+            callback(eventDetail);
+        });
+    }
+}
+
 export class FormieFormBase {
     constructor($form, config = {}) {
         this.$form = $form;
         this.config = config;
         this.settings = config.settings;
         this.listeners = {};
+        this.eventDispatcher = new EventDispatcher();
 
         if (!this.$form) {
             return;
@@ -21,6 +73,14 @@ export class FormieFormBase {
 
         // Add helper classes to fields when their inputs are focused, have values etc.
         this.registerFieldEvents(this.$form);
+
+        // Emit a custom event to let scripts know the Formie class is ready
+        this.$form.dispatchEvent(new CustomEvent('onFormieReady', {
+            bubbles: true,
+            detail: {
+                form: this,
+            },
+        }));
 
         // Hijack the form's submit handler, in case we need to do something
         this.addEventListener(this.$form, 'submit', (e) => {
@@ -237,5 +297,13 @@ export class FormieFormBase {
                 }
             });
         }
+    }
+
+    registerEvent(eventName, callback) {
+        this.eventDispatcher.addEventListener(eventName, callback);
+    }
+
+    triggerEvent(eventName, options) {
+        this.eventDispatcher.dispatchEvent(eventName, options);
     }
 }

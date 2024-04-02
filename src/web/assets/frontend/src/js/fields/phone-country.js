@@ -88,7 +88,7 @@ export class FormiePhoneCountry {
         this.form.addEventListener(this.$field, eventKey('countrychange'), this.countryChange.bind(this));
 
         // Attach custom validation
-        this.form.addEventListener(this.$form, eventKey('registerFormieValidation'), this.registerValidation.bind(this));
+        this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
 
         // Trigger the country changing now, in case it's been populated
         this.$field.dispatchEvent(new Event('countrychange', { bubbles: true }));
@@ -110,59 +110,37 @@ export class FormiePhoneCountry {
     }
 
     registerValidation(e) {
-        // Add our custom validations logic and methods
-        e.detail.validatorSettings.customValidations = {
-            ...e.detail.validatorSettings.customValidations,
-            ...this.getPhoneRule(),
-        };
+        e.validator.addValidator('phoneCountry', ({ input }) => {
+            if (input.value.trim() && input.validator) {
+                if (input.validator.isValidNumber()) {
+                    const countryData = input.validator.getSelectedCountryData();
+                    const selectedCountryCode = countryData.iso2;
 
-        // Add our custom messages
-        e.detail.validatorSettings.messages = {
-            ...e.detail.validatorSettings.messages,
-            ...this.getPhoneMessage(),
-        };
-    }
-
-    getPhoneRule() {
-        return {
-            phoneCountry(field) {
-                if (field.value.trim() && field.validator) {
-                    if (field.validator.isValidNumber()) {
-                        const countryData = field.validator.getSelectedCountryData();
-                        const selectedCountryCode = countryData.iso2;
-
-                        // The library doesn't provide a method to check if it's a valid number against restricted countries
-                        // so we need to do that ourselves.
-                        if (field.restrictedCountries) {
-                            // Check if this country code is in our allowed codes. Note `selectedCountryCode` will
-                            // be empty if it matches a valid phone for a non-allowed country.
-                            if (!field.validator.options.onlyCountries.includes(selectedCountryCode)) {
-                                return true;
-                            }
+                    // The library doesn't provide a method to check if it's a valid number against restricted countries
+                    // so we need to do that ourselves.
+                    if (input.restrictedCountries) {
+                        // Check if this country code is in our allowed codes. Note `selectedCountryCode` will
+                        // be empty if it matches a valid phone for a non-allowed country.
+                        if (!input.validator.options.onlyCountries.includes(selectedCountryCode)) {
+                            return false;
                         }
-
-                        // Save the country code to the hidden input
-                        if (field.$countryInput && selectedCountryCode) {
-                            field.$countryInput.value = selectedCountryCode.toUpperCase();
-                        }
-                    } else {
-                        return true;
                     }
+
+                    // Save the country code to the hidden input
+                    if (input.$countryInput && selectedCountryCode) {
+                        input.$countryInput.value = selectedCountryCode.toUpperCase();
+                    }
+                } else {
+                    return false;
                 }
-            },
-        };
-    }
+            }
+        }, ({ input }) => {
+            const errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
+            const errorCode = input.validator.getValidationError();
+            const errorMessage = errorMap[errorCode] || 'Invalid number';
 
-    getPhoneMessage() {
-        return {
-            phoneCountry(field) {
-                const errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
-                const errorCode = field.validator.getValidationError();
-                const errorMessage = errorMap[errorCode] || 'Invalid number';
-
-                return t(errorMessage);
-            },
-        };
+            return t(errorMessage);
+        });
     }
 }
 
