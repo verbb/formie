@@ -112,6 +112,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return array_pop($classNameParts);
     }
 
+    public static function kebabClassName(): string
+    {
+        return StringHelper::toKebabCase(static::className());
+    }
+
     public static function phpType(): string
     {
         return 'mixed';
@@ -124,12 +129,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public static function getFrontEndInputTemplatePath(): string
     {
-        return 'fields/' . static::_getKebabName();
+        return 'fields/' . static::kebabClassName();
     }
 
     public static function getEmailTemplatePath(): string
     {
-        return 'fields/' . static::_getKebabName();
+        return 'fields/' . static::kebabClassName();
     }
 
     public static function getSvgIcon(): string
@@ -853,18 +858,18 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             return new HtmlTag('div', [
                 'class' => [
                     'fui-field',
-                    'fui-type-' . StringHelper::toKebabCase($this->displayName()),
+                    'fui-type-' . static::kebabClassName(),
                     'fui-label-' . $labelPosition,
                     'fui-subfield-label-' . $subFieldLabelPosition,
                     'fui-instructions-' . $instructionsPosition,
                     $errors ? 'fui-field-error fui-error' : null,
                     $this->required ? 'fui-field-required' : null,
                     $this->getIsHidden() ? 'fui-hidden' : null,
-                    $this->getParentField() ? 'fui-' . StringHelper::toKebabCase($this->getParentField()->displayName() . ' ' . $this->handle) : 'fui-page-field',
+                    $this->getParentField() ? 'fui-' . $this->getParentField()->kebabClassName() . '-' . StringHelper::toKebabCase($this->handle) : 'fui-page-field',
                 ],
                 'data' => [
                     'field-handle' => $this->fieldKey,
-                    'field-type' => StringHelper::toKebabCase($this->displayName()),
+                    'field-type' => static::kebabClassName(),
                     'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
@@ -1593,14 +1598,6 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     // Private Methods
     // =========================================================================
-
-    private static function _getKebabName(): string
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
-    }
 
     private static function _getReservedWords(): array
     {
