@@ -1,5 +1,5 @@
 import { t } from './utils/utils';
-import FormieValidator from './utils/validator';
+import FormieValidator from './validator/validator';
 
 export class FormieFormTheme {
     constructor($form, config = {}) {

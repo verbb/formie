@@ -1,4 +1,5 @@
 import { t } from '../utils/utils';
+import rules from './rules';
 
 class FormieValidator {
     constructor(form, config) {
@@ -13,6 +14,7 @@ class FormieValidator {
             inputErrorClass: 'fui-error',
             messagesClass: 'fui-errors',
             messageClass: 'fui-error-message',
+            fieldsSelector: 'input:not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea',
 
             patterns: {
                 // eslint-disable-next-line
@@ -28,49 +30,9 @@ class FormieValidator {
             ...config,
         };
 
-        this.addValidator('required', ({ input }) => {
-            if (!input.hasAttribute('required') || input.type === 'hidden') {
-                return true;
-            }
-
-            // For checkboxes (singular and group) and radio buttons
-            if (input.type === 'checkbox' || input.type === 'radio') {
-                const checkboxInputs = input.form.querySelectorAll(`[name="${input.name}"]:not([type="hidden"])`);
-
-                if (checkboxInputs.length) {
-                    const checkedInputs = Array.prototype.filter.call(checkboxInputs, ((btn) => {
-                        return btn.checked;
-                    }));
-
-                    return checkedInputs.length;
-                }
-
-                return input.checked;
-            }
-
-            return input.value.trim() !== '';
-        }, ({ input, label }) => {
-            return input.getAttribute('data-required-message') ?? t('{attribute} cannot be blank.', { attribute: label });
-        });
-
-        this.addValidator('pattern', ({ input }) => {
-            const pattern = input.getAttribute('pattern');
-            const patternToMatch = pattern ? new RegExp(`^(?:${pattern})$`) : this.config.patterns[input.type];
-
-            if (!patternToMatch || !input.value || input.value.length < 1) {
-                return true;
-            }
-
-            return input.value.match(patternToMatch) ? true : false;
-        }, ({ input, label }) => {
-            const messages = {
-                email: t('{attribute} is not a valid email address.', { attribute: label }),
-                url: t('{attribute} is not a valid URL.', { attribute: label }),
-                number: t('{attribute} is not a valid number.', { attribute: label }),
-                default: t('{attribute} is not a valid format.', { attribute: label }),
-            };
-
-            return input.getAttribute(`data-pattern-${input.type}-message`) ?? messages[input.type] ?? messages.default;
+        // Register core validators
+        Object.entries(rules).forEach(([validatorName, validator]) => {
+            this.addValidator(validatorName, validator.rule, validator.message);
         });
 
         this.init();
@@ -97,7 +59,7 @@ class FormieValidator {
             inputOrSelector = this.form;
         }
 
-        return inputOrSelector.querySelectorAll('input:not([type^=hidden]):not([type^=submit]), select, textarea');
+        return inputOrSelector.querySelectorAll(this.config.fieldsSelector);
     }
 
     validate(inputOrSelector = null) {
@@ -232,6 +194,7 @@ class FormieValidator {
             label,
             field: fieldContainer,
             t,
+            config: this.config,
         };
     }
 

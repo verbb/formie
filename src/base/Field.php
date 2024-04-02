@@ -839,6 +839,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
                     'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
+                    'match-field' => $this->matchField,
                 ],
             ], $containerAttributes, $this->cssClasses);
         }
