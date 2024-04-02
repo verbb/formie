@@ -1,12 +1,13 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\Number;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateAmPmNumber extends Number
+class DateAmPmNumber extends Number implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================

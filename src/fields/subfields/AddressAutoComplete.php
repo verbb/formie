@@ -3,12 +3,13 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class AddressAutoComplete extends SingleLineText
+class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================

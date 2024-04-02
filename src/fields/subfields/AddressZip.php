@@ -3,13 +3,14 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 
-class AddressZip extends SingleLineText
+class AddressZip extends SingleLineText implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================

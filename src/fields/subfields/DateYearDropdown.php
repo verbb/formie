@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -9,7 +10,7 @@ use craft\base\ElementInterface;
 
 use DateTime;
 
-class DateYearDropdown extends Dropdown
+class DateYearDropdown extends Dropdown implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================

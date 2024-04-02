@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
@@ -9,7 +10,7 @@ use Craft;
 
 use yii\base\Event;
 
-class NamePrefix extends Dropdown
+class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
 {
     // Constants
     // =========================================================================

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -8,7 +9,7 @@ use Craft;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 
-class AddressCountry extends Dropdown
+class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================

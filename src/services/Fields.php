@@ -6,6 +6,7 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\ModifyExistingFieldsEvent;
 use verbb\formie\events\ModifyFieldConfigEvent;
@@ -289,10 +290,23 @@ class Fields extends Component
 
         // Any custom fields
         if ($registeredFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Custom Fields'),
-                'fields' => $registeredFields,
-            ];
+            // Exclude any sub-field inner fields, which need to be registered, just not pickable on their own
+            $customFields = [];
+
+            foreach ($registeredFields as $fieldClass => $registeredField) {
+                if ($registeredField instanceof SubFieldInnerFieldInterface) {
+                    continue;
+                }
+
+                $customFields[$fieldClass] = $registeredField;
+            }
+
+            if ($customFields) {
+                $groupedFields[] = [
+                    'label' => Craft::t('formie', 'Custom Fields'),
+                    'fields' => $customFields,
+                ];
+            }
         }
 
         foreach ($groupedFields as $groupKey => $group) {

@@ -1,12 +1,13 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateSecondDropdown extends Dropdown
+class DateSecondDropdown extends Dropdown implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
