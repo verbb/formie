@@ -470,6 +470,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $this->defaultValue = $this->normalizeValue($value);
     }
 
+    public function getMatchField(): ?string
+    {
+        return $this->matchField ? str_replace(['{', '}', 'field:'], '', $this->matchField) : null;
+    }
+
     public function getElementValidationRules(): array
     {
         $rules = [];
@@ -483,7 +488,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function validateMatchField(ElementInterface $element): void
     {
-        $fieldHandle = str_replace(['{', '}', 'field:'], '', $this->matchField);
+        $fieldHandle = $this->getMatchField();
         $sourceValue = $element->getFieldValue($fieldHandle);
         $value = $element->getFieldValue($this->fieldKey);
 
@@ -763,6 +768,30 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         ];
     }
 
+    public function getValidationConfigString(array $context = []): string
+    {
+        $validators = [];
+
+        if ($this->required) {
+            $validators[] = 'required';
+        }
+
+        // Determine the type automatically from the input defineHtmlTag
+        $htmlTag = $this->renderHtmlTag('fieldInput', $context);
+        $type = $htmlTag->attributes['type'] ?? null;
+
+        // We don't support every type yet as a validator, maybe one day!
+        if (in_array($type, ['url', 'email', 'number'])) {
+            $validators[] = $type;
+        }
+
+        if ($this->matchField) {
+            $validators[] = 'match:' . $this->getMatchField();
+        }
+
+        return implode('|', $validators);
+    }
+
     public function renderHtmlTag(string $key, array $context = []): ?HtmlTag
     {
         // Get the HtmlTag definition
@@ -839,7 +868,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
                     'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
-                    'match-field' => $this->matchField,
+                    'validation' => $this->getValidationConfigString($context),
                 ],
             ], $containerAttributes, $this->cssClasses);
         }

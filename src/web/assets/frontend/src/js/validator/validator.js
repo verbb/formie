@@ -190,11 +190,14 @@ class FormieValidator {
         const label = fieldContainer?.querySelector('[data-field-label]')?.childNodes[0].textContent?.trim() ?? '';
 
         return {
+            t,
             input,
             label,
             field: fieldContainer,
-            t,
             config: this.config,
+            getRule: (rule) => {
+                return this.getRule(fieldContainer, rule);
+            },
         };
     }
 
@@ -208,6 +211,34 @@ class FormieValidator {
 
     getErrors() {
         return this.errors;
+    }
+
+    getRule(field, rule) {
+        if (field) {
+            const ruleString = field.getAttribute('data-validation');
+
+            if (ruleString) {
+                const rules = this.parseValidationRules(ruleString);
+
+                if (rules[rule]) {
+                    return rules[rule];
+                }
+            }
+        }
+
+        return false;
+    }
+
+    parseValidationRules(ruleString) {
+        const rules = {};
+        const parts = ruleString.split('|');
+
+        parts.forEach((part) => {
+            const [key, value] = part.split(':');
+            rules[key] = value !== undefined ? value : true;
+        });
+
+        return rules;
     }
 
     destroy() {

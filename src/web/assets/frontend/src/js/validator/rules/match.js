@@ -1,16 +1,4 @@
-const getSourceField = (field) => {
-    if (!field) {
-        return false;
-    }
-
-    let match = field.getAttribute('data-match-field');
-
-    if (!match) {
-        return false;
-    }
-
-    match = match.replace('{', '').replace('}', '').replace('field:', '');
-
+const getSourceField = (field, match) => {
     // Get the source field to match against
     const form = field.closest('form');
 
@@ -21,8 +9,16 @@ const getSourceField = (field) => {
     return form.querySelector(`[data-field-handle="${match}"]`);
 };
 
-export const rule = ({ field, input, config }) => {
-    const sourceField = getSourceField(field);
+// eslint-disable-next-line
+export const rule = ({ field, input, config, getRule }) => {
+    const match = getRule('match');
+
+    // Ignore any field that doesn't have a "match" rule
+    if (!match) {
+        return true;
+    }
+
+    const sourceField = getSourceField(field, match);
 
     if (!sourceField) {
         return true;
@@ -41,13 +37,11 @@ export const rule = ({ field, input, config }) => {
     return sourceValue === destinationValue;
 };
 
-export const message = ({ field, label, t }) => {
-    let sourceLabel = '';
-    const sourceField = getSourceField(field);
-
-    if (sourceField) {
-        sourceLabel = sourceField.querySelector('[data-field-label]')?.childNodes[0].textContent?.trim() ?? '';
-    }
+// eslint-disable-next-line
+export const message = ({ field, label, t, getRule }) => {
+    const match = getRule('match');
+    const sourceField = getSourceField(field, match);
+    const sourceLabel = sourceField?.querySelector('[data-field-label]')?.childNodes[0].textContent?.trim() ?? '';
 
     return t('{name} must match {value}.', { name: label, value: sourceLabel });
 };
