@@ -59,14 +59,19 @@ trait FormFieldTrait
         return array_pop($classNameParts);
     }
 
+    private static function kebabClassName(): string
+    {
+        return StringHelper::toKebabCase(static::className());
+    }
+
     public static function getFrontEndInputTemplatePath(): string
     {
-        return 'fields/' . static::_getKebabName();
+        return 'fields/' . static::kebabClassName();
     }
 
     public static function getEmailTemplatePath(): string
     {
-        return 'fields/' . static::_getKebabName();
+        return 'fields/' . static::kebabClassName();
     }
 
     public static function getSvgIcon(): string
@@ -842,18 +847,18 @@ trait FormFieldTrait
             return new HtmlTag('div', [
                 'class' => [
                     'fui-field',
-                    'fui-type-' . StringHelper::toKebabCase($this->displayName()),
+                    'fui-type-' . static::kebabClassName(),
                     'fui-label-' . $labelPosition,
                     'fui-subfield-label-' . $subfieldLabelPosition,
                     'fui-instructions-' . $instructionsPosition,
                     $errors ? 'fui-field-error fui-error' : null,
                     $this->required ? 'fui-field-required' : null,
                     $this->getIsHidden() ? 'fui-hidden' : null,
-                    $this->getParentField() ? 'fui-' . StringHelper::toKebabCase($this->getParentField()->displayName() . ' ' . $this->handle) : 'fui-page-field',
+                    $this->getParentField() ? 'fui-' . $this->getParentField()->kebabClassName() . '-' . StringHelper::toKebabCase($this->handle) : 'fui-page-field',
                 ],
                 'data' => [
                     'field-handle' => $this->handle,
-                    'field-type' => StringHelper::toKebabCase($this->displayName()),
+                    'field-type' => static::kebabClassName(),
                     'field-display-type' => $this->getDisplayType(),
                     'field-config' => $this->getConfigJson(),
                     'field-conditions' => $this->getConditionsJson($submission),
@@ -1634,19 +1639,6 @@ trait FormFieldTrait
 
     // Private Methods
     // =========================================================================
-
-    /**
-     * Returns the kebab-case name of the field class.
-     *
-     * @return string
-     */
-    private static function _getKebabName(): string
-    {
-        $classNameParts = explode('\\', static::class);
-        $end = array_pop($classNameParts);
-
-        return StringHelper::toKebabCase($end);
-    }
 
     private static function _getReservedWords(): array
     {
