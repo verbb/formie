@@ -483,7 +483,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function validateMatchField(ElementInterface $element): void
     {
-        $fieldHandle = str_replace(['{', '}'], '', $this->matchField);
+        $fieldHandle = str_replace(['{', '}', 'field:'], '', $this->matchField);
         $sourceValue = $element->getFieldValue($fieldHandle);
         $value = $element->getFieldValue($this->fieldKey);
 
