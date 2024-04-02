@@ -232,7 +232,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public function getElementValidationRules(): array
     {
         // Get all of the acceptable values
-        $range = [];
+        $range = parent::getElementValidationRules();
 
         foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
@@ -241,13 +241,9 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             }
         }
 
-        return [
-            [
-                'in',
-                'range' => $range,
-                'allowArray' => $this->multi,
-            ],
-        ];
+        $rules[] = ['in', 'range' => $range, 'allowArray' => $this->multi];
+
+        return $rules;
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
@@ -257,7 +253,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return $value->value === null || $value->value === '';
         }
 
-        if ($value instanceof MultiOptionFieldData) {
+        if ($value instanceof MultiOptionsFieldData) {
             return count($value) === 0;
         }
 
