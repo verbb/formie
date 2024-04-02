@@ -564,6 +564,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
                         'fui-legend',
                     ],
                     'data' => [
+                        'field-label' => true,
                         'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
                     ],
                 ]);

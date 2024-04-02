@@ -163,7 +163,12 @@ class Html extends CosmeticField
             }
 
             return new HtmlTag('label', [
-                'class' => ['fui-label'],
+                'class' => [
+                    'fui-label'
+                ],
+                'data' => [
+                    'field-label' => true,
+                ],
                 // Exclude the `for` attribute, as it's invalid (there's no form control to refer to)
             ]);
         }

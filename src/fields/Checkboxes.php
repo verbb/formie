@@ -322,6 +322,7 @@ class Checkboxes extends OptionsField
                     'fui-legend',
                 ],
                 'data' => [
+                    'field-label' => true,
                     'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
                 ],
             ]);

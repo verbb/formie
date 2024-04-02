@@ -300,6 +300,7 @@ class Address extends SubField implements PreviewableFieldInterface
                     'fui-legend',
                 ],
                 'data' => [
+                    'field-label' => true,
                     'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
                 ],
             ]);
