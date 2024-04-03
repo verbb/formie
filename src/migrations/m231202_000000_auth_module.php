@@ -18,7 +18,6 @@ class m231202_000000_auth_module extends Migration
 
     public function safeUp(): bool
     {
-        // Use `Auth::getInstance()` not `Auth::$plugin` as it doesn't seem to work well in migrations
         Auth::getInstance()->migrator->up();
 
         // Migrate Formie tokens to Auth tokens
