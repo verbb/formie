@@ -262,13 +262,34 @@ abstract class NestedField extends Field implements NestedFieldInterface
                 'name' => 'nestedRows',
                 'type' => Type::listOf(RowInterface::getType()),
                 'description' => 'The field’s nested rows.',
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
+                'resolve' => function($source, $arguments) {
+                    $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+                    return $source->getRows($includeDisabled);
+                },
             ],
             'fields' => [
                 'name' => 'fields',
                 'type' => Type::listOf(GqlFieldInterface::getType()),
                 'description' => 'The field’s nested fields.',
-                'resolve' => function($source) {
-                    return $source->getFields();
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
+                'resolve' => function($source, $arguments) {
+                    $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+                    return $source->getFields($includeDisabled);
                 },
             ],
         ]);

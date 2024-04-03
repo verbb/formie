@@ -58,6 +58,18 @@ class PageInterface extends BaseInterfaceType
                 'name' => 'rows',
                 'type' => Type::listOf(RowInterface::getType()),
                 'description' => 'The page’s rows.',
+                'args' => [
+                    'includeDisabled' => [
+                        'name' => 'includeDisabled',
+                        'description' => 'Whether to include fields with visibility "disabled".',
+                        'type' => Type::boolean(),
+                    ],
+                ],
+                'resolve' => function($source, $arguments) {
+                    $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+                    return $source->getRows($includeDisabled);
+                },
             ],
             'pageFields' => [
                 'name' => 'pageFields',
@@ -70,6 +82,11 @@ class PageInterface extends BaseInterfaceType
                         'type' => Type::boolean(),
                     ],
                 ],
+                'resolve' => function($source, $arguments) {
+                    $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+                    return $source->getFields($includeDisabled);
+                },
             ],
             'settings' => [
                 'name' => 'settings',
