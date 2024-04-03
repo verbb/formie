@@ -78,6 +78,18 @@
 
             <hr>
 
+            {% if form %}
+                {% set errors = form.getErrors() ?: form.getConsolidatedErrors() %}
+
+                {% if errors %}
+                    <div class="fui-notice error">
+                        <pre>{{ errors | json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                    </div>
+
+                    <hr>
+                {% endif %}
+            {% endif %}
+
             <div class="buttons">
                 <a href="{{ url('formie/forms') }}" class="btn big fui-btn">{{ 'Cancel' | t('formie') }}</a>
                 <button type="submit" class="btn big submit">{{ 'Next' | t('formie') }}</button>
