@@ -36,7 +36,7 @@ class CalendarEvent extends Element
     // =========================================================================
 
     public ?int $calendarId = null;
-    public ?int $defaultAuthorId = null;
+    public int|array|null $defaultAuthorId = null;
 
 
     // Public Methods
