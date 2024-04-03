@@ -59,7 +59,7 @@ trait FormFieldTrait
         return array_pop($classNameParts);
     }
 
-    private static function kebabClassName(): string
+    public static function kebabClassName(): string
     {
         return StringHelper::toKebabCase(static::className());
     }
