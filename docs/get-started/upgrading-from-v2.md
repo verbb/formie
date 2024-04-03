@@ -682,6 +682,44 @@ When querying fields or pages, you should use the `label` property instead of `n
 }
 ```
 
+### Sub-Fields
+Previously, all Sub-Field label, enabled state and more were stored as properties on the outer Sub-Field. These are now nested as individual `FieldInterface` items.
+
+```gql
+// Formie v2
+{
+    formieForm (handle: "contactForm") {
+        title
+        
+        formFields {
+            label
+
+            prefixLabel
+            firstNameLabel
+            middleNameLabel
+            lastNameLabel
+        }
+    }
+}
+
+// Formie v3
+{
+    formieForm (handle: "contactForm") {
+        title
+        
+        formFields {
+            label
+
+            ... on Field_Name {
+                fields {
+                    label
+                }
+            }
+        }
+    }
+}
+```
+
 ## Events
 The `EVENT_MODIFY_FIELD_CONFIG` event had been moved to be on the individual field class, not the `verbb\formie\services\Fields` service.
 
