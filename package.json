@@ -36,7 +36,7 @@
         "rollup-plugin-analyzer": "^4.0.0",
         "sass": "^1.53.0",
         "sass-loader": "^13.0.2",
-        "vite": "^2.9.13",
+        "vite": "^2.9.18",
         "vite-plugin-eslint": "^1.6.1",
         "vite-plugin-imagemin": "^0.6.1",
         "vuex": "^4.0.2"
