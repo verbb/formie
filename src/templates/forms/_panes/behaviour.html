@@ -53,11 +53,10 @@
         instructions: 'When a user submits this form, I want to:' | t('formie'),
         id: 'submitAction',
         name: 'settings[submitAction]',
-        toggle: true,
-        targetPrefix: 'submit-action-',
         value: submitAction,
         inputAttributes: {
             'data-value': submitAction,
+            'data-target-prefix': 'submit-action-',
         },
     }) }}
 
@@ -453,6 +452,9 @@ function updateSubmitActionOptions() {
 
     // Restore the original value
     $submitAction.val(selectedOption);
+
+    // Manually find the toggle - Craft doesn't like it when set initially and values change dynamically
+    $submitAction.fieldtoggle();
 }
 
 $('[name="settings[submitMethod]"]').on('change', function(e) {
