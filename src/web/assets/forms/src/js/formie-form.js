@@ -510,21 +510,10 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
 Craft.Formie.SiteElementSelect = Craft.BaseElementSelectInput.extend({
     createNewElement(elementInfo) {
         const $element = elementInfo.$element.clone();
-        const removeText = Craft.t('app', 'Remove {label}', {
-            label: Craft.escapeHtml(elementInfo.label),
-        });
 
-        // Make a couple tweaks
-        Craft.setElementSize(
-            $element,
-            this.settings.viewMode === 'large' ? 'large' : 'small',
-        );
-
-        $element.addClass('removable');
         $element.prepend(`
             <input type="hidden" name="${this.settings.name}[id]" value="${elementInfo.id}">
             <input type="hidden" name="${this.settings.name}[siteId]" value="${elementInfo.siteId}">
-            <button type="button" class="delete icon" title="${Craft.t('app', 'Remove')}" aria-label="${removeText}"></button>
         `);
 
         return $element;

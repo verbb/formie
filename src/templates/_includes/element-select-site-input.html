@@ -11,72 +11,59 @@
 {% set sourceElementId = sourceElementId ?? null -%}
 {% set storageKey = storageKey ?? null -%}
 {% set viewMode = viewMode ?? 'list' %}
-{% set sortable = sortable ?? true %}
 {% set prevalidate = prevalidate ?? false %}
 {% set fieldId = fieldId ?? null %}
-{% set single = single ?? false %}
+{% set single = true %}
 {% set limit = single ? 1 : (limit ?? null) %}
+{% set showActionMenu = false %}
+{% set sortable = false %}
 {% set disabled = (disabled ?? false) ? true : false %}
+{% set maintainHierarchy = false %}
+{% set registerJs = registerJs ?? true %}
 
 {% set containerAttributes = {
     id: id,
     class: ['elementselect']|merge((class ?? [])|explodeClass),
 }|merge(containerAttributes ?? [], recursive=true) %}
 
+{% set modalSettings = {
+    modalTitle: selectionLabel ?? 'Choose'|t('app'),
+}|merge(modalSettings ?? [], recursive=true) %}
+
 {%- if block('attr') is defined %}
     {%- set containerAttributes = containerAttributes|merge(('<div ' ~ block('attr') ~ '>')|parseAttr, recursive=true) %}
 {% endif %}
 
 {% tag 'div' with containerAttributes %}
-    <div class="elements">
+    {# Modify behaviour here to include site ID #}
+    {% apply spaceless %}
+      {% tag 'ul' with {
+        class: [
+          'elements',
+          'chips',
+          (inline ?? false) ? 'inline-chips' : null,
+        ]|filter,
+      } %}
         {% for element in elements %}
-            {# Modify behaviour here to include site ID #}
-            {% set element %}
-                {% set label = element.getUiLabel() %}
-
-                {% tag 'div' with {
-                    class: "element small removable hasstatus",
-                    title: label,
-                    'data-type': className(element),
-                    'data-id': element.id,
-                    'data-site-id': element.siteId,
-                    'data-status': element.getStatus(),
-                    'data-label': '' ~ element,
-                    'data-url': element.getUrl(),
-                    'data-settings': {
-                        context: 'field',
-                        size: 'small',
-                        showStatus: true,
-                        showThumb: true,
-                        showLabel: true,
-                        showDraftName: true,
-                    }
-                } %}
-                    <input type="hidden" name="{{ name }}[id]" value="{{ element.id }}">
-                    <input type="hidden" name="{{ name }}[siteId]" value="{{ element.siteId }}">
-                    
-                    <button type="button" class="delete icon" title="{{ 'Remove' | t('app') }}" aria-label="{{ 'Remove {label}' | t('app', { label: label }) }}"></button>
-
-                    {{ tag('span', {
-                        class: [
-                            'status',
-                            element.getStatus(),
-                            (element.statuses()[element.getStatus()]['color'] ?? null),
-                        ],
-                    }) }}
-
-                    <div class="label">
-                        <span class="title">{{ label }}</span>
-                    </div>
-                {% endtag %}
-            {% endset %}
+          <li>
+            {% set elementHtml = elementChip(element, {
+              context: 'field',
+              size: size ?? (viewMode == 'large' ? 'large' : 'small'),
+              inputName: inputName ?? ((name ?? false) ? "#{name}[id]" : null),
+              showActionMenu: showActionMenu ?? false,
+              checkbox: selectable ?? false,
+            }) %}
 
             {% if disabled %}
-                {% set element = element|removeClass('removable') %}
+              {% set elementHtml = elementHtml|removeClass('removable') %}
             {% endif %}
-            {{ element|raw }}
+
+            {{ elementHtml|raw }}
+            <input type="hidden" name="{{ name }}[siteId]" value="{{ element.siteId }}">
+          </li>
         {% endfor %}
-    </div>
+      {% endtag %}
+    {% endapply %}
 
     <div class="flex flex-nowrap">
         {{ tag('button', {
@@ -100,24 +87,31 @@
     </div>
 {% endtag %}
 
-{% if not disabled %}
+{% if not disabled and registerJs %}
     {% set jsSettings = {
         id: id|namespaceInputId,
         name: name|namespaceInputName,
         elementType: elementType,
         sources: sources,
         condition: condition ? condition.getConfig() : null,
+        referenceElementId: referenceElement.id ?? null,
+        referenceElementSiteId: referenceElement.siteId ?? null,
         criteria: criteria,
         allowSelfRelations: allowSelfRelations ?? false,
+        maintainHierarchy: maintainHierarchy,
+        branchLimit: branchLimit ?? null,
         sourceElementId: sourceElementId,
         disabledElementIds: disabledElementIds ?? null,
         viewMode: viewMode,
         single: single,
         limit: limit,
+        editable: false,
+        selectable: false,
         showSiteMenu: showSiteMenu ?? false,
         modalStorageKey: storageKey,
         fieldId: fieldId,
         sortable: sortable,
+        showActionMenu: showActionMenu,
         prevalidate: prevalidate,
         modalSettings: modalSettings ?? {},
     } %}
