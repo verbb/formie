@@ -25,7 +25,7 @@ use yii\base\Event;
 
 use Solspace\Calendar\Calendar;
 use Solspace\Calendar\Elements\Event as EventElement;
-use Solspace\Calendar\Library\DateHelper;
+use Solspace\Calendar\Library\Helpers\DateHelper;
 
 use Carbon\Carbon;
 
