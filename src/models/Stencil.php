@@ -2,7 +2,9 @@
 namespace verbb\formie\models;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\FieldLayout;
 use verbb\formie\records\Stencil as StencilRecord;
 use verbb\formie\services\Statuses;
 
@@ -16,6 +18,7 @@ use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
 use DateTime;
+
 use yii\web\ServerErrorHttpException;
 use yii\base\NotSupportedException;
 use yii\base\Exception;
@@ -92,29 +95,6 @@ class Stencil extends Model
         return UrlHelper::cpUrl('formie/settings/stencils/edit/' . $this->id);
     }
 
-    public function getSettings(): FormSettings
-    {
-        $settings = $this->data->settings;
-
-        if (is_array($settings)) {
-            $settings = new FormSettings($settings);
-        }
-
-        return $settings;
-    }
-
-    public function setSettings(FormSettings|array|string $settings): void
-    {
-        if ($settings instanceof FormSettings) {
-            $this->data->settings = $settings;
-        } else if (is_array($settings)) {
-            $this->data->settings = new FormSettings($settings);
-        } else {
-            $settings = Json::decodeIfJson($settings);
-            $this->data->settings = new FormSettings($settings);
-        }
-    }
-
     public function getDisplayName(): string
     {
         if ($this->dateDeleted !== null) {
@@ -124,16 +104,29 @@ class Stencil extends Model
         return $this->name;
     }
 
+    public function getNotifications(): array
+    {
+        return $this->data->notifications ?? [];
+    }
+
+    public function getFormLayout(): FieldLayout
+    {
+        return $this->data->getFieldLayout();
+    }
+
+    public function getSettings(): FormSettings
+    {
+        return $this->data->settings;
+    }
+
     public function getFormBuilderConfig(): array
     {
-        $data = $this->data->getAttributes();
-
         return [
             'id' => $this->id,
             'title' => $this->getTitle(),
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
-            'pages' => $data['pages'],
+            'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
             'isStencil' => true,
         ];
@@ -146,19 +139,13 @@ class Stencil extends Model
 
     public function getConfig(): array
     {
-        $data = $this->data->getAttributes();
-
-        if (isset($data['settings']) && $data['settings'] instanceof FormSettings) {
-            $data['settings'] = $data['settings']->getAttributes();
-        }
-
         return [
             'name' => $this->name,
             'handle' => $this->handle,
             'template' => $this->getTemplate()->uid ?? null,
             'defaultStatus' => $this->getDefaultStatus()->uid ?? null,
             'submitActionEntry' => $this->getRedirectEntry()->uid ?? null,
-            'data' => $data,
+            'data' => $this->data->getSerializedData(),
         ];
     }
 
@@ -254,21 +241,12 @@ class Stencil extends Model
         }
     }
 
-    public function getNotifications(): array
+    public function applyStencilToForm(Form $form): void
     {
-        $notificationsData = $this->data->notifications ?? [];
+        $this->data->populateToForm($form);
 
-        if ($notificationsData) {
-            $notifications = [];
-
-            foreach ($notificationsData as $notificationData) {
-                $notifications[] = new Notification($notificationData);
-            }
-
-            return $notifications;
-        }
-
-        return [];
+        $form->setTemplate($this->getTemplate());
+        $form->setDefaultStatus($this->getDefaultStatus());
     }
 
 

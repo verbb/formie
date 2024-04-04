@@ -292,22 +292,6 @@ class Stencils extends Component
         }
     }
 
-    public function applyStencil(Form $form, Stencil $stencil): void
-    {
-        $form->settings = $stencil->data->settings;
-        $form->userDeletedAction = $stencil->data->userDeletedAction;
-        $form->fileUploadsAction = $stencil->data->fileUploadsAction;
-        $form->dataRetention = $stencil->data->dataRetention;
-        $form->dataRetentionValue = $stencil->data->dataRetentionValue;
-
-        $form->setTemplate($stencil->getTemplate());
-        $form->setDefaultStatus($stencil->getDefaultStatus());
-
-        $form->setFormLayout(new FieldLayout(['pages' => $stencil->data->pages]));
-
-        $form->setNotifications($stencil->getNotifications());
-    }
-
 
     // Private Methods
     // =========================================================================

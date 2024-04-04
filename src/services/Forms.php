@@ -110,7 +110,7 @@ class Forms extends Component
         // Apply a chosen stencil, which will override a few things above
         if ($stencilId = $request->getParam('applyStencilId')) {
             if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
-                Formie::$plugin->getStencils()->applyStencil($form, $stencil);
+                $stencil->applyStencilToForm($form);
             }
         }
 

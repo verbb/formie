@@ -109,7 +109,7 @@ class EmailController extends Controller
             $form = new Form();
             $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
 
-            Formie::$plugin->getStencils()->applyStencil($form, $stencil);
+            $stencil->applyStencilToForm($form);
         } else {
             $form = Formie::$plugin->getForms()->getFormById($formId);
         }

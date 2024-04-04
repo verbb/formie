@@ -1523,6 +1523,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             }
         }
 
+        if (array_key_exists('maxType', $config)) {
+            if (!in_array(static::class, $supportedLimitConfigTypes)) {
+                unset($config['maxType']);
+            }
+        }
+
         // Migrate field positions (particularly if importing from an older system)
         if (array_key_exists('instructionsPosition', $config)) {
             if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetStart') {
@@ -1541,6 +1547,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         $removedProperties = [
+            'brandNewField',
+            'hasLabel',
             'isNested',
             'isSynced',
 

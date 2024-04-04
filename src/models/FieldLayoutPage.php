@@ -42,10 +42,12 @@ class FieldLayoutPage extends SavableComponent
 
     public function __construct($config = [])
     {
-        if (isset($config['settings'])) {
+        if (array_key_exists('settings', $config)) {
             // Swap `settings` to `pageSettings` due to conflict with `SavableComponent::getSettings()` handling
-            $config['pageSettings'] = ArrayHelper::remove($config, 'settings');
+            $config['pageSettings'] = ArrayHelper::remove($config, 'settings', []);
         }
+
+        unset($config['notificationFlag']);
 
         parent::__construct($config);
     }

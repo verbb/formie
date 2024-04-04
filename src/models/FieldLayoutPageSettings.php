@@ -33,6 +33,13 @@ class FieldLayoutPageSettings extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        unset($config['label']);
+
+        parent::__construct($config);
+    }
     
     public function init(): void
     {
