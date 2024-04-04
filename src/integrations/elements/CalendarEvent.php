@@ -25,7 +25,6 @@ use yii\base\Event;
 
 use Solspace\Calendar\Calendar;
 use Solspace\Calendar\Elements\Event as EventElement;
-use Solspace\Calendar\Library\Helpers\DateHelper;
 
 use Carbon\Carbon;
 
@@ -51,7 +50,7 @@ class CalendarEvent extends Element
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             // Calendar expects dates as Carbon object, not DateTime
             if (in_array($event->integrationField->handle, ['startDate', 'endDate', 'until'])) {
-                $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', DateHelper::UTC);
+                $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', 'utc');
             }
         });
     }
@@ -281,7 +280,7 @@ class CalendarEvent extends Element
                     }
                 } else if (in_array($eventFieldHandle, ['startDate', 'endDate', 'until'])) {
                     // Calendar expects dates as Carbon object, not DateTime
-                    $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', DateHelper::UTC);
+                    $event->{$eventFieldHandle} = new Carbon($fieldValue->format('Y-m-d H:i:s') ?? 'now', 'utc');
                 } else {
                     $event->{$eventFieldHandle} = $fieldValue;
                 }
