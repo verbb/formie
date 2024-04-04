@@ -239,7 +239,7 @@ abstract class Element extends Integration
         return $event->fields;
     }
 
-    protected function getElementForPayload($elementType, $identifier, $submission)
+    protected function getElementForPayload($elementType, $identifier, $submission, array $criteria = [])
     {
         $element = new $elementType();
 
@@ -249,6 +249,9 @@ abstract class Element extends Integration
         // Check if configuring update, and find an existing element, depending on mapping
         $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $updateAttributes);
         $updateElementValues = array_filter($updateElementValues);
+
+        // Merge in any extra criteria
+        $updateElementValues = array_merge($updateElementValues, $criteria);
 
         if ($updateElementValues) {
             $query = $elementType::find($updateElementValues);
