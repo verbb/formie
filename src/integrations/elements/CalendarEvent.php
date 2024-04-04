@@ -262,7 +262,10 @@ class CalendarEvent extends Element
         try {
             $calendar = Calendar::getInstance()->calendars->getCalendarById($this->calendarId);
 
-            $event = $this->getElementForPayload(EventElement::class, $this->calendarId, $submission);
+            $event = $this->getElementForPayload(EventElement::class, $this->calendarId, $submission, [
+                'calendarId' => $calendar->id,
+            ]);
+
             $event->siteId = $submission->siteId;
             $event->calendarId = $calendar->id;
 
