@@ -547,6 +547,7 @@ class Form extends Element
             'title' => $this->title,
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
+            'templateId' => $this->templateId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
         ];
