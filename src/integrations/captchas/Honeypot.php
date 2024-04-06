@@ -64,15 +64,17 @@ class Honeypot extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
+        $value = $this->getCaptchaValue($submission, self::HONEYPOT_INPUT_NAME);
+
         // The honeypot field must be left blank
-        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME)) {
-            $this->spamReason = Craft::t('formie', 'Honeypot input has value: {v}.', ['v' => $this->getRequestParam(self::HONEYPOT_INPUT_NAME)]);
+        if ($value) {
+            $this->spamReason = Craft::t('formie', 'Honeypot input has value: {v}.', ['v' => $value]);
 
             return false;
         }
 
         // If the honeypot param has been stripped out of the request altogether
-        if ($this->getRequestParam(self::HONEYPOT_INPUT_NAME, true) === null) {
+        if ($value === null) {
             $this->spamReason = Craft::t('formie', 'Honeypot param missing: {v}.', ['v' => self::HONEYPOT_INPUT_NAME]);
 
             return false;

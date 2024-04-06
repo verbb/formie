@@ -287,6 +287,7 @@ class Submission extends CustomElement
     private ?array $_assetsToDelete = [];
     private bool $_previousIsSpam = false;
     private ?int $_previousStatusId = null;
+    private array $_captchaData = [];
 
 
     // Public Methods
@@ -642,6 +643,16 @@ class Submission extends CustomElement
         }
 
         return $fieldValues;
+    }
+
+    public function setCaptchaData(string $key, mixed $value): void
+    {
+        $this->_captchaData[$key] = $value;
+    }
+
+    public function getCaptchaData(string $key): mixed
+    {
+        return $this->_captchaData[$key] ?? null;
     }
 
     public function updateTitle(Form $form): void

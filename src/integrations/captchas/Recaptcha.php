@@ -145,7 +145,7 @@ class Recaptcha extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('g-recaptcha-response');
+        $response = $this->getCaptchaValue($submission, 'g-recaptcha-response');
 
         // Protect against invalid data being sent. No need to log, likely malicious
         if (!$response || !is_string($response)) {

@@ -89,7 +89,7 @@ class FriendlyCaptcha extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('frc-captcha-solution');
+        $response = $this->getCaptchaValue($submission, 'frc-captcha-solution');
 
         if (!$response) {
             return false;

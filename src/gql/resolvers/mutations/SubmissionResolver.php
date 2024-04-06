@@ -80,6 +80,18 @@ class SubmissionResolver extends ElementMutationResolver
 
         $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
+        // Handle any captchas
+        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
+
+        // Add in any enabled captchas for the form, so they can be allowed to send tokens
+        foreach ($captchas as $captcha) {
+            $handle = $captcha->getGqlHandle();
+
+            if (isset($arguments[$handle])) {
+                $submission->setCaptchaData($handle, $arguments[$handle]);
+            }
+        }
+
         // TODO: refactor by combining this from the submit controller...
 
         /* @var Settings $settings */
@@ -113,8 +125,6 @@ class SubmissionResolver extends ElementMutationResolver
         }
 
         // Check against all enabled captchas. Also take into account multi-pages
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
-
         foreach ($captchas as $captcha) {
             $valid = $captcha->validateSubmission($submission);
 

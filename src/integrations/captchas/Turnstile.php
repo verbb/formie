@@ -88,7 +88,7 @@ class Turnstile extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('cf-turnstile-response');
+        $response = $this->getCaptchaValue($submission, 'cf-turnstile-response');
 
         if (!$response) {
             return false;
