@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.10 - 2024-04-10
+
+### Added
+- Added `FieldInterface::subfieldLabelPosition` for GraphQL.
+
+### Fixed
+- Fixed Opayo payments not sending customer email address.
+- Fixed Phone fields default value not working.
+- Fixed “All Fields” and similar summary variables causing invalid HTML in some email clients for email notifications.
+- Fixed Solspace Calendar element integration incorrectly matching existing elements from other entry types.
+- Fixed Entry element integration incorrectly matching existing elements from other entry types.
+- Fixed compatibility with Solspace Calendar 5.x.
+- Fixed consent field values for Campaign Monitor.
+- Fixed an error for Checkboxes fields when the “Toggle Checkbox” was included.
+- Fixed multi-name fields not showing correctly in email notification previews.
+- Fixed `data-field-type` attribute being incorrectly translated for fields.
+- Fixed JS event listeners being attached multiple times for some integrations when calling `Formie.initForms()` multiple times.
+- Fixed front-end JS throwing an error in some circumstances.
+- Fixed an error when populating Group/Repeater field values.
+
 ## 2.1.9 - 2024-03-29
 
 ### Fixed
