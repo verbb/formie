@@ -6,6 +6,15 @@ export const toBoolean = function(val) {
     return !/^(?:f(?:alse)?|no?|0+)$/i.test(val) && !!val;
 };
 
+export const clone = function(value) {
+    if (value === undefined) {
+        return undefined;
+    }
+
+    return JSON.parse(JSON.stringify(value));
+};
+
+
 export const eventKey = function(eventName, namespace = null) {
     if (!namespace) {
         namespace = Math.random().toString(36).substr(2, 5);
@@ -65,4 +74,16 @@ export const waitForElement = function(selector, $element) {
             subtree: true,
         });
     });
+};
+
+export const debounce = function(func, delay) {
+    let timeoutId;
+
+    return function(...args) {
+        clearTimeout(timeoutId);
+
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
 };

@@ -33,6 +33,7 @@
     "/js/payments/opayo.js": "/js/payments/opayo.js",
     "/css/fields/phone-country.css": "/css/fields/phone-country.css",
     "/css/fields/tags.css": "/css/fields/tags.css",
+    "/css/fields/stripe.css": "/css/fields/stripe.css",
     "/css/formie-theme.css": "/css/formie-theme.css",
     "/css/formie-base.css": "/css/formie-base.css"
 }

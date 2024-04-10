@@ -9,6 +9,7 @@ const postcssCustomProperties = require('postcss-custom-properties');
 mix.sass('./src/scss/formie-base.scss', 'css');
 mix.sass('./src/scss/formie-theme.scss', 'css');
 mix.sass('./src/scss/fields/phone-country.scss', 'css/fields');
+mix.sass('./src/scss/fields/stripe.scss', 'css/fields');
 mix.sass('./src/scss/fields/tags.scss', 'css/fields');
 
 // JS

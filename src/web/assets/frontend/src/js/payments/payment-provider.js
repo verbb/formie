@@ -1,4 +1,5 @@
 import { t, eventKey } from '../utils/utils';
+import { getFieldValue, getFieldLabel } from '../utils/fields';
 
 export class FormiePaymentProvider {
     constructor(settings = {}) {
@@ -182,47 +183,11 @@ export class FormiePaymentProvider {
     }
 
     getFieldValue(handle) {
-        let value = '';
-
-        handle = this.getFieldName(handle);
-
-        // We'll always get back multiple inputs to normalise checkbox/radios
-        const $fields = this.getFormField(handle);
-
-        if ($fields) {
-            $fields.forEach(($field) => {
-                if ($field.type === 'checkbox' || $field.type === 'radio') {
-                    if ($field.checked) {
-                        return value = $field.value;
-                    }
-                } else {
-                    return value = $field.value;
-                }
-            });
-        }
-
-        return value;
+        return getFieldValue(this.$form, handle);
     }
 
-    getFormField(handle) {
-        // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
-        let $fields = this.$form.querySelectorAll(`[name="${handle}"]`);
-
-        // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
-        const $multiFields = this.$form.querySelectorAll(`[name="${handle}[]"]`);
-
-        if ($multiFields.length) {
-            $fields = $multiFields;
-        }
-
-        return $fields;
-    }
-
-    getFieldName(handle) {
-        // Normalise the handle first
-        handle = handle.replace('{', '').replace('}', '').replace(']', '').split('[').join('][');
-
-        return `fields[${handle}]`;
+    getFieldLabel(handle) {
+        return getFieldLabel(this.$form, handle);
     }
 
     onShow() {

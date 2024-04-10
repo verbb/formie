@@ -12,6 +12,12 @@
 .fui-form {
     // `<form>` elements have margin by default
     margin: 0;
+
+    &[data-fui-disabled] {
+        opacity: 0.5;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+    }
 }
 
 .fui-hidden {
