@@ -322,7 +322,7 @@ abstract class Payment extends Integration
         $this->_field = $value;
     }
 
-    public function getFieldSetting(string $setting, ?string $default = null): mixed
+    public function getFieldSetting(string $setting, mixed $default = null): mixed
     {
         if ($field = $this->getField()) {
             $providerSettings = $field->providerSettings[$this->handle] ?? [];
