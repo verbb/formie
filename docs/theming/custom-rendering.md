@@ -30,11 +30,9 @@ This guide serves as a starter. There are several aspects of templating that sho
     {% endif %}
 
     {% for field in form.getCustomFields() %}
-        {% namespace field.namespace %}
-            {% set value = field.defaultValue ?? null %}
-            
-            {{ field.getFrontEndInputHtml(form, value) }}
-        {% endnamespace %}
+        {% set value = field.defaultValue ?? null %}
+        
+        {{ field.getFrontEndInputHtml(form, value) }}
     {% endfor %}
     
     <button type="submit" data-submit-action="submit">Submit</button>
@@ -49,7 +47,7 @@ Make sure to include the `data-fui-form` attribute with JSON configuration from 
 
 We're then including the `actionInput`, `hiddenInput` and `csrfInput` to the form - all requirements and should not be changed. If the form has a redirect URL, we're also setting that with a `redirectInput`.
 
-Finally, we're looping through all fields defined in the form, and namespacing them, so Formie can grab the field values. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Template Overrides](docs:theming/template-overrides) to override individual field HTML. The reason is simple - you're keeping field HTML modular, so it's easily reusable across multiple forms.
+Finally, we're looping through all fields defined in the form. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Template Overrides](docs:theming/template-overrides) to override individual field HTML. The reason is simple - you're keeping field HTML modular, so it's easily reusable across multiple forms.
 
 Next, let's add some error-handling for good UX.
 
@@ -99,18 +97,16 @@ Then, we want to add information about the submission. This is important if the 
     {% endif %}
 
     {% for field in form.getCustomFields() %}
-        {% namespace field.namespace %}
-            {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
-            {% set errors = submission.getErrors(field.handle) ?? null %}
-            
-            {{ field.getFrontEndInputHtml(form, value) }}
+        {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
+        {% set errors = submission.getErrors(field.handle) ?? null %}
+        
+        {{ field.getFrontEndInputHtml(form, value) }}
 
-            {% if errors %}
-                {% for error in errors %}
-                    {{ error }}
-                {% endfor %}
-            {% endif %}
-        {% endnamespace %}
+        {% if errors %}
+            {% for error in errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
     {% endfor %}
     
     <button type="submit" data-submit-action="submit">Submit</button>
@@ -210,20 +206,18 @@ That should provide us with a working example to continue building. Here's the t
 
     {# Render each field, according to its field template #}
     {% for field in form.getCustomFields() %}
-        {% namespace field.namespace %}
-            {# Fetch the value if one exists, or use the default #}
-            {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
-            {% set errors = submission.getErrors(field.handle) ?? null %}
-            
-            {{ field.getFrontEndInputHtml(form, value) }}
+        {# Fetch the value if one exists, or use the default #}
+        {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
+        {% set errors = submission.getErrors(field.handle) ?? null %}
+        
+        {{ field.getFrontEndInputHtml(form, value) }}
 
-            {# Show any field-specific errors #}
-            {% if errors %}
-                {% for error in errors %}
-                    {{ error }}
-                {% endfor %}
-            {% endif %}
-        {% endnamespace %}
+        {# Show any field-specific errors #}
+        {% if errors %}
+            {% for error in errors %}
+                {{ error }}
+            {% endfor %}
+        {% endif %}
     {% endfor %}
 
     {% hook 'formie.buttons.before' %}

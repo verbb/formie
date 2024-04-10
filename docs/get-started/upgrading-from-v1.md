@@ -185,6 +185,35 @@ You are now required to only have a `data-fui-form` attribute which combines the
 
 Without the `data-fui-form` attribute the Formie JS will fail to initialise.
 
+### Namespacing
+You no longer need to namespace your fields, as this is automatically determined.
+
+```twig
+{# Formie v1 #}
+<form>
+    {# ... #}
+
+    {% for field in form.getCustomFields() %}
+        {% namespace field.namespace %}
+            {% set value = field.defaultValue ?? null %}
+            
+            {{ field.getFrontEndInputHtml(form, value) }}
+        {% endnamespace %}
+    {% endfor %}
+</form>
+
+{# Formie v2 #}
+<form>
+    {# ... #}
+
+    {% for field in form.getCustomFields() %}
+        {% set value = field.defaultValue ?? null %}
+        
+        {{ field.getFrontEndInputHtml(form, value) }}
+    {% endfor %}
+</form>
+```
+
 
 ## GraphQL
 
