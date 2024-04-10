@@ -154,6 +154,7 @@ class Fields extends Component
         if ($internalFields) {
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Internal'),
+                'handle' => 'internal',
                 'fields' => $internalFields,
             ];
         }
@@ -161,6 +162,7 @@ class Fields extends Component
         if ($commonFields) {
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Common Fields'),
+                'handle' => 'common',
                 'fields' => $commonFields,
             ];
         }
@@ -168,6 +170,7 @@ class Fields extends Component
         if ($advancedFields) {
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Advanced Fields'),
+                'handle' => 'advanced',
                 'fields' => $advancedFields,
             ];
         }
@@ -175,6 +178,7 @@ class Fields extends Component
         if ($elementFields) {
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Element Fields'),
+                'handle' => 'element',
                 'fields' => $elementFields,
             ];
         }
@@ -183,6 +187,7 @@ class Fields extends Component
         if ($registeredFields) {
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Custom Fields'),
+                'handle' => 'custom',
                 'fields' => $registeredFields,
             ];
         }

@@ -105,7 +105,7 @@ export default {
 
         enabledFieldGroups() {
             return this.fieldGroups.filter((group) => {
-                return (group.label !== 'Internal') ? group : false;
+                return (group.handle !== 'internal') ? group : false;
             });
         },
 
