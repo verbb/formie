@@ -9,6 +9,7 @@ use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
+use verbb\formie\events\SubmissionEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -19,15 +20,19 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
 use verbb\formie\models\Plan;
 use verbb\formie\models\Subscription;
+use verbb\formie\services\Submissions;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
+use yii\web\NotFoundHttpException;
 
+use NumberFormatter;
 use Throwable;
 use Exception;
 
@@ -64,6 +69,11 @@ class Stripe extends Payment
     }
 
     public function supportsWebhooks(): bool
+    {
+        return true;
+    }
+
+    public function supportsCallbacks(): bool
     {
         return true;
     }
@@ -105,6 +115,50 @@ class Stripe extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with Stripe.');
     }
 
+    public static function getSiteCurrency(): ?string
+    {
+        if ($locale = Craft::$app->getFormattingLocale()->id) {
+            if ($numberFormatter = new NumberFormatter($locale, NumberFormatter::DECIMAL)) {
+                if ($currency = $numberFormatter->getSymbol(NumberFormatter::INTL_CURRENCY_SYMBOL)) {
+                    return strtolower($currency);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function getInitialPaymentInformation(): array
+    {
+        $currency = static::getSiteCurrency();
+        $currencyType = $this->getFieldSetting('currencyType');
+        $currencyFixed = $this->getFieldSetting('currencyFixed');
+        $currencyVariable = $this->getFieldSetting('currencyVariable');
+
+        if ($currencyType === Payment::VALUE_TYPE_FIXED) {
+            $currency = strtolower($currencyFixed);
+        } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
+            $currency = $currencyVariable;
+        }
+
+        // Set a default amount for when using dynamic values. This is changed on the front-end when updated there.
+        $amount = self::toStripeAmount(100, $currency);
+        $amountType = $this->getFieldSetting('amountType');
+        $amountFixed = $this->getFieldSetting('amountFixed');
+        $amountVariable = $this->getFieldSetting('amountVariable');
+
+        if ($amountType === Payment::VALUE_TYPE_FIXED) {
+            $amount = self::toStripeAmount((float)$amountFixed, $currency);
+        } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
+            $amount = $amountVariable;
+        }
+
+        return [
+            'amount' => $amount,
+            'currency' => $currency,
+        ];
+    }
+
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -116,12 +170,18 @@ class Stripe extends Payment
         $billingDetails = $this->getFieldSetting('billingDetails', false);
         $hidePostalCode = $this->getFieldSetting('hidePostalCode', false);
         $hideIcon = $this->getFieldSetting('hideIcon', false);
+        $paymentType = $this->getFieldSetting('type', 'single');
 
         $settings = [
             'publishableKey' => App::parseEnv($this->publishableKey),
             'billingDetails' => $billingDetails,
             'hidePostalCode' => $hidePostalCode,
             'hideIcon' => $hideIcon,
+            'paymentType' => $paymentType,
+
+            // Set the default currency and amount for when the page loads, and then JS can take over if they're dynamic
+            // This is due to needing to create a Payment Intent on page load.
+            'initialPaymentInformation' => $this->getInitialPaymentInformation(),
         ];
 
         return [
@@ -134,6 +194,18 @@ class Stripe extends Payment
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
+    }
+
+    public function getReturnUrl(Submission $submission): string
+    {
+        $url = 'formie/payment-webhooks/process-callback';
+        $params = ['token' => $submission->uid, 'handle' => $this->handle];
+
+        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
+            return UrlHelper::actionUrl($url, $params);
+        }
+
+        return UrlHelper::siteUrl($url, $params);
     }
 
     public function getAmount(Submission $submission): float
@@ -174,10 +246,10 @@ class Stripe extends Payment
 
         $field = $this->getField();
         $fieldValue = $this->getPaymentFieldValue($submission);
-        $subscriptionId = $fieldValue['stripeSubscriptionId'] ?? null; 
+        $subscriptionId = $fieldValue['stripeSubscriptionId'] ?? null;
+        $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null;
 
         try {
-            // Are we come back from a 3DS verification? Update the payment, skip everything else (already done)
             if ($subscriptionId) {
                 $stripeSubscription = $this->getStripe()->subscriptions->retrieve($subscriptionId);
 
@@ -192,54 +264,35 @@ class Stripe extends Payment
 
                         Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
                     } else {
-                        Integration::error($this, 'Unable to find subscription by "' . $stripeSubscription->id . '".');
+                        throw new Exception('Unable to find subscription by "' . $stripeSubscription->id . '".');
                     }
                 } else {
-                    Integration::error($this, 'Unable to find Stripe subscription by "' . $subscriptionId . '".');
+                    throw new Exception('Unable to find Stripe subscription by "' . $subscriptionId . '".');
                 }
 
                 return true;
             }
-        } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Subscription error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'payload' => Json::encode($payload),
-                'response' => Json::encode($response),
-            ]));
 
-            Integration::apiError($this, $e, $this->throwApiError);
+            // Get or create the plan (product) first
+            $plan = $this->_getOrCreatePlan($submission);
 
-            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+            if (!$plan) {
+                throw new Exception('Unable to get or create plan.');
+            }
 
-            return false;
-        }
+            // Get the Stripe customer. We create a new one each transaction
+            $customer = $this->_getCustomer($submission);
 
-        // Get or create the plan (product) first
-        $plan = $this->_getOrCreatePlan($submission);
+            if (!$customer) {
+                throw new Exception('Unable to create customer.');
+            }
 
-        if (!$plan) {
-            Integration::error($this, 'Unable to get or create plan.');
-
-            return false;
-        }
-
-        // Get the Stripe customer. We create a new one each transaction
-        $customer = $this->_getCustomer($submission);
-
-        if (!$customer) {
-            Integration::error($this, 'Unable to create customer.');
-
-            return false;
-        }
-
-        try {
             $payload = [
                 'customer' => $customer['id'],
                 'items' => [['plan' => $plan->reference]],
-                'expand' => ['latest_invoice.payment_intent'],
+                'payment_behavior' => 'default_incomplete',
+                'payment_settings' => ['save_default_payment_method' => 'on_subscription'],
+                'expand' => ['latest_invoice.payment_intent', 'pending_setup_intent'],
             ];
 
             // Add in extra settings configured at the field level
@@ -270,29 +323,33 @@ class Stripe extends Payment
 
             Formie::$plugin->getSubscriptions()->saveSubscription($subscription);
 
-            $invoice = $response->latest_invoice;
-
-            // Is this paid, or needs further action (3DS)?
-            if ($response->status === StripeSubscription::STATUS_INCOMPLETE && $invoice->status === StripeInvoice::STATUS_OPEN) {
-                $paymentIntent = $invoice->payment_intent;
-                
-                if ($paymentIntent->status === PaymentIntent::STATUS_REQUIRES_ACTION) {
-                    // Store the data we need for 3DS against the form, which is added is the Ajax response
-                    $submission->getForm()->addFrontEndJsEvents([
-                        'event' => 'FormiePaymentStripe3DS',
-                        'data' => [
-                            'subscription_id' => $response->id,
-                            'payment_intent_id' => $paymentIntent->id,
-                            'client_secret' => $paymentIntent->client_secret,
-                        ],
-                    ]);
-
-                    // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                    $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
-
-                    return false;
-                }
+            // Tell the front-end to stop the submission and to confirm the Payment Intent.
+            if ($response->pending_setup_intent !== null) {
+                $submission->getForm()->addFrontEndJsEvents([
+                    'event' => 'FormiePaymentStripeConfirm',
+                    'data' => [
+                        'type' => 'setup',
+                        'clientSecret' => $response->pending_setup_intent->client_secret,
+                        'subscriptionId' => $response->id,
+                        'returnUrl' => $this->getReturnUrl($submission),
+                    ],
+                ]);
+            } else {
+                $submission->getForm()->addFrontEndJsEvents([
+                    'event' => 'FormiePaymentStripeConfirm',
+                    'data' => [
+                        'type' => 'payment',
+                        'clientSecret' => $response->latest_invoice->payment_intent->client_secret,
+                        'subscriptionId' => $response->id,
+                        'returnUrl' => $this->getReturnUrl($submission),
+                    ],
+                ]);
             }
+
+            // Add an error to the form to ensure it doesn't proceed, even though it's not an error here.
+            $this->addFieldError($submission, '');
+
+            return false;
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Subscription error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
@@ -320,22 +377,14 @@ class Stripe extends Payment
 
         $field = $this->getField();
         $fieldValue = $this->getPaymentFieldValue($submission);
-        $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
         $paymentIntentId = $fieldValue['stripePaymentIntentId'] ?? null;
 
-        $amount = 0;
-        $currency = null;
-
         try {
-            // Have we come back from a 3DS verification? Update the payment, skip everything else (already done)
             if ($paymentIntentId) {
                 $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
 
                 if ($paymentIntent) {
-                    // Has the user confirmed the 3DS check?
-                    if ($paymentIntent->status === PaymentIntent::STATUS_REQUIRES_CONFIRMATION) {
-                        $paymentIntent->confirm();
-
+                    if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
                         $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id);
 
                         if ($payment) {
@@ -357,10 +406,8 @@ class Stripe extends Payment
                 return true;
             }
 
-            // Protect against invalid data being sent.
-            if (!$paymentMethodId || !is_string($paymentMethodId)) {
-                throw new Exception("Missing `stripePaymentId` from payload: {$paymentMethodId}.");
-            }
+            $amount = 0;
+            $currency = null;
 
             // Get the amount from the field, which handles dynamic fields
             $amount = $this->getAmount($submission);
@@ -377,9 +424,7 @@ class Stripe extends Payment
             $payload = [
                 'amount' => $amount,
                 'currency' => $currency,
-                'confirmation_method' => 'manual',
-                'confirm' => true,
-                'payment_method' => $paymentMethodId,
+                'automatic_payment_methods' => ['enabled' => true],
             ];
 
             // Get the Stripe customer. We create a new one each transaction
@@ -398,41 +443,37 @@ class Stripe extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_SINGLE_PAYLOAD, $event);
 
-            // Send the payment to Stripe
-            $response = $this->getStripe()->paymentIntents->create($event->payload);
+            // Create a Payment Intent for the transaction, which we'll confirm in JS. This will either capture it immediately, challenge with
+            // 3DS verification, or redirect to an off-site payment method.
+            $response = $this->getStripe()->paymentIntents->create($payload);
 
+            // Save a pending payment before we head back to the front-end
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
-            $payment->amount = self::fromStripeAmount($amount, $currency);
+            $payment->amount = $amount;
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_PENDING;
             $payment->reference = $response->id;
             $payment->response = $response->toArray();
 
-            if ($response->status === PaymentIntent::STATUS_SUCCEEDED) {
-                $payment->status = PaymentModel::STATUS_SUCCESS;
-            }
-
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            // Is this paid, or needs further action (3DS)?
-            if ($response->status === PaymentIntent::STATUS_REQUIRES_ACTION) {
-                // Store the data we need for 3DS against the form, which is added is the Ajax response
-                $submission->getForm()->addFrontEndJsEvents([
-                    'event' => 'FormiePaymentStripe3DS',
-                    'data' => [
-                        'id' => $response->id,
-                        'client_secret' => $response->client_secret,
-                    ],
-                ]);
+            // Tell the front-end to stop the submission and to confirm the Payment Intent.
+            $submission->getForm()->addFrontEndJsEvents([
+                'event' => 'FormiePaymentStripeConfirm',
+                'data' => [
+                    'clientSecret' => $response->client_secret,
+                    'paymentIntentId' => $response->id,
+                    'returnUrl' => $this->getReturnUrl($submission),
+                ],
+            ]);
 
-                // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
+            // Add an error to the form to ensure it doesn't proceed, even though it's not an error here.
+            $this->addFieldError($submission, '');
 
-                return false;
-            }
+            return false;
         } catch (StripeException\CardException $e) {
             $body = $e->getJsonBody();
 
@@ -493,6 +534,107 @@ class Stripe extends Payment
         return true;
     }
 
+    public function processCallback(): Response
+    {
+        $form = null;
+        $origin = '/';
+
+        try {
+            $request = Craft::$app->getRequest();
+
+            $origin = $request->getParam('origin');
+            $token = $request->getParam('token');
+            $paymentIntentId = $request->getParam('payment_intent');
+
+            if (!$token) {
+                throw new NotFoundHttpException('Token not found');
+            }
+
+            $submission = Submission::find()->isIncomplete(true)->uid($token)->one();
+
+            if (!$submission) {
+                throw new NotFoundHttpException('Submission not found');
+            }
+
+            $form = $submission->form;
+
+            if (!$paymentIntentId) {
+                throw new NotFoundHttpException('Payment Intent not found');
+            }
+
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId);
+
+            if (!$payment) {
+                throw new NotFoundHttpException('Payment ' . $paymentIntentId . ' not found');
+            }
+
+            $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
+
+            if (!$paymentIntent) {
+                throw new NotFoundHttpException('Payment Intent ' . $paymentIntentId . ' not found');
+            }
+
+            if ($paymentIntent->status !== PaymentIntent::STATUS_SUCCEEDED) {
+                $payment->status = PaymentModel::STATUS_FAILED;
+                $payment->reference = $paymentIntentId;
+
+                Formie::$plugin->getPayments()->savePayment($payment);
+
+                throw new Exception('Payment Intent ' . $paymentIntentId . ' ' . $paymentIntent->status);
+            }
+
+            // Complete the submission and lodge the payment 
+            $payment->status = PaymentModel::STATUS_SUCCESS;
+            $payment->reference = $paymentIntentId;
+
+            Formie::$plugin->getPayments()->savePayment($payment);
+
+            Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
+            Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
+
+            // Delete the currently saved page
+            $form->resetCurrentPage();
+            $form->resetCurrentSubmission();
+
+            $submission->isIncomplete = false;
+            Craft::$app->getElements()->saveElement($submission, false);
+
+            // Fire an 'afterSubmission' event
+            $event = new SubmissionEvent([
+                'submission' => $submission,
+                'submitAction' => 'submit',
+                'success' => true,
+            ]);
+            $this->trigger(Submissions::EVENT_AFTER_SUBMISSION, $event);
+
+            if (!$submission->isIncomplete) {
+                if ($event->success) {
+                    // Send off some emails, if all good!
+                    Formie::$plugin->getSubmissions()->sendNotifications($event->submission);
+
+                    // Trigger any integrations
+                    Formie::$plugin->getSubmissions()->triggerIntegrations($event->submission);
+                } else if ($submission->isSpam && $settings->spamEmailNotifications) {
+                    // Special-case for wanting to send emails for spam
+                    Formie::$plugin->getSubmissions()->sendNotifications($event->submission);
+                }
+            }
+        } catch (Throwable $e) {
+            // Save a different payload to logs
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]));
+
+            if ($form) {
+                Formie::$plugin->getService()->setError($form->id, $e->getMessage());
+            }
+        }
+
+        return Craft::$app->getResponse()->redirect($origin);
+    }
+
     public function processWebhook(): Response
     {
         $rawData = Craft::$app->getRequest()->getRawBody();
@@ -539,6 +681,12 @@ class Stripe extends Payment
                     $this->handlePlanDeleted($data);
                 } else if ($data['type'] === StripeEvent::PLAN_UPDATED) {
                     $this->handlePlanUpdated($data);
+                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_CANCELED) {
+                    $this->handlePaymentIntent($data);
+                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_PAYMENT_FAILED) {
+                    $this->handlePaymentIntent($data);
+                } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_SUCCEEDED) {
+                    $this->handlePaymentIntent($data);
                 }
             } catch (Throwable $e) {
                 Integration::apiError($this, $e, false);
@@ -847,14 +995,24 @@ class Stripe extends Payment
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
-        if ($key === 'fieldInput') {
-            // Extend the Single-Line Text field for sane defaults
-            $textField = new fields\SingleLineText();
-            $textFieldAttributes = $textField->defineHtmlTag($key, $context)->attributes;
-
+        if ($key === 'fieldInputWrapper') {
             return new HtmlTag('div', [
-                'class' => $textFieldAttributes['class'] ?? [],
+                'class' => 'fui-input-wrapper fui-stripe-elements-wrapper',
+            ]);
+        }
+
+        if ($key === 'fieldInput') {
+            return new HtmlTag('div', [
+                'class' => 'fui-stripe-elements',
                 'data-fui-stripe-elements' => true,
+            ]);
+        }
+
+        if ($key === 'stripePlaceholder') {
+            return new HtmlTag('div', [
+                'class' => 'fui-stripe-placeholder',
+                'text' => '<div class="fui-loading"></div>' . Craft::t('formie', 'Loading payment options...'),
+                'data-fui-stripe-elements-placeholder' => true,
             ]);
         }
 
@@ -1014,6 +1172,27 @@ class Stripe extends Payment
         Formie::$plugin->getSubscriptions()->updateSubscription($subscription);
     }
 
+    protected function handlePaymentIntent(array $data): void
+    {
+        $paymentIntent = $data['data']['object'] ?? [];
+        $paymentIntentId = $paymentIntent['id'] ?? null;
+        $paymentIntentStatus = $paymentIntent['status'] ?? null;
+
+        if ($paymentIntent && $paymentIntentId) {
+            $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId);
+
+            if ($payment) {
+                if ($paymentIntentStatus !== PaymentIntent::STATUS_SUCCEEDED) {
+                    $payment->status = PaymentModel::STATUS_FAILED;
+                } else {
+                    $payment->status = PaymentModel::STATUS_SUCCESS;
+                }
+
+                Formie::$plugin->getPayments()->savePayment($payment);
+            }
+        }
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -1041,7 +1220,7 @@ class Stripe extends Payment
 
         // Create a unique ID for this form+field+payload. Only used internally, but prevents creating duplicate plans (which throws an error)
         $payload['id'] = ArrayHelper::recursiveImplode(array_merge(['formie', $submission->getForm()->handle, $field->handle], $payload), '_');
-        $payload['id'] = str_replace(' ', '_', $payload['id']);
+        $payload['id'] = str_replace([' ', ':'], ['_', ''], $payload['id']);
 
         // Generate a nice name for the price description based on the payload. Added after the ID is generated based on the payload
         $payload['nickname'] = implode(' ', [
@@ -1134,15 +1313,8 @@ class Stripe extends Payment
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
         $field = $this->getField();
         $fieldValue = $this->getPaymentFieldValue($submission);
-        $paymentMethodId = $fieldValue['stripePaymentId'] ?? null; 
 
-        // Create base-level customer data with the payload from the front-end
-        $payload = [
-            'payment_method' => $paymentMethodId,
-            'invoice_settings' => [
-                'default_payment_method' => $paymentMethodId,
-            ],
-        ];
+        $payload = [];
 
         // Add a few other things about the customer from mapping (in field settings)
         $billingName = $this->getFieldSetting('billingDetails.billingName');
