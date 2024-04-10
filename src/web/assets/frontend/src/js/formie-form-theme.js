@@ -514,7 +514,9 @@ export class FormieFormTheme {
             }
 
             if ($field) {
-                this.validator?.showError($field, 'server', error);
+                if (error) {
+                    this.validator?.showError($field, 'server', error);
+                }
 
                 // Focus on the first error
                 if (index === 0) {
