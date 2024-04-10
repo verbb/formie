@@ -106,6 +106,15 @@ class Opayo extends Payment
         return App::parseEnv($this->vendorName) && App::parseEnv($this->integrationKey) && App::parseEnv($this->integrationPassword);
     }
 
+    public function getReturnUrl(): string
+    {
+        if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
+            return UrlHelper::actionUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+        }
+
+        return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
+    }
+
     public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
     {
         if (!$this->hasValidSettings()) {
