@@ -708,6 +708,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             }
         }
 
+        // Ensure that we normalize the value
+        $defaultValue = $this->normalizeValue($defaultValue, null);
+
         $event = new ModifyFieldValueEvent([
             'value' => $defaultValue,
             'field' => $this,
