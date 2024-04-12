@@ -142,6 +142,18 @@ export class FormieStripe extends FormiePaymentProvider {
 
             this.$field.dispatchEvent(beforeInitEvent);
 
+            if (!elementOptions.amount) {
+                this.showPlaceholder(t('Invalid amount.'), 'error');
+
+                return;
+            }
+
+            if (!elementOptions.currency) {
+                this.showPlaceholder(t('Invalid currency.'), 'error');
+
+                return;
+            }
+
             this.elements = this.stripe.elements(elementOptions);
             this.paymentElement = this.elements.create('payment', paymentOptions);
             this.paymentElement.mount(this.$input);
