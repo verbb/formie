@@ -35,7 +35,7 @@ export class Formie {
         });
 
         // Emit a custom event to let scripts know the Formie class is ready
-        document.dispatchEvent(new CustomEvent('onFormieInitForms', {
+        document.dispatchEvent(new CustomEvent('onFormieLoaded', {
             bubbles: true,
             detail: {
                 formie: this,
@@ -135,7 +135,7 @@ export class Formie {
         }
 
         // Emit a custom event to let scripts know the Formie class is ready
-        document.dispatchEvent(new CustomEvent('onFormieInitForm', {
+        document.dispatchEvent(new CustomEvent('onFormieInit', {
             bubbles: true,
             detail: {
                 formie: this,

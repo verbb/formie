@@ -27,7 +27,7 @@ Let's start with an explanation of how Formie's JavaScript is put together. When
 This contains everything Formie needs to get started, including the [Form Base](docs:developers/front-end-js) and [Form Theme](docs:developers/front-end-js). It's also only included once on a page, even if there are multiple forms on a single page.
 
 :::tip
-We're loading using `defer` to ensure loading doesn't block the page render. Be sure to look at the `onFormieInit` event if you want to wait until this file has been loaded.
+We're loading using `defer` to ensure loading doesn't block the page render. Be sure to look at the `onFormieLoaded` event if you want to wait until this file has been loaded.
 :::
 
 ### Form Factory
@@ -53,7 +53,7 @@ document.addEventListener('onFormieInit', (e) => {
 ```
 
 :::tip
-Note how we're using the `onFormieInit` event. This is because the `formie.js` is loaded with `defer` - so it may not be available to use straight away.
+Note how we're using the `onFormieInit` event. This is firstly because the `formie.js` is loaded with `defer` - so it may not be available to use straight away. Secondly, forms are only initialized after they are visible, and they won't be available to query until then.
 :::
 
 When `formie.js` is fetched in the browser, all forms on a page are automatically initialised, as soon as the DOM is ready. As such, you can access them with the above methods of your choosing.
@@ -215,15 +215,14 @@ This means Formie will initialise forms once Vue has been loaded, and the DOM is
 ## JavaScript Events
 Formie's JavaScript provides a number of event hooks for the form and fields, which you can hook into in your own JS files.
 
-### The `onFormieInit` event
-
+### The `onFormieLoaded` event
 Because Formie's JavaScript is loaded with `defer`, this means that regardless of its placement on a page, it won't block rendering, which is great for performance. However, this proves an issue when you want to interact with Formie's JS, as your code needs to ensure Formie's JS has loaded. 
 
-In this scenario, you should listen to the `onFormieInit` event, which is fired when Formie's JS has been loaded.
+In this scenario, you should listen to the `onFormieLoaded` event, which is fired when Formie's JS has been loaded.
 
 :::code
 ```js JavaScript
-document.addEventListener('onFormieInit', (e) => {
+document.addEventListener('onFormieLoaded', (e) => {
     let Formie = e.detail.formie;
 
     // ...
@@ -231,7 +230,7 @@ document.addEventListener('onFormieInit', (e) => {
 ```
 
 ```js jQuery
-$(document).on('onFormieInit', function(e) {
+$(document).on('onFormieLoaded', function(e) {
     let Formie = e.detail.formie;
 
     // ...
@@ -240,6 +239,48 @@ $(document).on('onFormieInit', function(e) {
 :::
 
 
+### The `onFormieInit` event
+Once Formie's JavaScript has been loaded, it will look for any forms visible on the page, and initialize them. For performance reasons, Formie won't initialize forms until they're visible on screen. Consider you have your form hidden in a modal dialog - we wouldn't want to initialize any JavaScript until that modal is shown.
+
+You can detect when a form is initialized with the `onFormieInit` event.
+
+:::code
+```js JavaScript
+document.addEventListener('onFormieInit', (e) => {
+    // The instance of the Formie JS library
+    let Formie = e.detail.formie;
+
+    // The `<form>` HTML element
+    let $form = e.detail.$form;
+
+    // The instance of the Formie form class, which encapsulates most logic
+    let form = e.detail.form;
+
+    // The `formId` of the form, used as a unique identifier
+    let formId = e.detail.formId;
+
+    // ...
+});
+```
+
+```js jQuery
+$(document).on('onFormieInit', function(e) {
+    // The instance of the Formie JS library
+    let Formie = e.detail.formie;
+
+    // The `<form>` HTML element
+    let $form = e.detail.$form;
+
+    // The instance of the Formie form class, which encapsulates most logic
+    let form = e.detail.form;
+
+    // The `formId` of the form, used as a unique identifier
+    let formId = e.detail.formId;
+
+    // ...
+});
+```
+:::
 
 Our JS hijacks the native submit handler of a form, and wraps it in a number of custom events that give you more fine-grained control over the flow of the form submission. This is used mostly for validation, and captcha support, but you can make use of these for your own needs.
 

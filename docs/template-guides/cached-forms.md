@@ -32,7 +32,7 @@ Fortunately, Formie makes it easy to refresh this content with JavaScript.
         let Formie = event.detail.formie;
 
         // Refresh the necessary bits that are statically cached (CSRF inputs, captchas, etc)
-        Formie.refreshForCache('{{ form.formId }}');
+        Formie.refreshForCache(event.detail.formId);
     });
 {% endjs %}
 ```
