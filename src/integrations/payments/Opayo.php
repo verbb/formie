@@ -754,7 +754,7 @@ class Opayo extends Payment
 
         $billingName = $this->getFieldSetting('billingDetails.billingName');
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
+        $payload['customerEmail'] = $this->getFieldSetting('billingDetails.billingEmail');
 
         if ($billingName) {
             $integrationField = new IntegrationField();

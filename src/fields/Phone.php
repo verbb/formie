@@ -148,6 +148,21 @@ class Phone extends Field implements PreviewableFieldInterface
         ]);
     }
 
+    public function populateValue($value): void
+    {
+        // Ensure that we normalize the default value. TODO: we should move this to the parent function
+        $this->defaultValue = $this->normalizeValue($value);
+    }
+
+    public function getDefaultValue($attributePrefix = '')
+    {
+        // Ensure that we normalize the default value. TODO: we should move this to the parent function
+        $defaultValue = parent::getDefaultValue($attributePrefix);
+        $defaultValue = $this->normalizeValue(parent::getDefaultValue($attributePrefix), null);
+
+        return $defaultValue;
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [

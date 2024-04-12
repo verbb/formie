@@ -78,11 +78,11 @@ class CampaignMonitor extends EmailMarketing
                             'options' => [
                                 [
                                     'label' =>  Craft::t('formie', 'Yes'),
-                                    'value' => 'Yes',
+                                    'value' => true,
                                 ],
                                 [
                                     'label' =>  Craft::t('formie', 'No'),
-                                    'value' => 'No',
+                                    'value' => false,
                                 ],
                             ],
                         ],
@@ -96,11 +96,11 @@ class CampaignMonitor extends EmailMarketing
                             'options' => [
                                 [
                                     'label' =>  Craft::t('formie', 'Yes'),
-                                    'value' => 'Yes',
+                                    'value' => true,
                                 ],
                                 [
                                     'label' =>  Craft::t('formie', 'No'),
-                                    'value' => 'No',
+                                    'value' => false,
                                 ],
                             ],
                         ],

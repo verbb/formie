@@ -693,6 +693,7 @@ class Submissions extends Component
                 case formiefields\Name::class:
                     if ($field->useMultipleFields) {
                         $fieldContent[$field->handle] = new Name([
+                            'isMultiple' => true,
                             'prefix' => $faker->title,
                             'firstName' => $faker->firstName,
                             'middleName' => $faker->firstName,

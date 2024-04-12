@@ -220,6 +220,12 @@ class Variables
         if ($includeSummary) {
             // Populate a collection of fields for "all", "visible" and "with-content"
             $fieldVariables[] = self::getFieldsHtml($form, $notification, $submission);
+
+            // We should also re-format the string to remove `<p>` tags from variables, which might produce invalid HTML
+            // but just for these summary tags which are block-level
+            $value = str_replace(['<p>{allFields}</p>'], '{allFields}', $value);
+            $value = str_replace(['<p>{allContentFields}</p>'], '{allContentFields}', $value);
+            $value = str_replace(['<p>{allVisibleFields}</p>'], '{allVisibleFields}', $value);
         }
 
         // For performance

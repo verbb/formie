@@ -796,8 +796,6 @@ class Table extends Field
         }
 
         $this->defaultValue = $value;
-
-        parent::populateValue($value);
     }
 
 

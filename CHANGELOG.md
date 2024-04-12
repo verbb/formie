@@ -1,5 +1,67 @@
 # Changelog
 
+## 3.0.0-beta.6 - 2024-04-11
+
+### Added
+- Added `FieldInterface::subfieldLabelPosition` for GraphQL.
+- Added `Submission::hasStatusChanged()` and `Submission::hasSpamChanged()`.
+- Added ability to send email notifications or trigger integrations when unmarking a submission as spam.
+- Added `data-field-label` attribute to labels/legends for fields.
+- Added `data-validation` to fields, to denote what validators to use for the field.
+- Added error output when saving a new form.
+- Added `FieldInterface::subFieldLabelPosition` for GraphQL.
+
+### Changed
+- Switched Stripe payments to use “Payment Web Element”, adding the ability to use non-credit card payments like Apple Pay, AfterPay, etc
+- Revamped front-end validation and removed `bouncer.js`.
+- Submissions now send any email notifications that have status conditions when a completed submission is saved.
+- Field errors now only show their first error when validation fails.
+- Changed `fieldErrors` and `fieldError` elements from `ul` and `li` respectively to `div`.
+- Re-organise validator rules and add client-side match field validator.
+- `data-field-handle` for fields now includes the full dot-notation “fieldKey” of the field, including any parent. So `name.firstName`, `group.text` or `repeater.new1.text`.
+- Captchas for GraphQL mutations now don’t require a mandatory variables parameter to be named the same as their input type.
+- Querying fields and rows via GraphQL now default to only returned enabled fields.
+
+### Fixed
+- Fixed Opayo payments not sending customer email address.
+- Fixed Phone fields default value not working.
+- Fixed “All Fields” and similar summary variables causing invalid HTML in some email clients for email notifications.
+- Fixed Solspace Calendar element integration incorrectly matching existing elements from other entry types.
+- Fixed Entry element integration incorrectly matching existing elements from other entry types.
+- Fixed compatibility with Solspace Calendar 5.x.
+- Fixed consent field values for Campaign Monitor.
+- Fixed an error for Checkboxes fields when the “Toggle Checkbox” was included.
+- Fixed multi-name fields not showing correctly in email notification previews.
+- Fixed `data-field-type` attribute being incorrectly translated for fields.
+- Fixed JS event listeners being attached multiple times for some integrations when calling `Formie.initForms()` multiple times.
+- Fixed front-end JS throwing an error in some circumstances.
+- Fixed an error when populating Group/Repeater field values.
+- Fixed a dependency error with `verbb/base` version.
+- Fixed user permissions being incorrect for view submissions in the control panel.
+- Fixed an error when populating Table fields.
+- Fixed Name/Address email templates.
+- Fixed duplicated email notifications not getting a unique handle.
+- Fixed handle email notification validation.
+- Fixed missing email notification validation.
+- Fixed inner Repeater fields able to be selected for variable when they aren’t supported yet.
+- Fixed an error when creating a stencil.
+- Fixed an error for match-field enabled fields.
+- Fixed sub-field inner fields being shown in the form builder.
+- Fixed Checkboxes validation.
+- Fixed notification cloning.
+- Fixed email notification enabled status.
+- Fixed an error with Solspace Calendar integration.
+- Fixed `data-field-type` attribute being incorrectly translated for fields.
+- Fixed payment field foreign key constraint.
+- Fixed front-end errors showing if no error.
+- Fixed default field values not normalizing correctly.
+- Fixed a payment field error.
+- Fixed an error with Opayo payments.
+- Fixed “Form Template” value not persisting on saving a form.
+- Fixed element site select input.
+- Fixed “Action on Submit” not toggling options correctly.
+- Fixed applying Formie 2 stencil data, and normalize stencil data.
+
 ## 3.0.0-beta.5 - 2024-03-29
 
 ### Added
@@ -228,6 +290,33 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.1.10 - 2024-04-10
+
+### Added
+- Added `FieldInterface::subfieldLabelPosition` for GraphQL.
+
+### Fixed
+- Fixed Opayo payments not sending customer email address.
+- Fixed Phone fields default value not working.
+- Fixed “All Fields” and similar summary variables causing invalid HTML in some email clients for email notifications.
+- Fixed Solspace Calendar element integration incorrectly matching existing elements from other entry types.
+- Fixed Entry element integration incorrectly matching existing elements from other entry types.
+- Fixed compatibility with Solspace Calendar 5.x.
+- Fixed consent field values for Campaign Monitor.
+- Fixed an error for Checkboxes fields when the “Toggle Checkbox” was included.
+- Fixed multi-name fields not showing correctly in email notification previews.
+- Fixed `data-field-type` attribute being incorrectly translated for fields.
+- Fixed JS event listeners being attached multiple times for some integrations when calling `Formie.initForms()` multiple times.
+- Fixed front-end JS throwing an error in some circumstances.
+- Fixed an error when populating Group/Repeater field values.
+
+## 2.1.9 - 2024-03-29
+
+### Fixed
+- Fixed a dependency error with `verbb/base` version.
+- Fixed user permissions being incorrect for view submissions in the control panel.
+- Fixed an error when populating Table fields.
 
 ## 2.1.8 - 2024-03-29
 

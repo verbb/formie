@@ -241,7 +241,7 @@ abstract class Element extends Integration
         return $event->fields;
     }
 
-    protected function getElementForPayload(string $elementType, string $identifier, Submission $submission): ElementInterface
+    protected function getElementForPayload(string $elementType, string $identifier, Submission $submission, array $criteria = []): ElementInterface
     {
         $element = new $elementType();
 
@@ -251,6 +251,9 @@ abstract class Element extends Integration
         // Check if configuring update, and find an existing element, depending on mapping
         $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $updateAttributes);
         $updateElementValues = array_filter($updateElementValues);
+
+        // Merge in any extra criteria
+        $updateElementValues = array_merge($updateElementValues, $criteria);
 
         if ($updateElementValues) {
             $query = $elementType::find($updateElementValues);
