@@ -17,7 +17,6 @@
                             {# Important to always use a NestedFieldRow as the element, otherwise will use #}
                             {# the Submission element, which will fetch content from fields outside of a Repeater #}
                             {{ craft.formie.renderField(form, field, {
-                                value: field.getFieldValue(block ?? value),
                                 element: block ?? create({
                                     class: 'verbb\\formie\\elements\\NestedFieldRow',
                                     fieldId: repeaterField.id,
