@@ -115,8 +115,8 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
                 continue;
             }
 
-            $label = (string)$option['label'];
-            $value = (string)$option['value'];
+            $label = (string)$option['label'] ?? '';
+            $value = (string)$option['value'] ?? '';
 
             if (isset($labels[$optgroup][$label])) {
                 $option['label'] = [
