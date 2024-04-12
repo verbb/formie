@@ -4,6 +4,8 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormField;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\NestedFieldTrait;
+use verbb\formie\elements\db\NestedFieldRowQuery;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
@@ -112,14 +114,21 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
             return;
         }
 
-        if ($fields = $this->getCustomFields()) {
-            foreach ($fields as $field) {
-                $fieldValue = $value[$field->handle] ?? null;
+        $blocks = [];
 
-                if ($fieldValue) {
-                    $field->populateValue($fieldValue);
-                }
-            }
+        $row = new NestedFieldRow();
+        $row->fieldId = $this->id;
+
+        // Ensure that the siteId is set to the current site
+        $row->siteId = Craft::$app->getSites()->getCurrentSite()->id;
+
+        $row->setFieldValues($value);
+
+        $blocks[] = $row;
+
+        if ($blocks) {
+            $this->defaultValue = new NestedFieldRowQuery(NestedFieldRow::class);
+            $this->defaultValue->setBlocks($blocks);
         }
     }
 
