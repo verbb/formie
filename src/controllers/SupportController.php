@@ -229,7 +229,7 @@ class SupportController extends Controller
             $zip->close();
             $requestParams['filename'] = 'formie-support-' . StringHelper::UUID() . '.zip';
             $requestParams['fileMimeType'] = 'application/zip';
-            $requestParams['fileBody'] = base64_encode(file_get_contents($zipPath));
+            $requestParams['fileBody'] = base64_encode((string)file_get_contents($zipPath));
 
             // Remove the temp files we've created
             if (is_file($tempFileForm)) {
