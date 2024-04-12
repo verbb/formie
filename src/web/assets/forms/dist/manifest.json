@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "_Modal-!~{005}~.js": {
     "file": "assets/Modal-wf1uLiFE.css",
     "src": "_Modal-!~{005}~.js"
@@ -8,14 +7,6 @@
     "file": "assets/Modal-xsLskeXk.js",
     "imports": [
       "_config-II42_W1V.js"
-=======
-  "src/js/formie-integration-settings.js": {
-    "file": "assets/formie-integration-settings.55bfe46f.js",
-    "src": "src/js/formie-integration-settings.js",
-    "isEntry": true,
-    "imports": [
-      "_config.8f11caef.js"
->>>>>>> origin/craft-4
     ],
     "css": [
       "assets/Modal-wf1uLiFE.css"
@@ -84,7 +75,6 @@
     "src": "src/fonts/fa-solid-900.woff2"
   },
   "src/js/formie-form-new.js": {
-<<<<<<< HEAD
     "file": "assets/formie-form-new-TdEcV1LL.js",
     "src": "src/js/formie-form-new.js",
     "isEntry": true,
@@ -93,33 +83,17 @@
     ]
   },
   "src/js/formie-form.js": {
-    "file": "assets/formie-form-zx1C-Uo0.js",
+    "file": "assets/formie-form-3ENkVqWJ.js",
     "src": "src/js/formie-form.js",
     "isEntry": true,
     "imports": [
       "_config-II42_W1V.js",
       "_Modal-xsLskeXk.js"
-=======
-    "file": "assets/formie-form-new.5ce32604.js",
-    "src": "src/js/formie-form-new.js",
-    "isEntry": true,
-    "imports": [
-      "_config.8f11caef.js"
-    ]
-  },
-  "src/js/formie-form.js": {
-    "file": "assets/formie-form.d4f434d0.js",
-    "src": "src/js/formie-form.js",
-    "isEntry": true,
-    "imports": [
-      "_config.8f11caef.js"
->>>>>>> origin/craft-4
     ],
     "css": [
       "assets/formie-form-fEtkkaq7.css"
     ]
   },
-<<<<<<< HEAD
   "src/js/formie-integration-settings.js": {
     "file": "assets/formie-integration-settings-6Iw7ELCV.js",
     "src": "src/js/formie-integration-settings.js",
@@ -127,12 +101,6 @@
     "imports": [
       "_config-II42_W1V.js",
       "_Modal-xsLskeXk.js"
-=======
-  "_config.8f11caef.js": {
-    "file": "assets/config.8f11caef.js",
-    "css": [
-      "assets/config.f615c9db.css"
->>>>>>> origin/craft-4
     ],
     "css": [
       "assets/formie-integration-settings-1lMsdyt4.css"
