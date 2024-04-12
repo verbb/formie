@@ -133,6 +133,16 @@ export class Formie {
                 form.$registeredJs.appendChild($script);
             });
         }
+
+        // Emit a custom event to let scripts know the Formie class is ready
+        document.dispatchEvent(new CustomEvent('onFormieInitForm', {
+            bubbles: true,
+            detail: {
+                formie: this,
+                form,
+                $form,
+            },
+        }));
     }
 
     initJsClass(className, params) {
