@@ -323,7 +323,7 @@ class Rendering extends Component
             'The request encountered a network error. Please try again.',
 
             // Stripe
-            'Invalid amount.'
+            'Invalid amount.',
             'Invalid currency.',
             'Provide a value for “{label}” to proceed.',
         ]);
