@@ -30,9 +30,11 @@ export class FormieCaptchaProvider {
         // Watch for when the input is visible/hidden, in the context of the form. But wait a little to start watching
         // to prevent double binding when still loading the form, or hidden behind conditions.
         setTimeout(() => {
-            this.getPlaceholders().forEach(($placeholder) => {
-                observer.observe($placeholder);
-            });
+            if (typeof this.getPlaceholders === 'function') {
+                this.getPlaceholders().forEach(($placeholder) => {
+                    observer.observe($placeholder);
+                });
+            }
         }, 500);
     }
 
