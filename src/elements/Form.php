@@ -183,7 +183,7 @@ class Form extends Element
 
         // Filter out any elements the user doesn't have access to view
         // Can the user edit _every_ form?
-        if (!$userSession->checkPermission('formie-viewForms')) {
+        if (!$userSession->checkPermission('formie-manageForms')) {
             // Find all UIDs the user has permission to
             foreach ($elements as $key => $element) {
                 if (!$userSession->checkPermission('formie-manageForm:' . $element->uid)) {
