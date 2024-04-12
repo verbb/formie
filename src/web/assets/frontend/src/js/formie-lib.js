@@ -141,6 +141,7 @@ export class Formie {
                 formie: this,
                 form,
                 $form,
+                formId: form.config.formHashId,
             },
         }));
     }
