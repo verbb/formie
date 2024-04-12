@@ -154,7 +154,7 @@ class Phone extends Field implements PreviewableFieldInterface
         $this->defaultValue = $this->normalizeValue($value);
     }
 
-    public function getDefaultValue($attributePrefix = '')
+    public function getDefaultValue($attributePrefix = ''): mixed
     {
         // Ensure that we normalize the default value. TODO: we should move this to the parent function
         $defaultValue = parent::getDefaultValue($attributePrefix);
