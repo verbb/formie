@@ -65,6 +65,12 @@ class m221206_000000_fix_syncs extends Migration
                         continue;
                     }
 
+                    // Check if the suffix is a fixed length, as that will tell us if this has underscores in it
+                    // or missing the suffix, for us to skip things
+                    if (strlen($suffix) !== 8) {
+                        continue;
+                    }
+
                     $columnField = (new Query())
                         ->select(['id'])
                         ->from(['{{%fields}}'])
