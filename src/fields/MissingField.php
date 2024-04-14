@@ -34,9 +34,18 @@ class MissingField extends Field implements MissingComponentInterface
         return '';
     }
 
-    public function getFieldTypeConfig(): array
+    public function getFormBuilderSettings(): array
     {
-        return [];
+        $settings = [];
+        $settings['layoutId'] = $this->layoutId;
+        $settings['pageId'] = $this->pageId;
+        $settings['rowId'] = $this->rowId;
+        $settings['syncId'] = $this->syncId;
+        $settings['label'] = $this->label;
+        $settings['handle'] = $this->handle;
+        $settings['sortOrder'] = $this->sortOrder;
+
+        return $settings;
     }
 
 
