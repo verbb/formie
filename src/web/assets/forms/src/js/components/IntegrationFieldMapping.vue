@@ -153,7 +153,8 @@ export default {
         },
 
         getFieldOptions(providerOptions) {
-            const fields = this.$store.getters['form/getIntegrationFieldSelectOptions']();
+            // Fields are stored on the parent `integration-form-settings` component for performance
+            const fields = this.$parent.mappingFields;
 
             const options = [];
 
