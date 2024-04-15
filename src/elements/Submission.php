@@ -686,8 +686,14 @@ class Submission extends Element
      *
      * @param Status $status
      */
-    public function setStatus(Status $status)
+    public function setStatus(Status|string $status)
     {
+        if (is_string($status)) {
+            if ($foundStatus = Formie::$plugin->getStatuses()->getStatusByHandle($status)) {
+                $status = $foundStatus;
+            }
+        }
+        
         $this->_status = $status;
         $this->statusId = $status->id;
     }
