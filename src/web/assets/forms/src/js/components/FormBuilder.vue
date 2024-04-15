@@ -109,8 +109,10 @@ export default {
         },
 
         enabledFieldGroups() {
-            return this.fieldGroups.filter((group) => {
-                return (group.handle !== 'internal') ? group : false;
+            return this.fieldGroups.filter((item) => {
+                return item.handle !== 'internal' && item.fields && item.fields.some((field) => {
+                    return field.isPickable;
+                });
             });
         },
 

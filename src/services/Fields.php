@@ -294,24 +294,11 @@ class Fields extends Component
 
         // Any custom fields
         if ($registeredFields) {
-            // Exclude any sub-field inner fields, which need to be registered, just not pickable on their own
-            $customFields = [];
-
-            foreach ($registeredFields as $fieldClass => $registeredField) {
-                if ($registeredField instanceof SubFieldInnerFieldInterface) {
-                    continue;
-                }
-
-                $customFields[$fieldClass] = $registeredField;
-            }
-
-            if ($customFields) {
-                $groupedFields[] = [
-                    'label' => Craft::t('formie', 'Custom Fields'),
-                    'handle' => 'custom',
-                    'fields' => $customFields,
-                ];
-            }
+            $groupedFields[] = [
+                'label' => Craft::t('formie', 'Custom Fields'),
+                'handle' => 'custom',
+                'fields' => array_values($registeredFields),
+            ];
         }
 
         foreach ($groupedFields as $groupKey => $group) {

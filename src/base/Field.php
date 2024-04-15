@@ -611,6 +611,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'hasSubFields' => $this->hasSubFields(),
             'hasNestedFields' => $this->hasNestedFields(),
             'hasEditableFields' => !($this instanceof NestedFieldInterface && !($this instanceof SubFieldInterface)),
+            'isPickable' => !($this instanceof SubFieldInnerFieldInterface),
             'schema' => $this->getFieldSchema(),
             'labelPositions' => Formie::$plugin->getFields()->getLabelPositionsOptions($this),
             'instructionsPositions' => Formie::$plugin->getFields()->getInstructionsPositionsOptions($this),
