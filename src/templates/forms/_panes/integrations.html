@@ -15,7 +15,7 @@
                                 {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
 
                                 <li>
-                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab {% if selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
+                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab {% if selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }" data-integration="{{ handle }}">
                                         {% if integration.iconUrl %}
                                             <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
                                         {% else %}
@@ -63,6 +63,9 @@
                                     name: 'enabled',
                                     on: enabled,
                                     toggle: 'integration-enabled',
+                                    containerAttributes: {
+                                        'data-integration': handle,
+                                    },
                                 }) }}
 
                                 {{ integration.getFormSettingsHtml(form) | raw }}
@@ -97,6 +100,23 @@ $(document).on('click', '[data-vui-tabs] a', function(e) {
 
         $pane.removeClass('hidden');
     }
+});
+
+$('[data-target="integration-enabled"]').each(function(index, element) {
+    $(element).on('click', function(e) {
+        var $lightswitch = $(e.currentTarget);
+        var lightswitch = $lightswitch.data('lightswitch');
+
+        if (lightswitch) {
+            var handle = $lightswitch.data('integration');
+
+            if (lightswitch.on) {
+                $('.tab[data-integration="' + handle + '"] .status').addClass('on');
+            } else {
+                $('.tab[data-integration="' + handle + '"] .status').removeClass('on');
+            }
+        }
+    });
 });
 
 {% endjs %}
