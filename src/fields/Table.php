@@ -5,6 +5,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -770,7 +771,7 @@ class Table extends Field
         return Template::raw(Html::tag('table', $thead . $tbody));
     }
 
-    public function populateValue($value): void
+    public function populateValue(mixed $value, ?Submission $submission): void
     {
         // In case tables have the older format before `col*` indexes
         $columns = [];

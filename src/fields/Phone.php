@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\Field;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -148,10 +149,10 @@ class Phone extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function populateValue($value): void
+    public function populateValue(mixed $value, ?Submission $submission): void
     {
         // Ensure that we normalize the default value. TODO: we should move this to the parent function
-        $this->defaultValue = $this->normalizeValue($value);
+        $this->defaultValue = $this->normalizeValue($value, $submission);
     }
 
     public function getDefaultValue($attributePrefix = ''): mixed

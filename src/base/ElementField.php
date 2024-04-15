@@ -5,6 +5,7 @@ use verbb\formie\base\Element as ElementIntegration;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Checkboxes;
@@ -320,7 +321,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
         return $inputOptions;
     }
 
-    public function populateValue(mixed $value): void
+    public function populateValue(mixed $value, ?Submission $submission): void
     {
         $query = static::elementType()::find()->id($value);
 

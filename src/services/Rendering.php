@@ -420,7 +420,7 @@ class Rendering extends Component
                     }
                     
                     // Ensure that the field has a chance to populate the default value correctly
-                    $field->populateValue($value);
+                    $field->populateValue($value, $submission);
 
                     // If forcing, set the value every time this is called
                     if ($force && $submission) {

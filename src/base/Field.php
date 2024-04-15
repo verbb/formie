@@ -470,9 +470,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $event->value;
     }
 
-    public function populateValue(mixed $value): void
+    public function populateValue(mixed $value, ?Submission $submission): void
     {
-        $this->defaultValue = $this->normalizeValue($value);
+        $this->defaultValue = $this->normalizeValue($value, $submission);
     }
 
     public function getMatchField(): ?string
