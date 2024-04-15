@@ -171,6 +171,10 @@ class StencilData extends Model
                 $config['settings'] = new FormSettings(Json::decodeIfJson($config['settings']));
             }
 
+            if (is_array($config['settings'])) {
+                $config['settings'] = new FormSettings($config['settings']);
+            }
+
             if (!($config['settings'] instanceof FormSettings)) {
                 $config['settings'] = new FormSettings();
             }
