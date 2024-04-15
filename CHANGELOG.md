@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.0.0-beta.7 - 2024-04-15
+
+### Added
+- Added missing form builder translation strings.
+- Added error notice for Stripe payments when invalid values are set.
+- Added `onFormieLoaded` JS event.
+
+### Changed
+- The `onFormieInit` now fires on every initialization of a form, when it’s visible on the page.
+
+### Fixed
+- Fixed a Formie 1 migration where fields contained an underscore, and were affected by synced field issues in need of fixing.
+- Fixed a PHP 8.2 deprecation.
+- Fixed populating Group fields not working consistently.
+- Fixed Repeater and Group fields not working correctly for multi-page forms.
+- Fixed limited users permissions for forms not working correctly.
+- Fixed an error with Stripe creating a plan for subscription payments.
+- Fixed Internal fields showing in the form builder for non-English languages.
+- Fixed sub-fields not showing their editable settings.
+- Fixed toggling the enabled state of integrations not updating in the sidebar.
+- Fixed form builder performance with many integrations enabled.
+- Fixed an error in the form builder for missing fields.
+- Fixed outdated front-end translations string for validators.
+- Fixed an error with Duplicate and JavaScript captchas.
+- Fixed an error when changing a Select field’s option from an optgroup to an option.
+
 ## 3.0.0-beta.6 - 2024-04-11
 
 ### Added
