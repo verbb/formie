@@ -1427,7 +1427,7 @@ class Form extends Element
         // Allow a session key to be provided to scope incomplete submission content.
         // Base64 encode it not for security, just so it's not plain text an "obvious".
         $sessionKey = $renderOptions['sessionKey'] ?? null;
-        $this->setSessionKey(base64_encode($sessionKey));
+        $this->setSessionKey(base64_encode((string)$sessionKey));
 
         // Theme options
         $templateConfig = $renderOptions['themeConfig'] ?? [];

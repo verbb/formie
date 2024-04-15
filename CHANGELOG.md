@@ -317,6 +317,20 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.11 - 2024-04-15
+
+### Added
+- Added missing form builder translation strings.
+
+### Fixed
+- Fixed a Formie 1 migration where fields contained an underscore, and were affected by synced field issues in need of fixing.
+- Fixed a PHP 8.2 deprecation.
+- Fixed populating Group fields not working consistently.
+- Fixed Repeater and Group fields not working correctly for multi-page forms.
+- Fixed limited users permissions for forms not working correctly.
+- Fixed an error with Stripe creating a plan for subscription payments.
+- Fixed Internal fields showing in the form builder for non-English languages.
+
 ## 2.1.10 - 2024-04-10
 
 ### Added
