@@ -323,10 +323,7 @@ class ImportExportHelper
 
                 // Handle nested fields
                 if ($field instanceof NestedFieldInterface) {
-                    self::getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]);
-
-                    // Rename `rows` to `rowsConfig`
-                    $pageData['rows'][$rowId]['fields'][$fieldId]['settings']['rowsConfig'] = ArrayHelper::remove($pageData['rows'][$rowId]['fields'][$fieldId], 'rows');
+                    self::getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]['settings']);
                 }
             }
         }
