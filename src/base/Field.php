@@ -52,12 +52,14 @@ use GraphQL\Type\Definition\Type;
 
 use Twig\Markup;
 
+use Arrayable;
 use DateTime;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionUnionType;
+use Serializable;
 use Throwable;
 
 use yii\db\ExpressionInterface;

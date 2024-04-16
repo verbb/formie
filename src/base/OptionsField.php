@@ -224,6 +224,8 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             }
 
             return $serialized;
+        } else if ($value instanceof SingleOptionFieldData) {
+            return $value->value;
         }
 
         return parent::serializeValue($value, $element);
