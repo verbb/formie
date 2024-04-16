@@ -188,6 +188,7 @@ export class FormieRecaptchaV2Checkbox {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load for #' + this.formId);
+        console.error(error);
     }
 }
 
