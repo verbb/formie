@@ -306,18 +306,19 @@ class Mailchimp extends EmailMarketing
         $customFields = [];
 
         // Don't use all fields, at least for the moment...
+        // https://mailchimp.com/developer/marketing/docs/merge-fields/
         $supportedFields = [
             'text',
             'number',
-            // 'address',
-            'phone',
-            'date',
-            'url',
-            // 'imageurl',
             'radio',
             'dropdown',
+            'date',
             // 'birthday',
+            // 'address',
             'zip',
+            'phone',
+            'url',
+            // 'imageurl',
         ];
 
         foreach ($fields as $key => $field) {
