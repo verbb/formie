@@ -39,7 +39,7 @@ class ImportExportHelper
             ->one();
 
         // Remove attributes we won't need
-        foreach (['id', 'formFieldLayout', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
+        foreach (['id', 'formFieldLayout', 'layoutId', 'dateCreated', 'dateUpdated', 'uid'] as $key) {
             ArrayHelper::remove($data, $key);
         }
 
@@ -314,6 +314,7 @@ class ImportExportHelper
                 ], $field->settings);
 
                 ArrayHelper::remove($settings, 'formId');
+                ArrayHelper::remove($settings, 'nestedLayoutId');
 
                 $pageData['rows'][$rowId]['fields'][$fieldId] = [
                     'type' => get_class($field),
