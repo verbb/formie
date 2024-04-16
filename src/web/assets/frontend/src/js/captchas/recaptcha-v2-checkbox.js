@@ -189,6 +189,7 @@ export class FormieRecaptchaV2Checkbox extends FormieCaptchaProvider {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load');
+        console.error(error);
     }
 }
 

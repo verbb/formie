@@ -165,6 +165,7 @@ export class FormieRecaptchaV3 extends FormieCaptchaProvider {
 
     onError(error) {
         console.error('ReCAPTCHA was unable to load');
+        console.error(error);
     }
 }
 
