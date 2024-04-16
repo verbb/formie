@@ -51,6 +51,15 @@
 }) }}
 
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
+    {{ forms.autosuggestField({
+        label: 'Google Console API Key' | t('formie'),
+        name: 'apiKey',
+        required: true,
+        suggestEnvVars: true,
+        value: integration.settings.apiKey ?? '',
+        warning: macros.configWarning('apiKey', 'formie'),
+    }) }}
+
     {% set enterpriseType = integration.settings.enterpriseType ?? 'score' %}
 
     {{ forms.selectField({

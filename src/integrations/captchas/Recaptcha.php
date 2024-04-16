@@ -29,13 +29,14 @@ class Recaptcha extends Captcha
     public $secretKey;
     public $siteKey;
     public $type = 'v3';
-    public $enterpriseType = 'score';
     public $size = 'normal';
     public $theme = 'light';
     public $badge = 'bottomright';
     public $language = 'en';
     public $minScore = 0.5;
+    public $enterpriseType = 'score';
     public $projectId;
+    public $apiKey;
 
 
     // Public Methods
@@ -182,9 +183,10 @@ class Recaptcha extends Captcha
         $siteKey = App::parseEnv($this->siteKey);
         $secretKey = App::parseEnv($this->secretKey);
         $projectId = App::parseEnv($this->projectId);
+        $apiKey = App::parseEnv($this->apiKey);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1beta1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $apiKey, [
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,

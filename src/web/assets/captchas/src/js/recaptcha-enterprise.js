@@ -131,6 +131,19 @@ export class FormieRecaptchaEnterprise {
         if (e.detail.invalid) {
             return;
         }
+
+        if (this.type === 'checkbox') {
+            var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+            
+            // Check to see if there's a valid token, otherwise, keep preventing the form.
+            if (!$token || !$token.value.length) {
+                this.addError();
+        
+                e.preventDefault();
+            }
+
+            return;
+        }
         
         e.preventDefault();
 
@@ -142,6 +155,10 @@ export class FormieRecaptchaEnterprise {
     }
 
     onVerify(token) {
+        if (this.type === 'checkbox') {
+            return;
+        }
+        
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
             // Call the form validation hooks first
