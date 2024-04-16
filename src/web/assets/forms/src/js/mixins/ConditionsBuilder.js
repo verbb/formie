@@ -28,12 +28,12 @@ export default {
     methods: {
         getValueType(field, condition) {
             // Check if there are any specific options
-            if (field && field.field && field.field.settings) {
+            if (field && field.settings) {
                 let testField = field;
-                let options = field.field.settings.options || [];
+                let options = field.settings.options || [];
 
                 // Check for group/repeater fields
-                if (field.field.hasNestedFields) {
+                if (field.hasNestedFields) {
                     options = field.subField.settings.options || [];
                     testField = field.subField;
                 }
@@ -62,12 +62,15 @@ export default {
 
         getValueOptions(field, condition) {
             // Check if there are any specific options
-            if (field && field.field && field.field.settings) {
+            if (field && field.settings) {
                 let testField = field;
-                let options = field.field.settings.options || [];
+                let options = field.settings.options || [];
+
+
+                console.log(field.field);
 
                 // Check for group/repeater fields
-                if (field.field.hasNestedFields) {
+                if (field.hasNestedFields) {
                     options = field.subField.settings.options || [];
                     testField = field.subField;
                 }
