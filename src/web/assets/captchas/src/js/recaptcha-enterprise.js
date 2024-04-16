@@ -6,6 +6,7 @@ export class FormieRecaptchaEnterprise {
         this.siteKey = settings.siteKey;
         this.badge = settings.badge;
         this.language = settings.language;
+        this.type = settings.enterpriseType;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
@@ -94,11 +95,14 @@ export class FormieRecaptchaEnterprise {
             return;
         }
 
+        // Use "invisible" for score and invisible, but not checkbox
+        const size = this.type === 'checkbox' ? '' : 'invisible';
+
         // Render the recaptcha
         recaptcha.render(this.$placeholder, {
             sitekey: this.siteKey,
             badge: this.badge,
-            size: 'invisible',
+            size,
             callback: this.onVerify.bind(this),
             'expired-callback': this.onExpired.bind(this),
             'error-callback': this.onError.bind(this),

@@ -29,6 +29,7 @@ class Recaptcha extends Captcha
     public $secretKey;
     public $siteKey;
     public $type = 'v3';
+    public $enterpriseType = 'score';
     public $size = 'normal';
     public $theme = 'light';
     public $badge = 'bottomright';
@@ -119,6 +120,7 @@ class Recaptcha extends Captcha
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
+            'enterpriseType' => $this->enterpriseType,
         ];
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {

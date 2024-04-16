@@ -51,6 +51,31 @@
 }) }}
 
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
+    {% set enterpriseType = integration.settings.enterpriseType ?? 'score' %}
+
+    {{ forms.selectField({
+        label: 'Type' | t('formie'),
+        instructions: 'Select the type of captcha to use.' | t('formie'),
+        name: 'enterpriseType',
+        required: true,
+        value: enterpriseType,
+        options: [
+            {
+                value: 'score',
+                label: 'Score Based (v3)' | t('formie'),
+            },
+            {
+                value: 'checkbox',
+                label: 'Challenge - Checkbox (v2)' | t('formie'),
+            },
+            {
+                value: 'invisible',
+                label: 'Challenge - Invisible (v2)' | t('formie'),
+            },
+        ],
+        warning: macros.configWarning('enterpriseType', 'formie'),
+    }) }}
+
     {{ forms.autosuggestField({
         label: 'Project ID' | t('formie'),
         name: 'projectId',
