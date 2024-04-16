@@ -181,7 +181,9 @@ class ImportExportController extends Controller
         if ($formAction === 'create') {
             // Is there already a form that exists with this UID? Then we need to assign a new one.
             // See discussion https://github.com/verbb/formie/discussions/1696 and actual issue https://github.com/verbb/formie/issues/1725
-            if (!$form->uid) {
+            $existingForm = Formie::$plugin->getForms()->getFormByHandle($form->handle);
+
+            if ($existingForm) {
                 $form->uid = StringHelper::UUID();
             }
         }
@@ -191,7 +193,7 @@ class ImportExportController extends Controller
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
-                'errors' => $form->getErrors(),
+                'errors' => $form->getConsolidatedErrors(),
             ]);
 
             return null;
