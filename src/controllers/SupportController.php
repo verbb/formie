@@ -89,7 +89,7 @@ class SupportController extends Controller
         $message .= PHP_EOL . '------------------------------' . PHP_EOL . PHP_EOL;
         $message .= 'Craft ' . Craft::$app->getEditionName() . ' ' . Craft::$app->getVersion() . PHP_EOL;
         $message .= 'Formie: ' . Formie::$plugin->getVersion() . PHP_EOL;
-        $message .= 'License: ' . $plugins->getPluginLicenseKey('formie') . ' - ' . $plugins->getPluginLicenseKeyStatus('formie') . PHP_EOL;
+        $message .= 'License: ' . $plugins->getPluginLicenseKey('formie') . ' - ' . $plugins->getPluginLicenseKeyStatus('formie')->value . PHP_EOL;
         $message .= 'Domain: ' . $this->request->getHostInfo();
 
         $requestParams = [
