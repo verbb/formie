@@ -179,6 +179,36 @@ export class FormieRecaptchaEnterprise {
         }, 300);
     }
 
+    addError() {
+        // Is there even a captcha field on this page?
+        if (this.$placeholder === null) {
+            return;
+        }
+
+        if (this.submitHandler) {
+            this.submitHandler.formSubmitError();
+        }
+
+        var $error = document.createElement('div');
+        $error.className = 'fui-error-message';
+        $error.textContent = t('This field is required.');
+
+        this.$placeholder.appendChild($error);
+    }
+
+    removeError() {
+        // Is there even a captcha field on this page?
+        if (this.$placeholder === null) {
+            return;
+        }
+
+        var $error = this.$placeholder.querySelector('.fui-error-message');
+
+        if ($error) {
+            $error.remove();
+        }
+    }
+
     onExpired() {
         console.log('ReCAPTCHA has expired for #' + this.formId + ' - reloading.');
 
