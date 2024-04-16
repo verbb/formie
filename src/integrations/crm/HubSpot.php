@@ -168,6 +168,11 @@ class HubSpot extends Crm
                         'fields' => $this->_getFormFields($form),
                     ]);
                 }
+
+                // Sort forms by name
+                usort($settings['forms'], function($a, $b) {
+                    return strcmp($a['name'], $b['name']);
+                });
             } else {
                 $response = $this->request('GET', 'crm/v3/pipelines/deals');
                 $pipelines = $response['results'] ?? [];
