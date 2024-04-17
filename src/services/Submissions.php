@@ -653,6 +653,7 @@ class Submissions extends Component
         $submission->id = '1234';
         $submission->uid = StringHelper::UUID();
         $submission->dateCreated = new DateTime();
+        $submission->setUser(User::find()->one());
     }
 
 
