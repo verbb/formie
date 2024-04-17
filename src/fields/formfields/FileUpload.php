@@ -11,6 +11,7 @@ use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Repeater;
 use verbb\formie\gql\types\input\FileUploadInputType;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
@@ -610,8 +611,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
             }
         }
 
-        // Remove any uploaded files, now they've been dealt with
-        $this->_uploadedDataFiles = [];
+        // Remove any uploaded files, now they've been dealt with - but only for the param as when included
+        // in a Repeater, the uploaded files is for the entire repeater field across each block.
+        if ($paramName = $this->requestParamName($element)) {
+            ArrayHelper::remove($this->_uploadedDataFiles, $paramName);
+        }
     }
 
     /**
