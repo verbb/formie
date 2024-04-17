@@ -179,7 +179,12 @@ class Recaptcha extends Captcha
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
+        $client = Craft::createGuzzleClient([
+            'headers' => [
+                'Referer' => Craft::$app->getSites()->getPrimarySite()->getBaseUrl(),
+            ],
+        ]);
+
         $siteKey = App::parseEnv($this->siteKey);
         $secretKey = App::parseEnv($this->secretKey);
         $projectId = App::parseEnv($this->projectId);
@@ -191,6 +196,8 @@ class Recaptcha extends Captcha
                     'event' => [
                         'siteKey' => $siteKey,
                         'token' => $response,
+                        'userAgent' => Craft::$app->getRequest()->getUserAgent(),
+                        'userIpAddress' => Craft::$app->getRequest()->getRemoteIP(),
                     ],
                 ],
             ]);
