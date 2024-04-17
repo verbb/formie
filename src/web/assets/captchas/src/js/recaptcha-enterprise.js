@@ -45,14 +45,19 @@ export class FormieRecaptchaEnterprise {
         this.renderCaptcha();
 
         // Attach a custom event listener on the form
+        this.$form.addEventListener('onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
         this.$form.addEventListener('onFormieCaptchaValidate', this.onValidate.bind(this));
         this.$form.addEventListener('onAfterFormieSubmit', this.onAfterSubmit.bind(this));
     }
 
     renderCaptcha() {
         // Default to the first placeholder available.
-        // eslint-disable-next-line
-        this.$placeholder = this.$placeholders[0];
+        if (this.type === 'checkbox') {
+            this.$placeholder = null;
+        } else {
+            // eslint-disable-next-line
+            this.$placeholder = this.$placeholders[0];
+        }
 
         // Get the active page
         var $currentPage = null;
@@ -121,6 +126,13 @@ export class FormieRecaptchaEnterprise {
         });
     }
 
+    onBeforeSubmit(e) {
+        // Save for later to trigger real submit
+        this.submitHandler = e.detail.submitHandler;
+
+        this.removeError();
+    }
+
     onValidate(e) {
         // Don't validate if we're going back in the form
         if (this.$form.goBack || this.$placeholder === null) {
@@ -158,7 +170,7 @@ export class FormieRecaptchaEnterprise {
         if (this.type === 'checkbox') {
             return;
         }
-        
+
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
             // Call the form validation hooks first
