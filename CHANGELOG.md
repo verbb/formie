@@ -2,6 +2,7 @@
 
 ## 1.6.41 - 2024-04-18
 
+### Added
 - Added the ability to set the captcha type for reCAPTCHA Enterprise.
 - Added Google Console API Key for reCAPTCHA Enterprise.
 - Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
