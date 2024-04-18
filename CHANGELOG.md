@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.1.12 - 2024-04-18
+
+### Added
+- Added more missing translation strings.
+- Added full error for reCAPTCHA captchas when failing to initialize.
+- Added the ability for `Submission::setStatus()` to accept the handle of a status.
+
+### Changed
+- HubSpot forms are now listed in alphabetical order.
+
+### Fixed
+- Fixed formatting for German translations. (thanks @MoritzLost).
+- Fixed spelling and style issues in German translations. (thanks @MoritzLost).
+- Fixed an error with File Upload fields within Repeater fields for GraphQL.
+- Fixed User variables not working in Email Notification previews.
+- Fixed "Manage all forms" permission.
+- Submission UIDs when used in Email Notifications now show a generated value in preview.
+
 ## 2.1.11 - 2024-04-15
 
 ### Added
