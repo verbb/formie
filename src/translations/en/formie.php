@@ -2536,7 +2536,6 @@ return [
     'Russia' => 'Russia',
     'Nebraska' => 'Nebraska',
     'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}' => 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}',
-    '"{label}" cannot be blank.' => '"{label}" cannot be blank.',
     'Add any attachments such as screenshots that would be helpful for support.' => 'Add any attachments such as screenshots that would be helpful for support.',
     'Short Month' => 'Short Month',
     'Set the background color.' => 'Set the background color.',

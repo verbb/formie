@@ -2543,7 +2543,7 @@ return [
     'Russia' => 'Russland',
     'Nebraska' => 'Nebraska',
     'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}' => 'Fehler beim Analysieren der Benachrichtigungse-Mail für ReplyTo: {value}”. Template-Fehler: “{message}” {file}:{line}',
-    '"{label}" cannot be blank.' => '„{label}“ darf nicht leer sein.',
+    '{attribute} cannot be blank.' => '{attribute} darf nicht leer sein.',
     'Add any attachments such as screenshots that would be helpful for support.' => 'Fügen Sie Anhänge wie Screenshots hinzu, die für die Unterstützung hilfreich wären.',
     'Short Month' => 'Kurzer Monat',
     'Set the background color.' => 'Setze die Hintergrundfarbe.',
