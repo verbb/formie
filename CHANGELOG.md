@@ -1,9 +1,15 @@
 # Changelog
 
+## 1.6.41 - 2024-04-18
+
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
+
 ## 1.6.40 - 2024-03-29
 
 ### Added
-- Add support for additional SugarCRM fields.
+- Added support for additional SugarCRM fields.
 
 ## 1.6.39 - 2024-03-16
 
