@@ -381,6 +381,17 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     {
         $subFields = [];
 
+        // Translate the value if set in shorthand to what the front-end value needs
+        $countryDefaultValue = $this->getDefaultValue('country') ?: $this->countryDefaultValue;
+
+        if ($countryDefaultValue) {
+            foreach (static::getCountryOptions() as $country) {
+                if ($countryDefaultValue === $country['value']) {
+                    $countryDefaultValue = ($this->countryOptionValue === 'short') ? $country['value'] : $country['label'];
+                }
+            }
+        }
+
         $rowConfigs = [
             [
                 [
@@ -518,7 +529,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
                     'required' => $this->countryRequired,
                     'placeholder' => $this->countryPlaceholder,
                     'errorMessage' => $this->countryErrorMessage,
-                    'defaultValue' => $this->getDefaultValue('country'),
+                    'defaultValue' => $countryDefaultValue,
                     'labelPosition' => $this->subfieldLabelPosition,
                     'options' => $this->getCountryOptionsForDisplay(),
                     'inputAttributes' => [
