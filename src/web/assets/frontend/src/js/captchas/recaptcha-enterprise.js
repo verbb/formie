@@ -104,7 +104,7 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
         }
 
         // Check if we actually need to re-render this, or just refresh it...
-        var currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
+        const currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
 
         if (currentRecaptchaId !== null) {
             this.recaptchaId = currentRecaptchaId;
@@ -158,18 +158,18 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
         }
 
         if (this.type === 'checkbox') {
-            var $token = this.$form.querySelector('[name="g-recaptcha-response"]');
-            
+            const $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+
             // Check to see if there's a valid token, otherwise, keep preventing the form.
             if (!$token || !$token.value.length) {
                 this.addError();
-        
+
                 e.preventDefault();
             }
 
             return;
         }
-        
+
         e.preventDefault();
 
         // Save for later to trigger real submit
@@ -212,7 +212,7 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
             this.submitHandler.formSubmitError();
         }
 
-        var $error = document.createElement('div');
+        const $error = document.createElement('div');
         $error.className = 'fui-error-message';
         $error.textContent = t('This field is required.');
 
@@ -225,7 +225,7 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
             return;
         }
 
-        var $error = this.$placeholder.querySelector('.fui-error-message');
+        const $error = this.$placeholder.querySelector('.fui-error-message');
 
         if ($error) {
             $error.remove();
