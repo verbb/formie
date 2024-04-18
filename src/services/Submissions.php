@@ -15,6 +15,7 @@ use verbb\formie\events\SubmissionSpamCheckEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
@@ -587,7 +588,9 @@ class Submissions extends Component
 
         // Set some submission attributes as well
         $submission->id = '1234';
+        $submission->uid = StringHelper::UUID();
         $submission->dateCreated = new DateTime();
+        $submission->setUser(User::find()->one());
     }
 
     public function updateSubmissionContent(Form $form): void

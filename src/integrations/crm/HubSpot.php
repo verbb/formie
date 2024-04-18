@@ -132,6 +132,11 @@ class HubSpot extends Crm
                         'fields' => $this->_getFields($form),
                     ]);
                 }
+
+                // Sort forms by name
+                usort($settings['forms'], function($a, $b) {
+                    return strcmp($a['name'], $b['name']);
+                });
             } else {
                 // Get Contacts fields
                 if ($this->mapToContact) {

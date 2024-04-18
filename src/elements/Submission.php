@@ -738,8 +738,14 @@ class Submission extends CustomElement
         return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
     }
 
-    public function setStatus(Status $status): void
+    public function setStatus(Status|string $status): void
     {
+        if (is_string($status)) {
+            if ($foundStatus = Formie::$plugin->getStatuses()->getStatusByHandle($status)) {
+                $status = $foundStatus;
+            }
+        }
+        
         $this->_status = $status;
         $this->statusId = $status->id;
     }
