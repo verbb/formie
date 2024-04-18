@@ -34,7 +34,6 @@ class Recaptcha extends Captcha
     public string $badge = 'bottomright';
     public string $language = 'en';
     public float $minScore = 0.5;
-    public ?string $projectId = null;
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
