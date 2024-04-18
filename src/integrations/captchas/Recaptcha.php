@@ -36,6 +36,9 @@ class Recaptcha extends Captcha
     public float $minScore = 0.5;
     public ?string $projectId = null;
     public string $scriptLoadingMethod = 'asyncDefer';
+    public ?string $enterpriseType = 'score';
+    public ?string $projectId = null;
+    public ?string $apiKey = null;
 
 
     // Public Methods
@@ -96,6 +99,7 @@ class Recaptcha extends Captcha
             'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
             'hasMultiplePages' => $form->hasMultiplePages() ?? false,
             'loadingMethod' => $this->scriptLoadingMethod,
+            'enterpriseType' => $this->enterpriseType,
         ];
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
@@ -167,17 +171,25 @@ class Recaptcha extends Captcha
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
+        $client = Craft::createGuzzleClient([
+            'headers' => [
+                'Referer' => Craft::$app->getSites()->getPrimarySite()->getBaseUrl(),
+            ],
+        ]);
+
         $siteKey = App::parseEnv($this->siteKey);
         $secretKey = App::parseEnv($this->secretKey);
         $projectId = App::parseEnv($this->projectId);
+        $apiKey = App::parseEnv($this->apiKey);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $apiKey, [
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,
                         'token' => $response,
+                        'userAgent' => Craft::$app->getRequest()->getUserAgent(),
+                        'userIpAddress' => Craft::$app->getRequest()->getRemoteIP(),
                     ],
                 ],
             ]);

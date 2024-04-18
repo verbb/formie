@@ -6,6 +6,9 @@
 - Added more missing translation strings.
 - Added full error for reCAPTCHA captchas when failing to initialize.
 - Added the ability for `Submission::setStatus()` to accept the handle of a status.
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
 
 ### Changed
 - HubSpot forms are now listed in alphabetical order.
@@ -1399,17 +1402,17 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
-## 1.6.36 - 2023-12-12
+## 1.6.41 - 2024-04-18
 
-### Fixed
-- Fix an error when form message settings contained emoji’s.
-- Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
-- Fix an issue using `populateFormValues` for Repeater fields.
+### Added
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
 
 ## 1.6.40 - 2024-03-29
 
 ### Added
-- Add support for additional SugarCRM fields.
+- Added support for additional SugarCRM fields.
 
 ## 1.6.39 - 2024-03-16
 
