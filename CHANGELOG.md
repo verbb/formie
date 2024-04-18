@@ -1,5 +1,29 @@
 # Changelog
 
+## 3.0.0-beta.8 - 2024-04-18
+
+### Added
+- Added missing form builder translation strings.
+
+### Fixed
+- Fixed a Formie 1 migration where fields contained an underscore, and were affected by synced field issues in need of fixing.
+- Fixed a PHP 8.2 deprecation.
+- Fixed populating Group fields not working consistently.
+- Fixed Repeater and Group fields not working correctly for multi-page forms.
+- Fixed limited users permissions for forms not working correctly.
+- Fixed an error with Stripe creating a plan for subscription payments.
+- Fixed Internal fields showing in the form builder for non-English languages.
+- Fixed conditions builder not working correctly for some field types like Dropdowns.
+- Fixed options fields not saving field content correctly.
+- Fixed importing sub-fields for forms.
+- Fixed form importing.
+- Fixed form exporting including invalid settings.
+- Fixed an error when importing a form.
+- Fixed support request form.
+- Fixed Heading field preview.
+- Fixed an error with stencils not having their settings populated correctly.
+- Fixed an error when populating form content.
+
 ## 3.0.0-beta.7 - 2024-04-15
 
 ### Added
@@ -245,7 +269,6 @@
 - Added `verbb\formie\base\OptionsField` class.
 - Added `verbb\formie\base\SingleNestedField` class.
 - Added `verbb\formie\base\SubField` class.
-
 
 ### Changed
 - Now requires PHP `8.2.0+`.
