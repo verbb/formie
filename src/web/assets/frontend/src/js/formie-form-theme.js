@@ -127,7 +127,10 @@ export class FormieFormTheme {
             // Prevent an infinite loop (check behaviour with an Agree field)
             // https://github.com/verbb/formie/issues/905
             if (!this.submitDebounce) {
-                this.validate(false);
+                // Only trigger this when live validation is disabled
+                if (!this.validationOnFocus) {
+                    this.validate(false);
+                }
             }
         });
 
