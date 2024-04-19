@@ -608,14 +608,12 @@ class Formie extends Plugin
     private function _registerEmailMessages(): void
     {
         Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
-            $event->messages = array_merge($event->messages, [
-                [
-                    'key' => 'formie_failed_notification',
-                    'heading' => Craft::t('formie', 'formie_failed_notification_heading'),
-                    'subject' => Craft::t('formie', 'formie_failed_notification_subject'),
-                    'body' => Craft::t('formie', 'formie_failed_notification_body'),
-                ],
-            ]);
+            $event->messages[] = [
+                'key' => 'formie_failed_notification',
+                'heading' => Craft::t('formie', 'formie_failed_notification_heading'),
+                'subject' => Craft::t('formie', 'formie_failed_notification_subject'),
+                'body' => Craft::t('formie', 'formie_failed_notification_body'),
+            ];
         });
     }
 
