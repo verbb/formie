@@ -152,6 +152,7 @@ return [
     'Manage “{name}” submissions' => 'Manage “{name}” submissions',
     'View forms' => 'View forms',
     'View submissions' => 'View submissions',
+    'View Submissions' => 'View Submissions',
     'View sent notifications' => 'View sent notifications',
     'Formie' => 'Formie',
     'View all forms' => 'View all forms',
@@ -1506,6 +1507,7 @@ return [
     'User Last Name' => 'User Last Name',
     '{name} must be mapped.' => '{name} must be mapped.',
     'That handle is already in use' => 'That handle is already in use',
+    'Add existing fields' => 'Add existing fields',
     'Internal' => 'Internal',
     'Common Fields' => 'Common Fields',
     'Advanced Fields' => 'Advanced Fields',
@@ -1546,7 +1548,6 @@ return [
     'Fail alert not configured to send.' => 'Fail alert not configured to send.',
     'Behaviour' => 'Behaviour',
     'Content' => 'Content',
-
 
     //
     // Email Messages
@@ -2756,7 +2757,6 @@ return [
     'Add as new field' => 'Add as new field',
     'Add {num} as new field' => 'Add {num} as new field',
     'Add {num} as new fields' => 'Add {num} as new fields',
-    'Add as synced field' => 'Add as synced field',
     'Add {num} as synced field' => 'Add {num} as synced field',
     'Add {num} as synced fields' => 'Add {num} as synced fields',
     'Button Label' => 'Button Label',
