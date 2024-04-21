@@ -1040,7 +1040,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $errors = $element ? $element->getErrors($this->handle) : '';
 
         $field = Cp::fieldHtml($input, [
-            'label' => Craft::t('site', $this->label),
+            'label' => $this->hasLabel() ? Craft::t('site', $this->label) : null,
             'attribute' => $this->handle,
             'required' => $this->required,
             'instructions' => Craft::t('site', $this->instructions),
