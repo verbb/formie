@@ -739,7 +739,7 @@ class FileUpload extends ElementField
         $uploadVolume = $this->_getVolume();
         $uploadFs = $uploadVolume?->getFs();
 
-        $variables['fsType'] = $uploadFs::class;
+        $variables['fsType'] = $uploadFs ? get_class($uploadFs) : null;
         $variables['showFolders'] = true;
         $variables['canUpload'] = ($uploadVolume && $uploadFs);
         $variables['defaultFieldLayoutId'] = $uploadVolume->fieldLayoutId ?? null;
