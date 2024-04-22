@@ -34,7 +34,7 @@
                     <h6 class="sidebar-title">{{ group.label }}</h6>
 
                     <div class="fui-row small-padding">
-                        <div v-for="(field, i) in group.fields" :key="i" class="fui-col-6">
+                        <div v-for="(field, i) in enabledFieldGroupFields(group.fields)" :key="i" class="fui-col-6">
                             <field-pill :type="field.type" />
                         </div>
                     </div>
@@ -110,9 +110,7 @@ export default {
 
         enabledFieldGroups() {
             return this.fieldGroups.filter((item) => {
-                return item.handle !== 'internal' && item.fields && item.fields.some((field) => {
-                    return field.isPickable;
-                });
+                return item.handle !== 'internal' && this.enabledFieldGroupFields(item.fields).length;
             });
         },
 
@@ -138,6 +136,12 @@ export default {
 
         saveUpdatedHash() {
             this.savedFormHash = this.formHash;
+        },
+
+        enabledFieldGroupFields(fields) {
+            return fields.filter((field) => {
+                return field.isPickable;
+            });
         },
     },
 };
