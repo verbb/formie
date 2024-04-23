@@ -264,7 +264,7 @@ class Fields extends Component
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Internal'),
                 'handle' => 'internal',
-                'fields' => $internalFields,
+                'fields' => array_values($internalFields),
             ];
         }
 
@@ -272,7 +272,7 @@ class Fields extends Component
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Common Fields'),
                 'handle' => 'common',
-                'fields' => $commonFields,
+                'fields' => array_values($commonFields),
             ];
         }
 
@@ -280,7 +280,7 @@ class Fields extends Component
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Advanced Fields'),
                 'handle' => 'advanced',
-                'fields' => $advancedFields,
+                'fields' => array_values($advancedFields),
             ];
         }
 
@@ -288,7 +288,7 @@ class Fields extends Component
             $groupedFields[] = [
                 'label' => Craft::t('formie', 'Element Fields'),
                 'handle' => 'element',
-                'fields' => $elementFields,
+                'fields' => array_values($elementFields),
             ];
         }
 
