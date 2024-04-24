@@ -4,7 +4,9 @@ Here are some common issues with Formie, and how to solve them.
 ### Email notifications are only sent when visiting the control panel
 This is because Formie uses Craft's queue system to send emails. It's common for emails to take up to 10+ seconds to send, particularly for SMTP-based email providers. This is also compounded by any attachments for your email. 
 
-This leads to a bad UX for users of your form, where they are waiting for a form to be submitted. They could get impatient and navigate away before the email is sent. It also put unnecessary load on your server for high-traffic sites, where multiple form submissions would be vying for server resources to send emails. 
+This leads to a bad UX for users of your form, where they are waiting for a form to be submitted. They could get impatient and navigate away before the email is sent. It also put unnecessary load on your server for high-traffic sites, where multiple form submissions would be vying for server resources to send emails.
+
+For this reason, Formie uses the Craft queue system to send email notifications in the background.
 
 But Craft's queue processing by default is only setup to run when you visit the control panel. If you find emails are only being sent when you visit the control panel, this is likely the cause.
 
