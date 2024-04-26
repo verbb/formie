@@ -326,7 +326,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
         $method = $rule[1] ?? null;
 
-        if (!$isEmpty && $field->hasMethod($method)) {
+        if ($field->hasMethod($method)) {
             $field->$method($element);
         }
     }

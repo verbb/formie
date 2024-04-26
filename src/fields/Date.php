@@ -361,16 +361,37 @@ class Date extends SubField implements PreviewableFieldInterface
         return $rules;
     }
 
+    public function validateBlocks(ElementInterface $element): void
+    {
+        // Date fields are a little special when it comes to sub-fields, so validation is quite custom.
+        // We override default sub-field validations for "blocks" (the nested sub-fields), and makes
+        // it more complicated that a Date field's value is a DateTime.
+        $value = $element->getFieldValue($this->fieldKey);
+        $isEmpty = $this->isValueEmpty($value, $element);
+
+        foreach ($this->getFields() as $field) {
+            $fieldKey = $field->fieldKey;
+
+            // Roll our own validation, due to lack of field layout and elements
+            if ($field->required && $isEmpty) {
+                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+            }
+
+            foreach ($field->getElementValidationRules() as $rule) {
+                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+            }
+        }
+    }
+
     public function validateDateValues(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->fieldKey);
 
-        if ($normalized = (!$value instanceof DateTime)) {
+        if (!$value instanceof DateTime) {
             $value = DateTimeHelper::toDateTime($value);
         }
 
         if (!$value) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'Value must be a date.'));
             return;
         }
 
@@ -388,11 +409,6 @@ class Date extends SubField implements PreviewableFieldInterface
                     'max' => Craft::$app->getFormatter()->asDate($max, Locale::LENGTH_SHORT),
                 ]));
             }
-        }
-
-        if ($normalized) {
-            // Update the value on the model to the DateTime object
-            // $model->$attribute = $value;
         }
     }
 
