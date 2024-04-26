@@ -3,6 +3,7 @@ namespace verbb\formie\gql\interfaces;
 
 use verbb\formie\gql\types\generators\PageGenerator;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FieldLayoutPageSettings;
 
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
@@ -92,6 +93,14 @@ class PageInterface extends BaseInterfaceType
                 'name' => 'settings',
                 'type' => PageSettingsInterface::getType(),
                 'description' => 'The page’s settings, including buttons.',
+                'resolve' => function($source, $arguments) {
+                    // Ensure we cast it correctly if we need to
+                    if (!($source->settings instanceof FieldLayoutPageSettings)) {
+                        return new FieldLayoutPageSettings($source->settings);
+                    }
+
+                    return $source->settings;
+                },
             ],
         ]);
 
