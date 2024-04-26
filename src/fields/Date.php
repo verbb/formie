@@ -374,7 +374,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
             // Roll our own validation, due to lack of field layout and elements
             if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
             }
 
             foreach ($field->getElementValidationRules() as $rule) {

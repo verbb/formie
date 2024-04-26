@@ -56,7 +56,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
 
             // Roll our own validation, due to lack of field layout and elements
             if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
@@ -201,7 +201,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             $subValue = $element->getFieldValue($field->fieldKey);
             $html = $field->getValueForSummary($subValue, $element);
 
-            $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
+            $values .= '<strong>' . $field->label . '</strong> ' . $html . '<br>';
         }
 
         return Template::raw($values);

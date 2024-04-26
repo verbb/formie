@@ -56,11 +56,11 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
                 'tooFew' => $this->minRows ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'min' => $this->minRows, // Need to pass this in now
                 ]) : null,
                 'tooMany' => $this->maxRows ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{block} other{blocks}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'max' => $this->maxRows, // Need to pass this in now
                 ]) : null,
                 'skipOnEmpty' => false,
@@ -82,7 +82,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
                 // Roll our own validation, due to lack of field layout and elements
                 if ($field->required && $isEmpty) {
-                    $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->name]));
+                    $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
                 }
 
                 foreach ($field->getElementValidationRules() as $rule) {
@@ -273,7 +273,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
                 $html = $field->getValueForSummary($subValue, $element);
 
-                $values .= '<strong>' . $field->name . '</strong> ' . $html . '<br>';
+                $values .= '<strong>' . $field->label . '</strong> ' . $html . '<br>';
             }
         }
 
