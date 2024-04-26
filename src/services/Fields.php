@@ -368,6 +368,7 @@ class Fields extends Component
         $forms = $query->all();
 
         $allFields = [];
+        $existingFields = [];
 
         foreach ($forms as $form) {
             $formPages = [];
