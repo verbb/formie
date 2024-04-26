@@ -688,7 +688,7 @@ class FileUpload extends ElementField
                     'size-min-limit' => $sizeMinLimit,
                     'size-max-limit' => $sizeMaxLimit,
                     'file-limit' => $limitFiles,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes());

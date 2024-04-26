@@ -247,7 +247,7 @@ class Agree extends Field implements PreviewableFieldInterface
                 'data' => [
                     'fui-id' => $this->getHtmlDataId($form),
                     'fui-input-type' => 'agree',
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes());
         }

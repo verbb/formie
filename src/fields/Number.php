@@ -317,7 +317,7 @@ class Number extends Field implements PreviewableFieldInterface
                 'max' => $this->limit ? $this->max : false,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes());

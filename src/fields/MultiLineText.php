@@ -492,7 +492,7 @@ class MultiLineText extends Field implements PreviewableFieldInterface
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                     'min-chars' => ($this->limit && $this->minType === 'characters' && $this->min) ? $this->min : null,
                     'max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
                     'min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,

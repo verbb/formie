@@ -247,7 +247,7 @@ class Calculations extends Field implements PreviewableFieldInterface
                 'readonly' => true,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes());

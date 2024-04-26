@@ -983,7 +983,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 'autocomplete' => 'off',
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
                 'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
             ], $this->getInputAttributes());

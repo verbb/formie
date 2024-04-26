@@ -308,7 +308,7 @@ class Dropdown extends OptionsField
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
-                    'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes());
         }
