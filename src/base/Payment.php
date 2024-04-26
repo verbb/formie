@@ -143,7 +143,7 @@ abstract class Payment extends Integration
             'integration' => $this,
         ]);
         
-        return Template::raw(Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_email", $inputOptions));
+        return Template::raw($notification->renderTemplate("integrations/payments/{$handle}/field", $inputOptions));
     }
 
     public function getSubmissionSummaryHtml(Submission $submission): ?string
@@ -158,7 +158,7 @@ abstract class Payment extends Integration
             return null;
         }
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_submission-summary", [
+        return $submission->getForm()->renderTemplate("integrations/payments/{$handle}/submission-summary", [
             'integration' => $this,
             'form' => $submission,
             'payments' => $payments,
@@ -176,7 +176,7 @@ abstract class Payment extends Integration
 
         $this->setField($field);
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_input", [
+        return $field->getForm()->renderTemplate("integrations/payments/{$handle}/field", [
             'field' => $field,
             'renderOptions' => $renderOptions,
         ]);
