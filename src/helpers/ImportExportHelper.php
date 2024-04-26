@@ -307,7 +307,7 @@ class ImportExportHelper
         foreach ($rows as $rowId => $row) {
             foreach ($row['fields'] as $fieldId => $field) {
                 $settings = array_merge([
-                    'label' => $field->name,
+                    'label' => $field->label,
                     'handle' => $field->handle,
                     'instructions' => $field->instructions,
                     'required' => $field->required,
