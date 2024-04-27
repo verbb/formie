@@ -386,10 +386,37 @@ class Name extends SubField implements PreviewableFieldInterface
         ]);
     }
 
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        if ($this->useMultipleFields) {
+            return parent::defineValueAsString($value, $element);
+        }
+
+        return $value;
+    }
+
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    {
+        if ($this->useMultipleFields) {
+            return parent::defineValueAsJson($value, $element);
+        }
+
+        return $value;
+    }
+
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
     {
         if ($this->useMultipleFields) {
             return parent::defineValueForExport($value, $element);
+        }
+
+        return $value;
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        if ($this->useMultipleFields) {
+            return parent::defineValueForSummary($value, $element);
         }
 
         return $value;

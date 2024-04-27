@@ -1293,6 +1293,11 @@ class Date extends SubField implements PreviewableFieldInterface
         return $this->getValueAsString($value, $element);
     }
 
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->getValueAsString($value, $element);
+    }
+
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If a string value is requested for a date, return the ISO 8601 date string
