@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.13 - 2024-04-27
+
+### Changed
+- Improved German translations. (thanks @MoritzLost).
+- Updated non-English translations to include latest strings.
+- Updated English translations to include latest strings.
+
+### Fixed
+- Fixed an error where `renderOptions` weren’t available to field templates.
+- Fixed duplicated heading text for Heading fields when viewing a submission in the control panel.
+- Fixed an error with Flatpickr and live client-side validation.
+- Fixed Element integrations not working correctly for non-updating elements.
+- Fixed Address field default country not working correctly.
+
 ## 2.1.12 - 2024-04-18
 
 ### Added
