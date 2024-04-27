@@ -2,8 +2,20 @@
 
 ## 3.0.0-beta.9 - 2024-04-27
 
+### Added
+- Added more missing translation strings.
+- Added full error for reCAPTCHA captchas when failing to initialize.
+- Added the ability for `Submission::setStatus()` to accept the handle of a status.
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
+
 ### Changed
 - Payment integrations can now have their field templates overridden in Form Templates.
+- HubSpot forms are now listed in alphabetical order.
+- Improved German translations. (thanks @MoritzLost).
+- Updated non-English translations to include latest strings.
+- Updated English translations to include latest strings.
 
 ### Fixed
 - Fixed a JS error for client-side validation with Theme Config `resetClasses` set.
@@ -20,6 +32,17 @@
 - Fixed an error with File Upload fields with invalid volumes when viewing a submission in the control panel.
 - Fixed an error when rendering fields in the form builder when also registering custom fields.
 - Fixed Heading field outputting field label when editing a submission in the control panel.
+- Fixed an error where `renderOptions` weren’t available to field templates.
+- Fixed duplicated heading text for Heading fields when viewing a submission in the control panel.
+- Fixed an error with Flatpickr and live client-side validation.
+- Fixed Element integrations not working correctly for non-updating elements.
+- Fixed Address field default country not working correctly.
+- Fixed formatting for German translations. (thanks @MoritzLost).
+- Fixed spelling and style issues in German translations. (thanks @MoritzLost).
+- Fixed an error with File Upload fields within Repeater fields for GraphQL.
+- Fixed User variables not working in Email Notification previews.
+- Fixed "Manage all forms" permission.
+- Submission UIDs when used in Email Notifications now show a generated value in preview.
 
 ## 3.0.0-beta.8 - 2024-04-18
 
@@ -360,6 +383,41 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.1.13 - 2024-04-27
+
+### Changed
+- Improved German translations. (thanks @MoritzLost).
+- Updated non-English translations to include latest strings.
+- Updated English translations to include latest strings.
+
+### Fixed
+- Fixed an error where `renderOptions` weren’t available to field templates.
+- Fixed duplicated heading text for Heading fields when viewing a submission in the control panel.
+- Fixed an error with Flatpickr and live client-side validation.
+- Fixed Element integrations not working correctly for non-updating elements.
+- Fixed Address field default country not working correctly.
+
+## 2.1.12 - 2024-04-18
+
+### Added
+- Added more missing translation strings.
+- Added full error for reCAPTCHA captchas when failing to initialize.
+- Added the ability for `Submission::setStatus()` to accept the handle of a status.
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
+
+### Changed
+- HubSpot forms are now listed in alphabetical order.
+
+### Fixed
+- Fixed formatting for German translations. (thanks @MoritzLost).
+- Fixed spelling and style issues in German translations. (thanks @MoritzLost).
+- Fixed an error with File Upload fields within Repeater fields for GraphQL.
+- Fixed User variables not working in Email Notification previews.
+- Fixed "Manage all forms" permission.
+- Submission UIDs when used in Email Notifications now show a generated value in preview.
 
 ## 2.1.11 - 2024-04-15
 
@@ -1742,17 +1800,17 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
-## 1.6.36 - 2023-12-12
+## 1.6.41 - 2024-04-18
 
-### Fixed
-- Fix an error when form message settings contained emoji’s.
-- Fix lack of enter key accessibility for sent notification and submission modals in the control panel.
-- Fix an issue using `populateFormValues` for Repeater fields.
+### Added
+- Added the ability to set the captcha type for reCAPTCHA Enterprise.
+- Added Google Console API Key for reCAPTCHA Enterprise.
+- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
 
 ## 1.6.40 - 2024-03-29
 
 ### Added
-- Add support for additional SugarCRM fields.
+- Added support for additional SugarCRM fields.
 
 ## 1.6.39 - 2024-03-16
 

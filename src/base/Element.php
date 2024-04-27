@@ -245,6 +245,11 @@ abstract class Element extends Integration
     {
         $element = new $elementType();
 
+        // If we're not wanting to update an element, no need to proceed finding one.
+        if (!$this->updateElement) {
+            return $element;
+        }
+
         // Pick from the available update attributes, depending on the identifier picked (e.g. `entryTypeId`, etc).
         $updateAttributes = $this->getUpdateAttributes()[$identifier] ?? [];
 

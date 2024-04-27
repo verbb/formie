@@ -19,10 +19,10 @@
         {% fieldtag 'fieldInputWrapper' %}
             {% hook 'formie.field.input-start' %}
 
-            {{ field.getFrontEndInputHtml(form, value, {
+            {{ field.getFrontEndInputHtml(form, value, renderOptions | merge({
                 submission: element,
                 errors: errors,
-            }) }}
+            })) }}
 
             {% hook 'formie.field.input-end' %}
         {% endfieldtag %}

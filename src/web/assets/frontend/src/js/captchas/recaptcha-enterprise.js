@@ -12,6 +12,7 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
         this.badge = settings.badge;
         this.language = settings.language;
         this.loadingMethod = settings.loadingMethod;
+        this.type = settings.enterpriseType;
         this.recaptchaScriptId = 'FORMIE_RECAPTCHA_SCRIPT';
 
         // We can start listening for the field to become visible to initialize it
@@ -73,12 +74,19 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
         }
 
         // Attach a custom event listener on the form
+        this.$form.addEventListener('onBeforeFormieSubmit', this.onBeforeSubmit.bind(this));
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'RecaptchaEnterprise'), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'RecaptchaEnterprise'), this.onAfterSubmit.bind(this));
     }
 
     renderCaptcha() {
-        this.$placeholder = null;
+        // Default to the first placeholder available.
+        if (this.type === 'checkbox') {
+            this.$placeholder = null;
+        } else {
+            // eslint-disable-next-line
+            this.$placeholder = this.$placeholders[0];
+        }
 
         // Get the active page
         let $currentPage = null;
@@ -120,17 +128,38 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
             $token.remove();
         }
 
+        // Check if we actually need to re-render this, or just refresh it...
+        const currentRecaptchaId = this.$placeholder.getAttribute('data-recaptcha-id');
+
+        if (currentRecaptchaId !== null) {
+            this.recaptchaId = currentRecaptchaId;
+
+            recaptcha.reset(this.recaptchaId);
+
+            return;
+        }
+
+        // Use "invisible" for score and invisible, but not checkbox
+        const size = this.type === 'checkbox' ? '' : 'invisible';
+
         // Render the recaptcha
         recaptcha.render(this.createInput(), {
             sitekey: this.siteKey,
             badge: this.badge,
-            size: 'invisible',
+            size,
             callback: this.onVerify.bind(this),
             'expired-callback': this.onExpired.bind(this),
             'error-callback': this.onError.bind(this),
         }, (id) => {
             this.recaptchaId = id;
         });
+    }
+
+    onBeforeSubmit(e) {
+        // Save for later to trigger real submit
+        this.submitHandler = e.detail.submitHandler;
+
+        this.removeError();
     }
 
     onValidate(e) {
@@ -153,6 +182,19 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
             return;
         }
 
+        if (this.type === 'checkbox') {
+            const $token = this.$form.querySelector('[name="g-recaptcha-response"]');
+
+            // Check to see if there's a valid token, otherwise, keep preventing the form.
+            if (!$token || !$token.value.length) {
+                this.addError();
+
+                e.preventDefault();
+            }
+
+            return;
+        }
+
         e.preventDefault();
 
         // Save for later to trigger real submit
@@ -163,6 +205,10 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
     }
 
     onVerify(token) {
+        if (this.type === 'checkbox') {
+            return;
+        }
+
         // Submit the form - we've hijacked it up until now
         if (this.submitHandler) {
             // Run the next submit action for the form. TODO: make this better!
@@ -179,6 +225,36 @@ export class FormieRecaptchaEnterprise extends FormieCaptchaProvider {
         setTimeout(() => {
             this.renderCaptcha();
         }, 300);
+    }
+
+    addError() {
+        // Is there even a captcha field on this page?
+        if (this.$placeholder === null) {
+            return;
+        }
+
+        if (this.submitHandler) {
+            this.submitHandler.formSubmitError();
+        }
+
+        const $error = document.createElement('div');
+        $error.className = 'fui-error-message';
+        $error.textContent = t('This field is required.');
+
+        this.$placeholder.appendChild($error);
+    }
+
+    removeError() {
+        // Is there even a captcha field on this page?
+        if (this.$placeholder === null) {
+            return;
+        }
+
+        const $error = this.$placeholder.querySelector('.fui-error-message');
+
+        if ($error) {
+            $error.remove();
+        }
     }
 
     onExpired() {
