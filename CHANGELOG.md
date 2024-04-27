@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.0.0-beta.9 - 2024-04-27
+
+### Changed
+- Payment integrations can now have their field templates overridden in Form Templates.
+
+### Fixed
+- Fixed a JS error for client-side validation with Theme Config `resetClasses` set.
+- Fixed Sub-Fields not having their values set correctly for integrations.
+- Fixed sub-field values not displaying correctly in email notifications.
+- Fixed an error when selecting existing fields to add to a form when there are none.
+- Fixed an error with Page Settings for GraphQL.
+- Fixed field `name` deprecations.
+- Fixed Date fields in Group/Repeater not validating correctly.
+- Fixed custom error messages not showing for fields.
+- Fixed an error serializing File Upload field content.
+- Fixed a deprecation warning when importing or exporting forms.
+- Fixed an error when rendering fields in the form builder when also registering custom fields.
+- Fixed an error with File Upload fields with invalid volumes when viewing a submission in the control panel.
+- Fixed an error when rendering fields in the form builder when also registering custom fields.
+- Fixed Heading field outputting field label when editing a submission in the control panel.
+
 ## 3.0.0-beta.8 - 2024-04-18
 
 ### Added
