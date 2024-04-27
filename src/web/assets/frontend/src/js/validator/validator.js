@@ -143,7 +143,7 @@ class FormieValidator {
             errorMessages = document.createElement('div');
             errorMessages.setAttribute('data-field-error-messages', '');
 
-            if (this.config.messagesClass) {
+            if (this.config.messagesClass.length) {
                 errorMessages.classList.add(this.config.messagesClass);
             }
 
@@ -158,7 +158,7 @@ class FormieValidator {
             errorElement.setAttribute('data-field-error-message', '');
             errorElement.setAttribute(`data-field-error-message-${validatorName}`, '');
 
-            if (this.config.messageClass) {
+            if (this.config.messagesClass.length) {
                 errorElement.classList.add(this.config.messageClass);
             }
 
@@ -169,11 +169,11 @@ class FormieValidator {
         }
 
         // Add error classes to field and field container
-        if (this.config.fieldContainerErrorClass) {
+        if (this.config.fieldContainerErrorClass.length) {
             fieldContainer.classList.add(this.config.fieldContainerErrorClass);
         }
 
-        if (this.config.inputErrorClass) {
+        if (this.config.inputErrorClass.length) {
             input.classList.add(this.config.inputErrorClass);
         }
 
