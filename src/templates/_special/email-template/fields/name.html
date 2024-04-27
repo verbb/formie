@@ -5,7 +5,7 @@
 
     {% if value and field.settings.useMultipleFields %}
         {% for field in field.getFields(false) %}
-            {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
+            {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
             <strong>{{ field.label | t('formie') }}: </strong>{{ value ?: notification.getPlaceholder() }}<br>
         {% endfor %}
