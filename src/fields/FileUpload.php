@@ -640,7 +640,9 @@ class FileUpload extends ElementField
             // We now need to update the submission with the IDs of asset for this field, so do a direct query
             // because this is triggered after the element has been saved, and we don't want to end up in a loop.
             // The easiest method is to just re-serialize all field values and save the content as a whole
-            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $element->serializeFieldValues()], ['id' => $element->id]);
+            $content = $element->serializeFieldValues();
+            
+            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($content)], ['id' => $element->id]);
         }
     }
 
