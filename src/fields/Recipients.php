@@ -25,10 +25,12 @@ use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\Component;
 use craft\helpers\Json;
 
-use ReflectionClass;
-use ReflectionProperty;
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\Type;
+
+use ReflectionClass;
+use ReflectionProperty;
 
 class Recipients extends Field implements PreviewableFieldInterface
 {
@@ -595,6 +597,19 @@ class Recipients extends Field implements PreviewableFieldInterface
         }
 
         return $value->label ?? '';
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        if ($this->displayType === 'checkboxes') {
+            $values = $faker->randomElement($this->options)['value'] ?? '';
+            
+            return [$values];
+        } else if ($this->displayType === 'dropdown' || $this->displayType === 'radio') {
+            return $faker->randomElement($this->options)['value'] ?? '';
+        } else if ($this->displayType === 'hidden') {
+            return $faker->email;
+        }
     }
 
     protected function setPrePopulatedValue(mixed $value): mixed

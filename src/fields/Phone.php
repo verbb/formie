@@ -17,6 +17,12 @@ use craft\base\PreviewableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
+use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\PhoneNumberUtil;
+
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
@@ -317,5 +323,22 @@ class Phone extends Field implements PreviewableFieldInterface
             'field' => $this,
             'element' => $element,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        if ($this->countryEnabled) {
+            $number = $faker->e164PhoneNumber;
+
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            $numberProto = $phoneUtil->parse($number);
+
+            return new PhoneModel([
+                'number' => $number,
+                'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
+            ]);
+        }
+
+        return $faker->phoneNumber;
     }
 }

@@ -46,10 +46,12 @@ use craft\models\VolumeFolder;
 use craft\services\Gql as GqlService;
 use craft\web\UploadedFile;
 
-use yii\base\Event;
-use yii\base\InvalidConfigException;
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\Type;
+
+use yii\base\Event;
+use yii\base\InvalidConfigException;
 
 use Twig\Error\RuntimeError;
 
@@ -792,6 +794,11 @@ class FileUpload extends ElementField
         }
 
         return Template::raw($html);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return Asset::find()->limit(1);
     }
 
 

@@ -601,7 +601,7 @@ Event::on(Fields::class, Fields::EVENT_AFTER_SAVE_FIELD_PAGE, function(FieldPage
 ## Field Events
 
 ### The `modifyDefaultValue` event
-The event that is triggered when preparing a field's default value. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's default value. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -620,7 +620,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_DEFAULT_VALUE, fun
 ```
 
 ### The `modifyHtmlTag` event
-The event that is triggered when preparing a field's HTML tag for render. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's HTML tag for render. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `tag` event property change for a field's HTML is rendered.
 
@@ -656,7 +656,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function
 ```
 
 ### The `modifyValueAsString` event
-The event that is triggered when preparing a field's value to be represented as a string. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's value to be represented as a string. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -676,7 +676,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_STRING, f
 ```
 
 ### The `modifyValueAsJson` event
-The event that is triggered when preparing a field's value to be represented as a JSON object. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's value to be represented as a JSON object. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -696,7 +696,7 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_VALUE_AS_JSON, fun
 ```
 
 ### The `modifyValueForExport` event
-The event that is triggered when preparing a field's value to be exported. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's value to be exported. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -716,7 +716,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EXPORT, fu
 ```
 
 ### The `modifyValueForIntegration` event
-The event that is triggered when preparing a field's value to be used in integrations. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's value to be used in integrations. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -738,7 +738,7 @@ Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_INTEGRATIO
 ```
 
 ### The `modifyValueForSummary` event
-The event that is triggered when preparing a field's value to be represented in the Summary field. You can use this on any class that includes the `FormFieldTrait` trait.
+The event that is triggered when preparing a field's value to be represented in the Summary field. You can use this on any class that extends the `verbb\formie\base\Field` class.
 
 Modify the `value` event property to set the value used.
 
@@ -754,6 +754,41 @@ Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_SUMMARY, function(Mo
     
     // Overwrite the value
     $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyValueForEmail` event
+The event that is triggered when preparing a field's value to be used in an Email Notification. You can use this on any class that extends the `verbb\formie\base\Field` class.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\Dropdown;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(Dropdown::class, Dropdown::EVENT_MODIFY_VALUE_FOR_EMAIL, function(ModifyFieldEmailValueEvent $event) {
+    $field = $event->field;
+    $value = $event->value;
+    $submission = $event->submission;
+    
+    // Overwrite the value
+    $event->value = 'My Custom Value';
+});
+```
+
+### The `modifyValueForEmailPreview` event
+The event that is triggered when preparing a field's value to be used in an Email Notification preview. You can use this on any class that extends the `verbb\formie\base\Field` class.
+
+Modify the `value` event property to set the value used.
+
+```php
+use verbb\formie\fields\MultiLineText;
+use verbb\formie\events\ModifyFieldValueEvent;
+use yii\base\Event;
+
+Event::on(MultiLineText::class, MultiLineText::EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW, function(ModifyFieldEmailValueEvent $event) {
+    $event->value = $event->faker->realText;
 });
 ```
 

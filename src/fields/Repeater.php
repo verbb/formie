@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -24,6 +25,8 @@ use craft\gql\GqlEntityRegistry;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\ArrayValidator;
+
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -340,5 +343,13 @@ class Repeater extends MultiNestedField
             'field' => $this,
             'footHtml' => $footHtml,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return [
+            Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields()),
+            Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields()),
+        ];
     }
 }

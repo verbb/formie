@@ -19,9 +19,11 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
 
-use Twig\Markup;
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\Type;
+
+use Twig\Markup;
 
 class Payment extends Field
 {
@@ -258,6 +260,12 @@ class Payment extends Field
         }
 
         return (string)$value;
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        // Payment fields can't really be previewed without real payment data
+        return [];
     }
 
 

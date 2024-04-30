@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
@@ -23,6 +24,8 @@ use craft\base\ElementInterface;
 use craft\gql\GqlEntityRegistry;
 use craft\helpers\Gql;
 use craft\helpers\Template;
+
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -171,5 +174,10 @@ class Group extends SingleNestedField
             'value' => $value,
             'field' => $this,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields());
     }
 }

@@ -14,6 +14,8 @@ use craft\helpers\Localization;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 
+use Faker\Generator as FakerFactory;
+
 class Dropdown extends OptionsField
 {
     // Static Methods
@@ -338,6 +340,17 @@ class Dropdown extends OptionsField
             'field' => $this,
             'options' => $this->translatedOptions(),
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        $values = $faker->randomElement($this->options)['value'] ?? '';
+
+        if ($this->multi) {
+            $values = [$values];
+        }
+
+        return $values;
     }
 
     protected function optionsSettingLabel(): string

@@ -12,6 +12,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\fields\data\SingleOptionFieldData;
 
+use Faker\Generator as FakerFactory;
+
 class Radio extends OptionsField
 {
     // Static Methods
@@ -262,6 +264,11 @@ class Radio extends OptionsField
             'value' => $value,
             'options' => $this->translatedOptions(),
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->randomElement($this->options)['value'] ?? '';
     }
 
     protected function optionsSettingLabel(): string

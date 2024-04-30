@@ -15,6 +15,8 @@ use craft\helpers\Localization;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 
+use Faker\Generator as FakerFactory;
+
 use yii\db\Schema;
 
 class Checkboxes extends OptionsField
@@ -392,6 +394,13 @@ class Checkboxes extends OptionsField
             'values' => $value,
             'options' => $this->translatedOptions(),
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        $values = $faker->randomElement($this->options)['value'] ?? '';
+
+        return [$values];
     }
 
     protected function optionsSettingLabel(): string

@@ -32,6 +32,8 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\i18n\Locale;
 
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
@@ -1350,6 +1352,11 @@ class Date extends SubField implements PreviewableFieldInterface
 
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->dateTime();
     }
 
 

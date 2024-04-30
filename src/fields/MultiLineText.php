@@ -11,6 +11,8 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
@@ -547,5 +549,10 @@ class MultiLineText extends Field implements PreviewableFieldInterface
             'field' => $this,
             'form' => $form,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->realText;
     }
 }

@@ -28,10 +28,12 @@ use craft\helpers\Component;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
-use yii\base\Event;
-use yii\db\Schema;
+use Faker\Generator as FakerFactory;
 
 use GraphQL\Type\Definition\Type;
+
+use yii\base\Event;
+use yii\db\Schema;
 
 class Name extends SubField implements PreviewableFieldInterface
 {
@@ -420,6 +422,21 @@ class Name extends SubField implements PreviewableFieldInterface
         }
 
         return $value;
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        if ($this->useMultipleFields) {
+            return new NameModel([
+                'isMultiple' => true,
+                'prefix' => $faker->title,
+                'firstName' => $faker->firstName,
+                'middleName' => $faker->firstName,
+                'lastName' => $faker->lastName,
+            ]);
+        }
+        
+        return $faker->name;
     }
 
 }

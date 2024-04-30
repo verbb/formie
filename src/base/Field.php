@@ -50,6 +50,8 @@ use craft\validators\UniqueValidator;
 
 use GraphQL\Type\Definition\Type;
 
+use Faker\Generator as FakerFactory;
+
 use Twig\Markup;
 
 use Arrayable;
@@ -88,6 +90,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public const EVENT_MODIFY_VALUE_FOR_INTEGRATION = 'modifyValueForIntegration';
     public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
+    public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
     public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
 
     public const TRANSLATION_METHOD_NONE = 'none';
@@ -468,6 +471,21 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_EMAIL, $event);
+
+        return $event->value;
+    }
+
+    public function getValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        $value = $this->defineValueForEmailPreview($faker);
+
+        $event = new ModifyFieldEmailValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'faker' => $faker,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW, $event);
 
         return $event->value;
     }
@@ -1454,6 +1472,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     {
         // A string-representation will largely suit our needs
         return $this->defineValueAsString($value, $element);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->text;
     }
 
     protected static function normalizeConfig(array &$config = []): void

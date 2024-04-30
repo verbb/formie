@@ -53,6 +53,8 @@ use ReflectionClass;
 use ReflectionProperty;
 use Throwable;
 
+use Faker\Generator as FakerFactory;
+
 use Twig\Markup;
 
 use Illuminate\Support\Collection;
@@ -679,6 +681,18 @@ abstract class ElementField extends Field implements ElementFieldInterface
         }
 
         return null;
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        $query = $this->getElementsQuery()->orderBy('RAND()');
+
+        // Check if we should limit to 1 if a (single) dropdown or radio
+        if ($this->displayType === 'radio' || ($this->displayType === 'dropdown' && !$this->multi)) {
+            $query->limit(1);
+        }
+
+        return $query;
     }
 
     protected function getStringCustomFieldOptions(array $fields): array

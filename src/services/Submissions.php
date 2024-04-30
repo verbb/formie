@@ -615,143 +615,14 @@ class Submissions extends Component
     // Private Methods
     // =========================================================================
 
-    public function getFakeFieldContent($fields): array
+    public function getFakeFieldContent(array $fields): array
     {
         $fieldContent = [];
 
         $faker = Faker\Factory::create();
 
         foreach ($fields as $key => $field) {
-            switch (get_class($field)) {
-                case formiefields\Categories::class:
-                case formiefields\Entries::class:
-                case formiefields\Products::class:
-                case formiefields\Tags::class:
-                case formiefields\Users::class:
-                case formiefields\Variants::class:
-                    $query = $field->getElementsQuery()->orderBy('RAND()');
-
-                    // Check if we should limit to 1 if a (single) dropdown or radio
-                    if ($field->displayType === 'radio' || ($field->displayType === 'dropdown' && !$field->multi)) {
-                        $query->limit(1);
-                    }
-
-                    $fieldContent[$field->handle] = $query;
-
-                    break;
-                case formiefields\Address::class:
-                    $fieldContent[$field->handle] = new Address([
-                        'address1' => $faker->address,
-                        'address2' => $faker->buildingNumber,
-                        'address3' => $faker->streetSuffix,
-                        'city' => $faker->city,
-                        'zip' => $faker->postcode,
-                        'state' => $faker->state,
-                        'country' => $faker->country,
-                    ]);
-
-                    break;
-                case formiefields\Checkboxes::class:
-                    $values = $faker->randomElement($field->options)['value'] ?? '';
-                    $fieldContent[$field->handle] = [$values];
-
-                    break;
-                case formiefields\Date::class:
-                    $fieldContent[$field->handle] = $faker->dateTime();
-
-                    break;
-                case formiefields\Dropdown::class:
-                    $values = $faker->randomElement($field->options)['value'] ?? '';
-
-                    if ($field->multi) {
-                        $values = [$values];
-                    }
-
-                    $fieldContent[$field->handle] = $values;
-
-                    break;
-                case formiefields\Email::class:
-                    $fieldContent[$field->handle] = $faker->email;
-
-                    break;
-                case formiefields\FileUpload::class:
-                    $fieldContent[$field->handle] = Asset::find()->limit(1);
-
-                    break;
-                case formiefields\Group::class:
-                    $fieldContent[$field->handle] = $this->getFakeFieldContent($field->getFields());
-
-                    break;
-                case formiefields\Repeater::class:
-                    $fieldContent[$field->handle] = [
-                        $this->getFakeFieldContent($field->getFields()),
-                        $this->getFakeFieldContent($field->getFields()),
-                    ];
-
-                    break;
-                case formiefields\MultiLineText::class:
-                    $fieldContent[$field->handle] = $faker->realText;
-
-                    break;
-                case formiefields\Name::class:
-                    if ($field->useMultipleFields) {
-                        $fieldContent[$field->handle] = new Name([
-                            'isMultiple' => true,
-                            'prefix' => $faker->title,
-                            'firstName' => $faker->firstName,
-                            'middleName' => $faker->firstName,
-                            'lastName' => $faker->lastName,
-                        ]);
-                    } else {
-                        $fieldContent[$field->handle] = $faker->name;
-                    }
-
-                    break;
-                case formiefields\Number::class:
-                    $fieldContent[$field->handle] = $faker->randomDigit;
-
-                    break;
-                case formiefields\Payment::class:
-                    // Payment fields can't really be previewed without real payment data
-                    $fieldContent[$field->handle] = [];
-
-                    break;
-                case formiefields\Phone::class:
-                    if ($field->countryEnabled) {
-                        $number = $faker->e164PhoneNumber;
-
-                        $phoneUtil = PhoneNumberUtil::getInstance();
-                        $numberProto = $phoneUtil->parse($number);
-
-                        $fieldContent[$field->handle] = new \verbb\formie\models\Phone([
-                            'number' => $number,
-                            'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
-                        ]);
-                    } else {
-                        $fieldContent[$field->handle] = $faker->phoneNumber;
-                    }
-
-                    break;
-                case formiefields\Radio::class:
-                    $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
-
-                    break;
-                case formiefields\Recipients::class:
-                    if ($field->displayType === 'checkboxes') {
-                        $values = $faker->randomElement($field->options)['value'] ?? '';
-                        $fieldContent[$field->handle] = [$values];
-                    } else if ($field->displayType === 'dropdown' || $field->displayType === 'radio') {
-                        $fieldContent[$field->handle] = $faker->randomElement($field->options)['value'] ?? '';
-                    } else if ($field->displayType === 'hidden') {
-                        $fieldContent[$field->handle] = $faker->email;
-                    }
-
-                    break;
-                default:
-                    $fieldContent[$field->handle] = $faker->text;
-
-                    break;
-            }
+            $fieldContent[$field->handle] = $field->getValueForEmailPreview($faker);
         }
 
         return $fieldContent;

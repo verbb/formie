@@ -13,6 +13,8 @@ use craft\helpers\Db;
 use craft\helpers\Localization;
 use craft\i18n\Locale;
 
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
@@ -363,5 +365,10 @@ class Number extends Field implements PreviewableFieldInterface
             'value' => $value,
             'field' => $this,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->randomDigit;
     }
 }

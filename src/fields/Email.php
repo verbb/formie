@@ -13,6 +13,8 @@ use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\Query;
 
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\validators\EmailValidator;
@@ -250,5 +252,10 @@ class Email extends Field implements PreviewableFieldInterface
             'value' => $value,
             'field' => $this,
         ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return $faker->email;
     }
 }

@@ -25,6 +25,8 @@ use craft\errors\InvalidFieldException;
 use craft\helpers\Component;
 use craft\helpers\Json;
 
+use Faker\Generator as FakerFactory;
+
 use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
@@ -510,6 +512,19 @@ class Address extends SubField implements PreviewableFieldInterface
             'value' => $value,
             'field' => $this,
             'element' => $element,
+        ]);
+    }
+
+    protected function defineValueForEmailPreview(FakerFactory $faker): mixed
+    {
+        return new AddressModel([
+            'address1' => $faker->address,
+            'address2' => $faker->buildingNumber,
+            'address3' => $faker->streetSuffix,
+            'city' => $faker->city,
+            'zip' => $faker->postcode,
+            'state' => $faker->state,
+            'country' => $faker->country,
         ]);
     }
 
