@@ -14,65 +14,18 @@ export class FormieConditions {
 
     initFieldConditions() {
         this.$form.querySelectorAll('[data-field-conditions]').forEach(($field) => {
-            const conditionSettings = this.parseJsonConditions($field);
+            // Save our condition settings and targets against the origin fields. We'll use this to evaluate conditions
+            const fieldConditions = this.getFieldConditions($field);
 
-            if (!conditionSettings || !conditionSettings.conditions.length) {
-                return;
+            // Check if this is a Repeater or Group field, and load in any of the child conditions so they can be triggered
+            const fieldType = $field.getAttribute('data-field-type');
+            const isNested = fieldType === 'group' || fieldType === 'repeater';
+
+            if (isNested) {
+                fieldConditions.nestedFieldConditions = $field.querySelectorAll('[data-field-conditions]');
             }
 
-            // Store the conditions against the target field object for later access/testing
-            const conditions = [];
-
-            conditionSettings.conditions.forEach((condition) => {
-                // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
-                let $targets = this.$form.querySelectorAll(`[name="${condition.field}"]`);
-
-                // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
-                const $multiFields = this.$form.querySelectorAll(`[name="${condition.field}[]"]`);
-
-                if ($multiFields.length) {
-                    $targets = $multiFields;
-                }
-
-                // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
-                // this will be replaced by the blockId, and will fail to match the conditions settings.
-                if ((!$targets || !$targets.length) && condition.field.includes('[new1]')) {
-                    // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
-                    // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
-                    const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
-
-                    // Find all targets via Regex.
-                    $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
-                }
-
-                if (!$targets || !$targets.length) {
-                    return;
-                }
-
-                // Store the conditions with the target field for later access/testing
-                condition.$targets = $targets;
-                conditions.push(condition);
-
-                $targets.forEach(($target) => {
-                    // Get the right event for the field
-                    const eventType = this.getEventType($target);
-
-                    // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
-                    // We need to do this because target fields can be targetted by multiple conditions, and source
-                    // fields can have multiple conditions - we need to check them all for all/any logic.
-                    this.form.addEventListener($target, eventKey(eventType), () => {
-                        return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this } }));
-                    });
-                });
-            });
-
-            // Save our condition settings and targets against the origin fields. We'll use this to evaluate conditions
-            this.conditionsStore.set($field, {
-                showRule: conditionSettings.showRule,
-                conditionRule: conditionSettings.conditionRule,
-                isNested: conditionSettings.isNested || false,
-                conditions,
-            });
+            this.conditionsStore.set($field, fieldConditions);
 
             // Add a custom event listener to fire when the field event listener fires
             this.form.addEventListener($field, eventKey('onFormieEvaluateConditions'), this.evaluateConditions.bind(this));
@@ -88,6 +41,67 @@ export class FormieConditions {
         }
     }
 
+    getFieldConditions($field) {
+        const conditionSettings = this.parseJsonConditions($field);
+
+        if (!conditionSettings || !conditionSettings.conditions.length) {
+            return;
+        }
+
+        // Store the conditions against the target field object for later access/testing
+        const conditions = [];
+
+        conditionSettings.conditions.forEach((condition) => {
+            // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
+            let $targets = this.$form.querySelectorAll(`[name="${condition.field}"]`);
+
+            // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
+            const $multiFields = this.$form.querySelectorAll(`[name="${condition.field}[]"]`);
+
+            if ($multiFields.length) {
+                $targets = $multiFields;
+            }
+
+            // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
+            // this will be replaced by the blockId, and will fail to match the conditions settings.
+            if ((!$targets || !$targets.length) && condition.field.includes('[new1]')) {
+                // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
+                // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
+                const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
+
+                // Find all targets via Regex.
+                $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
+            }
+
+            if (!$targets || !$targets.length) {
+                return;
+            }
+
+            // Store the conditions with the target field for later access/testing
+            condition.$targets = $targets;
+            conditions.push(condition);
+
+            $targets.forEach(($target) => {
+                // Get the right event for the field
+                const eventType = this.getEventType($target);
+
+                // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
+                // We need to do this because target fields can be targetted by multiple conditions, and source
+                // fields can have multiple conditions - we need to check them all for all/any logic.
+                this.form.addEventListener($target, eventKey(eventType), () => {
+                    return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this } }));
+                });
+            });
+        });
+
+        return {
+            showRule: conditionSettings.showRule,
+            conditionRule: conditionSettings.conditionRule,
+            isNested: conditionSettings.isNested || false,
+            conditions,
+        };
+    }
+
     evaluateConditions(e) {
         const $field = e.target;
         const isInit = e.detail ? e.detail.init : false;
@@ -100,13 +114,34 @@ export class FormieConditions {
         }
 
         const {
-            showRule, conditionRule, conditions, isNested,
+            showRule,
+            conditionRule,
+            conditions,
+            isNested,
+            nestedFieldConditions,
         } = conditionSettings;
+
         const results = {};
+
+        // Check if this condition is nested in a Group/Repeater field. Only proceed if the parent field
+        // conditional evaluation has passed. But we don't want this to run on page load, as that'll setup initial state
+        if (isNested && !isInit) {
+            const $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
+
+            if ($parentField) {
+                // If the parent field is conditionally hidden, don't proceed further with testing this condition
+                if ($parentField.conditionallyHidden) {
+                    return;
+                }
+            }
+        }
 
         conditions.forEach((condition, i) => {
             const {
-                condition: logic, value, $targets, field,
+                condition: logic,
+                value,
+                $targets,
+                field,
             } = condition;
 
             // We're always dealing with a collection of targets, even if the target is a text field
@@ -185,26 +220,8 @@ export class FormieConditions {
             }
         }
 
-        // Check if this condition is nested in a Group/Repeater field. Only proceed if the parent field
-        // conditional evaluation has passed.
-        let overrideResult = false;
-
-        // But *do* setup conditions on the first run, when initialising all the fields
-        if (isNested && !isInit) {
-            const $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
-
-            if ($parentField) {
-                // Is the parent field conditionally hidden? Force the evaluation to be true (this field is
-                // is conditionallu hidden), to prevent inner field conditions having a higher priority than the
-                // parent Group/Repeater fields.
-                if ($parentField.conditionallyHidden) {
-                    overrideResult = true;
-                }
-            }
-        }
-
         // Show or hide? Also toggle the disabled state to sort out any hidden required fields
-        if (overrideResult || (finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
+        if ((finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
             $field.conditionallyHidden = true;
             $field.setAttribute('data-conditionally-hidden', true);
 
@@ -228,6 +245,17 @@ export class FormieConditions {
                 init: isInit,
             },
         }));
+
+        // When triggering Group/Repeater conditions, ensure that we trigger any child conditions, now that the
+        // Group/Repeater field has had its conditions evaluated. This is because inner fields aren't evaluated when
+        // their outer parent is conditionally hidden, but when that parent field is shown, the fields inside should be evaludated.
+        if (nestedFieldConditions && !isInit) {
+            nestedFieldConditions.forEach(($nestedField) => {
+                this.evaluateConditions({
+                    target: $nestedField,
+                });
+            });
+        }
     }
 
     parseJsonConditions($field) {
