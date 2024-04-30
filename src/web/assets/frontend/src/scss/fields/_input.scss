@@ -60,3 +60,17 @@
         font-size: 16px;
     }
 }
+
+// Fix Safari date input height bug
+// https://8yd.no/article/date-input-height-in-safari
+.fui-field input::-webkit-datetime-edit {
+    display: block;
+    padding: 0;
+    margin-bottom: -2px;
+}
+
+// Fix mobile Safari date input height appearing shrunk
+// https://bugs.webkit.org/show_bug.cgi?id=198959
+.fui-field input::-webkit-date-and-time-value {
+    height: 1.5em;
+}
