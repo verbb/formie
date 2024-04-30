@@ -6,6 +6,7 @@ use verbb\formie\base\Routes;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
 use verbb\formie\fields\Submissions;
@@ -533,6 +534,23 @@ class Formie extends Plugin
 
     private function _registerElementExports(): void
     {
+        Event::on(Form::class, Form::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
+            // Remove defaults, but allow third-party ones
+            foreach ($event->exporters as $key => $exporter) {
+                if ($exporter === Raw::class) {
+                    unset($event->exporters[$key]);
+                }
+
+                if ($exporter === Expanded::class) {
+                    unset($event->exporters[$key]);
+                }
+            }
+
+            $event->exporters = array_values($event->exporters);
+
+            $event->exporters[] = FormExport::class;
+        });
+
         Event::on(Submission::class, Submission::EVENT_REGISTER_EXPORTERS, function(RegisterElementExportersEvent $event) {
             // Remove defaults, but allow third-party ones
             foreach ($event->exporters as $key => $exporter) {
