@@ -14,7 +14,7 @@ export class FormieFileUpload {
         e.validator.addValidator('fileSizeMinLimit', ({ input }) => {
             const type = input.getAttribute('type');
             const sizeLimit = input.getAttribute('data-size-min-limit');
-            const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
+            const sizeBytes = parseFloat(sizeLimit) * 1000 * 1000;
 
             if (type !== 'file' || !sizeBytes) {
                 return true;
@@ -25,6 +25,8 @@ export class FormieFileUpload {
                     return false;
                 }
             }
+
+            return true;
         }, ({ input }) => {
             return t('File must be larger than {filesize} MB.', {
                 filesize: input.getAttribute('data-size-min-limit'),
@@ -34,7 +36,7 @@ export class FormieFileUpload {
         e.validator.addValidator('fileSizeMaxLimit', ({ input }) => {
             const type = input.getAttribute('type');
             const sizeLimit = input.getAttribute('data-size-max-limit');
-            const sizeBytes = parseFloat(sizeLimit) * 1024 * 1024;
+            const sizeBytes = parseFloat(sizeLimit) * 1000 * 1000;
 
             if (type !== 'file' || !sizeBytes) {
                 return true;
@@ -45,6 +47,8 @@ export class FormieFileUpload {
                     return false;
                 }
             }
+
+            return true;
         }, ({ input }) => {
             return t('File must be smaller than {filesize} MB.', {
                 filesize: input.getAttribute('data-size-max-limit'),
@@ -62,6 +66,8 @@ export class FormieFileUpload {
             if (input.files.length > fileLimit) {
                 return false;
             }
+
+            return true;
         }, ({ input }) => {
             return t('Choose up to {files} files.', {
                 files: input.getAttribute('data-file-limit'),
