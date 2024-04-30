@@ -231,10 +231,10 @@ class FileUpload extends ElementField
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeMinLimit = $this->sizeMinLimit * 1024 * 1024;
+        $sizeMinLimit = $this->sizeMinLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['location']) && (filesize($file['location']) < $sizeMinLimit)) {
+            if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
                 $filenames[] = $file['filename'];
             }
         }
@@ -253,10 +253,10 @@ class FileUpload extends ElementField
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
-        $sizeLimit = $this->sizeLimit * 1024 * 1024;
+        $sizeLimit = $this->sizeLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['location']) && (filesize($file['location']) > $sizeLimit)) {
+            if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
                 $filenames[] = $file['filename'];
             }
         }
