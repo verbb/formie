@@ -54,6 +54,11 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             $value = $element->getFieldValue($fieldKey);
             $isEmpty = $field->isValueEmpty($value, $element);
 
+            // No need to validate if the field is conditionally hidden
+            if ($field->isConditionallyHidden($element)) {
+                continue;
+            }
+
             // Roll our own validation, due to lack of field layout and elements
             if ($field->required && $isEmpty) {
                 $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
