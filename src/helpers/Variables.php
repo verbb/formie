@@ -340,13 +340,6 @@ class Variables
     {
         $values = [];
 
-        $parsedContent = '';
-
-        // If we're specifically trying to get the field value for use in emails, use the field's email template HTML.
-        if ($notification) {
-            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
-        }
-
         $prefix = 'field.';
 
         if ($field instanceof fields\Date) {
