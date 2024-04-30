@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -82,6 +83,15 @@ class MultiLineText extends Field implements PreviewableFieldInterface
         $value = $value !== '' ? $value : null;
 
         return parent::normalizeValue($value, $element);
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if ($this->useRichText) {
+            return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
+        } else {
+            return nl2br($this->getValueAsString($value, $submission));
+        }
     }
 
     public function getElementValidationRules(): array

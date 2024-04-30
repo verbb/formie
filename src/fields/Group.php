@@ -7,14 +7,17 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SingleNestedField;
 use verbb\formie\base\SingleNestedFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -55,6 +58,24 @@ class Group extends SingleNestedField
 
     // Public Methods
     // =========================================================================
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $nestedField) {
+            $value = $submission->getFieldValue($nestedField->fieldKey);
+            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
+
+            if (is_array($fieldValues)) {
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $values[$nestedField->handle][$key] = $fieldValue;
+                }
+            }
+        }
+
+        return $values;
+    }
 
     public function getPreviewInputHtml(): string
     {

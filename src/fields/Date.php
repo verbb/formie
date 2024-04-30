@@ -8,6 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
 use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
@@ -19,6 +20,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
@@ -320,6 +322,33 @@ class Date extends SubField implements PreviewableFieldInterface
         }
 
         return $value;
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $props = [
+            'year' => 'Y',
+            'month' => 'm',
+            'day' => 'd',
+            'hour' => 'H',
+            'minute' => 'i',
+            'second' => 's',
+            'ampm' => 'a',
+        ];
+
+        $values = [];
+
+        foreach ($props as $k => $format) {
+            $formattedValue = '';
+
+            if ($value && $value instanceof DateTime) {
+                $formattedValue = $value->format($format);
+            }
+
+            $values[$k] = $formattedValue;
+        }
+
+        return $values;
     }
 
     public function getMinDate()

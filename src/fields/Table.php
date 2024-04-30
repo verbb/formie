@@ -12,6 +12,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -318,6 +319,11 @@ class Table extends Field
         }
 
         return $serialized;
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
     }
 
     public function getContentGqlType(): Type|array

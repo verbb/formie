@@ -497,6 +497,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->serializeValue($value, $submission);
     }
 
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return $this->getValueAsString($value, $submission);
+    }
+
     public function populateValue(mixed $value, ?Submission $submission): void
     {
         $this->defaultValue = $this->normalizeValue($value, $submission);

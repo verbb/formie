@@ -15,6 +15,7 @@ use verbb\formie\fields\Tags;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -162,6 +163,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
         return $value->ids();
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
     }
 
     public function getElementsQuery(): ElementQueryInterface

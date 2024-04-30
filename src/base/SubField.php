@@ -4,12 +4,15 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\events\ModifyNestedFieldLayoutEvent;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -51,6 +54,24 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
     public function getSubFields(): array
     {
         return $this->defineSubFields();
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $subField) {
+            $value = $submission->getFieldValue($subField->fieldKey);
+            $fieldValues = Variables::getParsedFieldValue($subField, $value, $submission, $notification);
+
+            if (is_array($fieldValues)) {
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $values[$subField->handle][$key] = $fieldValue;
+                }
+            }
+        }
+
+        return $values;
     }
 
     public function getDefaultFieldLayout(): FieldLayout

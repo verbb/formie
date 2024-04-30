@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\MultiNestedField;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
@@ -15,6 +16,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\DynamicModel;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
@@ -86,6 +88,11 @@ class Repeater extends MultiNestedField
 
         // Ensure we also load any JS in nested fields
         return $modules;
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
     }
 
     public function getConfigJson(): ?string

@@ -215,7 +215,7 @@ class Variables
             }
         }
 
-        $fieldVariables[] = self::_getParsedFieldValues($form, $submission, $notification);
+        $fieldVariables[] = self::getParsedFieldValues($form, $submission, $notification);
 
         if ($includeSummary) {
             // Populate a collection of fields for "all", "visible" and "with-content"
@@ -308,11 +308,7 @@ class Variables
         return $data;
     }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private static function _getParsedFieldValues(?Form $form, ?Submission $submission, ?Notification $notification): array
+    public static function getParsedFieldValues(?Form $form, ?Submission $submission, ?Notification $notification): array
     {
         $values = [];
 
@@ -320,99 +316,33 @@ class Variables
             return $values;
         }
 
+        // There are some circumstances where we're rendering email content, but not for an email. 
+        // Slack integration rich text is one of them, there are likely more.
+        $notification = $notification ?? new Notification();
+
         foreach ($submission->getFields() as $field) {
-            if ($field->getIsCosmetic()) {
-                continue;
+            $value = $submission->getFieldValue($field->fieldKey);
+
+            if ($fieldValue = self::getParsedFieldValue($field, $value, $submission, $notification)) {
+                $values['field.' . $field->fieldKey] = $fieldValue;
             }
-
-            $submissionValue = $submission->getFieldValue($field->handle);
-
-            $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
         }
-
-        // For performance
-        $values = array_merge(...$values);
 
         return ArrayHelper::expand($values);
     }
 
-    private static function _getParsedFieldValue(FieldInterface $field, mixed $submissionValue, Submission $submission, ?Notification $notification): array
+    public static function getParsedFieldValue(FieldInterface $field, mixed $value, Submission $submission, Notification $notification): mixed
     {
-        $values = [];
-
-        $prefix = 'field.';
-
-        if ($field instanceof fields\Date) {
-            // Generate additional values
-            if ($field->displayType !== 'calendar') {
-                $props = [
-                    'year' => 'Y',
-                    'month' => 'm',
-                    'day' => 'd',
-                    'hour' => 'H',
-                    'minute' => 'i',
-                    'second' => 's',
-                    'ampm' => 'a',
-                ];
-
-                foreach ($props as $k => $format) {
-                    $formattedValue = '';
-
-                    if ($submissionValue && $submissionValue instanceof DateTime) {
-                        $formattedValue = $submissionValue->format($format);
-                    }
-
-                    $values["{$prefix}{$field->handle}.{$k}"] = $formattedValue;
-                }
-            }
-        } else if ($field instanceof SubFieldInterface && $field->hasSubFields()) {
-            foreach ($field->getFields() as $subField) {
-                $submissionValue = $submission->getFieldValue($subField->fieldKey);
-                $fieldValues = self::_getParsedFieldValue($subField, $submissionValue, $submission, $notification);
-
-                foreach ($fieldValues as $key => $fieldValue) {
-                    $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
-
-                    $values[$handle] = $fieldValue;
-                }
-            }
-        } else if ($field instanceof fields\Group) {
-            foreach ($field->getFields() as $nestedField) {
-                $submissionValue = $submission->getFieldValue($nestedField->fieldKey);
-                $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
-
-                foreach ($fieldValues as $key => $fieldValue) {
-                    $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
-
-                    $values[$handle] = $fieldValue;
-                }
-            }
-        } else if ($field instanceof fields\MultiLineText && !$field->useRichText) {
-            $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
-        } else {
-            $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
+        if ($field->getIsCosmetic()) {
+            return [];
         }
 
-        // Some fields use the email template for the field, due to their complexity. 
-        // Also good for performance rendering only when we need to here.
-        if (
-            $field instanceof ElementFieldInterface || 
-            $field instanceof fields\Table || 
-            ($field instanceof fields\MultiLineText && $field->useRichText) || 
-            $field instanceof fields\Repeater || 
-            $field instanceof fields\Signature || 
-            $field instanceof fields\Payment
-        ) {
-            // There are some circumstances where we're rendering email content, but not for an email. 
-            // Slack integration rich text is one of them, there are likely more.
-            $notification = $notification ?? new Notification();
-            $parsedContent = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
-
-            $values["{$prefix}{$field->handle}"] = $parsedContent;
-        }     
-
-        return $values;
+        return $field->getValueForVariable($value, $submission, $notification);
     }
+
+
+    // Private Methods
+    // =========================================================================
 
     private static function _getCurrentUser(?Submission $submission = null): bool|User|IdentityInterface|null
     {
