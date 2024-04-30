@@ -118,6 +118,14 @@ class Hidden extends Field implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
+    public function getValueForCondition(Submission $submission): mixed
+    {
+        $value = $submission->getFieldValue($this->fieldKey);
+        
+        // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
+        return $this->getValueAsString($value, $submission);
+    }
+
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/preview', [

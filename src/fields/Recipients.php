@@ -158,6 +158,14 @@ class Recipients extends Field implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
+    public function getValueForCondition(Submission $submission): mixed
+    {
+        $value = $submission->getFieldValue($this->fieldKey);
+        
+        // Recipients fields should use encoded values, because they can't be exposed in HTML source
+        return $this->getValueAsString($this->getFakeValue($value), $submission);
+    }
+
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/preview', [

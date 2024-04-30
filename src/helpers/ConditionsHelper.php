@@ -197,29 +197,7 @@ class ConditionsHelper
                 continue;
             }
 
-            $value = $submission->getFieldValue($field->fieldKey);
-
-            // Special-handling for element fields which for integrations contain their titles
-            // (or field setting labels), but we want IDs.
-            if ($field instanceof ElementFieldInterface) {
-                $value = $field->serializeValue($value, $submission);
-            } else if ($field instanceof Password) {
-                // Don't mess around with passwords for conditions. We don't really "know" the value
-                // but more important will cause an infinite loop (somehow)
-                $value = '•••••••••••••••••••••';
-            } else if ($field instanceof Recipients) {
-                // Recipients fields should use encoded values, because they can't be exposed in HTML source
-                $value = $field->getValueAsString($field->getFakeValue($value), $submission);
-            } else if ($field instanceof Hidden) {
-                // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
-                $value = $field->getValueAsString($value, $submission);
-            } else if (method_exists($field, 'serializeValueForIntegration')) {
-                $value = $field->serializeValueForIntegration($value, $submission);
-            } else {
-                $value = $field->serializeValue($value, $submission);
-            }
-
-            $serializedValues[$field->handle] = $value;
+            $serializedValues[$field->handle] = $field->getValueForCondition($submission);
         }
 
         return $serializedValues;
