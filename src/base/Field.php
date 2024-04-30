@@ -490,10 +490,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $event->value;
     }
 
-    public function getValueForCondition(Submission $submission): mixed
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
     {
-        $value = $submission->getFieldValue($this->fieldKey);
-
         return $this->serializeValue($value, $submission);
     }
 

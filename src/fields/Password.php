@@ -66,7 +66,7 @@ class Password extends Field implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(Submission $submission): mixed
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
     {
         // Don't mess around with passwords for conditions. We don't really "know" the value
         // but more important will cause an infinite loop (somehow)

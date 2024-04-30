@@ -4,10 +4,12 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -118,10 +120,8 @@ class Hidden extends Field implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(Submission $submission): mixed
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
     {
-        $value = $submission->getFieldValue($this->fieldKey);
-        
         // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
         return $this->getValueAsString($value, $submission);
     }

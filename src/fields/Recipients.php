@@ -158,10 +158,8 @@ class Recipients extends Field implements PreviewableFieldInterface
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(Submission $submission): mixed
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
     {
-        $value = $submission->getFieldValue($this->fieldKey);
-        
         // Recipients fields should use encoded values, because they can't be exposed in HTML source
         return $this->getValueAsString($this->getFakeValue($value), $submission);
     }

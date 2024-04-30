@@ -197,7 +197,9 @@ class ConditionsHelper
                 continue;
             }
 
-            $serializedValues[$field->handle] = $field->getValueForCondition($submission);
+            $value = $submission->getFieldValue($field->fieldKey);
+
+            $serializedValues[$field->handle] = $field->getValueForCondition($value, $submission);
         }
 
         return $serializedValues;
