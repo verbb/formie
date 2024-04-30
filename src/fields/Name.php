@@ -392,7 +392,7 @@ class Name extends SubField implements PreviewableFieldInterface
             return parent::defineValueAsString($value, $element);
         }
 
-        return $value;
+        return (string)$value;
     }
 
     protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
