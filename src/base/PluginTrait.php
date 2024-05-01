@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
 use verbb\formie\services\Fields;
@@ -32,12 +33,19 @@ use verbb\base\services\Templates;
 
 use Craft;
 
+use yii\base\Event;
 use yii\log\Logger;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
 trait PluginTrait
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
+
+
     // Properties
     // =========================================================================
 
@@ -221,6 +229,16 @@ trait PluginTrait
 
     private function _registerComponents(): void
     {
+        // Allow plugins to modify the template variables
+        $event = new ModifyTwigEnvironmentEvent([
+            'allowedTags' => [],
+            'allowedFilters' => [],
+            'allowedFunctions' => [],
+            'allowedMethods' => [],
+            'allowedProperties' => [],
+        ]);
+        Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);
+
         $this->setComponents([
             'emails' => Emails::class,
             'emailTemplates' => EmailTemplates::class,
@@ -248,6 +266,11 @@ trait PluginTrait
             'templates' => [
                 'class' => Templates::class,
                 'pluginClass' => Formie::class,
+                'allowedTags' => $event->allowedTags,
+                'allowedFilters' => $event->allowedFilters,
+                'allowedFunctions' => $event->allowedFunctions,
+                'allowedMethods' => $event->allowedMethods,
+                'allowedProperties' => $event->allowedProperties,
             ],
             'tokens' => Tokens::class,
             'vite' => [
