@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\fields\formfields;
 use verbb\formie\models\Notification;
 
@@ -17,6 +18,7 @@ use craft\helpers\App;
 use craft\models\Site;
 use craft\web\twig\variables\CraftVariable;
 
+use yii\base\Event;
 use yii\web\IdentityInterface;
 
 use DateTime;
@@ -26,6 +28,12 @@ use Exception;
 
 class Variables
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_REGISTER_VARIABLES = 'registerVariables';
+
+
     // Static Methods
     // =========================================================================
 
@@ -124,12 +132,20 @@ class Variables
      */
     public static function getVariablesArray(): array
     {
-        return [
+        $variables = [
             'form' => static::getFormVariables(),
             'general' => static::getGeneralVariables(),
             'email' => static::getEmailVariables(),
             'users' => static::getUsersVariables(),
         ];
+
+        // Allow plugins to modify the variables
+        $event = new RegisterVariablesEvent([
+            'variables' => $variables,
+        ]);
+        Event::trigger(self::class, self::EVENT_REGISTER_VARIABLES, $event);
+
+        return $event->variables;
     }
 
     /**

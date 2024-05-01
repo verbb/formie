@@ -2097,3 +2097,26 @@ Event::on(MigrateSproutForms::class, MigrateSproutForms::EVENT_MODIFY_FIELD, fun
 ```
 
 
+## Variable Events
+
+### The `registerVariables` event
+The event that is triggered to register additional variables for the variable-picker used in Email Notifications.
+
+```php
+use verbb\formie\helpers\Variables;
+use verbb\formie\events\RegisterVariablesEvent;
+use yii\base\Event;
+
+Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event) {
+    $event->variables['custom'][] = [
+        'label' => 'Custom',
+        'heading' => true,
+    ];
+
+    $event->variables['custom'][] = [
+        'label' => 'Entry Title',
+        'value' => 'Some Example Title',
+    ];
+});
+```
+
