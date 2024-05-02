@@ -115,7 +115,7 @@ class PayPal extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/paypal.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/paypal.js'),
             'module' => 'FormiePayPal',
             'settings' => $settings,
         ];

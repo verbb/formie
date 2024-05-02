@@ -113,7 +113,7 @@ class PayWay extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/payway.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/payway.js'),
             'module' => 'FormiePayWay',
             'settings' => $settings,
         ];

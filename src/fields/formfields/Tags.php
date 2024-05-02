@@ -290,7 +290,7 @@ class Tags extends CraftTags implements FormFieldInterface
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/tags.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/tags.js'),
             'module' => 'FormieTags',
         ];
     }

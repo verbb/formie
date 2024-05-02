@@ -815,7 +815,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
 
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/date-picker.js'),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/date-picker.js'),
                 'module' => 'FormieDatePicker',
                 'settings' => [
                     'datePickerOptions' => $datePickerOptions,
