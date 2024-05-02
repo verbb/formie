@@ -85,6 +85,12 @@ use yii\queue\ExecEvent;
 
 class Formie extends Plugin
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
+
+    
     // Properties
     // =========================================================================
 

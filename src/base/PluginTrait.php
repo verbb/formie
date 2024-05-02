@@ -40,12 +40,6 @@ use nystudio107\pluginvite\services\VitePluginService;
 
 trait PluginTrait
 {
-    // Constants
-    // =========================================================================
-
-    public const EVENT_MODIFY_TWIG_ENVIRONMENT = 'modifyTwigEnvironment';
-
-
     // Properties
     // =========================================================================
 
