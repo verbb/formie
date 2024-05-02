@@ -101,7 +101,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface
     public function getFrontEndJsModules(): ?array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/checkbox-radio.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/checkbox-radio.js'),
             'module' => 'FormieCheckboxRadio',
         ];
     }
