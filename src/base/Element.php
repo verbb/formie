@@ -53,10 +53,10 @@ abstract class Element extends Integration
     // Properties
     // =========================================================================
 
-    public ?array $attributeMapping = null;
-    public ?array $fieldMapping = null;
+    public array $attributeMapping = [];
+    public array $fieldMapping = [];
     public bool $updateElement = false;
-    public ?array $updateElementMapping = null;
+    public array $updateElementMapping = [];
     public bool $updateSearchIndexes = true;
     public bool $overwriteValues = false;
 
