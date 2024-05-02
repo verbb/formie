@@ -184,12 +184,10 @@ class Entry extends Element
 
             $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeId, $submission, [
                 'typeId' => $entryType->id,
-                'sectionId' => $entryType->sectionId,
             ]);
 
             $entry->siteId = $submission->siteId;
             $entry->typeId = $entryType->id;
-            $entry->sectionId = $entryType->sectionId;
 
             if ($this->defaultAuthorId) {
                 $entry->authorId = $this->defaultAuthorId;
