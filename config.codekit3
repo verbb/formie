@@ -7033,6 +7033,38 @@
       "oAP" : "\/src\/templates\/_special\/email-template\/index.html",
       "oF" : 0
     },
+    "\/src\/templates\/_special\/email-template\/integrations\/payments\/opayo\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/email-template\/integrations\/payments\/opayo\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/email-template\/integrations\/payments\/paypal\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/email-template\/integrations\/payments\/paypal\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/email-template\/integrations\/payments\/payway\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/email-template\/integrations\/payments\/payway\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/email-template\/integrations\/payments\/stripe\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/email-template\/integrations\/payments\/stripe\/field.html",
+      "oF" : 0
+    },
     "\/src\/templates\/_special\/form-template\/_includes\/alert-error.html" : {
       "cB" : 0,
       "ft" : 8192,
@@ -7463,6 +7495,70 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/templates\/_special\/form-template\/form.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/opayo\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/opayo\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/opayo\/submission-summary.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/opayo\/submission-summary.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/paypal\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/paypal\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/paypal\/submission-summary.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/paypal\/submission-summary.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/payway\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/payway\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/payway\/submission-summary.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/payway\/submission-summary.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/stripe\/field.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/stripe\/field.html",
+      "oF" : 0
+    },
+    "\/src\/templates\/_special\/form-template\/integrations\/payments\/stripe\/submission-summary.html" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/templates\/_special\/form-template\/integrations\/payments\/stripe\/submission-summary.html",
       "oF" : 0
     },
     "\/src\/templates\/_special\/form-template\/page.html" : {
@@ -8793,52 +8889,12 @@
       "oAP" : "\/src\/templates\/integrations\/miscellaneous\/trello\/_plugin-settings.html",
       "oF" : 0
     },
-    "\/src\/templates\/integrations\/payments\/opayo\/_email.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/opayo\/_email.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/opayo\/_input.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/opayo\/_input.html",
-      "oF" : 0
-    },
     "\/src\/templates\/integrations\/payments\/opayo\/_plugin-settings.html" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 1,
       "oAP" : "\/src\/templates\/integrations\/payments\/opayo\/_plugin-settings.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/opayo\/_submission-summary.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/opayo\/_submission-summary.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/paypal\/_email.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/paypal\/_email.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/paypal\/_input.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/paypal\/_input.html",
       "oF" : 0
     },
     "\/src\/templates\/integrations\/payments\/paypal\/_plugin-settings.html" : {
@@ -8849,30 +8905,6 @@
       "oAP" : "\/src\/templates\/integrations\/payments\/paypal\/_plugin-settings.html",
       "oF" : 0
     },
-    "\/src\/templates\/integrations\/payments\/paypal\/_submission-summary.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/paypal\/_submission-summary.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/payway\/_email.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/payway\/_email.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/payway\/_input.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/payway\/_input.html",
-      "oF" : 0
-    },
     "\/src\/templates\/integrations\/payments\/payway\/_plugin-settings.html" : {
       "cB" : 0,
       "ft" : 8192,
@@ -8881,44 +8913,12 @@
       "oAP" : "\/src\/templates\/integrations\/payments\/payway\/_plugin-settings.html",
       "oF" : 0
     },
-    "\/src\/templates\/integrations\/payments\/payway\/_submission-summary.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/payway\/_submission-summary.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/stripe\/_email.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/stripe\/_email.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/stripe\/_input.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/stripe\/_input.html",
-      "oF" : 0
-    },
     "\/src\/templates\/integrations\/payments\/stripe\/_plugin-settings.html" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 1,
       "oAP" : "\/src\/templates\/integrations\/payments\/stripe\/_plugin-settings.html",
-      "oF" : 0
-    },
-    "\/src\/templates\/integrations\/payments\/stripe\/_submission-summary.html" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 1,
-      "oAP" : "\/src\/templates\/integrations\/payments\/stripe\/_submission-summary.html",
       "oF" : 0
     },
     "\/src\/templates\/integrations\/webhooks\/webhook\/_form-settings.html" : {
@@ -11402,6 +11402,25 @@
       "oF" : 0,
       "pg" : 0
     },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js" : {
+      "bF" : 0,
+      "ft" : 64,
+      "ma" : 1,
+      "mi" : 1,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-KMbucmVo.js",
+      "oF" : 0,
+      "sC" : 0,
+      "tS" : 0
+    },
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js.map" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js.map",
+      "oF" : 0
+    },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ePb3OZVd.js" : {
       "bF" : 0,
       "ft" : 64,
@@ -11419,25 +11438,6 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ePb3OZVd.js.map",
-      "oF" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-Zeiehwiw.js" : {
-      "bF" : 0,
-      "ft" : 64,
-      "ma" : 1,
-      "mi" : 1,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-Zeiehwiw.js",
-      "oF" : 0,
-      "sC" : 0,
-      "tS" : 0
-    },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-Zeiehwiw.js.map" : {
-      "cB" : 0,
-      "ft" : 8192,
-      "hM" : 0,
-      "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-Zeiehwiw.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
