@@ -606,14 +606,17 @@ class Install extends Migration
         ];
 
         foreach ($stencils as $stencilInfo) {
-            $data = Json::decodeIfJson(file_get_contents($stencilInfo['file']));
+            $data = file_get_contents($stencilInfo['file']);
 
             $stencil = new Stencil();
             $stencil->name = $stencilInfo['name'];
             $stencil->handle = $stencilInfo['handle'];
-            $stencil->data = new StencilData($data);
 
             Formie::$plugin->getStencils()->saveStencil($stencil);
+
+            // Update the data after the fact and directly so we can use it before Formie is installed
+            // Otherwise, the field layouts will try and validate the fields
+            $this->update(Table::FORMIE_STENCILS, ['data' => $data], ['handle' => $stencilInfo['handle']]);
         }
     }
 }
