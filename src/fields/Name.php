@@ -162,6 +162,16 @@ class Name extends SubField implements PreviewableFieldInterface
         ]);
     }
 
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'useMultipleFields' => [
+                'name' => 'useMultipleFields',
+                'type' => Type::boolean(),
+            ],
+        ]);
+    }
+
     public function getContentGqlType(): Type|array
     {
         return $this->useMultipleFields ? NameType::getType() : Type::string();
