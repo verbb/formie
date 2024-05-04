@@ -67,6 +67,11 @@ abstract class Captcha extends Integration
         return null;
     }
 
+    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
+    {
+        return [];
+    }
+
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         return null;
