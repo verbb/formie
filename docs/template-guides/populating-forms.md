@@ -2,15 +2,14 @@
 When rendering a form, you might like to populate the values of a field with some default values.
 
 ```twig
-{# Sets the field with handle `text` to "Some Value" for the form with a handle `contactForm` #}
-{% do craft.formie.populateFormValues('contactForm', { text: 'Some Value' }) %}
-
-{# or use a `form` object #}
+{# Fetch the form with the handle `contactForm` #}
 {% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+
+{# Sets the field with handle `text` to "Some Value" for the form #}
 {% do craft.formie.populateFormValues(form, { text: 'Some Value' }) %}
 
-{# Must be done before the `renderForm()` #}
-{{ craft.formie.renderForm('contactForm') }}
+{# Render the form after calling `populateFormValues()` #}
+{{ craft.formie.renderForm(form) }}
 ```
 
 :::tip
