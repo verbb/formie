@@ -338,14 +338,18 @@ class Date extends SubField implements PreviewableFieldInterface
 
         $values = [];
 
-        foreach ($props as $k => $format) {
-            $formattedValue = '';
+        if ($this->displayType !== 'calendar') {
+            foreach ($props as $k => $format) {
+                $formattedValue = '';
 
-            if ($value && $value instanceof DateTime) {
-                $formattedValue = $value->format($format);
+                if ($value && $value instanceof DateTime) {
+                    $formattedValue = $value->format($format);
+                }
+
+                $values[$k] = $formattedValue;
             }
-
-            $values[$k] = $formattedValue;
+        } else {
+            $values = $this->defineValueAsString($value);
         }
 
         return $values;
