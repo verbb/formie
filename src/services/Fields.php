@@ -1137,9 +1137,9 @@ class Fields extends Component
                 ...$this->_getFieldQuerySelect(),
             ])
             ->from(['l' => Table::FORMIE_FIELD_LAYOUTS])
-            ->leftJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], 'p.layoutId = l.id')
-            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], 'r.pageId = p.id')
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
+            ->leftJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], '[[p.layoutId]] = [[l.id]]')
+            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.pageId]] = [[p.id]]')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
@@ -1214,8 +1214,8 @@ class Fields extends Component
                 ...$this->_getFieldQuerySelect(),
             ])
             ->from(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES])
-            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], 'r.pageId = p.id')
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
+            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.pageId]] = [[p.id]]')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
@@ -1272,7 +1272,7 @@ class Fields extends Component
                 ...$this->_getFieldQuerySelect(),
             ])
             ->from(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS])
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], 'f.rowId = r.id')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
             ->where($params)
             ->orderBy([
                 'r.sortOrder' => SORT_ASC,
