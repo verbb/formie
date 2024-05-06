@@ -73,7 +73,17 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
                     'description' => 'Whether this option has been marked as a default.',
                     'resolve' => function($source) {
                         // Optgroups are handled differently, so normalize
-                        return isset($source['optgroup']) ? false : $source['isDefault'];
+                        return isset($source['optgroup']) ? false : ($source['isDefault'] ?? false);
+                    },
+                ],
+
+                'disabled' => [
+                    'name' => 'disabled',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether this option has been marked as disabled.',
+                    'resolve' => function($source) {
+                        // Optgroups are handled differently, so normalize
+                        return isset($source['optgroup']) ? false : ($source['disabled'] ?? false);
                     },
                 ],
             ], $typeName),
