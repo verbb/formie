@@ -6,10 +6,12 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -383,6 +385,16 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         return $value->label ?? '';
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Respect the format picker for "Email Notification Value" 
+        if ($value instanceof SingleOptionFieldData) {
+            return $this->emailValue === 'label' ? $value->label : $value->value;
+        }
+
+        return parent::getValueForVariable($value, $submission, $notification);
     }
 
     protected function getPredefinedOptions(): array
