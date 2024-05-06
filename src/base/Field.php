@@ -298,6 +298,10 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             return $this->_form;
         }
 
+        if ($parentField = $this->getParentField()) {
+            return $this->_form = Formie::$plugin->getForms()->getFormByLayoutId($parentField->layoutId);
+        }
+
         return $this->_form = Formie::$plugin->getForms()->getFormByLayoutId($this->layoutId);
     }
 
