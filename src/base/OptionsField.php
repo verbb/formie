@@ -233,6 +233,16 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         return parent::serializeValue($value, $element);
     }
 
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Respect the format picker for "Email Notification Value" 
+        if ($value instanceof SingleOptionFieldData) {
+            return $this->emailValue === 'label' ? $value->label : $value->value;
+        }
+
+        return parent::getValueForVariable($value, $submission, $notification);
+    }
+
     public function getElementValidationRules(): array
     {
         // Get all of the acceptable values
@@ -385,16 +395,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         return $value->label ?? '';
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        // Respect the format picker for "Email Notification Value" 
-        if ($value instanceof SingleOptionFieldData) {
-            return $this->emailValue === 'label' ? $value->label : $value->value;
-        }
-
-        return parent::getValueForVariable($value, $submission, $notification);
     }
 
     protected function getPredefinedOptions(): array
