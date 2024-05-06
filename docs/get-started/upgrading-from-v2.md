@@ -177,6 +177,7 @@ Old | What to do instead
 | `Field::getFieldDefaults()` | `Field::getFieldTypeConfigDefaults()`
 | `Field::getAllFieldDefaults()` | `Field::getFieldTypeConfigDefaults()`
 | `Field::getFieldValue()` | `$element->getFieldValue($field->handle)`
+| `Field::getContentGqlMutationArgument()` | `Field::getContentGqlMutationArgumentType()`
 
 ### Method Signatures
 To adhere to more strict typing introduced in PHP 8, we've modified some method signatures. Your custom field classes will need to be updated to reflect these changes.
@@ -249,6 +250,10 @@ protected function defineValueForSummary(mixed $value, ElementInterface $element
 // Formie v2 vs Formie v3
 protected function defineValueForEmail($value, $notification, ElementInterface $element = null): string
 protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): string
+
+// Formie v2 vs Formie v3
+protected function getContentGqlMutationArgument(): Type|array|null
+protected function getContentGqlMutationArgumentType(): Type|array
 ```
 
 ## Custom JavaScript Validation

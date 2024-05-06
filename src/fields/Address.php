@@ -276,7 +276,7 @@ class Address extends SubField implements PreviewableFieldInterface
         ];
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         return AddressInputType::getType($this);
     }

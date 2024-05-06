@@ -16,10 +16,6 @@ class RepeaterInputType extends InputObjectType
 
     public static function getType(RepeaterField $context): mixed
     {
-        if (!$context->getForm()) {
-            return null;
-        }
-        
         /** @var RepeaterField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieRepeaterInput';
 
@@ -30,7 +26,7 @@ class RepeaterInputType extends InputObjectType
         $repeaterFields = [];
 
         foreach ($context->getFields() as $field) {
-            $repeaterFields[$field->handle] = $field->getContentGqlMutationArgument();
+            $repeaterFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
         // All the different field block types now get wrapped in a container input.

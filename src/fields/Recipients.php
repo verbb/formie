@@ -393,7 +393,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         if ($this->displayType === 'checkboxes') {
             return Type::listOf(Type::string());

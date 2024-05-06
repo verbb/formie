@@ -260,7 +260,7 @@ class Name extends SubField implements PreviewableFieldInterface
         ];
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         if ($this->useMultipleFields) {
             return NameInputType::getType($this);

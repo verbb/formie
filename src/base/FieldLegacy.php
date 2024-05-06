@@ -198,7 +198,7 @@ trait FieldLegacy
         return Type::string();
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         return [
             'name' => $this->handle,

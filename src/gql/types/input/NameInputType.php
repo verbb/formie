@@ -16,10 +16,6 @@ class NameInputType extends InputObjectType
 
     public static function getType(NameField $context): mixed
     {
-        if (!$context->getForm()) {
-            return null;
-        }
-        
         /** @var NameField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieNameInput';
 

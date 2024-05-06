@@ -109,7 +109,7 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s full GQL input type. Useful for mutations.',
                 'resolve' => function($field) {
-                    $inputType = $field->getContentGqlMutationArgument();
+                    $inputType = $field->getContentGqlMutationArgumentType();
 
                     // Table fields don't seem to resolve correctly?
                     if ($field instanceof Table) {

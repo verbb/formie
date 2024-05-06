@@ -124,7 +124,7 @@ class Group extends SingleNestedField
         ];
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         return GroupInputType::getType($this);
     }

@@ -14,10 +14,6 @@ class GroupInputType extends InputObjectType
 
     public static function getType(GroupField $context): mixed
     {
-        if (!$context->getForm()) {
-            return null;
-        }
-        
         /** @var GroupField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieGroupInput';
 
@@ -28,7 +24,7 @@ class GroupInputType extends InputObjectType
         $groupFields = [];
 
         foreach ($context->getFields() as $field) {
-            $groupFields[$field->handle] = $field->getContentGqlMutationArgument();
+            $groupFields[$field->handle] = $field->getContentGqlMutationArgumentType();
         }
 
         return GqlEntityRegistry::createEntity($typeName, new InputObjectType([

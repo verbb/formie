@@ -327,7 +327,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         ];
     }
 
-    public function getContentGqlMutationArgument(): Type|array|null
+    public function getContentGqlMutationArgumentType(): Type|array
     {
         $values = [];
 

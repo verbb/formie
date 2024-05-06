@@ -16,10 +16,6 @@ class AddressInputType extends InputObjectType
 
     public static function getType(AddressField $context): mixed
     {
-        if (!$context->getForm()) {
-            return null;
-        }
-        
         /** @var AddressField $context */
         $typeName = $context->getForm()->handle . '_' . $context->handle . '_FormieAddressInput';
 
