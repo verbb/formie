@@ -100,7 +100,7 @@ class Campaign extends EmailMarketing
 
         $lists = MailingListElement::find()
             ->site('*')
-            ->orderBy(['elements_sites.slug' => 'ASC', 'content.title' => 'ASC'])
+            ->orderBy(['elements_sites.slug' => 'ASC', 'title' => 'ASC'])
             ->all();
 
         $isMultiSite = Craft::$app->getIsMultiSite();

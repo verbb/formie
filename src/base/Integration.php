@@ -404,7 +404,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         // Only proceed if the provider is connected
-        if (!static::getIsConnected()) {
+        if (static::supportsConnection() && !static::getIsConnected()) {
             Integration::error($this, 'Connect to the integration provider first.', true);
         }
 
