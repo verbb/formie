@@ -547,11 +547,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $value = trim($value);
 
         // Use a DB lookup for performance
-        $query = Craft::$app->getDb()->getQueryBuilder()->jsonContains('s.content', [$this->uid => $value]);
+        $contentQuery = Craft::$app->getDb()->getQueryBuilder()->jsonContains('s.content', [$this->uid => $value]);
 
         $query = (new Query())
             ->from(['s' => Table::FORMIE_SUBMISSIONS])
-            ->where([$query, 'isIncomplete' => false, 'e.dateDeleted' => null])
+            ->where(['isIncomplete' => false, 'e.dateDeleted' => null])
+            ->andWhere($contentQuery)
             ->leftJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[s.id]]');
 
         // Exclude _this_ element, if there is one
