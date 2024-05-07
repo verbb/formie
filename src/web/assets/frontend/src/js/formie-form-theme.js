@@ -280,7 +280,7 @@ export class FormieFormTheme {
             // Always disable the button
             this.$submitBtn.setAttribute('disabled', true);
 
-            if (this.settings.loadingIndicator === 'spinner') {
+            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass.length) {
                 this.$submitBtn.classList.add(this.loadingClass);
             }
 
@@ -295,7 +295,7 @@ export class FormieFormTheme {
             // Always enable the button
             this.$submitBtn.removeAttribute('disabled');
 
-            if (this.settings.loadingIndicator === 'spinner') {
+            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass.length) {
                 this.$submitBtn.classList.remove(this.loadingClass);
             }
 
@@ -363,7 +363,7 @@ export class FormieFormTheme {
         Object.keys(errors).forEach((pageId, index) => {
             const $tab = this.$form.parentNode.querySelector(`[data-fui-page-id="${pageId}"]`);
 
-            if ($tab) {
+            if ($tab && this.tabErrorClass.length) {
                 $tab.parentNode.classList.add(this.tabErrorClass);
             }
         });
@@ -386,9 +386,11 @@ export class FormieFormTheme {
     removeTabErrors() {
         const $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
 
-        $tabs.forEach(($tab) => {
-            $tab.classList.remove(this.tabErrorClass);
-        });
+        if (this.tabErrorClass.length) {
+            $tabs.forEach(($tab) => {
+                $tab.classList.remove(this.tabErrorClass);
+            });
+        }
     }
 
     beforeSubmit() {
@@ -725,14 +727,16 @@ export class FormieFormTheme {
         const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');
 
         if (data.nextPageId) {
-            $tabs.forEach(($tab) => {
+            if (this.tabActiveClass.length) {
+                $tabs.forEach(($tab) => {
                 // Show the current page
-                if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
-                    $tab.classList.add(this.tabActiveClass);
-                } else {
-                    $tab.classList.remove(this.tabActiveClass);
-                }
-            });
+                    if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
+                        $tab.classList.add(this.tabActiveClass);
+                    } else {
+                        $tab.classList.remove(this.tabActiveClass);
+                    }
+                });
+            }
 
             let isComplete = true;
 
@@ -741,10 +745,12 @@ export class FormieFormTheme {
                     isComplete = false;
                 }
 
-                if (isComplete) {
-                    $tab.classList.add(this.tabCompleteClass);
-                } else {
-                    $tab.classList.remove(this.tabCompleteClass);
+                if (this.tabCompleteClass.length) {
+                    if (isComplete) {
+                        $tab.classList.add(this.tabCompleteClass);
+                    } else {
+                        $tab.classList.remove(this.tabCompleteClass);
+                    }
                 }
             });
 
