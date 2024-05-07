@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\Notification;
