@@ -6,9 +6,18 @@
 - Added `disabled` property to GraphQL Dropdown field interface
 - Added `Formie::EVENT_MODIFY_TWIG_ENVIRONMENT` event to modify the Twig Sandbox for variable parsing.
 - Added `Variables::EVENT_REGISTER_VARIABLES` event to register your own.
+- Added `Field::getValueForVariable()` to allow fields to handle logic for variables.
+- Added `Field::getValueForCondition()` for handling serialization for condition evaluation.
+- Added `Field::getValueForEmailPreview()` for fields to define their own preview for email notifications.
+- Added `disabled` property to GraphQL Dropdown field interface
+- Added `useMultipleFields` for Name field for GraphQL
+
+### Changed
+- Improve performance when parsing variables for email notifications.
+- Options fields (Dropdown, Checkboxes, Radio Buttons) now honour the “Email Notification Value” when using field values as variables
 
 ### Fixed
-- Fixed an error when using dynamic Dropdown options
+- Fixed an error when using dynamic Dropdown options.
 - Fixed a PHP 8 error.
 - Fixed paths for Craft Cloud. (thanks @timkelty).
 - Fixed Repeater fields not retaining their values correctly.
@@ -16,6 +25,24 @@
 - Fixed Name and Address sub-field conditions not working correctly.
 - Fixed an error when importing forms, where custom field content existed while the custom fields themselves didn’t.
 - Fixed Group/Repeater field conditions not working correctly when complex rules were created.
+- Fixed an error for Name fields and `defineValueAsString()`.
+- Fixed nested fields not working correctly with field conditions.
+- Fixed an error with File Upload, client-side validation.
+- Fixed Date field layout issues in Safari and Mobile Safari.
+- Fixed an error with File Upload and MariaDB.
+- Fixed an error with element integrations where no custom fields are present.
+- Fixed an error when running Entry element integrations.
+- Fixed an error with Name Prefix field options not working.
+- Fixed an error for "Unique Value" fields.
+- Fixed a JS error for client-side validation with Theme Config `resetClasses` set.
+- Fixed Entry element integrations not working for Craft 5 entry type changes.
+- Fixed resolved nested field’s form.
+- Fixed GraphQL input types.
+- Fixed an error with Date field variables.
+- Fixed an error with Postgres installs.
+- Fixed an error with Campaign integration lists.
+- Fixed an error for some captchas when refreshing JS tokens.
+- Fixed default “Contact Form” stencils not working for new installs.
 
 ## 3.0.0-beta.9 - 2024-04-27
 
