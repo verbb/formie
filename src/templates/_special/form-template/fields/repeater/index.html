@@ -4,7 +4,7 @@
     {% if value %}
         {% for block in value %}
             {{ formieInclude('fields/repeater/_row', {
-                index: loop.index0,
+                index: block.id ?? ('new' ~ loop.index),
             }) }}
         {% endfor %}
     {% elseif field.minRows > 0 %}

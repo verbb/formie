@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.0.0-beta.10 - 2024-05-08
+
+### Added
+- Added `disabled` property to GraphQL Dropdown field interface
+- Added `Formie::EVENT_MODIFY_TWIG_ENVIRONMENT` event to modify the Twig Sandbox for variable parsing.
+- Added `Variables::EVENT_REGISTER_VARIABLES` event to register your own.
+
+### Fixed
+- Fixed an error when using dynamic Dropdown options
+- Fixed a PHP 8 error.
+- Fixed paths for Craft Cloud. (thanks @timkelty).
+- Fixed Repeater fields not retaining their values correctly.
+- Fixed Form export (from the Form element index) not using custom Formie export logic.
+- Fixed Name and Address sub-field conditions not working correctly.
+- Fixed an error when importing forms, where custom field content existed while the custom fields themselves didn’t.
+- Fixed Group/Repeater field conditions not working correctly when complex rules were created.
+
 ## 3.0.0-beta.9 - 2024-04-27
 
 ### Added
@@ -383,6 +400,23 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.1.14 - 2024-05-08
+
+### Added
+- Added `disabled` property to GraphQL Dropdown field interface
+- Added `Formie::EVENT_MODIFY_TWIG_ENVIRONMENT` event to modify the Twig Sandbox for variable parsing.
+- Added `Variables::EVENT_REGISTER_VARIABLES` event to register your own.
+
+### Fixed
+- Fixed an error when using dynamic Dropdown options
+- Fixed a PHP 8 error.
+- Fixed paths for Craft Cloud. (thanks @timkelty).
+- Fixed Repeater fields not retaining their values correctly.
+- Fixed Form export (from the Form element index) not using custom Formie export logic.
+- Fixed Name and Address sub-field conditions not working correctly.
+- Fixed an error when importing forms, where custom field content existed while the custom fields themselves didn’t.
+- Fixed Group/Repeater field conditions not working correctly when complex rules were created.
 
 ## 2.1.13 - 2024-04-27
 

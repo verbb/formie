@@ -136,7 +136,7 @@ class Phone extends Field implements PreviewableFieldInterface
     {
         if ($this->countryEnabled) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/phone-country.js'),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/phone-country.js'),
                 'module' => 'FormiePhoneCountry',
                 'settings' => [
                     'countryDefaultValue' => $this->countryDefaultValue,

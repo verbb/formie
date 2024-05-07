@@ -2075,3 +2075,63 @@ Event::on(MigrateSproutForms::class, MigrateSproutForms::EVENT_MODIFY_FIELD, fun
 ```
 
 
+## Variable Events
+
+### The `registerVariables` event
+The event that is triggered to register additional variables for the variable-picker used in Email Notifications.
+
+```php
+use verbb\formie\helpers\Variables;
+use verbb\formie\events\RegisterVariablesEvent;
+use yii\base\Event;
+
+Event::on(Variables::class, Variables::EVENT_REGISTER_VARIABLES, function(RegisterVariablesEvent $event) {
+    $event->variables['custom'][] = [
+        'label' => 'Custom',
+        'heading' => true,
+    ];
+
+    $event->variables['custom'][] = [
+        'label' => 'Entry Title',
+        'value' => 'Some Example Title',
+    ];
+});
+```
+
+### The `modifyTwigEnvironment` event
+The event that is triggered to modify the allowed items in the Twig Sandbox used to parse some content like Email Notifications.
+
+Formie uses a Twig Sandbox with a limited set of allowed Tags, Filter and Functions. This also extends to the allowed Methods and Properties. This is a security measure to prevent Twig injections into the fields that support Twig.
+
+```php
+use verbb\formie\Formie;
+use verbb\formie\events\ModifyTwigEnvironmentEvent;
+use yii\base\Event;
+
+Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyTwigEnvironmentEvent $event) {
+    // Add allowed Twig Tags
+    $event->allowedTags[] = [
+        'tag',
+    ];
+
+    // Add allowed Twig Filters
+    $event->allowedFilters[] = [
+        'format',
+        'format_number',
+    ];
+
+    // Add allowed Twig Functions
+    $event->allowedFunctions[] = [
+        'alias',
+    ];
+
+    // Add allowed methods
+    // i.e. to allow `craft.entries.one()`
+    $event->allowedMethods[\craft\web\twig\variables\CraftVariable::class] = 'entries';
+    $event->allowedMethods[\craft\elements\db\ElementQuery::class] = 'one';
+
+    // Add allowed properties
+    $event->allowedProperties[\craft\base\Element::class] = 'title';
+});
+```
+

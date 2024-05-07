@@ -4,10 +4,6 @@ namespace verbb\formie\helpers;
 use verbb\formie\Formie;
 use verbb\formie\base\ElementFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\Hidden;
-use verbb\formie\fields\Group;
-use verbb\formie\fields\Password;
-use verbb\formie\fields\Recipients;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 

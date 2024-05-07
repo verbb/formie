@@ -1770,7 +1770,8 @@ class Form extends Element
 
     public function setSnapshotData(string $key, mixed $data): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
+        // The lack of `Session::exists()` is deliberate, as we want to set snapshot data before the session might be ready
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
             return;
         }
 

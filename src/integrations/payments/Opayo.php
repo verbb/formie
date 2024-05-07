@@ -147,7 +147,7 @@ class Opayo extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/opayo.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/opayo.js'),
             'module' => 'FormieOpayo',
             'settings' => $settings,
         ];

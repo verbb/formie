@@ -185,7 +185,7 @@ class Stripe extends Payment
         ];
 
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'payments/stripe.js'),
+            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/stripe.js'),
             'module' => 'FormieStripe',
             'settings' => $settings,
         ];
@@ -496,7 +496,7 @@ class Stripe extends Payment
             return false;
         } catch (StripeException\ApiErrorException $e) {
             $body = $e->getJsonBody();
-            
+
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
@@ -1271,6 +1271,7 @@ class Stripe extends Payment
             return null;
         }
     }
+
     
     private function _createPlan($payload): ?Plan
     {

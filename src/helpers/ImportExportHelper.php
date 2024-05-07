@@ -19,6 +19,7 @@ use verbb\formie\records\FormTemplate as FormTemplateRecord;
 use verbb\formie\records\Notification as NotificationRecord;
 use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 
+use Craft;
 use craft\elements\Entry;
 use craft\helpers\Json;
 
@@ -178,6 +179,11 @@ class ImportExportHelper
 
         // Handle any custom field
         $customFields = $data['customFields'] ?? [];
+
+        // Filter out any custom field values for fields that don't exist
+        $customFields = array_filter($customFields, function($value, $key) {
+            return Craft::$app->getFields()->getFieldByHandle($key);
+        }, ARRAY_FILTER_USE_BOTH);
 
         $form->setFieldValues($customFields);
 

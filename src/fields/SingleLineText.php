@@ -194,7 +194,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface
     {
         if ($this->limit && $this->max) {
             return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/js/', true, 'fields/text-limit.js'),
+                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
                 'module' => 'FormieTextLimit',
             ];
         }
