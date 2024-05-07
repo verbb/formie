@@ -53,18 +53,19 @@ class Dropdown extends OptionsField
             }
         }
 
-        if (!array_key_exists('options', $config) && empty($config['options'])) {
-            $config['options'] = [
-                [
-                    'label' => Craft::t('formie', 'Select an option'),
-                    'value' => '',
-                    'isOptgroup' => false,
-                    'isDefault' => true,
-                ],
-            ];
-        }
-
         parent::__construct($config);
+    }
+
+    public function getDefaultOptions(): array
+    {
+        return [
+            [
+                'label' => Craft::t('formie', 'Select an option'),
+                'value' => '',
+                'isOptgroup' => false,
+                'isDefault' => true,
+            ],
+        ];
     }
 
     public function getFieldOptions(): array

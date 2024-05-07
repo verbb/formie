@@ -55,6 +55,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
     public function __construct($config = [])
     {
+        // Setup default options
+        if (!array_key_exists('options', $config) && empty($config['options'])) {
+            $config['options'] = $this->getDefaultOptions();
+        }
+
         // Normalize the options
         $options = [];
 
@@ -100,6 +105,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public function options(): array
     {
         return $this->options;
+    }
+
+    public function getDefaultOptions(): array
+    {
+        return [];
     }
 
     public function validateOptions(): void

@@ -36,7 +36,11 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return 'fields/dropdown';
     }
 
-    public static function getPrefixOptions(): array
+
+    // Public Methods
+    // =========================================================================
+
+    public function getDefaultOptions(): array
     {
         $options = [
             ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
@@ -56,14 +60,5 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         Event::trigger(static::class, self::EVENT_MODIFY_PREFIX_OPTIONS, $event);
 
         return $event->options;
-    }
-
-
-    // Public Methods
-    // =========================================================================
-
-    public function getFieldOptions(): array
-    {
-        return static::getPrefixOptions();
     }
 }
