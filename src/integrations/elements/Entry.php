@@ -33,13 +33,21 @@ class Entry extends Element
     // Properties
     // =========================================================================
 
-    public ?int $entryTypeId = null;
+    public ?string $entryTypeSection = null;
     public int|array|null $defaultAuthorId = null;
     public ?bool $createDraft = null;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Normalize the options
+        unset($config['entryTypeId']);
+
+        parent::__construct($config);
+    }
 
     public function getDescription(): string
     {
@@ -61,7 +69,7 @@ class Entry extends Element
                 $fields = $this->getFieldLayoutFields($entryType->getFieldLayout());
 
                 $customFields[$section->name][] = new IntegrationCollection([
-                    'id' => $entryType->id,
+                    'id' => $section->id . ':' . $entryType->id,
                     'name' => $entryType->name,
                     'fields' => $fields,
                 ]);
@@ -158,7 +166,7 @@ class Entry extends Element
                         continue;
                     }
 
-                    $attributes[$entryType->id][] = new IntegrationField([
+                    $attributes[$section->id . ':' . $entryType->id][] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
@@ -173,21 +181,23 @@ class Entry extends Element
 
     public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
-        if (!$this->entryTypeId) {
+        if (!$this->entryTypeSection || !str_contains($this->entryTypeSection, ':')) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
 
             return false;
         }
 
         try {
-            $entryType = Craft::$app->getEntries()->getEntryTypeById($this->entryTypeId);
+            [$sectionId, $entryTypeId] = explode(':', $this->entryTypeSection);
 
-            $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeId, $submission, [
-                'typeId' => $entryType->id,
+            $entry = $this->getElementForPayload(EntryElement::class, $entryTypeId, $submission, [
+                'typeId' => $entryTypeId,
+                'sectionId' => $sectionId,
             ]);
 
             $entry->siteId = $submission->siteId;
-            $entry->typeId = $entryType->id;
+            $entry->typeId = $entryTypeId;
+            $entry->sectionId = $sectionId;
 
             if ($this->defaultAuthorId) {
                 $entry->authorId = $this->defaultAuthorId;
@@ -320,7 +330,7 @@ class Entry extends Element
         $rules = parent::defineRules();
 
         // Validate the following when saving form settings
-        $rules[] = [['entryTypeId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['entryTypeSection', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         // Find the field for the entry type - a little trickier due to nested in sections
         $fields = $this->_getEntryTypeSettings()->fields ?? [];
@@ -343,7 +353,7 @@ class Entry extends Element
         $entryTypes = $this->getFormSettingValue('elements');
 
         foreach ($entryTypes as $key => $entryType) {
-            if ($collection = ArrayHelper::firstWhere($entryType, 'id', $this->entryTypeId)) {
+            if ($collection = ArrayHelper::firstWhere($entryType, 'id', $this->entryTypeSection)) {
                 return $collection;
             }
         }
