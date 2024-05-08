@@ -10,6 +10,7 @@
 import { get, set, isEmpty } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
+import { getErrorMessage } from '@utils/forms';
 
 export default {
     name: 'IntegrationFormSettings',
@@ -162,11 +163,8 @@ export default {
                 if (response.data.error) {
                     this.error = true;
 
-                    this.errorMessage = Craft.t('formie', 'An error occurred.');
-
-                    if (response.data.error) {
-                        this.errorMessage += `<br><code>${response.data.error}</code>`;
-                    }
+                    const info = getErrorMessage(response.data.error);
+                    this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
 
                     return;
                 }
@@ -177,11 +175,8 @@ export default {
                 this.loading = false;
                 this.error = true;
 
-                this.errorMessage = error;
-
-                if (error.response.data.error) {
-                    this.errorMessage += `<br><code>${error.response.data.error}</code>`;
-                }
+                const info = getErrorMessage(error);
+                this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
             });
         },
     },
