@@ -382,7 +382,7 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
 
             // Ensure that we always cast the value as a string, to handle integers throwing compare error checks in Twig
             if (isset($option['value'])) {
-                $option['value'] = (string)$option['value'];
+                $option['value'] = trim((string)$option['value']);
             }
         }
     }
