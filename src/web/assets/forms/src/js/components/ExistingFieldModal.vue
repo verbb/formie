@@ -294,20 +294,8 @@ export default {
                 };
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
-                const rowCount = this.form.pages[this.pageIndex].rows.length;
 
-                const payload = {
-                    pageIndex: this.pageIndex,
-                    rowIndex: rowCount,
-                    data: {
-                        __id: newId(),
-                        fields: [
-                            newField,
-                        ],
-                    },
-                };
-
-                this.$store.dispatch('form/appendRow', payload);
+                this.addField(newField);
             }
 
             this.closeModal();
@@ -323,23 +311,36 @@ export default {
                 config.settings.syncId = field.id;
 
                 const newField = this.$store.getters['fieldtypes/newField'](field.type, config);
-                const rowCount = this.form.pages[this.pageIndex].rows.length;
 
-                const payload = {
-                    pageIndex: this.pageIndex,
-                    rowIndex: rowCount,
-                    data: {
-                        __id: newId(),
-                        fields: [
-                            newField,
-                        ],
-                    },
-                };
-
-                this.$store.dispatch('form/appendRow', payload);
+                this.addField(newField);
             }
 
             this.closeModal();
+        },
+
+        addField(newField) {
+            // Construct the key path for the new page manually
+            const destinationPath = ['pages', this.pageIndex, 'rows'];
+
+            // Find the last row on the destination page and use that as the ID
+            const destinationRows = this.$store.getters['form/valueByKeyPath'](destinationPath);
+
+            // Figure out how to append it, by getting the last item index
+            if (destinationRows && Array.isArray(destinationRows) && destinationRows.length) {
+                destinationPath.push(destinationRows.length);
+            } else {
+                destinationPath.push(0);
+            }
+
+            const newRow = {
+                __id: newId(),
+                fields: [newField],
+            };
+
+            this.$store.dispatch('form/addField', {
+                destinationPath,
+                value: newRow,
+            });
         },
     },
 };
