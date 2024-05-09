@@ -54,7 +54,7 @@ abstract class Crm extends Integration
         ]);
     }
 
-    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
         if (is_string($fieldSettings)) {

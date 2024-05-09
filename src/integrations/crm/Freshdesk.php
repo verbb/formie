@@ -470,7 +470,7 @@ class Freshdesk extends Crm
         ]);
     }
 
-    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [], bool $multipart = false)
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [], bool $multipart = false)
     {
         // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
         if (!$multipart) {

@@ -493,7 +493,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    public function getFieldMappingValues(Submission $submission, array $fieldMapping, mixed $fieldSettings = [])
+    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         $fieldValues = [];
 
