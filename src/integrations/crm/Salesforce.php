@@ -122,9 +122,13 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getBaseApiUrl(?Token $token): ?string
     {
-        $url = $this->getApiDomain();
+        if (!$token) {
+            return null;
+        }
 
-        return "$url/services/data/v49.0";
+        $url = $token->values['instance_url'] ?? '';
+
+        return "$url/services/data/v49.0/";
     }
 
     public function getOAuthProviderConfig(): array
