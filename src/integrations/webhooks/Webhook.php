@@ -65,7 +65,7 @@ class Webhook extends BaseWebhook
             $payload = $this->generatePayloadValues($submission);
             $response = $this->deliverPayload($submission, $this->getWebhookUrl($webhook, $submission), $payload, 'POST', 'json', false);
 
-            $rawResponse = (string)$response->getBody();
+            $rawResponse = (string)$response;
             $json = Json::decodeIfJson($rawResponse);
 
             $settings = [
