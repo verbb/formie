@@ -462,7 +462,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return UrlHelper::siteUrl('formie/integrations/callback');
     }
 
-    public function request(string $method, string $uri, array $options = [], bool $decodeJson = true): mixed
+    public function request(string $method, string $uri, array $options = []): mixed
     {
         // If an OAuth-based integration, use the Auth module's client to do the request
         if (static::supportsOAuthConnection()) {
@@ -471,19 +471,40 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
 
-        return ($decodeJson) ? Json::decode($response->getBody()->getContents()) : $response->getBody()->getContents();
+        return Json::decode($response->getBody()->getContents());
     }
 
-    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json', bool $decodeJson = true): mixed
+    public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Allow events to cancel sending
         if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
             return false;
         }
 
+        // Return a JSON response from the provider
         $response = $this->request($method, $endpoint, [
             $contentType => $payload,
-        ], $decodeJson);
+        ]);
+
+        // Allow events to say the response is invalid
+        if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
+            return false;
+        }
+
+        return $response;
+    }
+
+    public function deliverPayloadRequest(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
+    {
+        // Allow events to cancel sending
+        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
+            return false;
+        }
+
+        // Don't assume a JSON response, return the raw response to deal with later
+        $response = $this->getClient()->request($method, $endpoint, [
+            $contentType => $payload,
+        ]);
 
         // Allow events to say the response is invalid
         if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {

@@ -122,7 +122,7 @@ class Slack extends Miscellaneous implements OAuthProviderInterface
                     'text' => $this->_renderMessage($submission),
                 ];
 
-                $response = $this->deliverPayload($submission, $this->webhook, $payload, 'POST', 'json', false);
+                $response = $this->deliverPayloadRequest($submission, $this->webhook, $payload);
             } else {
 
                 $channel = null;

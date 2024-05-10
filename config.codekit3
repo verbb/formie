@@ -2077,6 +2077,14 @@
       "oAP" : "\/src\/elements\/db\/SubmissionQuery.php",
       "oF" : 0
     },
+    "\/src\/elements\/exporters\/FormExport.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/elements\/exporters\/FormExport.php",
+      "oF" : 0
+    },
     "\/src\/elements\/exporters\/SubmissionExport.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2461,6 +2469,14 @@
       "oAP" : "\/src\/events\/ModifySubmissionExportDataEvent.php",
       "oF" : 0
     },
+    "\/src\/events\/ModifyTwigEnvironmentEvent.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/events\/ModifyTwigEnvironmentEvent.php",
+      "oF" : 0
+    },
     "\/src\/events\/ModifyWebhookPayloadEvent.php" : {
       "cB" : 0,
       "ft" : 8192,
@@ -2595,6 +2611,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/events\/RegisterPredefinedOptionsEvent.php",
+      "oF" : 0
+    },
+    "\/src\/events\/RegisterVariablesEvent.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/events\/RegisterVariablesEvent.php",
       "oF" : 0
     },
     "\/src\/events\/SendIntegrationPayloadEvent.php" : {
@@ -4647,6 +4671,14 @@
       "hM" : 0,
       "oA" : 0,
       "oAP" : "\/src\/migrations\/m240407_000000_payment_fk.php",
+      "oF" : 0
+    },
+    "\/src\/migrations\/m240507_000000_entry_integration_ids.php" : {
+      "cB" : 0,
+      "ft" : 8192,
+      "hM" : 0,
+      "oA" : 0,
+      "oAP" : "\/src\/migrations\/m240507_000000_entry_integration_ids.php",
       "oF" : 0
     },
     "\/src\/migrations\/MigrateFreeform.php" : {
@@ -11275,23 +11307,23 @@
       "oAP" : "\/src\/web\/assets\/cp\/WidgetsAsset.php",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-2eVXooXU.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-9LdwdY1g.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-2eVXooXU.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/config-9LdwdY1g.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/config-2eVXooXU.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/config-9LdwdY1g.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-2eVXooXU.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/config-9LdwdY1g.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/config-sy5WOmMv.css" : {
@@ -11402,42 +11434,42 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-1C1cnvp8.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-KMbucmVo.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-1C1cnvp8.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-1C1cnvp8.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-KMbucmVo.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-1C1cnvp8.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ePb3OZVd.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-OxZIaiNF.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-new-ePb3OZVd.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-form-OxZIaiNF.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ePb3OZVd.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-OxZIaiNF.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-new-ePb3OZVd.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-form-OxZIaiNF.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-1lMsdyt4.css" : {
@@ -11452,42 +11484,42 @@
       "oF" : 0,
       "pg" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-zeLOAVkn.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-D1c8QgZU.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-zeLOAVkn.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/formie-integration-settings-D1c8QgZU.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-zeLOAVkn.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-D1c8QgZU.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-zeLOAVkn.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/formie-integration-settings-D1c8QgZU.js.map",
       "oF" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-__VirkSB.js" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-BI17WVCR.js" : {
       "bF" : 0,
       "ft" : 64,
       "ma" : 1,
       "mi" : 1,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/Modal-__VirkSB.js",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/js\/Modal-BI17WVCR.js",
       "oF" : 0,
       "sC" : 0,
       "tS" : 0
     },
-    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-__VirkSB.js.map" : {
+    "\/src\/web\/assets\/forms\/dist\/assets\/Modal-BI17WVCR.js.map" : {
       "cB" : 0,
       "ft" : 8192,
       "hM" : 0,
       "oA" : 0,
-      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-__VirkSB.js.map",
+      "oAP" : "\/src\/web\/assets\/forms\/dist\/assets\/Modal-BI17WVCR.js.map",
       "oF" : 0
     },
     "\/src\/web\/assets\/forms\/dist\/assets\/Modal-wf1uLiFE.css" : {
