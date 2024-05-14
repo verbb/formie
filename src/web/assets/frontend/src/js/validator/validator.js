@@ -119,11 +119,11 @@ class FormieValidator {
             errorMessages.remove();
         }
 
-        if (this.config.fieldContainerErrorClass) {
+        if (this.config.fieldContainerErrorClass.length) {
             fieldContainer.classList.remove(this.config.fieldContainerErrorClass);
         }
 
-        if (this.config.inputErrorClass) {
+        if (this.config.inputErrorClass.length) {
             input.classList.remove(this.config.inputErrorClass);
         }
 
@@ -158,7 +158,7 @@ class FormieValidator {
             errorElement.setAttribute('data-field-error-message', '');
             errorElement.setAttribute(`data-field-error-message-${validatorName}`, '');
 
-            if (this.config.messagesClass.length) {
+            if (this.config.messageClass.length) {
                 errorElement.classList.add(this.config.messageClass);
             }
 
@@ -299,7 +299,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (!e.target.classList.contains(this.config.inputErrorClass)) {
+        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
             return;
         }
 
@@ -320,7 +320,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (!e.target.classList.contains(this.config.inputErrorClass)) {
+        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
             return;
         }
 

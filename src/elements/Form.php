@@ -1592,6 +1592,8 @@ class Form extends Element
             'success' => 'fui-success',
             'successMessage' => 'fui-success-message',
             'error' => 'fui-error',
+            'fieldContainerError' => 'fui-error',
+            'fieldInputError' => 'fui-error',
             'fieldErrors' => 'fui-errors',
             'fieldError' => 'fui-error-message',
         ];

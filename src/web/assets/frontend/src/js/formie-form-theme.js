@@ -63,10 +63,10 @@ export class FormieFormTheme {
         const validatorSettings = {
             live: this.validationOnFocus,
 
-            fieldContainerErrorClass: 'fui-error',
-            inputErrorClass: 'fui-error',
+            fieldContainerErrorClass: this.form.getClasses('fieldContainerError'),
+            inputErrorClass: this.form.getClasses('fieldInputError'),
             messagesClass: this.form.getClasses('fieldErrors'),
-            messageClass: this.form.getClasses('errorMessage'),
+            messageClass: this.form.getClasses('fieldError'),
         };
 
         this.validator = new FormieValidator(this.$form, validatorSettings);
