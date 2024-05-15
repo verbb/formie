@@ -1692,12 +1692,16 @@ class Form extends Element
         }
     }
 
-    public function setPageSettings(string $handle, array $settings): void
+    public function setPageSettings(int|string $handleOrIndex, array $settings): void
     {
-        $pagesByHandle = ArrayHelper::index($this->pages, 'handle');
+        $pages = $this->pages;
+
+        if (is_string($handleOrIndex)) {
+            $pages = ArrayHelper::index($this->pages, 'handle');
+        }
 
         // Get the page settings so we only override what we want
-        $pageSettings = $pagesByHandle[$handle]->pageSettings ?? null;
+        $pageSettings = $pages[$handleOrIndex]->pageSettings ?? null;
 
         if ($pageSettings) {
             $pageSettings->setAttributes($settings, false);
