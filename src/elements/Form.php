@@ -1697,7 +1697,7 @@ class Form extends Element
         $pagesByHandle = ArrayHelper::index($this->pages, 'handle');
 
         // Get the page settings so we only override what we want
-        $pageSettings = $pagesByHandle[$handle]->settings ?? null;
+        $pageSettings = $pagesByHandle[$handle]->pageSettings ?? null;
 
         if ($pageSettings) {
             $pageSettings->setAttributes($settings, false);
