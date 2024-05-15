@@ -107,6 +107,9 @@ class FormieValidator {
     }
 
     removeError(input) {
+        input.removeAttribute('aria-describedby');
+        input.removeAttribute('aria-invalid');
+
         const fieldContainer = input.closest('[data-field-handle]');
 
         if (!fieldContainer) {
@@ -166,6 +169,16 @@ class FormieValidator {
 
             // Append error element to errorMessages div
             errorMessages.appendChild(errorElement);
+
+            // Add aria attributes to the input, referencing the error element
+            const errorId = `error-${fieldContainer.getAttribute('data-field-handle')}-${Math.random().toString(20).substr(2, 5)}`;
+            input.setAttribute('aria-describedby', errorId);
+            input.setAttribute('aria-invalid', true);
+
+            // Set an ID for the error element for accessibility
+            errorElement.setAttribute('id', errorId);
+            errorElement.setAttribute('aria-live', 'polite');
+            errorElement.setAttribute('aria-atomic', true);
         }
 
         // Add error classes to field and field container
