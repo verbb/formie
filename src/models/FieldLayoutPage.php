@@ -70,6 +70,12 @@ class FieldLayoutPage extends SavableComponent
         return $this->_layout = Formie::$plugin->getFields()->getLayoutById($this->layoutId);
     }
 
+    public function getHandle(): ?string
+    {
+        // Auto-generated for the moment
+        return StringHelper::toCamelCase($this->label);
+    }
+
     public function getSettings(): array
     {
         // Override `SavableComponent::getSettings()` behaviour to use our settings
