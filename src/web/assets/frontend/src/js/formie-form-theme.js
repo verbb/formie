@@ -1,4 +1,4 @@
-import { t } from './utils/utils';
+import { t, addClasses, removeClasses } from './utils/utils';
 import FormieValidator from './validator/validator';
 
 export class FormieFormTheme {
@@ -280,8 +280,8 @@ export class FormieFormTheme {
             // Always disable the button
             this.$submitBtn.setAttribute('disabled', true);
 
-            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass.length) {
-                this.$submitBtn.classList.add(this.loadingClass);
+            if (this.settings.loadingIndicator === 'spinner') {
+                addClasses(this.$submitBtn, this.loadingClass);
             }
 
             if (this.settings.loadingIndicator === 'text') {
@@ -295,8 +295,8 @@ export class FormieFormTheme {
             // Always enable the button
             this.$submitBtn.removeAttribute('disabled');
 
-            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass.length) {
-                this.$submitBtn.classList.remove(this.loadingClass);
+            if (this.settings.loadingIndicator === 'spinner') {
+                removeClasses(this.$submitBtn, this.loadingClass);
             }
 
             if (this.settings.loadingIndicator === 'text') {
@@ -363,8 +363,8 @@ export class FormieFormTheme {
         Object.keys(errors).forEach((pageId, index) => {
             const $tab = this.$form.parentNode.querySelector(`[data-fui-page-id="${pageId}"]`);
 
-            if ($tab && this.tabErrorClass.length) {
-                $tab.parentNode.classList.add(this.tabErrorClass);
+            if ($tab) {
+                addClasses($tab.parentNode, this.tabErrorClass);
             }
         });
     }
@@ -386,11 +386,9 @@ export class FormieFormTheme {
     removeTabErrors() {
         const $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
 
-        if (this.tabErrorClass.length) {
-            $tabs.forEach(($tab) => {
-                $tab.classList.remove(this.tabErrorClass);
-            });
-        }
+        $tabs.forEach(($tab) => {
+            removeClasses($tab, this.tabErrorClass);
+        });
     }
 
     beforeSubmit() {
@@ -727,16 +725,14 @@ export class FormieFormTheme {
         const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');
 
         if (data.nextPageId) {
-            if (this.tabActiveClass.length) {
-                $tabs.forEach(($tab) => {
+            $tabs.forEach(($tab) => {
                 // Show the current page
-                    if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
-                        $tab.classList.add(this.tabActiveClass);
-                    } else {
-                        $tab.classList.remove(this.tabActiveClass);
-                    }
-                });
-            }
+                if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
+                    addClasses($tab, this.tabActiveClass);
+                } else {
+                    removeClasses($tab, this.tabActiveClass);
+                }
+            });
 
             let isComplete = true;
 
@@ -745,12 +741,10 @@ export class FormieFormTheme {
                     isComplete = false;
                 }
 
-                if (this.tabCompleteClass.length) {
-                    if (isComplete) {
-                        $tab.classList.add(this.tabCompleteClass);
-                    } else {
-                        $tab.classList.remove(this.tabCompleteClass);
-                    }
+                if (isComplete) {
+                    addClasses($tab, this.tabCompleteClass);
+                } else {
+                    removeClasses($tab, this.tabCompleteClass);
                 }
             });
 

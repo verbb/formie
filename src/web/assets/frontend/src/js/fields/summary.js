@@ -1,4 +1,5 @@
-import { t, eventKey } from '../utils/utils';
+// eslint-disable-next-line
+import { t, addClasses, removeClasses, eventKey } from '../utils/utils';
 
 export class FormieSummary {
     constructor(settings = {}) {
@@ -52,7 +53,7 @@ export class FormieSummary {
                 return;
             }
 
-            $container.classList.add(this.loadingClass);
+            addClasses($container, this.loadingClass);
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', window.location.href, true);
@@ -61,7 +62,7 @@ export class FormieSummary {
             xhr.setRequestHeader('Cache-Control', 'no-cache');
 
             xhr.onload = () => {
-                $container.classList.remove(this.loadingClass);
+                removeClasses($container, this.loadingClass);
 
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Replace the HTML for the field

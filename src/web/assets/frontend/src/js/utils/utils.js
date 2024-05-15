@@ -87,3 +87,31 @@ export const debounce = function(func, delay) {
         }, delay);
     };
 };
+
+export const addClasses = function(element, classes) {
+    if (!element || !classes) {
+        return;
+    }
+
+    if (typeof classes === 'string') {
+        classes = classes.split(' ');
+    }
+
+    classes.forEach((className) => {
+        element.classList.add(className);
+    });
+};
+
+export const removeClasses = function(element, classes) {
+    if (!element || !classes) {
+        return;
+    }
+
+    if (typeof classes === 'string') {
+        classes = classes.split(' ');
+    }
+
+    classes.forEach((className) => {
+        element.classList.remove(className);
+    });
+};

@@ -1,4 +1,5 @@
-import { t, eventKey } from '../utils/utils';
+// eslint-disable-next-line
+import { t, addClasses, removeClasses, eventKey } from '../utils/utils';
 
 export class FormieAddressProvider {
     constructor(settings = {}) {
@@ -44,12 +45,14 @@ export class FormieAddressProvider {
     }
 
     onStartFetchLocation() {
-        this.$locationBtn.classList.add(this.loadingClass);
+        addClasses(this.$locationBtn, this.loadingClass);
+
         this.$locationBtn.setAttribute('aria-disabled', true);
     }
 
     onEndFetchLocation() {
-        this.$locationBtn.classList.remove(this.loadingClass);
+        removeClasses(this.$locationBtn, this.loadingClass);
+
         this.$locationBtn.setAttribute('aria-disabled', false);
     }
 }

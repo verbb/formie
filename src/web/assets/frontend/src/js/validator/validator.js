@@ -1,4 +1,4 @@
-import { t } from '../utils/utils';
+import { t, addClasses, removeClasses } from '../utils/utils';
 import rules from './rules';
 
 class FormieValidator {
@@ -122,13 +122,8 @@ class FormieValidator {
             errorMessages.remove();
         }
 
-        if (this.config.fieldContainerErrorClass.length) {
-            fieldContainer.classList.remove(this.config.fieldContainerErrorClass);
-        }
-
-        if (this.config.inputErrorClass.length) {
-            input.classList.remove(this.config.inputErrorClass);
-        }
+        removeClasses(fieldContainer, this.config.fieldContainerErrorClass);
+        removeClasses(input, this.config.inputErrorClass);
 
         this.emitEvent(input, 'formieValidatorClearError');
     }
@@ -146,9 +141,7 @@ class FormieValidator {
             errorMessages = document.createElement('div');
             errorMessages.setAttribute('data-field-error-messages', '');
 
-            if (this.config.messagesClass.length) {
-                errorMessages.classList.add(this.config.messagesClass);
-            }
+            addClasses(errorMessages, this.config.messagesClass);
 
             fieldContainer.appendChild(errorMessages);
         }
@@ -161,9 +154,7 @@ class FormieValidator {
             errorElement.setAttribute('data-field-error-message', '');
             errorElement.setAttribute(`data-field-error-message-${validatorName}`, '');
 
-            if (this.config.messageClass.length) {
-                errorElement.classList.add(this.config.messageClass);
-            }
+            addClasses(errorElement, this.config.messageClass);
 
             errorElement.textContent = errorMessage;
 
@@ -182,13 +173,8 @@ class FormieValidator {
         }
 
         // Add error classes to field and field container
-        if (this.config.fieldContainerErrorClass.length) {
-            fieldContainer.classList.add(this.config.fieldContainerErrorClass);
-        }
-
-        if (this.config.inputErrorClass.length) {
-            input.classList.add(this.config.inputErrorClass);
-        }
+        addClasses(fieldContainer, this.config.fieldContainerErrorClass);
+        addClasses(input, this.config.inputErrorClass);
 
         this.emitEvent(input, 'formieValidatorShowError', {
             validatorName,

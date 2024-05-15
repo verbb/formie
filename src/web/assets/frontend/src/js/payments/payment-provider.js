@@ -1,4 +1,5 @@
-import { t, eventKey } from '../utils/utils';
+// eslint-disable-next-line
+import { t, addClasses, removeClasses, eventKey } from '../utils/utils';
 import { getFieldValue, getFieldLabel } from '../utils/fields';
 
 export class FormiePaymentProvider {
@@ -41,7 +42,7 @@ export class FormiePaymentProvider {
     }
 
     removeSuccess() {
-        this.$field.classList.remove(this.successClass);
+        removeClasses(this.$field, this.successClass);
 
         const $success = this.$field.querySelector(`.${this.successMessageClass}`);
 
@@ -51,7 +52,7 @@ export class FormiePaymentProvider {
     }
 
     addSuccess(message) {
-        this.$field.classList.add(this.successClass);
+        addClasses(this.$field, this.successClass);
 
         const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
@@ -67,7 +68,7 @@ export class FormiePaymentProvider {
     }
 
     removeError() {
-        this.$field.classList.remove(this.errorClass);
+        removeClasses(this.$field, this.errorClass);
 
         const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
 
@@ -77,7 +78,7 @@ export class FormiePaymentProvider {
     }
 
     addError(message) {
-        this.$field.classList.add(this.errorClass);
+        addClasses(this.$field, this.errorClass);
 
         const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
