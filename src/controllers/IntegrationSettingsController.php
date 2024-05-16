@@ -10,6 +10,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\MissingIntegration;
 
 use Craft;
+use craft\helpers\Json;
 use craft\web\Controller;
 
 use yii\web\NotFoundHttpException;
@@ -45,12 +46,14 @@ class IntegrationSettingsController extends Controller
             $integration = $integrationsService->createIntegration($integrationConfig);
 
             if (!Formie::$plugin->getIntegrations()->saveCaptcha($integration)) {
-                $errors[] = true;
+                $errors[] = $integration->getErrors();
             }
         }
 
         if ($errors) {
             $this->setFailFlash(Craft::t('formie', 'Couldn’t save integration settings.'));
+
+            Formie::error('Couldn’t save integration settings - {e}.', ['e' => Json::encode($errors)]);
 
             return null;
         }
