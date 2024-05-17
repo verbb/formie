@@ -72,13 +72,13 @@ export class FormieLoqate extends FormieAddressProvider {
 
     initAutocomplete() {
         const fields = [
-            { element: `${this.namespace}[autocomplete]`, field: 'Line1', mode: pca.fieldMode.SEARCH },
+            { element: `${this.namespace}[autoComplete]`, field: '', mode: pca.fieldMode.SEARCH },
             { element: `${this.namespace}[address1]`, field: 'Line1', mode: pca.fieldMode.POPULATE },
             { element: `${this.namespace}[address2]`, field: 'Line2', mode: pca.fieldMode.POPULATE },
             { element: `${this.namespace}[address3]`, field: 'Line3', mode: pca.fieldMode.POPULATE },
             { element: `${this.namespace}[city]`, field: 'City', mode: pca.fieldMode.POPULATE },
             { element: `${this.namespace}[state]`, field: 'Province', mode: pca.fieldMode.POPULATE },
-            { element: `${this.namespace}[zip]`, field: 'PostalCode' },
+            { element: `${this.namespace}[zip]`, field: 'PostalCode', mode: pca.fieldMode.POPULATE },
             { element: `${this.namespace}[country]`, field: 'CountryName', mode: pca.fieldMode.COUNTRY },
         ];
 
