@@ -10,7 +10,7 @@
                 <field-dropdown-item v-show="canEdit" icon="edit" action="edit" label="Edit" @clicked="selectOption" />
                 <field-dropdown-item v-show="!isRequired && canRequire" icon="asterisk" action="require" label="Make required" @clicked="selectOption" />
                 <field-dropdown-item v-show="isRequired && canRequire" icon="asterisk" action="unrequire" label="Make optional" @clicked="selectOption" />
-                <field-dropdown-item v-show="canClone" icon="clone" action="clone" label="Clone" @clicked="selectOption" />
+                <field-dropdown-item v-show="canClone" icon="plus" action="clone" label="Clone" @clicked="selectOption" />
 
                 <li>
                     <hr class="padded">
