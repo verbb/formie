@@ -386,30 +386,27 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         }
 
         if ($key === 'fieldInput') {
-            $optionValue = $context['option']['value'] ?? '';
-            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
-            $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
+            $optionValue = $this->getFieldInputOptionValue($context);
 
             return new HtmlTag('input', [
                 'type' => 'checkbox',
-                'id' => $id,
+                'id' => $this->getHtmlId($form, $optionValue),
                 'class' => 'fui-input fui-checkbox-input',
                 'name' => $this->getHtmlName('[]'),
                 'required' => $this->required ? true : null,
                 'data' => [
-                    'fui-id' => $dataId,
+                    'fui-id' => $this->getHtmlDataId($form, $optionValue),
                     'fui-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes());
         }
 
         if ($key === 'fieldOptionLabel') {
-            $optionValue = $context['option']['value'] ?? '';
-            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
+            $optionValue = $this->getFieldInputOptionValue($context);
 
             return new HtmlTag('label', [
                 'class' => 'fui-checkbox-label',
-                'for' => $id,
+                'for' => $this->getHtmlId($form, $optionValue),
             ]);
         }
 
