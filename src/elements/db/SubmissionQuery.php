@@ -273,11 +273,7 @@ class SubmissionQuery extends ElementQuery
         }
 
         if ($this->userId !== null) {
-            if (is_numeric($this->userId)) {
-                $this->subQuery->andWhere(Db::parseParam('formie_submissions.userId', $this->userId));
-            } else {
-                return false;
-            }
+            $this->subQuery->andWhere(Db::parseNumericParam('formie_submissions.userId', $this->userId));
         }
 
         if ($this->isIncomplete !== null) {
