@@ -80,8 +80,8 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 $subValue = $element->getFieldValue($fieldKey);
                 $isEmpty = $field->isValueEmpty($subValue, $element);
 
-                // No need to validate if the field is conditionally hidden
-                if ($field->isConditionallyHidden($element)) {
+                // No need to validate if the field is conditionally hidden or disabled
+                if ($field->isConditionallyHidden($element) || !$field->enabled) {
                     continue;
                 }
 
