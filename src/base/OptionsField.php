@@ -468,4 +468,25 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
         return null;
     }
+
+    protected function getFieldInputOptionValue(array $context = [])
+    {
+        // Returns the string to represent the ID for a selected option for the `fieldInput` theme config property
+        // A little more involved due to needing to append the index of the option as just using  `StringHelper::toKebabCase()`
+        // will strip out special-characters (e.g. `Option+` is `option`)
+        $options = $context['fieldOptions'] ?? [];
+        $option = $context['option'] ?? null;
+
+        // Find the index first
+        $optionIndex = array_search($option, $options);
+
+        // Append it to the value picked, and ensure it's cleaned up
+        $optionValue = $context['option']['value'] ?? '';
+
+        if ($optionValue && $optionIndex !== false) {
+            $optionValue .= '-' . $optionIndex;
+        }
+
+        return StringHelper::toKebabCase($optionValue);
+    }
 }

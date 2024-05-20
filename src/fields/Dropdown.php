@@ -296,12 +296,10 @@ class Dropdown extends OptionsField
         $errors = $context['errors'] ?? null;
 
         if ($key === 'fieldInput') {
-            $optionValue = $context['option']['value'] ?? '';
-            $id = $this->getHtmlId($form, StringHelper::toKebabCase($optionValue));
-            $dataId = $this->getHtmlDataId($form, StringHelper::toKebabCase($optionValue));
+            $optionValue = $this->getFieldInputOptionValue($context);
 
             return new HtmlTag('select', [
-                'id' => $id,
+                'id' => $this->getHtmlId($form, $optionValue),
                 'class' => [
                     'fui-select',
                     $errors ? 'fui-error' : false,
@@ -310,7 +308,7 @@ class Dropdown extends OptionsField
                 'multiple' => $this->multi ? true : null,
                 'required' => $this->required ? true : null,
                 'data' => [
-                    'fui-id' => $dataId,
+                    'fui-id' => $this->getHtmlDataId($form, $optionValue),
                     'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
                 ],
             ], $this->getInputAttributes());
