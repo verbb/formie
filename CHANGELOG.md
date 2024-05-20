@@ -1440,6 +1440,11 @@
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
 
+## 1.6.42 - 2024-05-20
+
+### Fixed
+- Fix an error when triggering an integration where the `tokenId` has become invalid.
+
 ## 1.6.41 - 2024-04-18
 
 ### Added
