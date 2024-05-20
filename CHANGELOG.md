@@ -1,5 +1,29 @@
 # Changelog
 
+## 3.0.0-beta.11 - 2024-05-20
+
+### Added
+- Added error logging when Captcha integration settings fail.
+
+### Changed
+- Allow `form. setPageSettings()` to use either the zero-based index of the page, or the page handle.
+- Field Layout Pages now auto-generate a handle based on the label of the page.
+- Improved error message for integration refresh tasks.
+
+### Fixed
+- Fixed disabled Sub-Field fields from triggering validation.
+- Fixed an error with Loqate Address autocomplete.
+- Fixed clone icon for cloning fields in the form builder.
+- Fixed custom Theme Config classes not applying correctly in JS when multiple classes are used.
+- Fixed `form.setPageSettings()` method.
+- Fixed front-end validation not including `aria-valid` attributes.
+- Fixed an error where Theme Config custom field error’s weren’t working.
+- Fixed Webhook and Slack Webhook integrations with correct response handling.
+- Fixed a type error for integrations `getFieldMappingValues()`.
+- Fixed an error with Salesforce integration.
+- Fixed emoji support for Integrations.
+- Fixed an error when adding existing fields to a form.
+
 ## 3.0.0-beta.10 - 2024-05-08
 
 ### Added
