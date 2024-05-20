@@ -774,6 +774,7 @@ class Submissions extends Component
                         $fieldContent[$field->handle] = new \verbb\formie\models\Phone([
                             'number' => $number,
                             'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
+                            'hasCountryCode' => true,
                         ]);
                     } else {
                         $fieldContent[$field->handle] = $faker->phoneNumber;
