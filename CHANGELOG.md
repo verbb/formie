@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.15 - 2024-05-20
+
+### Fixed
+- Fixed an error with options fields where the incorrect ID was being generated when an option value contained special characters.
+- Fixed an error when querying submissions by `userId` and not just a single ID.
+- Fixed options-based fields not trimming their option value.
+
 ## 2.1.14 - 2024-05-08
 
 ### Added
