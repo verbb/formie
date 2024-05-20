@@ -360,7 +360,7 @@
 
 ### Changed
 - Now requires PHP `8.2.0+`.
-- Now requires Craft `5.0.0-beta.1+`.
+- Now requires Craft `5.0.0+`.
 - Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
 - Submission content no longer have their own content tables. Content is now in a single `content` column, in your `formie_submissions` database table.
 - Submissions now have Create/Save/Delete user permissions.
