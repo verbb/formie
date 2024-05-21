@@ -99,7 +99,10 @@ export default {
                 return true;
             }
 
-            if (this.proxyValues.includes(value.toString())) {
+            // Ensure that we cast both the values and the value to string for fair comparing
+            if (this.proxyValues.map((v) => {
+                return v.toString();
+            }).includes(value.toString())) {
                 return true;
             }
 
