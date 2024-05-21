@@ -51,15 +51,6 @@
 }) }}
 
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
-    {{ forms.autosuggestField({
-        label: 'Google Console API Key' | t('formie'),
-        name: 'apiKey',
-        required: true,
-        suggestEnvVars: true,
-        value: integration.settings.apiKey ?? '',
-        warning: macros.configWarning('apiKey', 'formie'),
-    }) }}
-
     {% set enterpriseType = integration.settings.enterpriseType ?? 'score' %}
 
     {{ forms.selectField({
@@ -230,6 +221,26 @@
 }) }}
 
 {% js %}
+
+{% set secretKey = 'reCAPTCHA Secret Key' | t('formie') %}
+{% set secretKeyAlt = 'Google Console API Key' | t('formie') %}
+
+// Change the "Secret Key" for Enterprise, for clarity
+$('[name="integrations[recaptcha][settings][type]"]').on('change', function(e) {
+    const type = $(this).val();
+    const $input = $('[name="integrations[recaptcha][settings][secretKey]"]')
+    const $field = $input.parents('.field');
+    const $label = $field.find('label');
+    const required = '<span class="visually-hidden">Required</span><span class="required" aria-hidden="true"></span>';
+
+    if (type === 'enterprise') {
+        $label.html('{{ secretKeyAlt }}' + required);
+    } else {
+        $label.html('{{ secretKey }}' + required);
+    }
+});
+
+$('[name="integrations[recaptcha][settings][type]"]').trigger('change');
 
 // Fix some fields being the same across multiple recaptchas. Sync them!
 $('[name="integrations[recaptcha][settings][badge]"]').on('change', function(e) {
