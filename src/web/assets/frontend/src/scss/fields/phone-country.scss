@@ -2,7 +2,7 @@
 
 // Target both for front-end and CP
 .field[data-type="verbb\\\\formie\\\\fields\\\\Phone"],
-.fui-type-phone-number {
+.fui-type-phone {
     .iti {
         display: block;
     }
@@ -26,8 +26,18 @@
         border: 1px solid #CCC;
     }
 
-    .iti--separate-dial-code .iti__selected-dial-code {
+    .iti__selected-dial-code {
         font-size: 14px;
+    }
+
+    .iti__selected-country-primary {
+        background-color: rgba(0, 0, 0, .05);
+    }
+
+    .iti__selected-country-primary :first-child:not(.iti__flag):not(.iti__arrow) {
+        width: 20px;
+        height: 15px;
+        background-color: #dbdbdb;
     }
 }
 
