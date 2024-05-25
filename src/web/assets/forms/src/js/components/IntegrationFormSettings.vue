@@ -48,7 +48,6 @@ export default {
             sourceId: '',
             model: {},
             globalParams: {},
-            mappingFields: [],
         };
     },
 
@@ -56,14 +55,15 @@ export default {
         form() {
             return this.$store.state.form;
         },
+
+        mappingFields() {
+            return this.$store.state.integrationFieldSelectOptions;
+        },
     },
 
     created() {
         this.settings = this.formSettings;
         this.sourceId = this.source;
-
-        // Fetch the base fields used by integrations here, for performance
-        this.mappingFields = this.$store.getters['form/getIntegrationFieldSelectOptions']();
 
         // Create dynamic data variables based on whatever variables we pass in
         if (this.values) {

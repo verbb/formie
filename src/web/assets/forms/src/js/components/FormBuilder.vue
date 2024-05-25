@@ -125,6 +125,17 @@ export default {
 
         // Store the initial state as a hash to compare later
         this.savedFormHash = this.formHash;
+
+        // Cache some things in Vuex at the form level for performance. For example, integration settings field-pickers
+        // which don't need to be computed to save performance, and only change when a field is saved (added) or deleted.
+        // When done here, we can effectively manage a cache when things change, and not trigger things too often.
+        this.setFieldSelectCaches();
+
+        // Update the mapping fields whenever a field change occurs. Done here rather than through a computed
+        // property due to performance benefits, which would affect the rest of form editing.
+        // Be sure to debounce as we only ever need to do this once per update.
+        this.$events.on('formie:save-field', this.setFieldSelectCaches);
+        this.$events.on('formie:delete-field', this.setFieldSelectCaches);
     },
 
     methods: {
@@ -142,6 +153,12 @@ export default {
             return fields.filter((field) => {
                 return field.isPickable;
             });
+        },
+
+        setFieldSelectCaches() {
+            this.$store.state.integrationFieldSelectOptions = this.$store.getters['form/getIntegrationFieldSelectOptions']();
+            this.$store.state.conditionsFieldOptions = this.$store.getters['form/getConditionsFieldOptions']();
+            this.$store.state.fieldSelectOptions = this.$store.getters['form/getFieldSelectOptions']();
         },
     },
 };

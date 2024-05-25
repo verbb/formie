@@ -14,6 +14,11 @@ import { clone } from '@utils/object';
 const state = {
     pages: [],
 
+    // Cached field select options for various things
+    integrationFieldSelectOptions: [],
+    conditionsFieldOptions: [],
+    fieldSelectOptions: [],
+
     // Keep track of deleted things separately for server-side convenience
     deleted: {
         fields: [],
