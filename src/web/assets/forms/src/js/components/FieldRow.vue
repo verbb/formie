@@ -197,6 +197,8 @@ export default {
                 destinationPath,
                 value: newRow,
             });
+
+            this.$events.emit('formie:add-field');
         },
 
         moveRow(rowIndex, fieldId) {

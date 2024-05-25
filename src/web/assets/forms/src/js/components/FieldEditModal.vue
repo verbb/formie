@@ -270,6 +270,8 @@ export default {
 
             // Hide the modal
             this.closeModal();
+
+            this.$events.emit('formie:save-field', this.field);
         },
 
         submitHandlerRaw() {

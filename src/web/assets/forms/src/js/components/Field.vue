@@ -364,6 +364,9 @@ export default {
                 destinationPath,
                 value: newRow,
             });
+
+            this.$events.emit('formie:add-field', this.field);
+            this.$events.emit('formie:clone-field', this.field);
         },
 
         deleteField() {
@@ -373,6 +376,8 @@ export default {
 
             if (confirm(confirmationMessage)) {
                 this.$store.dispatch('form/deleteField', { id: this.field.__id });
+
+                this.$events.emit('formie:delete-field', this.field);
             }
         },
 
@@ -486,6 +491,8 @@ export default {
                 destinationPath,
                 value: newField,
             });
+
+            this.$events.emit('formie:add-field', this.field);
         },
 
         moveField(fieldIndex, fieldId) {
@@ -503,6 +510,8 @@ export default {
                 destinationPath,
                 value: fieldToMove,
             });
+
+            this.$events.emit('formie:move-field', this.field);
         },
 
         markAsSaved() {
