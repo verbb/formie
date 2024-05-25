@@ -248,10 +248,12 @@ export default {
                 return (excludedFields.includes(field.__id)) ? false : true;
             });
 
-            options.push({
-                label: Craft.t('formie', 'Fields'),
-                options: customFieldOptions,
-            });
+            if (customFieldOptions.length) {
+                options.push({
+                    label: Craft.t('formie', 'Fields'),
+                    options: customFieldOptions,
+                });
+            }
 
             return options;
         },

@@ -171,10 +171,12 @@ export default {
                 ],
             });
 
-            options.push({
-                label: Craft.t('formie', 'Fields'),
-                options: fields,
-            });
+            if (fields.length) {
+                options.push({
+                    label: Craft.t('formie', 'Fields'),
+                    options: fields,
+                });
+            }
 
             return options;
         },
