@@ -718,7 +718,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
             // Then, allow the integration to control how to parse the field, from its type
             if ($field) {
-                $value = $submission->getFieldValue($fieldHandle);
+                // Fetch the value from the submission with dot-notation
+                $fieldValueKey = str_replace(['{field:', '}'], ['', ''], $mappedFieldValue);
+                $value = $submission->getFieldValue($fieldValueKey);
 
                 return $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
             }

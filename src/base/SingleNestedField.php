@@ -221,7 +221,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             $subFieldKey = implode('.', $subFieldKey);
 
             $subField = $this->getFieldByHandle($subFieldHandle);
-            $subValue = $element->getFieldValue("$this->handle.$subFieldHandle");
+            $subValue = $element->getFieldValue("$this->fieldKey.$subFieldHandle");
 
             return $subField->getValueForIntegration($subValue, $integrationField, $integration, $element, $subFieldKey);
         }
