@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.0.0-beta.12 - 2024-05-27
+
+### Added
+- Phone fields now include `countryCode` and `countryName` in their value when the value is JSON.
+
+### Changed
+- Removed unused `e.target` from Repeater `addRow()` JS function.
+- Updated English translations.
+- Updated reCAPTCHA Enterprise’s Secret API Key plugin setting.
+
+### Fixed
+- Fixed Entry element integrations not using their section’s default entry status when `enabled` wasn’t mapped.
+- Fixed country-enabled Phone fields not having their generated value set correctly.
+- Fixed an error with Phone number fields and `countryCode`.
+- Fixed options-based fields and their `options` value when queried via GraphQL.
+- Fixed integration field selects not synchronizing with field changes.
+- Fixed showing field when none for integration options.
+- Fixed Sub-Fields in Nested fields not working correctly for integrations.
+- Fixed Phone field front-end styling for country code.
+- Fixed checkbox select inputs not retaining their values.
+
 ## 3.0.0-beta.11 - 2024-05-20
 
 ### Added
