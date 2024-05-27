@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.16 - 2024-05-27
+
+### Added
+- Phone fields now include `countryCode` and `countryName` in their value when the value is JSON.
+
+### Changed
+- Removed unused `e.target` from Repeater `addRow()` JS function.
+- Updated English translations.
+- Updated reCAPTCHA Enterprise’s Secret API Key plugin setting.
+
+### Fixed
+- Fixed Entry element integrations not using their section’s default entry status when `enabled` wasn’t mapped.
+- Fixed country-enabled Phone fields not having their generated value set correctly.
+
 ## 2.1.15 - 2024-05-20
 
 ### Fixed
