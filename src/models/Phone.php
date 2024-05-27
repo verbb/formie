@@ -42,6 +42,16 @@ class Phone extends Model
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Normalize the options
+        if (array_key_exists('countryCode', $config)) {
+            unset($config['countryCode']);
+        }
+
+        parent::__construct($config);
+    }
+
     public function __toString()
     {
         if ($this->hasCountryCode) {
