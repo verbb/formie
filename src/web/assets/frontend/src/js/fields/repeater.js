@@ -26,7 +26,7 @@ export class FormieRepeater {
         if (this.$addButton) {
             // Add the click event, but use a namespace so we can track these dynamically-added items
             this.form.addEventListener(this.$addButton, eventKey('click'), (e) => {
-                this.addRow(e);
+                this.addRow();
             });
         }
 
