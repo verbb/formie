@@ -84,8 +84,7 @@ export class FormieRepeater {
         }
     }
 
-    addRow(e) {
-        const button = e.target;
+    addRow() {
         const handle = this.$addButton.getAttribute('data-add-repeater-row');
         const template = document.querySelector(`[data-repeater-template="${handle}"]`);
         const numRows = this.getNumRows();
