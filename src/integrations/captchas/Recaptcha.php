@@ -39,11 +39,20 @@ class Recaptcha extends Captcha
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
-    public ?string $apiKey = null;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Config normalization
+        if (array_key_exists('apiKey', $config)) {
+            $config['secretKey'] = ArrayHelper::remove($config, 'apiKey');
+        }
+
+        parent::__construct($config);
+    }
 
     public function getName(): string
     {
@@ -166,10 +175,9 @@ class Recaptcha extends Captcha
         $siteKey = App::parseEnv($this->siteKey);
         $secretKey = App::parseEnv($this->secretKey);
         $projectId = App::parseEnv($this->projectId);
-        $apiKey = App::parseEnv($this->apiKey);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $apiKey, [
+            $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,

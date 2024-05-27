@@ -108,4 +108,15 @@ class Phone extends Model
         return '';
     }
 
+    public function toArray(array $fields = [], array $expand = [], $recursive = true)
+    {
+        $array = parent::toArray($fields, $expand, $recursive);
+
+        // Allow extra data to be serialized
+        $array['countryCode'] = $this->getCountryCode();
+        $array['countryName'] = $this->getCountryName();
+
+        return $array;
+    }
+
 }

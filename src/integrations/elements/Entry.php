@@ -231,6 +231,22 @@ class Entry extends Element
             $entry->setFieldValues($fieldValues);
             $entry->updateTitle();
 
+            // If we're not mapping to the status, ensure it's inherited from the section's default
+            $statusAttributeMapping = $this->attributeMapping['enabled'] ?? '';
+
+            if ($statusAttributeMapping === '') {
+                $siteSettings = ArrayHelper::firstWhere($entryType->section->getSiteSettings(), 'siteId', $entry->siteId);
+                $enabled = $siteSettings->enabledByDefault;
+
+                if (Craft::$app->getIsMultiSite() && count($entry->getSupportedSites()) > 1) {
+                    $entry->enabled = true;
+                    $entry->setEnabledForSite($enabled);
+                } else {
+                    $entry->enabled = $enabled;
+                    $entry->setEnabledForSite(true);
+                }
+            }
+
             // Although empty, because we pass via reference, we need variables
             $endpoint = '';
             $method = '';
