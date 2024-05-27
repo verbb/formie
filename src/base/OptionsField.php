@@ -323,6 +323,9 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             'options' => [
                 'name' => 'options',
                 'type' => Type::listOf(FieldOptionGenerator::generateType()),
+                'resolve' => function($field) {
+                    return $field->options();
+                },
             ],
         ]);
     }
