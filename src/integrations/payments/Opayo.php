@@ -299,7 +299,9 @@ class Opayo extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+            // Provide a client-friendly error, rather than expose the full error
+            $message = (strlen($e->getMessage()) > 30) ? substr($e->getMessage(), 0, 30) . '...' : '';
+            $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
             
             $payment = new PaymentModel();
             $payment->integrationId = $this->id;
