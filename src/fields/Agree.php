@@ -81,6 +81,12 @@ class Agree extends Field implements PreviewableFieldInterface
         return $names;
     }
 
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        // Use the default "empty" checks, but `false` is also considered empty here
+        return parent::isValueEmpty($value, $element) || $value === false;
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         return (bool)$value;
