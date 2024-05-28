@@ -436,12 +436,12 @@ class Install extends Migration
         $this->addForeignKey(null, Table::FORMIE_NOTIFICATIONS, ['pdfTemplateId'], Table::FORMIE_PDF_TEMPLATES, ['id'], 'SET NULL', null);
         $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['subscriptionId'], Table::FORMIE_SUBSCRIPTIONS, ['id'], 'CASCADE', null);
-        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['fieldId'], '{{%fields}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PAYMENTS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_PAYMENT_PLANS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['integrationId'], Table::FORMIE_INTEGRATIONS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['submissionId'], Table::FORMIE_SUBMISSIONS, ['id'], 'RESTRICT', null);
-        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], '{{%fields}}', ['id'], 'RESTRICT', null);
+        $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['fieldId'], Table::FORMIE_FIELDS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_SUBSCRIPTIONS, ['planId'], Table::FORMIE_PAYMENT_PLANS, ['id'], 'RESTRICT', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceId'], '{{%elements}}', ['id'], 'CASCADE', null);
         $this->addForeignKey(null, Table::FORMIE_RELATIONS, ['sourceSiteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
