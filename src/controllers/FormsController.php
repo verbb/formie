@@ -14,6 +14,7 @@ use craft\db\Query;
 use craft\helpers\ArrayHelper;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
+use craft\helpers\Session;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
@@ -369,6 +370,9 @@ class FormsController extends Controller
 
     public function actionRefreshTokens(): Response
     {
+        // Ensure that the session has started, just in case
+        Session::exists();
+
         $params = [
             'csrf' => [
                 'param' => $this->request->csrfParam,
