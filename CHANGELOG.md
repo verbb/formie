@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.17 - 2024-05-29
+
+### Changed
+- Ensure that sessions exists when calling `formie/forms/refresh-tokens`.
+
+### Fixed
+- Fixed element integrations update matching logic where matched data is empty.
+- Fixed `populateFormValues` values and dynamic Twig.
+- Fixed an error with Phone number fields and `countryCode`.
+- Fixed an error with Phone number fields and `countryName`.
+
 ## 2.1.16 - 2024-05-27
 
 ### Added
