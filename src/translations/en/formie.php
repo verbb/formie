@@ -1,6 +1,16 @@
 <?php
 
 return [
+  //
+  // Email Messages
+  //
+  'formie_failed_notification_heading' => 'When an email notification fails to send:',
+  'formie_failed_notification_subject' => 'Email notification failed to send for form "{{ form.title }}" on {{ siteName }}.',
+  'formie_failed_notification_body' => "An email notification for the form “{{ form.title }}” has failed to send.\n\n" .
+    "The error response was recorded: {{ emailResponse | json_encode }}.\n\n" .
+    "To review it please log into your control panel.\n\n" .
+    "{{ submission.cpEditUrl }}",
+
   '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.' => '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.',
   '(GDPR) {text}' => '(GDPR) {text}',
   '(optional)' => '(optional)',
@@ -1027,9 +1037,6 @@ return [
   'Form Field Mapping' => 'Form Field Mapping',
   'Form Fields' => 'Form Fields',
   'Formie' => 'Formie',
-  'formie_failed_notification_body' => 'formie_failed_notification_body',
-  'formie_failed_notification_heading' => 'formie_failed_notification_heading',
-  'formie_failed_notification_subject' => 'formie_failed_notification_subject',
   'Form imported.' => 'Form imported.',
   'Form Name' => 'Form Name',
   'Forms' => 'Forms',

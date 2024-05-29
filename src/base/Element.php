@@ -257,7 +257,12 @@ abstract class Element extends Integration
         $updateElementValues = $this->getFieldMappingValues($submission, $this->updateElementMapping, $updateAttributes);
         $updateElementValues = array_filter($updateElementValues);
 
-        // Merge in any extra criteria
+        // Something must be mapped in order to find an element, otherwise it'll just find any element for the criteria
+        if (!$updateElementValues) {
+            return $element;
+        }
+
+        // Merge in any extra criteria supplied by the element integration class
         $updateElementValues = array_merge($updateElementValues, $criteria);
 
         if ($updateElementValues) {

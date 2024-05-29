@@ -44,9 +44,13 @@ class Phone extends Model
 
     public function __construct($config = [])
     {
-        // Normalize the options
+        // Normalize the settings. Included in `toArray` for integrations, but not actively in use. Potentially refactor.
         if (array_key_exists('countryCode', $config)) {
             unset($config['countryCode']);
+        }
+
+        if (array_key_exists('countryName', $config)) {
+            unset($config['countryName']);
         }
 
         parent::__construct($config);
