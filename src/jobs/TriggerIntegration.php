@@ -43,13 +43,6 @@ class TriggerIntegration extends BaseJob
             // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
             $this->integration->setQueueJob($this);
 
-            // Re-fetch the token in case it's been changed (as we store a reference to the entire integration in the job)
-            $this->integration->tokenId = (new Query())
-                ->select('tokenId')
-                ->from(['{{%formie_integrations}}'])
-                ->where(['uid' => $this->integration->uid])
-                ->scalar();
-
             // Ensure we set the correct language for a potential CLI request
             Craft::$app->language = $submission->getSite()->language;
             Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
