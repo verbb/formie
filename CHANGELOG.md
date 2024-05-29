@@ -7,8 +7,13 @@
 
 ### Changed
 - Update Payment fields to provide a more client-friendly error message when a payment fails.
+- Ensure that sessions exists when calling `formie/forms/refresh-tokens`.
 
 ### Fixed
+- Fixed element integrations update matching logic where matched data is empty.
+- Fixed `populateFormValues` values and dynamic Twig.
+- Fixed an error with Phone number fields and `countryCode`.
+- Fixed an error with Phone number fields and `countryName`.
 - Fixed incorrect foreign key constraints for payments on new Formie installs.
 - Fixed required Agree fields not validating correctly.
 
