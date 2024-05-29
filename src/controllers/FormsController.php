@@ -397,7 +397,7 @@ class FormsController extends Controller
 
     private function _updateFormPermission(Form $form): void
     {
-        if (Craft::$app->getEdition() !== Craft::Pro) {
+        if (Craft::$app->getEdition() === Craft::Solo) {
             return;
         }
 

@@ -164,7 +164,7 @@ class Fields extends Component
             formiefields\subfields\NameLast::class,
         ];
 
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->getEdition() !== Craft::Solo) {
             $fields = array_merge($fields, [
                 formiefields\Users::class,
             ]);
@@ -245,7 +245,7 @@ class Fields extends Component
             ArrayHelper::remove($registeredFields, formiefields\Tags::class),
         ]);
 
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->getEdition() !== Craft::Solo) {
             $elementFields = array_merge($elementFields, array_filter([
                 ArrayHelper::remove($registeredFields, formiefields\Users::class),
             ]));
@@ -336,7 +336,7 @@ class Fields extends Component
         $fields[] = FeedMeField\Table::class;
         $fields[] = FeedMeField\Tags::class;
 
-        if (Craft::$app->getEdition() === Craft::Pro) {
+        if (Craft::$app->getEdition() !== Craft::Solo) {
             $fields[] = FeedMeField\Users::class;
         }
 
