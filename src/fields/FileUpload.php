@@ -718,6 +718,18 @@ class FileUpload extends ElementField
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'sizeLimit' => [
+                'name' => 'sizeLimit',
+                'type' => Type::string(),
+            ],
+            'sizeMinLimit' => [
+                'name' => 'sizeMinLimit',
+                'type' => Type::string(),
+            ],
+            'limitFiles' => [
+                'name' => 'limitFiles',
+                'type' => Type::string(),
+            ],
             'allowedKinds' => [
                 'name' => 'allowedKinds',
                 'type' => Type::listOf(Type::string()),
