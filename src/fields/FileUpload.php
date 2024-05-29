@@ -717,7 +717,12 @@ class FileUpload extends ElementField
 
     public function getSettingGqlTypes(): array
     {
-        return array_merge(parent::getSettingGqlTypes(), [
+        $types = parent::getSettingGqlTypes();
+
+        // Remove some inherited types that don't make sense here
+        unset($types['limitOptions'], $types['multi']);
+
+        return array_merge($types, [
             'sizeLimit' => [
                 'name' => 'sizeLimit',
                 'type' => Type::string(),
