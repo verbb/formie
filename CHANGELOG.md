@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.0-beta.13 - 2024-05-29
+
+### Added
+- Added `sizeLimit`, `sizeMinLimit` and `limitFiles` to File Upload GraphQL queries.
+
+### Changed
+- Update Payment fields to provide a more client-friendly error message when a payment fails.
+
+### Fixed
+- Fixed incorrect foreign key constraints for payments on new Formie installs.
+- Fixed required Agree fields not validating correctly.
+
+### Removed
+- Removed `multi` and `limitOptions` for File Upload fields for GraphQL (not applicable).
+
 ## 3.0.0-beta.12 - 2024-05-27
 
 ### Added
