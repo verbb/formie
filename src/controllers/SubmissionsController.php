@@ -448,6 +448,11 @@ class SubmissionsController extends Controller
             $nextPage = $form->getPreviousPage(null, $submission);
         }
 
+        // Ensure that we don't set the next page to `null` which would mean form completion
+        if ($goingBack && !$nextPage) {
+            $nextPage = $form->getCurrentPage(null, $submission);
+        }
+
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
 
