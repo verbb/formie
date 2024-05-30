@@ -47,6 +47,10 @@ export default {
             form: (state) => { return state.form; },
         }),
 
+        isStencil() {
+            return this.$store.state.form.isStencil;
+        },
+
         notification() {
             // Not amazing, but provide/inject won't work
             return this.$parent.$parent.$parent.$parent.$parent.node._value;
@@ -68,10 +72,14 @@ export default {
             this.message = '';
 
             const data = {
-                formId: this.form.id,
+                handle: this.form.handle,
                 notification: this.notification,
                 to: this.to,
             };
+
+            if (!this.isStencil) {
+                data.formId = this.form.id;
+            }
 
             Craft.sendActionRequest('POST', 'formie/email/send-test-email', { data }).then((response) => {
                 this.loading = false;

@@ -553,22 +553,24 @@ class Emails extends Component
     {
         $assets = [];
 
-        foreach ($element->getFieldLayout()->getCustomFields() as $field) {
-            if (get_class($field) === FileUpload::class) {
-                $value = $element->getFieldValue($field->handle);
+        if ($fieldLayout = $element->getFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                if (get_class($field) === FileUpload::class) {
+                    $value = $element->getFieldValue($field->handle);
 
-                if ($value instanceof AssetQuery) {
-                    $assets[] = $value->all();
+                    if ($value instanceof AssetQuery) {
+                        $assets[] = $value->all();
+                    }
                 }
-            }
 
-            // Separate check for nested fields (repeater/group), fetch the element and try again
-            if ($field instanceof NestedFieldInterface) {
-                $query = $element->getFieldValue($field->handle);
+                // Separate check for nested fields (repeater/group), fetch the element and try again
+                if ($field instanceof NestedFieldInterface) {
+                    $query = $element->getFieldValue($field->handle);
 
-                if ($query) {
-                    foreach ($query->all() as $nestedElement) {
-                        $assets[] = $this->_getAssetsForSubmission($nestedElement);
+                    if ($query) {
+                        foreach ($query->all() as $nestedElement) {
+                            $assets[] = $this->_getAssetsForSubmission($nestedElement);
+                        }
                     }
                 }
             }
