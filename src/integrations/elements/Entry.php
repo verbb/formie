@@ -142,7 +142,7 @@ class Entry extends Element
             }
 
             foreach ($section->getEntryTypes() as $entryType) {
-                $attributes[$entryType->id] = [
+                $attributes[$section->id . ':' . $entryType->id] = [
                     new IntegrationField([
                         'name' => Craft::t('app', 'ID'),
                         'handle' => 'id',
