@@ -8,6 +8,7 @@
 ### Fixed
 - Fixed Entry element integration not showing attributes for update element mapping.
 - Fixed `tokenId` reference for integration queue jobs.
+- Fix an error when submitting a form and manipulating the `goingBack` param.
 
 ## 3.0.0-beta.13 - 2024-05-29
 
