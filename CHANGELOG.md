@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.18 - 2024-05-31
+
+### Fixed
+- Fixed an error when submitting a form and manipulating the `goingBack` param.
+- Fixed an error when testing email notifications from a Stencil.
+
 ## 2.1.17 - 2024-05-29
 
 ### Changed
