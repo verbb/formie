@@ -439,7 +439,8 @@ class SubmissionsController extends Controller
 
         // If we're going back, and want to  navigate without saving
         if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
-            $nextPage = $form->getPreviousPage(null, $submission, true);
+            // Ensure that we don't set the next page to `null` which would mean form completion
+            $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
 
             // Update the current page to reflect the next page
             $form->setCurrentPage($nextPage);
@@ -471,11 +472,12 @@ class SubmissionsController extends Controller
             }
         }
 
-        // Determine the next page to navigate to
+        // Determine the next page to navigate to. Be sure to fallback to the current page, as `nextPage = null`
+        // signifies the end of the form.
         if (is_numeric($goToPageId)) {
-            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
+            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $form->getCurrentPage();
         } else if ($submitAction === 'back') {
-            $nextPage = $form->getPreviousPage(null, $submission, true);
+            $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
         } else if ($submitAction === 'save') {
             $nextPage = $form->getCurrentPage();
         } else {

@@ -502,6 +502,12 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.18 - 2024-05-31
+
+### Fixed
+- Fixed an error when submitting a form and manipulating the `goingBack` param.
+- Fixed an error when testing email notifications from a Stencil.
+
 ## 2.1.17 - 2024-05-29
 
 ### Changed
@@ -1966,6 +1972,11 @@
 - Removed `enableGatsbyCompatibility` plugin setting, as it's no longer needed.
 - Removed `forms`, `form` and `formCount` from GraphQL queries. Please use `formieForms`, `formieForm` and `formieFormCount`.
 - Removed `submissions`, `submission` and `submissionCount` from GraphQL queries. Please use `formieSubmissions`, `formieSubmission` and `formieSubmissionCount`.
+
+## 1.6.43 - 2024-05-31
+
+### Fixed
+- Fix an error when submitting a form and manipulating the `goingBack` param.
 
 ## 1.6.42 - 2024-05-20
 
