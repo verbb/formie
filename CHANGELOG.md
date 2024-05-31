@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0-beta.14 - 2024-05-31
+
+### Added
+- Added Craft Teams support for permissions.
+
+### Fixed
+- Fixed Entry element integration not showing attributes for update element mapping.
+- Fixed `tokenId` reference for integration queue jobs.
+
 ## 3.0.0-beta.13 - 2024-05-29
 
 ### Added
