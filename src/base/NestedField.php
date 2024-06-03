@@ -91,6 +91,12 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return true;
     }
 
+    public function getIsRequired(): ?bool
+    {
+        // Nested fields themselves can't be required, only their inner fields can
+        return null;
+    }
+
     public function settingsAttributes(): array
     {
         $attributes = parent::settingsAttributes();

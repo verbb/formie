@@ -287,6 +287,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->visibility === 'hidden';
     }
 
+    public function getIsRequired(): ?bool
+    {
+        return $this->required;
+    }
+
     public function getIsNested(): bool
     {
         return (bool)$this->getParentField();

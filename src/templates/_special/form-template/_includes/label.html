@@ -3,9 +3,11 @@
     {% fieldtag 'fieldLabel' %}
         {{- field.label | t('formie') | raw -}}
 
-        {%- if form.settings.requiredIndicator == 'asterisk' and (field.required ?? required ?? false) -%}
+        {%- set isRequired = (field.isRequired ?? required ?? null) -%}
+
+        {%- if form.settings.requiredIndicator == 'asterisk' and isRequired -%}
             &nbsp;{{ fieldtag('fieldRequired', { text: '*' | t('formie') }) }}
-        {%- elseif form.settings.requiredIndicator == 'optional' -%}
+        {%- elseif form.settings.requiredIndicator == 'optional' and isRequired is same as(false) -%}
             &nbsp;{{ fieldtag('fieldOptional', { text: '(optional)' | t('formie') }) }}
         {%- endif -%}
 
