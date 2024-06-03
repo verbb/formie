@@ -51,6 +51,19 @@
             on: settings.useQueueForIntegrations,
             warning: macros.configWarning('useQueueForIntegrations', 'formie'),
         }) }}
+
+        {{ forms.checkboxSelectField({
+            label: 'All Submissions Behaviour' | t('formie'),
+            instructions: 'Select what sorts of submissions should be shown in the "All Submissions" view.' | t('formie'),
+            id: 'submissionsBehaviour',
+            name: 'submissionsBehaviour',
+            values: settings.submissionsBehaviour,
+            options: [
+                { label: 'Incomplete', value: 'incomplete' },
+                { label: 'Spam', value: 'spam' },
+            ],
+            warning: macros.configWarning('submissionsBehaviour', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>

@@ -22,6 +22,7 @@ class Settings extends Model
     public const SPAM_BEHAVIOUR_SUCCESS = 'showSuccess';
     public const SPAM_BEHAVIOUR_MESSAGE = 'showMessage';
 
+
     // Properties
     // =========================================================================
 
@@ -57,6 +58,7 @@ class Settings extends Model
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
+    public ?array $submissionsBehaviour = null;
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -93,6 +95,11 @@ class Settings extends Model
     {
         // Remove deprecated settings
         unset($config['enableGatsbyCompatibility']);
+
+        // Normalize config
+        if (!array_key_exists('submissionsBehaviour', $config) || array_key_exists('submissionsBehaviour', $config) && $config['submissionsBehaviour'] === null) {
+            $config['submissionsBehaviour'] = ['incomplete', 'spam'];
+        }
 
         parent::__construct($config);
     }

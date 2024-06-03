@@ -31,6 +31,8 @@
     {% endfor %}
 
     Craft.Formie.editableForms = {{ editableForms | json_encode() | raw }};
+    Craft.Formie.includeIncomplete = {{ includeIncomplete | json_encode() | raw }};
+    Craft.Formie.includeSpam = {{ includeSpam | json_encode() | raw }};
 
     {% if formHandle is defined %}
         window.defaultFormieFormHandle = '{{ formHandle }}';
