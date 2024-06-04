@@ -14,6 +14,7 @@ use verbb\formie\models\StencilData;
 
 use Craft;
 use craft\db\Query;
+use craft\enums\CmsEdition;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\Session;
@@ -397,7 +398,7 @@ class FormsController extends Controller
 
     private function _updateFormPermission(Form $form): void
     {
-        if (Craft::$app->getEdition() === Craft::Solo) {
+        if (Craft::$app->edition === CmsEdition::Solo) {
             return;
         }
 
@@ -445,7 +446,9 @@ class FormsController extends Controller
             $permissions[] = "formie-deleteSubmissions{$suffix}";
         }
 
-        Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
+        if (Craft::$app->edition === CmsEdition::Pro) {
+            Craft::$app->getUserPermissions()->saveUserPermissions($currentUser->id, $permissions);
+        }
     }
 
     private function _getFormHandles(int $formId): array
