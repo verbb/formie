@@ -376,7 +376,7 @@ export class FormieFormTheme {
     }
 
     removeFormAlert() {
-        const $alert = this.$form.parentNode.querySelector('[data-fui-alert-error]');
+        const $alert = this.$form.parentNode.querySelector('[data-fui-alert]');
 
         if ($alert) {
             $alert.remove();
