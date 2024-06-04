@@ -66,6 +66,11 @@ class FormsController extends Controller
 
         Plugin::registerAsset('src/js/formie-form-new.js');
 
+        // Craft Team requires specific permissions
+        if (Craft::$app->edition === CmsEdition::Team && !Craft::$app->getUser()->checkPermission('formie-manageForms')) {
+            return $this->renderTemplate('formie/forms/_team');
+        }
+
         return $this->renderTemplate('formie/forms/_new', $variables);
     }
 

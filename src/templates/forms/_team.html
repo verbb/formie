@@ -1,0 +1,24 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set crumbs = [
+    { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },
+    { label: 'Forms' | t('formie'), url: url('formie/forms') },
+] %}
+
+{% set bodyClass = 'fui-body fui-body-start' %}
+{% set title = '' %}
+{% set selectedSubnavItem = 'forms' %}
+
+{% block main %}
+
+<div id="fui-new-form" class="fui-start content-pane">
+    <div class="fui-start-wrap center text-center">
+        {% set link = tag('a', { text: 'User Permissions' | t('app'), href: cpUrl('settings/users') }) %}
+
+        <p class="error" style="text-align: center;">{{ 'Craft Team and Formie requires the “Manage all forms” user permission.<br>Visit the {link} settings to enable this permission.' | t('formie', { link: link }) | raw }}</p>
+    </div>
+</div>
+
+{% endblock %}
