@@ -357,10 +357,6 @@ class Freshdesk extends Crm
                 try {
                     $response = $this->deliverPayload($submission, 'contacts', $contactPayload);
 
-                    if ($response === false) {
-                        return true;
-                    }
-
                     $contactId = $response['id'] ?? '';
 
                     if (!$contactId) {
@@ -368,17 +364,15 @@ class Freshdesk extends Crm
                             'response' => Json::encode($response),
                             'payload' => Json::encode($contactPayload),
                         ]), true);
-
-                        return false;
                     }
                 } catch (Throwable $e) {
-                    $body = Json::decode((string)$e->getResponse()->getBody());
+                    $response = Json::decode((string)$e->getResponse()->getBody());
 
                     // Check number of errors; if more than one, we can't update anyway
-                    $errors = $body['errors'] ?? [];
+                    $errors = $response['errors'] ?? [];
 
                     if (count($errors) === 1) {
-                        $err = $errors[0] ?? null;
+                        $err = $errors[0];
                         $errField = $err['field'] ?? null;
                         $errCode = $err['code'] ?? null;
                         $contactId = $err['additional_info']['user_id'] ?? null;
@@ -386,18 +380,33 @@ class Freshdesk extends Crm
                         // Now check that the sole error is actually due to existing contact
                         if ($errField === 'email' && $errCode === 'duplicate_value') {
                             try {
-                                $updateResponse = $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
-
-                                if ($updateResponse === false) {
-                                    return true;
-                                }
+                                $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
                             } catch (Throwable $e) {
-                                // If fails to update, most likely an agent and can safely ignore exception
-                                Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                    'message' => $e->getMessage(),
-                                    'response' => Json::encode($response),
-                                    'payload' => Json::encode($contactPayload),
-                                ]), true);
+                                $updateResponse = Json::decode((string)$e->getResponse()->getBody());
+                                $statusCode = $e->getResponse()->getStatusCode();
+
+                                // Check for special conditions
+                                if (
+                                    $statusCode === 405
+                                    && $updateResponse['message'] === 'PUT method is not allowed. It should be one of these method(s): GET'
+                                ) {
+                                    // 405 status code and disallowed PUT means user is deleted or spam; log and continue
+                                    Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                        'message' => $e->getMessage(),
+                                        'response' => Json::encode($updateResponse),
+                                        'payload' => Json::encode($contactPayload),
+                                    ]), false);
+                                } elseif ($statusCode === 404 && $updateResponse === null) {
+                                    // 404 status code and empty response means user is an agent; log and continue
+                                    Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                        'message' => $e->getMessage(),
+                                        'response' => Json::encode($updateResponse),
+                                        'payload' => Json::encode($contactPayload),
+                                    ]), false);
+                                } else {
+                                    // Throw the exception again to bubble up to main exception handler
+                                    throw $e;
+                                }
                             }
                         }
                     } else {
