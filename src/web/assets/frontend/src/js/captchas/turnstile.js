@@ -10,6 +10,9 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
         this.loadingMethod = settings.loadingMethod;
+        this.theme = settings.theme;
+        this.size = settings.size;
+        this.appearance = settings.appearance;
         this.turnstileScriptId = 'FORMIE_TURNSTILE_SCRIPT';
 
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
@@ -107,6 +110,9 @@ export class FormieTurnstile extends FormieCaptchaProvider {
             'timeout-callback': this.onTimeout.bind(this),
             'error-callback': this.onError.bind(this),
             'close-callback': this.onClose.bind(this),
+            theme: this.theme,
+            size: this.size,
+            appearance: this.appearance,
         }, (id) => {
             this.turnstileId = id;
         });
