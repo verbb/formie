@@ -5,6 +5,7 @@ class FormieValidator {
     constructor(form, config) {
         this.form = form;
         this.errors = [];
+        this.errorIds = {};
         this.validators = {};
         this.boundListeners = false;
 
@@ -161,8 +162,16 @@ class FormieValidator {
             // Append error element to errorMessages div
             errorMessages.appendChild(errorElement);
 
+            // Create an error ID for this element, but saved to a cache, to ensure it's not generated every time
+            const errorKey = `error-${fieldContainer.getAttribute('data-field-handle')}`;
+
+            if (!this.errorIds[errorKey]) {
+                this.errorIds[errorKey] = `${errorKey}-${Math.random().toString(20).substr(2, 5)}`;
+            }
+
+            const errorId = this.errorIds[errorKey];
+
             // Add aria attributes to the input, referencing the error element
-            const errorId = `error-${fieldContainer.getAttribute('data-field-handle')}-${Math.random().toString(20).substr(2, 5)}`;
             input.setAttribute('aria-describedby', errorId);
             input.setAttribute('aria-invalid', true);
 
