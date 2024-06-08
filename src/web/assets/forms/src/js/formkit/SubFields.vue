@@ -201,7 +201,7 @@ export default {
     padding-left: 10px;
     padding-right: 10px;
     width: 100%;
-    height: 6px;
+    height: 8px;
 
     &.is-active {
         z-index: 10;
