@@ -22,7 +22,7 @@ export class FormieConditions {
     initFieldConditions($container) {
         $container.querySelectorAll('[data-field-conditions]').forEach(($field) => {
             // Save our condition settings and targets against the origin fields. We'll use this to evaluate conditions
-            const fieldConditions = this.getFieldConditions($container, $field);
+            const fieldConditions = this.getFieldConditions($field);
 
             // Check if this is a Repeater or Group field, and load in any of the child conditions so they can be triggered
             const fieldType = $field.getAttribute('data-field-type');
@@ -48,7 +48,7 @@ export class FormieConditions {
         }
     }
 
-    getFieldConditions($container, $field) {
+    getFieldConditions($field) {
         const conditionSettings = this.parseJsonConditions($field);
 
         if (!conditionSettings || !conditionSettings.conditions.length) {
@@ -60,24 +60,13 @@ export class FormieConditions {
 
         conditionSettings.conditions.forEach((condition) => {
             // Get the field(s) we're targeting to watch for changes. Note we need to handle multiple fields (checkboxes)
-            let $targets = $container.querySelectorAll(`[name="${condition.field}"]`);
+            let $targets = this.$form.querySelectorAll(`[name="${condition.field}"]`);
 
             // Check if we're dealing with multiple fields, like checkboxes. This overrides the above
-            const $multiFields = $container.querySelectorAll(`[name="${condition.field}[]"]`);
+            const $multiFields = this.$form.querySelectorAll(`[name="${condition.field}[]"]`);
 
             if ($multiFields.length) {
                 $targets = $multiFields;
-            }
-
-            // Special handling for Repeater/Groups that have `new1` in their name but for page reload forms
-            // this will be replaced by the blockId, and will fail to match the conditions settings.
-            if ((!$targets || !$targets.length) && condition.field.includes('[new1]')) {
-                // Get tricky with Regex. Find the element that matches everything except `[new1]` for `[1234]`.
-                // Escape special characters `[]` in the string, and swap `[new1]` with `[\d+]`.
-                const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/new1/g, '\\d+');
-
-                // Find all targets via Regex.
-                $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
             }
 
             if (!$targets || !$targets.length) {
