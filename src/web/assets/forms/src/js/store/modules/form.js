@@ -781,7 +781,7 @@ const getters = {
                     if (contextField && contextField.parentFieldId === field.__id) {
                         field.settings.rows.forEach((row) => {
                             row.fields.forEach((nestedField) => {
-                                getters.getConditionsFieldOption(fieldOptions, nestedField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `__ROW__.${handlePrefix}${field.settings.handle}.`);
+                                getters.getConditionsFieldOption(fieldOptions, nestedField, options, `${labelPrefix}${truncate(field.settings.label, { length: 60 })}: `, `${handlePrefix}${field.settings.handle}.__ROW__.`);
                             });
                         });
                     }
