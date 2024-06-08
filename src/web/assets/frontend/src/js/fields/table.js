@@ -1,4 +1,6 @@
-import { t, eventKey } from '../utils/utils';
+import {
+    t, addClasses, removeClasses, eventKey,
+} from '../utils/utils';
 
 export class FormieTable {
     constructor(settings = {}) {
@@ -147,10 +149,12 @@ export class FormieTable {
     updateButton() {
         if (this.$addButton) {
             if (this.getNumRows() >= this.maxRows) {
-                this.$addButton.classList.add = this.disabledClass;
+                addClasses(this.$addButton, this.disabledClass);
+
                 this.$addButton.setAttribute('disabled', 'disabled');
             } else {
-                this.$addButton.classList.remove = this.disabledClass;
+                removeClasses(this.$addButton, this.disabledClass);
+
                 this.$addButton.removeAttribute('disabled');
             }
         }
