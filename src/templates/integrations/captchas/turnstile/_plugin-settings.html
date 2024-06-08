@@ -44,3 +44,54 @@
     ],
     warning: macros.configWarning('scriptLoadingMethod', 'formie'),
 }) }}
+
+{{ forms.selectField({
+    label: 'Theme' | t('formie'),
+    instructions: 'Select the theme for Turnstile to use.' | t('formie'),
+    name: 'theme',
+    value: integration.settings.theme ?? 'auto',
+    options: [{
+        value: 'auto',
+        label: 'Auto' | t('formie'),
+    }, {
+        value: 'light',
+        label: 'Light' | t('formie'),
+    }, {
+        value: 'dark',
+        label: 'Dark' | t('formie'),
+    }],
+    warning: macros.configWarning('theme', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Size' | t('formie'),
+    instructions: 'Select the size for Turnstile to use.' | t('formie'),
+    name: 'size',
+    value: integration.settings.size ?? 'normal',
+    options: [{
+        value: 'normal',
+        label: 'Normal' | t('formie'),
+    }, {
+        value: 'compact',
+        label: 'Compact' | t('formie'),
+    }],
+    warning: macros.configWarning('size', 'formie'),
+}) }}
+
+{{ forms.selectField({
+    label: 'Appearance' | t('formie'),
+    instructions: 'Select the appearance for Turnstile to use.' | t('formie'),
+    name: 'appearance',
+    value: integration.settings.appearance ?? 'always',
+    options: [{
+        value: 'always',
+        label: 'Always' | t('formie'),
+    }, {
+        value: 'execute',
+        label: 'Execute' | t('formie'),
+    }, {
+        value: 'interation-only',
+        label: 'Interaction Only' | t('formie'),
+    }],
+    warning: macros.configWarning('appearance', 'formie'),
+}) }}

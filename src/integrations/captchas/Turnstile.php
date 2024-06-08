@@ -20,6 +20,9 @@ class Turnstile extends Captcha
     public ?string $secretKey = null;
     public ?string $siteKey = null;
     public string $scriptLoadingMethod = 'asyncDefer';
+    public string $theme = 'auto';
+    public string $size = 'normal';
+    public string $appearance = 'always';
 
 
     // Public Methods
@@ -73,6 +76,9 @@ class Turnstile extends Captcha
             'siteKey' => App::parseEnv($this->siteKey),
             'formId' => $form->getFormId(),
             'loadingMethod' => $this->scriptLoadingMethod,
+            'theme' => $this->theme,
+            'size' => $this->size,
+            'appearance' => $this->appearance,
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/turnstile.js');
@@ -137,6 +143,9 @@ class Turnstile extends Captcha
         return [
             'siteKey' => $this->siteKey,
             'scriptLoadingMethod' => $this->scriptLoadingMethod,
+            'theme' => $this->theme,
+            'size' => $this->size,
+            'appearance' => $this->appearance,
         ];
     }    
 }
