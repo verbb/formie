@@ -199,6 +199,9 @@ class Entry extends Element
             $entry->typeId = $entryTypeId;
             $entry->sectionId = $sectionId;
 
+            $entryType = Craft::$app->getEntries()->getEntryTypeById($entryTypeId);
+            $section = Craft::$app->getEntries()->getSectionById($sectionId);
+
             if ($this->defaultAuthorId) {
                 $entry->authorId = $this->defaultAuthorId;
             }
@@ -235,7 +238,7 @@ class Entry extends Element
             $statusAttributeMapping = $this->attributeMapping['enabled'] ?? '';
 
             if ($statusAttributeMapping === '') {
-                $siteSettings = ArrayHelper::firstWhere($entryType->section->getSiteSettings(), 'siteId', $entry->siteId);
+                $siteSettings = ArrayHelper::firstWhere($section->getSiteSettings(), 'siteId', $entry->siteId);
                 $enabled = $siteSettings->enabledByDefault;
 
                 if (Craft::$app->getIsMultiSite() && count($entry->getSupportedSites()) > 1) {
