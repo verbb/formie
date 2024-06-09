@@ -1,4 +1,5 @@
 import { Bouncer } from './utils/bouncer';
+import { t } from './utils/utils';
 
 export class FormieFormTheme {
     constructor($form, config = {}) {
