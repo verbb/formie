@@ -454,7 +454,7 @@ class Stripe extends Payment
             $payment->integrationId = $this->id;
             $payment->submissionId = $submission->id;
             $payment->fieldId = $field->id;
-            $payment->amount = $amount;
+            $payment->amount = self::fromStripeAmount($amount, $currency);
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_PENDING;
             $payment->reference = $response->id;
