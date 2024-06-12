@@ -284,6 +284,13 @@ class Variables
 
         $variables = Formie::$plugin->getRenderCache()->getVariables($cacheKey);
 
+        // Parse each variable on it's own to handle .env vars
+        foreach ($variables as $key => $variable) {
+            if (is_string($variable)) {
+                $variables[$key] = App::parseEnv($variable);
+            }
+        }
+
         // Try to parse submission + extra variables
         try {
             return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $variables);
