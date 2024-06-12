@@ -261,7 +261,7 @@ class Table extends Field
 
     public function validateTableData(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->handle);
+        $value = $element->getFieldValue($this->fieldKey);
 
         if (!empty($value) && !empty($this->columns)) {
             foreach ($value as &$row) {
@@ -272,7 +272,7 @@ class Table extends Field
                     }
 
                     if (!$this->_validateCellValue($col['type'], $row[$colId], $error)) {
-                        $element->addError($this->handle, $error);
+                        $element->addError($this->fieldKey, $error);
                     }
                 }
             }
