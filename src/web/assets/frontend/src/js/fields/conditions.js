@@ -272,9 +272,11 @@ export class FormieConditions {
         return false;
     }
 
-    getEventType($field) {
-        const tagName = $field.tagName.toLowerCase();
-        const inputType = $field.getAttribute('type') ? $field.getAttribute('type').toLowerCase() : '';
+    getEventType($input) {
+        const $field = $input.closest('[data-field-type]');
+        const fieldType = $field?.getAttribute('data-field-type');
+        const tagName = $input.tagName.toLowerCase();
+        const inputType = $input.getAttribute('type') ? $input.getAttribute('type').toLowerCase() : '';
 
         if (tagName === 'select' || inputType === 'date') {
             return 'change';
@@ -286,6 +288,11 @@ export class FormieConditions {
 
         if (inputType === 'checkbox' || inputType === 'radio') {
             return 'click';
+        }
+
+        // If sourcing a value from another calculations, this'll be a `input` event
+        if (fieldType && fieldType === 'calculations') {
+            return 'input';
         }
 
         return 'keyup';
