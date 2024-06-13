@@ -725,6 +725,10 @@ trait FormFieldTrait
 
         $this->trigger(static::EVENT_MODIFY_DEFAULT_VALUE, $event);
 
+        if (is_string($event->value)) {
+            $event->value = trim($event->value);
+        }
+
         return $event->value;
     }
 
