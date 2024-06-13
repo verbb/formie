@@ -167,6 +167,9 @@ export class FormieCalculations {
             }
 
             this.$input.value = result;
+
+            // Trigger a `input` event for the input as well
+            this.$input.dispatchEvent(new Event('input'));
         } catch (ex) {
             console.error(ex);
 
@@ -175,9 +178,11 @@ export class FormieCalculations {
         }
     }
 
-    getEventType($field) {
-        const tagName = $field.tagName.toLowerCase();
-        const inputType = $field.getAttribute('type') ? $field.getAttribute('type').toLowerCase() : '';
+    getEventType($input) {
+        const $field = $input.closest('[data-field-type]');
+        const fieldType = $field?.getAttribute('data-field-type');
+        const tagName = $input.tagName.toLowerCase();
+        const inputType = $input.getAttribute('type') ? $input.getAttribute('type').toLowerCase() : '';
 
         if (tagName === 'select' || inputType === 'date') {
             return 'change';
@@ -189,6 +194,11 @@ export class FormieCalculations {
 
         if (inputType === 'checkbox' || inputType === 'radio') {
             return 'click';
+        }
+
+        // If sourcing a value from another calculations, this'll be a `input` event
+        if (fieldType && fieldType === 'calculations') {
+            return 'input';
         }
 
         return 'keyup';
