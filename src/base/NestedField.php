@@ -137,6 +137,9 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
         foreach ($this->getRows($includeDisabled) as $row) {
             foreach ($row->getFields($includeDisabled) as $field) {
+                // Ensure that inner fields are aware of their parent
+                $field->setParentField($this);
+
                 $fields[] = $field;
             }
         }
