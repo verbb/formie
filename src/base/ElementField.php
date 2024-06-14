@@ -629,12 +629,10 @@ abstract class ElementField extends Field implements ElementFieldInterface
         $ids = [];
 
         // Normalize setting from query param.
-        if (!is_array($value)) {
-            $value = [$value];
-        }
-
-        foreach ($value as $id) {
-            $ids[] = ['id' => $id];
+        if (is_array($value)) {
+            $ids = array_values(array_filter($value));
+        } else {
+            $ids = [$value];
         }
 
         return $ids;
