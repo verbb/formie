@@ -323,12 +323,13 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Recommended headers to pass for all web API requests
         // https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/compose-http-requests-handle-errors#http-headers
         $defaultOptions = [
+            'base_uri' => $this->getBaseApiUrl(null),
             'headers' => [
                 'Accept' => 'application/json',
                 'OData-MaxVersion' => '4.0',
                 'OData-Version' => '4.0',
                 'If-None-Match' => null
-            ]
+            ],
         ];
 
         $options = ArrayHelper::merge($defaultOptions, $options);
