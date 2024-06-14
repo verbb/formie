@@ -70,7 +70,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
                     $options[] = [
                         'label' => $option,
                         'value' => $key,
-                        'default' => '',
+                        'isDefault' => '',
                     ];
                 } elseif (!empty($option['isOptgroup'])) {
                     // isOptgroup will be set if this is a settings request
@@ -166,13 +166,16 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             return $value;
         }
 
+        // Ensure multi-option fields are normalized separately first
+        if ($value === '' && $this->multi) {
+            $value = [];
+        }
+
         if (is_string($value) && Json::isJsonObject($value)) {
             $value = Json::decodeIfJson($value);
-        } else if ($value === '' && $this->multi) {
-            $value = [];
-        } else if ($value === '__BLANK__') {
+        } else if (is_string($value) && strtolower($value) === '__blank__') {
             $value = '';
-        } else if ($value === null) {
+        } else if (empty($value) && $this->isFresh($element)) {
             $value = $this->defaultValue();
         }
 
@@ -455,7 +458,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             $defaultValues = [];
 
             foreach ($this->options() as $option) {
-                if (!empty($option['default'])) {
+                if (!empty($option['isDefault'])) {
                     $defaultValues[] = $option['value'];
                 }
             }
@@ -464,7 +467,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         foreach ($this->options() as $option) {
-            if (!empty($option['default'])) {
+            if (!empty($option['isDefault'])) {
                 return $option['value'];
             }
         }

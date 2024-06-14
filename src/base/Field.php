@@ -209,6 +209,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     private ?FieldInterface $_parentField = null;
     private string $_namespace = 'fields';
     private ?string $_customNamespace = null;
+    private ?bool $_isFresh = null;
 
 
     // Public Methods
@@ -295,6 +296,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function getIsNested(): bool
     {
         return (bool)$this->getParentField();
+    }
+
+    public function setIsFresh(?bool $isFresh = null): void
+    {
+        $this->_isFresh = $isFresh;
     }
 
     public function getForm(): ?Form
@@ -1439,6 +1445,19 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         return Html::textarea($this->handle, $value);
+    }
+
+    protected function isFresh(?ElementInterface $element = null): bool
+    {
+        if (isset($this->_isFresh)) {
+            return $this->_isFresh;
+        }
+
+        if ($element) {
+            return $element->getIsFresh();
+        }
+
+        return true;
     }
 
     protected function requestParamName(ElementInterface $element): ?string
