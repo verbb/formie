@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.0.0-beta.15 - 2024-06-15
+
+### Added
+- Added support for new Klaviyo integrations due to [API changes](https://developers.klaviyo.com/en/v1-2/reference/api-overview).
+- Added support for Calculations field when used in field conditions.
+- Added appearance settings to Turnstile captcha. (thanks @jmauzyk).
+- Added a warning for incorrect permissions for Craft Team.
+- Added “All Submissions Behaviour” plugin setting.
+
+### Changed
+- Calculations fields can now reference other Calculations fields.
+- Improved handling of spam, deleted, and agent contacts for Freshdesk integration. (thanks @jmauzyk).
+- Adjusted dropzone size for form builder.
+
+### Fixed
+- Fixed default values for fields not being trimmed of whitespace.
+- Fixed some variables not supporting env variables in Email Notifications.
+- Fixed an error with Dynamics365 CRM Integration.
+- Fixed an error when pre-populating element fields.
+- Fixed options-based fields not having their default values set correctly.
+- Fixed nested and sub-fields not having their parent field associated with the inner fields.
+- Fixed validation error for Table field inside a Repeater field.
+- Fixed Stripe payments amount being recorded incorrectly.
+- Fixed conditions not working for Repeater fields, for fields outside of the Repeater field.
+- Fixed conditions not working on sibling nested Repeater fields.
+- Fixed a JS error with Table and Repeater fields.
+- Fixed an error for Entry element integrations.
+- Fixed an error when generating `aria-describedby` attributes for client-side validation.
+- Fixed an error where form alerts weren’t removed after a successful submit for the next form submission.
+- Fixed form permissions on Craft Team.
+- Fixed “optional” label field fields like Sub-Fields and Nested Fields.
+
 ## 3.0.0-beta.14 - 2024-05-31
 
 ### Added
