@@ -503,6 +503,21 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.19 - 2024-06-15
+
+### Added
+- Added support for new Klaviyo integrations due to [API changes](https://developers.klaviyo.com/en/v1-2/reference/api-overview).
+- Added support for Calculations field when used in field conditions.
+- Added appearance settings to Turnstile captcha. (thanks @jmauzyk).
+
+### Changed
+- Calculations fields can now reference other Calculations fields.
+- Improved handling of spam, deleted, and agent contacts for Freshdesk integration. (thanks @jmauzyk).
+
+### Fixed
+- Fixed default values for fields not being trimmed of whitespace.
+- Fixed some variables not supporting env variables in Email Notifications.
+
 ## 2.1.18 - 2024-05-31
 
 ### Fixed

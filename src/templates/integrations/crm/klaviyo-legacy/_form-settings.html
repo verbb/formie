@@ -1,0 +1,55 @@
+{% import '_includes/forms' as forms %}
+
+{% set handle = integration.handle %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set mapToProfile = form.settings.integrations[handle].mapToProfile ?? '' %}
+
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Profile' | t('formie'),
+            instructions: 'Whether to map form data to {name} Profiles.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToProfile',
+            name: 'mapToProfile',
+            on: mapToProfile,
+            toggle: 'map-to-profile',
+        }) }}
+
+        <div id="map-to-profile" class="{{ not mapToProfile ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Profile Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Profile fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="profile-field-mapping"
+                name="profileFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.profileFieldMapping')"
+                :rows="get(settings, 'profile')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.profileFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.profileFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+    </template>
+</integration-form-settings>

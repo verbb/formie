@@ -1,0 +1,48 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set instructions %}
+### Step 1. Connect to the {name} API
+1. Go to <a href="https://www.klaviyo.com/account" target="_blank">Klaviyo</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Account**.
+1. Click the **Settings** dropdown and click **API Keys**.
+1. Copy the **Public API Key** from {name} and paste in the **Public API Key** field below.
+1. Click the **Create Private API Key** button.
+1. Copy the **Private API Key** from {name} and paste in the **Private API Key** field below.
+
+### Step 2. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+</div>
+
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
+{{ forms.autosuggestField({
+    label: 'Public API Key' | t('formie'),
+    instructions: 'Enter your {name} Public API Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'publicApiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.publicApiKey ?? '',
+    warning: macros.configWarning('publicApiKey', 'formie'),
+    errors: integration.getErrors('publicApiKey'),
+}) }}
+
+{{ forms.autosuggestField({
+    label: 'Private API Key' | t('formie'),
+    instructions: 'Enter your {name} Private API Key here.' | t('formie', { name: integration.displayName() }),
+    name: 'privateApiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.privateApiKey ?? '',
+    warning: macros.configWarning('privateApiKey', 'formie'),
+    errors: integration.getErrors('privateApiKey'),
+}) }}

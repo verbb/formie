@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { find, get } from 'lodash-es';
 
 import { Editor, EditorContent } from '@tiptap/vue-3';
@@ -82,6 +83,10 @@ export default {
     },
 
     computed: {
+        ...mapState({
+            editingField: (state) => { return state.formie.editingField; },
+        }),
+
         jsonContent() {
             return this.contentToValue(this.json);
         },
@@ -105,12 +110,29 @@ export default {
         },
 
         calculationsVariables() {
-            return this.$store.getters['form/plainTextFields']({
+            let fields = this.$store.getters['form/plainTextFields']({
                 includeGeneral: false,
+                includedTypes: [
+                    'verbb\\formie\\fields\\Calculations',
+                ],
                 excludedTypes: [
                     'verbb\\formie\\fields\\Checkboxes',
                 ],
             });
+
+            // Exclude _this_ field - all because Calculations fields can support their own.
+            // Maybe refactor this into the getter in Formie 2?
+            fields = fields.filter((field) => {
+                if (this.editingField && this.editingField.field) {
+                    if (field.value === `{field.${this.editingField.field.handle}}`) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            return fields;
         },
 
         allowSource() {

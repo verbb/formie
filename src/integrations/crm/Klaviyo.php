@@ -50,44 +50,44 @@ class Klaviyo extends Crm
             if ($this->mapToProfile) {
                 $settings['profile'] = [
                     new IntegrationField([
-                        'handle' => '$first_name',
+                        'handle' => 'first_name',
                         'name' => Craft::t('formie', 'First Name'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$last_name',
+                        'handle' => 'last_name',
                         'name' => Craft::t('formie', 'Last Name'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$email',
+                        'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
                         'required' => true,
                     ]),
                     new IntegrationField([
-                        'handle' => '$phone_number',
+                        'handle' => 'phone_number',
                         'name' => Craft::t('formie', 'Phone Number'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$city',
+                        'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$region',
+                        'handle' => 'region',
                         'name' => Craft::t('formie', 'Region'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$country',
+                        'handle' => 'country',
                         'name' => Craft::t('formie', 'Country'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$zip',
+                        'handle' => 'zip',
                         'name' => Craft::t('formie', 'Zip'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$organization',
+                        'handle' => 'organization',
                         'name' => Craft::t('formie', 'Organization'),
                     ]),
                     new IntegrationField([
-                        'handle' => '$title',
+                        'handle' => 'title',
                         'name' => Craft::t('formie', 'Title'),
                     ]),
                 ];
@@ -105,11 +105,13 @@ class Klaviyo extends Crm
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
 
             $profilePayload = [
-                'token' => App::parseEnv($this->publicApiKey),
-                'properties' => $profileValues,
+                'data' => [
+                    'type' => 'profile',
+                    'attributes' => $profileValues,
+                ],
             ];
 
-            $response = $this->deliverPayload($submission, 'identify', $profilePayload);
+            $response = $this->deliverPayload($submission, 'profile-import', $profilePayload);
 
             if ($response === false) {
                 return true;
@@ -126,7 +128,7 @@ class Klaviyo extends Crm
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'v2/lists');
+            $response = $this->request('GET', 'lists');
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -144,8 +146,9 @@ class Klaviyo extends Crm
 
         return $this->_client = Craft::createGuzzleClient([
             'base_uri' => 'https://a.klaviyo.com/api/',
-            'query' => [
-                'api_key' => App::parseEnv($this->privateApiKey),
+            'headers' => [
+                'Authorization' => 'Klaviyo-API-Key ' . App::parseEnv($this->privateApiKey),
+                'revision' => '2024-05-15',
             ],
         ]);
     }
