@@ -1,14 +1,19 @@
 # Changelog
 
+## 1.6.44 - 2024-06-15
+
+### Fixed
+- Fixed a JS error when using text limits for Single/Multi Line Text fields.
+
 ## 1.6.43 - 2024-05-31
 
 ### Fixed
-- Fix an error when submitting a form and manipulating the `goingBack` param.
+- Fixed an error when submitting a form and manipulating the `goingBack` param.
 
 ## 1.6.42 - 2024-05-20
 
 ### Fixed
-- Fix an error when triggering an integration where the `tokenId` has become invalid.
+- Fixed an error when triggering an integration where the `tokenId` has become invalid.
 
 ## 1.6.41 - 2024-04-18
 
