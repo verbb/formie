@@ -83,6 +83,7 @@ class Settings extends Model
 
     // Theme
     public array $themeConfig = [];
+    public bool $useCssLayers = false;
 
     // Captcha settings are stored in Project Config, but otherwise private
     public array $captchas = [];

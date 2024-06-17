@@ -221,6 +221,9 @@ class Rendering extends Component
             return null;
         }
 
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
         $view = Craft::$app->getView();
 
         $outputCssLayout = $form->getFrontEndTemplateOption('outputCssLayout');
@@ -232,6 +235,12 @@ class Rendering extends Component
         $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
         $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
         $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
+
+        // Support CSS Layers under a flag for now
+        if ($settings->useCssLayers) {
+            $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base-layer.css');
+            $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme-layer.css');
+        }
 
         $output = [];
 
@@ -520,10 +529,18 @@ class Rendering extends Component
 
     public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
     {
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
         $view = Craft::$app->getView();
         $assetPath = '@verbb/formie/web/assets/frontend/dist/';
         $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
         $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
+
+        if ($settings->useCssLayers) {
+            $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base-layer.css');
+            $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme-layer.css');
+        }
 
         $output = [];
 
