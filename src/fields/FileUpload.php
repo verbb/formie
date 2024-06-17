@@ -976,7 +976,7 @@ class FileUpload extends ElementField
             return $this->_findFolder($element);
         } catch (InvalidFsException $e) {
             throw new InvalidFsException(Craft::t('app', 'The {field} field is set to an invalid volume.', [
-                'field' => $this->name,
+                'field' => $this->label,
             ]), 0, $e);
         } catch (InvalidSubpathException $e) {
             // If this is a new/disabled element, the subpath probably just contained a token that returned null, like {id}
@@ -987,7 +987,7 @@ class FileUpload extends ElementField
 
             // Existing element, so this is just a bad subpath
             throw new InvalidSubpathException($e->subpath, Craft::t('app', 'The {field} field has an invalid subpath (“{subpath}”).', [
-                'field' => $this->name,
+                'field' => $this->label,
                 'subpath' => $e->subpath,
             ]), 0, $e);
         }

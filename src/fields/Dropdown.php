@@ -89,7 +89,7 @@ class Dropdown extends OptionsField
         $rules = parent::getElementValidationRules();
 
         if ($this->limitOptions) {
-            $rules[] = [$this->handle, 'validateLimitOptions', 'skipOnEmpty' => false];
+            $rules[] = [$this->fieldKey, 'validateLimitOptions', 'skipOnEmpty' => false];
         }
 
         return $rules;
@@ -102,20 +102,20 @@ class Dropdown extends OptionsField
                 'min' => $this->min ?: null,
                 'max' => $this->max ?: null,
                 'tooFew' => $this->min ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'min' => $this->min,
                 ]) : null,
                 'tooMany' => $this->max ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'max' => $this->max,
                 ]) : null,
                 'skipOnEmpty' => false,
             ]);
 
-            $value = $element->getFieldValue($this->handle);
+            $value = $element->getFieldValue($this->fieldKey);
 
             if (!$arrayValidator->validate($value, $error)) {
-                $element->addError($this->handle, $error);
+                $element->addError($this->fieldKey, $error);
             }
         }
     }

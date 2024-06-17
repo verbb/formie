@@ -105,11 +105,11 @@ class Checkboxes extends OptionsField
                 'min' => $this->min ?: null,
                 'max' => $this->max ?: null,
                 'tooFew' => $this->min ? Craft::t('app', '{attribute} should contain at least {min, number} {min, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'min' => $this->min,
                 ]) : null,
                 'tooMany' => $this->max ? Craft::t('app', '{attribute} should contain at most {max, number} {max, plural, one{option} other{options}}.', [
-                    'attribute' => Craft::t('formie', $this->name),
+                    'attribute' => Craft::t('formie', $this->label),
                     'max' => $this->max,
                 ]) : null,
                 'skipOnEmpty' => false,
