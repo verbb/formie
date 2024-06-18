@@ -481,7 +481,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
             // Pick the correct field handle, depending on custom fields
             if ($customField) {
-                $handle = $field['SchemaName'] ?? '';
+                // Dynamics is _supposed_ to use the `SchemaName` for custom fields, but if null, use `LogicalName`
+                $handle = $field['SchemaName'] ?? $field['LogicalName'] ?? '';
             } else {
                 $handle = $field['LogicalName'] ?? '';
             }
