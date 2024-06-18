@@ -5,7 +5,7 @@
 
     {% if value and field.settings.useMultipleFields %}
         {% if field.prefixEnabled %}
-            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefix ?: notification.getPlaceholder() }}<br>
+            <strong>{{ field.prefixLabel | t('formie') }}: </strong>{{ value.prefixOption ?: notification.getPlaceholder() }}<br>
         {% endif %}
 
         {% if field.firstNameEnabled %}

@@ -14,6 +14,7 @@ class Name extends Model
     // =========================================================================
 
     public ?string $prefix = null;
+    public ?string $prefixOption = null;
     public ?string $firstName = null;
     public ?string $middleName = null;
     public ?string $lastName = null;
@@ -23,6 +24,16 @@ class Name extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Prefix should use the label, not value given it's a dropdown
+        $prefixOptions = NameField::getPrefixOptions();
+        $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', ($config['prefix'] ?? ''));
+        $this->prefixOption = $prefixOption['label'] ?? '';
+
+        parent::__construct($config);
+    }
 
     /**
      * @return string
@@ -66,13 +77,8 @@ class Name extends Model
             return $this->name;
         }
 
-        // Prefix should use the label, not value given it's a dropdown
-        $prefixOptions = NameField::getPrefixOptions();
-        $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $this->prefix);
-        $prefix = $prefixOption['label'] ?? '';
-
         $name = ArrayHelper::filterEmptyStringsFromArray([
-            StringHelper::trim($prefix ?? ''),
+            StringHelper::trim($this->prefixOption ?? ''),
             StringHelper::trim($this->firstName ?? ''),
             StringHelper::trim($this->middleName ?? ''),
             StringHelper::trim($this->lastName ?? ''),

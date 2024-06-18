@@ -453,6 +453,13 @@ class Variables
                 $handle = "{$prefix}{$field->handle}.{$subfield['handle']}";
 
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
+
+                // Special handling for Prefix for a Name field. This can be removed in Formie 2
+                if ($field instanceof formfields\Name && $subfield['handle'] === 'prefix') {
+                    $prefixOptions = formfields\Name::getPrefixOptions();
+                    $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $values[$handle]);
+                    $values[$handle] = $prefixOption['label'] ?? '';
+                }
             }
         } else if ($field instanceof formfields\Group) {
             if ($submissionValue && $row = $submissionValue->one()) {
