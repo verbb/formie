@@ -1,6 +1,9 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\fields\formfields\Name as NameField;
+
+use Craft;
 use craft\base\Model;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
@@ -63,8 +66,13 @@ class Name extends Model
             return $this->name;
         }
 
+        // Prefix should use the label, not value given it's a dropdown
+        $prefixOptions = NameField::getPrefixOptions();
+        $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $this->prefix);
+        $prefix = $prefixOption['label'] ?? '';
+
         $name = ArrayHelper::filterEmptyStringsFromArray([
-            StringHelper::trim($this->prefix ?? ''),
+            StringHelper::trim($prefix ?? ''),
             StringHelper::trim($this->firstName ?? ''),
             StringHelper::trim($this->middleName ?? ''),
             StringHelper::trim($this->lastName ?? ''),
