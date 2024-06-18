@@ -433,7 +433,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             'CanBeSecuredForUpdate',
             'LogicalName',
             'DisplayName',
-            'RequiredLevel'
+            'RequiredLevel',
         ];
 
         // Fetch all defined fields on the entity
@@ -442,18 +442,18 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $metadata = $this->request('GET', $this->_getEntityDefinitionsUri($entity), [
             'query' => [
                 '$select' => 'Attributes',
-                '$expand' => 'Attributes($select='. implode(',', $metadataAttributesForSelect) . ')'
-            ]
+                '$expand' => 'Attributes($select='. implode(',', $metadataAttributesForSelect) . ')',
+            ],
         ]);
 
         // We also need to query DateTime attribute data to check if any are DateOnly
         $dateTimeAttributes = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'DateTime'), [
             'query' => [
-                '$select' => 'SchemaName,LogicalName,DateTimeBehavior'
-            ]
+                '$select' => 'SchemaName,LogicalName,DateTimeBehavior',
+            ],
         ]);
 
-        $dateTimeBehaviourValues = ArrayHelper::map($dateTimeAttributes, 'MetadataId','DateTimeBehavior.Value');
+        $dateTimeBehaviourValues = ArrayHelper::map($dateTimeAttributes, 'MetadataId', 'DateTimeBehavior.Value');
 
         $fields = [];
         $attributes = $metadata['Attributes'] ?? [];
@@ -461,7 +461,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Default to SystemRequired and ApplicationRequired
         $requiredLevels = [
             'SystemRequired',
-            'ApplicationRequired'
+            'ApplicationRequired',
         ];
 
         $event = new MicrosoftDynamics365RequiredLevelsEvent([
@@ -532,7 +532,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                     'label' => Craft::t('formie', 'Default options'),
                     'options' => [
                         ['label' => Craft::t('formie', 'True'), 'value' => 'true'],
-                        ['label' => Craft::t('formie', 'False'), 'value' => 'false']
+                        ['label' => Craft::t('formie', 'False'), 'value' => 'false'],
                     ]
                 ];
             }
@@ -542,7 +542,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
             'query' => [
                 '$select' => 'IsCustomAttribute,LogicalName,SchemaName',
-                '$expand' => 'GlobalOptionSet($select=Options)'
+                '$expand' => 'GlobalOptionSet($select=Options)',
             ]
         ]);
         $pickListFields = $response['value'] ?? [];
@@ -609,9 +609,10 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Get all the fields that are relational
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
             'query' => [
-                '$select' => 'IsCustomAttribute,LogicalName,SchemaName,Targets'
-            ]
+                '$select' => 'IsCustomAttribute,LogicalName,SchemaName,Targets',
+            ],
         ]);
+
         $relationFields = $response['value'] ?? [];
 
         // Define a schema so that we can query each entity according to the target (index)
