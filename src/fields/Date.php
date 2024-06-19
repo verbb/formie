@@ -316,9 +316,15 @@ class Date extends SubField implements PreviewableFieldInterface
                     $value = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hour, $minute, $second);
                 }
             }
-        } else if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+        } else if ($this->displayType === 'calendar') {
             if (is_array($value)) {
                 $value = array_filter($value);
+            }
+        } else if ($this->displayType === 'datePicker') {
+            if (is_array($value)) {
+                // We need some extra handling for datePickers which use sub-fields to configure the fields, but only render a single field
+                // and the value is always provide a "datetime" not a "date" or "time" as the field renders and captures content with.
+                $value['datetime'] = ArrayHelper::remove($value, 'date') ?? ArrayHelper::remove($value, 'time');
             }
         }
 

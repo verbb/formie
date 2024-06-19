@@ -1,3 +1,23 @@
-{{ fieldtag('fieldInput', {
-    value: value ? (value | date('Y-m-d H:i:s', false)) : null,
-}) }}
+{# Keep track of the outer field #}
+{% set dateField = field %}
+
+{% fieldtag 'subFieldRows' %}
+    {% for row in field.getRows(false) %}
+        {% fieldtag 'subFieldRow' %}
+            {% for field in row.getFields(false) %}
+                {# Only display one field - the first one enabled #}
+                {% if loop.first %}
+                    {# Update the namespace for the field #}
+                    {% do field.setParentField(dateField) %}
+
+                    {% set dateValue = value ? (value | date('Y-m-d H:i:s', false)) : null %}
+
+                    {{ craft.formie.renderField(form, field, {
+                        value: dateValue ?? null,
+                        inputName: 'datetime',
+                    }) }}
+                {% endif %}
+            {% endfor %}
+        {% endfieldtag %}
+    {% endfor %}
+{% endfieldtag %}
