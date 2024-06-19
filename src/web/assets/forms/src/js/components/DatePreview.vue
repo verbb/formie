@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-if="field.settings.displayType === 'calendar'" class="fui-row">
+        <div v-if="field.settings.displayType === 'calendar' || field.settings.displayType === 'datePicker'" class="fui-row">
             <div v-for="subField in calendarFields" :key="subField.__id" class="fui-col-auto">
                 <div class="fui-field-preview">
                     <label v-if="subField.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>

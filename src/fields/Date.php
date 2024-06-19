@@ -87,7 +87,6 @@ class Date extends SubField implements PreviewableFieldInterface
     public string $timeFormat = 'H:i';
     public string $displayType = 'calendar';
     public ?string $defaultOption = null;
-    public bool $useDatePicker = false;
     public array $datePickerOptions = [];
     public string $minDateOption = '';
     public ?DateTime $minDate = null;
@@ -120,6 +119,10 @@ class Date extends SubField implements PreviewableFieldInterface
             $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
         }
 
+        if (array_key_exists('useDatePicker', $config) && $config['useDatePicker']) {
+            $config['displayType'] = 'datePicker';
+        }
+
         unset(
             $config['dayLabel'],
             $config['dayPlaceholder'],
@@ -140,6 +143,7 @@ class Date extends SubField implements PreviewableFieldInterface
             $config['timeLabel'],
             $config['includeDate'],
             $config['includeTime'],
+            $config['useDatePicker'],
         );
 
         // Setup defaults from the plugin-level
@@ -157,6 +161,9 @@ class Date extends SubField implements PreviewableFieldInterface
         if (!isset($config['defaultValue'])) {
             $config['defaultValue'] = $settings->getDefaultDateTimeValue();
         }
+
+        // Prevent a required state set at the top-level field
+        $config['required'] = false;
 
         parent::__construct($config);
     }
@@ -338,7 +345,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
         $values = [];
 
-        if ($this->displayType !== 'calendar') {
+        if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
             foreach ($props as $k => $format) {
                 $formattedValue = '';
 
@@ -449,7 +456,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function getIsDate(): bool
     {
-        if ($this->displayType === 'calendar') {
+        if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if ($this->getFieldByHandle('date')?->enabled && !$this->getFieldByHandle('time')?->enabled) {
                 return true;
             }
@@ -472,7 +479,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function getIsTime(): bool
     {
-        if ($this->displayType === 'calendar') {
+        if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if (!$this->getFieldByHandle('date')?->enabled && $this->getFieldByHandle('time')?->enabled) {
                 return true;
             }
@@ -495,7 +502,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function getIsDateTime(): bool
     {
-        if ($this->displayType === 'calendar') {
+        if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if ($this->getFieldByHandle('date')?->enabled && $this->getFieldByHandle('time')?->enabled) {
                 return true;
             }
@@ -553,7 +560,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function getFrontEndJsModules(): ?array
     {
-        if ($this->displayType === 'calendar' && $this->useDatePicker) {
+        if ($this->displayType === 'datePicker') {
             $locale = Craft::$app->getLocale()->id;
 
             // Handle language variants
@@ -644,7 +651,8 @@ class Date extends SubField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
-                    ['label' => Craft::t('formie', 'Calendar'), 'value' => 'calendar'],
+                    ['label' => Craft::t('formie', 'Calendar (Simple)'), 'value' => 'calendar'],
+                    ['label' => Craft::t('formie', 'Calendar (Advanced)'), 'value' => 'datePicker'],
                     ['label' => Craft::t('formie', 'Dropdowns'), 'value' => 'dropdowns'],
                     ['label' => Craft::t('formie', 'Text Inputs'), 'value' => 'inputs'],
                 ],
@@ -671,7 +679,7 @@ class Date extends SubField implements PreviewableFieldInterface
                     ],
                     [
                         '$cmp' => 'SubFields',
-                        'if' => '$get(displayType).value == calendar',
+                        'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
                         'props' => [
                             'context' => '$node.context',
                             'type' => static::class,
@@ -686,24 +694,13 @@ class Date extends SubField implements PreviewableFieldInterface
     public function defineSettingsSchema(): array
     {
         return [
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
-                'name' => 'required',
-            ]),
-            SchemaHelper::textField([
-                'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
-                'name' => 'errorMessage',
-                'if' => '$get(required).value',
-            ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Min Date'),
                 'help' => Craft::t('formie', 'Set a minimum date for dates to be picked from.'),
                 'name' => 'minDateOption',
-                'if' => '$get(displayType).value == calendar',
+                'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
                     ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
@@ -756,7 +753,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 'label' => Craft::t('formie', 'Max Date'),
                 'help' => Craft::t('formie', 'Set a maximum date for dates to be picked up to.'),
                 'name' => 'maxDateOption',
-                'if' => '$get(displayType).value == calendar',
+                'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
                     ['label' => Craft::t('formie', 'Today‘s Date/Time'), 'value' => 'today'],
@@ -809,7 +806,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 'label' => Craft::t('formie', 'Available Days'),
                 'help' => Craft::t('formie', 'Choose which days of the week should be available.'),
                 'name' => 'availableDaysOfWeek',
-                'if' => '$get(displayType).value == calendar',
+                'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
                 'options' => $this->getWeekDayNamesOptions(),
                 'showAllOption' => true,
             ]),
@@ -822,7 +819,7 @@ class Date extends SubField implements PreviewableFieldInterface
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::subFieldLabelPosition([
-                'if' => '$get(displayType).value != calendar',
+                'if' => '$get(displayType).value != calendar && $get(displayType).value != datePicker',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Date Format'),
@@ -838,19 +835,13 @@ class Date extends SubField implements PreviewableFieldInterface
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
-            SchemaHelper::lightswitchField([
-                'label' => Craft::t('formie', 'Use Date Picker'),
-                'help' => Craft::t('formie', 'Whether this field should use the bundled cross-browser date picker ([Flatpickr.js docs](https://flatpickr.js.org)) when rendering this field.'),
-                'name' => 'useDatePicker',
-                'if' => '$get(displayType).value == calendar',
-            ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Date Picker Options'),
                 'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
                 'name' => 'datePickerOptions',
                 'generateValue' => false,
                 'validation' => 'min:0',
-                'if' => '$get(displayType).value == calendar && $get(useDatePicker).value',
+                'if' => '$get(displayType).value == datePicker',
                 'newRowDefaults' => [
                     'label' => '',
                     'value' => '',
@@ -878,7 +869,7 @@ class Date extends SubField implements PreviewableFieldInterface
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField([
-                'if' => '$get(displayType).value == calendar',
+                'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
             ]),
         ];
     }
@@ -998,7 +989,7 @@ class Date extends SubField implements PreviewableFieldInterface
         $dataId = $this->getHtmlDataId($form);
 
         // If using multiple fields, switch to fieldset. Basically anything other than a datepicker
-        if (!$this->useDatePicker) {
+        if ($this->displayType !== 'datePicker') {
             if ($key === 'fieldContainer') {
                 return new HtmlTag('fieldset', [
                     'class' => 'fui-fieldset fui-subfield-fieldset',
@@ -1020,7 +1011,7 @@ class Date extends SubField implements PreviewableFieldInterface
             }
         }
 
-        if ($key === 'fieldInput' && $this->useDatePicker && $this->displayType == 'calendar') {
+        if ($key === 'fieldInput' && $this->displayType === 'datePicker') {
             return new HtmlTag('input', [
                 'type' => 'text',
                 'id' => $id,
@@ -1284,9 +1275,6 @@ class Date extends SubField implements PreviewableFieldInterface
 
     protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        // Disable the date picker in the control panel, and defer to Craft's date/time picker
-        $this->useDatePicker = false;
-
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/input', [
             'name' => $this->handle,
             'value' => $value,
