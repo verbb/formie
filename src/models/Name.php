@@ -45,7 +45,7 @@ class Name extends Model
     public function __toString()
     {
         if ($this->isMultiple) {
-            return $this->getName();
+            return $this->getFullName();
         }
 
         return (string)$this->name;
