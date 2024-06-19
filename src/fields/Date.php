@@ -196,7 +196,7 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function hasSubFields(): bool
     {
-        return $this->displayType !== 'calendar';
+        return !in_array($this->displayType, ['dropdowns', 'inputs']);
     }
 
     public function getFormBuilderSettings(): array
@@ -227,6 +227,14 @@ class Date extends SubField implements PreviewableFieldInterface
             $fieldLayout = new FieldLayout();
             $fieldLayout->setPages([['rows' => $this->getCalendarSubFields()]]);
             $settings['layouts']['calendar'] = $fieldLayout->getFormBuilderConfig()[0]['rows'] ?? [];
+        }
+
+        if ($this->displayType === 'datePicker') {
+            $settings['layouts']['datePicker'] = $settings['rows'];
+        } else {
+            $fieldLayout = new FieldLayout();
+            $fieldLayout->setPages([['rows' => $this->getCalendarSubFields()]]);
+            $settings['layouts']['datePicker'] = $fieldLayout->getFormBuilderConfig()[0]['rows'] ?? [];
         }
 
         return $settings;
@@ -308,7 +316,7 @@ class Date extends SubField implements PreviewableFieldInterface
                     $value = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hour, $minute, $second);
                 }
             }
-        } else if ($this->displayType === 'calendar') {
+        } else if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             if (is_array($value)) {
                 $value = array_filter($value);
             }
@@ -679,11 +687,20 @@ class Date extends SubField implements PreviewableFieldInterface
                     ],
                     [
                         '$cmp' => 'SubFields',
-                        'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
+                        'if' => '$get(displayType).value == calendar',
                         'props' => [
                             'context' => '$node.context',
                             'type' => static::class,
                             'layoutKey' => 'layouts.calendar',
+                        ],
+                    ],
+                    [
+                        '$cmp' => 'SubFields',
+                        'if' => '$get(displayType).value == datePicker',
+                        'props' => [
+                            'context' => '$node.context',
+                            'type' => static::class,
+                            'layoutKey' => 'layouts.datePicker',
                         ],
                     ],
                 ],
@@ -1041,6 +1058,10 @@ class Date extends SubField implements PreviewableFieldInterface
     protected function defineSubFields(): array
     {
         $fields = [];
+
+        if ($this->displayType == 'datePicker') {
+            return $this->getCalendarSubFields();
+        }
 
         if ($this->displayType == 'calendar') {
             return $this->getCalendarSubFields();
