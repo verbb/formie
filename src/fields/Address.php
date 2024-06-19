@@ -167,8 +167,8 @@ class Address extends SubField implements PreviewableFieldInterface
 
             // Reset any disabled fields that might have content to null
             foreach ($this->getFields() as $field) {
-                if ($field->getIsDisabled()) {
-                    $name->{$field->handle} = null;
+                if ($field->getIsDisabled() && property_exists($address, $field->handle)) {
+                    $address->{$field->handle} = null;
                 }
             }
 

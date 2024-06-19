@@ -142,7 +142,7 @@ class Name extends SubField implements PreviewableFieldInterface
 
             // Reset any disabled fields that might have content to null
             foreach ($this->getFields() as $field) {
-                if ($field->getIsDisabled()) {
+                if ($field->getIsDisabled() && property_exists($name, $field->handle)) {
                     $name->{$field->handle} = null;
                 }
             }
