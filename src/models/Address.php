@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\fields\data\OptionData;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 
@@ -19,10 +20,29 @@ class Address extends Model
     public ?string $state = null;
     public ?string $zip = null;
     public ?string $country = null;
+    public ?string $countryOption = null;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Country should use the label, not value given it's a dropdown
+        if (isset($config['country']) && $config['country'] instanceof OptionData) {
+            $countryValue = $config['country']->value ?? '';
+
+            if ($countryValue) {
+                $countryOptions = $config['country']->getOptions();
+
+                if ($countryOption = ArrayHelper::firstWhere($countryOptions, 'value', $countryValue)) {
+                    $config['countryOption'] = $countryOption->label ?? '';
+                }
+            }
+        }
+
+        parent::__construct($config);
+    }
 
     public function __toString()
     {
@@ -37,7 +57,7 @@ class Address extends Model
             StringHelper::trim($this->city ?? ''),
             StringHelper::trim($this->state ?? ''),
             StringHelper::trim($this->zip ?? ''),
-            StringHelper::trim($this->country ?? ''),
+            StringHelper::trim($this->countryOption ?? ''),
         ]);
 
         return implode(', ', $address);
