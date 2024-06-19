@@ -3,9 +3,11 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 
@@ -101,5 +103,44 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
                 ),
             ]),
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getValueLabel(mixed $value): string
+    {
+        if ($value) {
+            if ($countryOption = ArrayHelper::firstWhere($this->getCountryOptions(), 'value', $value)) {
+                return $countryOption['label'] ?? '';
+            }
+        }
+
+        return '';
     }
 }

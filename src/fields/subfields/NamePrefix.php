@@ -4,9 +4,11 @@ namespace verbb\formie\fields\subfields;
 use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\Dropdown;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
+use craft\base\ElementInterface;
 
 use yii\base\Event;
 
@@ -60,5 +62,44 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         Event::trigger(static::class, self::EVENT_MODIFY_PREFIX_OPTIONS, $event);
 
         return $event->options;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getValueLabel(mixed $value): string
+    {
+        if ($value) {
+            if ($prefixOption = ArrayHelper::firstWhere($this->getDefaultOptions(), 'value', $value)) {
+                return $prefixOption['label'] ?? '';
+            }
+        }
+
+        return '';
     }
 }
