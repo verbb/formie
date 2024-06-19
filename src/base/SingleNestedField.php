@@ -55,7 +55,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             $isEmpty = $field->isValueEmpty($value, $element);
 
             // No need to validate if the field is conditionally hidden or disabled
-            if ($field->isConditionallyHidden($element) || !$field->enabled) {
+            if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                 continue;
             }
 
@@ -144,7 +144,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = [];
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $valueAsString = $field->getValueAsString($subValue, $element);
 
@@ -160,7 +160,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = [];
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $valueAsJson = $field->getValueAsJson($subValue, $element);
 
@@ -176,7 +176,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = [];
 
-        foreach ($this->getFields() as $field) {
+        foreach ($this->getEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $valueForExport = $field->getValueForExport($subValue, $element);
 
@@ -198,11 +198,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = '';
 
-        foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
-                continue;
-            }
-
+        foreach ($this->getEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $html = $field->getValueForSummary($subValue, $element);
 

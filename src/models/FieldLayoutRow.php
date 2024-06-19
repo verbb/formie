@@ -73,7 +73,7 @@ class FieldLayoutRow extends SavableComponent
     public function getFields(bool $includeDisabled = true, bool $includeHidden = true): array
     {
         foreach ($this->_fields as $fieldKey => $field) {
-            if (!$includeDisabled && ($field->visibility === 'disabled' || !$field->enabled)) {
+            if (!$includeDisabled && $field->getIsDisabled()) {
                 unset($this->_fields[$fieldKey]);
             }
 

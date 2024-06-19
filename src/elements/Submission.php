@@ -1196,7 +1196,7 @@ class Submission extends CustomElement
             foreach ($fields as $field) {
                 $attribute = "field:$field->handle";
 
-                if (!$field->enabled) {
+                if ($field->getIsDisabled()) {
                     continue;
                 }
 

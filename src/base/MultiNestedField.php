@@ -81,7 +81,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 $isEmpty = $field->isValueEmpty($subValue, $element);
 
                 // No need to validate if the field is conditionally hidden or disabled
-                if ($field->isConditionallyHidden($element) || !$field->enabled) {
+                if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                     continue;
                 }
 
@@ -198,7 +198,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields() as $field) {
+            foreach ($this->getEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
 
@@ -219,7 +219,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields() as $field) {
+            foreach ($this->getEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
 
@@ -240,7 +240,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = [];
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields() as $field) {
+            foreach ($this->getEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
 
@@ -267,14 +267,10 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = '';
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getFields() as $field) {
+            foreach ($this->getEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
                 
-                if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element)) {
-                    continue;
-                }
-
                 $subValue = $element->getFieldValue("$this->handle.$rowKey.$field->handle");
                 $html = $field->getValueForSummary($subValue, $element);
 

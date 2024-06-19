@@ -166,6 +166,36 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $this->getFields();
     }
 
+    public function getVisibleFields(ElementInterface $element = null): array
+    {
+        $fields = [];
+
+        foreach ($this->getFields() as $field) {
+            if ($field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                continue;
+            }
+
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
+    public function getEnabledFields(ElementInterface $element = null): array
+    {
+        $fields = [];
+
+        foreach ($this->getFields() as $field) {
+            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                continue;
+            }
+
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
     public function getFieldLayout(): FieldLayout
     {
         if ($this->_fieldLayout) {
