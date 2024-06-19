@@ -823,9 +823,33 @@ class Date extends SubField implements PreviewableFieldInterface
                 'label' => Craft::t('formie', 'Available Days'),
                 'help' => Craft::t('formie', 'Choose which days of the week should be available.'),
                 'name' => 'availableDaysOfWeek',
-                'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
+                'if' => '$get(displayType).value == datePicker',
                 'options' => $this->getWeekDayNamesOptions(),
                 'showAllOption' => true,
+            ]),
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Date Picker Options'),
+                'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
+                'name' => 'datePickerOptions',
+                'generateValue' => false,
+                'validation' => 'min:0',
+                'if' => '$get(displayType).value == datePicker',
+                'newRowDefaults' => [
+                    'label' => '',
+                    'value' => '',
+                ],
+                'columns' => [
+                    [
+                        'type' => 'label',
+                        'label' => Craft::t('formie', 'Option'),
+                        'class' => 'singleline-cell textual',
+                    ],
+                    [
+                        'type' => 'value',
+                        'label' => Craft::t('formie', 'Value'),
+                        'class' => 'code singleline-cell textual',
+                    ],
+                ],
             ]),
         ];
     }
@@ -852,30 +876,6 @@ class Date extends SubField implements PreviewableFieldInterface
             ]),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
-            SchemaHelper::tableField([
-                'label' => Craft::t('formie', 'Date Picker Options'),
-                'help' => Craft::t('formie', 'Add any additional options for the date picker to use. For available options, refer to the [Flatpickr.js docs](https://flatpickr.js.org/options/).'),
-                'name' => 'datePickerOptions',
-                'generateValue' => false,
-                'validation' => 'min:0',
-                'if' => '$get(displayType).value == datePicker',
-                'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                ],
-                'columns' => [
-                    [
-                        'type' => 'label',
-                        'label' => Craft::t('formie', 'Option'),
-                        'class' => 'singleline-cell textual',
-                    ],
-                    [
-                        'type' => 'value',
-                        'label' => Craft::t('formie', 'Value'),
-                        'class' => 'code singleline-cell textual',
-                    ],
-                ],
-            ]),
         ];
     }
 
