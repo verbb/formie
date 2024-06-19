@@ -3,6 +3,7 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
+use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
@@ -10,7 +11,6 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\fields\data\MultiOptionsFieldData;
 use craft\helpers\Localization;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
