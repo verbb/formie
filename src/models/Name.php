@@ -32,7 +32,7 @@ class Name extends Model
 
         if (isset($config['prefix']) && $config['prefix']) {
             $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $config['prefix']);
-            $this->prefixOption = $prefixOption['label'] ?? '';
+            $config['prefixOption'] = $prefixOption['label'] ?? '';
         }
 
         parent::__construct($config);
