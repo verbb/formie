@@ -288,6 +288,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->visibility === 'hidden';
     }
 
+    public function getIsDisabled(): bool
+    {
+        return !$this->enabled || $this->visibility === 'disabled';
+    }
+
     public function getIsRequired(): ?bool
     {
         return $this->required;
