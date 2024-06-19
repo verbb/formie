@@ -194,6 +194,22 @@ class Date extends SubField implements PreviewableFieldInterface
         }
     }
 
+    public function getIsRequired(): ?bool
+    {
+        // Calendar-based fields might not have their sub-fields visible, but could be required. Best to show a required
+        // state on the outer field.
+        if (in_array($this->displayType, ['calendar', 'datePicker'])) {
+            foreach ($this->getFields() as $field) {
+                if ($field->getIsRequired()) {
+                    return true;
+                }
+            }
+        }
+
+        // Nested fields themselves can't be required, only their inner fields can
+        return parent::getIsRequired();
+    }
+
     public function hasSubFields(): bool
     {
         return !in_array($this->displayType, ['dropdowns', 'inputs']);
