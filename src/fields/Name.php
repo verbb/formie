@@ -407,10 +407,7 @@ class Name extends SubField implements PreviewableFieldInterface
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        if ($this->useMultipleFields) {
-            return parent::defineValueAsString($value, $element);
-        }
-
+        // Always return a string for the "full name" value.
         return (string)$value;
     }
 
