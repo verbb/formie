@@ -132,7 +132,7 @@
 
                 {% if field.countryEnabled %}
                     <div class="fui-col-auto">
-                        {% set countries = [{ label: 'Select an option' | t('formie'), value: '' }] | merge(field.countryOptions) %}
+                        {% set countries = [{ label: 'Select an option' | t('formie'), value: '' }] | merge(field.getCountryOptionsForDisplay()) %}
 
                         {{ forms.selectField({
                             label: field.countryLabel,
