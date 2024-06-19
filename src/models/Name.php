@@ -29,8 +29,11 @@ class Name extends Model
     {
         // Prefix should use the label, not value given it's a dropdown
         $prefixOptions = NameField::getPrefixOptions();
-        $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', ($config['prefix'] ?? ''));
-        $this->prefixOption = $prefixOption['label'] ?? '';
+
+        if (isset($config['prefix']) && $config['prefix']) {
+            $prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $config['prefix']);
+            $this->prefixOption = $prefixOption['label'] ?? '';
+        }
 
         parent::__construct($config);
     }
