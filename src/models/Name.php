@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\fields\data\OptionData;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 
@@ -12,6 +13,7 @@ class Name extends Model
     // =========================================================================
 
     public ?string $prefix = null;
+    public ?string $prefixOption = null;
     public ?string $firstName = null;
     public ?string $middleName = null;
     public ?string $lastName = null;
@@ -21,6 +23,24 @@ class Name extends Model
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Prefix should use the label, not value given it's a dropdown
+        if (isset($config['prefix']) && $config['prefix'] instanceof OptionData) {
+            $prefixValue = $config['prefix']->value ?? '';
+
+            if ($prefixValue) {
+                $prefixOptions = $config['prefix']->getOptions();
+
+                if ($prefixOption = ArrayHelper::firstWhere($prefixOptions, 'value', $prefixValue)) {
+                    $config['prefixOption'] = $prefixOption->label ?? '';
+                }
+            }
+        }
+
+        parent::__construct($config);
+    }
 
     public function __toString()
     {
@@ -52,7 +72,7 @@ class Name extends Model
         }
 
         $name = ArrayHelper::filterEmptyStringsFromArray([
-            StringHelper::trim($this->prefix ?? ''),
+            StringHelper::trim($this->prefixOption ?? ''),
             StringHelper::trim($this->firstName ?? ''),
             StringHelper::trim($this->middleName ?? ''),
             StringHelper::trim($this->lastName ?? ''),

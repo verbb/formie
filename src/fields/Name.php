@@ -427,11 +427,8 @@ class Name extends SubField implements PreviewableFieldInterface
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
-        if ($this->useMultipleFields) {
-            return parent::defineValueForSummary($value, $element);
-        }
-
-        return $value;
+        // Always return a string for the summary, which makes sense given a "name" value.
+        return (string)$value;
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
