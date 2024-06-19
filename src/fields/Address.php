@@ -165,6 +165,13 @@ class Address extends SubField implements PreviewableFieldInterface
                 $address->country = null;
             }
 
+            // Reset any disabled fields that might have content to null
+            foreach ($this->getFields() as $field) {
+                if ($field->getIsDisabled()) {
+                    $name->{$field->handle} = null;
+                }
+            }
+
             return $address;
         }
 
