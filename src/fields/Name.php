@@ -8,6 +8,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\gql\types\NameType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
@@ -18,6 +19,7 @@ use verbb\formie\models\FieldLayout;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Name as NameModel;
+use verbb\formie\models\Notification;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
@@ -167,6 +169,15 @@ class Name extends SubField implements PreviewableFieldInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
             'field' => $this,
         ]);
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if ($this->useMultipleFields) {
+            return parent::getValueForVariable($value, $submission, $notification);
+        }
+
+        return (string)$value;
     }
 
     public function getSettingGqlTypes(): array

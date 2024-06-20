@@ -68,6 +68,8 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
                 foreach ($fieldValues as $key => $fieldValue) {
                     $values[$subField->handle][$key] = $fieldValue;
                 }
+            } else {
+                $values[$subField->handle] = $fieldValues;
             }
         }
 
