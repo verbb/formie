@@ -5,10 +5,35 @@ use verbb\formie\fields\data\OptionData;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 
+use Craft;
 use craft\base\Model;
+
+use CommerceGuys\Addressing\Country\CountryRepository;
 
 class Address extends Model
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function getCountries(string $indexBy = 'code'): array
+    {
+        $locale = Craft::$app->getLocale()->getLanguageID();
+        $repo = new CountryRepository($locale);
+
+        return $indexBy === 'name' ? array_flip($repo->getList()) : $repo->getList();
+    }
+
+    public static function codeToName(string $code): ?string
+    {
+        return self::getCountries('code')[$code] ?? null;
+    }
+
+    public static function nameToCode(string $name): ?string
+    {
+        return self::getCountries('name')[$name] ?? null;
+    }
+
+
     // Properties
     // =========================================================================
 

@@ -531,7 +531,7 @@ class Address extends SubField implements PreviewableFieldInterface
             'city' => $faker->city,
             'zip' => $faker->postcode,
             'state' => $faker->state,
-            'country' => $faker->country,
+            'country' => AddressModel::nameToCode($faker->country),
         ]);
     }
 
