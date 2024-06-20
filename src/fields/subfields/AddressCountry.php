@@ -59,8 +59,6 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 
     public function options(): array
     {
-        $options = [['value' => '', 'label' => $this->placeholder, 'disabled' => true]];
-
         foreach (static::getCountryOptions() as $country) {
             $label = ($this->optionLabel === 'short') ? $country['value'] : $country['label'];
             $value = ($this->optionValue === 'short') ? $country['value'] : $country['label'];
