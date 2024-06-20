@@ -66,7 +66,9 @@ abstract class Element extends Integration
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
-                $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+                if (is_string($event->value)) {
+                    $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
+                }
             }
 
             // For Date fields as a destination, convert to UTC from system time
