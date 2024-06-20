@@ -2,10 +2,12 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -62,6 +64,12 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         Event::trigger(static::class, self::EVENT_MODIFY_PREFIX_OPTIONS, $event);
 
         return $event->options;
+    }
+
+    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Craft::dd([$value, $this->_getValueLabel($value)]);
+        return $this->_getValueLabel($value);
     }
 
 

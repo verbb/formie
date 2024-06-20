@@ -451,7 +451,7 @@ class Name extends SubField implements PreviewableFieldInterface
         if ($this->useMultipleFields) {
             return new NameModel([
                 'isMultiple' => true,
-                'prefix' => $faker->title,
+                'prefix' => strtolower(str_replace(['.', ','], '', $faker->title)),
                 'firstName' => $faker->firstName,
                 'middleName' => $faker->firstName,
                 'lastName' => $faker->lastName,
