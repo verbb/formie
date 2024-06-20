@@ -88,19 +88,19 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
                 'label' => Craft::t('formie', 'Option Label'),
                 'help' => Craft::t('formie', 'Select the format for the dropdown option label.'),
                 'name' => 'optionLabel',
-                'options' => array_merge(
-                    [['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full']],
-                    [['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short']],
-                ),
+                'options' => [
+                    ['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full'],
+                    ['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short'],
+                ],
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Option Value'),
                 'help' => Craft::t('formie', 'Select the format for the dropdown option value.'),
                 'name' => 'optionValue',
-                'options' => array_merge(
-                    [['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full']],
-                    [['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short']],
-                ),
+                'options' => [
+                    ['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full'],
+                    ['label' => Craft::t('formie', 'Abbreviated Country Name (e.g. US)'), 'value' => 'short'],
+                ],
             ]),
         ];
     }
