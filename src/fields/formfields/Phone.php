@@ -217,7 +217,7 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             $errorMessage = $this->errorMessage ?? '"{label}" cannot be blank.';
 
             if (StringHelper::isBlank((string)$value->number)) {
-                $element->addError($this->handle, Craft::t('formie', $errorMessage, [
+                $element->addError($this->handle . '.number', Craft::t('formie', $errorMessage, [
                     'label' => $this->name,
                 ]));
             }
