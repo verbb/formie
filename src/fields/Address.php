@@ -525,7 +525,7 @@ class Address extends SubField implements PreviewableFieldInterface
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return new AddressModel([
-            'address1' => $faker->address,
+            'address1' => $faker->streetAddress,
             'address2' => $faker->buildingNumber,
             'address3' => $faker->streetSuffix,
             'city' => $faker->city,
