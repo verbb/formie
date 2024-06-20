@@ -237,20 +237,12 @@ class Date extends SubField implements PreviewableFieldInterface
             $settings['layouts']['inputs'] = $fieldLayout->getFormBuilderConfig()[0]['rows'] ?? [];
         }
 
-        if ($this->displayType === 'calendar') {
+        if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
             $settings['layouts']['calendar'] = $settings['rows'];
         } else {
             $fieldLayout = new FieldLayout();
             $fieldLayout->setPages([['rows' => $this->getCalendarSubFields()]]);
             $settings['layouts']['calendar'] = $fieldLayout->getFormBuilderConfig()[0]['rows'] ?? [];
-        }
-
-        if ($this->displayType === 'datePicker') {
-            $settings['layouts']['datePicker'] = $settings['rows'];
-        } else {
-            $fieldLayout = new FieldLayout();
-            $fieldLayout->setPages([['rows' => $this->getCalendarSubFields()]]);
-            $settings['layouts']['datePicker'] = $fieldLayout->getFormBuilderConfig()[0]['rows'] ?? [];
         }
 
         return $settings;
@@ -709,20 +701,11 @@ class Date extends SubField implements PreviewableFieldInterface
                     ],
                     [
                         '$cmp' => 'SubFields',
-                        'if' => '$get(displayType).value == calendar',
+                        'if' => '$get(displayType).value == calendar || $get(displayType).value == datePicker',
                         'props' => [
                             'context' => '$node.context',
                             'type' => static::class,
                             'layoutKey' => 'layouts.calendar',
-                        ],
-                    ],
-                    [
-                        '$cmp' => 'SubFields',
-                        'if' => '$get(displayType).value == datePicker',
-                        'props' => [
-                            'context' => '$node.context',
-                            'type' => static::class,
-                            'layoutKey' => 'layouts.datePicker',
                         ],
                     ],
                 ],

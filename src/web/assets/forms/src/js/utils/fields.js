@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, isObject } from 'lodash-es';
 
 import { newId } from '@utils/string';
 
@@ -28,6 +28,26 @@ export const clonedFieldSettings = function(field) {
                     delete nestedField.settings.rowId;
                 });
             }
+        });
+    }
+
+    // Another situation is for sub-fields that have their own layout
+    if (settings.layouts && isObject(settings.layouts)) {
+        Object.entries(settings.layouts).forEach(([layoutKey, layout]) => {
+            layout.forEach((layoutRow) => {
+                delete layoutRow.id;
+                delete layoutRow.layoutId;
+                delete layoutRow.pageId;
+
+                if (layoutRow.fields && Array.isArray(layoutRow.fields)) {
+                    layoutRow.fields.forEach((layoutField) => {
+                        delete layoutField.id;
+                        delete layoutField.settings.layoutId;
+                        delete layoutField.settings.pageId;
+                        delete layoutField.settings.rowId;
+                    });
+                }
+            });
         });
     }
 
