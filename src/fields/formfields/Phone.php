@@ -136,6 +136,12 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return parent::serializeValue($value, $element);
     }
 
+    public function isValueEmpty(mixed $value, ElementInterface $element): bool
+    {
+        // Ensure that we're checking the string representation of a number's "empty" state
+        return (string)$value === '';
+    }
+
     public function getFrontEndJsModules(): ?array
     {
         if ($this->countryEnabled) {

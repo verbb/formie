@@ -76,12 +76,6 @@ class Phone extends Model
                     return $countryString . $this->number;
                 }
 
-                if ($this->country) {
-                    return Craft::t('formie', '({country}) Not provided.', [
-                        'country' => $this->country,
-                    ]);
-                }
-
                 return '';
             }
         } else {
