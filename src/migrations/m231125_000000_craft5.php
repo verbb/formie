@@ -333,12 +333,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 }
 
                 foreach ($submissionContent as $submissionId => $fieldContent) {
-                    $submissionContent = (new Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId])->scalar();
-                    $submissionContent = Json::decode($submissionContent);
+                    $newContent = (new Query())->select('content')->from(Table::FORMIE_SUBMISSIONS)->where(['id' => $submissionId])->scalar();
+                    $newContent = Json::decode($newContent);
 
-                    $submissionContent = array_merge($submissionContent, $fieldContent);
+                    $newContent = array_merge($newContent, $fieldContent);
 
-                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($submissionContent, $this->db)], ['id' => $submissionId]);
+                    Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($newContent, $this->db)], ['id' => $submissionId]);
 
                     echo '    > Updated Submission ' . $submissionId . ' content for nested content.' . PHP_EOL;
                 }
