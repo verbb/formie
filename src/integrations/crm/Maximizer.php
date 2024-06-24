@@ -341,6 +341,7 @@ class Maximizer extends Crm
                     'handle' => $handle,
                     'name' => $name,
                     'type' => $this->_convertFieldType($type),
+                    'sourceType' => $type,
                 ]);
             }
         }

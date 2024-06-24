@@ -650,6 +650,7 @@ class Pardot extends Crm
                 'handle' => $field['field_id'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
             ]);
         }
 

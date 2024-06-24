@@ -322,6 +322,7 @@ class Autopilot extends EmailMarketing
                 'handle' => $field['fieldType'] . '--' . str_replace(' ', '--', $field['name']),
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['fieldType']),
+                'sourceType' => $field['fieldType'],
             ]);
         }
 

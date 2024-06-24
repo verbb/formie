@@ -250,6 +250,7 @@ class Monday extends Miscellaneous
                 'handle' => $column['type'] . ':' . $column['id'],
                 'name' => $column['title'],
                 'type' => $column['type'],
+                'sourceType' => $column['type'],
                 'required' => $required,
                 'options' => $options,
             ]);

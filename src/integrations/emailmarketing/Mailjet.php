@@ -224,6 +224,7 @@ class Mailjet extends EmailMarketing
                 'handle' => $field['Name'],
                 'name' => $field['Name'],
                 'type' => $this->_convertFieldType($field['Datatype']),
+                'sourceType' => $field['Datatype'],
                 'options' => $options,
             ]);
         }

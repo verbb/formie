@@ -336,6 +336,7 @@ class Mailchimp extends EmailMarketing
                 'handle' => $field['tag'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
                 'required' => $field['required'],
             ]);
         }

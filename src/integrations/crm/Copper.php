@@ -678,6 +678,7 @@ class Copper extends Crm
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['data_type']),
+                'sourceType' => $field['data_type'],
             ]);
         }
 

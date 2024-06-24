@@ -253,6 +253,7 @@ class Campaign extends EmailMarketing
                 'handle' => $field->handle,
                 'name' => $field->name,
                 'type' => $this->_convertFieldType(get_class($field)),
+                'sourceType' => get_class($field),
                 'required' => (bool)$field->required,
             ]);
         }

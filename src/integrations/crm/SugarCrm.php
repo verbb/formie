@@ -429,6 +429,7 @@ class SugarCrm extends Crm
                 'handle' => $key,
                 'name' => $name,
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
             ]);
         }
 

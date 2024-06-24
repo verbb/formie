@@ -536,6 +536,7 @@ class Agile extends Crm
                 'handle' => 'custom:' . $field['name'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
             ]);
         }
 

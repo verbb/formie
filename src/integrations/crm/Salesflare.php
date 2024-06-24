@@ -212,6 +212,7 @@ class Salesflare extends Crm
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['type']['type']),
+                'sourceType' => $field['type']['type'],
                 'required' => $field['required'],
             ]);
         }

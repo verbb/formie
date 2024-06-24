@@ -182,6 +182,7 @@ class MailerLite extends EmailMarketing
                 'handle' => (string)$field['key'],
                 'name' => $field['title'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
             ]);
         }
 

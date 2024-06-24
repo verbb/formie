@@ -278,6 +278,7 @@ class IContact extends EmailMarketing
                 'handle' => $field['customFieldId'],
                 'name' => $field['publicName'],
                 'type' => $this->_convertFieldType($field['fieldType']),
+                'sourceType' => $field['fieldType'],
             ]);
         }
 

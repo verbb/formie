@@ -603,6 +603,7 @@ class HubSpot extends Crm
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['fieldType']),
+                'sourceType' => $field['fieldType'],
                 'options' => $options,
             ]);
         }
