@@ -92,6 +92,13 @@ export class FormieRepeater {
                 $row,
             },
         }));
+
+        // Trigger a lazy global event, to allow other things to pick up on an initialized row.
+        // This is most useful for conditions, where already initialized rows won't be picked up due to race conditions.
+        this.form.triggerEvent('repeater:initRow', {
+            repeater: this,
+            $row,
+        });
     }
 
     addRow() {

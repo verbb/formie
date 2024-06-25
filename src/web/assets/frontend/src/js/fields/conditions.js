@@ -12,10 +12,8 @@ export class FormieConditions {
         this.initFieldConditions(this.$form);
 
         // Handle dynamic fields like Repeater, which should be evaluated when added
-        this.$form.querySelectorAll('[data-field-type="repeater"]').forEach(($field) => {
-            $field.addEventListener('initRow', (e) => {
-                this.initFieldConditions(e.detail.$row);
-            });
+        this.form.registerEvent('repeater:initRow', (e) => {
+            this.initFieldConditions(e.$row);
         });
     }
 
