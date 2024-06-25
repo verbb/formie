@@ -39,6 +39,13 @@ export class FormieRepeater {
             });
         }
 
+        // Create any minRows automatically if the field is empty
+        if ((!$rows || !$rows.length) && this.minRows) {
+            for (let i = 0; i < this.minRows; i++) {
+                this.addRow();
+            }
+        }
+
         // Emit an "init" event
         this.$field.dispatchEvent(new CustomEvent('init', {
             bubbles: true,
