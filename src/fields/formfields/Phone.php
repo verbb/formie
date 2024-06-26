@@ -86,6 +86,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
             return Schema::TYPE_TEXT;
         }
 
+        // Content encryption can make field content quite large
+        if ($this->enableContentEncryption) {
+            return Schema::TYPE_TEXT;
+        }
+
         return Schema::TYPE_STRING;
     }
 

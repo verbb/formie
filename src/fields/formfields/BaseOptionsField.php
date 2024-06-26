@@ -100,6 +100,11 @@ abstract class BaseOptionsField extends CraftBaseOptionsField
         if (Formie::$plugin->getSettings()->enableLargeFieldStorage) {
             return Schema::TYPE_TEXT;
         }
+
+        // Content encryption can make field content quite large
+        if ($this->enableContentEncryption) {
+            return Schema::TYPE_TEXT;
+        }
         
         // Don't fallback on the Craft default, as that can potentially set the field to CHAR(1) if no options
         // are set, and people want to dynamically populate the options in Twig.

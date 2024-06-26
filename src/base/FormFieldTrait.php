@@ -36,6 +36,8 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\HandleValidator;
 
+use yii\db\Schema;
+
 use GraphQL\Type\Definition\Type;
 
 use Twig\Markup;
@@ -163,6 +165,16 @@ trait FormFieldTrait
     public function getValue(ElementInterface $element): mixed
     {
         return $element->getFieldValue($this->handle);
+    }
+
+    public function getContentColumnType(): string
+    {
+        // Content encryption can make field content quite large
+        if ($this->enableContentEncryption) {
+            return Schema::TYPE_TEXT;
+        }
+        
+        return parent::getContentColumnType();
     }
 
     /**
