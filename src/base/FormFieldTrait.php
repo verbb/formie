@@ -659,6 +659,7 @@ trait FormFieldTrait
         $defaults = [
             'labelPosition' => '',
             'instructionsPosition' => '',
+            'includeInEmail' => true,
         ];
 
         // Combine any class-specified defaults
