@@ -133,6 +133,7 @@ class Number extends FormField implements PreviewableFieldInterface
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
+        $rules[] = ['number', 'min' => $this->min, 'max' => $this->max];
 
         if ($this->uniqueValue) {
             $rules[] = 'validateUniqueValue';
