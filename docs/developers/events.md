@@ -1689,6 +1689,38 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_SEND_PAYLOAD, function(SendIn
 });
 ```
 
+### The `modifyPaymentPayload` event
+The event that is triggered for Payment integrations, before sends its payload to the provider. Each provider may provide different events and objects to modify as part of the payment process.
+
+```php
+use verbb\formie\events\ModifyPaymentPayloadEvent;
+use verbb\formie\integrations\payments\Stripe;
+use yii\base\Event;
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_SINGLE_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a single payment
+});
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_SUBSCRIPTION_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a subscription payment
+});
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_PLAN_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a subscription payment, when creating the plan
+});
+```
 
 
 ## Integration Connection Events
