@@ -559,6 +559,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 'handle' => $field['field_id'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
             ]);
         }
 

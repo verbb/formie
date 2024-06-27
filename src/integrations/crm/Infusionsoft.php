@@ -276,6 +276,7 @@ class Infusionsoft extends Crm implements OAuthProviderInterface
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['field_type']),
+                'sourceType' => $field['field_type'],
             ]);
         }
 

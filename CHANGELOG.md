@@ -6,12 +6,15 @@
 - Added “Calendar (Simple)” and “Calendar (Advanced)” to Date field display types, replacing “Use Date Picker”.
 - Added `Field::isDisabled`.
 - Added CSS Layers support for front-end CSS.
+- Added `sourceType` for all integration custom fields to check against the provider-defined field type.
+- Added Company mapping support for HubSpot CRM integration.
 
 ### Changed
 - Date fields now show the required state on the outer label for Calendar and Date Picker display types.
 - Moved options field data classes to Formie from Craft.
 - Name field values now return the full name including prefix and middle name (if provided).
 - Address Country and Name Prefix fields now use their respective label values for string representations of their value.
+- Changed the default state of “Include in Email Notifications” for fields to be `true`.
 
 ### Fixed
 - Fixed Repeater fields and conditions registration.
@@ -34,6 +37,13 @@
 - Fixed Name fields not using their full name value for Summary fields.
 - Fixed Dynamics365 integration not working with custom fields.
 - Fixed deprecated call to `Field::name`.
+- Fixed an error with some fields when enabling content encryption.
+- Fixed Pipedrive integration for "Multiple Options" (set) fields.
+- Fixed server-side validation for Phone fields on Ajax-based forms not showing correctly.
+- Fixed an error with Element integrations when mapping to an element select field type on the resulting element.
+- Fixed Phone field validation for empty state.
+- Fixed a typo in Turnstile appearance settings.
+- Fixed Address field country values not showing correctly when editing a submission in the control panel.
 
 ## 3.0.0-beta.15 - 2024-06-15
 
@@ -569,6 +579,26 @@
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
+
+## 2.1.20 - 2024-06-27
+
+### Added
+- Added `sourceType` for all integration custom fields to check against the provider-defined field type.
+- Added Company mapping support for HubSpot CRM integration.
+
+### Changed
+- Changed the default state of “Include in Email Notifications” for fields to be `true`.
+
+### Fixed
+- Fixed an error with some fields when enabling content encryption.
+- Fixed Pipedrive integration for "Multiple Options" (set) fields.
+- Fixed server-side validation for Phone fields on Ajax-based forms not showing correctly.
+- Fixed an error with Element integrations when mapping to an element select field type on the resulting element.
+- Fixed Phone field validation for empty state.
+- Fixed a typo in Turnstile appearance settings.
+- Fixed Address field country values not showing correctly when editing a submission in the control panel.
+- Fixed Name field Prefix not using the label for its content.
+- Fixed Name fields not using their full name value for Summary fields.
 
 ## 2.1.19 - 2024-06-15
 

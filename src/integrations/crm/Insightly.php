@@ -381,6 +381,7 @@ class Insightly extends Crm
                 'handle' => 'custom:' . $field['FIELD_NAME'],
                 'name' => $field['FIELD_LABEL'],
                 'type' => $this->_convertFieldType($field['FIELD_TYPE']),
+                'sourceType' => $field['FIELD_TYPE'],
             ]);
         }
 

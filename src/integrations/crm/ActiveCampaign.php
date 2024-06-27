@@ -544,6 +544,7 @@ class ActiveCampaign extends Crm
                 'handle' => (string)$field['id'],
                 'name' => $fieldName,
                 'type' => $this->_convertFieldType($fieldType),
+                'sourceType' => $fieldType,
             ]);
         }
 

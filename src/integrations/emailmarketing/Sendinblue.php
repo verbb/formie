@@ -230,6 +230,7 @@ class Sendinblue extends EmailMarketing
                 'handle' => $field['name'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
                 'options' => $options,
             ]);
         }

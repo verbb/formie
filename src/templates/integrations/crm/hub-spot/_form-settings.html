@@ -84,6 +84,33 @@
         </div>
 
         {{ forms.lightswitchField({
+            label: 'Map to Company' | t('formie'),
+            instructions: 'Whether to map form data to {name} Companies.' | t('formie', { name: integration.displayName() }),
+            id: 'mapToCompany',
+            name: 'mapToCompany',
+            on: mapToCompany,
+            toggle: 'map-to-company',
+        }) }}
+
+        <div id="map-to-company" class="{{ not mapToCompany ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Company Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Company fields.' | t('formie', { name: integration.displayName() }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="company-field-mapping"
+                name="companyFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.companyFieldMapping')"
+                :rows="get(settings, 'company')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
             label: 'Map to Form' | t('formie'),
             instructions: 'Whether to map form data to {name} Forms.' | t('formie', { name: integration.displayName() }),
             id: 'mapToForm',
@@ -144,34 +171,6 @@
                 </ul>
             </div>
         </div>
-
-        {#
-        {{ forms.lightswitchField({
-            label: 'Map to Company' | t('formie'),
-            instructions: 'Whether to map form data to {name} Companies.' | t('formie', { name: integration.displayName() }),
-            id: 'mapToCompany',
-            name: 'mapToCompany',
-            on: mapToCompany,
-            toggle: 'map-to-company',
-        }) }}
-
-        <div id="map-to-company" class="{{ not mapToCompany ? 'hidden' }}">
-            <integration-field-mapping
-                label="{{ 'Company Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Company fields.' | t('formie', { name: integration.displayName() }) }}"
-                name-label="{{ integration.displayName() }}"
-                id="company-field-mapping"
-                name="companyFieldMapping"
-                :value="get(form, 'settings.integrations.{{ handle }}.companyFieldMapping')"
-                :rows="get(settings, 'company')"
-            ></integration-field-mapping>
-
-            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping'))" class="errors" v-cloak>
-                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping')" :key="index">
-                    ${ error }
-                </li>
-            </ul>
-        </div>
-        #}
+        
     </template>
 </integration-form-settings>

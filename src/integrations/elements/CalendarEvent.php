@@ -207,6 +207,7 @@ class CalendarEvent extends Element
                             'handle' => $field->handle,
                             'name' => $field->name,
                             'type' => $this->getFieldTypeForField(get_class($field)),
+                            'sourceType' => get_class($field),
                         ]);
                     }
                 }

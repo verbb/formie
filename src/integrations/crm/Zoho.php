@@ -404,6 +404,7 @@ class Zoho extends Crm implements OAuthProviderInterface
                 'handle' => $field['api_name'],
                 'name' => $field['field_label'],
                 'type' => $this->_convertFieldType($fieldType),
+                'sourceType' => $fieldType,
                 'required' => $field['system_mandatory'] ?? false,
                 'options' => $options,
             ]);

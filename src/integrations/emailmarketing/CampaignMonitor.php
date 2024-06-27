@@ -252,6 +252,7 @@ class CampaignMonitor extends EmailMarketing
                 'handle' => str_replace(['[', ']'], '', $field['Key']),
                 'name' => $field['FieldName'],
                 'type' => $this->_convertFieldType($field['DataType']),
+                'sourceType' => $field['DataType'],
             ]);
         }
 

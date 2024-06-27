@@ -391,6 +391,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 'handle' => (string)$handle,
                 'name' => (string)$name,
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
                 'options' => $options,
             ]);
         }

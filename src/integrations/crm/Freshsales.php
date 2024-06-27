@@ -674,6 +674,7 @@ class Freshsales extends Crm
                 'handle' => 'custom:' . $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
                 'required' => $field['required'],
             ]);
         }

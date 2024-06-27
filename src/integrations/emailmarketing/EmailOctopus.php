@@ -196,6 +196,7 @@ class EmailOctopus extends EmailMarketing
                 'handle' => $field['tag'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
                 'required' => $required,
             ]);
         }

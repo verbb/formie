@@ -263,6 +263,7 @@ class Scoro extends Crm
                 'handle' => 'custom:' . $field['id'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
             ]);
         }
 

@@ -649,6 +649,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
                 'required' => !$field['nillable'],
                 'options' => $options,
             ]);

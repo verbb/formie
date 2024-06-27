@@ -217,6 +217,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
                 'handle' => $field['custom_field_id'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
             ]);
         }
 

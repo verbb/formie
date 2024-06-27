@@ -313,6 +313,7 @@ class SharpSpring extends Crm
                 'handle' => $field['systemName'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['dataType']),
+                'sourceType' => $field['dataType'],
                 'required' => (bool)$field['isRequired'],
             ]);
         }

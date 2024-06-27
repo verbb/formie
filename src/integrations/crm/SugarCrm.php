@@ -404,6 +404,7 @@ class SugarCrm extends Crm implements OAuthProviderInterface
                 'handle' => $key,
                 'name' => $name,
                 'type' => $this->_convertFieldType($type),
+                'sourceType' => $type,
             ]);
         }
 

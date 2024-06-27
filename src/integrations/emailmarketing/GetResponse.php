@@ -201,6 +201,7 @@ class GetResponse extends EmailMarketing
                 'handle' => $field['customFieldId'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['fieldType']),
+                'sourceType' => $field['fieldType'],
             ]);
         }
 

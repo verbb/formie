@@ -254,6 +254,7 @@ class Recruitee extends Miscellaneous
                     'handle' => 'open_questions:' . $typeKey . ':' . $openQuestion['id'],
                     'name' => $openQuestion['body'],
                     'type' => $this->_convertFieldType($openQuestion['kind']),
+                    'sourceType' => $openQuestion['kind'],
                     'options' => $options,
                 ]);
             }

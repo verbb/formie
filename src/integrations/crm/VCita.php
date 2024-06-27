@@ -250,6 +250,7 @@ class VCita extends Crm
                 'handle' => $field['label'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
                 'required' => $field['required'],
             ]);
         }

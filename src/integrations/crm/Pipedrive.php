@@ -63,6 +63,15 @@ class Pipedrive extends Crm
                     $event->value = [$event->value['number']];
                 }
             }
+
+            // Special handling for "Multiple Options" (set) Pipedrive fields, which expect an ID of the option as a numeric value
+            if ($event->integrationField->sourceType === 'set') {
+                if (is_array($event->value)) {
+                    foreach ($event->value as $key => $value) {
+                        $event->value[$key] = (int)$value;
+                    }
+                }
+            }
         });
     }
 
@@ -565,6 +574,7 @@ class Pipedrive extends Crm
                 'handle' => $field['key'],
                 'name' => $field['name'],
                 'type' => $this->_convertFieldType($field['field_type']),
+                'sourceType' => $field['field_type'],
                 'required' => $required,
                 'options' => $options,
             ]);
