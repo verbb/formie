@@ -1,5 +1,40 @@
 # Changelog
 
+## 3.0.0-beta.16 - 2024-06-27
+
+### Added
+- Added “Calendar (Simple)” and “Calendar (Advanced)” to Date field display types, replacing “Use Date Picker”.
+- Added `Field::isDisabled`.
+- Added CSS Layers support for front-end CSS.
+
+### Changed
+- Date fields now show the required state on the outer label for Calendar and Date Picker display types.
+- Moved options field data classes to Formie from Craft.
+- Name field values now return the full name including prefix and middle name (if provided).
+- Address Country and Name Prefix fields now use their respective label values for string representations of their value.
+
+### Fixed
+- Fixed Repeater fields and conditions registration.
+- Fixed Repeater fields with a “Minimum instances” setting not having their rows initialized properly.
+- Fixed an error during Craft 5 migration.
+- Fixed cloning Date fields not having their sub-field layouts cloned correctly.
+- Fixed double placeholder for Address country sub-field.
+- Fixed Address field Country not showing correctly in email notifications.
+- Fixed Name field Prefix not showing correctly in email notifications.
+- Fixed Name fields not displaying in email notifications correctly.
+- Fixed Address street value in email notification preview.
+- Fixed Date fields (DatePicker types) not handling their required sub-field states correctly.
+- Fixed Date field “Available Days” setting showing for simple calendar display type.
+- Fixed string representation of Name field values including commas.
+- Fixed Address field’s Country value not populating correctly.
+- Fixed Address and Name field values not reflecting disabled sub-fields.
+- Fixed Name Prefix fields content using the value instead of label.
+- Fixed Sub-Fields not factoring in disabled or hidden fields into their resulting content.
+- Fixed Name field Prefix not using the label for its content.
+- Fixed Name fields not using their full name value for Summary fields.
+- Fixed Dynamics365 integration not working with custom fields.
+- Fixed deprecated call to `Field::name`.
+
 ## 3.0.0-beta.15 - 2024-06-15
 
 ### Added
