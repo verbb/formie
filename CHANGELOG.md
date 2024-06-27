@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.1.20 - 2024-06-27
+
+### Added
+- Added `sourceType` for all integration custom fields to check against the provider-defined field type.
+- Added Company mapping support for HubSpot CRM integration.
+
+### Changed
+- Changed the default state of “Include in Email Notifications” for fields to be `true`.
+
+### Fixed
+- Fixed an error with some fields when enabling content encryption.
+- Fixed Pipedrive integration for "Multiple Options" (set) fields.
+- Fixed server-side validation for Phone fields on Ajax-based forms not showing correctly.
+- Fixed an error with Element integrations when mapping to an element select field type on the resulting element.
+- Fixed Phone field validation for empty state.
+- Fixed a typo in Turnstile appearance settings.
+- Fixed Address field country values not showing correctly when editing a submission in the control panel.
+- Fixed Name field Prefix not using the label for its content.
+- Fixed Name fields not using their full name value for Summary fields.
+
 ## 2.1.19 - 2024-06-15
 
 ### Added
