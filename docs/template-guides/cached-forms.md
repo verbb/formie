@@ -56,9 +56,6 @@ Let's take a look at some examples in action.
 
 {{ craft.formie.renderForm(form) }}
 
-{# Ensure we load polyfills for older browsers that don't support `fetch()` #}
-<script src="https://cdn.polyfill.io/v2/polyfill.js?features=fetch,Promise"></script>
-
 <script>
     // Wait until the DOM is ready
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -142,9 +139,6 @@ Which we can use in our callback to find the hidden `<input>` elements, and upda
 {% set form = craft.formie.forms.handle('contactForm').one() %}
 
 {{ craft.formie.renderForm(form) }}
-
-{# Ensure we load polyfills for older browsers that don't support `fetch()` #}
-<script src="https://cdn.polyfill.io/v2/polyfill.js?features=fetch,Promise"></script>
 
 <script>
     // Wait until the DOM is ready
