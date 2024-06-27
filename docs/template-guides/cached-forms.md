@@ -58,9 +58,6 @@ While we recommend using our `Formie.refreshForCache` function, you're more than
 
 {{ craft.formie.renderForm(form) }}
 
-{# Ensure we load polyfills for older browsers that don't support `fetch()` #}
-<script src="https://cdn.polyfill.io/v2/polyfill.js?features=fetch,Promise"></script>
-
 <script>
     // Wait until the DOM is ready
     document.addEventListener('DOMContentLoaded', (event) => {
