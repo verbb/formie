@@ -3,20 +3,6 @@ Formie provides a collection of events for extending its functionality. Modules 
 
 ## Form Events
 
-### The `modifyFormCaptchas` event
-The event that is triggered to allow modification of captchas for a specific form.
-
-```php
-use verbb\formie\elements\Form;
-use verbb\formie\events\ModifyFormCaptchasEvent;
-use yii\base\Event;
-
-Event::on(Form::class, Form::EVENT_MODIFY_FORM_CAPTCHAS, function(ModifyFormCaptchasEvent $event) {
-    $captchas = $event->captchas;
-    // ...
-});
-```
-
 ### The `beforeSaveForm` event
 The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
 
@@ -1551,6 +1537,34 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
 });
 ```
 
+### The `modifyFormIntegrations` event
+The event that is triggered when all enabled integrations for a form is prepared for the front-end. This does not change the settings shown for the integration in the form builder.
+
+```php
+use verbb\formie\events\ModifyFormIntegrationsEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, function(ModifyFormIntegrationsEvent $event) {
+    $integrations = $event->integrations;
+    // ...
+});
+```
+
+### The `modifyFormIntegration` event
+The event that is triggered when an integration instance is created for a form. If you want to modify the settings of an integration for a form, this would be a good event to do so.
+
+```php
+use verbb\formie\events\ModifyFormIntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATION, function(ModifyFormIntegrationEvent $event) {
+    $integration = $event->integration;
+    // ...
+});
+```
+
 ### The `beforeSaveIntegration` event
 The event that is triggered before an integration is saved.
 
@@ -1667,6 +1681,38 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_SEND_PAYLOAD, function(SendIn
 });
 ```
 
+### The `modifyPaymentPayload` event
+The event that is triggered for Payment integrations, before sends its payload to the provider. Each provider may provide different events and objects to modify as part of the payment process.
+
+```php
+use verbb\formie\events\ModifyPaymentPayloadEvent;
+use verbb\formie\integrations\payments\Stripe;
+use yii\base\Event;
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_SINGLE_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a single payment
+});
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_SUBSCRIPTION_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a subscription payment
+});
+
+Event::on(Stripe::class, Stripe::EVENT_MODIFY_PLAN_PAYLOAD, function(ModifyPaymentPayloadEvent $event) {
+    $submission = $event->submission;
+    $payload = $event->payload;
+    $integration = $event->integration;
+
+    // Modify the payload sent to Stripe for a subscription payment, when creating the plan
+});
+```
 
 
 ## Integration Connection Events
@@ -1707,8 +1753,8 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_CHECK_CONNECTION, function(In
 
 
 ## Integration Form Settings Events
-
 The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+
 
 ### The `beforeFetchFormSettings` event
 The event that is triggered before an integration fetches its available settings for the form settings.

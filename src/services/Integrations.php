@@ -7,6 +7,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\events\IntegrationEvent;
+use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\helpers\ArrayHelper;
@@ -51,6 +52,7 @@ class Integrations extends Component
 
     public const EVENT_REGISTER_INTEGRATIONS = 'registerFormieIntegrations';
     public const EVENT_MODIFY_FORM_INTEGRATIONS = 'modifyFormIntegrations';
+    public const EVENT_MODIFY_FORM_INTEGRATION = 'modifyFormIntegration';
     public const EVENT_BEFORE_SAVE_INTEGRATION = 'beforeSaveIntegration';
     public const EVENT_AFTER_SAVE_INTEGRATION = 'afterSaveIntegration';
     public const EVENT_BEFORE_DELETE_INTEGRATION = 'beforeDeleteIntegration';
@@ -493,13 +495,25 @@ class Integrations extends Component
 
         foreach ($this->getAllCaptchas() as $key => $captcha) {
             if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
-                $grouped[$captcha->typeName()][] = $captcha;
+                // Fire a 'modifyFormIntegration' event
+                $event = new ModifyFormIntegrationEvent([
+                    'integration' => $captcha,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+
+                $grouped[$captcha->typeName()][] = $event->integration;
             }
         }
 
         foreach ($this->getAllIntegrations() as $key => $integration) {
             if ($integration->getEnabled() && $integration->hasFormSettings()) {
-                $grouped[$integration->typeName()][] = $integration;
+                // Fire a 'modifyFormIntegration' event
+                $event = new ModifyFormIntegrationEvent([
+                    'integration' => $integration,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+
+                $grouped[$integration->typeName()][] = $event->integration;
             }
         }
 
