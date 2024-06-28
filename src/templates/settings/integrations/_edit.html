@@ -138,7 +138,7 @@
                 </div>
             {% else %}
                 <div class="heading">
-                    <span class="status"></span>{{ 'Not connected' | t('formie') }}
+                    <span class="status disabled"></span>{{ 'Not connected' | t('formie') }}
                 </div>
 
                 <div class="input ltr">
@@ -155,7 +155,7 @@
             {# Placeholder until Vue kicks in #}
             <div class="field lightswitch-field fui-connect" v-if="false">
                 <div class="heading">
-                    <span class="status {{ connected ? 'on' : '' }}"></span>
+                    <span class="status {{ connected ? 'on' : 'disabled' }}"></span>
                     <span>{{ (connected ? 'Connected' : 'Not connected') | t('formie') }}</span>
                 </div>
 

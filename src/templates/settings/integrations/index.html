@@ -56,18 +56,18 @@ var columns = [
     },
     { name: 'enabled', title: Craft.t('formie', 'Enabled'), callback: function(value) {
             if (value) {
-                return '<span class="status on"></span>' + Craft.t('formie', 'Enabled');
+                return '<div style="align-items: center; display: flex;"><span class="status on"></span>' + Craft.t('formie', 'Enabled') + '</div>';
             } else {
-                return '<span class="status"></span>' + Craft.t('formie', 'Disabled');
+                return '<div style="align-items: center; display: flex;"><span class="status disabled"></span>' + Craft.t('formie', 'Disabled') + '</div>';
             }
         }
     },
     {% if supportsConnection %}
         { name: 'connected', title: Craft.t('formie', 'Connected'), callback: function(value) {
                 if (value) {
-                    return '<span class="status on"></span>' + Craft.t('formie', 'Connected');
+                    return '<div style="align-items: center; display: flex;"><span class="status on"></span>' + Craft.t('formie', 'Connected') + '</div>';
                 } else {
-                    return '<span class="status"></span>' + Craft.t('formie', 'Not connected');
+                    return '<div style="align-items: center; display: flex;"><span class="status disabled"></span>' + Craft.t('formie', 'Not connected') + '</div>';
                 }
             }
         },

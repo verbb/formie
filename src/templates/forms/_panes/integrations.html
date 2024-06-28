@@ -27,9 +27,9 @@
                                         {% set enabled = form.settings.integrations[handle].enabled ?? false %}
 
                                         {% if enabled %}
-                                            <span class="status on"></span>
+                                            <span class="status disabled on"></span>
                                         {% else %}
-                                            <span class="status"></span>
+                                            <span class="status disabled"></span>
                                         {% endif %}
                                     </a>
                                 </li>
@@ -111,9 +111,9 @@ $('[data-target="integration-enabled"]').each(function(index, element) {
             var handle = $lightswitch.data('integration');
 
             if (lightswitch.on) {
-                $('.tab[data-integration="' + handle + '"] .status').addClass('on');
+                $('.tab[data-integration="' + handle + '"] .status').addClass('on').removeClass('disabled');
             } else {
-                $('.tab[data-integration="' + handle + '"] .status').removeClass('on');
+                $('.tab[data-integration="' + handle + '"] .status').removeClass('on').addClass('disabled');
             }
         }
     });
