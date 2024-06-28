@@ -1559,6 +1559,20 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
 });
 ```
 
+### The `modifyFormIntegrations` event
+The event that is triggered when an integration instance is created for a form. If you want to modify the settings of an integration for a form, this would be a good event to do so.
+
+```php
+use verbb\formie\events\ModifyFormIntegrationsEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, function(ModifyFormIntegrationsEvent $event) {
+    $integrations = $event->integrations;
+    // ...
+});
+```
+
 ### The `beforeSaveIntegration` event
 The event that is triggered before an integration is saved.
 
@@ -1747,8 +1761,8 @@ Event::on(Mailchimp::class, Mailchimp::EVENT_AFTER_CHECK_CONNECTION, function(In
 
 
 ## Integration Form Settings Events
-
 The below events an example using the `Mailchimp` class, but any class that inherits from the `verbb\formie\base\Integration` class can use these events.
+
 
 ### The `beforeFetchFormSettings` event
 The event that is triggered before an integration fetches its available settings for the form settings.
