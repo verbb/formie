@@ -7,7 +7,6 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -46,7 +45,6 @@ class Opayo extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubFields';
 
     // https://stripe.com/docs/currencies#zero-decimal
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
@@ -113,20 +111,6 @@ class Opayo extends Payment
         }
 
         return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
-    }
-
-    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
-    {
-        if (!$this->hasValidSettings()) {
-            return '';
-        }
-
-        $this->setField($field);
-
-        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/opayo/_input', [
-            'field' => $field,
-            'renderOptions' => $renderOptions,
-        ]);
     }
 
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
@@ -612,7 +596,7 @@ class Opayo extends Payment
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Cardholder Name'),
+                    'label' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
                     'inputAttributes' => [
@@ -634,7 +618,7 @@ class Opayo extends Payment
             [
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Card Number'),
+                    'label' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
                     'placeholder' => '•••• •••• •••• ••••',
@@ -655,7 +639,7 @@ class Opayo extends Payment
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'Expiry'),
+                    'label' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
                     'placeholder' => 'MMYY',
@@ -676,7 +660,7 @@ class Opayo extends Payment
                 ],
                 [
                     'type' => SingleLineText::class,
-                    'name' => Craft::t('formie', 'CVC'),
+                    'label' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,
                     'placeholder' => '•••',
@@ -709,14 +693,7 @@ class Opayo extends Payment
             }
         }
 
-        $event = new ModifyFrontEndSubFieldsEvent([
-            'field' => $this,
-            'rows' => $subFields,
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
-
-        return $event->rows;
+        return $subFields;
     }
 
 
