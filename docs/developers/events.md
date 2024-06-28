@@ -4,20 +4,6 @@ Formie provides a multitude of events for extending its functionality. Modules a
 
 ## Form Events
 
-### The `modifyFormCaptchas` event
-The event that is triggered to allow modification of captchas for a specific form.
-
-```php
-use verbb\formie\elements\Form;
-use verbb\formie\events\ModifyFormCaptchasEvent;
-use yii\base\Event;
-
-Event::on(Form::class, Form::EVENT_MODIFY_FORM_CAPTCHAS, function(ModifyFormCaptchasEvent $event) {
-    $captchas = $event->captchas;
-    // ...
-});
-```
-
 ### The `beforeSaveForm` event
 The event that is triggered before a form is saved. You can set `$event->isValid` to false to prevent saving.
 
