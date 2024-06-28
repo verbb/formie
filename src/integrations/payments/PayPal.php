@@ -65,20 +65,6 @@ class PayPal extends Payment
         return App::parseEnv($this->clientId) && App::parseEnv($this->clientSecret);
     }
 
-    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
-    {
-        if (!$this->hasValidSettings()) {
-            return '';
-        }
-
-        $this->setField($field);
-
-        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/paypal/_input', [
-            'field' => $field,
-            'renderOptions' => $renderOptions,
-        ]);
-    }
-
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {

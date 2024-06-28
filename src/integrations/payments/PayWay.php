@@ -71,20 +71,6 @@ class PayWay extends Payment
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
-    {
-        if (!$this->hasValidSettings()) {
-            return '';
-        }
-
-        $this->setField($field);
-
-        return Craft::$app->getView()->renderTemplate('formie/integrations/payments/payway/_input', [
-            'field' => $field,
-            'renderOptions' => $renderOptions,
-        ]);
-    }
-
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         if (!$this->hasValidSettings()) {
