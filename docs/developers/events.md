@@ -1560,7 +1560,7 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
 ```
 
 ### The `modifyFormIntegrations` event
-The event that is triggered when an integration instance is created for a form. If you want to modify the settings of an integration for a form, this would be a good event to do so.
+The event that is triggered when all enabled integrations for a form is prepared for the front-end. This does not change the settings shown for the integration in the form builder.
 
 ```php
 use verbb\formie\events\ModifyFormIntegrationsEvent;
@@ -1569,6 +1569,20 @@ use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATIONS, function(ModifyFormIntegrationsEvent $event) {
     $integrations = $event->integrations;
+    // ...
+});
+```
+
+### The `modifyFormIntegration` event
+The event that is triggered when an integration instance is created for a form. If you want to modify the settings of an integration for a form, this would be a good event to do so.
+
+```php
+use verbb\formie\events\ModifyFormIntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_MODIFY_FORM_INTEGRATION, function(ModifyFormIntegrationEvent $event) {
+    $integration = $event->integration;
     // ...
 });
 ```
