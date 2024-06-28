@@ -19,6 +19,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
@@ -35,7 +36,7 @@ use yii\db\Schema;
 use DateTime;
 use DateTimeZone;
 
-class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface
+class Date extends FormField implements SubfieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

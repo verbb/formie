@@ -10,9 +10,10 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\errors\InvalidFieldException;
 
-class SingleLineText extends FormField implements PreviewableFieldInterface
+class SingleLineText extends FormField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

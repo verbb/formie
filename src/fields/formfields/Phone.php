@@ -13,6 +13,7 @@ use verbb\formie\models\Phone as PhoneModel;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
@@ -22,7 +23,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface
+class Phone extends FormField implements SubfieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Traits
     // =========================================================================

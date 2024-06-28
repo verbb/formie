@@ -9,6 +9,7 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\db\Query;
 use craft\helpers\ArrayHelper;
 
@@ -16,7 +17,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\validators\EmailValidator;
 
-class Email extends FormField implements PreviewableFieldInterface
+class Email extends FormField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

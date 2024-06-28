@@ -13,6 +13,7 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 use craft\web\View;
@@ -20,7 +21,7 @@ use craft\web\View;
 use Throwable;
 use DateTime;
 
-class Hidden extends FormField implements PreviewableFieldInterface
+class Hidden extends FormField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

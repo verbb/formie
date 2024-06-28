@@ -10,12 +10,13 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
 use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
-class MultiLineText extends FormField implements PreviewableFieldInterface
+class MultiLineText extends FormField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

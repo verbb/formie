@@ -10,8 +10,9 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
-class Password extends FormField implements PreviewableFieldInterface
+class Password extends FormField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

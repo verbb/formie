@@ -7,13 +7,14 @@ use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Localization;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 
-class Dropdown extends BaseOptionsField implements FormFieldInterface
+class Dropdown extends BaseOptionsField implements FormFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

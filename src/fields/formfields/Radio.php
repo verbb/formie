@@ -8,10 +8,11 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\SortableFieldInterface;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\StringHelper;
 
-class Radio extends BaseOptionsField implements FormFieldInterface
+class Radio extends BaseOptionsField implements FormFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
