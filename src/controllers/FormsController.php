@@ -371,7 +371,7 @@ class FormsController extends Controller
     public function actionRefreshTokens(): Response
     {
         // Ensure that the session has started, just in case
-        Session::exists();
+        Craft::$app->getSession()->open();
 
         $params = [
             'csrf' => [
