@@ -394,6 +394,9 @@ class FormsController extends Controller
             }
         }
 
+        // Prevent the browser from caching the response
+        $this->response->setNoCacheHeaders();
+
         return $this->asJson($params);
     }
 
