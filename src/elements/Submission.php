@@ -1125,6 +1125,9 @@ class Submission extends CustomElement
 
         $record->save(false);
 
+        // Reset cache as we might be acting on statuses below
+        $this->_status = null;
+
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
 
