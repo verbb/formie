@@ -383,7 +383,7 @@ class User extends Element
         $passwordFieldHandle = $this->attributeMapping['newPassword'] ?? '';
 
         if ($passwordFieldHandle) {
-            $passwordFieldHandle = str_replace(['{', '}'], ['', ''], $passwordFieldHandle);
+            $passwordFieldHandle = str_replace(['{field:', '}'], ['', ''], $passwordFieldHandle);
 
             // Find the form field
             if ($form = $submission->getForm()) {
