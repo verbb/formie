@@ -8,9 +8,9 @@ class FormCondition extends ElementCondition
     // Protected Methods
     // =========================================================================
     
-    protected function conditionRuleTypes(): array
+    protected function selectableConditionRules(): array
     {
-        $rules = parent::conditionRuleTypes();
+        $rules = parent::selectableConditionRules();
 
         $rules[] = PageCountConditionRule::class;
 
