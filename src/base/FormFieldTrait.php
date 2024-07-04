@@ -1660,7 +1660,7 @@ trait FormFieldTrait
     private static function _getReservedWords(): array
     {
         $reservedWords = [
-            ['form', 'field', 'submission'],
+            ['form', 'field', 'submission', 'status'],
         ];
 
         try {
