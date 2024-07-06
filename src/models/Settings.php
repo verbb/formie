@@ -9,6 +9,7 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\FileHelper;
 
 use yii\validators\EmailValidator;
 
@@ -88,6 +89,8 @@ class Settings extends Model
     // Captcha settings are stored in Project Config, but otherwise private
     public array $captchas = [];
 
+    // Export
+    public string $defaultExportFolder = '@storage/formie-export';
 
     // Public Methods
     // =========================================================================
@@ -191,5 +194,14 @@ class Settings extends Model
         $rules[] = [['alertEmails'], 'validateAlertEmails'];
 
         return $rules;
+    }
+
+    public function getAbsoluteDefaultExportFolder(): ?string
+    {
+        $path = Craft::getAlias( $this->defaultExportFolder );
+        $exportFolder = FileHelper::normalizePath($path);
+        FileHelper::createDirectory($exportFolder);
+     
+        return $exportFolder;
     }
 }

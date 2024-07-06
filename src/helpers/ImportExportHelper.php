@@ -22,6 +22,9 @@ use verbb\formie\records\PdfTemplate as PdfTemplateRecord;
 use Craft;
 use craft\elements\Entry;
 use craft\helpers\Json;
+use craft\db\Query;
+
+use yii\base\Exception;
 
 class ImportExportHelper
 {
@@ -218,7 +221,8 @@ class ImportExportHelper
                     foreach ($page['rows'] as $rowKey => &$row) {
                         if (isset($row['fields'])) {
                             foreach ($row['fields'] as $fieldKey => &$field) {
-                                $existingField = $existingFields[$field['handle']] ?? null;
+                              //  dd($field);
+                                $existingField = $existingFields[$field['settings']['handle']] ?? null;
 
                                 if ($existingField) {
                                     $field['id'] = $existingField->id;
@@ -229,7 +233,7 @@ class ImportExportHelper
                                     foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
                                         if (isset($nestedRow['fields'])) {
                                             foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                $existingNestedField = $existingFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
+                                                $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['handle']] ?? null;
 
                                                 if ($existingNestedField) {
                                                     $nestedField['id'] = $existingNestedField->id;
@@ -302,6 +306,53 @@ class ImportExportHelper
         }
 
         return $form;
+    }
+
+    public static function importFormFromJson($json, $formAction = "update"): Form
+    {
+  
+        // Find an existing form with the same handle
+        $existingForm = null;
+        $formHandle = $json['handle'] ?? null;
+
+        if ($formHandle) {
+            $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        }
+
+        // When creating a new form, change the handle
+        if ($formAction === 'create') {
+            $formHandles = (new Query())
+                ->select(['handle'])
+                ->from(Table::FORMIE_FORMS)
+                ->column();
+
+            $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle']);
+        }
+
+        if ($formAction === 'update') {
+            // Update the form (force)
+            $form = self::createFormFromImport($json, $existingForm);
+        } else {
+            // Create the form element, ready to go
+            $form = self::createFormFromImport($json);
+        }
+
+        // Because we also export the UID for forms, we need to check if we're importing a new form, but we've
+        // found a form with the same UID. If this happens, then the original form will be overwritten
+        if ($formAction === 'create') {
+            // Is there already a form that exists with this UID? Then we need to assign a new one.
+            // See discussion https://github.com/verbb/formie/discussions/1696 and actual issue https://github.com/verbb/formie/issues/1725
+            $existingForm = Formie::$plugin->getForms()->getFormByHandle($form->handle);
+
+            if ($existingForm) {
+                $form->uid = StringHelper::UUID();
+            }
+        }
+
+         Craft::$app->getElements()->saveElement($form);
+
+         return $form;
+    
     }
 
 
