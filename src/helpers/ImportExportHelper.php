@@ -232,7 +232,7 @@ class ImportExportHelper
                                     foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
                                         if (isset($nestedRow['fields'])) {
                                             foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['handle']] ?? null;
+                                                $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['settings']['handle']] ?? null;
 
                                                 if ($existingNestedField) {
                                                     $nestedField['id'] = $existingNestedField->id;

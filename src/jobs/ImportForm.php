@@ -2,10 +2,7 @@
 
 namespace verbb\formie\jobs;
 
-
-use Craft;
 use craft\queue\BaseJob;
-use yii\console\ExitCode;
 use craft\helpers\Json;
 use verbb\formie\helpers\ImportExportHelper;
 
@@ -23,7 +20,7 @@ class ImportForm extends BaseJob
         $this->setProgress($queue, 0.33);
 
         if (!$this->fileLocation) {
-            throw new Exception("No file provided :");
+            throw new Exception("No file provided.");
         }
 
         $json = Json::decode(file_get_contents($this->fileLocation));
@@ -34,7 +31,7 @@ class ImportForm extends BaseJob
         // check for errors
         if ($form->getConsolidatedErrors()) {
             $errors = Json::encode($form->getConsolidatedErrors());
-            throw new Exception("Unable to import form {$this->fileLocation}" . PHP_EOL . "Errors: {$errors}");
+            throw new Exception("Unable to import form {$this->fileLocation}" . PHP_EOL . "Errors: {$errors}.");
         }
 
         $this->setProgress($queue, 1);
@@ -43,6 +40,6 @@ class ImportForm extends BaseJob
     protected function defaultDescription(): string
     {
         $fileName = basename($this->fileLocation);
-        return "Import of Json '$fileName'";
+        return "Import of JSON '$fileName'.";
     }
 }

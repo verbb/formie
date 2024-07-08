@@ -104,14 +104,14 @@ class FormsController extends Controller
             }
 
             $elementsText = $count === 1 ? 'form' : 'forms';
-            $this->stdout("Deleting {$count} {$elementsText} for form #{$formId} ..." . PHP_EOL, Console::FG_YELLOW);
+            $this->stdout("Deleting $count $elementsText for form $formId ..." . PHP_EOL, Console::FG_YELLOW);
 
             $elementsService = Craft::$app->getElements();
 
             foreach (Db::each($query) as $element) {
                 $elementsService->deleteElement($element);
 
-                $this->stdout("Deleted form #{$element->id} ..." . PHP_EOL, Console::FG_GREEN);
+                $this->stdout("Deleted form $element->id ..." . PHP_EOL, Console::FG_GREEN);
             }
         }
 
@@ -119,7 +119,7 @@ class FormsController extends Controller
     }
 
     /**
-     * list all possible Formie forms to be exported or imported
+     * List all possible Formie forms to be exported or imported.
      */
     public function actionList($folderPath = null): int
     {
@@ -127,13 +127,13 @@ class FormsController extends Controller
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
         } catch (\Throwable $th) {
-            $this->stderr("Export directory is empty or don't exist" . PHP_EOL, Console::FG_RED);
+            $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (!empty($files)) {
             $listEntries[] = [
-                'title' => 'Json to import:',
+                'title' => 'JSON to import:',
                 'entriesList' => array_map(function ($file) {
                     return [
                         'name' => $file,
@@ -146,10 +146,10 @@ class FormsController extends Controller
         $allForms = Formie::$plugin->getForms()->getAllForms();
         if (!empty($allForms)) {
             $listEntries[] = [
-                'title' => 'formie:',
+                'title' => 'Formie forms:',
                 'entriesList' => array_map(function ($form) {
                     return [
-                        'name' => $form->handle,
+                        'name' => "$form->id: $form->handle",
                         'title' => $form->title
                     ];
                 }, $allForms)
@@ -157,14 +157,14 @@ class FormsController extends Controller
         }
 
         foreach ($listEntries as $entries) {
-            $this->stderr($entries['title'] . PHP_EOL, Console::FG_YELLOW);
+            $this->stdout($entries['title'] . PHP_EOL, Console::FG_YELLOW);
 
             $handleMaxLen = max(array_map('strlen', array_column($entries['entriesList'], 'name')));
 
             foreach ($entries['entriesList'] as $entry) {
-                $this->stderr("- " . $entry['name'], Console::FG_GREEN);
-                $this->stderr(Console::moveCursorTo($handleMaxLen + 5));
-                $this->stderr($entry['title'] . PHP_EOL);
+                $this->stdout("- " . $entry['name'], Console::FG_GREEN);
+                $this->stdout(Console::moveCursorTo($handleMaxLen + 5));
+                $this->stdout($entry['title'] . PHP_EOL);
             }
         }
 
@@ -173,7 +173,7 @@ class FormsController extends Controller
     }
 
     /**
-     * Export Formie forms as json, comma separated list of ids and/or handles
+     * Export Formie forms as JSON. Accepts comma-separated lists of form IDs and/or handles.
      */
     public function actionExport($idsOrHandles = null): int
     {
@@ -189,7 +189,6 @@ class FormsController extends Controller
 
         if (!$formIds) {
             $this->stderr('Unable to find any matching forms.' . PHP_EOL, Console::FG_RED);
-
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -201,7 +200,7 @@ class FormsController extends Controller
         }
 
         $elementsText = $count === 1 ? 'form' : 'forms';
-        $this->stdout("Exporting {$count} {$elementsText} ..." . PHP_EOL, Console::FG_YELLOW);
+        $this->stdout("Exporting $count $elementsText ..." . PHP_EOL, Console::FG_YELLOW);
 
         foreach (Db::each($query) as $element) {
             try {
@@ -209,10 +208,10 @@ class FormsController extends Controller
                 $json = Json::encode($formExport, JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK);
                 $exportPath = $this->generateExportPathByHandle($element->handle);
                 FileHelper::writeToFile($exportPath, $json);
-                $this->stdout("Exporting form #{$element->id} to {$exportPath}" . PHP_EOL, Console::FG_GREEN);
+                $this->stdout("Exporting form $element->id to $exportPath." . PHP_EOL, Console::FG_GREEN);
             } catch (Throwable $e) {
 
-                $this->stderr("Unable to export form #{$element->id}" . PHP_EOL);
+                $this->stderr("Unable to export form $element->id." . PHP_EOL, Console::FG_RED);
                 return ExitCode::UNSPECIFIED_ERROR;
             }
         }
@@ -221,23 +220,31 @@ class FormsController extends Controller
     }
 
     /**
-     * Import a Formie form json from a path.
+     * Import a Formie form JSON from a path.
      */
     public function actionImport($fileLocation = null): int
     {
         if ($fileLocation === null) {
-            $this->stderr('You must provide a path to a Json file' . PHP_EOL, Console::FG_RED);
+            $this->stderr('You must provide a path to a JSON file.' . PHP_EOL, Console::FG_RED);
+            return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (!is_file($fileLocation)) {
-            $this->stderr("No file exists for given path" . PHP_EOL, Console::FG_RED);
+            $this->stderr("No file exists at the given path." . PHP_EOL, Console::FG_RED);
+            return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (strtolower(pathinfo($fileLocation, PATHINFO_EXTENSION)) !== 'json') {
-            $this->stderr("file is not of type Json" . PHP_EOL, Console::FG_RED);
+            $this->stderr("The file is not of type JSON." . PHP_EOL, Console::FG_RED);
+            return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        $json = Json::decode(file_get_contents($fileLocation));
+        try {
+            $json = Json::decode(file_get_contents($fileLocation));
+        } catch (\Exception $e) {
+            $this->stderr("Failed to decode JSON from the file." . PHP_EOL, Console::FG_RED);
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
 
         // default, update existing form
         $formAction = $this->create ? 'create' : 'update';
@@ -246,20 +253,19 @@ class FormsController extends Controller
 
         // check for errors
         if ($form->getConsolidatedErrors()) {
-            $this->stderr("Unable to import form." . PHP_EOL, Console::FG_RED);
+            $this->stderr("Unable to import the form." . PHP_EOL, Console::FG_RED);
             $errors = Json::encode($form->getConsolidatedErrors());
-            $this->stderr("Errors: {$errors}" . PHP_EOL, Console::FG_RED);
-
+            $this->stderr("Errors: $errors" . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
-        $this->stdout("Form {$form->handle} has be {$formAction}." . PHP_EOL, Console::FG_GREEN);
+        $this->stdout("Form $form->handle has be {$formAction}d." . PHP_EOL, Console::FG_GREEN);
 
         return ExitCode::OK;
     }
 
     /**
-     * Import all Formie json from a folder
+     * Import all Formie JSON from a folder.
      */
     public function actionImportAll($folderPath = null): int
     {
@@ -267,12 +273,12 @@ class FormsController extends Controller
         try {
             $files = FileHelper::findFiles($path, ['only' => ['*.json']]);
         } catch (\Throwable $th) {
-            $this->stderr("Export directory is empty or don't exist" . PHP_EOL, Console::FG_RED);
+            $this->stderr("The export directory is empty or does not exist." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (empty($files)) {
-            $this->stderr("No json fund in folder $path" . PHP_EOL, Console::FG_YELLOW);
+            $this->stderr("No JSON files found in folder $path." . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
@@ -287,7 +293,7 @@ class FormsController extends Controller
             ));
 
             $basename = basename($file);
-            $this->stderr("File '{$basename}' has been added to the import queue." . PHP_EOL, Console::FG_GREEN);
+            $this->stdout("File '$basename' has been added to the import queue." . PHP_EOL, Console::FG_GREEN);
         }
 
 
@@ -299,7 +305,7 @@ class FormsController extends Controller
 
     private function generateExportPathByHandle($handle): string
     {
-        return $this->getExportPath() . DIRECTORY_SEPARATOR . "formie-{$handle}.json";
+        return $this->getExportPath() . DIRECTORY_SEPARATOR . "formie-$handle.json";
     }
 
     private function getExportPath(): string
