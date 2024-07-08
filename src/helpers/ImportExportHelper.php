@@ -218,7 +218,7 @@ class ImportExportHelper
                     foreach ($page['rows'] as $rowKey => &$row) {
                         if (isset($row['fields'])) {
                             foreach ($row['fields'] as $fieldKey => &$field) {
-                                $existingField = $existingFields[$field['handle']] ?? null;
+                                $existingField = $existingFields[$field['settings']['handle']] ?? null;
 
                                 if ($existingField) {
                                     $field['id'] = $existingField->id;
@@ -229,7 +229,7 @@ class ImportExportHelper
                                     foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
                                         if (isset($nestedRow['fields'])) {
                                             foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                $existingNestedField = $existingFields[$field['handle'] . '_fields'][$nestedField['handle']] ?? null;
+                                                $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['settings']['handle']] ?? null;
 
                                                 if ($existingNestedField) {
                                                     $nestedField['id'] = $existingNestedField->id;
