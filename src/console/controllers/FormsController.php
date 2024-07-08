@@ -28,17 +28,17 @@ class FormsController extends Controller
     // =========================================================================
 
     /**
-     * @var string form ID as comma separated list
+     * @var string form ID as a comma-separated list
      */
     public ?string $formId = null;
 
     /**
-     * @var string form handle as comma separated list
+     * @var string form handle as a comma-separated list
      */
     public ?string $formHandle = null;
 
     /**
-     * @var bool Create a new form, prevent updateing existing form
+     * @var bool Create a new form, prevent updating an existing form
      */
     public bool $create = false;
 
