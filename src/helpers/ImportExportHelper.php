@@ -221,7 +221,6 @@ class ImportExportHelper
                     foreach ($page['rows'] as $rowKey => &$row) {
                         if (isset($row['fields'])) {
                             foreach ($row['fields'] as $fieldKey => &$field) {
-                              //  dd($field);
                                 $existingField = $existingFields[$field['settings']['handle']] ?? null;
 
                                 if ($existingField) {
