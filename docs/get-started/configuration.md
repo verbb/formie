@@ -115,7 +115,7 @@ return [
 - `themeConfig` - Sets the configuration for theming your form and fields. See below for an example.
 
 ### Export
-- `defaultExportFolder` - Sets the default folder for exported forms via console comandes.
+- `defaultExportFolder` - Sets the default folder for exported forms via console commands.
 
 ## Control Panel
 
