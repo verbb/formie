@@ -656,6 +656,16 @@ class Integrations extends Component
         // Use all integrations + captchas
         $integrations = array_merge($this->getAllIntegrations(), $this->getAllCaptchas());
 
+        foreach ($integrations as $key => $integration) {
+            // Fire a 'modifyFormIntegration' event
+            $event = new ModifyFormIntegrationEvent([
+                'integration' => $integration,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+
+            $integrations[$key] = $event->integration;
+        }
+
         // Find all the form-enabled integrations
         $formIntegrationSettings = $form->settings->integrations ?? [];
         $enabledFormSettings = ArrayHelper::where($formIntegrationSettings, 'enabled', true);
