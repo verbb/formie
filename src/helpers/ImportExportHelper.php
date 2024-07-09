@@ -158,6 +158,9 @@ class ImportExportHelper
                     $existingFields[$existingField->handle . '_fields'] = ArrayHelper::index($existingField->getFields(), 'handle');
                 }
             }
+
+            // Reset the form layout so it's from scratch
+            $form->setFormLayout(new FieldLayout());
         }
 
         if (!$form) {
