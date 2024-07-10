@@ -22,13 +22,16 @@ export class FormiePhoneCountry {
         const options = {
             allowDropdown: true,
             autoHideDialCode: true,
+            autoInsertDialCode: true,
             nationalMode: false,
             preferredCountries: [],
             separateDialCode: true,
+            showSelectedDialCode: true,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
             formatOnDisplay: false,
-            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js',
+            formatAsYouType: false,
+            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.1.1/js/utils.min.js',
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
@@ -43,6 +46,7 @@ export class FormiePhoneCountry {
             // Also put it into national mode for input-ease
             if (options.onlyCountries.length === 1) {
                 options.allowDropdown = false;
+                options.separateDialCode = false;
                 options.nationalMode = true;
             }
 
