@@ -838,6 +838,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('id'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         $notifications = $submission->getForm()->getNotifications();
@@ -866,6 +868,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('submissionId'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         if (!$notification) {
@@ -904,6 +908,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('submissionId'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         if (!$submission) {
