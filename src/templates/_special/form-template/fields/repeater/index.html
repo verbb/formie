@@ -4,7 +4,7 @@
     {% if value %}
         {% for block in value %}
             {{ formieInclude('fields/repeater/_row', {
-                index: block.id ?? ('new' ~ loop.index),
+                index: loop.index0,
             }) }}
         {% endfor %}
     {% endif %}
