@@ -111,8 +111,14 @@ export class FormiePhoneCountry {
 
     registerValidation(e) {
         e.validator.addValidator('phoneCountry', ({ input }) => {
+            const type = input.getAttribute('type');
+
+            if (type !== 'tel') {
+                return true;
+            }
+
             if (input.value.trim() && input.validator) {
-                if (input.validator.isValidNumber()) {
+                if (input.validator.isValidNumber(false)) {
                     const countryData = input.validator.getSelectedCountryData();
                     const selectedCountryCode = countryData.iso2;
 
@@ -134,9 +140,11 @@ export class FormiePhoneCountry {
                     return false;
                 }
             }
+
+            return true;
         }, ({ input }) => {
             const errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
-            const errorCode = input.validator.getValidationError();
+            const errorCode = input.validator ? input.validator.getValidationError() : '';
             const errorMessage = errorMap[errorCode] || 'Invalid number';
 
             return t(errorMessage);
