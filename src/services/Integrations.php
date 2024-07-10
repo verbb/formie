@@ -684,6 +684,7 @@ class Integrations extends Component
         // Fire a 'modifyFormIntegrations' event
         $event = new ModifyFormIntegrationsEvent([
             'integrations' => $enabledIntegrations,
+            'form' => $form,
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
 
