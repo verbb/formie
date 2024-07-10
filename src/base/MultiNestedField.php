@@ -9,6 +9,7 @@ use verbb\formie\base\MultiNestedField;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -151,6 +152,26 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = array_values($values);
 
         return $values;
+    }
+
+    public function populateValue(mixed $value, ?Submission $submission): void
+    {
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Prepare and populate any child field from the parent field
+        foreach ($value as $rowKey => $row) {
+            foreach ($this->getFields() as $field) {
+                if (is_array($row) || $row instanceof Model) {
+                    $subFieldValue = ArrayHelper::getValue($row, $field->handle);
+
+                    $field->populateValue($subFieldValue, $submission);
+                }
+            }
+        }
+
+        parent::populateValue($value, $submission);
     }
 
     public function beforeElementSave(ElementInterface $element, bool $isNew): bool
