@@ -291,14 +291,6 @@ class Date extends SubField implements PreviewableFieldInterface
         return '';
     }
 
-    public function getDefaultValue(string $attributePrefix = ''): mixed
-    {
-        $defaultValue = parent::getDefaultValue($attributePrefix);
-
-        // Ensure default values are treated the same way as normal values
-        return $this->normalizeValue($defaultValue, null);
-    }
-
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if (!$value || $value instanceof DateTime) {

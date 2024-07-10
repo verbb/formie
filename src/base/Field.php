@@ -726,21 +726,13 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $settings;
     }
 
-    public function getDefaultValue(string $attributePrefix = ''): mixed
+    public function getDefaultValue(): mixed
     {
         $defaultValue = null;
-        $defaultValueAttribute = 'defaultValue';
-        $prePopulateAttribute = 'prePopulate';
-
-        // Handle nested fields that supply their own attribute to fetch default values from
-        if ($attributePrefix) {
-            $defaultValueAttribute = "{$attributePrefix}DefaultValue";
-            $prePopulateAttribute = "{$attributePrefix}PrePopulate";
-        }
 
         // Check for a query string is configured
-        if ($this->$prePopulateAttribute) {
-            $queryParam = Craft::$app->getRequest()->getParam($this->$prePopulateAttribute);
+        if ($this->prePopulate) {
+            $queryParam = Craft::$app->getRequest()->getParam($this->prePopulate);
 
             if ($queryParam !== null) {
                 $defaultValue = $this->setPrePopulatedValue($queryParam);
@@ -748,7 +740,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         if (!$defaultValue) {
-            $defaultValue = $this->$defaultValueAttribute;
+            $defaultValue = $this->defaultValue;
 
             // Parse the default value for variables
             if (!is_array($defaultValue) && !is_object($defaultValue)) {

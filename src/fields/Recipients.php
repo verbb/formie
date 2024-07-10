@@ -254,9 +254,9 @@ class Recipients extends Field implements PreviewableFieldInterface
         return null;
     }
 
-    public function getDefaultValue(string $attributePrefix = ''): mixed
+    public function getDefaultValue(): mixed
     {
-        $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
+        $value = parent::getDefaultValue() ?? $this->defaultValue;
 
         // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field option settings.

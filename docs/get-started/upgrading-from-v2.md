@@ -209,7 +209,7 @@ public function setForm(?Form $value): void
 
 // Formie v2 vs Formie v3
 public function getDefaultValue($attributePrefix = '')
-public function getDefaultValue(string $attributePrefix = ''): mixed
+public function getDefaultValue(): mixed
 
 // Formie v2 vs Formie v3
 public function setNamespace($value): void
