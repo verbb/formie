@@ -122,6 +122,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return StringHelper::toKebabCase(static::className());
     }
 
+    public static function lowerClassName(): string
+    {
+        return StringHelper::toLowerCase(static::className());
+    }
+
     public static function phpType(): string
     {
         return 'mixed';
