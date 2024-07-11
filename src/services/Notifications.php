@@ -360,14 +360,14 @@ class Notifications extends Component
             'Content',
         ];
 
-        if ($user->checkPermission('formie-manageNotificationsAdvanced')) {
+        if ($user->checkPermission('formie-showNotificationsAdvanced')) {
             $definedTabs[] = 'Advanced';
         }
 
-        if ($user->checkPermission('formie-manageNotificationsTemplates')) {
+        if ($user->checkPermission('formie-showNotificationsTemplates')) {
             $definedTabs[] = 'Templates';
         }
-
+        
         $definedTabs[] = 'Settings';
         $definedTabs[] = 'Preview';
         $definedTabs[] = 'Conditions';
