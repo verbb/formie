@@ -454,6 +454,9 @@ class Variables
 
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
 
+                // Escape any HTML in field content for good measure
+                $values[$handle] = StringHelper::cleanString((string)$values[$handle]);
+
                 // Special handling for Prefix for a Name field. This can be removed in Formie 2
                 if ($field instanceof formfields\Name && $subfield['handle'] === 'prefix') {
                     $prefixOptions = formfields\Name::getPrefixOptions();
