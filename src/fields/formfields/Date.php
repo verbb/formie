@@ -24,6 +24,7 @@ use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\i18n\Locale;
@@ -146,8 +147,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         if ($this->defaultOption === 'date') {
             if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                // Assume setting to system time for this instance
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, true);
+                // Keep the default date without a timezone (it's saved without one)
+                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false);
 
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
@@ -160,7 +161,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             }
         } else if ($this->defaultOption === 'today') {
             // Assume setting to system time for this instance
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime(), false, true);
+            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
         } else {
             $this->defaultValue = null;
         }
@@ -847,6 +848,16 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         }
 
         return $options;
+    }
+
+    public function beforeSave(bool $isNew): bool
+    {
+        if ($this->defaultValue instanceof DateTime) {
+            // Ensure that the default date has timezone information stripped off
+            $this->defaultValue = Db::prepareDateForDb($this->defaultValue);
+        }
+
+        return parent::beforeSave($isNew);
     }
 
     /**
