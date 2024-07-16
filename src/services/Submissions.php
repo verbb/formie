@@ -30,10 +30,12 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
+use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\helpers\Console;
@@ -86,6 +88,21 @@ class Submissions extends Component
             foreach ($form->getFields() as $field) {
                 if ($field instanceof PreviewableFieldInterface) {
                     $event->attributes["field:{$field->handle}"] = ['label' => $field->label];
+                }
+            }
+        }
+    }
+
+    public function defineSourceSortOptions(DefineSourceSortOptionsEvent $event): void
+    {
+        if ($event->elementType !== Submission::class) {
+            return;
+        }
+
+        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
+            foreach ($form->getFields() as $field) {
+                if ($field instanceof SortableFieldInterface) {
+                    $event->sortOptions["field:{$field->handle}"] = $field->getSortOption();
                 }
             }
         }

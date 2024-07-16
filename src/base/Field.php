@@ -215,6 +215,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     private string $_namespace = 'fields';
     private ?string $_customNamespace = null;
     private ?bool $_isFresh = null;
+    private array $_valueSql = [];
 
 
     // Public Methods
@@ -397,6 +398,23 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     {
         // Default to yii\validators\Validator::isEmpty()'s behavior
         return $value === null || $value === [] || $value === '';
+    }
+
+    public function getValueSql(?string $key = null): ?string
+    {
+        $cacheKey = $key ?? '*';
+        $this->_valueSql[$cacheKey] ??= $this->_valueSql($key) ?? false;
+
+        return $this->_valueSql[$cacheKey] ?: null;
+    }
+
+    public function getSortOption(): array
+    {
+        return [
+            'label' => Craft::t('site', $this->label),
+            'orderBy' => [$this->getValueSql(), 'id'],
+            'attribute' => "field:{$this->handle}",
+        ];
     }
 
     public function getValueAsString(mixed $value, ?ElementInterface $element = null): mixed
@@ -1704,6 +1722,74 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         return array_values(array_unique(array_merge(...$reservedWords)));
+    }
+
+    private function _valueSql(?string $key): ?string
+    {
+        $dbType = static::dbType();
+
+        if ($dbType === null) {
+            return null;
+        }
+
+        if ($key !== null && (!is_array($dbType) || !isset($dbType[$key]))) {
+            throw new InvalidArgumentException(sprintf('%s doesn’t store values under the key “%s”.', __CLASS__, $key));
+        }
+
+        $jsonPath = [$this->uid];
+
+        if (is_array($dbType)) {
+            // Get the primary value by default
+            $key ??= array_key_first($dbType);
+            $jsonPath[] = $key;
+            $dbType = $dbType[$key];
+        }
+
+        $db = Craft::$app->getDb();
+        $qb = $db->getQueryBuilder();
+        $sql = $qb->jsonExtract('formie_submissions.content', $jsonPath);
+
+        if ($db->getIsMysql()) {
+            // If the field uses an optimized DB type, cast it so its values can be indexed
+            // (see "Functional Key Parts" on https://dev.mysql.com/doc/refman/8.0/en/create-index.html)
+            $castType = match (Db::parseColumnType($dbType)) {
+                Schema::TYPE_CHAR,
+                Schema::TYPE_STRING,
+                'varchar' => 'CHAR(255)',
+                // only reliable way to compare booleans is as 'true'/'false' strings :(
+                Schema::TYPE_BOOLEAN => 'CHAR(5)',
+                Schema::TYPE_DATE => 'DATE',
+                Schema::TYPE_DATETIME => 'DATETIME',
+                Schema::TYPE_DECIMAL => 'DECIMAL',
+                Schema::TYPE_DOUBLE => 'DOUBLE',
+                Schema::TYPE_FLOAT => 'FLOAT',
+                Schema::TYPE_TINYINT,
+                Schema::TYPE_SMALLINT,
+                Schema::TYPE_INTEGER,
+                Schema::TYPE_BIGINT => 'SIGNED',
+                SCHEMA::TYPE_TIME => 'TIME',
+                default => null,
+            };
+
+            if ($castType !== null) {
+                // if a length was specified, replace the default with that
+                $length = Db::parseColumnLength($dbType);
+
+                if ($length) {
+                    $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
+                } else if ($castType === 'DECIMAL') {
+                    [$precision, $scale] = Db::parseColumnPrecisionAndScale($dbType) ?? [null, null];
+
+                    if ($precision && $scale) {
+                        $castType .= "($precision,$scale)";
+                    }
+                }
+
+                $sql = "CAST($sql AS $castType)";
+            }
+        }
+
+        return $sql;
     }
 
 
