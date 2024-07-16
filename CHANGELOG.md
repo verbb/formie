@@ -1,5 +1,52 @@
 # Changelog
 
+## 3.0.0-beta.17 - 2024-07-17
+
+### Added
+- Added structure sorting options to Entries fields.
+- Added `allIntegrations` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
+- Added `form` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
+- Added `setNoCacheHeaders()` to the `formie/forms/refresh-tokens` action endpoint to prevent caching.
+- Added `Integrations::EVENT_MODIFY_FORM_INTEGRATION` event.
+- Added `Field:: lowerClassName()`.
+- Added structure sorting options to Entries fields.
+
+### Changed
+- Allow sending email notifications for incomplete submissions from the control panel.
+- `status` is now a reserved field handle.
+- Updated form builder preview for Summary field.
+- Updated the `intl-tel-input` package for Phone field validation and handling.
+- Cleanup unused content population code.
+
+### Fixed
+- Fixed an error with Date fields and their default value timezone.
+- Fixed an XSS vulnerability for sub-fields and sent email notifications.
+- Fixed `EVENT_MODIFY_FORM_INTEGRATION` not firing in some instances.
+- Fixed Phone field allowing invalid phone numbers and country codes.
+- Fixed an error with single Name fields used in Summary fields.
+- Fixed session call for `refresh-tokens`.
+- Fixed Opayo payments and custom email values.
+- Fixed some fields not using `getValueAsString()` to render content for email notifications.
+- Fixed single-value fields not being able to be ordered in the submissions index in the control panel.
+- Fixed lack of server-side validation for min/max Number fields.
+- Fixed not being able to order submissions in the control panel via custom fields.
+- Fixed an error when uploading files in a File Upload field when editing a submission within the control panel.
+- Fixed email notification permissions.
+- Fixed an error populating existing Repeater field content for submissions.
+- Fixed an error when validating a Phone field.
+- Fixed nested/sub fields not populating values correctly.
+- Fixed an error when importing a form when replacing an existing form.
+- Fixed an error when importing a form and updating an existing form.
+- Fixed an error when using Password fields, and their incorrect value.
+- Fixed form conditions.
+- Fixed conditional status-based email notifications not working correctly.
+- Fixed an alignment issue for new forms, introduced in Craft 5.2.
+- Fixed an error when rendering Opayo payment fields.
+- Fixed an error when rendering PayPal and PayWay payment fields.
+- Fixed status “off” state appearance to align with Craft 5 changes.
+- Fixed lack of client-side validation for min/max Number fields.
+- Fixed lack of server-side validation for min/max Number fields.
+
 ## 3.0.0-beta.16 - 2024-06-27
 
 ### Added
