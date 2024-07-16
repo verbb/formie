@@ -1684,7 +1684,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     private static function _getReservedWords(): array
     {
         $reservedWords = [
-            ['form', 'field', 'submission'],
+            ['form', 'field', 'submission', 'status'],
         ];
 
         try {

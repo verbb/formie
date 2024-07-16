@@ -27,6 +27,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
@@ -44,7 +45,7 @@ use yii\db\Schema;
 use DateTime;
 use DateTimeZone;
 
-class Date extends SubField implements PreviewableFieldInterface
+class Date extends SubField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -174,8 +175,8 @@ class Date extends SubField implements PreviewableFieldInterface
 
         if ($this->defaultOption === 'date') {
             if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                // Assume setting to system time for this instance
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, true);
+                // Keep the default date without a timezone (it's saved without one)
+                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false);
 
                 if ($defaultValue) {
                     $this->defaultValue = $defaultValue;
@@ -188,7 +189,7 @@ class Date extends SubField implements PreviewableFieldInterface
             }
         } else if ($this->defaultOption === 'today') {
             // Assume setting to system time for this instance
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime(), false, true);
+            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
         } else {
             $this->defaultValue = null;
         }

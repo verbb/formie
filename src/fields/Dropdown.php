@@ -10,13 +10,15 @@ use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Localization;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
 
 use Faker\Generator as FakerFactory;
 
-class Dropdown extends OptionsField
+class Dropdown extends OptionsField implements SortableFieldInterface
+
 {
     // Static Methods
     // =========================================================================

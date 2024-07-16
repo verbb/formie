@@ -8,6 +8,7 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\gql\types\Number as NumberType;
 use craft\helpers\Db;
 use craft\helpers\Localization;
@@ -21,7 +22,7 @@ use yii\db\Schema;
 
 use Throwable;
 
-class Number extends Field implements PreviewableFieldInterface
+class Number extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

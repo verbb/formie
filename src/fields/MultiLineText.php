@@ -11,6 +11,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
 use Faker\Generator as FakerFactory;
 
@@ -18,7 +19,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
-class MultiLineText extends Field implements PreviewableFieldInterface
+class MultiLineText extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

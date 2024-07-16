@@ -5,9 +5,9 @@
 
     {% if value %}
         {% if field.useRichText %}
-            {{ value | raw }}
+            {{ field.getValueAsString(value, submission) | raw }}
         {% else %}
-            {{ value | nl2br }}
+            {{ field.getValueAsString(value, submission) | nl2br }}
         {% endif %}
     {% else %}
         {{ notification.getPlaceholder() }}

@@ -14,6 +14,7 @@ use verbb\formie\models\Phone as PhoneModel;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
@@ -28,7 +29,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends Field implements PreviewableFieldInterface
+class Phone extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
