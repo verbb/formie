@@ -1,5 +1,31 @@
 # Changelog
 
+## 2.1.21 - 2024-07-16
+
+### Added
+- Added structure sorting options to Entries fields.
+- Added `allIntegrations` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
+- Added `form` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
+- Added `setNoCacheHeaders()` to the `formie/forms/refresh-tokens` action endpoint to prevent caching.
+- Added `Integrations::EVENT_MODIFY_FORM_INTEGRATION` event.
+
+### Changed
+- Allow sending email notifications for incomplete submissions from the control panel.
+- `status` is now a reserved field handle.
+- Updated form builder preview for Summary field.
+
+### Fixed
+- Fixed an error with Date fields and their default value timezone.
+- Fixed an XSS vulnerability for sub-fields and sent email notifications.
+- Fixed `EVENT_MODIFY_FORM_INTEGRATION` not firing in some instances.
+- Fixed Phone field allowing invalid phone numbers and country codes.
+- Fixed an error with single Name fields used in Summary fields.
+- Fixed session call for `refresh-tokens`.
+- Fixed Opayo payments and custom email values.
+- Fixed some fields not using `getValueAsString()` to render content for email notifications.
+- Fixed single-value fields not being able to be ordered in the submissions index in the control panel.
+- Fixed lack of server-side validation for min/max Number fields.
+
 ## 2.1.20 - 2024-06-27
 
 ### Added
