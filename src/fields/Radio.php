@@ -12,8 +12,6 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\SortableFieldInterface;
-use craft\fields\data\SingleOptionFieldData;
-use craft\helpers\StringHelper;
 
 use Faker\Generator as FakerFactory;
 
