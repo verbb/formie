@@ -521,6 +521,9 @@ Follow the below steps to connect to the Pardot API.
     - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
         - **Manage Pardot services (pardot_api)**.
         - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
+    - Tick **Require Secret for Web Server Flow**.
+    - Untick **Require Secret for Refresh Token Flow**.
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Pardot and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Pardot and paste in the **Consumer Secret** field in Formie.
@@ -651,6 +654,9 @@ Follow the below steps to connect to the Salesforce API.
         - **Manage user data via APIs (api)**
         - **Access unique user identifiers (openid)**
         - **Perform requests at any time (refresh_token, offline_access)**
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
+    - Tick **Require Secret for Web Server Flow**.
+    - Untick **Require Secret for Refresh Token Flow**.
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
