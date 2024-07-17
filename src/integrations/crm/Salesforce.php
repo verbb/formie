@@ -289,7 +289,7 @@ class Salesforce extends Crm
             // Get Case fields
             $response = $this->request('GET', 'sobjects/Case/describe');
             $fields = $response['fields'] ?? [];
-            $caseFields = $this->_getCustomFields($fields);
+            $caseFields = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
 
             $settings = [
                 'contact' => $contactFields,
