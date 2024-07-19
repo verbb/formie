@@ -163,6 +163,21 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                 'name' => 'countryOptions',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
             ],
+            'countryEnabled' => [
+                'name' => 'countryEnabled',
+                'type' => Type::boolean(),
+            ],
+            'countryDefaultValue' => [
+                'name' => 'countryDefaultValue',
+                'type' => Type::string(),
+            ],
+            'countryAllowed' => [
+                'name' => 'countryAllowed',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    return Json::encode($field->countryAllowed);
+                },
+            ],
         ]);
     }
 
