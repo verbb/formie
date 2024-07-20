@@ -4,35 +4,35 @@
     {% endif %}
 
     {% if field.autocompleteEnabled %}
-        <strong>{{ field.autocompleteLabel | t('formie') }}: </strong>{{ value.autocomplete ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.autocompleteLabel | t('formie') }}: </strong>{{ value.autocomplete ? field.getValueAsString(value.autocomplete, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.address1Enabled %}
-        <strong>{{ field.address1Label | t('formie') }}: </strong>{{ value.address1 ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.address1Label | t('formie') }}: </strong>{{ value.address1 ? field.getValueAsString(value.address1, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.address2Enabled %}
-        <strong>{{ field.address2Label | t('formie') }}: </strong>{{ value.address2 ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.address2Label | t('formie') }}: </strong>{{ value.address2 ? field.getValueAsString(value.address2, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.address3Enabled %}
-        <strong>{{ field.address3Label | t('formie') }}: </strong>{{ value.address3 ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.address3Label | t('formie') }}: </strong>{{ value.address3 ? field.getValueAsString(value.address3, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.cityEnabled %}
-        <strong>{{ field.cityLabel | t('formie') }}: </strong>{{ value.city ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.cityLabel | t('formie') }}: </strong>{{ value.city ? field.getValueAsString(value.city, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.stateEnabled %}
-        <strong>{{ field.stateLabel | t('formie') }}: </strong>{{ value.state ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.stateLabel | t('formie') }}: </strong>{{ value.state ? field.getValueAsString(value.state, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.zipEnabled %}
-        <strong>{{ field.zipLabel | t('formie') }}: </strong>{{ value.zip ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.zipLabel | t('formie') }}: </strong>{{ value.zip ? field.getValueAsString(value.zip, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 
     {% if field.countryEnabled %}
-        <strong>{{ field.countryLabel | t('formie') }}: </strong>{{ value.country ?: notification.getPlaceholder() }}<br>
+        <strong>{{ field.countryLabel | t('formie') }}: </strong>{{ value.country ? field.getValueAsString(value.country, submission) : notification.getPlaceholder() }}<br>
     {% endif %}
 </p>
 
