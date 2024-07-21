@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.22 - 2024-07-21
+
+### Changed
+- Address and Multi-Name fields now strip out invalid content in email notifications.
+
+### Fixed
+- Fix Salesforce integration and Case objects by excluding the `IsClosedOnCreate` field.
+
 ## 2.1.21 - 2024-07-16
 
 ### Added
