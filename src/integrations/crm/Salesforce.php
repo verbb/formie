@@ -229,7 +229,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             if ($this->mapToCase) {
                 $response = $this->request('GET', 'sobjects/Case/describe');
                 $fields = $response['fields'] ?? [];
-                $settings['case'] = $this->_getCustomFields($fields);
+                $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
