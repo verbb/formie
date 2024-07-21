@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-beta.18 - 2024-07-21
+
+### Fixed
+- Fix Salesforce integration and Case objects by excluding the `IsClosedOnCreate` field.
+- Fix missing `countryEnabled` `countryDefaultValue` and `countryAllowed` properties for Phone fields for GraphQL.
+
 ## 3.0.0-beta.17 - 2024-07-17
 
 ### Added
