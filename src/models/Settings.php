@@ -85,6 +85,10 @@ class Settings extends Model
     // Captcha settings are stored in Project Config, but otherwise private
     public array $captchas = [];
 
+    // Other
+    // TODO: Remove in Formie 3.
+    public bool $useEmailTemplateForFieldVariables = false;
+
 
     // Public Methods
     // =========================================================================

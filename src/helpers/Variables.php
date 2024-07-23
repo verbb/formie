@@ -15,6 +15,7 @@ use craft\fields\BaseRelationField;
 use craft\fields\data\MultiOptionsFieldData;
 use craft\fields\data\SingleOptionFieldData;
 use craft\helpers\App;
+use craft\models\Settings;
 use craft\models\Site;
 use craft\web\twig\variables\CraftVariable;
 
@@ -422,8 +423,18 @@ class Variables
 
         $prefix = 'field.';
 
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
         // For pretty much all cases, we want to use the value represented as a string
         $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
+
+        $notification = $notification ?? new Notification();
+
+        // TODO: Remove in Formie 3.
+        if ($settings->useEmailTemplateForFieldVariables) {
+            $values["{$prefix}{$field->handle}"] = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
+        }
 
         if ($field instanceof formfields\Date) {
             // Generate additional values
@@ -481,6 +492,11 @@ class Variables
             }
         } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
             $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
+
+            // TODO: Remove in Formie 3.
+            if ($settings->useEmailTemplateForFieldVariables) {
+                $values["{$prefix}{$field->handle}"] = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
+            }
         }
 
         // Some fields use the email template for the field, due to their complexity. 
