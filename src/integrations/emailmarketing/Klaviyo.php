@@ -158,6 +158,20 @@ class Klaviyo extends EmailMarketing
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($fieldValues, 'address1'),
+                'address2' => ArrayHelper::remove($fieldValues, 'address2'),
+                'city' => ArrayHelper::remove($fieldValues, 'city'),
+                'region' => ArrayHelper::remove($fieldValues, 'region'),
+                'zip' => ArrayHelper::remove($fieldValues, 'zip'),
+                'country' => ArrayHelper::remove($fieldValues, 'country'),
+            ]);
+
+            if ($location) {
+                $fieldValues['location'] = $location;
+            }
+
             // Create or update a Profile first
             $payload = [
                 'data' => [

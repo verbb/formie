@@ -138,6 +138,20 @@ class Klaviyo extends Crm
         try {
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
 
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($profileValues, 'address1'),
+                'address2' => ArrayHelper::remove($profileValues, 'address2'),
+                'city' => ArrayHelper::remove($profileValues, 'city'),
+                'region' => ArrayHelper::remove($profileValues, 'region'),
+                'zip' => ArrayHelper::remove($profileValues, 'zip'),
+                'country' => ArrayHelper::remove($profileValues, 'country'),
+            ]);
+
+            if ($location) {
+                $profileValues['location'] = $location;
+            }
+
             $profilePayload = [
                 'data' => [
                     'type' => 'profile',
