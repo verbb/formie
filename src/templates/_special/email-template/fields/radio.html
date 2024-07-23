@@ -1,13 +1,7 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
-    {% if value %}
-        {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
-        
-        {{ displayValue }}
-    {% else %}
-        {{ notification.getPlaceholder() }}
-    {% endif %}
-</p>
+{% if value %}
+    {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
+    
+    {{ displayValue }}
+{% else %}
+    {{ notification.getPlaceholder() }}
+{% endif %}

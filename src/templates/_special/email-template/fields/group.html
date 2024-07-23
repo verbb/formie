@@ -2,10 +2,6 @@
 {% set groupField = field %}
 
 <div style="margin: 1em 0;">
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong>
-    {% endif %}
-
     {% if value %}
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             <tbody>

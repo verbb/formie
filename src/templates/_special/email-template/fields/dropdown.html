@@ -1,26 +1,20 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
+{% if field.multi %}
+    {# Remove empty elements #}
+    {% set value = value | filter(v => (v ~ '')) %}
 
-    {% if field.multi %}
-        {# Remove empty elements #}
-        {% set value = value | filter(v => (v ~ '')) %}
-
-        {% if value | length %}
-            <ul>
-                {% for item in value %}
-                    {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
-                        
-                    <li>{{ displayValue }}</li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            {{ notification.getPlaceholder() }}
-        {% endif %}
+    {% if value | length %}
+        <ul>
+            {% for item in value %}
+                {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
+                    
+                <li>{{ displayValue }}</li>
+            {% endfor %}
+        </ul>
     {% else %}
-        {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
-
-        {{ displayValue ?: notification.getPlaceholder() }}
+        {{ notification.getPlaceholder() }}
     {% endif %}
-</p>
+{% else %}
+    {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
+
+    {{ displayValue ?: notification.getPlaceholder() }}
+{% endif %}

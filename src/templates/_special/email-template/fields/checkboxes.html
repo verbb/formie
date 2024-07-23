@@ -1,17 +1,11 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
+{% if value | length %}
+    <ul>
+        {% for item in value %}
+            {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
 
-    {% if value | length %}
-        <ul>
-            {% for item in value %}
-                {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
-
-                <li>{{ displayValue }}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        {{ notification.getPlaceholder() }}
-    {% endif %}
-</p>
+            <li>{{ displayValue }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    {{ notification.getPlaceholder() }}
+{% endif %}

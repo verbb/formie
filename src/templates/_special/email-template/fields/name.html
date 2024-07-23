@@ -1,8 +1,4 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
+{% apply spaceless %}
     {% if value and field.settings.useMultipleFields %}
         {% for field in field.getFields(false) %}
             {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
@@ -10,6 +6,6 @@
             <strong>{{ field.label | t('formie') }}: </strong>{{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}<br>
         {% endfor %}
     {% else %}
-        {{ value ?: notification.getPlaceholder() }}
+        {{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}
     {% endif %}
-</p>
+{% endapply %}

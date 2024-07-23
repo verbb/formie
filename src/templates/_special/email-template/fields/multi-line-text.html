@@ -1,15 +1,9 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
-    {% if value %}
-        {% if field.useRichText %}
-            {{ field.getValueAsString(value, submission) | raw }}
-        {% else %}
-            {{ field.getValueAsString(value, submission) | nl2br }}
-        {% endif %}
+{% if value %}
+    {% if field.useRichText %}
+        {{ field.getValueAsString(value, submission) | raw }}
     {% else %}
-        {{ notification.getPlaceholder() }}
+        {{ field.getValueAsString(value, submission) | nl2br }}
     {% endif %}
-</p>
+{% else %}
+    {{ notification.getPlaceholder() }}
+{% endif %}

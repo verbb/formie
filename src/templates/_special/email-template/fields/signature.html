@@ -1,13 +1,7 @@
-<div>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
-    {% if value | length %}
-        <div style="width: 400px;">
-            <img style="max-width: 100% !important; height: auto !important;" src="{{ field.getImageUrl(submission, value) }}" />
-        </div>
-    {% else %}
-        {{ notification.getPlaceholder() }}
-    {% endif %}
-</div>
+{% if value | length %}
+    <div style="width: 400px;">
+        <img style="max-width: 100% !important; height: auto !important;" src="{{ field.getImageUrl(submission, value) }}" />
+    </div>
+{% else %}
+    {{ notification.getPlaceholder() }}
+{% endif %}

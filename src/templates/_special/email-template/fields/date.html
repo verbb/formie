@@ -1,7 +1,1 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
-    {{ field.getValueAsString(value, submission) ?: notification.getPlaceholder() }}
-</p>
+{{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}

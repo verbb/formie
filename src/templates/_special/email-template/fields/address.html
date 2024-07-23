@@ -1,12 +1,5 @@
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
+{% for field in field.getFields(false) %}
+    {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-    {% for field in field.getFields(false) %}
-        {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
-
-        <strong>{{ field.label | t('formie') }}: </strong>{{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}<br>
-    {% endfor %}
-</p>
-
+    <strong>{{ field.label | t('formie') }}: </strong>{{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}<br>
+{% endfor %}

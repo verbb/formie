@@ -1,21 +1,15 @@
 {% set elements = value.all() %}
 
-<p>
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong><br>
-    {% endif %}
-
-    {% if elements | length %}
-        <ul>
-            {% for element in elements %}
-                {% set url = field.emailValue == 'cpUrl' ? element.getCpEditUrl() : element.getUrl() %}
-                    
-                <li>
-                    <a href="{{ url }}">{{ element.title }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        {{ notification.getPlaceholder() }}
-    {% endif %}
-</p>
+{% if elements | length %}
+    <ul>
+        {% for element in elements %}
+            {% set url = field.emailValue == 'cpUrl' ? element.getCpEditUrl() : element.getUrl() %}
+                
+            <li>
+                <a href="{{ url }}">{{ element.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    {{ notification.getPlaceholder() }}
+{% endif %}
