@@ -291,11 +291,13 @@ class Variables
             $notification = new Notification();
         }
 
-        // Need to switch back to the CP to render our fields email HTML
-        $view = Craft::$app->getView();
-        $oldTemplateMode = $view->getTemplateMode();
-        $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+        $renderOptions = [
+            'form' => $form,
+            'notification' => $notification,
+            'submission' => $submission,
+        ];
 
+        // Send through any fields that should be rendered
         foreach ($form->getFields() as $field) {
             if (!$field->includeInEmail) {
                 continue;
@@ -305,29 +307,13 @@ class Variables
                 continue;
             }
 
-            $value = $submission->getFieldValue($field->handle);
-
-            $html = $field->getEmailHtml($submission, $notification, $value);
-
-            if ($html === false) {
-                continue;
-            }
-
-            // Save to "allFields" for all fields
-            $data['allFields'] .= (string)$html;
-
-            // Save to "allVisibleFields" only if not hidden
-            if (!$field->getIsHidden()) {
-                $data['allVisibleFields'] .= (string)$html;
-            }
-
-            // Save to "allFields" only if it has content
-            if (!empty($field->getValueAsString($value, $submission))) {
-                $data['allContentFields'] .= (string)$html;
-            }
+            $renderOptions['fields'][] = $field;
         }
 
-        $view->setTemplateMode($oldTemplateMode);
+        // Let the email templates take over to handle the rendering
+        $data['allFields'] = $notification->renderTemplate('all-fields', $renderOptions);
+        $data['allContentFields'] = $notification->renderTemplate('all-content-fields', $renderOptions);
+        $data['allVisibleFields'] = $notification->renderTemplate('all-visible-fields', $renderOptions);
 
         return $data;
     }

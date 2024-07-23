@@ -1,0 +1,5 @@
+{% for field in fields %}
+    {% set value = submission.getFieldValue(field.fieldKey) %}
+
+    {{ formieInclude('field') }}
+{% endfor %}

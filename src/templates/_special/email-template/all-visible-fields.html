@@ -1,0 +1,7 @@
+{% for field in fields %}
+    {% set value = submission.getFieldValue(field.fieldKey) %}
+
+    {% if not field.getIsHidden() %}
+        {{ formieInclude('field') }}
+    {% endif %}
+{% endfor %}
