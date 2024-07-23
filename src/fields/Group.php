@@ -71,6 +71,8 @@ class Group extends SingleNestedField
                 foreach ($fieldValues as $key => $fieldValue) {
                     $values[$nestedField->handle][$key] = $fieldValue;
                 }
+            } else {
+                $values[$nestedField->handle] = $fieldValues;
             }
         }
 
