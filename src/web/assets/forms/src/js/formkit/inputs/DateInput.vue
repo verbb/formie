@@ -49,7 +49,6 @@ export default {
             proxyValue: {
                 date: '',
                 time: '',
-                timezone: Craft.timezone,
             },
         };
     },
@@ -81,9 +80,18 @@ export default {
             this.$datePicker = $(dateInput).datepicker($.extend({}, Craft.datepickerOptions));
 
             this.$datePicker.on('change', (e) => {
-                this.proxyValue.date = e.target.value;
+                // Construct the value as an ISO-string, as the `e.target.value` will be localised
+                if (e.target.value) {
+                    const datepicker = this.$datePicker.data('datepicker');
+                    const year = datepicker.selectedYear;
+                    const month = String(datepicker.selectedMonth + 1).padStart(2, '0');
+                    const day = String(datepicker.selectedDay).padStart(2, '0');
+                    const formattedDate = `${year}-${month}-${day}`;
 
-                this.context.node.input(this.proxyValue);
+                    this.proxyValue.date = formattedDate;
+
+                    this.context.node.input(this.proxyValue);
+                }
             });
 
             if (this.savedDate) {
@@ -99,9 +107,12 @@ export default {
             this.$timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
 
             this.$timePicker.on('change', (e) => {
-                this.proxyValue.time = e.target.value;
+                // Convert the formatted time to ISO-string
+                if (e.target.value) {
+                    this.proxyValue.time = this.convertTo24Hour(e.target.value);
 
-                this.context.node.input(this.proxyValue);
+                    this.context.node.input(this.proxyValue);
+                }
             });
 
             if (this.savedDate) {
@@ -111,6 +122,29 @@ export default {
             // Trigger a change now to update the model
             this.$timePicker.trigger('change');
         }
+    },
+
+    methods: {
+        convertTo24Hour(timeStr) {
+            const [time, modifier] = timeStr.split(' ');
+
+            // eslint-disable-next-line
+            let [hours, minutes] = time.split(':').map(Number);
+
+            if (modifier.toLowerCase() === 'pm' && hours !== 12) {
+                hours += 12;
+            }
+
+            if (modifier.toLowerCase() === 'am' && hours === 12) {
+                hours = 0;
+            }
+
+            // Format hours and minutes to be two digits
+            const hoursStr = String(hours).padStart(2, '0');
+            const minutesStr = String(minutes).padStart(2, '0');
+
+            return `${hoursStr}:${minutesStr}:00`;
+        },
     },
 };
 

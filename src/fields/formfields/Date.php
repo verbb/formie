@@ -184,6 +184,18 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->displayType !== 'calendar';
     }
 
+    public function getSavedSettings(): array
+    {
+        $settings = parent::getSavedSettings();
+
+        // Format the default date without timezone information (treat it like a string) for JS compatibility
+        if (isset($settings['defaultValue'])) {
+            $settings['defaultValue'] = str_replace('T', ' ', explode('+', $settings['defaultValue'])[0]);
+        }
+
+        return $settings;
+    }
+
     public function getDateFormat(): ?string
     {
         // Allow plugins to modify the date format, commonly for specific sites
