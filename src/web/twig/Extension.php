@@ -1,6 +1,8 @@
 <?php
 namespace verbb\formie\web\twig;
 
+use verbb\formie\base\Field;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
@@ -63,7 +65,7 @@ class Extension extends AbstractExtension
         // Get the form from the context
         $form = $context['form'] ?? null;
 
-        if ($form) {
+        if ($form instanceof Form) {
             // Render the provided include depending on form template overrides
             return $form->renderTemplate($template, array_merge($context, $variables));
         }
@@ -105,7 +107,7 @@ class Extension extends AbstractExtension
     {
         $form = $context['form'] ?? null;
 
-        if ($form) {
+        if ($form instanceof Form) {
             $htmlTag = $form->renderHtmlTag($key, $context);
 
             if ($htmlTag) {
@@ -129,7 +131,7 @@ class Extension extends AbstractExtension
     {
         $field = $context['field'] ?? null;
 
-        if ($field) {
+        if ($field instanceof Field) {
             $htmlTag = $field->renderHtmlTag($key, $context);
 
             if ($htmlTag) {
