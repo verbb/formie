@@ -177,7 +177,7 @@ class Name extends SubField implements PreviewableFieldInterface
             return parent::getValueForVariable($value, $submission, $notification);
         }
 
-        return (string)$value;
+        return Field::getValueForVariable($value, $submission, $notification);
     }
 
     public function getSettingGqlTypes(): array

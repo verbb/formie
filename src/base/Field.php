@@ -540,7 +540,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        return $this->getValueAsString($value, $submission);
+        return (string)$this->getEmailHtml($submission, $notification, $value);
     }
 
     public function populateValue(mixed $value, ?Submission $submission): void

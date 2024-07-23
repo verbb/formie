@@ -321,11 +321,6 @@ class Table extends Field
         return $serialized;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-    }
-
     public function getContentGqlType(): Type|array
     {
         $type = TableRowTypeGenerator::generateType($this);

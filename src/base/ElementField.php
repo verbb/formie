@@ -165,11 +165,6 @@ abstract class ElementField extends Field implements ElementFieldInterface
         return $value->ids();
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-    }
-
     public function getElementsQuery(): ElementQueryInterface
     {
         $query = static::elementType()::find();

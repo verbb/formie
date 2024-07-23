@@ -86,15 +86,6 @@ class MultiLineText extends Field implements PreviewableFieldInterface, Sortable
         return parent::normalizeValue($value, $element);
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        if ($this->useRichText) {
-            return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-        } else {
-            return nl2br($this->getValueAsString($value, $submission));
-        }
-    }
-
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();

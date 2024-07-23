@@ -53,11 +53,6 @@ class Signature extends Field implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/preview', [
