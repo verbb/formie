@@ -124,6 +124,9 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
             }
         }
 
+        // Reset any `new1` or `row1` keys
+        $values = array_values($values);
+
         return $values;
     }
 
