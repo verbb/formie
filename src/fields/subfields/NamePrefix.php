@@ -68,7 +68,6 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
 
     public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        // Craft::dd([$value, $this->_getValueLabel($value)]);
         return $this->_getValueLabel($value);
     }
 
