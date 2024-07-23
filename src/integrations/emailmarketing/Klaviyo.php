@@ -85,6 +85,14 @@ class Klaviyo extends EmailMarketing
                         'name' => Craft::t('formie', 'Phone Number'),
                     ]),
                     new IntegrationField([
+                        'handle' => 'address1',
+                        'name' => Craft::t('formie', 'Address 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address2',
+                        'name' => Craft::t('formie', 'Address 2'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
                     ]),
