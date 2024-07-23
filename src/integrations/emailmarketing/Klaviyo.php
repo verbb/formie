@@ -178,7 +178,12 @@ class Klaviyo extends EmailMarketing
             // Extract any consent settings
             $smsConsent = ArrayHelper::remove($fieldValues, 'sms_consent');
 
-            $profile = $fieldValues;
+            // A profile subscription only allows a subset of information from the profile mapping
+            $profile = array_filter([
+                'email' => $fieldValues['email'] ?? null,
+                'phone_number' => $fieldValues['phone_number'] ?? null,
+            ]);
+
             $profile['subscriptions']['email']['marketing']['consent'] = 'SUBSCRIBED';
 
             if ($smsConsent) {
