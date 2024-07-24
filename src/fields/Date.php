@@ -970,7 +970,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             ],
             'availableDaysOfWeek' => [
                 'name' => 'availableDaysOfWeek',
-                'type' => Type::string(),
+                'type' => Type::listOf(Type::string()),
                 'resolve' => function($field) {
                     $values = [];
                     $options = ArrayHelper::index($field->getWeekDayNamesOptions(), 'value');
@@ -989,7 +989,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                         }
                     }
 
-                    return Json::encode($values);
+                    return $values;
                 },
             ],
         ]);
