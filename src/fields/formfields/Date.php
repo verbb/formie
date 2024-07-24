@@ -108,12 +108,12 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public bool $useDatePicker = true;
     public array $datePickerOptions = [];
     public string $minDateOption = '';
-    public ?DateTime $minDate = null;
+    public DateTime|string|null $minDate = null;
     public string $minDateOffset = 'add';
     public int $minDateOffsetNumber = 0;
     public string $minDateOffsetType = 'days';
     public string $maxDateOption = '';
-    public ?DateTime $maxDate = null;
+    public DateTime|string|null $maxDate = null;
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
@@ -127,44 +127,35 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
     public function __construct($config = [])
     {
+        // Normalize date settings to ensure we strip timezones (they're saved without one)
         if (isset($config['minDate'])) {
-            $config['minDate'] = self::toDateTime($config['minDate']) ?: null;
+            if (!($config['minDate'] instanceof DateTime)) {
+                $config['minDate'] = DateTimeHelper::toDateTime($config['minDate'], false, false) ?: null;
+            }
         }
 
         if (isset($config['maxDate'])) {
-            $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
+            if (!($config['maxDate'] instanceof DateTime)) {
+                $config['maxDate'] = DateTimeHelper::toDateTime($config['maxDate'], false, false) ?: null;
+            }
+        }
+
+        if (isset($config['defaultValue']) && isset($config['defaultOption'])) {
+            if ($config['defaultOption'] === 'date') {
+                if (!($config['defaultValue'] instanceof DateTime)) {
+                    $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
+                }
+            } else if ($config['defaultOption'] === 'today') {
+                $config['defaultValue'] = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
+            } else {
+                $config['defaultValue'] = null;
+            }
         }
 
         // Config normalization
         self::normalizeConfig($config);
 
         parent::__construct($config);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        if ($this->defaultOption === 'date') {
-            if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                // Keep the default date without a timezone (it's saved without one)
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false);
-
-                if ($defaultValue) {
-                    $this->defaultValue = $defaultValue;
-                } else {
-                    // If DateTime cast failed, fall back to empty default
-                    $this->defaultValue = null;
-                }
-            } else {
-                $this->defaultValue = null;
-            }
-        } else if ($this->defaultOption === 'today') {
-            // Assume setting to system time for this instance
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
-        } else {
-            $this->defaultValue = null;
-        }
     }
 
     /**
@@ -188,9 +179,17 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         $settings = parent::getSavedSettings();
 
-        // Format the default date without timezone information (treat it like a string) for JS compatibility
+        // Format date settingss without timezone information (treat it like a string) for JS compatibility
         if (isset($settings['defaultValue'])) {
             $settings['defaultValue'] = str_replace('T', ' ', explode('+', $settings['defaultValue'])[0]);
+        }
+
+        if (isset($settings['minDate'])) {
+            $settings['minDate'] = str_replace('T', ' ', explode('+', $settings['minDate'])[0]);
+        }
+
+        if (isset($settings['maxDate'])) {
+            $settings['maxDate'] = str_replace('T', ' ', explode('+', $settings['maxDate'])[0]);
         }
 
         return $settings;
@@ -861,9 +860,17 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
     public function beforeSave(bool $isNew): bool
     {
+        // Ensure that dates have timezone information stripped off
         if ($this->defaultValue instanceof DateTime) {
-            // Ensure that the default date has timezone information stripped off
             $this->defaultValue = Db::prepareDateForDb($this->defaultValue);
+        }
+
+        if ($this->minDate instanceof DateTime) {
+            $this->minDate = Db::prepareDateForDb($this->minDate);
+        }
+
+        if ($this->maxDate instanceof DateTime) {
+            $this->maxDate = Db::prepareDateForDb($this->maxDate);
         }
 
         return parent::beforeSave($isNew);
