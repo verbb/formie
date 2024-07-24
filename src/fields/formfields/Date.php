@@ -150,6 +150,8 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             } else {
                 $config['defaultValue'] = null;
             }
+        } else {
+            $config['defaultValue'] = null;
         }
 
         // Config normalization
