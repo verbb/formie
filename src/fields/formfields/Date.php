@@ -784,7 +784,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
         if ($this->defaultValue instanceof DateTime) {
-            return $this->defaultValue->format('Y-m-d H:i:s');
+            return $this->defaultValue->format('Y-m-d\TH:i:s');
         }
         
         return $this->defaultValue;
@@ -1250,7 +1250,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'type' => Type::string(),
                 'resolve' => function($field) {
                     if ($field->defaultValue instanceof DateTime) {
-                        return $field->defaultValue->format('Y-m-d H:i:s');
+                        return $field->defaultValue->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->defaultValue;
@@ -1265,7 +1265,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->minDate instanceof DateTime) {
-                        return $field->minDate->format('Y-m-d H:i:s');
+                        return $field->minDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->minDate;
@@ -1276,7 +1276,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->maxDate instanceof DateTime) {
-                        return $field->maxDate->format('Y-m-d H:i:s');
+                        return $field->maxDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->maxDate;
