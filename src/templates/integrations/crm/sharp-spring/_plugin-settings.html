@@ -10,7 +10,8 @@
 1. Copy the **Account ID** from {name} and paste in the **Account ID** field below.
 1. Copy the **Secret Key** from {name} and paste in the **Secret Key** field below.
 
-### Step 2. Connect to the {name} API
+### Step 2. Provide Form Base URL
+1. If you do not wish to map Formie Submission to a SharpSpring form, you can skip this step.
 1. Click **Marketing** > **Content** > **Forms** in {name}'s top toolbar.
 1. Click the **Create Form** button.
 1. Enter a name for the form and select the **Native Form** radio button. Click the **Continue** button.
@@ -56,10 +57,10 @@
 }) }}
 
 {{ forms.autosuggestField({
-    label: 'Form URL' | t('formie'),
-    instructions: 'Enter your {name} Form URL here.' | t('formie', { name: integration.displayName() }),
+    label: 'Form Base URL' | t('formie'),
+    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie', { name: integration.displayName() }),
     name: 'formUrl',
-    required: true,
+    required: false,
     suggestEnvVars: true,
     value: integration.settings.formUrl ?? '',
     warning: macros.configWarning('formUrl', 'formie'),
