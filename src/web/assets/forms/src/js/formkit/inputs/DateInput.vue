@@ -81,14 +81,14 @@ export default {
 
             this.$datePicker.on('change', (e) => {
                 // Construct the value as an ISO-string, as the `e.target.value` will be localised
-                if (e.target.value) {
-                    const datepicker = this.$datePicker.data('datepicker');
-                    const year = datepicker.selectedYear;
-                    const month = String(datepicker.selectedMonth + 1).padStart(2, '0');
-                    const day = String(datepicker.selectedDay).padStart(2, '0');
-                    const formattedDate = `${year}-${month}-${day}`;
+                const datepickerDate = this.$datePicker.data('datepicker');
 
-                    this.proxyValue.date = formattedDate;
+                if (e.target.value && datepickerDate) {
+                    const year = datepickerDate.selectedYear;
+                    const month = String(datepickerDate.selectedMonth + 1).padStart(2, '0');
+                    const day = String(datepickerDate.selectedDay).padStart(2, '0');
+
+                    this.proxyValue.date = `${year}-${month}-${day}`;
 
                     this.context.node.input(this.proxyValue);
                 }
@@ -107,9 +107,15 @@ export default {
             this.$timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
 
             this.$timePicker.on('change', (e) => {
-                // Convert the formatted time to ISO-string
-                if (e.target.value) {
-                    this.proxyValue.time = this.convertTo24Hour(e.target.value);
+                // Convert the date to ISO-string
+                const timePickerDate = this.$timePicker.timepicker('getTime');
+
+                if (e.target.value && timePickerDate) {
+                    const hours = String(timePickerDate.getHours()).padStart(2, '0');
+                    const minutes = String(timePickerDate.getMinutes()).padStart(2, '0');
+                    const seconds = String(timePickerDate.getSeconds()).padStart(2, '0');
+
+                    this.proxyValue.time = `${hours}:${minutes}:${seconds}`;
 
                     this.context.node.input(this.proxyValue);
                 }
@@ -122,29 +128,6 @@ export default {
             // Trigger a change now to update the model
             this.$timePicker.trigger('change');
         }
-    },
-
-    methods: {
-        convertTo24Hour(timeStr) {
-            const [time, modifier] = timeStr.split(' ');
-
-            // eslint-disable-next-line
-            let [hours, minutes] = time.split(':').map(Number);
-
-            if (modifier.toLowerCase() === 'pm' && hours !== 12) {
-                hours += 12;
-            }
-
-            if (modifier.toLowerCase() === 'am' && hours === 12) {
-                hours = 0;
-            }
-
-            // Format hours and minutes to be two digits
-            const hoursStr = String(hours).padStart(2, '0');
-            const minutesStr = String(minutes).padStart(2, '0');
-
-            return `${hoursStr}:${minutesStr}:00`;
-        },
     },
 };
 
