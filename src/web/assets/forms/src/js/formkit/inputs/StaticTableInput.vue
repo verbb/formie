@@ -35,7 +35,9 @@
 
 <script>
 import { mapState } from 'vuex';
-import { get, truncate, isEmpty } from 'lodash-es';
+import {
+    get, truncate, isEmpty, isPlainObject,
+} from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
 
@@ -75,17 +77,19 @@ export default {
         },
     },
 
-    mounted() {
-        if (isEmpty(this.context._value)) {
-            // If brand-new and fresh, ensure we set the value to an object so reactivity kicks in
-            this.context.node.input({});
+    watch: {
+        proxyValue: {
+            deep: true,
+            handler(newValue) {
+                this.context.node.input(newValue);
+            },
+        },
+    },
 
-            // Wait for FormKit to settle
-            setTimeout(() => {
-                this.proxyValue = this.context._value;
-            }, 20);
-        } else {
-            this.proxyValue = this.context._value;
+    mounted() {
+        // Set the proxy value only if an object. Just in case it's an array or null, we want to retain the default empty object
+        if (isPlainObject(this.context._value)) {
+            this.proxyValue = this.clone(this.context._value);
         }
     },
 
