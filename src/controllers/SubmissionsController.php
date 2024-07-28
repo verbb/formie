@@ -1000,7 +1000,7 @@ class SubmissionsController extends Controller
             'success' => $success,
             'submissionId' => $submission->id,
             'nextPageId' => $nextPage->id ?? null,
-            'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
+            'nextPageIndex' => $form->getPageIndex($nextPage) ?? null,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
