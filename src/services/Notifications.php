@@ -102,7 +102,7 @@ class Notifications extends Component
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
-            $notificationRecord->handle = $notification->handle ?? $this->_getUniqueNotificationHandle($notification);
+            $notificationRecord->handle = $notification->handle ?? $this->getUniqueNotificationHandle($notification);
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
             $notificationRecord->recipients = $notification->recipients;
@@ -176,6 +176,30 @@ class Notifications extends Component
         }
 
         return true;
+    }
+
+    public function getUniqueNotificationHandle(Notification $notification): string
+    {
+        $increment = 1;
+        $notificationHandle = StringHelper::toHandle($notification->name);
+        $handle = $notificationHandle;
+
+        // Generate a unique notification handle. Note that they're not unique globally, just per-form.
+        while (true) {
+            $existingNotification = (new Query())
+                ->select(['*'])
+                ->from([Table::FORMIE_NOTIFICATIONS])
+                ->where(['handle' => $handle, 'formId' => $notification->formId])
+                ->one();
+
+            if (!$existingNotification) {
+                return substr($handle, 0, 50);
+            }
+
+            $handle = $notificationHandle . $increment;
+
+            $increment++;
+        }
     }
 
     public function buildNotificationsFromPost(): array
@@ -685,29 +709,5 @@ class Notifications extends Component
         }
 
         return new NotificationRecord();
-    }
-
-    private function _getUniqueNotificationHandle(Notification $notification): string
-    {
-        $increment = 1;
-        $notificationHandle = StringHelper::toHandle($notification->name);
-        $handle = $notificationHandle;
-
-        // Generate a unique notification handle. Note that they're not unique globally, just per-form.
-        while (true) {
-            $existingNotification = (new Query())
-                ->select(['*'])
-                ->from([Table::FORMIE_NOTIFICATIONS])
-                ->where(['handle' => $handle, 'formId' => $notification->formId])
-                ->one();
-
-            if (!$existingNotification) {
-                return substr($handle, 0, 50);
-            }
-
-            $handle = $notificationHandle . $increment;
-
-            $increment++;
-        }
     }
 }

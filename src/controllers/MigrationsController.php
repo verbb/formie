@@ -86,16 +86,16 @@ class MigrationsController extends Controller
         }
 
         foreach ($forms as $form) {
-            $migration = new MigrateFreeform(['formId' => $form->id]);
+            $migration = new MigrateFreeform(['formId' => $form->getId()]);
 
             try {
                 ob_start();
                 $migration->up();
                 $output = ob_get_clean();
 
-                $outputs[$form->id] = nl2br($output);
+                $outputs[$form->getId()] = nl2br($output);
             } catch (Throwable $e) {
-                $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
+                $outputs[$form->getId()] = 'Failed to migrate: ' . $e->getMessage();
             }
         }
 
