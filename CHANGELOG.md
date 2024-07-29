@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.23 - 2024-07-29
+
+### Added
+- Added `Address 1` and `Address 2` to field mapping for Klaviyo integration.
+- Added `useEmailTemplateForFieldVariables` plugin setting to enforce field variables to use their email template. This is opt-in behaviour until Formie 3.
+
+### Changed
+- Updated SharpSpring integration to not require the Form URL, and improve instructions.
+- Updated English translations.
+- Date fields now return date settings (`defaultValue`, `defaultDate`, `minDate`, `maxDate`) as `Y-m-dTH:i:s` formatted strings without timezone information (as none is stored).
+
+### Fixed
+- Fixed form element index behaviour for users with only “View Forms” permissions.
+- Fixed an error for Date fields and the Default Date, and Min/Max Date settings being inconsistent.
+- Fixed location values for Klaviyo integration.
+- Fixed Klaviyo Email Marketing integration not working correctly.
+
 ## 2.1.22 - 2024-07-21
 
 ### Changed
