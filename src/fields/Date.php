@@ -90,12 +90,12 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     public ?string $defaultOption = null;
     public array $datePickerOptions = [];
     public string $minDateOption = '';
-    public ?DateTime $minDate = null;
+    public DateTime|string|null $minDate = null;
     public string $minDateOffset = 'add';
     public int $minDateOffsetNumber = 0;
     public string $minDateOffsetType = 'days';
     public string $maxDateOption = '';
-    public ?DateTime $maxDate = null;
+    public DateTime|string|null $maxDate = null;
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
@@ -112,12 +112,31 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             unset($config['layouts']);
         }
 
+        // Normalize date settings to ensure we strip timezones (they're saved without one)
         if (isset($config['minDate'])) {
-            $config['minDate'] = self::toDateTime($config['minDate']) ?: null;
+            if (!($config['minDate'] instanceof DateTime)) {
+                $config['minDate'] = DateTimeHelper::toDateTime($config['minDate'], false, false) ?: null;
+            }
         }
 
         if (isset($config['maxDate'])) {
-            $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
+            if (!($config['maxDate'] instanceof DateTime)) {
+                $config['maxDate'] = DateTimeHelper::toDateTime($config['maxDate'], false, false) ?: null;
+            }
+        }
+
+        if (isset($config['defaultValue']) && isset($config['defaultOption'])) {
+            if ($config['defaultOption'] === 'date') {
+                if (!($config['defaultValue'] instanceof DateTime)) {
+                    $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
+                }
+            } else if ($config['defaultOption'] === 'today') {
+                $config['defaultValue'] = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
+            } else {
+                $config['defaultValue'] = null;
+            }
+        } else {
+            $config['defaultValue'] = null;
         }
 
         if (array_key_exists('useDatePicker', $config) && $config['useDatePicker']) {
@@ -167,32 +186,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         $config['required'] = false;
 
         parent::__construct($config);
-    }
-
-    public function init(): void
-    {
-        parent::init();
-
-        if ($this->defaultOption === 'date') {
-            if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                // Keep the default date without a timezone (it's saved without one)
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false);
-
-                if ($defaultValue) {
-                    $this->defaultValue = $defaultValue;
-                } else {
-                    // If DateTime cast failed, fall back to empty default
-                    $this->defaultValue = null;
-                }
-            } else {
-                $this->defaultValue = null;
-            }
-        } else if ($this->defaultOption === 'today') {
-            // Assume setting to system time for this instance
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
-        } else {
-            $this->defaultValue = null;
-        }
     }
 
     public function getIsRequired(): ?bool
@@ -549,10 +542,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
         if ($this->defaultValue instanceof DateTime) {
-            // Strip off timezone info, it's not applicable here
-            $this->defaultValue = new DateTime($this->defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-            return $this->defaultValue->format('c');
+            return $this->defaultValue->format('Y-m-d\TH:i:s');
         }
         
         return $this->defaultValue;
@@ -637,6 +627,24 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         }
 
         return $options;
+    }
+
+    public function beforeSave(bool $isNew): bool
+    {
+        // Ensure that dates have timezone information stripped off
+        if ($this->defaultValue instanceof DateTime) {
+            $this->defaultValue = Db::prepareDateForDb($this->defaultValue);
+        }
+
+        if ($this->minDate instanceof DateTime) {
+            $this->minDate = Db::prepareDateForDb($this->minDate);
+        }
+
+        if ($this->maxDate instanceof DateTime) {
+            $this->maxDate = Db::prepareDateForDb($this->maxDate);
+        }
+
+        return parent::beforeSave($isNew);
     }
 
     public function defineGeneralSchema(): array
@@ -920,16 +928,11 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    $defaultValue = $field->defaultValue;
-
-                    if ($defaultValue instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $defaultValue = new DateTime($defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $defaultValue->format('c');
+                    if ($field->defaultValue instanceof DateTime) {
+                        return $field->defaultValue->format('Y-m-d\TH:i:s');
                     }
 
-                    return $defaultValue;
+                    return $field->defaultValue;
                 },
             ],
             'defaultDate' => [
@@ -941,10 +944,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->minDate instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $field->minDate = new DateTime($field->minDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $field->minDate->format('c');
+                        return $field->minDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->minDate;
@@ -955,10 +955,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->maxDate instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $field->maxDate = new DateTime($field->maxDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $field->maxDate->format('c');
+                        return $field->maxDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->maxDate;

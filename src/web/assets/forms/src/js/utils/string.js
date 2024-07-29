@@ -113,6 +113,10 @@ export const parseDate = function(date) {
             return date.jsDate;
         }
 
+        if (has(date, 'date') && has(date, 'time')) {
+            return `${date.date} ${date.time}`;
+        }
+
         if (has(date, 'date')) {
             return date.date;
         }

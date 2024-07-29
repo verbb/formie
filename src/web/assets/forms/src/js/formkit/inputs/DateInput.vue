@@ -49,7 +49,6 @@ export default {
             proxyValue: {
                 date: '',
                 time: '',
-                timezone: Craft.timezone,
             },
         };
     },
@@ -81,9 +80,18 @@ export default {
             this.$datePicker = $(dateInput).datepicker($.extend({}, Craft.datepickerOptions));
 
             this.$datePicker.on('change', (e) => {
-                this.proxyValue.date = e.target.value;
+                // Construct the value as an ISO-string, as the `e.target.value` will be localised
+                const datepickerDate = this.$datePicker.data('datepicker');
 
-                this.context.node.input(this.proxyValue);
+                if (e.target.value && datepickerDate) {
+                    const year = datepickerDate.selectedYear;
+                    const month = String(datepickerDate.selectedMonth + 1).padStart(2, '0');
+                    const day = String(datepickerDate.selectedDay).padStart(2, '0');
+
+                    this.proxyValue.date = `${year}-${month}-${day}`;
+
+                    this.context.node.input(this.proxyValue);
+                }
             });
 
             if (this.savedDate) {
@@ -99,9 +107,18 @@ export default {
             this.$timePicker = $(timeInput).timepicker($.extend({}, Craft.timepickerOptions));
 
             this.$timePicker.on('change', (e) => {
-                this.proxyValue.time = e.target.value;
+                // Convert the date to ISO-string
+                const timePickerDate = this.$timePicker.timepicker('getTime');
 
-                this.context.node.input(this.proxyValue);
+                if (e.target.value && timePickerDate) {
+                    const hours = String(timePickerDate.getHours()).padStart(2, '0');
+                    const minutes = String(timePickerDate.getMinutes()).padStart(2, '0');
+                    const seconds = String(timePickerDate.getSeconds()).padStart(2, '0');
+
+                    this.proxyValue.time = `${hours}:${minutes}:${seconds}`;
+
+                    this.context.node.input(this.proxyValue);
+                }
             });
 
             if (this.savedDate) {

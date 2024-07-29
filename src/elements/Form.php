@@ -139,25 +139,6 @@ class Form extends Element
 
         return $sources;
     }
-    
-    protected static function indexElements(ElementQueryInterface $elementQuery, ?string $sourceKey): array
-    {
-        $userSession = Craft::$app->getUser();
-        $elements = $elementQuery->all();
-
-        // Filter out any elements the user doesn't have access to view
-        // Can the user edit _every_ form?
-        if (!$userSession->checkPermission('formie-manageForms')) {
-            // Find all UIDs the user has permission to
-            foreach ($elements as $key => $element) {
-                if (!$userSession->checkPermission('formie-manageForms:' . $element->uid)) {
-                    unset($elements[$key]);
-                }
-            }
-        }
-
-        return array_values($elements);
-    }
 
     protected static function defineActions(string $source = null): array
     {
@@ -2123,6 +2104,15 @@ class Form extends Element
 
     protected function cpEditUrl(): ?string
     {
+        $userSession = Craft::$app->getUser();
+
+        // Check if the user has permission to edit this form
+        if ($userSession && !$userSession->checkPermission('formie-editForms')) {
+            if (!$userSession->checkPermission('formie-manageForm:' . $this->uid)) {
+                return null;
+            }
+        }
+        
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
     }
     

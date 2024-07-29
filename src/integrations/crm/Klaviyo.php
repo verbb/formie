@@ -67,6 +67,14 @@ class Klaviyo extends Crm
                         'name' => Craft::t('formie', 'Phone Number'),
                     ]),
                     new IntegrationField([
+                        'handle' => 'address1',
+                        'name' => Craft::t('formie', 'Address 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address2',
+                        'name' => Craft::t('formie', 'Address 2'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
                     ]),
@@ -103,6 +111,20 @@ class Klaviyo extends Crm
     {
         try {
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
+
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($profileValues, 'address1'),
+                'address2' => ArrayHelper::remove($profileValues, 'address2'),
+                'city' => ArrayHelper::remove($profileValues, 'city'),
+                'region' => ArrayHelper::remove($profileValues, 'region'),
+                'zip' => ArrayHelper::remove($profileValues, 'zip'),
+                'country' => ArrayHelper::remove($profileValues, 'country'),
+            ]);
+
+            if ($location) {
+                $profileValues['location'] = $location;
+            }
 
             $profilePayload = [
                 'data' => [

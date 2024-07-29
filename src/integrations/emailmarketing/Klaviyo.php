@@ -70,6 +70,14 @@ class Klaviyo extends EmailMarketing
                         'name' => Craft::t('formie', 'Phone Number'),
                     ]),
                     new IntegrationField([
+                        'handle' => 'address1',
+                        'name' => Craft::t('formie', 'Address 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address2',
+                        'name' => Craft::t('formie', 'Address 2'),
+                    ]),
+                    new IntegrationField([
                         'handle' => 'city',
                         'name' => Craft::t('formie', 'City'),
                     ]),
@@ -135,6 +143,20 @@ class Klaviyo extends EmailMarketing
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($fieldValues, 'address1'),
+                'address2' => ArrayHelper::remove($fieldValues, 'address2'),
+                'city' => ArrayHelper::remove($fieldValues, 'city'),
+                'region' => ArrayHelper::remove($fieldValues, 'region'),
+                'zip' => ArrayHelper::remove($fieldValues, 'zip'),
+                'country' => ArrayHelper::remove($fieldValues, 'country'),
+            ]);
+
+            if ($location) {
+                $fieldValues['location'] = $location;
+            }
+
             // Create or update a Profile first
             $payload = [
                 'data' => [
@@ -163,7 +185,12 @@ class Klaviyo extends EmailMarketing
             // Extract any consent settings
             $smsConsent = ArrayHelper::remove($fieldValues, 'sms_consent');
 
-            $profile = $fieldValues;
+            // A profile subscription only allows a subset of information from the profile mapping
+            $profile = array_filter([
+                'email' => $fieldValues['email'] ?? null,
+                'phone_number' => $fieldValues['phone_number'] ?? null,
+            ]);
+
             $profile['subscriptions']['email']['marketing']['consent'] = 'SUBSCRIBED';
 
             if ($smsConsent) {
