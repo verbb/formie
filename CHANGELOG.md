@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.0.0-beta.19 - 2024-07-29
+
+### Added
+- Added `Address 1` and `Address 2` to field mapping for Klaviyo integration.
+- Added `useEmailTemplateForFieldVariables` plugin setting to enforce field variables to use their email template. This is opt-in behaviour until Formie 3.
+- Added the ability to override “All Form Fields”, “All Non Empty Fields” and “All Visible Fields” variables with Email Notification templates.
+- Added `isFinalPage` in JSON response for Ajax-based forms.
+
+### Changed
+- Updated SharpSpring integration to not require the Form URL, and improve instructions.
+- Updated English translations.
+- Date fields now return date settings (`defaultValue`, `defaultDate`, `minDate`, `maxDate`) as `Y-m-dTH:i:s` formatted strings without timezone information (as none is stored).
+- `nextPageIndex` in JSON response for Ajax-based forms now returns `null` when submitting on the final page to match `nextPageId`.
+- Updated Freeform migration to support Freeform 5+.
+- Update Date field’s `availableDaysOfWeek` to return an array of strings as opposed to a JSON-encoded array for GraphQL.
+- Email Notification field templates now no longer output a paragraph tag and the field label.
+
+### Fixed
+- Fixed form element index behaviour for users with only “View Forms” permissions.
+- Fixed an error for Date fields and the Default Date, and Min/Max Date settings being inconsistent.
+- Fixed location values for Klaviyo integration.
+- Fixed Klaviyo Email Marketing integration not working correctly.
+- Fixed Payment field billing detail settings not working correctly.
+- Fixed Date fields and the “Available Days” setting not working correctly.
+- Fixed Repeater field content not being normalized correctly.
+- Fixed behaviour of field variable tags in Email Notifications, where referencing a single field produced different output compared to when used in consolidated variables (e.g. “All Form Fields”).
+- Fixed Group fields in Email Notifications when referencing a single field within a group as a variable tag.
+- Fixed Formie Twig functions assuming `field` and `form` variables are Formie fields and forms.
+
+### Removed
+- Removed `currentPageId` from JSON response for Ajax-based forms, as it’s no longer necessary.
+
 ## 3.0.0-beta.18 - 2024-07-21
 
 ### Fixed
