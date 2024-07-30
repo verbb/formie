@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0-beta.20 - 2024-07-31
+
+### Fixed
+- Fixed Feed Me integration support.
+- Fixed incorrect permission check for non-admin users accessing forms.
+- Fixed an error with submitting forms for some captchas, when the form is initially hidden.
+
 ## 3.0.0-beta.19 - 2024-07-29
 
 ### Added
