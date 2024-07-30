@@ -28,6 +28,9 @@ export function createHcaptcha() {
         },
 
         render(ele, options, cb) {
+            // Important to check if recaptcha has been loaded, as rendering is lazy
+            this.checkCaptchaLoad();
+
             this.wait().then(() => {
                 cb(window.hcaptcha.render(ele, options));
             });
@@ -61,7 +64,7 @@ export function createHcaptcha() {
             return window.hcaptcha.execute(siteKey);
         },
 
-        checkRecaptchaLoad() {
+        checkCaptchaLoad() {
             if (ownProp.call(window, 'hcaptcha') && ownProp.call(window.hcaptcha, 'render')) {
                 this.notify();
             }

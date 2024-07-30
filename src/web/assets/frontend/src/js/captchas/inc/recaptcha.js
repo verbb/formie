@@ -28,6 +28,9 @@ export function createRecaptcha(enterprise = false) {
         },
 
         render(ele, options, cb) {
+            // Important to check if recaptcha has been loaded, as rendering is lazy
+            this.checkCaptchaLoad();
+
             this.wait().then(() => {
                 if (enterprise) {
                     cb(window.grecaptcha.enterprise.render(ele, options));
@@ -74,7 +77,7 @@ export function createRecaptcha(enterprise = false) {
             return window.grecaptcha.execute(siteKey);
         },
 
-        checkRecaptchaLoad() {
+        checkCaptchaLoad() {
             if (ownProp.call(window, 'grecaptcha') && ownProp.call(window.grecaptcha, 'render')) {
                 this.notify();
             }
