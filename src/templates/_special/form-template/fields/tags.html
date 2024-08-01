@@ -1,5 +1,8 @@
 {% set originalField = field %}
 
+{# Set the value on the field so that we can modify the element query based on that #}
+{% do originalField.populateValue(value) %}
+
 {# Override the `field` with the correct display type, populated from the Recipients field #}
 {% set field = originalField.getDisplayTypeField() %}
 
