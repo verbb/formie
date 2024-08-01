@@ -3,7 +3,7 @@
 ## 1.6.45 - 2024-08-01
 
 ### Fixed
-- Fix an issue where redirect URLs for forms may contain invalid content.
+- Fixed an issue where redirect URLs for forms may contain invalid content.
 
 ## 1.6.44 - 2024-06-15
 
