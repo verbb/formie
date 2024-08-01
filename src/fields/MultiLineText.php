@@ -170,7 +170,7 @@ class MultiLineText extends Field implements PreviewableFieldInterface, Sortable
         $value = $element->getFieldValue($this->fieldKey);
         $count = count(explode(' ', $value));
 
-        if ($count > $min) {
+        if ($count < $min) {
             $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
