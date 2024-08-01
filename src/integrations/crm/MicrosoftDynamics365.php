@@ -102,6 +102,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['defaultEndPointVersion'] = '1.0';
         $config['resource'] = $this->getApiDomain();
         $config['tenant'] = 'common';
