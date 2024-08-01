@@ -134,6 +134,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['domain'] = $this->getApiDomain();
 
         return $config;
