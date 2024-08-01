@@ -72,6 +72,14 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         return "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/";
     }
 
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
+
+        return $config;
+    }
+
     public function getAuthorizationUrlOptions(): array
     {
         $options = parent::getAuthorizationUrlOptions();
