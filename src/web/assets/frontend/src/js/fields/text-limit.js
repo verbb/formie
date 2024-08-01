@@ -16,7 +16,9 @@ export class FormieTextLimit {
     }
 
     initTextLimits() {
+        this.minChars = this.$text.getAttribute('data-min-chars');
         this.maxChars = this.$text.getAttribute('data-max-chars');
+        this.minWords = this.$text.getAttribute('data-min-words');
         this.maxWords = this.$text.getAttribute('data-max-words');
 
         if (this.maxChars) {
@@ -36,6 +38,96 @@ export class FormieTextLimit {
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
+
+        this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
+    }
+
+    registerValidation(e) {
+        e.validator.addValidator('textMinCharacterLimit', ({ input }) => {
+            const limit = input.getAttribute('data-min-chars');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const charactersLeft = limit - this.count(value);
+
+            if (charactersLeft > 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ input }) => {
+            return t('You must enter at least {limit} characters.', {
+                limit: input.getAttribute('data-min-chars'),
+            });
+        });
+
+        e.validator.addValidator('textMaxCharacterLimit', ({ input }) => {
+            const limit = input.getAttribute('data-max-chars');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const charactersLeft = limit - this.count(value);
+
+            if (charactersLeft < 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ input }) => {
+            return t('Limited to {limit} characters.', {
+                limit: input.getAttribute('data-max-chars'),
+            });
+        });
+
+        e.validator.addValidator('textMinWordLimit', ({ input }) => {
+            const limit = input.getAttribute('data-min-words');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const wordCount = value.split(/\S+/).length - 1;
+            const wordsLeft = limit - wordCount;
+
+            if (wordsLeft > 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ input }) => {
+            return t('You must enter at least {limit} words.', {
+                limit: input.getAttribute('data-min-words'),
+            });
+        });
+
+        e.validator.addValidator('textMaxWordLimit', ({ input }) => {
+            const limit = input.getAttribute('data-max-words');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const wordCount = value.split(/\S+/).length - 1;
+            const wordsLeft = limit - wordCount;
+
+            if (wordsLeft < 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ input }) => {
+            return t('Limited to {limit} words.', {
+                limit: input.getAttribute('data-max-words'),
+            });
+        });
     }
 
     characterCheck(e) {
