@@ -6,6 +6,7 @@ use craft\elements\db\ElementQueryInterface;
 use craft\enums\AttributeStatus;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
+use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
 
 use GraphQL\Type\Definition\Type;
@@ -76,6 +77,16 @@ trait FieldLegacy
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getHandle(): ?string
+    {
+        return $this->handle;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return $this->id ? UrlHelper::cpUrl("settings/fields/edit/$this->id") : null;
     }
 
     public function getUiLabel(): string
