@@ -1820,6 +1820,7 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
         ];
 
         $registeredJs = [];
