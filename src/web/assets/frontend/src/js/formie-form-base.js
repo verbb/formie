@@ -34,27 +34,31 @@ export class FormieFormBase {
                 return;
             }
 
-            // Add a little delay for UX
-            setTimeout(() => {
-                // Call the validation hooks
-                if (!this.validate() || !this.afterValidate()) {
-                    return;
-                }
-
-                // Trigger Captchas
-                if (!this.validateCaptchas()) {
-                    return;
-                }
-
-                // Trigger Payment Integrations
-                if (!this.validatePayment()) {
-                    return;
-                }
-
-                // Proceed with submitting the form, which raises other validation events
-                this.submitForm();
-            }, 300);
+            this.processSubmit();
         }, false);
+    }
+
+    processSubmit() {
+        // Add a little delay for UX
+        setTimeout(() => {
+            // Call the validation hooks
+            if (!this.validate() || !this.afterValidate()) {
+                return;
+            }
+
+            // Trigger Captchas
+            if (!this.validateCaptchas()) {
+                return;
+            }
+
+            // Trigger Payment Integrations
+            if (!this.validatePayment()) {
+                return;
+            }
+
+            // Proceed with submitting the form, which raises other validation events
+            this.submitForm();
+        }, 300);
     }
 
     validate() {
