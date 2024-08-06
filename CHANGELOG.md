@@ -1,569 +1,6 @@
 # Changelog
 
-## 3.0.0-beta.20 - 2024-07-31
-
-### Fixed
-- Fixed Feed Me integration support.
-- Fixed incorrect permission check for non-admin users accessing forms.
-- Fixed an error with submitting forms for some captchas, when the form is initially hidden.
-
-## 3.0.0-beta.19 - 2024-07-29
-
-### Added
-- Added `Address 1` and `Address 2` to field mapping for Klaviyo integration.
-- Added `useEmailTemplateForFieldVariables` plugin setting to enforce field variables to use their email template. This is opt-in behaviour until Formie 3.
-- Added the ability to override “All Form Fields”, “All Non Empty Fields” and “All Visible Fields” variables with Email Notification templates.
-- Added `isFinalPage` in JSON response for Ajax-based forms.
-
-### Changed
-- Updated SharpSpring integration to not require the Form URL, and improve instructions.
-- Updated English translations.
-- Date fields now return date settings (`defaultValue`, `defaultDate`, `minDate`, `maxDate`) as `Y-m-dTH:i:s` formatted strings without timezone information (as none is stored).
-- `nextPageIndex` in JSON response for Ajax-based forms now returns `null` when submitting on the final page to match `nextPageId`.
-- Updated Freeform migration to support Freeform 5+.
-- Update Date field’s `availableDaysOfWeek` to return an array of strings as opposed to a JSON-encoded array for GraphQL.
-- Email Notification field templates now no longer output a paragraph tag and the field label.
-
-### Fixed
-- Fixed form element index behaviour for users with only “View Forms” permissions.
-- Fixed an error for Date fields and the Default Date, and Min/Max Date settings being inconsistent.
-- Fixed location values for Klaviyo integration.
-- Fixed Klaviyo Email Marketing integration not working correctly.
-- Fixed Payment field billing detail settings not working correctly.
-- Fixed Date fields and the “Available Days” setting not working correctly.
-- Fixed Repeater field content not being normalized correctly.
-- Fixed behaviour of field variable tags in Email Notifications, where referencing a single field produced different output compared to when used in consolidated variables (e.g. “All Form Fields”).
-- Fixed Group fields in Email Notifications when referencing a single field within a group as a variable tag.
-- Fixed Formie Twig functions assuming `field` and `form` variables are Formie fields and forms.
-
-### Removed
-- Removed `currentPageId` from JSON response for Ajax-based forms, as it’s no longer necessary.
-
-## 3.0.0-beta.18 - 2024-07-21
-
-### Fixed
-- Fix Salesforce integration and Case objects by excluding the `IsClosedOnCreate` field.
-- Fix missing `countryEnabled` `countryDefaultValue` and `countryAllowed` properties for Phone fields for GraphQL.
-
-## 3.0.0-beta.17 - 2024-07-17
-
-### Added
-- Added structure sorting options to Entries fields.
-- Added `allIntegrations` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
-- Added `form` property to `EVENT_MODIFY_FORM_INTEGRATIONS` event.
-- Added `setNoCacheHeaders()` to the `formie/forms/refresh-tokens` action endpoint to prevent caching.
-- Added `Integrations::EVENT_MODIFY_FORM_INTEGRATION` event.
-- Added `Field:: lowerClassName()`.
-- Added structure sorting options to Entries fields.
-
-### Changed
-- Allow sending email notifications for incomplete submissions from the control panel.
-- `status` is now a reserved field handle.
-- Updated form builder preview for Summary field.
-- Updated the `intl-tel-input` package for Phone field validation and handling.
-- Cleanup unused content population code.
-
-### Fixed
-- Fixed an error with Date fields and their default value timezone.
-- Fixed an XSS vulnerability for sub-fields and sent email notifications.
-- Fixed `EVENT_MODIFY_FORM_INTEGRATION` not firing in some instances.
-- Fixed Phone field allowing invalid phone numbers and country codes.
-- Fixed an error with single Name fields used in Summary fields.
-- Fixed session call for `refresh-tokens`.
-- Fixed Opayo payments and custom email values.
-- Fixed some fields not using `getValueAsString()` to render content for email notifications.
-- Fixed single-value fields not being able to be ordered in the submissions index in the control panel.
-- Fixed lack of server-side validation for min/max Number fields.
-- Fixed not being able to order submissions in the control panel via custom fields.
-- Fixed an error when uploading files in a File Upload field when editing a submission within the control panel.
-- Fixed email notification permissions.
-- Fixed an error populating existing Repeater field content for submissions.
-- Fixed an error when validating a Phone field.
-- Fixed nested/sub fields not populating values correctly.
-- Fixed an error when importing a form when replacing an existing form.
-- Fixed an error when importing a form and updating an existing form.
-- Fixed an error when using Password fields, and their incorrect value.
-- Fixed form conditions.
-- Fixed conditional status-based email notifications not working correctly.
-- Fixed an alignment issue for new forms, introduced in Craft 5.2.
-- Fixed an error when rendering Opayo payment fields.
-- Fixed an error when rendering PayPal and PayWay payment fields.
-- Fixed status “off” state appearance to align with Craft 5 changes.
-- Fixed lack of client-side validation for min/max Number fields.
-- Fixed lack of server-side validation for min/max Number fields.
-
-## 3.0.0-beta.16 - 2024-06-27
-
-### Added
-- Added “Calendar (Simple)” and “Calendar (Advanced)” to Date field display types, replacing “Use Date Picker”.
-- Added `Field::isDisabled`.
-- Added CSS Layers support for front-end CSS.
-- Added `sourceType` for all integration custom fields to check against the provider-defined field type.
-- Added Company mapping support for HubSpot CRM integration.
-
-### Changed
-- Date fields now show the required state on the outer label for Calendar and Date Picker display types.
-- Moved options field data classes to Formie from Craft.
-- Name field values now return the full name including prefix and middle name (if provided).
-- Address Country and Name Prefix fields now use their respective label values for string representations of their value.
-- Changed the default state of “Include in Email Notifications” for fields to be `true`.
-
-### Fixed
-- Fixed Repeater fields and conditions registration.
-- Fixed Repeater fields with a “Minimum instances” setting not having their rows initialized properly.
-- Fixed an error during Craft 5 migration.
-- Fixed cloning Date fields not having their sub-field layouts cloned correctly.
-- Fixed double placeholder for Address country sub-field.
-- Fixed Address field Country not showing correctly in email notifications.
-- Fixed Name field Prefix not showing correctly in email notifications.
-- Fixed Name fields not displaying in email notifications correctly.
-- Fixed Address street value in email notification preview.
-- Fixed Date fields (DatePicker types) not handling their required sub-field states correctly.
-- Fixed Date field “Available Days” setting showing for simple calendar display type.
-- Fixed string representation of Name field values including commas.
-- Fixed Address field’s Country value not populating correctly.
-- Fixed Address and Name field values not reflecting disabled sub-fields.
-- Fixed Name Prefix fields content using the value instead of label.
-- Fixed Sub-Fields not factoring in disabled or hidden fields into their resulting content.
-- Fixed Name field Prefix not using the label for its content.
-- Fixed Name fields not using their full name value for Summary fields.
-- Fixed Dynamics365 integration not working with custom fields.
-- Fixed deprecated call to `Field::name`.
-- Fixed an error with some fields when enabling content encryption.
-- Fixed Pipedrive integration for "Multiple Options" (set) fields.
-- Fixed server-side validation for Phone fields on Ajax-based forms not showing correctly.
-- Fixed an error with Element integrations when mapping to an element select field type on the resulting element.
-- Fixed Phone field validation for empty state.
-- Fixed a typo in Turnstile appearance settings.
-- Fixed Address field country values not showing correctly when editing a submission in the control panel.
-
-## 3.0.0-beta.15 - 2024-06-15
-
-### Added
-- Added support for new Klaviyo integrations due to [API changes](https://developers.klaviyo.com/en/v1-2/reference/api-overview).
-- Added support for Calculations field when used in field conditions.
-- Added appearance settings to Turnstile captcha. (thanks @jmauzyk).
-- Added a warning for incorrect permissions for Craft Team.
-- Added “All Submissions Behaviour” plugin setting.
-
-### Changed
-- Calculations fields can now reference other Calculations fields.
-- Improved handling of spam, deleted, and agent contacts for Freshdesk integration. (thanks @jmauzyk).
-- Adjusted dropzone size for form builder.
-
-### Fixed
-- Fixed default values for fields not being trimmed of whitespace.
-- Fixed some variables not supporting env variables in Email Notifications.
-- Fixed an error with Dynamics365 CRM Integration.
-- Fixed an error when pre-populating element fields.
-- Fixed options-based fields not having their default values set correctly.
-- Fixed nested and sub-fields not having their parent field associated with the inner fields.
-- Fixed validation error for Table field inside a Repeater field.
-- Fixed Stripe payments amount being recorded incorrectly.
-- Fixed conditions not working for Repeater fields, for fields outside of the Repeater field.
-- Fixed conditions not working on sibling nested Repeater fields.
-- Fixed a JS error with Table and Repeater fields.
-- Fixed an error for Entry element integrations.
-- Fixed an error when generating `aria-describedby` attributes for client-side validation.
-- Fixed an error where form alerts weren’t removed after a successful submit for the next form submission.
-- Fixed form permissions on Craft Team.
-- Fixed “optional” label field fields like Sub-Fields and Nested Fields.
-
-## 3.0.0-beta.14 - 2024-05-31
-
-### Added
-- Added Craft Teams support for permissions.
-
-### Fixed
-- Fixed Entry element integration not showing attributes for update element mapping.
-- Fixed `tokenId` reference for integration queue jobs.
-- Fixed an error when submitting a form and manipulating the `goingBack` param.
-
-## 3.0.0-beta.13 - 2024-05-29
-
-### Added
-- Added `sizeLimit`, `sizeMinLimit` and `limitFiles` to File Upload GraphQL queries.
-
-### Changed
-- Update Payment fields to provide a more client-friendly error message when a payment fails.
-- Ensure that sessions exists when calling `formie/forms/refresh-tokens`.
-
-### Fixed
-- Fixed element integrations update matching logic where matched data is empty.
-- Fixed `populateFormValues` values and dynamic Twig.
-- Fixed an error with Phone number fields and `countryCode`.
-- Fixed an error with Phone number fields and `countryName`.
-- Fixed incorrect foreign key constraints for payments on new Formie installs.
-- Fixed required Agree fields not validating correctly.
-
-### Removed
-- Removed `multi` and `limitOptions` for File Upload fields for GraphQL (not applicable).
-
-## 3.0.0-beta.12 - 2024-05-27
-
-### Added
-- Phone fields now include `countryCode` and `countryName` in their value when the value is JSON.
-
-### Changed
-- Removed unused `e.target` from Repeater `addRow()` JS function.
-- Updated English translations.
-- Updated reCAPTCHA Enterprise’s Secret API Key plugin setting.
-
-### Fixed
-- Fixed Entry element integrations not using their section’s default entry status when `enabled` wasn’t mapped.
-- Fixed country-enabled Phone fields not having their generated value set correctly.
-- Fixed an error with Phone number fields and `countryCode`.
-- Fixed options-based fields and their `options` value when queried via GraphQL.
-- Fixed integration field selects not synchronizing with field changes.
-- Fixed showing field when none for integration options.
-- Fixed Sub-Fields in Nested fields not working correctly for integrations.
-- Fixed Phone field front-end styling for country code.
-- Fixed checkbox select inputs not retaining their values.
-
-## 3.0.0-beta.11 - 2024-05-20
-
-### Added
-- Added error logging when Captcha integration settings fail.
-
-### Changed
-- Allow `form. setPageSettings()` to use either the zero-based index of the page, or the page handle.
-- Field Layout Pages now auto-generate a handle based on the label of the page.
-- Improved error message for integration refresh tasks.
-
-### Fixed
-- Fixed disabled Sub-Field fields from triggering validation.
-- Fixed an error with Loqate Address autocomplete.
-- Fixed clone icon for cloning fields in the form builder.
-- Fixed custom Theme Config classes not applying correctly in JS when multiple classes are used.
-- Fixed `form.setPageSettings()` method.
-- Fixed front-end validation not including `aria-valid` attributes.
-- Fixed an error where Theme Config custom field error’s weren’t working.
-- Fixed Webhook and Slack Webhook integrations with correct response handling.
-- Fixed a type error for integrations `getFieldMappingValues()`.
-- Fixed an error with Salesforce integration.
-- Fixed emoji support for Integrations.
-- Fixed an error when adding existing fields to a form.
-
-## 3.0.0-beta.10 - 2024-05-08
-
-### Added
-- Added `disabled` property to GraphQL Dropdown field interface
-- Added `Formie::EVENT_MODIFY_TWIG_ENVIRONMENT` event to modify the Twig Sandbox for variable parsing.
-- Added `Variables::EVENT_REGISTER_VARIABLES` event to register your own.
-- Added `Field::getValueForVariable()` to allow fields to handle logic for variables.
-- Added `Field::getValueForCondition()` for handling serialization for condition evaluation.
-- Added `Field::getValueForEmailPreview()` for fields to define their own preview for email notifications.
-- Added `disabled` property to GraphQL Dropdown field interface
-- Added `useMultipleFields` for Name field for GraphQL
-
-### Changed
-- Improve performance when parsing variables for email notifications.
-- Options fields (Dropdown, Checkboxes, Radio Buttons) now honour the “Email Notification Value” when using field values as variables
-
-### Fixed
-- Fixed an error when using dynamic Dropdown options.
-- Fixed a PHP 8 error.
-- Fixed paths for Craft Cloud. (thanks @timkelty).
-- Fixed Repeater fields not retaining their values correctly.
-- Fixed Form export (from the Form element index) not using custom Formie export logic.
-- Fixed Name and Address sub-field conditions not working correctly.
-- Fixed an error when importing forms, where custom field content existed while the custom fields themselves didn’t.
-- Fixed Group/Repeater field conditions not working correctly when complex rules were created.
-- Fixed an error for Name fields and `defineValueAsString()`.
-- Fixed nested fields not working correctly with field conditions.
-- Fixed an error with File Upload, client-side validation.
-- Fixed Date field layout issues in Safari and Mobile Safari.
-- Fixed an error with File Upload and MariaDB.
-- Fixed an error with element integrations where no custom fields are present.
-- Fixed an error when running Entry element integrations.
-- Fixed an error with Name Prefix field options not working.
-- Fixed an error for "Unique Value" fields.
-- Fixed a JS error for client-side validation with Theme Config `resetClasses` set.
-- Fixed Entry element integrations not working for Craft 5 entry type changes.
-- Fixed resolved nested field’s form.
-- Fixed GraphQL input types.
-- Fixed an error with Date field variables.
-- Fixed an error with Postgres installs.
-- Fixed an error with Campaign integration lists.
-- Fixed an error for some captchas when refreshing JS tokens.
-- Fixed default “Contact Form” stencils not working for new installs.
-
-## 3.0.0-beta.9 - 2024-04-27
-
-### Added
-- Added more missing translation strings.
-- Added full error for reCAPTCHA captchas when failing to initialize.
-- Added the ability for `Submission::setStatus()` to accept the handle of a status.
-- Added the ability to set the captcha type for reCAPTCHA Enterprise.
-- Added Google Console API Key for reCAPTCHA Enterprise.
-- Added Referer, User Agent and User IP headers for reCAPTCHA Enterprise requests.
-
-### Changed
-- Payment integrations can now have their field templates overridden in Form Templates.
-- HubSpot forms are now listed in alphabetical order.
-- Improved German translations. (thanks @MoritzLost).
-- Updated non-English translations to include latest strings.
-- Updated English translations to include latest strings.
-
-### Fixed
-- Fixed a JS error for client-side validation with Theme Config `resetClasses` set.
-- Fixed Sub-Fields not having their values set correctly for integrations.
-- Fixed sub-field values not displaying correctly in email notifications.
-- Fixed an error when selecting existing fields to add to a form when there are none.
-- Fixed an error with Page Settings for GraphQL.
-- Fixed field `name` deprecations.
-- Fixed Date fields in Group/Repeater not validating correctly.
-- Fixed custom error messages not showing for fields.
-- Fixed an error serializing File Upload field content.
-- Fixed a deprecation warning when importing or exporting forms.
-- Fixed an error when rendering fields in the form builder when also registering custom fields.
-- Fixed an error with File Upload fields with invalid volumes when viewing a submission in the control panel.
-- Fixed an error when rendering fields in the form builder when also registering custom fields.
-- Fixed Heading field outputting field label when editing a submission in the control panel.
-- Fixed an error where `renderOptions` weren’t available to field templates.
-- Fixed duplicated heading text for Heading fields when viewing a submission in the control panel.
-- Fixed an error with Flatpickr and live client-side validation.
-- Fixed Element integrations not working correctly for non-updating elements.
-- Fixed Address field default country not working correctly.
-- Fixed formatting for German translations. (thanks @MoritzLost).
-- Fixed spelling and style issues in German translations. (thanks @MoritzLost).
-- Fixed an error with File Upload fields within Repeater fields for GraphQL.
-- Fixed User variables not working in Email Notification previews.
-- Fixed "Manage all forms" permission.
-- Submission UIDs when used in Email Notifications now show a generated value in preview.
-
-## 3.0.0-beta.8 - 2024-04-18
-
-### Added
-- Added missing form builder translation strings.
-
-### Fixed
-- Fixed a Formie 1 migration where fields contained an underscore, and were affected by synced field issues in need of fixing.
-- Fixed a PHP 8.2 deprecation.
-- Fixed populating Group fields not working consistently.
-- Fixed Repeater and Group fields not working correctly for multi-page forms.
-- Fixed limited users permissions for forms not working correctly.
-- Fixed an error with Stripe creating a plan for subscription payments.
-- Fixed Internal fields showing in the form builder for non-English languages.
-- Fixed conditions builder not working correctly for some field types like Dropdowns.
-- Fixed options fields not saving field content correctly.
-- Fixed importing sub-fields for forms.
-- Fixed form importing.
-- Fixed form exporting including invalid settings.
-- Fixed an error when importing a form.
-- Fixed support request form.
-- Fixed Heading field preview.
-- Fixed an error with stencils not having their settings populated correctly.
-- Fixed an error when populating form content.
-
-## 3.0.0-beta.7 - 2024-04-15
-
-### Added
-- Added missing form builder translation strings.
-- Added error notice for Stripe payments when invalid values are set.
-- Added `onFormieLoaded` JS event.
-
-### Changed
-- The `onFormieInit` now fires on every initialization of a form, when it’s visible on the page.
-
-### Fixed
-- Fixed a Formie 1 migration where fields contained an underscore, and were affected by synced field issues in need of fixing.
-- Fixed a PHP 8.2 deprecation.
-- Fixed populating Group fields not working consistently.
-- Fixed Repeater and Group fields not working correctly for multi-page forms.
-- Fixed limited users permissions for forms not working correctly.
-- Fixed an error with Stripe creating a plan for subscription payments.
-- Fixed Internal fields showing in the form builder for non-English languages.
-- Fixed sub-fields not showing their editable settings.
-- Fixed toggling the enabled state of integrations not updating in the sidebar.
-- Fixed form builder performance with many integrations enabled.
-- Fixed an error in the form builder for missing fields.
-- Fixed outdated front-end translations string for validators.
-- Fixed an error with Duplicate and JavaScript captchas.
-- Fixed an error when changing a Select field’s option from an optgroup to an option.
-
-## 3.0.0-beta.6 - 2024-04-11
-
-### Added
-- Added `FieldInterface::subfieldLabelPosition` for GraphQL.
-- Added `Submission::hasStatusChanged()` and `Submission::hasSpamChanged()`.
-- Added ability to send email notifications or trigger integrations when unmarking a submission as spam.
-- Added `data-field-label` attribute to labels/legends for fields.
-- Added `data-validation` to fields, to denote what validators to use for the field.
-- Added error output when saving a new form.
-- Added `FieldInterface::subFieldLabelPosition` for GraphQL.
-
-### Changed
-- Switched Stripe payments to use “Payment Web Element”, adding the ability to use non-credit card payments like Apple Pay, AfterPay, etc
-- Revamped front-end validation and removed `bouncer.js`.
-- Submissions now send any email notifications that have status conditions when a completed submission is saved.
-- Field errors now only show their first error when validation fails.
-- Changed `fieldErrors` and `fieldError` elements from `ul` and `li` respectively to `div`.
-- Re-organise validator rules and add client-side match field validator.
-- `data-field-handle` for fields now includes the full dot-notation “fieldKey” of the field, including any parent. So `name.firstName`, `group.text` or `repeater.new1.text`.
-- Captchas for GraphQL mutations now don’t require a mandatory variables parameter to be named the same as their input type.
-- Querying fields and rows via GraphQL now default to only returned enabled fields.
-
-### Fixed
-- Fixed Opayo payments not sending customer email address.
-- Fixed Phone fields default value not working.
-- Fixed “All Fields” and similar summary variables causing invalid HTML in some email clients for email notifications.
-- Fixed Solspace Calendar element integration incorrectly matching existing elements from other entry types.
-- Fixed Entry element integration incorrectly matching existing elements from other entry types.
-- Fixed compatibility with Solspace Calendar 5.x.
-- Fixed consent field values for Campaign Monitor.
-- Fixed an error for Checkboxes fields when the “Toggle Checkbox” was included.
-- Fixed multi-name fields not showing correctly in email notification previews.
-- Fixed `data-field-type` attribute being incorrectly translated for fields.
-- Fixed JS event listeners being attached multiple times for some integrations when calling `Formie.initForms()` multiple times.
-- Fixed front-end JS throwing an error in some circumstances.
-- Fixed an error when populating Group/Repeater field values.
-- Fixed a dependency error with `verbb/base` version.
-- Fixed user permissions being incorrect for view submissions in the control panel.
-- Fixed an error when populating Table fields.
-- Fixed Name/Address email templates.
-- Fixed duplicated email notifications not getting a unique handle.
-- Fixed handle email notification validation.
-- Fixed missing email notification validation.
-- Fixed inner Repeater fields able to be selected for variable when they aren’t supported yet.
-- Fixed an error when creating a stencil.
-- Fixed an error for match-field enabled fields.
-- Fixed sub-field inner fields being shown in the form builder.
-- Fixed Checkboxes validation.
-- Fixed notification cloning.
-- Fixed email notification enabled status.
-- Fixed an error with Solspace Calendar integration.
-- Fixed `data-field-type` attribute being incorrectly translated for fields.
-- Fixed payment field foreign key constraint.
-- Fixed front-end errors showing if no error.
-- Fixed default field values not normalizing correctly.
-- Fixed a payment field error.
-- Fixed an error with Opayo payments.
-- Fixed “Form Template” value not persisting on saving a form.
-- Fixed element site select input.
-- Fixed “Action on Submit” not toggling options correctly.
-- Fixed applying Formie 2 stencil data, and normalize stencil data.
-
-## 3.0.0-beta.5 - 2024-03-29
-
-### Added
-- Added `row.getIsHidden()`.
-- Added back `craft.formie.getVisibleFields()`.
-- Added the ability to store custom data (`customSettings`) on a Notification, to store extra data against a Notification.
-- Added the ability to modify Notification tabs and field settings (schema) via `Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA`.
-- Fields moved in and out of Group fields now have their content moved as well.
-- Fields can now be moved to and from Group/Repeater fields.
-- Added the ability for Recipients fields to pre-populate the field via their option label.
-- Added “Source” to Klaviyo Email Marketing integration.
-- Added support for additional SugarCRM fields.
-- Added the ability for cosmetic fields (Heading, HTML, etc) to be included in email notifications.
-- Added the ability to map to HubSpot Hidden fields.
-
-### Changed
-- Updated db table references.
-- Updated `Auth::getInstance()` references.
-- Updated `elementChip()` references.
-- Updated email notifications index to show Name and Subject variable previews when used.
-- Improved email notification preview error message.
-- Updated `stripe/stripe-php` to be compatible with (commerce-stripe)[https://github.com/craftcms/commerce-stripe].
-- Remove Section and Summary fields from rich text editor and variable picker options.
-
-### Fixed
-- Fixed notification alignment.
-- Fixed an error when installing the plugin, or when saving a stencil.
-- Fixed an error when saving a sent notification for an SMTP mailer email.
-- Fixed variable parsing plugin-wide.
-- Fixed an error when rendering entries fields in the email notification preview.
-- Fixed deprecation notice for Submissions.
-- Fixed some Theme Config classes not applying correctly.
-- Fixed Formie 3 migrations for where forms from Formie 2 were using the older field layout format.
-- Fixed an error with element fields and custom sources.
-- Fixed Section and Summary field label/handles re-generating.
-- Fixed Group inner field validation for Sub-Fields.
-- Fixed variable-parsing of sub-fields, nested fields and regular fields.
-- Fixed an error for Sub-Fields and generating summary and integration values.
-- Fixed hidden fields and rows with only hidden fields being shown in the form layout.
-- Fixed Pre-Populate field settings showing in nested Repeater fields, when they have no effect.
-- Fixed filtering deleted pages/rows/fields.
-- Fixed Recipients field error.
-- Fixed field defaults not being applied.
-- Fixed Opayo and `1017` error responses.
-- Fixed Algolia and Google address provider templates.
-- Fixed Table fields not populating properly with `populateFormValues()` and allow usage of the column `handle`.
-- Fixed Date/Time columns in Table field with timezone information when editing a submission in the control panel.
-- Fixed Salesforce DateTime fields throwing an error.
-- Fixed renamed theme config keys for some fields (wait until Formie 3).
-- Fixed success/error messages containing paragraph tags not displaying correctly for Ajax-based forms.
-- Fixed field and integration handles using the translated class name when they shouldn’t.
-- Fixed cosmetic field handles not working correctly for non-English-default installs.
-- Fixed a translation error in the control panel when the users language or site is set to German.
-- Fixed some integrations throwing errors when the control panel language was set to non-English.
-
-### Deprecated
-- Deprecated `craft.formie.getVisibleFields()`.
-
-## 3.0.0-beta.4 - 2024-03-22
-
-### Breaking Changes
-- Change Field’s `name` to `label` for GraphQL queries.
-- Change Page’s `name` to `label` for GraphQL queries.
-
-### Added
-- Added new user interface for sub-field (Address, Date, and Name).
-- Added the ability to re-order sub-fields.
-- Added the ability to edit the full settings of sub-field fields.
-- Added the `Field::enabled` property to allow you to disable a field.
-- Added new `verbb\formie\fields\subfields` classes to better handle sub-field inner fields.
-- Added `NestedField::EVENT_MODIFY_NESTED_FIELD_LAYOUT` to modify the field layout of Nested or Sub-Fields.
-
-### Changed
-- Sub-fields now extend from the `verbb\formie\base\SingleNestedField` and inherit many behaviours from Group fields.
-- Phone fields are no longer `verbb\formie\base\SubField` fields.
-- Sub-field fields now store their field config in their own row in the `formie_fields` database table, under their own layout (page, row, field).
-- Update GraphQL interfaces for all fields to explicitly define fields to query. Previously these were automatically done via Reflection.
-
-### Fixed
-- Fixed submission values not being fetched correctly for Name, Address and Phone fields.
-- Fixed an issue where Dropdown fields were having their default options being overridden.
-- Fixed missing fields not showing the correct error in the form builder.
-- Fixed breadcrumb display when editing a submission in the control panel.
-- Fixed an error when uninstalling
-- Fixed FormKit table input with multiple same name fields.
-- Fixed `ModifyFrontEndSubFieldsEvent` case insensitivity.
-- Fixed content migration from Formie 2 not always respecting JSON columns, proving an issue for MariaDB installs.
-
-### Removed
-- Removed `verbb\formie\events\ModifyFrontEndSubFieldsEvent`.
-
-## 3.0.0-beta.3 - 2024-03-06
-
-### Breaking Changes
-- Date fields now no longer use Flatpickr as a date-picker by default.
-- Changed the value returned for Address fields when queried via GraphQL.
-
-### Added
-- Added `fullName` and `fullAddress` to Name and Address field respectively for GraphQL.
-- Fixed an error when running GraphQL queries.
-- Added support for Name fields to query their subfields via GraphQL.
-- Added better support for responsive fields on the front-end for multi-column fields.
-
-### Fixed
-- Fixed validation errors being thrown for Name subfields.
-- Fixed validation errors being thrown for Date subfields.
-- Fixed button alignment for submissions edit screen.
-- Fixed multi-name Name fields and default values.
-- Fixed row spacing for sub-fields.
-- Fixed subfield label display on some fields.
-- Ensure pages and rows get unique ID in form builder.
-- Fixed an error when creating a new page.
-- Fixed `SubFieldInterface` case insensitivity.
-
-## 3.0.0-beta.2 - 2024-03-05
-
-### Fixed
-- Fix an install error related to `nystudio107/craft-plugin-vite`.
-
-## 3.0.0-beta.1 - 2024-03-04
+## 3.0.0 - 2024-08-06
 
 ### Breaking Changes
 - Repeater and Group fields values now no longer use elements, just plain arrays. This brings several performance improvements and simplification to these fields.
@@ -572,56 +9,122 @@
 - Element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants) now use their public URL in email notifications.
 - Options fields (Checkboxes, Dropdown, Radio) now use their option labels in email notifications.
 - Changed `fieldInputContainer` to `fieldInputWrapper` for Theme Config and `.fui-input-container` class to `.fui-input-wrapper` for fields.
+- Date fields now no longer use Flatpickr as a date-picker by default.
+- Changed the value returned for Address fields when queried via GraphQL.
+- Change Field’s `name` to `label` for GraphQL queries.
+- Change Page’s `name` to `label` for GraphQL queries.
 
 ### Added
-- You can now get submission field values via dot-notation for nested values. e.g. `submission.getFieldValue('group.text')` or  `submission.getFieldValue('repeater.1.text')`
-- You can now query submission field values via dot-notation for nested values. e.g. `submission.field('group.text').one()` or  `submission.field('repeater.1.text').one()`
-- Integrations can now populate a `$context` property with arbitrary data that's stored before processing, and accessible in the queue job.
-- Added `Field::fieldKey` to represent the handles of a field and any parent field. e.g. `group.text` or `repeater.text`.
-- Allow `craft.formie.renderJs` to set JS attributes for scripts.
+- Added new user interface for sub-field (Address, Date, and Name).
+- Added the ability to re-order sub-fields.
+- Added the ability to edit the full settings of sub-field fields.
+- Added ability to send email notifications or trigger integrations when unmarking a submission as spam.
+- Added the ability to set the control panel or public URL for element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants).
+- Added the ability to set the label or value for options fields (Checkboxes, Dropdown, Radio).
+- Added the ability to override “All Form Fields”, “All Non Empty Fields” and “All Visible Fields” variables with Email Notification templates.
+- Added “Calendar (Simple)” and “Calendar (Advanced)” to Date field display types, replacing “Use Date Picker”.
+- Added CSS Layers support for front-end CSS.
+- Fields moved in and out of Group fields now have their content moved as well.
+- Fields can now be moved to and from Group/Repeater fields.
 - Added “Required Field Indicator” for forms, to either show an asterisk for required fields (default) or show optional for non-required fields.
-- Added `data-fui-alert-error` and `data-fui-alert-success` attributes on front-end alerts.
 - Added the `form.setPageSettings()` function to override page settings in your Twig templates.
 - Added support for Group and Repeater fields to be added as an existing field, or a synced field in the form builder.
 - Added support for Repeater fields to use conditions (within their own row of fields).
-- Added `initRow` to Repeater field JS events.
-- Added the current rowId for the `data-repeater-row` attribute for Repeater fields.
 - Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
 - Added keyboard navigation to variable picker dropdown.
 - Added the ability to type `{` in variable picker components to autocomplete variables.
+- Added `handle` to Email Notifications that can be accessed directly, instead of by their ID.
+- Added `isFinalPage` in JSON response for Ajax-based forms.
+- Added “All Submissions Behaviour” plugin setting.
+- Added the ability to store custom data (`customSettings`) on a Notification, to store extra data against a Notification.
+- Added the ability to modify Notification tabs and field settings (schema) via `Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA`.
+- You can now get submission field values via dot-notation for nested values. e.g. `submission.getFieldValue('group.text')` or  `submission.getFieldValue('repeater.1.text')`
+- You can now query submission field values via dot-notation for nested values. e.g. `submission.field('group.text').one()` or  `submission.field('repeater.1.text').one()`
+- Integrations can now populate a `$context` property with arbitrary data that's stored before processing, and accessible in the queue job.
+- Allow `craft.formie.renderJs` to set JS attributes for scripts.
+- Added `data-fui-alert-error` and `data-fui-alert-success` attributes on front-end alerts.
+- Added `data-field-label` attribute to labels/legends for fields.
+- Added `data-validation` to fields, to denote what validators to use for the field.
+- Added `initRow` to Repeater field JS events.
+- Added client-side validation for min/max word/character limit for text fields.
+- Added the current rowId for the `data-repeater-row` attribute for Repeater fields.
+- Added `onFormieLoaded` JS event.
 - Added double-clicking a page in the form builder now opens the pages editor.
 - Added “Recipients” to the Email Notifications index table.
-- Added `handle` to Email Notifications that can be accessed directly, instead of by their ID.
 - Added Table node to rich text editor settings (used for numerous form, field and notification settings).
-- Added the ability to set the control panel or public URL for element fields (Categories, Entries, File Upload, Products, Tags, Users, Variants).
-- Added the ability to set the label or value for options fields (Checkboxes, Dropdown, Radio).
+- Added the ability for Recipients fields to pre-populate the field via their option label.
+- Added `verbb\formie\fields\subfields` classes to better handle sub-field inner fields.
+- Added `NestedField::EVENT_MODIFY_NESTED_FIELD_LAYOUT` to modify the field layout of Nested or Sub-Fields.
 - Added `verbb\formie\base\CosmeticField` class.
 - Added `verbb\formie\base\ElementField` class.
 - Added `verbb\formie\base\MultiNestedField` class.
 - Added `verbb\formie\base\OptionsField` class.
 - Added `verbb\formie\base\SingleNestedField` class.
 - Added `verbb\formie\base\SubField` class.
+- Added `Field::getValueForVariable()` to allow fields to handle logic for variables.
+- Added `Field::getValueForCondition()` for handling serialization for condition evaluation.
+- Added `Field::getValueForEmailPreview()` for fields to define their own preview for email notifications.
+- Added `Field::fieldKey` to represent the handles of a field and any parent field. e.g. `group.text` or `repeater.text`.
+- Added `Field:: lowerClassName()`.
+- Added `Field::isDisabled`.
+- Added `Field::enabled` to allow you to disable a field.
+- Added `Submission::hasStatusChanged()` and `Submission::hasSpamChanged()`.
 
 ### Changed
 - Now requires PHP `8.2.0+`.
 - Now requires Craft `5.0.0+`.
 - Updated Vue, Vite, Formkit and all JS dependencies to their latest versions.
+- Updated Feed Me integration support for Feed Me 6+.
+- Updated Freeform migration to support Freeform 5+.
 - Submission content no longer have their own content tables. Content is now in a single `content` column, in your `formie_submissions` database table.
 - Submissions now have Create/Save/Delete user permissions.
 - Submissions now have separate view and manage user permissions.
 - Sent Notifications now have “All” or per-form user permissions for View/Resend/Delete.
 - `Formie::log()` is now `Formie::info()`.
 - `Integration::log()` is now `Integration::info()`.
+- Updated form builder modals and implement better modal accessibility.
+- Switched Stripe payments to use “Payment Web Element”, adding the ability to use non-credit card payments like Apple Pay, AfterPay, etc
+- Revamped front-end validation and removed `bouncer.js`.
+- Submissions now send any email notifications that have status conditions when a completed submission is saved.
+- Field errors now only show their first error when validation fails.
+- Re-organise validator rules and add client-side match field validator.
+- `data-field-handle` for fields now includes the full dot-notation “fieldKey” of the field, including any parent. So `name.firstName`, `group.text` or `repeater.new1.text`.
+- Captchas for GraphQL mutations now don’t require a mandatory variables parameter to be named the same as their input type.
+- Querying fields and rows via GraphQL now default to only returned enabled fields.
+- Front-end form JavaScript now waits until the form has entered the viewable area on the page to be initialized.
+- The `onFormieInit` now fires on every initialization of a form, when it’s visible on the page.
+- Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
+- Sub-fields now extend from the `verbb\formie\base\SingleNestedField` and inherit many behaviours from Group fields.
+- Phone fields are no longer `verbb\formie\base\SubField` fields.
+- Sub-field fields now store their field config in their own row in the `formie_fields` database table, under their own layout (page, row, field).
+- Update GraphQL interfaces for all fields to explicitly define fields to query. Previously these were automatically done via Reflection.
 - Integration field mapping now uses `field:fieldHandle` syntax for fields.
 - Integration field mapping now uses dot-notation (`field:group.text`) syntax for nested fields.
 - Conditions (fields, pages, notifications) now uses `field:fieldHandle` syntax for fields.
 - Conditions (fields, pages, notifications)  now uses dot-notation (`field:group.text`) syntax for nested fields.
-- Updated form builder modals and implement better modal accessibility.
 - Submissions element index now show incomplete and spam submissions alongside completed submissions.
 - Changed form `Title` references to form `Name`.
-- Front-end form JavaScript now waits until the form has entered the viewable area on the page to be initialized.
-- Captchas now smartly load whenever they have entered the viewable area on the page. This greatly improves page-load performance when the form is initially hidden (in a modal for example).
+- Changed `fieldErrors` and `fieldError` elements from `ul` and `li` respectively to `div`.
 - HubSpot CRM integration now automatically saves the `hubspotutk` cookie at the time of submission, to be sent with API requests. This means you now no longer need to map a form field to ensure the `hubspotutk` tracking cookie is sent.
+- `nextPageIndex` in JSON response for Ajax-based forms now returns `null` when submitting on the final page to match `nextPageId`.
+- Update Date field’s `availableDaysOfWeek` to return an array of strings as opposed to a JSON-encoded array for GraphQL.
+- Email Notification field templates now no longer output a paragraph tag and the field label.
+- Recipients fields values are now included in Email Notification content.
+- Updated the `intl-tel-input` package for Phone field validation and handling.
+- Date fields now show the required state on the outer label for Calendar and Date Picker display types.
+- Name field values now return the full name including prefix and middle name (if provided).
+- Address Country and Name Prefix fields now use their respective label values for string representations of their value.
+- Adjusted dropzone size for form builder.
+- Update Payment fields to provide a more client-friendly error message when a payment fails.
+- Payment integrations can now have their field templates overridden in Form Templates.
+- Updated email notifications index to show Name and Subject variable previews when used.
+- Improved email notification preview error message.
+- Updated `stripe/stripe-php` to be compatible with (commerce-stripe)[https://github.com/craftcms/commerce-stripe].
+- Remove Section and Summary fields from rich text editor and variable picker options.
+- Changed `craft\fields\data\MultiOptionsFieldData` to `verbb\formie\fields\data\MultiOptionsFieldData`.
+- Changed `craft\fields\data\OptionData` to `verbb\formie\fields\data\OptionData`.
+- Changed `craft\fields\data\SingleOptionFieldData` to `verbb\formie\fields\data\SingleOptionFieldData`.
+- Changed `craft\fields\data\ColorData` to `verbb\formie\fields\data\ColorData`.
 
 ### Fixed
 - Fixed multiple Tippy.js instances in the form builder when field settings contained multiple “info” elements.
@@ -629,8 +132,12 @@
 - Fixed Commerce fields initializing when Commerce wasn’t installed or classes exist.
 - Fixed text-limit character check for emojis on the front-end.
 - Fixed lack of validation for Date fields and their Default Value when setting to a specific date.
+- Fixed behaviour of field variable tags in Email Notifications, where referencing a single field produced different output compared to when used in consolidated variables (e.g. “All Form Fields”).
+- Fixed lack of client-side validation for min/max Number fields.
+- Fixed lack of server-side validation for min/max Number fields.
 
 ### Removed
+- Removed `currentPageId` from JSON response for Ajax-based forms, as it’s no longer necessary.
 - Removed `verbb\formie\base\NestedFieldTrait` class.
 - Removed `verbb\formie\elements\NestedFieldRow` class.
 - Removed `verbb\formie\elements\dbNestedFieldRowQuery` class.
@@ -666,6 +173,7 @@
 - Removed `Categories:variantsQuery` variable for Variant element field templates.
 - Removed `Syncs::EVENT_BEFORE_SAVE_SYNCED_FIELD` event
 - Removed `Syncs::EVENT_AFTER_SAVE_SYNCED_FIELD` event
+- Removed `verbb\formie\events\ModifyFrontEndSubFieldsEvent`.
 
 ### Deprecated
 - `Submission::getCustomFields()` method has been deprecated. Use `Submission::getFields()` instead.
