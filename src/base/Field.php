@@ -1547,7 +1547,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // Normalise the config from Formie v1 to v2. This is a bit more reliable than a migration
         // updating all field settings, as the presence of these properties in field classes that don't
         // support them would be otherwise catastrophic, and blow up people's CP's.
-        // Eventually, these can be removed at the next breakpoint, as users re-save their fields.
+        // Eventually, these can be removed at the next breakpoint (3.1), as users re-save their fields.
         if (array_key_exists('columnWidth', $config)) {
             unset($config['columnWidth']);
         }

@@ -77,7 +77,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
     public ?int $nestedLayoutId = null;
 
-    // TODO: remove at the next breakpoint. Still required for Formie 2>3 migration.
+    // TODO: remove at the next breakpoint (3.1). Still required for Formie 2>3 migration.
     public mixed $contentTable = null;
 
     private ?FieldLayout $_fieldLayout = null;

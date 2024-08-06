@@ -18,7 +18,7 @@ use yii\validators\Validator;
 
 trait FieldLegacy
 {
-    // Misc - To remove at next breakpoint, but required for the Formie 2 > 3 migration
+    // Misc - To remove at next breakpoint (3.1), but required for the Formie 2 > 3 migration
     public mixed $layoutElement = null;
     public mixed $columnType = null;
     public ?string $context = null;
