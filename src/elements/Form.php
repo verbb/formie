@@ -178,11 +178,9 @@ class Form extends Element
      */
     protected static function defineFieldLayouts(string $source): array
     {
-        if (self::$_layoutsByType !== null) {
-            return self::$_layoutsByType;
-        }
-
-        return self::$_layoutsByType = Craft::$app->getFields()->getLayoutsByType(static::class);
+        // In the context of the form element index, we don't want any field layouts shown. That's because forms don't
+        // have content themselves, so there's no need to allow fields as columns or being able to sort forms by fields.
+        return [];
     }
 
     /**
@@ -342,8 +340,6 @@ class Form extends Element
     // Render Options
     private array $_themeConfig = [];
     private ?string $_sessionKey = null;
-
-    private static ?array $_layoutsByType = null;
 
 
     // Public Methods
