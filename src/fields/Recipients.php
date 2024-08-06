@@ -171,11 +171,6 @@ class Recipients extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
-    {
-        return false;
-    }
-
     public function options(): array
     {
         return $this->options;
