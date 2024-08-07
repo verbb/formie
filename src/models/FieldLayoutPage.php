@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -254,10 +255,19 @@ class FieldLayoutPage extends SavableComponent
     {
         $errors = [];
 
-        if ($submission) {
-            foreach ($this->getFields() as $field) {
-                $errors[$field->handle] = $submission->getErrors()[$field->handle] ?? null;
+        // Ensure that we recursively check for nested/subfields for errors
+        $getFieldErrors = function(array $fields) use ($submission, &$errors, &$getFieldErrors) {
+            foreach ($fields as $field) {
+                $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
+
+                if ($field instanceof NestedFieldInterface) {
+                    $getFieldErrors($field->getFields());
+                }
             }
+        };
+
+        if ($submission) {
+            $getFieldErrors($this->getFields());
         }
 
         return array_filter($errors);
