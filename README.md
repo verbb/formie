@@ -231,5 +231,5 @@ Get in touch with us via the [Formie Support page](https://verbb.io/craft-plugin
 <h2></h2>
 
 <a href="https://verbb.io" target="_blank">
-    <img width="100" src="https://verbb.io/assets/img/verbb-pill.svg" alt="Verbb">
+    <img width="101" height="33" src="https://verbb.io/assets/img/verbb-pill.svg" alt="Verbb">
 </a>
