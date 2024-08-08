@@ -128,7 +128,7 @@ class Submission extends CustomElement
             $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'defaultSort' => ['formie_submissions.title', 'desc'],
+                'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }
 
@@ -149,7 +149,7 @@ class Submission extends CustomElement
                     'handle' => $form->handle,
                 ],
                 'criteria' => ['formId' => $form->id],
-                'defaultSort' => ['formie_submissions.title', 'desc'],
+                'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }
 
@@ -246,7 +246,7 @@ class Submission extends CustomElement
         return [
             [
                 'label' => Craft::t('app', 'Title'),
-                'orderBy' => 'formie_submissions.title',
+                'orderBy' => 'elements_sites.title',
                 'attribute' => 'title',
             ],
             [
