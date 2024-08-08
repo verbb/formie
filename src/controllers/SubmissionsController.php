@@ -438,6 +438,7 @@ class SubmissionsController extends Controller
 
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
+        $submission->isNewSubmission = true;
 
         $pages = $form->getPages();
         $settings = $form->settings;

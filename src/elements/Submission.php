@@ -277,6 +277,7 @@ class Submission extends CustomElement
     public ?string $spamClass = null;
     public array $snapshot = [];
     public ?bool $validateCurrentPageOnly = null;
+    public bool $isNewSubmission = false;
 
     private ?Form $_form = null;
     private ?Status $_status = null;
@@ -1131,9 +1132,9 @@ class Submission extends CustomElement
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
 
-        // If the status has changed, fire any applicable email notifications. But ensure that this isn't a newly-completed
-        // submission by checking the `_previousStatusId` which would be null. Otherwise, we'll duplicate notifications.
-        if ($this->_previousStatusId && $this->hasStatusChanged()) {
+        // If the status has changed, fire any applicable email notifications. 
+        // Also check for `isNewSubmission` to see whether we're submitting something new, or just resaving.
+        if (!$this->isNewSubmission && $this->hasStatusChanged()) {
             // Only send notifications that match a status-change condition
             $form = $this->getForm();
             $notifications = $form->getEnabledNotifications();
