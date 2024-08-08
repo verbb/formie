@@ -264,11 +264,17 @@ Follow the below steps to connect to the HubSpot API.
 1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
 1. Copy the **Access Token** from HubSpot and paste in the **Access Token** field in Formie.
 
-### Step 3. Test Connection
+### Step 3. Disable Automatic Form Collection
+1. In HubSpot, click on the **Settings** cog icon in the top right-hand of the screen.
+1. In the left-hand sidebar menu, click on **Marketing** → **Forms**.
+1. Click the **Non-Hubspot Forms** button.
+1. For **Collect data from website forms** ensure that this is switched to **Off**.
+
+### Step 4. Test Connection
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 4. Form Setting
+### Step 5. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
