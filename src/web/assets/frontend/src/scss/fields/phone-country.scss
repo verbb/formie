@@ -44,9 +44,19 @@
 // Load the flag sprites even when removing classes. We also need this non-scoped
 // in order to not have the original path throw a 404 error. A little bit annoying...
 .iti__flag {
-    background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.5.6/img/flags.png");
+    background-image: url("https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/img/flags.webp");
 
     @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/19.5.6/img/flags@2x.png");
+        background-image: url("https://cdn.jsdelivr.net/npm/intl-tel-input@23.8.1/build/img/flags@2x.webp");
+    }
+}
+
+.no-webp {
+    .iti__flag {
+        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.8.1/img/flags.png");
+
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.8.1/img/flags@2x.png");
+        }
     }
 }
