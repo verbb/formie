@@ -230,8 +230,6 @@ return [
   'Are you sure you want to delete this integration?' => 'Are you sure you want to delete this integration?',
   'Are you sure you want to delete this sent notification?' => 'Are you sure you want to delete this sent notification?',
   'Are you sure you want to delete this submission?' => 'Are you sure you want to delete this submission?',
-  'Are you sure you want to delete \\u201C{name}\\u201D?' => 'Are you sure you want to delete \\u201C{name}\\u201D?',
-  'Are you sure you want to delete \\u201C{name}\\u201D? This will also delete all fields for this page, and cannot be undone.' => 'Are you sure you want to delete \\u201C{name}\\u201D? This will also delete all fields for this page, and cannot be undone.',
   'Are you sure you want to delete “{name}”?' => 'Are you sure you want to delete “{name}”?',
   'Are you sure you want to delete “{name}”? This will also delete all fields for this page, and cannot be undone.' => 'Are you sure you want to delete “{name}”? This will also delete all fields for this page, and cannot be undone.',
   'Are you sure you want to leave?' => 'Are you sure you want to leave?',
