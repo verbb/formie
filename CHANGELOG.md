@@ -1,5 +1,23 @@
 # Changelog
 
+## 3.0.1 - 2024-08-11
+
+### Added
+- Added `processSubmit` JS API function to allow submission processing to continue if preventing submission via the `onBeforeFormieSubmit` JS event.
+- Added support for WEBP flag images for Phone fields. Add a `.no-webp` class in your form to opt-out of this behaviour to fallback to PNG flags.
+
+### Fixed
+- Fixed errors when attaching some files to support requests.
+- Fixed Date fields with a default value, or min/max date not having their values normalized correctly.
+- Fixed an error when refreshing tokens via JS, for a non-top-level webroot site.
+- Fixed an error when populating Element fields when also limiting field values.
+- Fixed an error when trying to order Submissions by their title in the control panel.
+- Fixed an error where conditional Email Notifications were being triggered twice for new submissions.
+- Fixed an issue where missing required field values for Nested or Sub-Field fields weren’t being marked as required during validation.
+- Fixed an error where conditional Email Notifications were being triggered twice for new submissions.
+- Fixed some modal button spacing issues.
+- Fixed an error viewing Submissions with Radio Button fields with numeric values in the control panel.
+
 ## 3.0.0 - 2024-08-06
 
 ### Breaking Changes
