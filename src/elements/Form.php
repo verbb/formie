@@ -279,8 +279,6 @@ class Form extends Element
     private array $_themeConfig = [];
     private ?string $_sessionKey = null;
 
-    private static ?array $_layoutsByType = null;
-
 
     // Public Methods
     // =========================================================================
@@ -1482,6 +1480,7 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
         ];
 
         $registeredJs = [];

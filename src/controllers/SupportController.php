@@ -176,7 +176,10 @@ class SupportController extends Controller
                         FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                     } else {
                         $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                        $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                        if ($templateFile) {
+                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                        }
                     }
                 }
 
@@ -192,7 +195,10 @@ class SupportController extends Controller
                             FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                         } else {
                             $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                            if ($templateFile) {
+                                $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                            }
                         }
                     }
 
@@ -204,7 +210,10 @@ class SupportController extends Controller
                             FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                         } else {
                             $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                            if ($templateFile) {
+                                $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                            }
                         }
                     }
                 }

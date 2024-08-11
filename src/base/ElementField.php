@@ -326,9 +326,15 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public function populateValue(mixed $value, ?Submission $submission): void
     {
-        $query = static::elementType()::find()->id($value);
+        if ($value) {
+            if ($value instanceof ElementQuery) {
+                $query = $value;
+            } else {
+                $query = static::elementType()::find()->id($value);
+            }
 
-        $this->defaultValue = $query;
+            $this->defaultValue = $query;
+        }
     }
 
     public function getFieldOptions(): array

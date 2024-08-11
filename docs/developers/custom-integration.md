@@ -10,7 +10,8 @@ use modules\sitemodule\ExampleCrm;
 use modules\sitemodule\ExampleElement;
 use modules\sitemodule\ExampleEmailMarketing;
 use modules\sitemodule\ExampleMiscellaneous;
-use modules\sitemodule\ExampleWebhooks;
+use modules\sitemodule\ExamplePayment;
+use modules\sitemodule\ExampleWebhook;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
@@ -21,8 +22,9 @@ Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, functi
     $event->elements[] = ExampleElement::class;
     $event->emailMarketing[] = ExampleEmailMarketing::class;
     $event->crm[] = ExampleCrm::class;
-    $event->webhooks[] = ExampleWebhooks::class;
+    $event->webhooks[] = ExampleWebhook::class;
     $event->miscellaneous[] = ExampleMiscellaneous::class;
+    $event->payments[] = ExamplePayment::class;
     // ...
 });
 ```

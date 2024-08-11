@@ -280,8 +280,9 @@ export class Formie {
 
     refreshFormTokens(form, callback) {
         const { formHashId, formHandle } = form.config;
+        const url = `${form.settings.baseActionUrl}/formie/forms/refresh-tokens?form=${formHandle}`;
 
-        fetch(`/actions/formie/forms/refresh-tokens?form=${formHandle}`)
+        fetch(url)
             .then((result) => { return result.json(); })
             .then((result) => {
                 // Fetch the form we want to deal with

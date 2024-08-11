@@ -1524,7 +1524,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_MODIFY_RENDER_OPTIONS, functi
 ## Integration Events
 
 ### The `registerFormieIntegrations` event
-The event that is triggered for registering new captcha integrations.
+The event that is triggered for registering integrations.
 
 ```php
 use verbb\formie\events\RegisterIntegrationsEvent;
@@ -1532,7 +1532,14 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas = myCaptcha::class;
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->elements[] = ExampleElement::class;
+    $event->emailMarketing[] = ExampleEmailMarketing::class;
+    $event->crm[] = ExampleCrm::class;
+    $event->webhooks[] = ExampleWebhook::class;
+    $event->miscellaneous[] = ExampleMiscellaneous::class;
+    $event->payments[] = ExamplePayment::class;
     // ...
 });
 ```
