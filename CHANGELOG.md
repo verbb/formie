@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.24 - 2024-08-11
+
+### Added
+- Added `processSubmit` JS API function to allow submission processing to continue if preventing submission via the `onBeforeFormieSubmit` JS event.
+
+### Fixed
+- Fixed errors when attaching some files to support requests.
+- Fixed Date fields with a default value, or min/max date not having their values normalized correctly.
+- Fixed an error when viewing Forms in the control panel for a specific template, and improve Form element index performance.
+- Fixed an error when refreshing tokens via JS, for a non-top-level webroot site.
+- Fixed an error when populating Element fields when also limiting field values.
+
 ## 2.1.23 - 2024-07-29
 
 ### Added
