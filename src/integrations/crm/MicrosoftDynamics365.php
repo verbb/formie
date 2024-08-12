@@ -58,6 +58,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public string $impersonateHeader = 'CallerObjectId';
     public ?string $impersonateUserId = null;
     public ?string $apiVersion = 'v9.0';
+    public ?string $tenant = 'common';
     public bool $mapToContact = false;
     public bool $mapToLead = false;
     public bool $mapToOpportunity = false;
@@ -91,6 +92,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return App::parseEnv($this->apiVersion);
     }
 
+    public function getTenant(): string
+    {
+        return App::parseEnv($this->tenant);
+    }
+
     public function getBaseApiUrl(?Token $token): ?string
     {
         $url = rtrim($this->getApiDomain(), '/');
@@ -105,7 +111,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['defaultEndPointVersion'] = '1.0';
         $config['resource'] = $this->getApiDomain();
-        $config['tenant'] = 'common';
+        $config['tenant'] = $this->getTenant();
 
         return $config;
     }

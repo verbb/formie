@@ -105,6 +105,16 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     errors: integration.getErrors('apiDomain'),
 }) }}
 
+{{ forms.autosuggestField({
+    label: 'Tenant' | t('formie'),
+    instructions: 'Enter the {name} Tenant.' | t('formie', { name: integration.displayName() }) | md,
+    name: 'tenant',
+    suggestEnvVars: true,
+    value: integration.settings.tenant ?? '',
+    warning: macros.configWarning('tenant', 'formie'),
+    errors: integration.getErrors('tenant'),
+}) }}
+
 {{ forms.selectField({
     label: 'API version' | t('formie'),
     instructions: 'Set a specific web API version to use with Microsoft Dynamics 365 Web API requests.' | t('formie'),
