@@ -128,7 +128,9 @@ abstract class NestedField extends Field implements NestedFieldInterface
         }
 
         // Set the rows for the field layout. There's only ever one page for nested fields, and there's always one page for a layout
-        $this->getFieldLayout()->getPages()[0]->setRows($rows);
+        if ($pages = $this->getFieldLayout()->getPages()) {
+            $pages[0]->setRows($rows);
+        }
     }
 
     public function getFields(bool $includeDisabled = true): array
