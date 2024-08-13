@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.2 - 2024-08-14
+
+### Added
+- Added `initSubmit` JS API function to allow programmatic submissions.
+- Added “Tenant” setting to Microsoft Dynamics 365 CRM integration.
+
+### Fixed
+- Fixed an error when refreshing tokens on some installs.
+- Fixed an error when creating nested fields in some cases.
+- Fixed an error rendering element fields.
+- Fixed translations.
+
 ## 3.0.1 - 2024-08-11
 
 ### Added
@@ -201,10 +213,10 @@
 ## 2.1.25 - 2024-08-14
 
 ### Added
-- Add `initSubmit` JS API function to allow programmatic submissions.
+- Added `initSubmit` JS API function to allow programmatic submissions.
 
 ### Fixed
-- Fix an error when refreshing tokens on some installs.
+- Fixed an error when refreshing tokens on some installs.
 
 ## 2.1.24 - 2024-08-11
 
