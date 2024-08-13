@@ -255,7 +255,7 @@ export class Formie {
 
     refreshFormTokens(form, callback) {
         const { formHashId, formHandle } = form.config;
-        const url = `${form.settings.baseActionUrl}/formie/forms/refresh-tokens?form=${formHandle}`;
+        const url = form.settings.refreshTokenUrl.replace('FORM_PLACEHOLDER', formHandle);
 
         fetch(url)
             .then((result) => { return result.json(); })
