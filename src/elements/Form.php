@@ -1481,6 +1481,9 @@ class Form extends Element
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
             'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
+
+            // Generate the refresh token here to make use of `UrlHelper` generation
+            'refreshTokenUrl' => UrlHelper::actionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
         ];
 
         $registeredJs = [];

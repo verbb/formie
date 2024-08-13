@@ -86,16 +86,20 @@ export class FormieFormBase {
         this.addEventListener(this.$form, 'submit', (e) => {
             e.preventDefault();
 
-            const beforeSubmitEvent = this.eventObject('onBeforeFormieSubmit', {
-                submitHandler: this,
-            });
-
-            if (!this.$form.dispatchEvent(beforeSubmitEvent)) {
-                return;
-            }
-
-            this.processSubmit();
+            this.initSubmit();
         }, false);
+    }
+
+    initSubmit() {
+        const beforeSubmitEvent = this.eventObject('onBeforeFormieSubmit', {
+            submitHandler: this,
+        });
+
+        if (!this.$form.dispatchEvent(beforeSubmitEvent)) {
+            return;
+        }
+
+        this.processSubmit();
     }
 
     processSubmit() {
