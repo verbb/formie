@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.25 - 2024-08-14
+
+### Added
+- Add `initSubmit` JS API function to allow programmatic submissions.
+
+### Fixed
+- Fix an error when refreshing tokens on some installs.
+
 ## 2.1.24 - 2024-08-11
 
 ### Added
