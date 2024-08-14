@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.3 - 2024-08-14
+
+### Fixed
+- Fix a compatibility issue with `nystudio107/craft-plugin-vite` 5.0.2.
+
 ## 3.0.2 - 2024-08-14
 
 ### Added
