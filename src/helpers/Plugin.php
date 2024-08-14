@@ -26,7 +26,7 @@ class Plugin extends BasePlugin
             'depends' => [
                 FormsAsset::class,
             ],
-            'onload' => '',
+            'onload' => true,
         ];
 
         $styleOptions = [
