@@ -24,7 +24,7 @@ class Plugin
             'depends' => [
                 FormsAsset::class,
             ],
-            'onload' => '',
+            'onload' => true,
         ];
 
         $styleOptions = [
