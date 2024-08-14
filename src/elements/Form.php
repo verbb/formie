@@ -397,6 +397,11 @@ class Form extends Element
 
         return $behaviors;
     }
+
+    public function getScenario()
+    {
+        return self::SCENARIO_LIVE;
+    }
     
     /**
      * @inheritdoc
