@@ -210,6 +210,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.26 - 2024-08-14
+
+### Fixed
+- Fix a compatibility issue with `nystudio107/craft-plugin-vite` 4.0.12.
+
 ## 2.1.25 - 2024-08-14
 
 ### Added
