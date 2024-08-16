@@ -539,7 +539,7 @@ class Notifications extends Component
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Recipients'),
-                'help' => Craft::t('formie', 'Define who should receive this email notification.'),
+                'help' => Craft::t('formie', 'Define who should receive this email notification. Define either specific emails, or emails based on conditions.'),
                 'name' => 'recipients',
                 'validation' => 'required',
                 'required' => true,
