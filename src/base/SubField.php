@@ -58,7 +58,9 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
 
     public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        $values = [];
+        $values = [
+            '__toString' => StringHelper::toString($value),
+        ];
 
         foreach ($this->getFields() as $subField) {
             $value = $submission->getFieldValue($subField->fieldKey);

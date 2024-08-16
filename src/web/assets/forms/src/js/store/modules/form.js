@@ -502,7 +502,7 @@ const getters = {
                 'verbb\\formie\\fields\\Radio',
                 'verbb\\formie\\fields\\SingleLineText',
 
-                // Some fields that's values have __toString implemented.
+                // Some fields have __toString implemented.
                 'verbb\\formie\\fields\\Name',
 
                 ...options.extra ?? [],
@@ -601,6 +601,15 @@ const getters = {
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
             } else if (field.settings.rows && !field.isMultiNested) {
+                // Include the string representation of fields, if Sub-Fields
+                if (field.hasSubFields) {
+                    fieldOptions.push({
+                        ...field,
+                        label: labelPrefix + truncate(field.settings.label, { length: 60 }),
+                        value: `{field:${handlePrefix}${field.settings.handle}.__toString}`,
+                    });
+                }
+
                 // Unable to select inner Repeater fields, until we design a better UI to handle repeatable values.
                 // Handle Group fields (single-nesting field types) and Sub-Fields
                 field.settings.rows.forEach((row) => {
@@ -786,6 +795,15 @@ const getters = {
                         });
                     }
                 } else {
+                    // Include the string representation of fields, if Sub-Fields
+                    if (field.hasSubFields) {
+                        fieldOptions.push({
+                            ...field,
+                            label: labelPrefix + truncate(field.settings.label, { length: 60 }),
+                            value: `{field:${handlePrefix}${field.settings.handle}.__toString}`,
+                        });
+                    }
+
                     // Handle Group fields (single-nesting field types) and Sub-Fields
                     field.settings.rows.forEach((row) => {
                         row.fields.forEach((nestedField) => {
