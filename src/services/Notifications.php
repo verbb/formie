@@ -473,7 +473,7 @@ class Notifications extends Component
             [
                 '$formkit' => 'notificationRecipients',
                 'label' => Craft::t('formie', 'Recipient Conditions'),
-                'help' => Craft::t('formie', 'Add conditional logic to determine which email addresses receive this email notification.'),
+                'help' => Craft::t('formie', 'Use conditional logic to determine which email addresses receive this email notification.'),
                 'name' => 'toConditions',
                 'id' => 'toConditions',
                 'if' => '$get(recipients).value == conditions',
