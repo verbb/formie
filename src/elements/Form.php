@@ -314,6 +314,11 @@ class Form extends Element
             $this->settings->setForm($this);
         }
     }
+
+    public function getScenario()
+    {
+        return self::SCENARIO_LIVE;
+    }
     
     public function canView(User $user): bool
     {

@@ -601,7 +601,7 @@ class HubSpot extends Crm
 
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
-                'name' => $field['label'],
+                'name' => $field['label'] ?: $field['name'],
                 'type' => $this->_convertFieldType($field['fieldType']),
                 'sourceType' => $field['fieldType'],
                 'options' => $options,
