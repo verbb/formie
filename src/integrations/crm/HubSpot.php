@@ -441,7 +441,8 @@ class HubSpot extends Crm
                 }
 
                 $formPayload['context']['ipAddress'] = $this->ipAddress;
-                $formPayload['context']['pageUri'] = $this->referrer;
+                $formPayload['context']['pageUri'] = $formValues['pageUri'] ?? $this->referrer;
+                $formPayload['context']['pageName'] = $formValues['pageName'] ?? null;
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
@@ -619,6 +620,14 @@ class HubSpot extends Crm
             new IntegrationField([
                 'handle' => 'trackingID',
                 'name' => Craft::t('formie', 'Tracking ID'),
+            ]),
+            new IntegrationField([
+                'handle' => 'pageUri',
+                'name' => Craft::t('formie', 'Page URI'),
+            ]),
+            new IntegrationField([
+                'handle' => 'pageName',
+                'name' => Craft::t('formie', 'Page Name'),
             ]),
         ];
 
