@@ -278,8 +278,8 @@ class Submissions extends Component
     {
         foreach ($submission->getFields() as $field) {
             if ($field instanceof formiefields\Payment) {
-                // No need to proceed further if field is conditionally hidden
-                if ($field->isConditionallyHidden($submission)) {
+                // No need to proceed further if field is conditionally hidden or disabled
+                if ($field->isConditionallyHidden($submission) || $field->getIsDisabled()) {
                     continue;
                 }
                 
