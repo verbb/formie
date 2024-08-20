@@ -80,6 +80,22 @@ class RecentSubmissions extends Widget
         return Craft::getAlias('@verbb/formie/icon-mask.svg');
     }
 
+    public static function isSelectable(): bool
+    {
+        // Ensure users have minimum permissions
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if (!$user) {
+            return false;
+        }
+
+        if (!$user->can('accessPlugin-formie') || !$user->can('formie-accessSubmissions')) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     // Properties
     // =========================================================================
@@ -125,6 +141,8 @@ class RecentSubmissions extends Widget
         $id = 'recent-submissions' . StringHelper::randomString();
         $namespaceId = Craft::$app->getView()->namespaceInputId($id);
 
+        $user = Craft::$app->getUser()->getIdentity();
+
         $variables = [
             'namespaceId' => $namespaceId,
             'widget' => $this,
@@ -138,13 +156,32 @@ class RecentSubmissions extends Widget
         $formIds = ($this->formIds === '*') ? null : $this->formIds;
 
         if ($this->displayType === 'list') {
-            $variables['submissions'] = Submission::find()->limit($this->limit)->formId($formIds)->all();
+            $filteredFormIds = [];
+            $forms = Form::find()->id($formIds)->all();
+
+            foreach ($forms as $form) {
+                if (!$user->can('formie-viewSubmissions')) {
+                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
+                        continue;
+                    }
+                }
+
+                $filteredFormIds[] = $form->id;
+            }
+
+            $variables['submissions'] = Submission::find()->limit($this->limit)->formId($filteredFormIds)->all();
         }
 
         if ($this->displayType === 'pie') {
             $forms = Form::find()->id($formIds)->all();
 
             foreach ($forms as $form) {
+                if (!$user->can('formie-viewSubmissions')) {
+                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
+                        continue;
+                    }
+                }
+
                 $variables['labels'][] = $form->title;
                 $variables['totalSubmissions'][] = $this->getQuery($form)->count();
             }
@@ -157,6 +194,12 @@ class RecentSubmissions extends Widget
             $formTitles = [];
 
             foreach ($forms as $form) {
+                if (!$user->can('formie-viewSubmissions')) {
+                    if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
+                        continue;
+                    }
+                }
+
                 $formTitles[] = $form->title;
 
                 $chartData = $this->_createChartQuery($this->getQuery($form), [
@@ -195,7 +238,15 @@ class RecentSubmissions extends Widget
 
         $formOptions = [];
 
+        $user = Craft::$app->getUser()->getIdentity();
+
         foreach (Form::find()->all() as $form) {
+            if (!$user->can('formie-viewSubmissions')) {
+                if (!$user->can('formie-viewSubmissions:' . $form->uid)) {
+                    continue;
+                }
+            }
+
             $formOptions[$form->id] = $form->title;
         }
 
