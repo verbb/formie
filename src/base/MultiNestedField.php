@@ -157,6 +157,34 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         return $values;
     }
 
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // When comparing for conditions, ensure we aren't using the UIDs of nested fields yet, that's used in `serializeValue()`.
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            foreach ($value as $rowKey => $row) {
+                // Get the value from the field's UID (database) or it's handle (POST)
+                $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
+
+                // Ensure that the inner fields know about this specific block, to handle getting values properly
+                $field->setParentField($this, $rowKey);
+
+                $values[$rowKey][$field->handle] = $field->serializeValue($fieldValue, $submission);
+            }
+        }
+
+        // Reset any `new1` or `row1` keys
+        $values = array_values($values);
+
+        return $values;
+    }
+
     public function populateValue(mixed $value, ?Submission $submission): void
     {
         if (!is_array($value)) {

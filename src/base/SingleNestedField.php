@@ -115,6 +115,29 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         return $values;
     }
 
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // When comparing for conditions, ensure we aren't using the UIDs of nested fields yet, that's used in `serializeValue()`.
+        if (!is_array($value) && !$value instanceof Model) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            // Get the value from the field's UID (database) or it's handle (POST)
+            $fieldValue = $value[$field->uid] ?? $value[$field->handle] ?? null;
+
+            // Ensure that the inner fields know about this specific block, to handle getting values properly
+            $field->setParentField($this);
+
+            $values[$field->handle] = $field->serializeValue($fieldValue, $submission);
+        }
+
+        return $values;
+    }
+
     public function populateValue(mixed $value, ?Submission $submission): void
     {
         // Prepare and populate any child field from the parent field
