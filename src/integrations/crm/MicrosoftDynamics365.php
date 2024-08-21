@@ -620,60 +620,53 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         $relationFields = $response['value'] ?? [];
 
-        // Define a schema so that we can query each entity according to the target (index)
+        // Create a unique list of entities we need to fetch things for.
+        $entities = [];
+
+        foreach ($relationFields as $relationField) {
+            $entities[] = $relationField['Targets'] ?? [];
+        }
+
+        // Get unique entities used (destructure for performance)
+        $entities = array_values(array_unique(array_merge(...$entities)));
+
+        // Filter out some core entities, which seem to require admin priviledges
+        $entities = array_values(array_filter($entities, function($entityName) {
+            return !str_starts_with($entityName, 'msdyn');
+        }));
+
+        // For each entity, define a schema so that we can query each entity according to the target (index)
         // the endpoint to query (entity) and what attributes to use for the label/value to pick from
-        $targetSchemas = [
-            'businessunit' => [
-                'entity' => 'businessunits',
-                'label' => 'name',
-                'value' => 'businessunitid',
-            ],
-            'systemuser' => [
-                'entity' => 'systemusers',
-                'label' => 'fullname',
-                'value' => 'systemuserid',
-            ],
-            'account' => [
-                'entity' => 'accounts',
-                'label' => 'name',
-                'value' => 'accountid',
-            ],
-            'contact' => [
-                'entity' => 'contacts',
-                'label' => 'fullname',
-                'value' => 'contactid',
-            ],
-            'lead' => [
-                'entity' => 'leads',
-                'label' => 'fullname',
-                'value' => 'leadid',
-            ],
-            'incident' => [
-                'entity' => 'incidents',
-                'label' => 'title',
-                'value' => 'incidentid',
-            ],
-            'transactioncurrency' => [
-                'entity' => 'transactioncurrencies',
-                'label' => 'currencyname',
-                'value' => 'transactioncurrencyid',
-            ],
-            'team' => [
-                'entity' => 'teams',
-                'label' => 'name',
-                'value' => 'teamid',
-            ],
-            'campaign' => [
-                'entity' => 'campaigns',
-                'label' => 'name',
-                'value' => 'campaignid',
-            ],
-            'pricelevel' => [
-                'entity' => 'pricelevels',
-                'label' => 'name',
-                'value' => 'pricelevelid',
-            ],
-        ];
+        $targetSchemas = [];
+
+        // Build a filter string to read `(LogicalName eq 'account') or (LogicalName eq 'businessunit')`
+        // to fetch just the entities we have Lookup fields for.
+        $entityDefinitionFilter = array_map(function($entityName) {
+            return "(LogicalName eq '$entityName')";
+        }, $entities);
+
+        // Note there's a max filter limit of 25, so we need to chunk
+        $entityDefinitionFilterChunks = array_chunk($entityDefinitionFilter, 25);
+
+        // Get all entity definitions
+        foreach ($entityDefinitionFilterChunks as $entityDefinitionFilterChunk) {
+            $response = $this->request('GET', 'EntityDefinitions', [
+                'query' => [
+                    '$filter' => implode(' or ', $entityDefinitionFilterChunk),
+                    '$select' => 'DisplayName,LogicalName,SchemaName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName,EntitySetName',
+                ],
+            ]);
+
+            $entityDefinitions = $response['value'] ?? [];
+
+            foreach ($entityDefinitions as $entityDefinition) {
+                $targetSchemas[$entityDefinition['LogicalName']] = [
+                    'entity' => $entityDefinition['EntitySetName'],
+                    'label' => $entityDefinition['PrimaryNameAttribute'],
+                    'value' => $entityDefinition['PrimaryIdAttribute'],
+                ];
+            }
+        }
 
         $event = new MicrosoftDynamics365TargetSchemasEvent([
             'targetSchemas' => $targetSchemas,
@@ -740,16 +733,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         // With all possible options populated, add the options into the fields
         foreach ($relationFields as $relationField) {
-            $customField = $relationField['IsCustomAttribute'] ?? false;
             $targets = $relationField['Targets'] ?? [];
             $options = [];
-
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                $handle = $relationField['SchemaName'] ?? '';
-            } else {
-                $handle = $relationField['LogicalName'] ?? '';
-            }
 
             foreach ($targets as $target) {
                 // Get the options for this field
@@ -758,10 +743,14 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
             }
 
-            // Get the field to add options to
-            $field = $fields[$handle] ?? null;
+            // We play the same game with guessing either `SchemaName` or `LogicalName` so check for both...
+            $schemaName = $relationField['SchemaName'] ?? '';
+            $logicalName = $relationField['LogicalName'] ?? '';
 
-            if (!$handle || !$field || !$options) {
+            // Get the field to add options to
+            $field = $fields[$schemaName] ?? $fields[$logicalName] ?? null;
+
+            if (!$field || !$options) {
                 continue;
             }
 
