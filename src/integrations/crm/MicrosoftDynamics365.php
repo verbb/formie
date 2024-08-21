@@ -550,27 +550,24 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
             'query' => [
                 '$select' => 'IsCustomAttribute,LogicalName,SchemaName',
-                '$expand' => 'GlobalOptionSet($select=Options)',
+                '$expand' => 'GlobalOptionSet($select=Options),OptionSet($select=Options)',
             ]
         ]);
+
         $pickListFields = $response['value'] ?? [];
 
         foreach ($pickListFields as $pickListField) {
-            $customField = $pickListField['IsCustomAttribute'] ?? false;
             $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
             $options = [];
 
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                $handle = $pickListField['SchemaName'] ?? '';
-            } else {
-                $handle = $pickListField['LogicalName'] ?? '';
-            }
+            // We play the same game with guessing either `SchemaName` or `LogicalName` so check for both...
+            $schemaName = $pickListField['SchemaName'] ?? '';
+            $logicalName = $pickListField['LogicalName'] ?? '';
 
             // Get the field to add options to
-            $field = $fields[$handle] ?? null;
+            $field = $fields[$schemaName] ?? $fields[$logicalName] ?? null;
 
-            if (!$handle || !$pickList || !$field) {
+            if (!$pickList || !$field) {
                 continue;
             }
 
