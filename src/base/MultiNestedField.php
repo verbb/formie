@@ -30,6 +30,9 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
+use yii\validators\RequiredValidator;
+use yii\validators\Validator;
+
 abstract class MultiNestedField extends NestedField implements MultiNestedFieldInterface
 {
     // Public Methods
@@ -50,9 +53,10 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
     public function validateBlocks(ElementInterface $element): void
     {
+        $scenario = $element->getScenario();
         $value = $element->getFieldValue($this->fieldKey);
 
-        if ($element->getScenario() === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
+        if ($scenario === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
             $arrayValidator = new ArrayValidator([
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
@@ -79,7 +83,6 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
                 $fieldKey = "$this->handle.$rowKey.$field->handle";
                 $subValue = $element->getFieldValue($fieldKey);
-                $isEmpty = $field->isValueEmpty($subValue, $element);
 
                 // No need to validate if the field is conditionally hidden or disabled
                 if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
@@ -87,12 +90,19 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 }
 
                 // Roll our own validation, due to lack of field layout and elements
-                if ($field->required && $isEmpty) {
-                    $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+                $attribute = "field:$fieldKey";
+                $isEmpty = fn() => $field->isValueEmpty($value, $element);
+
+                if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                    (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
                 }
 
                 foreach ($field->getElementValidationRules() as $rule) {
-                    $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                    $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                    if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                        $validator->validateAttributes($element);
+                    }
                 }
             }
         }

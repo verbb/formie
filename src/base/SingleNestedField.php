@@ -28,6 +28,7 @@ use craft\helpers\Template;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
+use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
 abstract class SingleNestedField extends NestedField implements SingleNestedFieldInterface
@@ -50,10 +51,11 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
 
     public function validateBlocks(ElementInterface $element): void
     {
+        $scenario = $element->getScenario();
+
         foreach ($this->getFields() as $field) {
             $fieldKey = $field->fieldKey;
             $value = $element->getFieldValue($fieldKey);
-            $isEmpty = $field->isValueEmpty($value, $element);
 
             // No need to validate if the field is conditionally hidden or disabled
             if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
@@ -61,12 +63,19 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             }
 
             // Roll our own validation, due to lack of field layout and elements
-            if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+            $attribute = "field:$fieldKey";
+            $isEmpty = fn() => $field->isValueEmpty($value, $element);
+
+            if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
-                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                    $validator->validateAttributes($element);
+                }
             }
         }
     }

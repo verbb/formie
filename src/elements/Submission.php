@@ -379,6 +379,17 @@ class Submission extends CustomElement
         return true;
     }
 
+    public function getAttributeLabel($attribute): string
+    {
+        // For nested fields, we only care about the deepest field
+        if (str_contains($attribute, '.')) {
+            $attribute = explode('.', $attribute);
+            $attribute = array_pop($attribute);
+        }
+
+        return parent::getAttributeLabel($attribute);
+    }
+
     public function getStatus(): ?string
     {
         return $this->getStatusModel(true)->handle ?? null;

@@ -27,7 +27,9 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\services\Elements;
 
+use yii\base\InvalidConfigException;
 use yii\db\ExpressionInterface;
+use yii\validators\Validator;
 
 use GraphQL\Type\Definition\Type;
 
@@ -336,6 +338,18 @@ abstract class NestedField extends Field implements NestedFieldInterface
         ]);
     }
 
+    public function validateCustomFieldAttribute(string $attribute, ?array $params = null): void
+    {
+        /** @var array|null $params */
+        [$element, $field, $method, $fieldParams] = $params;
+
+        if (is_string($method) && !is_callable($method)) {
+            $method = [$field, $method];
+        }
+
+        $method($element, $fieldParams);
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -349,10 +363,19 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $rules;
     }
 
-    protected function normalizeFieldValidator(string $attribute, mixed $rule, FieldInterface $field, ElementInterface $element, bool $isEmpty): void
+    protected function normalizeFieldValidator(string $attribute, mixed $rule, FieldInterface $field, ElementInterface $element, callable $isEmpty): Validator
     {
+        if ($rule instanceof Validator) {
+            return $rule;
+        }
+
         if (is_string($rule)) {
-            $rule = [$attribute, $rule];
+            // "Validator" syntax
+            $rule = [$attribute, $rule, 'on' => [$element::SCENARIO_DEFAULT, $element::SCENARIO_LIVE]];
+        }
+
+        if (!is_array($rule) || !isset($rule[0])) {
+            throw new InvalidConfigException('Invalid validation rule for custom field "' . $field->handle . '".');
         }
 
         if (isset($rule[1])) {
@@ -365,11 +388,30 @@ abstract class NestedField extends Field implements NestedFieldInterface
             array_unshift($rule, $attribute);
         }
 
-        $method = $rule[1] ?? null;
+        if (is_callable($rule[1]) || $field->hasMethod($rule[1])) {
+            // InlineValidator assumes that the closure is on the model being validated
+            // so it won’t pass a reference to the element
+            $rule['params'] = [
+                $element,
+                $field,
+                $rule[1],
+                $rule['params'] ?? null,
+            ];
 
-        if ($field->hasMethod($method)) {
-            $field->$method($element);
+            $rule[1] = 'validateCustomFieldAttribute';
         }
+
+        // Set 'isEmpty' to the field's isEmpty() method by default
+        if (!array_key_exists('isEmpty', $rule)) {
+            $rule['isEmpty'] = $isEmpty;
+        }
+
+        // Set 'on' to the main scenarios by default
+        if (!array_key_exists('on', $rule)) {
+            $rule['on'] = [$element::SCENARIO_DEFAULT, $element::SCENARIO_LIVE];
+        }
+
+        return Validator::createValidator($rule[1], $this, (array)$rule[0], array_slice($rule, 2));
     }
 
 }
