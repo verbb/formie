@@ -439,6 +439,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             'CanBeSecuredForCreate',
             'CanBeSecuredForUpdate',
             'LogicalName',
+            'SchemaName',
             'DisplayName',
             'RequiredLevel',
         ];
@@ -479,22 +480,13 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         foreach ($attributes as $field) {
             $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
-            $customField = $field['IsCustomAttribute'] ?? false;
+            $logicalName = $field['LogicalName'] ?? '';
+            $handle = $this->_getFieldHandle($field);
             $canCreate = $field['IsValidForCreate'] ?? false;
             $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
             $type = $field['AttributeType'] ?? '';
             $odataType = $field['@odata.type'] ?? '';
             $metadataId = $field['MetadataId'] ?? '';
-
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                // Dynamics is _supposed_ to use the `SchemaName` for custom fields, but if null, use `LogicalName`
-                $handle = $field['SchemaName'] ?? $field['LogicalName'] ?? '';
-            } else {
-                $handle = $field['LogicalName'] ?? '';
-            }
-
-            $key = $handle;
 
             $excludedTypes = [
                 'Customer',
@@ -504,13 +496,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 'Virtual',
             ];
 
-            if (!$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
+            if (!$logicalName || !$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
                 continue;
-            }
-
-            // Relational fields need a special handle
-            if ($odataType === '#Microsoft.Dynamics.CRM.LookupAttributeMetadata') {
-                $handle .= '@odata.bind';
             }
 
             // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
@@ -524,8 +511,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
             }
 
-            // Index by handle for easy lookup with PickLists
-            $fields[$key] = new IntegrationField([
+            // Index by `LogicalName` for easy lookup later with Picklist and Lookup fields
+            $fields[$logicalName] = new IntegrationField([
                 'handle' => $handle,
                 'name' => $label,
                 'type' => $this->convertFieldType($type),
@@ -549,7 +536,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Do another call for PickList fields, to populate any set options to pick from
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
             'query' => [
-                '$select' => 'IsCustomAttribute,LogicalName,SchemaName',
+                '$select' => 'LogicalName,SchemaName',
                 '$expand' => 'GlobalOptionSet($select=Options),OptionSet($select=Options)',
             ]
         ]);
@@ -560,12 +547,10 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
             $options = [];
 
-            // We play the same game with guessing either `SchemaName` or `LogicalName` so check for both...
-            $schemaName = $pickListField['SchemaName'] ?? '';
             $logicalName = $pickListField['LogicalName'] ?? '';
 
             // Get the field to add options to
-            $field = $fields[$schemaName] ?? $fields[$logicalName] ?? null;
+            $field = $fields[$logicalName] ?? null;
 
             if (!$pickList || !$field) {
                 continue;
@@ -614,7 +599,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Get all the fields that are relational
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
             'query' => [
-                '$select' => 'IsCustomAttribute,LogicalName,SchemaName,Targets',
+                '$select' => 'LogicalName,SchemaName,Targets',
             ],
         ]);
 
@@ -743,12 +728,10 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
             }
 
-            // We play the same game with guessing either `SchemaName` or `LogicalName` so check for both...
-            $schemaName = $relationField['SchemaName'] ?? '';
             $logicalName = $relationField['LogicalName'] ?? '';
 
             // Get the field to add options to
-            $field = $fields[$schemaName] ?? $fields[$logicalName] ?? null;
+            $field = $fields[$logicalName] ?? null;
 
             if (!$field || !$options) {
                 continue;
@@ -776,6 +759,23 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         }
 
         return $path;
+    }
+
+    private function _getFieldHandle(array $field): string
+    {
+        $customField = $field['IsCustomAttribute'] ?? null;
+        $type = $field['@odata.type'] ?? '';
+
+        // Relational fields use the `SchemaName`, but only if a custom field or entity
+        if ($type === '#Microsoft.Dynamics.CRM.LookupAttributeMetadata') {
+            $schemaName = $field['SchemaName'] ?? '';
+            $logicalName = $field['LogicalName'] ?? '';
+            $handle = ($customField) ? $schemaName : $logicalName;
+
+            return $handle . '@odata.bind';
+        }
+
+        return $field['LogicalName'] ?? '';
     }
 
     private function _getSystemUsersOptions(): array
