@@ -21,6 +21,7 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
+use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
@@ -58,6 +59,7 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\fields\Link;
 use craft\helpers\Cp;
 use craft\queue\Queue;
 use craft\services\Dashboard;
@@ -567,6 +569,12 @@ class Formie extends Plugin
                 $fields = Formie::$plugin->getFields()->getRegisteredFormieFields();
 
                 $event->fields = array_merge($event->fields, $fields);
+            });
+        }
+
+        if (version_compare(Craft::$app->getInfo()->version, '5.3.0', '>=')) {
+            Event::on(Link::class, Link::EVENT_REGISTER_LINK_TYPES, function(RegisterComponentTypesEvent $event) {
+                $event->types[] = FormLinkType::class;
             });
         }
     }
