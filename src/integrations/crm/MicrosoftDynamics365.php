@@ -654,10 +654,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
                 // Special handling for system users
                 if ($entityDefinition['LogicalName'] === 'systemuser') {
+                    $entitySchema['select'][] = 'applicationid';
                     $entitySchema['orderby'] = $entityDefinition['PrimaryNameAttribute'];
 
                     // Exclude system accounts that are application default
-                    $entitySchema['filter'] = 'applicationid eq null';
+                    $entitySchema['filter'] = 'applicationid eq null and isdisabled eq false';
                 }
 
                 $targetSchemas[$entityDefinition['LogicalName']] = $entitySchema;
