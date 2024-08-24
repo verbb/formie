@@ -645,11 +645,22 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             $entityDefinitions = $response['value'] ?? [];
 
             foreach ($entityDefinitions as $entityDefinition) {
-                $targetSchemas[$entityDefinition['LogicalName']] = [
+                $entitySchema = [
                     'entity' => $entityDefinition['EntitySetName'],
                     'label' => $entityDefinition['PrimaryNameAttribute'],
                     'value' => $entityDefinition['PrimaryIdAttribute'],
+                    'select' => [$entityDefinition['PrimaryNameAttribute'], $entityDefinition['PrimaryIdAttribute']],
                 ];
+
+                // Special handling for system users
+                if ($entityDefinition['LogicalName'] === 'systemuser') {
+                    $entitySchema['orderby'] = $entityDefinition['PrimaryNameAttribute'];
+
+                    // Exclude system accounts that are application default
+                    $entitySchema['filter'] = 'applicationid eq null';
+                }
+
+                $targetSchemas[$entityDefinition['LogicalName']] = $entitySchema;
             }
         }
 
@@ -680,11 +691,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
 
                 // We don't really need that much from the entities
-                $select = [$targetSchema['label'], $targetSchema['value']];
-
-                if ($target === 'systemuser') {
-                    $select[] = 'applicationid';
-                }
+                $select = $targetSchema['select'] ?? [$targetSchema['label'], $targetSchema['value']];
 
                 // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
                 $response = $this->request('GET', $targetSchema['entity'], [
@@ -700,11 +707,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $entities = $response['value'] ?? [];
 
                 foreach ($entities as $entity) {
-                    // Special-case for systemusers
-                    if ($target === 'systemuser' && isset($entity['applicationid'])) {
-                        continue;
-                    }
-
                     $label = $entity[$targetSchema['label']] ?? '';
                     $value = $entity[$targetSchema['value']] ?? '';
 
