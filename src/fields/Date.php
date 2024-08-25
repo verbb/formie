@@ -25,6 +25,7 @@ use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
@@ -41,6 +42,8 @@ use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
 use yii\db\Schema;
+use yii\validators\RequiredValidator;
+use yii\validators\Validator;
 
 use DateTime;
 use DateTimeZone;
@@ -417,18 +420,25 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         // We override default sub-field validations for "blocks" (the nested sub-fields), and makes
         // it more complicated that a Date field's value is a DateTime.
         $value = $element->getFieldValue($this->fieldKey);
-        $isEmpty = $this->isValueEmpty($value, $element);
+        $scenario = $element->getScenario();
 
         foreach ($this->getFields() as $field) {
             $fieldKey = $field->fieldKey;
 
             // Roll our own validation, due to lack of field layout and elements
-            if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+            $attribute = "field:$fieldKey";
+            $isEmpty = fn() => $field->isValueEmpty($value, $element);
+
+            if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
-                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                    $validator->validateAttributes($element);
+                }
             }
         }
     }
