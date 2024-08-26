@@ -441,8 +441,8 @@ class HubSpot extends Crm
                 }
 
                 $formPayload['context']['ipAddress'] = $this->ipAddress;
-                $formPayload['context']['pageUri'] = $formValues['pageUri'] ?? $this->referrer;
-                $formPayload['context']['pageName'] = $formValues['pageName'] ?? null;
+                $formPayload['context']['pageUri'] = ArrayHelper::remove($formValues, 'pageUri') ?? $this->referrer;
+                $formPayload['context']['pageName'] = ArrayHelper::remove($formValues, 'pageName');
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
