@@ -287,6 +287,7 @@ class Klaviyo extends EmailMarketing
     {
         $response = $this->request('GET', $endpoint, [
             'query' => [
+                'sort' => 'name',
                 'page' => [
                     'cursor' => $cursor,
                 ],
