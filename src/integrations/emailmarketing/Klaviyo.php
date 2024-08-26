@@ -62,8 +62,7 @@ class Klaviyo extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists');
-            $lists = $response['data'] ?? [];
+            $lists = $this->_getPaginated('lists');
 
             foreach ($lists as $list) {
                 $listFields = [
@@ -278,5 +277,35 @@ class Klaviyo extends EmailMarketing
                 'revision' => '2024-05-15',
             ],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getPaginated(string $endpoint, int $limit = 10, ?string $cursor = null, array $items = []): array
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'page' => [
+                    'cursor' => $cursor,
+                ],
+            ],
+        ]);
+
+        $newItems = $response['data'] ?? [];
+        $cursor = $response['links']['next'] ?? 0;
+
+        $items = array_merge($items, $newItems);
+
+        if ($cursor) {
+            // Extract cursor from `https://a.klaviyo.com/api/lists?sort=name&page%5Bcursor%5D=bmV4dDo6bmFtZTo6VGVzdCA2`
+            parse_str(parse_url($cursor, PHP_URL_QUERY), $query);
+            $cursor = $query['page']['cursor'];
+
+            $items = $this->_getPaginated($endpoint, $limit, $cursor, $items);
+        }
+
+        return $items;
     }
 }
