@@ -110,6 +110,15 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         return false;
     }
 
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        if ($value instanceof PhoneModel && !$value->number) {
+            return true;
+        }
+
+        return parent::isValueEmpty($value, $element);
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = parent::normalizeValue($value, $element);
