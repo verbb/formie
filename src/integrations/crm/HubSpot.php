@@ -420,6 +420,10 @@ class HubSpot extends Crm
                     ];
                 }
 
+                // Extract some values that shouldn't be part of the form payload
+                $formPayload['context']['pageUri'] = ArrayHelper::remove($formValues, 'pageUri') ?? $this->referrer;
+                $formPayload['context']['pageName'] = ArrayHelper::remove($formValues, 'pageName');
+
                 foreach ($formValues as $key => $value) {
                     // Don't include the tracking ID, it's invalid to HubSpot
                     if ($key === 'trackingID') {
@@ -441,8 +445,6 @@ class HubSpot extends Crm
                 }
 
                 $formPayload['context']['ipAddress'] = $this->ipAddress;
-                $formPayload['context']['pageUri'] = ArrayHelper::remove($formValues, 'pageUri') ?? $this->referrer;
-                $formPayload['context']['pageName'] = ArrayHelper::remove($formValues, 'pageName');
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
