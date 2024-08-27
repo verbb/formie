@@ -890,7 +890,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             $config = Html::mergeHtmlConfigs([$key => $templateConfig], [$key => $classTemplateConfig])[$key] ?? [];
 
             // Check if the config is falsey - then don't render
-            if ($config === false || $config === null) {
+            if (!$config) {
                 $tag = null;
             } else {
                 // Are we resetting classes globally?
