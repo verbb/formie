@@ -46,6 +46,7 @@ use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\helpers\Template as TemplateHelper;
+use craft\records\EntryType as EntryTypeRecord;
 use craft\services\ElementSources;
 use craft\services\Elements;
 
@@ -188,6 +189,14 @@ abstract class ElementField extends Field implements ElementFieldInterface
                     // Handle conditions by parsing the rules and applying to query
                     $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
                     $sourceCondition->modifyQuery($query);
+                } else if (str_contains($sourceKey, 'type:')) {
+                    // Special-case for entries, maybe redactor?
+                    $entryTypeUid = str_replace('type:', '', $sourceKey);
+                    $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
+
+                    if ($entryType) {
+                        $criteria[] = ['typeId' => $entryType->id];
+                    }
                 } else {
                     $sourceCriteria = $elementSource['criteria'] ?? [];
 
