@@ -78,8 +78,8 @@ class FieldsController extends Controller
 
     public function actionGetSummaryHtml(): string
     {
-        $fieldId = $this->request->getParam('fieldId');
-        $submissionId = $this->request->getParam('submissionId');
+        $fieldId = (int)$this->request->getParam('fieldId');
+        $submissionId = (int)$this->request->getParam('submissionId');
 
         if ($submissionId && $fieldId) {
             $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
