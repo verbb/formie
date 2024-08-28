@@ -1142,6 +1142,11 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         $format = preg_replace('/[.\-:\/ ]/', '', $format);
         $formattingMap = str_split($format);
 
+        // Fix an error in some instances where the defaultValue isn't normalised when saving a form.
+        if (!$this->defaultValue instanceof DateTime) {
+            $this->defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false) ?: null;
+        }
+
         $date = $this->defaultValue ?: new DateTime();
         $year = (int)$date->format('Y');
         $minYear = $year - 100;
