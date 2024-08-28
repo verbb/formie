@@ -180,9 +180,16 @@ class Variables
         // Parse aliases and env variables
         $value = App::parseEnv($value);
 
-        // Use a cache key based on the submission, or few unsaved submissions, the formId
+        // Use a cache key based on the submission, or for unsaved submissions - the formId.
+        // Be sure to prefix things by what they are to prevent ID collision between form/submission elements.
         // This helps to only cache it per-submission, when being run in queues.
-        $cacheKey = $submission->id ?? $form->id ?? mt_rand();
+        $cacheKey = mt_rand();
+
+        if ($submission->id) {
+            $cacheKey = 'submission' . $submission->id;
+        } else if ($form->id) {
+            $cacheKey = 'form' . $form->id;
+        }
 
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
