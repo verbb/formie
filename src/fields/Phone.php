@@ -6,6 +6,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
@@ -49,6 +50,58 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         return Formie::$plugin->getPhone()->getCountries();
     }
 
+    public static function getCountryLanguageOptions(): array
+    {
+        // See support https://github.com/jackocnr/intl-tel-input/tree/master/build/js/i18n
+        $languages = [
+            'Auto' => 'auto',
+            'Arabic' => 'ar',
+            'Bengali' => 'bn',
+            'Bosnian' => 'bs',
+            'Bulgarian' => 'bg',
+            'Catalan' => 'ca',
+            'Chinese' => 'zh',
+            'Croatian' => 'hr',
+            'Czech' => 'cs',
+            'Dutch' => 'nl',
+            'English' => 'en',
+            'Finnish' => 'fi',
+            'French' => 'fr',
+            'German' => 'de',
+            'Greek' => 'el',
+            'Hindi' => 'hi',
+            'Hungarian' => 'hu',
+            'Indonesian' => 'id',
+            'Italian' => 'it',
+            'Japanese' => 'ja',
+            'Korean' => 'ko',
+            'Marathi' => 'mr',
+            'Persian' => 'fa',
+            'Polish' => 'pl',
+            'Portuguese' => 'pt',
+            'Romanian' => 'ro',
+            'Russian' => 'ru',
+            'Slovak' => 'sk',
+            'Spanish' => 'es',
+            'Swedish' => 'sv',
+            'Telugu' => 'te',
+            'Thai' => 'th',
+            'Turkish' => 'tr',
+            'Urdu' => 'ur',
+        ];
+
+        $languageOptions = [];
+
+        foreach ($languages as $languageName => $languageCode) {
+            $languageOptions[] = [
+                'label' => Craft::t('formie', $languageName),
+                'value' => $languageCode,
+            ];
+        }
+
+        return $languageOptions;
+    }
+
     public static function dbType(): string
     {
         return Schema::TYPE_JSON;
@@ -82,6 +135,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
 
     public bool $countryEnabled = true;
     public ?string $countryDefaultValue = null;
+    public string $countryLanguage = 'auto';
     public array $countryAllowed = [];
 
 
@@ -151,6 +205,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                 'settings' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->countryAllowed,
+                    'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ];
         }
@@ -227,6 +282,16 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                     static::getCountryOptions()
                 ),
             ]),
+            // TODO: https://github.com/verbb/formie/issues/2042
+            // SchemaHelper::selectField([
+            //     'label' => Craft::t('formie', 'Language'),
+            //     'help' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
+            //     'name' => 'countryLanguage',
+            //     'if' => '$get(countryEnabled).value',
+            //     'options' => array_merge(
+            //         static::getCountryLanguageOptions()
+            //     ),
+            // ]),
         ];
     }
 
@@ -350,5 +415,39 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         }
 
         return $faker->phoneNumber;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getMatchedLanguageId()
+    {
+        if ($this->countryLanguage && $this->countryLanguage != 'auto') {
+            return $this->countryLanguage;
+        }
+
+        $currentLanguageId = Craft::$app->getLocale()->getLanguageID();
+        $allCraftLocales = Craft::$app->getI18n()->getAllLocales();
+        $allCraftLanguageIds = ArrayHelper::getColumn($allCraftLocales, 'id');
+        $allRecaptchaLanguageIds = ArrayHelper::getColumn(static::getCountryLanguageOptions(), 'value');
+        $matchedLanguageIds = array_intersect($allRecaptchaLanguageIds, $allCraftLanguageIds);
+
+        // If our current request Language ID matches a language ID, use it
+        if (in_array($currentLanguageId, $matchedLanguageIds, true)) {
+            return $currentLanguageId;
+        }
+
+        // If our current language ID has a more generic match, use it
+        if (str_contains($currentLanguageId, '-')) {
+            $parts = explode('-', $currentLanguageId);
+            $baseLanguageId = $parts['0'] ?? null;
+
+            if (in_array($baseLanguageId, $matchedLanguageIds, true)) {
+                return $baseLanguageId;
+            }
+        }
+
+        return null;
     }
 }

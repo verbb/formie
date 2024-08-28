@@ -10,6 +10,7 @@ export class FormiePhoneCountry {
 
         this.countryDefaultValue = settings.countryDefaultValue;
         this.countryAllowed = settings.countryAllowed;
+        this.language = settings.language;
 
         if (this.$field && this.$countryInput) {
             this.initValidator();
