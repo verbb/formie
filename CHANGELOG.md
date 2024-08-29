@@ -3,7 +3,7 @@
 ## 2.1.28 - 2024-08-29
 
 ### Fixed
-- Fix an error when parsing variable tokens.
+- Fixed an error when parsing variable tokens.
 
 ## 2.1.27 - 2024-08-29
 
