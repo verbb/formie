@@ -1,5 +1,41 @@
 # Changelog
 
+## 3.0.4 - 2024-08-29
+
+### Added
+- Added “Page URI” and “Page Name” to HubSpot integration for Forms.
+- Added support for Form Template custom field validation for forms.
+- Added compatibility with Craft Link field.
+
+### Changed
+- Klaviyo Email Marketing integration now orders lists alphabetically by name.
+- Klaviyo Email Marketing integration now loads more than 10 lists.
+- Improved HubSpot CRM integration for HubSpot Forms, where fields don’t have a label.
+- Dynamics365 system users now no longer include disabled user accounts.
+- Improve Dynamics365 CRM integration to filter system users that are non-application-specific.
+- Updated Dynamics365 CRM Integration and Lookup fields to automatically determine which entities to fetch field values for, rather than a static schema.
+- Payment fields now no longer process if they are set to visibility disabled.
+- Hidden or Disabled fields now have a visual indicator in the form builder.
+
+### Fixed
+- Fixed an edge-case with variables, where cached data matched against incorrect submission values.
+- Fixed an error when fetching Summary field HTML.
+- Fixed an error when fetching Signature field image.
+- Fixed an error with Klaviyo CRM integration.
+- Fixed being unable to select the top-level field for a Sub-Field in variable picker fields.
+- Fixed an error when viewing a Submission in the control panel for a Date field with “Calendar: Advanced”.
+- Fixed an error with Date field default value in some cases when saving a form.
+- Fixed Entries fields not being able to select Entry Types as sources.
+- Fixed Formie 2 migration for Sub-Field inner fields, not retaining their settings upon migration.
+- Fixed server-side empty validation for Phone fields.
+- Fixed an issue with Theme Config and disabling HTML elements from rendering not working.
+- Fixed Date field validation.
+- Fixed Dynamics365 CRM integration and lookup fields when referencing custom entities.
+- Fixed field validation for Sub, Group and Repeater fields and their inner fields.
+- Fixed an issue with Dynamics365 CRM integration and Picklist field options.
+- Fixed conditional logic not working correctly for Groups and Repeaters.
+- Ensure view permissions are enforced for “Recent Submissions” dashboard widget.
+
 ## 3.0.3 - 2024-08-14
 
 ### Fixed
