@@ -387,6 +387,10 @@ class HubSpot extends Crm
                     ];
                 }
 
+                // Extract some values that shouldn't be part of the form payload
+                $formPayload['context']['pageUri'] = ArrayHelper::remove($formValues, 'pageUri') ?? $this->context['referrer'] ?? null;
+                $formPayload['context']['pageName'] = ArrayHelper::remove($formValues, 'pageName');
+
                 foreach ($formValues as $key => $value) {
                     // Don't include the tracking ID, it's invalid to HubSpot
                     if ($key === 'trackingID') {
@@ -407,7 +411,6 @@ class HubSpot extends Crm
                 }
 
                 $formPayload['context']['ipAddress'] = $this->context['ipAddress'] ?? null;
-                $formPayload['context']['pageUri'] = $this->context['referrer'] ?? null;
 
                 [$portalId, $formGuid] = explode('__', $this->formId);
 
@@ -619,6 +622,14 @@ class HubSpot extends Crm
             new IntegrationField([
                 'handle' => 'trackingID',
                 'name' => Craft::t('formie', 'Tracking ID'),
+            ]),
+            new IntegrationField([
+                'handle' => 'pageUri',
+                'name' => Craft::t('formie', 'Page URI'),
+            ]),
+            new IntegrationField([
+                'handle' => 'pageName',
+                'name' => Craft::t('formie', 'Page Name'),
             ]),
         ];
 

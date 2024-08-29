@@ -78,6 +78,8 @@ A field for creating read-only content based on other fields' content. Supports 
 
 The underlying parsing logic is based off the [Symfony Expression Syntax](https://symfony.com/doc/current/components/expression_language/syntax.html).
 
+The Calculations field **does not** support Twig syntax.
+
 #### Arithmetic Operators
 - `+` (addition)
 - `-` (subtraction)

@@ -4,7 +4,7 @@ You can render a specific field completely on its own, outside a `<form>` elemen
 The `renderField()` requires both a [Form](docs:developers/form) object and a [Field](docs:developers/field) object.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 <form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
@@ -29,7 +29,7 @@ Make sure to include the `data-fui-form` attribute with JSON configuration from 
 You can also use the handle of the field, for direct-access to the field you require.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 <form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
@@ -41,6 +41,34 @@ You can also use the handle of the field, for direct-access to the field you req
 </form>
 ```
 
+## CSS & JS
+You'll probably notice your form is looking a little plain and some aspects of it won't work like validation, captchas and more. That's because unlike calling `craft.formie.renderForm()`, rendering just form fields won't automatically add Formie's CSS or JavaScript to the webpage for you.
+
+To address this, we just need to include a call to ensure Formie's CSS and JS is added to the webpage.
+
+```twig
+{% set form = craft.formie.forms.handle('contactUs').one() %}
+
+{% do craft.formie.registerAssets(form) %}
+
+<form method="post" data-fui-form="{{ form.configJson }}">
+```
+
+This will respect the [Form Template](docs:feature-tour/form-templates) setting you may have on your form, which controls where to render the CSS and JS.
+
+It's important to include this `registerAssets` before the `<form>` rendering tag. You could also include them separately as below:
+
+```twig
+{% set form = craft.formie.forms.handle('contactUs').one() %}
+
+{% do craft.formie.renderFormCss(form) %}
+{% do craft.formie.renderFormJs(form) %}
+
+<form method="post" data-fui-form="{{ form.configJson }}">
+```
+
+Read further on the [`registerAssets()`](docs:template-guides/available-variables#craft-formie-registerAssets), [`renderFormCss()`](docs:template-guides/available-variables#craft-formie-renderFormCss) and [`renderFormJs()`](docs:template-guides/available-variables#craft-formie-renderFormJs) functions.
+
 ## Render Options
 A second argument to `renderField()` allows you to pass in variables used as [Render Options](docs:theming/render-options).
 
@@ -49,7 +77,7 @@ A second argument to `renderField()` allows you to pass in variables used as [Re
     someOption: 'someValue',
 } %}
 
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% for field in form.getCustomFields() %}
     {{ craft.formie.renderField(form, field, renderOptions) }}
@@ -60,7 +88,7 @@ A second argument to `renderField()` allows you to pass in variables used as [Re
 The previous examples have just covered rendering fields in a form in a simple manner. However you can render fields in the layout you build in the form builder, with pages, rows and columns. To do this, we'll need to loop through each page, loop through each row, then finally loop through each field.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 <form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
@@ -87,7 +115,7 @@ Here we have a completely custom layout, with Formie handling the rendering of t
 You can also dynamically override any settings for the field using `setFieldSettings()`.
 
 ```twig
-{% set form = craft.formie.forms.handle('contactForm').one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% do form.setFieldSettings('plainText', {
     {# Override the name (label) for the field #}
