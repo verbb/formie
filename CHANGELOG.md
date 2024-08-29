@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.5 - 2024-08-29
+
+### Fixed
+- Fixed an error when parsing variable tokens.
+
 ## 3.0.4 - 2024-08-29
 
 ### Added
