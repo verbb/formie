@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.1.27 - 2024-08-14
+
+### Added
+- Added “Page URI” and “Page Name” to HubSpot integration for Forms.
+- Added support for Form Template custom field validation for forms.
+
+### Changed
+- Klaviyo Email Marketing integration now orders lists alphabetically by name.
+- Klaviyo Email Marketing integration now loads more than 10 lists.
+- Improved HubSpot CRM integration for HubSpot Forms, where fields don’t have a label.
+
+### Fixed
+- Fixed an edge-case with variables, where cached data matched against incorrect submission values.
+- Fixed an error when fetching Summary field HTML.
+- Fixed an error when fetching Signature field image.
+- Fixed an error with Klaviyo CRM integration.
+
 ## 2.1.26 - 2024-08-14
 
 ### Fixed
