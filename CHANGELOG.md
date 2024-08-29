@@ -251,7 +251,12 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
-## 2.1.27 - 2024-08-14
+## 2.1.28 - 2024-08-29
+
+### Fixed
+- Fixed an error when parsing variable tokens.
+
+## 2.1.27 - 2024-08-29
 
 ### Added
 - Added “Page URI” and “Page Name” to HubSpot integration for Forms.

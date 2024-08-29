@@ -154,9 +154,9 @@ class Variables
         // This helps to only cache it per-submission, when being run in queues.
         $cacheKey = mt_rand();
 
-        if ($submission->id) {
+        if ($submission && $submission->id) {
             $cacheKey = 'submission' . $submission->id;
-        } else if ($form->id) {
+        } else if ($form && $form->id) {
             $cacheKey = 'form' . $form->id;
         }
 
