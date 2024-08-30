@@ -679,7 +679,7 @@ class Rendering extends Component
         $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
         // Some attributes are JS-render related
-        $jsAttributes = [];
+        $jsAttributes = $renderOptions;
 
         if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
             $jsAttributes['data-manual-init'] = true;
