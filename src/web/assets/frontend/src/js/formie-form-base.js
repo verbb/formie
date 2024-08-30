@@ -120,6 +120,11 @@ export class FormieFormBase {
                 return;
             }
 
+            // Trigger an (used) event for users to do any last minute things
+            if (!this.validateCustom()) {
+                return;
+            }
+
             // Proceed with submitting the form, which raises other validation events
             this.submitForm();
         }, 300);
@@ -155,6 +160,15 @@ export class FormieFormBase {
     validatePayment() {
         // Create an event for payments, separate to validation
         const validateEvent = this.eventObject('onFormiePaymentValidate', {
+            submitHandler: this,
+        });
+
+        return this.$form.dispatchEvent(validateEvent);
+    }
+
+    validateCustom() {
+        // Create an event for custom actions, separate to validation
+        const validateEvent = this.eventObject('onFormieCustomValidate', {
             submitHandler: this,
         });
 
