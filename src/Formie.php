@@ -235,6 +235,7 @@ class Formie extends Plugin
                     ],
                 ],
                 'formie-manageFormIntegrations' => ['label' => Craft::t('formie', 'Manage form integrations'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
+                'formie-manageFormUsage' => ['label' => Craft::t('formie', 'View form usage'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
                 'formie-manageFormSettings' => ['label' => Craft::t('formie', 'Manage form settings'), 'info' => Craft::t('formie', 'This permission will be applied to new forms automatically.')],
             ];
 
