@@ -1883,33 +1883,7 @@ class Form extends Element
         // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs. 
         // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
         $formLayout = unserialize(serialize($this->getFormLayout()));
-        $formLayout->id = null;
-        // $formLayout->ownerId = null;
-        $formLayout->uid = '';
-
-        foreach ($formLayout->getPages() as $page) {
-            $page->id = null;
-            // $page->ownerId = null;
-            $page->layoutId = null;
-            $page->uid = '';
-
-            foreach ($page->getRows() as $row) {
-                $row->id = null;
-                // $row->ownerId = null;
-                $row->layoutId = null;
-                $row->pageId = null;
-                $row->uid = '';
-
-                foreach ($row->getFields() as $field) {
-                    $field->id = null;
-                    // $field->ownerId = null;
-                    $field->layoutId = null;
-                    $field->pageId = null;
-                    $field->rowId = null;
-                    $field->uid = '';
-                }
-            }
-        }
+        $this->_clearLayoutIdentifiers($formLayout);
 
         $notifications = [];
 
@@ -2175,5 +2149,39 @@ class Form extends Element
         }
 
         return $errors;
+    }
+
+    private function _clearLayoutIdentifiers(FormLayout $layout): void
+    {
+        $layout->id = null;
+        $layout->uid = '';
+
+        foreach ($layout->getPages() as $page) {
+            $page->id = null;
+            $page->layoutId = null;
+            $page->uid = '';
+
+            foreach ($page->getRows() as $row) {
+                $row->id = null;
+                $row->layoutId = null;
+                $row->pageId = null;
+                $row->uid = '';
+
+                foreach ($row->getFields() as $field) {
+                    $field->id = null;
+                    $field->layoutId = null;
+                    $field->pageId = null;
+                    $field->rowId = null;
+                    $field->uid = '';
+
+                    if ($field instanceof NestedFieldInterface) {
+                        $this->_clearLayoutIdentifiers($field->getFieldLayout());
+
+                        // Set after processing
+                        $field->nestedLayoutId = null;
+                    }
+                }
+            }
+        }
     }
 }
