@@ -210,7 +210,7 @@ class Group extends FormField implements NestedFieldInterface, EagerLoadingField
 
         return [
             'name' => $this->handle,
-            'type' => Type::nonNull(Gql::getUnionType($typeName, $typeArray)),
+            'type' => Gql::getUnionType($typeName, $typeArray),
             'resolve' => NestedFieldRowResolver::class . '::resolve',
             'complexity' => Gql::eagerLoadComplexity(),
         ];
