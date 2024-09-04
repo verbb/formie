@@ -512,14 +512,14 @@ class Emails extends Component
     // Private Methods
     // =========================================================================
 
-    private function _htmlToPlainText($html): string
+    private function _htmlToPlainText(string $html): string
     {
         $html = new Html2Text($html);
 
         return $html->getText();
     }
 
-    private function _getFilteredString($string): string
+    private function _getFilteredString(string $string): string
     {
         $string = trim(App::parseEnv(trim($string)));
 
@@ -532,7 +532,7 @@ class Emails extends Component
         return $string;
     }
 
-    private function _getParsedEmails($emails): array
+    private function _getParsedEmails(string $emails): array
     {
         $emailsEnv = [];
 
