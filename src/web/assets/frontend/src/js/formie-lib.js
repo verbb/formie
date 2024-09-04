@@ -102,6 +102,13 @@ export class Formie {
                     $script.src = config.src;
                     $script.defer = true;
 
+                    // We might be passing in script tag attributes
+                    if (formConfig.settings.scriptAttributes) {
+                        Object.entries(formConfig.settings.scriptAttributes).forEach(([attribute, value]) => {
+                            $script.setAttribute(attribute, value);
+                        });
+                    }
+
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {

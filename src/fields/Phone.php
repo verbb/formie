@@ -361,7 +361,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                 ],
                 'name' => $this->getHtmlName('number'),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'tel-national',
+                'autocomplete' => 'tel',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,

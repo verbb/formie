@@ -17,6 +17,8 @@ use craft\helpers\Json;
 
 use yii\base\Event;
 
+use GuzzleHttp\Exception\RequestException;
+
 use DateTime;
 use Throwable;
 use Exception;
@@ -372,47 +374,50 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         return false;
                     }
                 } catch (Throwable $e) {
-                    $taskCreated = false;
                     Integration::apiError($this, $e, false);
 
+                    $taskCreated = false;
+
                     // Check if we should enable tasks to be created for duplicates
-                    $response = Json::decode((string)$e->getResponse()->getBody());
-                    $responseCode = $response[0]['errorCode'] ?? '';
+                    if ($e instanceof RequestException && $e->getResponse()) {
+                        $response = Json::decode((string)$e->getResponse()->getBody());
+                        $responseCode = $response[0]['errorCode'] ?? '';
 
-                    // Check if a duplicate lead and if we should create a task instead.
-                    if ($responseCode === 'DUPLICATES_DETECTED') {
-                        Integration::info($this, 'Duplicate lead found.', false);
+                        // Check if a duplicate lead and if we should create a task instead.
+                        if ($responseCode === 'DUPLICATES_DETECTED') {
+                            Integration::info($this, 'Duplicate lead found.', false);
 
-                        if ($this->duplicateLeadTask) {
-                            Integration::info($this, 'Attempting to create task for duplicate lead.', false);
+                            if ($this->duplicateLeadTask) {
+                                Integration::info($this, 'Attempting to create task for duplicate lead.', false);
 
-                            $taskPayload = [
-                                'Subject' => $this->duplicateLeadTaskSubject,
-                                'WhoId' => $contactId,
-                                'Description' => '',
-                            ];
+                                $taskPayload = [
+                                    'Subject' => $this->duplicateLeadTaskSubject,
+                                    'WhoId' => $contactId,
+                                    'Description' => '',
+                                ];
 
-                            foreach ($leadPayload as $key => $item) {
-                                $taskPayload['Description'] .= $key . ': ' . $item . "\n";
-                            }
-
-                            try {
-                                $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
-
-                                if ($response === false) {
-                                    return true;
+                                foreach ($leadPayload as $key => $item) {
+                                    $taskPayload['Description'] .= $key . ': ' . $item . "\n";
                                 }
 
-                                $taskCreated = true;
+                                try {
+                                    $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
 
-                                Integration::info($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
-                                    'response' => Json::encode($response),
-                                    'payload' => Json::encode($taskPayload),
-                                ]));
-                            } catch (Throwable $e) {
-                                Integration::apiError($this, $e);
+                                    if ($response === false) {
+                                        return true;
+                                    }
 
-                                return false;
+                                    $taskCreated = true;
+
+                                    Integration::info($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
+                                        'response' => Json::encode($response),
+                                        'payload' => Json::encode($taskPayload),
+                                    ]));
+                                } catch (Throwable $e) {
+                                    Integration::apiError($this, $e);
+
+                                    return false;
+                                }
                             }
                         }
                     }

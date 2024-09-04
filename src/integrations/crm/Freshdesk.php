@@ -17,6 +17,7 @@ use craft\helpers\Json;
 
 use GuzzleHttp\Psr7\Utils;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 
@@ -334,46 +335,48 @@ class Freshdesk extends Crm
                         ]), true);
                     }
                 } catch (Throwable $e) {
-                    $response = Json::decode((string)$e->getResponse()->getBody());
+                    if ($e instanceof RequestException && $e->getResponse()) {
+                        $response = Json::decode((string)$e->getResponse()->getBody());
 
-                    // Check number of errors; if more than one, we can't update anyway
-                    $errors = $response['errors'] ?? [];
+                        // Check number of errors; if more than one, we can't update anyway
+                        $errors = $response['errors'] ?? [];
 
-                    if (count($errors) === 1) {
-                        $err = $errors[0];
-                        $errField = $err['field'] ?? null;
-                        $errCode = $err['code'] ?? null;
-                        $contactId = $err['additional_info']['user_id'] ?? null;
+                        if (count($errors) === 1) {
+                            $err = $errors[0];
+                            $errField = $err['field'] ?? null;
+                            $errCode = $err['code'] ?? null;
+                            $contactId = $err['additional_info']['user_id'] ?? null;
 
-                        // Now check that the sole error is actually due to existing contact
-                        if ($errField === 'email' && $errCode === 'duplicate_value') {
-                            try {
-                                $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
-                            } catch (Throwable $e) {
-                                $updateResponse = Json::decode((string)$e->getResponse()->getBody());
-                                $statusCode = $e->getResponse()->getStatusCode();
+                            // Now check that the sole error is actually due to existing contact
+                            if ($errField === 'email' && $errCode === 'duplicate_value') {
+                                try {
+                                    $this->deliverPayload($submission, "contacts/{$contactId}", $contactPayload, 'PUT');
+                                } catch (Throwable $e) {
+                                    $updateResponse = Json::decode((string)$e->getResponse()->getBody());
+                                    $statusCode = $e->getResponse()->getStatusCode();
 
-                                // Check for special conditions
-                                if (
-                                    $statusCode === 405
-                                    && $updateResponse['message'] === 'PUT method is not allowed. It should be one of these method(s): GET'
-                                ) {
-                                    // 405 status code and disallowed PUT means user is deleted or spam; log and continue
-                                    Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                        'message' => $e->getMessage(),
-                                        'response' => Json::encode($updateResponse),
-                                        'payload' => Json::encode($contactPayload),
-                                    ]), false);
-                                } elseif ($statusCode === 404 && $updateResponse === null) {
-                                    // 404 status code and empty response means user is an agent; log and continue
-                                    Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                        'message' => $e->getMessage(),
-                                        'response' => Json::encode($updateResponse),
-                                        'payload' => Json::encode($contactPayload),
-                                    ]), false);
-                                } else {
-                                    // Throw the exception again to bubble up to main exception handler
-                                    throw $e;
+                                    // Check for special conditions
+                                    if (
+                                        $statusCode === 405
+                                        && $updateResponse['message'] === 'PUT method is not allowed. It should be one of these method(s): GET'
+                                    ) {
+                                        // 405 status code and disallowed PUT means user is deleted or spam; log and continue
+                                        Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                            'message' => $e->getMessage(),
+                                            'response' => Json::encode($updateResponse),
+                                            'payload' => Json::encode($contactPayload),
+                                        ]), false);
+                                    } elseif ($statusCode === 404 && $updateResponse === null) {
+                                        // 404 status code and empty response means user is an agent; log and continue
+                                        Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                            'message' => $e->getMessage(),
+                                            'response' => Json::encode($updateResponse),
+                                            'payload' => Json::encode($contactPayload),
+                                        ]), false);
+                                    } else {
+                                        // Throw the exception again to bubble up to main exception handler
+                                        throw $e;
+                                    }
                                 }
                             }
                         }

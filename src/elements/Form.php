@@ -276,6 +276,7 @@ class Form extends Element
     private ?string $_actionUrl = null;
 
     // Render Options
+    private array $_renderOptions = [];
     private array $_themeConfig = [];
     private ?string $_sessionKey = null;
 
@@ -1408,6 +1409,8 @@ class Form extends Element
 
     public function applyRenderOptions(array $renderOptions = []): void
     {
+        $this->_renderOptions = $renderOptions;
+
         // Allow a session key to be provided to scope incomplete submission content.
         // Base64 encode it not for security, just so it's not plain text an "obvious".
         $sessionKey = $renderOptions['sessionKey'] ?? null;
@@ -1490,6 +1493,9 @@ class Form extends Element
             // Generate the refresh token here to make use of `UrlHelper` generation
             'refreshTokenUrl' => UrlHelper::actionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
         ];
+
+        // Render options could contain settings for script tag attributes (CSP)
+        $settings['scriptAttributes'] = $this->_renderOptions['scriptAttributes'] ?? [];
 
         $registeredJs = [];
 

@@ -138,7 +138,7 @@ class Group extends SingleNestedField
 
         return [
             'name' => $this->handle,
-            'type' => Type::nonNull(Gql::getUnionType($typeName, $typeArray)),
+            'type' => Gql::getUnionType($typeName, $typeArray),
             'resolve' => function($submission) {
                 // Some fields like the in-built elements (Assets, Entries, etc) will assume the value of a repeater row
                 // in an element, but it's not. Instead make it a dynamic model that'll work for the most part.
