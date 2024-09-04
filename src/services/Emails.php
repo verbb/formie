@@ -21,6 +21,7 @@ use craft\fs\Local;
 use craft\helpers\App;
 use craft\helpers\Assets;
 use craft\helpers\FileHelper;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\mail\Message;
@@ -211,6 +212,8 @@ class Emails extends Component
         // Subject:
         try {
             $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification);
+            $subject = $this->_getFilteredString($subject);
+
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
@@ -521,14 +524,25 @@ class Emails extends Component
         $string = trim(App::parseEnv(trim($string)));
 
         // Strip out any emoji's
-        return trim(StringHelper::replaceMb4($string, ''));
+        $string = trim(StringHelper::replaceMb4($string, ''));
+
+        // Ensure that we purify any strings, which also handles any special (allowed) characters
+        $string = HtmlPurifier::process($string);
+
+        return $string;
     }
 
     private function _getParsedEmails($emails): array
     {
+        $emailsEnv = [];
+
+        // In case special characters exist in the string, that interfere with splitting (encoded apostrophe `&#039`)
+        // which only really occurs when the value is dynamic, and coming from a mapped field value, where values are encoded
+        $emails = HtmlPurifier::process($emails);
+
+        // Split the emails
         $emails = str_replace(';', ',', $emails);
         $emails = preg_split('/[\s,]+/', $emails);
-        $emailsEnv = [];
 
         foreach (array_filter($emails) as $email) {
             // Prevent non-utf characters sneaking in.
