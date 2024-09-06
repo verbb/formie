@@ -71,6 +71,12 @@
                     {{ redirectInput(form.getRedirectUrl()) }}
                 {% endif %}
 
+                {% set customInputs = renderOptions.customInputs ?? {} %}
+
+                {% for inputName, inputValue in customInputs %}
+                    {{ hiddenInput(inputName, inputValue) }}
+                {% endfor %}
+
                 {% formtag 'formContainer' %}
                     {% hook 'formie.form.start' %}
 

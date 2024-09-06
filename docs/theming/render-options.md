@@ -8,6 +8,7 @@ Option | Description
 `themeConfig` | Set the [Theme Config](docs:theming/theme-config) used for the form.
 `renderCss` | Whether to render the forms' CSS automatically.
 `renderJs` | Whether to render the forms' JS automatically.
+`customInputs` | A collection of data to populate hidden inputs for additional form functionality.
 
 ## Session Key
 Setting the `sessionKey` when rendering a form gives you to opportunity to set a scope for the form's submission. When a user fills out a form, and submits the page, their data is either saved as a complete submission (single-page forms) or their data is saved as an incomplete submission (multi-page forms). In addition, we also store the current submisson in the users' session, so that if they navigate away, or even close their browser, their content won't be lost.
@@ -26,6 +27,32 @@ To get around this, we can set a scope for the form on how to save this session 
 ```
 
 Now, any submissions created will have their session data scoped to this form **and** the provided `entry.id`.
+
+## Custom Inputs
+With the `customInputs` option, you can pass in a Twig object that will create hidden inputs inside the form. This can be used for a variety of different means, but allows you to add flags for Formie's form rendering for particular functionality. You could also use it to store logic for your own custom implementations.
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    customInputs: {
+        sendNotifications: false,
+        triggerIntegrations: true,
+        myCustomVariable: 'store-this',
+    },
+}) }}
+```
+
+The above would generate the following HTML.
+
+```html
+<form method="post" ...>
+    {{ ... }}
+
+    <input type="hidden" name="sendNotifications" value>
+    <input type="hidden" name="triggerIntegrations" value="1">
+    <input type="hidden" name="myCustomVariable" value="store-this">
+```
+
+While `sendNotifications` and `triggerIntegrations` are Formie-specific settings, you can also pass in your own like `myCustomVariable` in case you wanted to store something with the submission, but not as a custom field.
 
 ## Custom Variables
 In addition to the set above options, you can also supply your own. These won't do anything with the default Formie templates, but if you are using [Custom Rendering](docs:theming/custom-rendering) or [Template Overrides](docs:theming/template-overrides) this can be useful in supplying your own variables.
