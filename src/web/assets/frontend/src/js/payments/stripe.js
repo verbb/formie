@@ -240,7 +240,8 @@ export class FormieStripe extends FormiePaymentProvider {
             this.updateInputs('stripeSubscriptionId', data.subscriptionId);
             this.updateInputs('stripePaymentIntentId', result.paymentIntent.id);
 
-            this.submitHandler.submitForm();
+            // Handle resubmitting the form properly
+            this.processResubmit();
         });
     }
 
