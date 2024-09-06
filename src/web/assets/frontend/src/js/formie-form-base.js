@@ -102,7 +102,7 @@ export class FormieFormBase {
         this.processSubmit();
     }
 
-    processSubmit() {
+    processSubmit(skip = []) {
         // Add a little delay for UX
         setTimeout(() => {
             // Call the validation hooks
@@ -111,12 +111,12 @@ export class FormieFormBase {
             }
 
             // Trigger Captchas
-            if (!this.validateCaptchas()) {
+            if (!skip.includes('captcha') && !this.validateCaptchas()) {
                 return;
             }
 
             // Trigger Payment Integrations
-            if (!this.validatePayment()) {
+            if (!skip.includes('payment') && !this.validatePayment()) {
                 return;
             }
 

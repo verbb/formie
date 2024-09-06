@@ -198,6 +198,15 @@ export class FormiePaymentProvider {
     onHide() {
 
     }
+
+    processResubmit() {
+        // Refresh captcha/CSRF tokens, as we'll be submitting again.
+        this.form.config.Formie.refreshFormTokens(this.form);
+
+        // Resubmit the form, but skip payment handling, as we're done.
+        // This ensures captchas and other validation runs again in case something changed.
+        this.submitHandler.processSubmit(['payment']);
+    }
 }
 
 window.FormiePaymentProvider = FormiePaymentProvider;

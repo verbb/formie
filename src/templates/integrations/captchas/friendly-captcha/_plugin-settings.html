@@ -27,3 +27,16 @@
     options: languageOptions,
     warning: macros.configWarning('language', 'formie'),
 }) }}
+
+{{ forms.selectField({
+    label: 'Start Mode' | t('formie'),
+    instructions: 'Specify when the captcha should start solving a puzzle. Refer to [docs](https://docs.friendlycaptcha.com/#/widget_api?id=data-start-attribute).' | t('formie'),
+    name: 'startMode',
+    value: integration.settings.startMode ?? 'auto',
+    options: [
+        { label: 'Auto' | t('formie'), value: 'auto' },
+        { label: 'Focus' | t('formie'), value: 'focus' },
+        { label: 'None' | t('formie'), value: 'none' },
+    ],
+    warning: macros.configWarning('startMode', 'formie'),
+}) }}
