@@ -20,6 +20,7 @@ class FriendlyCaptcha extends Captcha
     public ?string $secretKey = null;
     public ?string $siteKey = null;
     public string $language = 'en';
+    public string $startMode = 'none';
 
 
     // Public Methods
@@ -74,6 +75,7 @@ class FriendlyCaptcha extends Captcha
             'siteKey' => App::parseEnv($this->siteKey),
             'formId' => $form->getFormId(),
             'language' => $this->_getMatchedLanguageId() ?? 'en',
+            'startMode' => $this->startMode ?? 'none',
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/friendly-captcha.js');
