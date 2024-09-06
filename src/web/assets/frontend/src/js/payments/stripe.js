@@ -176,7 +176,8 @@ export class FormieStripe extends FormiePaymentProvider {
                 // Append an input so it's not namespaced with Twig
                 this.updateInputs('stripeSubscriptionId', data.subscription_id);
 
-                this.submitHandler.submitForm();
+                // Handle resubmitting the form properly
+                this.processResubmit();
             });
         } else {
             this.stripe.handleCardAction(data.client_secret).then((result) => {
@@ -191,7 +192,8 @@ export class FormieStripe extends FormiePaymentProvider {
                 // Append an input so it's not namespaced with Twig
                 this.updateInputs('stripePaymentIntentId', result.paymentIntent.id);
 
-                this.submitHandler.submitForm();
+                // Handle resubmitting the form properly
+                this.processResubmit();
             });
         }
     }
