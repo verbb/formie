@@ -91,7 +91,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
                 // Roll our own validation, due to lack of field layout and elements
                 $attribute = "field:$fieldKey";
-                $isEmpty = fn() => $field->isValueEmpty($value, $element);
+                $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
 
                 if ($scenario === Element::SCENARIO_LIVE && $field->required) {
                     (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
