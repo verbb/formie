@@ -72,6 +72,7 @@ export class FormieRepeater {
 
         // Initialize any new nested fields with JS
         if (isNew) {
+            const { Formie } = this.form.config;
             const fieldConfigs = Formie.parseFieldConfig($row, this.$form);
 
             Object.keys(fieldConfigs).forEach((module) => {
