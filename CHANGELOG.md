@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.0.6 - 2024-09-07
+
+### Added
+- Added “Start Mode” setting to Friendly Captcha.
+- Added the ability to set `scriptAttributes` and `jsAttributes` for `<script>` tags that Formie uses.
+- Added the ability for `craft.formie.renderJs` to set JS attributes for scripts.
+- Added `onFormieCustomValidate` JavaScript event.
+- Added `renderOptions.customInputs` to allow custom hidden input content to be inserted into a form.
+
+### Changed
+- Changed Phone input autocomplete from `tel-national` to `tel` to ensure valid autocomplete value.
+
+### Fixed
+- Fixed an issue for Stripe and Opayo 3DS handling in combination with captchas not working correctly.
+- Fixed an error for GraphQL when querying submissions with brand-new Group fields with no content.
+- Fixed an error with Freshdesk integration when handling duplicate contacts.
+- Fixed an error with Salesforce integration when handling duplicate leads.
+- Fixed an error when duplicating forms with nested fields.
+- Fixed integrations enabled indicator.
+- Fixed a JavaScript error when loading Formie’s JS in a module for a Repeater field.
+- Fixed an error validating Repeater sub-fields.
+- Fixed an error when email notifications contained references to field content, and didn’t convert special characters correctly.
+
 ## 3.0.5 - 2024-08-29
 
 ### Fixed
