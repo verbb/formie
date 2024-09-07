@@ -256,6 +256,23 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.29 - 2024-09-07
+
+### Added
+- Added “Start Mode” setting to Friendly Captcha.
+- Added the ability to set `scriptAttributes` and `jsAttributes` for `<script>` tags that Formie uses.
+- Added the ability for `craft.formie.renderJs` to set JS attributes for scripts.
+
+### Changed
+- Changed Phone input autocomplete from `tel-national` to `tel` to ensure valid autocomplete value.
+
+### Fixed
+- Fixed an issue for Stripe and Opayo 3DS handling in combination with captchas not working correctly.
+- Fixed an error for GraphQL when querying submissions with brand-new Group fields with no content.
+- Fixed an error with Freshdesk integration when handling duplicate contacts.
+- Fixed an error with Salesforce integration when handling duplicate leads.
+- Fixed global “View Form Usage” user permission not appearing.
+
 ## 2.1.28 - 2024-08-29
 
 ### Fixed
