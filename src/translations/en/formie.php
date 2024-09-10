@@ -883,7 +883,7 @@ return [
   'Enter your {name} API token here.' => 'Enter your {name} API token here.',
   'Enter your {name} API URL here.' => 'Enter your {name} API URL here.',
   'Enter your {name} API username here.' => 'Enter your {name} API username here.',
-  'Enter your {name} App IDhere.' => 'Enter your {name} App IDhere.',
+  'Enter your {name} App ID here.' => 'Enter your {name} App ID here.',
   'Enter your {name} App Key here.' => 'Enter your {name} App Key here.',
   'Enter your {name} Application ID here.' => 'Enter your {name} Application ID here.',
   'Enter your {name} App Secret here.' => 'Enter your {name} App Secret here.',
