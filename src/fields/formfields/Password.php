@@ -200,7 +200,7 @@ class Password extends FormField implements PreviewableFieldInterface, SortableF
                 ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'email',
+                'autocomplete' => 'off',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
