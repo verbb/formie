@@ -2,6 +2,8 @@
 {% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Connect to the {name} API
 1. Login to your <a href="https://account.loqate.com" target="_blank">{name}</a> account.
@@ -11,7 +13,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {

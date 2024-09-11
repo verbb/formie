@@ -2,6 +2,8 @@
 {% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Connect to the {name} API
 1. Go to the <a href="https://console.cloud.google.com/project/_/apiui/apis/enabled" target="_blank">Google Cloud Platform Console</a>.
@@ -13,7 +15,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {

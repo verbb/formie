@@ -3,7 +3,7 @@
 {% import 'verbb-base/_macros' as macros %}
 
 <span class="warning with-icon">
-    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: integration.displayName() }) }}<br><br>
+    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: displayName }) }}<br><br>
 </span>
 
 {% set instructions %}
@@ -57,7 +57,7 @@ For compatibility, the default setting is v9.0. This has been the value used in 
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {{ formieMacros.integrationSettingField(integration, 'textField', {
