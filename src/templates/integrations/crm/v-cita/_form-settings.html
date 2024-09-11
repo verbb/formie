@@ -38,7 +38,7 @@
         <div id="map-to-client" class="{{ not mapToClient ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Client Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Client fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Client' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="client-field-mapping"
                 name="clientFieldMapping"

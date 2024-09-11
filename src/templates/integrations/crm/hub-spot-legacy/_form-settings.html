@@ -42,7 +42,7 @@
         <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Contact' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
@@ -69,7 +69,7 @@
         <div id="map-to-deal" class="{{ not mapToDeal ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Deal Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Deal' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="deal-field-mapping"
                 name="dealFieldMapping"
@@ -130,7 +130,7 @@
             <div>
                 <integration-field-mapping
                     label="{{ 'Form Field Mapping' | t('formie') }}"
-                    instructions="{{ 'Choose how your form fields should map to your {name} Form fields.' | t('formie', { name: displayName }) }}"
+                    instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Form' }) }}"
                     name-label="{{ integration.displayName() }}"
                     id="form-field-mapping"
                     name="formFieldMapping"
@@ -159,7 +159,7 @@
         <div id="map-to-company" class="{{ not mapToCompany ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Company Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Company fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Company' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="company-field-mapping"
                 name="companyFieldMapping"

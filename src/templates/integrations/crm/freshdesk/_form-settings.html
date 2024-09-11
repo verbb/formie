@@ -39,7 +39,7 @@
         <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Contact' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
@@ -66,7 +66,7 @@
         <div id="map-to-ticket" class="{{ not mapToTicket ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Ticket Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Ticket fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Ticket' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="ticket-field-mapping"
                 name="ticketFieldMapping"

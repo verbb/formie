@@ -47,7 +47,7 @@
         <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Contact' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
@@ -92,7 +92,7 @@
 
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Lead fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Lead' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
@@ -119,7 +119,7 @@
         <div id="map-to-opportunity" class="{{ not mapToOpportunity ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Opportunity Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Opportunity' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="opportunity-field-mapping"
                 name="opportunityFieldMapping"
@@ -146,7 +146,7 @@
         <div id="map-to-account" class="{{ not mapToAccount ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Account Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Account fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Account' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="account-field-mapping"
                 name="accountFieldMapping"
@@ -173,7 +173,7 @@
         <div id="map-to-case" class="{{ not mapToCase ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Case Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Case fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Case' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="case-field-mapping"
                 name="caseFieldMapping"

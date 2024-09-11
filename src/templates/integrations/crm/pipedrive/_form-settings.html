@@ -42,7 +42,7 @@
         <div id="map-to-person" class="{{ not mapToPerson ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Person Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Person fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Person' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="person-field-mapping"
                 name="personFieldMapping"
@@ -69,7 +69,7 @@
         <div id="map-to-deal" class="{{ not mapToDeal ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Deal Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Deal fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Deal' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="deal-field-mapping"
                 name="dealFieldMapping"
@@ -96,7 +96,7 @@
         <div id="map-to-lead" class="{{ not mapToLead ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Lead fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Lead' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
@@ -123,7 +123,7 @@
         <div id="map-to-organization" class="{{ not mapToOrganization ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Organization Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Organization fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Organization' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="organization-field-mapping"
                 name="organizationFieldMapping"
@@ -150,7 +150,7 @@
         <div id="map-to-note" class="{{ not mapToNote ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Note Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Note fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Note' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="note-field-mapping"
                 name="noteFieldMapping"

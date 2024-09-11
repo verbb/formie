@@ -41,7 +41,7 @@
         <div id="map-to-people" class="{{ not mapToPeople ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'People Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} People fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'People' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="people-field-mapping"
                 name="peopleFieldMapping"
@@ -68,7 +68,7 @@
         <div id="map-to-lead" class="{{ not mapToLead ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Lead fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Lead' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
@@ -95,7 +95,7 @@
         <div id="map-to-opportunity" class="{{ not mapToOpportunity ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Opportunity Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Opportunity' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="opportunity-field-mapping"
                 name="opportunityFieldMapping"
@@ -122,7 +122,7 @@
         <div id="map-to-task" class="{{ not mapToTask ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Task Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Task fields.' | t('formie', { name: displayName }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Task' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="task-field-mapping"
                 name="taskFieldMapping"
