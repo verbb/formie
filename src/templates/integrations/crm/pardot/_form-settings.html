@@ -1,6 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 
 {% set mapToProspect = form.settings.integrations[handle].mapToProspect ?? '' %}
@@ -9,7 +10,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -30,7 +31,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Prospect' | t('formie'),
-            instructions: 'Whether to map form data to {name} Prospects.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Prospects' }),
             id: 'mapToProspect',
             name: 'mapToProspect',
             on: mapToProspect,
@@ -40,7 +41,7 @@
         <div id="map-to-prospect" class="{{ not mapToProspect ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Prospect Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Prospect fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Prospect fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="prospect-field-mapping"
                 name="prospectFieldMapping"
@@ -57,7 +58,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Opportunity' | t('formie'),
-            instructions: 'Whether to map form data to {name} Opportunities.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Opportunities' }),
             id: 'mapToOpportunity',
             name: 'mapToOpportunity',
             on: mapToOpportunity,
@@ -67,7 +68,7 @@
         <div id="map-to-opportunity" class="{{ not mapToOpportunity ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Opportunity Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="opportunity-field-mapping"
                 name="opportunityFieldMapping"
@@ -84,7 +85,7 @@
 
         {{ forms.lightswitchField({
             label: 'Enable Form Handler' | t('formie'),
-            instructions: 'Whether to send form data to a {name} Form Handler endpoint.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to send form data to a {name} Form Handler endpoint.' | t('formie', { name: displayName }),
             id: 'enableFormHandler',
             name: 'enableFormHandler',
             on: enableFormHandler,
@@ -94,7 +95,7 @@
         <div id="enable-form-handler" class="{{ not enableFormHandler ? 'hidden' }}">
             {{ forms.textField({
                 label: 'Endpoint URL' | t('formie'),
-                instructions: 'Enter the {name} Endpoint URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+                instructions: 'Enter the {name} Endpoint URL that will be triggered when a submission is made.' | t('formie', { name: displayName }),
                 name: 'endpointUrl',
                 required: true,
                 value: form.settings.integrations[handle].endpointUrl ?? '',

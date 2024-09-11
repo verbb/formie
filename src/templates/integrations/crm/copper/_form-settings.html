@@ -1,6 +1,7 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToPeople = form.settings.integrations[handle].mapToPeople ?? '' %}
 {% set mapToLead = form.settings.integrations[handle].mapToLead ?? '' %}
@@ -9,7 +10,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -30,7 +31,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to People' | t('formie'),
-            instructions: 'Whether to map form data to {name} People.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'People' }),
             id: 'mapToPeople',
             name: 'mapToPeople',
             on: mapToPeople,
@@ -40,7 +41,7 @@
         <div id="map-to-people" class="{{ not mapToPeople ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'People Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} People fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} People fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="people-field-mapping"
                 name="peopleFieldMapping"
@@ -57,7 +58,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Lead' | t('formie'),
-            instructions: 'Whether to map form data to {name} Lead.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Lead' }),
             id: 'mapToLead',
             name: 'mapToLead',
             on: mapToLead,
@@ -67,7 +68,7 @@
         <div id="map-to-lead" class="{{ not mapToLead ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Lead fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Lead fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
@@ -84,7 +85,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Opportunity' | t('formie'),
-            instructions: 'Whether to map form data to {name} Opportunitys.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Opportunitys' }),
             id: 'mapToOpportunity',
             name: 'mapToOpportunity',
             on: mapToOpportunity,
@@ -94,7 +95,7 @@
         <div id="map-to-opportunity" class="{{ not mapToOpportunity ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Opportunity Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Opportunity fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="opportunity-field-mapping"
                 name="opportunityFieldMapping"
@@ -111,7 +112,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Task' | t('formie'),
-            instructions: 'Whether to map form data to {name} Tasks.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Tasks' }),
             id: 'mapToTask',
             name: 'mapToTask',
             on: mapToTask,
@@ -121,7 +122,7 @@
         <div id="map-to-task" class="{{ not mapToTask ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Task Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Task fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} Task fields.' | t('formie', { name: displayName }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="task-field-mapping"
                 name="taskFieldMapping"

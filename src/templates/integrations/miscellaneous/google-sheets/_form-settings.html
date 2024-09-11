@@ -1,12 +1,13 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set sheetId = form.settings.integrations[handle].sheetId ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -21,7 +22,7 @@
                 <label id="sheetId-label" for="sheetId" class="required">{{ 'Sheet' | t('formie') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Select which {name} sheet to add rows to.' | t('formie', { name: integration.displayName() }) }}</p>
+                    <p>{{ 'Select which {name} sheet to add rows to.' | t('formie', { name: displayName }) }}</p>
                 </div>
             </div>
 
@@ -51,7 +52,7 @@
 
         <integration-field-mapping
             label="{{ 'Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your {name} columns.' | t('formie', { name: integration.displayName() }) }}"
+            instructions="{{ 'Choose how your form fields should map to your {name} columns.' | t('formie', { name: displayName }) }}"
             id="field-mapping"
             name-label="{{ integration.displayName() }}"
             name="fieldMapping"

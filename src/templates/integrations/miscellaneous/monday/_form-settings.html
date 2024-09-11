@@ -1,12 +1,13 @@
 {% import '_includes/forms' as forms %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set boardId = form.settings.integrations[handle].boardId ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -21,7 +22,7 @@
                 <label id="sourceId-label" for="sourceId" class="required">{{ 'Board' | t('formie') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Select your {name} board to manage content on.' | t('formie', { name: integration.displayName() }) }}</p>
+                    <p>{{ 'Select your {name} board to manage content on.' | t('formie', { name: displayName }) }}</p>
                 </div>
             </div>
 
@@ -51,7 +52,7 @@
 
         <integration-field-mapping
             label="{{ 'Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: integration.displayName() }) }}"
+            instructions="{{ 'Choose how your form fields should map to your {name} fields.' | t('formie', { name: displayName }) }}"
             id="field-mapping"
             name-label="{{ integration.displayName() }}"
             name="fieldMapping"

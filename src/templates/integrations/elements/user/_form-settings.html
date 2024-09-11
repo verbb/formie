@@ -2,6 +2,7 @@
 {% import 'formie/_macros' as formieMacros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set activateUser = form.settings.integrations[handle].activateUser ?? false %}
 {% set mergeUserGroups = form.settings.integrations[handle].mergeUserGroups ?? false %}
@@ -10,7 +11,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
