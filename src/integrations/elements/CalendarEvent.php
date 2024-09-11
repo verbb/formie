@@ -68,7 +68,7 @@ class CalendarEvent extends Element
      */
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Map content provided by form submissions to create Solspace Calendar Event elements.');
+        return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
     /**

@@ -46,7 +46,7 @@ class Entry extends Element
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Map content provided by form submissions to create Entry elements.');
+        return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
     /**
