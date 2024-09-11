@@ -2,6 +2,8 @@
 {% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'hCaptcha Site Key' | t('formie'),
     name: 'siteKey',

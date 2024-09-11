@@ -2,6 +2,8 @@
 {% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Webhook URL' | t('formie'),
     instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie'),

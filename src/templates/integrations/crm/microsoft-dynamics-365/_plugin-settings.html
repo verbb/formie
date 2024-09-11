@@ -2,6 +2,8 @@
 {% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 <span class="warning with-icon">
     {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: displayName }) }}<br><br>
 </span>
