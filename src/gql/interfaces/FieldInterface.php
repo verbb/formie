@@ -162,11 +162,6 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s label position. This will be a `verbb\formie\positions` class name.',
             ],
-            'subFieldLabelPosition' => [
-                'name' => 'subFieldLabelPosition',
-                'type' => Type::string(),
-                'description' => 'The field’s sub-field label position. This will be a `verbb\formie\positions` class name.',
-            ],
             'instructionsPosition' => [
                 'name' => 'instructionsPosition',
                 'type' => Type::string(),
