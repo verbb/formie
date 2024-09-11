@@ -4,6 +4,7 @@ namespace verbb\formie\options;
 use verbb\formie\base\PredefinedOption;
 
 use Craft;
+use craft\i18n\Locale;
 
 class Days extends PredefinedOption
 {
@@ -17,9 +18,6 @@ class Days extends PredefinedOption
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Days of the Week');
@@ -45,42 +43,18 @@ class Days extends PredefinedOption
 
     public static function getDataOptions(): array
     {
-        return [
-            [
-                'day' => Craft::t('formie', 'Sunday'),
-                'short' => Craft::t('formie', 'Sun'),
-                'number' => '1',
-            ],
-            [
-                'day' => Craft::t('formie', 'Monday'),
-                'short' => Craft::t('formie', 'Mon'),
-                'number' => '2',
-            ],
-            [
-                'day' => Craft::t('formie', 'Tuesday'),
-                'short' => Craft::t('formie', 'Tue'),
-                'number' => '3',
-            ],
-            [
-                'day' => Craft::t('formie', 'Wednesday'),
-                'short' => Craft::t('formie', 'Wed'),
-                'number' => '4',
-            ],
-            [
-                'day' => Craft::t('formie', 'Thursday'),
-                'short' => Craft::t('formie', 'Thu'),
-                'number' => '5',
-            ],
-            [
-                'day' => Craft::t('formie', 'Friday'),
-                'short' => Craft::t('formie', 'Fri'),
-                'number' => '6',
-            ],
-            [
-                'day' => Craft::t('formie', 'Saturday'),
-                'short' => Craft::t('formie', 'Sat'),
-                'number' => '7',
-            ],
-        ];
+        $locale = Craft::$app->getLocale();
+
+        $weekDayNames = [];
+
+        for ($day = 0; $day <= 6; $day++) {
+            $weekDayNames[] = [
+                'day' => $locale->getWeekDayName($day, Locale::LENGTH_FULL),
+                'short' => str_replace('.', '', $locale->getWeekDayName($day, Locale::LENGTH_MEDIUM)),
+                'number' => $day + 1,
+            ];
+        }
+
+        return $weekDayNames;
     }
 }

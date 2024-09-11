@@ -4,6 +4,7 @@ namespace verbb\formie\options;
 use verbb\formie\base\PredefinedOption;
 
 use Craft;
+use craft\i18n\Locale;
 
 class Months extends PredefinedOption
 {
@@ -17,9 +18,6 @@ class Months extends PredefinedOption
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Months of the Year');
@@ -45,67 +43,18 @@ class Months extends PredefinedOption
 
     public static function getDataOptions(): array
     {
-        return [
-            [
-                'month' => Craft::t('formie', 'January'),
-                'short' => Craft::t('formie', 'Jan'),
-                'number' => '1',
-            ],
-            [
-                'month' => Craft::t('formie', 'February'),
-                'short' => Craft::t('formie', 'Feb'),
-                'number' => '2',
-            ],
-            [
-                'month' => Craft::t('formie', 'March'),
-                'short' => Craft::t('formie', 'Mar'),
-                'number' => '3',
-            ],
-            [
-                'month' => Craft::t('formie', 'April'),
-                'short' => Craft::t('formie', 'Apr'),
-                'number' => '4',
-            ],
-            [
-                'month' => Craft::t('formie', 'May'),
-                'short' => Craft::t('formie', 'May'),
-                'number' => '5',
-            ],
-            [
-                'month' => Craft::t('formie', 'June'),
-                'short' => Craft::t('formie', 'Jun'),
-                'number' => '6',
-            ],
-            [
-                'month' => Craft::t('formie', 'July'),
-                'short' => Craft::t('formie', 'Jul'),
-                'number' => '7',
-            ],
-            [
-                'month' => Craft::t('formie', 'August'),
-                'short' => Craft::t('formie', 'Aug'),
-                'number' => '8',
-            ],
-            [
-                'month' => Craft::t('formie', 'September'),
-                'short' => Craft::t('formie', 'Sep'),
-                'number' => '9',
-            ],
-            [
-                'month' => Craft::t('formie', 'October'),
-                'short' => Craft::t('formie', 'Oct'),
-                'number' => '10',
-            ],
-            [
-                'month' => Craft::t('formie', 'November'),
-                'short' => Craft::t('formie', 'Nov'),
-                'number' => '11',
-            ],
-            [
-                'month' => Craft::t('formie', 'December'),
-                'short' => Craft::t('formie', 'Dec'),
-                'number' => '12',
-            ],
-        ];
+        $locale = Craft::$app->getLocale();
+
+        $monthNames = [];
+
+        for ($month = 1; $month <= 12; $month++) {
+            $monthNames[] = [
+                'month' => $locale->getMonthName($month, Locale::LENGTH_FULL),
+                'short' => str_replace('.', '', $locale->getMonthName($month, Locale::LENGTH_MEDIUM)),
+                'number' => $month,
+            ];
+        }
+
+        return $monthNames;
     }
 }
