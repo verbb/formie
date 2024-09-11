@@ -63,7 +63,7 @@ For compatibility, the default setting is v9.0. This has been the value used in 
 {{ formieMacros.integrationSettingField(integration, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
     value: integration.getRedirectUri(),
 }) }}
 
