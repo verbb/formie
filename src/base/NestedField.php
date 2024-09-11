@@ -63,12 +63,22 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $qb = Craft::$app->getDb()->getQueryBuilder();
         $valueSql = static::valueSql($instances);
 
-        foreach ($param->values as $key => $value) {
-            // Key will likely contain a numeric for the block `0.email` - remove that.
-            $key = preg_replace('/^[0-9].*?\./', '', $key);
+        // We need to swap handles for UIDs to fetch content.
+        // e.g. `['multiNameInGroup' => ['firstName' => 'Peter']]` to `['xxxxxxxx' => ['xxxxxxxx' => 'Peter']]`
+        // This is because JSON-searching can only be done once level at a time.
+        $firstInstance = $instances[0];
+        $uidMap = $firstInstance->getNestedFieldHandleUidMap();
 
-            $condition[] = $qb->jsonContains($valueSql, [$key => $value]);
+        // Flatten the params used to make matching easy
+        $preppedValues = [];
+
+        foreach (ArrayHelper::flatten($param->values) as $handlePath => $value) {
+            if (array_key_exists($handlePath, $uidMap)) {
+                $preppedValues[$uidMap[$handlePath]] = $value;
+            }
         }
+
+        $condition[] = $qb->jsonContains($valueSql, ArrayHelper::expand($preppedValues));
 
         return $negate ? ['not', $condition] : $condition;
     }
@@ -348,6 +358,35 @@ abstract class NestedField extends Field implements NestedFieldInterface
         }
 
         $method($element, $fieldParams);
+    }
+
+    public function getNestedFieldHandleUidMap(array $fields = null, string $handlePrefix = '', string $uidPrefix = ''): array
+    {
+        if ($fields === null) {
+            // Fetch the top-level fields
+            $fields = $this->getFields();
+        }
+
+        $fieldMap = [];
+
+        foreach ($fields as $field) {
+            $uid = $field->uid;
+            $handle = $field->handle;
+            
+            // Prefix with dot-notation for nested fields
+            $fullHandle = $handlePrefix ? $handlePrefix . '.' . $handle : $handle;
+            $fullUid = $uidPrefix ? $uidPrefix . '.' . $uid : $uid;
+
+            // Add the current field to the map
+            $fieldMap[$fullHandle] = $fullUid;
+
+            // If the field is an instance of NestedFieldInterface, recurse
+            if ($field instanceof NestedFieldInterface) {
+                $fieldMap += $this->getNestedFieldHandleUidMap($field->getFields(), $fullHandle, $fullUid);
+            }
+        }
+
+        return $fieldMap;
     }
 
 

@@ -137,6 +137,41 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return Schema::TYPE_TEXT;
     }
 
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null {
+        $valueSql = static::valueSql($instances);
+
+        if ($valueSql === null) {
+            return false;
+        }
+
+        if (is_array($value) && isset($value['value'])) {
+            $caseInsensitive = $value['caseInsensitive'] ?? false;
+            $value = $value['value'];
+        } else {
+            $caseInsensitive = false;
+        }
+
+        return Db::parseParam($valueSql, $value, caseInsensitive: $caseInsensitive, columnType: Schema::TYPE_JSON);
+    }
+
+    protected static function valueSql(array $instances, string $key = null): ?string
+    {
+        $valuesSql = array_filter(
+            array_map(fn(self $field) => $field->getValueSql($key), $instances),
+            fn(?string $valueSql) => $valueSql !== null,
+        );
+
+        if (empty($valuesSql)) {
+            return null;
+        }
+
+        if (count($valuesSql) === 1) {
+            return reset($valuesSql);
+        }
+
+        return sprintf('COALESCE(%s)', implode(',', $valuesSql));
+    }
+
     public static function getFrontEndInputTemplatePath(): string
     {
         return 'fields/' . static::kebabClassName();
