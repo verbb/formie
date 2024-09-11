@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -19,9 +20,9 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Vendor Name' | t('formie'),
-    instructions: 'Enter your {name} Vendor Name here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'vendorName',
     required: true,
     suggestEnvVars: true,
@@ -30,9 +31,9 @@
     errors: integration.getErrors('vendorName'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Integration Key' | t('formie'),
-    instructions: 'Enter your {name} Integration Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationKey',
     required: true,
     suggestEnvVars: true,
@@ -41,9 +42,9 @@
     errors: integration.getErrors('integrationKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Integration Password' | t('formie'),
-    instructions: 'Enter your {name} Integration Password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationPassword',
     required: true,
     suggestEnvVars: true,
@@ -52,9 +53,9 @@
     errors: integration.getErrors('integrationPassword'),
 }) }}
 
-{{ forms.booleanMenuField({
+{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
-    instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie'),
     name: 'useSandbox',
     includeEnvVars: true,
     value: integration.settings.useSandbox ?? false,

@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -23,7 +24,7 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ formieMacros.integrationSettingField(integration, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
     instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
@@ -36,9 +37,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
     required: true,
     suggestEnvVars: true,
@@ -47,9 +48,9 @@
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
@@ -58,9 +59,9 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Domain' | t('formie'),
-    instructions: 'Enter your full {name} Domain here. e.g. `https://example.1crmcloud.com`' | t('formie', { name: integration.displayName() }) | md,
+    instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.1crmcloud.com' }),
     name: 'apiDomain',
     required: true,
     suggestEnvVars: true,

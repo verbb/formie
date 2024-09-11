@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -12,7 +13,7 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
@@ -22,7 +23,7 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Country Code' | t('formie'),
     name: 'countryCode',
     required: true,
@@ -36,9 +37,9 @@
     ],
 }) }}
 
-{{ forms.editableTableField({
+{{ formieMacros.integrationSettingField(integration, 'editableTableField', {
     label: 'Widget Options' | t('formie'),
-    instructions: 'Provide any additional options, as per the [Address Finder docs](https://addressfinder.com.au/docs/widget_docs).' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Address Finder docs](https://addressfinder.com.au/docs/widget_docs)' }),
     id: 'widgetOptions',
     name: 'widgetOptions',
     cols: [

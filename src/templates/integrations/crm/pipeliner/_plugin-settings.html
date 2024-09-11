@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -25,9 +26,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Token' | t('formie'),
-    instructions: 'Enter your {name} API token here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiToken',
     required: true,
     suggestEnvVars: true,
@@ -36,9 +37,9 @@
     errors: integration.getErrors('apiToken'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Password' | t('formie'),
-    instructions: 'Enter your {name} API password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiPassword',
     required: true,
     suggestEnvVars: true,
@@ -47,9 +48,9 @@
     errors: integration.getErrors('apiPassword'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Space ID' | t('formie'),
-    instructions: 'Enter your {name} API Space ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiSpaceId',
     required: true,
     suggestEnvVars: true,
@@ -58,9 +59,9 @@
     errors: integration.getErrors('apiSpaceId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Service URL' | t('formie'),
-    instructions: 'Enter your {name} API Service URL here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiServiceUrl',
     required: true,
     suggestEnvVars: true,

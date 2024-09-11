@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -37,7 +38,7 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ formieMacros.integrationSettingField(integration, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
     instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
@@ -50,9 +51,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Consumer Key' | t('formie'),
-    instructions: 'Enter your {name} Consumer Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
     required: true,
     suggestEnvVars: true,
@@ -61,9 +62,9 @@
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Consumer Secret' | t('formie'),
-    instructions: 'Enter your {name} Consumer Secret here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
@@ -72,9 +73,9 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.booleanMenuField({
+{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
-    instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie'),
     name: 'useSandbox',
     includeEnvVars: true,
     value: integration.settings.useSandbox ?? false,
@@ -84,9 +85,9 @@
 
 {% set useCredentials = integration.settings.useCredentials ?? false %}
 
-{{ forms.booleanMenuField({
+{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
     label: 'Use Credentials' | t('formie'),
-    instructions: 'Whether to use the {name} username/password credentials.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} username/password credentials.' | t('formie'),
     name: 'useCredentials',
     value: useCredentials,
     includeEnvVars: true,
@@ -96,9 +97,9 @@
 }) }}
 
 <div id="credentials" class="{{ not useCredentials ? 'hidden' }}">
-    {{ forms.autosuggestField({
+    {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
         label: 'Username' | t('formie'),
-        instructions: 'Enter your {name} username here.' | t('formie', { name: integration.displayName() }),
+        instructions: 'Enter your {name} {label} here.' | t('formie'),
         name: 'username',
         suggestEnvVars: true,
         value: integration.settings.username ?? '',
@@ -106,9 +107,9 @@
         errors: integration.getErrors('username'),
     }) }}
 
-    {{ forms.autosuggestField({
+    {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
         label: 'Password' | t('formie'),
-        instructions: 'Enter your {name} password here.' | t('formie', { name: integration.displayName() }),
+        instructions: 'Enter your {name} {label} here.' | t('formie'),
         name: 'password',
         suggestEnvVars: true,
         value: integration.settings.password ?? '',

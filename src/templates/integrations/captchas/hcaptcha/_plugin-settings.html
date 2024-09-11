@@ -1,7 +1,8 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'hCaptcha Site Key' | t('formie'),
     name: 'siteKey',
     required: true,
@@ -10,7 +11,7 @@
     warning: macros.configWarning('siteKey', 'formie'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'hCaptcha Secret Key' | t('v'),
     name: 'secretKey',
     required: true,
@@ -19,7 +20,7 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Theme' | t('formie'),
     instructions: 'Select the theme for hCaptcha to use.' | t('formie'),
     name: 'theme',
@@ -34,7 +35,7 @@
     warning: macros.configWarning('theme', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Size' | t('formie'),
     instructions: 'Select the size of hCaptcha to use.' | t('formie'),
     name: 'size',
@@ -52,7 +53,7 @@
     warning: macros.configWarning('size', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Minimum Score' | t('formie'),
     instructions: 'Enter the minimum score needed to pass the hCaptcha test.' | t('formie'),
     name: 'minScore',
@@ -73,7 +74,7 @@
     warning: macros.configWarning('minScore', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Language' | t('formie'),
     instructions: 'Force a specific language when displaying hCaptcha. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
     name: 'language',
@@ -82,7 +83,7 @@
     warning: macros.configWarning('language', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ formieMacros.integrationSettingField(integration, 'selectField', {
     label: 'Script Loading Method' | t('formie'),
     instructions: 'Select the `defer` and `async` attributes to use in the script tag when rendering.' | t('formie'),
     name: 'scriptLoadingMethod',

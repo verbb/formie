@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -20,7 +21,7 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.textField({
+{{ formieMacros.integrationSettingField(integration, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
     instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
@@ -33,9 +34,9 @@
     </span>
 {% endif %}
 
-{{ forms.booleanMenuField({
+{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
     label: 'Proxy Redirect URI' | t('formie'),
-    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) for more.' | t('formie') | md,
+    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See {link} for more.' | t('formie', { link: '[docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy)' }),
     name: 'proxyRedirect',
     includeEnvVars: true,
     value: integration.settings.proxyRedirect ?? false,
@@ -43,9 +44,9 @@
     errors: integration.getErrors('proxyRedirect'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
     required: true,
     suggestEnvVars: true,
@@ -54,9 +55,9 @@
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
@@ -65,9 +66,9 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Spreadsheet ID' | t('formie'),
-    instructions: 'Enter your {name} Spreadsheet ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'spreadsheetId',
     required: true,
     suggestEnvVars: true,

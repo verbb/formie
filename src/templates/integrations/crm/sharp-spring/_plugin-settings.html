@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -34,9 +35,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Account ID' | t('formie'),
-    instructions: 'Enter your {name} Account ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'accountId',
     required: true,
     suggestEnvVars: true,
@@ -45,9 +46,9 @@
     errors: integration.getErrors('accountId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
-    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
@@ -56,9 +57,9 @@
     errors: integration.getErrors('secretKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Form Base URL' | t('formie'),
-    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie'),
     name: 'formUrl',
     required: false,
     suggestEnvVars: true,

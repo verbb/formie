@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -15,9 +16,9 @@
     {{ instructions | t('formie', { name: integration.displayName() }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiKey',
     required: true,
     suggestEnvVars: true,
@@ -26,9 +27,20 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'Geocoding API Key' | t('formie'),
-    instructions: 'Enter your {name} Geocoding API Key here, if different to your API Key.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here, if different to your API Key.' | t('formie'),
     name: 'geocodingApiKey',
     suggestEnvVars: true,
     value: integration.settings.geocodingApiKey ?? '',
@@ -36,9 +48,9 @@
     errors: integration.getErrors('geocodingApiKey'),
 }) }}
 
-{{ forms.editableTableField({
+{{ formieMacros.integrationSettingField(integration, 'editableTableField', {
     label: 'Options' | t('formie'),
-    instructions: 'Provide any additional options, as per the [Google Places docs](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete).' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Google Places docs](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete)' }),
     id: 'options',
     name: 'options',
     cols: [

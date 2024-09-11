@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 
 {% set handle = integration.handle %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
@@ -19,7 +20,7 @@
 
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="user">
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, getCollectionFields }">
-        {{ forms.checkboxSelectField({
+        {{ formieMacros.integrationSettingField(integration, 'checkboxSelectField', {
             label: 'User Group' | t('formie'),
             instructions: 'Select user groups to assign this new user to.' | t('formie'),
             id: 'groupIds',
@@ -28,14 +29,14 @@
             values: groupIds,
         }) }}
 
-        {{ forms.lightswitchField({
+        {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
             label: 'Activate User' | t('formie'),
             instructions: 'Whether to activate the user automatically.' | t('formie'),
             name: 'activateUser',
             on: activateUser,
         }) }}
                                 
-        {{ forms.lightswitchField({
+        {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
             label: 'Send Activation Email' | t('formie'),
             instructions: 'Whether to send the activation email for the user automatically.' | t('formie'),
             name: 'sendActivationEmail',
@@ -69,7 +70,7 @@
         </ul>
 
         <div style="margin-bottom: 24px;" v-pre>
-            {{ forms.lightswitchField({
+            {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
                 label: 'Overwrite Content' | t('formie'),
                 instructions: 'Whether to overwrite existing content, even if empty values are provided.' | t('formie'),
                 name: 'overwriteValues',
@@ -78,7 +79,7 @@
 
             {% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
 
-            {{ forms.lightswitchField({
+            {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
                 label: 'Update Users' | t('formie'),
                 instructions: 'Whether this integration should update an existing user if found, or always create a new user. ' | t('formie'),
                 id: 'updateElement',
@@ -99,7 +100,7 @@
                 :rows="getCollectionFields('users', {{ integration.getUpdateAttributes() | json_encode }})"
             ></integration-field-mapping>
                                         
-            {{ forms.lightswitchField({
+            {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
                 label: 'Merge User Groups' | t('formie'),
                 instructions: 'Whether existing user groups should be merged with any set above. Otherwise, any existing user groups will be overwritten.' | t('formie'),
                 name: 'mergeUserGroups',
@@ -110,7 +111,7 @@
         <div style="margin-bottom: 24px;" v-pre>
             {% set updateSearchIndexes = form.settings.integrations[handle].updateSearchIndexes ?? true %}
 
-            {{ forms.lightswitchField({
+            {{ formieMacros.integrationSettingField(integration, 'lightswitchField', {
                 label: 'Update Search Index' | t('formie'),
                 instructions: 'Whether this integration should update the search indexes to include content for this element. ' | t('formie'),
                 id: 'updateSearchIndexes',

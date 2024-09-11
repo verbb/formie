@@ -1,4 +1,5 @@
 {% import '_includes/forms' as forms %}
+{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set instructions %}
@@ -24,9 +25,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiKey',
     required: true,
     suggestEnvVars: true,
@@ -35,9 +36,9 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
     label: 'API Token' | t('formie'),
-    instructions: 'Enter your {name} API Token here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiToken',
     required: true,
     suggestEnvVars: true,
@@ -48,9 +49,9 @@
 
 {% set useUat = integration.settings.useUat ?? false %}
 
-{{ forms.booleanMenuField({
+{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
     label: 'Use UAT' | t('formie'),
-    instructions: 'Whether to use the {name} UAT for testing.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} UAT for testing.' | t('formie'),
     name: 'useUat',
     includeEnvVars: true,
     value: useUat,
@@ -60,9 +61,9 @@
 }) }}
 
 <div id="uat" class="{{ not useUat ? 'hidden' }}">
-    {{ forms.autosuggestField({
+    {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
         label: 'UAT API Key' | t('formie'),
-        instructions: 'Enter your {name} UAT API key here.' | t('formie', { name: integration.displayName() }),
+        instructions: 'Enter your {name} {label} here.' | t('formie'),
         name: 'uatKey',
         required: true,
         suggestEnvVars: true,
@@ -71,9 +72,9 @@
         errors: integration.getErrors('uatKey'),
     }) }}
 
-    {{ forms.autosuggestField({
+    {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
         label: 'UAT API Token' | t('formie'),
-        instructions: 'Enter your {name} UAT API Token here.' | t('formie', { name: integration.displayName() }),
+        instructions: 'Enter your {name} {label} here.' | t('formie'),
         name: 'uatToken',
         required: true,
         suggestEnvVars: true,
