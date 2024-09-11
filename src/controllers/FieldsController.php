@@ -99,7 +99,7 @@ class FieldsController extends Controller
     public function actionGetSignatureImage(): ?Response
     {
         $fieldId = (int)$this->request->getParam('fieldId');
-        $submissionUid = (int)$this->request->getParam('submissionUid');
+        $submissionUid = $this->request->getParam('submissionUid');
 
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {
