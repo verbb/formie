@@ -60,7 +60,7 @@ class Fields extends Component
     {
         // Maintain a cache of all Formie field handles, because we can't rely on Craft's customFields behaviour.
         return Craft::$app->getCache()->getOrSet('formie:fieldHandles', function() {
-            return (new Query())->select(['handle'])->from(Table::FORMIE_FIELDS)->column();
+            return (new Query())->select(['handle', 'uid'])->from(Table::FORMIE_FIELDS)->indexBy('uid')->column();
         });
     }
 
@@ -442,6 +442,35 @@ class Fields extends Component
         $field->afterCreateField($config);
 
         return $field;
+    }
+
+    public function getAllLayouts(): array
+    {
+        $layouts = [];
+
+        $layoutIds = (new Query())
+            ->select(['id'])
+            ->from(Table::FORMIE_FIELD_LAYOUTS)
+            ->column();
+
+        foreach ($layoutIds as $layoutId) {
+            $layouts[] = $this->getLayoutById($layoutId);
+        }
+
+        return $layouts;
+    }
+
+    public function getAllFields(): array
+    {
+        $fields = [];
+
+        $fieldRecords = (new Query())->from(Table::FORMIE_FIELDS)->all();
+
+        foreach ($fieldRecords as $fieldRecord) {
+            $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
+        }
+
+        return $fields;
     }
 
     public function getLayoutById(int $id): ?FieldLayout
