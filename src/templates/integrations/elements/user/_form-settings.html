@@ -46,7 +46,7 @@
 
         <integration-field-mapping
             label="{{ 'User Attribute Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your user attributes.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} attributes.' | t('formie', { label: 'User' }) }}"
             name-label="{{ integration.displayName() }}"
             id="attribute-mapping"
             name="attributeMapping"
@@ -56,7 +56,7 @@
 
         <integration-field-mapping
             label="{{ 'User Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your user fields.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} fields.' | t('formie', { label: 'User' }) }}"
             name-label="{{ integration.displayName() }}"
             id="field-mapping"
             name="fieldMapping"
