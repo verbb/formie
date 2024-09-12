@@ -152,6 +152,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
         $query = static::elementType()::find();
 
+        // Restrict elements to be on the current site, for multi-sites
+        if (Craft::$app->getIsMultiSite()) {
+            $query->siteId($this->targetSiteId($element));
+        }
+
         if (is_array($value)) {
             $query->id(array_values(array_filter($value)))->fixedOrder();
         } else {
@@ -746,6 +751,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
         }
 
         return $element->title;
+    }
+
+    protected function targetSiteId(?ElementInterface $element = null): int
+    {
+        return $element->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
     }
 
 
