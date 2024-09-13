@@ -11,6 +11,7 @@ class FormieValidator {
 
         this.config = {
             live: false,
+            inputErrorIndicatorAttribute: 'data-field-has-error',
             fieldContainerErrorClass: 'fui-error',
             inputErrorClass: 'fui-error',
             messagesClass: 'fui-errors',
@@ -125,6 +126,7 @@ class FormieValidator {
 
         removeClasses(fieldContainer, this.config.fieldContainerErrorClass);
         removeClasses(input, this.config.inputErrorClass);
+        input.removeAttribute(this.config.inputErrorIndicatorAttribute);
 
         this.emitEvent(input, 'formieValidatorClearError');
     }
@@ -184,6 +186,7 @@ class FormieValidator {
         // Add error classes to field and field container
         addClasses(fieldContainer, this.config.fieldContainerErrorClass);
         addClasses(input, this.config.inputErrorClass);
+        input.setAttribute(this.config.inputErrorIndicatorAttribute, true);
 
         this.emitEvent(input, 'formieValidatorShowError', {
             validatorName,
