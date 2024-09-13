@@ -307,7 +307,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
+        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
             return;
         }
 
@@ -328,7 +328,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
+        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
             return;
         }
 
