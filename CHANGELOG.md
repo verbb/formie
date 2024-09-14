@@ -1,5 +1,32 @@
 # Changelog
 
+## 3.0.7 - 2024-09-14
+
+### Added
+- Added `Integration::getSettingsHtmlVariables()` and `Integration::getFormSettingsHtmlVariables()`.
+- Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
+- Added Dutch translations. (thanks @jeroenlammerts).
+
+### Changed
+- Updated Password field `autocomplete` attribute.
+- Improve Integration form instructions translations to remove duplicate translation strings.
+- Improve Integration settings instructions translations to remove duplicate translation strings.
+- Update integration descriptions to be dynamic for better translation.
+- Days and Months predefined options now use Craft’s locale helpers for consistency.
+- Country and State predefined options now use `commerceguys/addressing` for consistency.
+- Fields now toggle a `data-field-has-error` attribute on inputs when client-side validation occurs.
+
+### Fixed
+- Fixed an error when creating forms where a default Form Template had required fields.
+- Fixed an error when fetching Signature field image.
+- Fixed an issue when using "Validate when typing” and resetting classes via Theme Config.
+- Fixed element fields not always populating the correct site-specific element when viewing a submission in the control panel.
+- Fixed querying submissions for nested field, via their nested field values.
+- Fixed Submission queries not working correctly for custom fields.
+
+### Removed
+- Removed `FieldInterface::subFieldLabelPosition` for GraphQL (use a proper field fragment).
+
 ## 3.0.6 - 2024-09-07
 
 ### Added
