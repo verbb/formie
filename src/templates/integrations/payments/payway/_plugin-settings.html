@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -26,7 +25,7 @@
     {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Publishable Key' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'publishableKey',
@@ -37,7 +36,7 @@
     errors: integration.getErrors('publishableKey'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'secretKey',
@@ -48,7 +47,7 @@
     errors: integration.getErrors('secretKey'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Merchant ID' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'merchantId',

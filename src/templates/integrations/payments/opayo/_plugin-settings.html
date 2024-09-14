@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -22,7 +21,7 @@
     {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Vendor Name' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'vendorName',
@@ -33,7 +32,7 @@
     errors: integration.getErrors('vendorName'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Integration Key' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationKey',
@@ -44,7 +43,7 @@
     errors: integration.getErrors('integrationKey'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Integration Password' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationPassword',
@@ -55,7 +54,7 @@
     errors: integration.getErrors('integrationPassword'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
+{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
     instructions: 'Whether to use the {name} sandbox.' | t('formie'),
     name: 'useSandbox',

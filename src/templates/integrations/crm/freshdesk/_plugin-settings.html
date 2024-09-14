@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -25,7 +24,7 @@
     </span>
 {% endif %}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiKey',
@@ -36,7 +35,7 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain' | t('formie'),
     instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.freshdesk.com' }),
     name: 'apiDomain',

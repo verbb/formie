@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -28,7 +27,7 @@
     </span>
 {% endif %}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Token' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiToken',
@@ -39,7 +38,7 @@
     errors: integration.getErrors('apiToken'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Password' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiPassword',
@@ -50,7 +49,7 @@
     errors: integration.getErrors('apiPassword'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Space ID' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiSpaceId',
@@ -61,7 +60,7 @@
     errors: integration.getErrors('apiSpaceId'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Service URL' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiServiceUrl',

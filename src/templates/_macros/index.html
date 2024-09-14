@@ -5,23 +5,3 @@
 
     {{ forms.field(config, 'template:formie/_includes/element-select-site-input') }}
 {% endmacro %}
-
-{% macro integrationSettingField(integration, type, config) %}
-    {% import '_includes/forms' as forms %}
-
-    {# Extract the type of field we want to render #}
-    {% if config.instructions is defined %}
-        {% set instructions = config.instructions | t('formie', {
-            name: integration.displayName(),
-            label: config.label,
-        }) %}
-
-        {% set config = config | merge({ instructions: instructions }) %}
-    {% endif %}
-
-    {# Dynamically calling a macro isn't techncically supported, but this is a way around that! #}
-    {% set tmplString = "{% import '_includes/forms' as forms %}{{ forms.#{type}(config) }}" %}
-
-    {{ include(template_from_string(tmplString), { config: config }) }}
-{% endmacro %}
-

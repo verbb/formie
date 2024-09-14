@@ -1,11 +1,10 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
 {% set type = integration.settings.type ?? 'v3' %}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'reCAPTCHA Type' | t('formie'),
     instructions: 'Select the type of reCAPTCHA to use.' | t('formie'),
     name: 'type',
@@ -34,7 +33,7 @@
     warning: macros.configWarning('type', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'reCAPTCHA Site Key' | t('formie'),
     name: 'siteKey',
     required: true,
@@ -43,7 +42,7 @@
     warning: macros.configWarning('siteKey', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'reCAPTCHA Secret Key' | t('formie'),
     name: 'secretKey',
     required: true,
@@ -55,7 +54,7 @@
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
     {% set enterpriseType = integration.settings.enterpriseType ?? 'score' %}
 
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Type' | t('formie'),
         instructions: 'Select the type of captcha to use.' | t('formie'),
         name: 'enterpriseType',
@@ -78,7 +77,7 @@
         warning: macros.configWarning('enterpriseType', 'formie'),
     }) }}
 
-    {{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+    {{ macros.proxyField(fieldVariables, 'autosuggestField', {
         label: 'Project ID' | t('formie'),
         instructions: 'Your Google Cloud project ID.' | t('formie'),
         name: 'projectId',
@@ -91,7 +90,7 @@
 </div>
 
 <div id="settings-v2_checkbox"{% if type != 'v2_checkbox' %} class="hidden"{% endif %}>
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Theme' | t('formie'),
         instructions: 'Select the theme for reCAPTCHA to use.' | t('formie'),
         name: 'theme',
@@ -106,7 +105,7 @@
         warning: macros.configWarning('theme', 'formie'),
     }) }}
 
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Size' | t('formie'),
         instructions: 'Select the size of reCAPTCHA to use.' | t('formie'),
         name: 'size',
@@ -123,7 +122,7 @@
 </div>
 
 <div id="settings-v2_invisible"{% if type != 'v2_invisible' %} class="hidden"{% endif %}>
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Badge Type' | t('formie'),
         instructions: 'Select the type of badge to display.' | t('formie'),
         name: 'badge',
@@ -143,7 +142,7 @@
 </div>
 
 <div id="settings-v3"{% if type != 'v3' and type != 'enterprise' %} class="hidden"{% endif %}>
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Minimum Score' | t('formie'),
         instructions: 'Enter the minimum score needed to pass the reCAPTCHA test.' | t('formie'),
         name: 'minScore',
@@ -164,7 +163,7 @@
         warning: macros.configWarning('minScore', 'formie'),
     }) }}
 
-    {{ formieMacros.integrationSettingField(integration, 'selectField', {
+    {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Badge Type' | t('formie'),
         instructions: 'Select the type of badge to display.' | t('formie'),
         name: 'badge',
@@ -187,7 +186,7 @@
     <p class="warning with-icon">{{ 'Looking to hide the badge? Refer to the [reCAPTCHA FAQ](https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-recaptcha-badge.-what-is-allowed) to achieve this.' | t('formie') | md(inlineOnly=true) }}</p>
 </div>
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Language' | t('formie'),
     instructions: 'Force a specific language when displaying reCAPTCHA. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
     name: 'language',
@@ -196,7 +195,7 @@
     warning: macros.configWarning('language', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Script Loading Method' | t('formie'),
     instructions: 'Select the `defer` and `async` attributes to use in the script tag when rendering.' | t('formie'),
     name: 'scriptLoadingMethod',

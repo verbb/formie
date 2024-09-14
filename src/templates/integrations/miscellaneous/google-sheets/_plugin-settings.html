@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -23,7 +22,7 @@
     {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ formieMacros.integrationSettingField(integration, 'textField', {
+{{ macros.proxyField(fieldVariables, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
     instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
@@ -36,7 +35,7 @@
     </span>
 {% endif %}
 
-{{ formieMacros.integrationSettingField(integration, 'booleanMenuField', {
+{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Proxy Redirect URI' | t('formie'),
     instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See {link} for more.' | t('formie', { link: '[docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy)' }),
     name: 'proxyRedirect',
@@ -46,7 +45,7 @@
     errors: integration.getErrors('proxyRedirect'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
@@ -57,7 +56,7 @@
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client Secret' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
@@ -68,7 +67,7 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Spreadsheet ID' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'spreadsheetId',

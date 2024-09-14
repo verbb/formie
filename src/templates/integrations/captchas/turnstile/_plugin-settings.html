@@ -1,10 +1,9 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Site Key' | t('formie'),
     name: 'siteKey',
     required: true,
@@ -13,7 +12,7 @@
     warning: macros.configWarning('siteKey', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
     name: 'secretKey',
     required: true,
@@ -22,7 +21,7 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Script Loading Method' | t('formie'),
     instructions: 'Select the `defer` and `async` attributes to use in the script tag when rendering.' | t('formie'),
     name: 'scriptLoadingMethod',
@@ -48,7 +47,7 @@
     warning: macros.configWarning('scriptLoadingMethod', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Theme' | t('formie'),
     instructions: 'Select the theme for Turnstile to use.' | t('formie'),
     name: 'theme',
@@ -66,7 +65,7 @@
     warning: macros.configWarning('theme', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Size' | t('formie'),
     instructions: 'Select the size for Turnstile to use.' | t('formie'),
     name: 'size',
@@ -81,7 +80,7 @@
     warning: macros.configWarning('size', 'formie'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'selectField', {
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Appearance' | t('formie'),
     instructions: 'Select the appearance for Turnstile to use.' | t('formie'),
     name: 'appearance',

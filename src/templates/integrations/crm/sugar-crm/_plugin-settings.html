@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -29,7 +28,7 @@
     </span>
 {% endif %}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Username' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'username',
@@ -40,7 +39,7 @@
     errors: integration.getErrors('username'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Password' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'password',
@@ -51,7 +50,7 @@
     errors: integration.getErrors('password'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain' | t('formie'),
     instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.sugarcrm.com' }),
     name: 'apiDomain',

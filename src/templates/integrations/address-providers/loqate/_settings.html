@@ -1,5 +1,4 @@
 {% import '_includes/forms' as forms %}
-{% import 'formie/_macros' as formieMacros %}
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
@@ -16,7 +15,7 @@
     {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ formieMacros.integrationSettingField(integration, 'autosuggestField', {
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
@@ -26,7 +25,7 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ formieMacros.integrationSettingField(integration, 'editableTableField', {
+{{ macros.proxyField(fieldVariables, 'editableTableField', {
     label: 'Reconfigurable Options' | t('formie'),
     instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Loqate docs](https://www.loqate.com/resources/support/setup-guides/advanced-setup-guide/#setting_options)' }),
     id: 'reconfigurableOptions',
