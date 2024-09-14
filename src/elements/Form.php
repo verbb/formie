@@ -318,7 +318,12 @@ class Form extends Element
 
     public function getScenario()
     {
-        return self::SCENARIO_LIVE;
+        // Only set to "live" after creating the form. Otherwise Form Template fields validate.
+        if ($this->id) {
+            return self::SCENARIO_LIVE;
+        }
+
+        return parent::getScenario();
     }
     
     public function canView(User $user): bool

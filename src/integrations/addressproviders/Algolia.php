@@ -44,7 +44,7 @@ class Algolia extends AddressProvider
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Use [Algolia Places](https://community.algolia.com/places/) to suggest addresses, for address fields.');
+        return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Algolia Places](https://community.algolia.com/places/)']);
     }
 
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array

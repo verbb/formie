@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://sharpspring.com/" target="_blank">{name}</a> and login to your account.
@@ -25,7 +27,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -34,9 +36,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Account ID' | t('formie'),
-    instructions: 'Enter your {name} Account ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'accountId',
     required: true,
     suggestEnvVars: true,
@@ -45,9 +47,9 @@
     errors: integration.getErrors('accountId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
-    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
@@ -56,9 +58,9 @@
     errors: integration.getErrors('secretKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Form Base URL' | t('formie'),
-    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie'),
     name: 'formUrl',
     required: false,
     suggestEnvVars: true,

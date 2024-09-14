@@ -1,12 +1,14 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set entryTypeSection = form.settings.integrations[handle].entryTypeSection ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -63,7 +65,7 @@
 
         <integration-field-mapping
             label="{{ 'Entry Attribute Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your entry attributes.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} attributes.' | t('formie', { label: 'Entry' }) }}"
             name-label="{{ integration.displayName() }}"
             id="attribute-mapping"
             name="attributeMapping"
@@ -73,7 +75,7 @@
 
         <integration-field-mapping
             label="{{ 'Entry Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your entry fields.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} fields.' | t('formie', { label: 'Entry' }) }}"
             name-label="{{ integration.displayName() }}"
             id="field-mapping"
             name="fieldMapping"

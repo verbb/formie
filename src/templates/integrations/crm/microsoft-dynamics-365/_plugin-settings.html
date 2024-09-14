@@ -1,8 +1,10 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 <span class="warning with-icon">
-    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: integration.displayName() }) }}<br><br>
+    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: displayName }) }}<br><br>
 </span>
 
 {% set instructions %}
@@ -48,21 +50,21 @@
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
 
-### Optional: Microsoft Dynamics 365 Web API version
+### Optional: {name} Web API version
 
-The Microsoft Dynamics 365 Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all Microsoft Dynamics 365 Web API requests will use this API version in the request URI.
+The {name} Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all {name} Web API requests will use this API version in the request URI.
 
-For compatibility, the default setting is v9.0. This has been the value used in the Microsoft Dynamics 365 CRM integration prior to this being customisable.
+For compatibility, the default setting is v9.0. This has been the value used in the {name} CRM integration prior to this being customisable.
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.textField({
+{{ macros.proxyField(fieldVariables, 'textField', {
     readonly: true,
     label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
     value: integration.getRedirectUri(),
 }) }}
 
@@ -72,9 +74,9 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
     required: true,
     suggestEnvVars: true,
@@ -83,9 +85,9 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Client Secret here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
@@ -94,9 +96,9 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain' | t('formie'),
-    instructions: 'Enter your full {name} Domain here. e.g. `https://ffcor.crm6.dynamics.com`' | t('formie', { name: integration.displayName() }) | md,
+    instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://ffcor.crm6.dynamics.com' }),
     name: 'apiDomain',
     required: true,
     suggestEnvVars: true,
@@ -105,7 +107,7 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     errors: integration.getErrors('apiDomain'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Tenant' | t('formie'),
     instructions: 'Enter the {name} Tenant.' | t('formie', { name: integration.displayName() }) | md,
     name: 'tenant',
@@ -115,9 +117,9 @@ For compatibility, the default setting is v9.0. This has been the value used in 
     errors: integration.getErrors('tenant'),
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'API version' | t('formie'),
-    instructions: 'Set a specific web API version to use with Microsoft Dynamics 365 Web API requests.' | t('formie'),
+    instructions: 'Set a specific web API version to use with {name} Web API requests.' | t('formie'),
     name: 'apiVersion',
     options: [
         { label: '9.0', value: 'v9.0'},
@@ -143,7 +145,7 @@ If you want to selectively control the created by user per form, use the "Create
     {{ impersonationInstructions | t('formie') | md }}
 </div>
 
-{{ forms.lightswitchField({
+{{ macros.proxyField(fieldVariables, 'lightswitchField', {
     label: 'Impersonate User' | t('formie'),
     instructions: 'Enable this setting to impersonate the user for created records to be set as.' | t('formie'),
     id: 'impersonateUser',
@@ -151,7 +153,7 @@ If you want to selectively control the created by user per form, use the "Create
     on: integration.settings.impersonateUser ?? false
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Impersonation Header' | t('formie'),
     instructions: 'Set the value of the impersonate header to be used.' | t('formie'),
     name: 'impersonateHeader',
@@ -164,7 +166,7 @@ If you want to selectively control the created by user per form, use the "Create
     errors: integration.getErrors('impersonateHeader')
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Impersonate User ID' | t('formie'),
     instructions: 'Enter the GUID of a valid systemuser to impersonate.' | t('formie'),
     name: 'impersonateUserId',

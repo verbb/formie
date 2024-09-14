@@ -1,9 +1,11 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{{ forms.autosuggestField({
+{% set displayName = integration.displayName() %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Webhook URL' | t('formie'),
-    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie'),
     name: 'webhook',
     suggestEnvVars: true,
     value: integration.settings.webhook ?? '',

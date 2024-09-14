@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Connect to the {name} API
 1. Login to your <a href="https://account.loqate.com" target="_blank">{name}</a> account.
@@ -10,10 +12,10 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
@@ -23,9 +25,9 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.editableTableField({
+{{ macros.proxyField(fieldVariables, 'editableTableField', {
     label: 'Reconfigurable Options' | t('formie'),
-    instructions: 'Provide any additional options, as per the [Loqate docs](https://www.loqate.com/resources/support/setup-guides/advanced-setup-guide/#setting_options).' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Loqate docs](https://www.loqate.com/resources/support/setup-guides/advanced-setup-guide/#setting_options)' }),
     id: 'reconfigurableOptions',
     name: 'reconfigurableOptions',
     cols: [

@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to your <a href="https://www.payway.com.au/" target="_blank">PayWay account</a>.
@@ -20,12 +22,12 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Publishable Key' | t('formie'),
-    instructions: 'Enter your {name} Publishable key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'publishableKey',
     required: true,
     suggestEnvVars: true,
@@ -34,9 +36,9 @@
     errors: integration.getErrors('publishableKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
-    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
@@ -45,9 +47,9 @@
     errors: integration.getErrors('secretKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Merchant ID' | t('formie'),
-    instructions: 'Enter your {name} Merchant ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'merchantId',
     required: true,
     suggestEnvVars: true,

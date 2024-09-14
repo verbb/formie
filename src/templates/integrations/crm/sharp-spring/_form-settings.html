@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
 {% set mapToForm = form.settings.integrations[handle].mapToForm ?? '' %}
@@ -8,7 +10,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -29,7 +31,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Contact' | t('formie'),
-            instructions: 'Whether to map form data to {name} Contacts.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Contacts' }),
             id: 'mapToContact',
             name: 'mapToContact',
             on: mapToContact,
@@ -39,7 +41,7 @@
         <div id="map-to-contact" class="{{ not mapToContact ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Contact Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Contact fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Contact' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="contact-field-mapping"
                 name="contactFieldMapping"
@@ -56,7 +58,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Form' | t('formie'),
-            instructions: 'Whether to map form data to {name} Forms.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Forms' }),
             id: 'mapToForm',
             name: 'mapToForm',
             on: mapToForm,

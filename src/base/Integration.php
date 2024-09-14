@@ -298,9 +298,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return '';
     }
 
+    public function getSettingsHtmlVariables(): array
+    {
+        return [
+            'integration' => $this,
+            'fieldVariables' => [
+                'plugin' => 'formie',
+                'name' => $this::displayName(),
+            ],
+        ];
+    }
+
     public function getFormSettingsHtml(Form|Stencil $form): string
     {
         return '';
+    }
+
+    public function getFormSettingsHtmlVariables(Form|Stencil $form): array
+    {
+        return [
+            'integration' => $this,
+            'form' => $form,
+            'fieldVariables' => [
+                'plugin' => 'formie',
+                'name' => $this::displayName(),
+            ],
+        ];
     }
 
     public function hasValidSettings(): bool

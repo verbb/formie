@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.icontact.com/" target="_blank">{name}</a> and login to your account.
@@ -19,7 +21,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -28,9 +30,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Application ID' | t('formie'),
-    instructions: 'Enter your {name} Application ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'appId',
     required: true,
     suggestEnvVars: true,
@@ -39,9 +41,9 @@
     errors: integration.getErrors('appId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Username' | t('formie'),
-    instructions: 'Enter your {name} API username here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'username',
     required: true,
     suggestEnvVars: true,
@@ -50,9 +52,9 @@
     errors: integration.getErrors('username'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Password' | t('formie'),
-    instructions: 'Enter your {name} API password here. This is not your {name} account password.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} API password here. This is not your {name} account password.' | t('formie'),
     name: 'password',
     required: true,
     suggestEnvVars: true,
@@ -61,9 +63,9 @@
     errors: integration.getErrors('password'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Account ID' | t('formie'),
-    instructions: 'Enter your {name} account ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'accountId',
     required: true,
     suggestEnvVars: true,
@@ -72,9 +74,9 @@
     errors: integration.getErrors('accountId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client Folder ID' | t('formie'),
-    instructions: 'Enter your {name} client folder ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientFolderId',
     required: true,
     suggestEnvVars: true,

@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.agilecrm.com/" target="_blank">{name}</a> and login to your account.
@@ -16,7 +18,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -25,9 +27,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiKey',
     required: true,
     suggestEnvVars: true,
@@ -36,9 +38,9 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Email' | t('formie'),
-    instructions: 'Enter your {name} email here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiEmail',
     required: true,
     suggestEnvVars: true,
@@ -47,9 +49,9 @@
     errors: integration.getErrors('apiEmail'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain' | t('formie'),
-    instructions: 'Enter your full {name} Domain here. e.g. `https://example.agilecrm.com`' | t('formie', { name: integration.displayName() }) | md,
+    instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.agilecrm.com' }),
     name: 'apiDomain',
     required: true,
     suggestEnvVars: true,

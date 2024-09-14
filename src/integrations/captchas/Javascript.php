@@ -41,9 +41,9 @@ class Javascript extends Captcha
 
     public function getSettingsHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', [
-            'integration' => $this,
-        ]);
+        $variables = $this->getSettingsHtmlVariables();
+        
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', $variables);
     }
 
     public function getFrontEndHtml(Form $form, $page = null): string

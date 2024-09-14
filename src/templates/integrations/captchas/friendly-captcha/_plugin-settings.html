@@ -1,7 +1,9 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{{ forms.autosuggestField({
+{% set displayName = integration.displayName() %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Site Key' | t('formie'),
     name: 'siteKey',
     required: true,
@@ -10,7 +12,7 @@
     warning: macros.configWarning('siteKey', 'formie'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
     name: 'secretKey',
     required: true,
@@ -19,7 +21,7 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Language' | t('formie'),
     instructions: 'Force a specific language when displaying Friendly Captcha. Choose "Auto" for Formie to automatically match your site’s language.' | t('formie'),
     name: 'language',
@@ -28,9 +30,9 @@
     warning: macros.configWarning('language', 'formie'),
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Start Mode' | t('formie'),
-    instructions: 'Specify when the captcha should start solving a puzzle. Refer to [docs](https://docs.friendlycaptcha.com/#/widget_api?id=data-start-attribute).' | t('formie'),
+    instructions: 'Specify when the captcha should start solving a puzzle. Refer to {link}.' | t('formie', { link: '[docs](https://docs.friendlycaptcha.com/#/widget_api?id=data-start-attribute)' }),
     name: 'startMode',
     value: integration.settings.startMode ?? 'auto',
     options: [

@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.maximizer.com/support/crm-api/" target="_blank">Maximizer CRM API</a> and request access to their API.
@@ -18,7 +20,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -27,9 +29,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Username' | t('formie'),
-    instructions: 'Enter your {name} Username key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'username',
     required: true,
     suggestEnvVars: true,
@@ -38,9 +40,9 @@
     errors: integration.getErrors('username'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Password' | t('formie'),
-    instructions: 'Enter your {name} Password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'password',
     required: true,
     suggestEnvVars: true,
@@ -49,9 +51,9 @@
     errors: integration.getErrors('password'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Web Access URL' | t('formie'),
-    instructions: 'Enter your {name} Web Access URL here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'webAccessUrl',
     required: true,
     suggestEnvVars: true,
@@ -60,9 +62,9 @@
     errors: integration.getErrors('webAccessUrl'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Database ID' | t('formie'),
-    instructions: 'Enter your {name} Database ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'databaseId',
     required: true,
     suggestEnvVars: true,
@@ -71,9 +73,9 @@
     errors: integration.getErrors('databaseId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Vendor ID' | t('formie'),
-    instructions: 'Enter your {name} Vendor ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'vendorId',
     required: true,
     suggestEnvVars: true,
@@ -82,9 +84,9 @@
     errors: integration.getErrors('vendorId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'App Key' | t('formie'),
-    instructions: 'Enter your {name} App Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'appKey',
     required: true,
     suggestEnvVars: true,

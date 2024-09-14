@@ -96,7 +96,7 @@ class Opayo extends Payment
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Provide payment capabilities for your forms with Opayo.');
+        return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
     }
 
     public function hasValidSettings(): bool

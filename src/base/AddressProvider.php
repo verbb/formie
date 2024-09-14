@@ -50,10 +50,9 @@ abstract class AddressProvider extends Integration
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
+        $variables = $this->getSettingsHtmlVariables();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", [
-            'integration' => $this,
-        ]);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", $variables);
     }
 
     public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string

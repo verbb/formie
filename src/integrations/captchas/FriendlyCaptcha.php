@@ -40,18 +40,17 @@ class FriendlyCaptcha extends Captcha
 
     public function getSettingsHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_plugin-settings', [
-            'integration' => $this,
-            'languageOptions' => $this->_getLanguageOptions(),
-        ]);
+        $variables = $this->getSettingsHtmlVariables();
+        $variables['languageOptions'] = $this->_getLanguageOptions();
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_plugin-settings', $variables);
     }
 
     public function getFormSettingsHtml(Form|Stencil $form): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        $variables = $this->getFormSettingsHtmlVariables($form);
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_form-settings', $variables);
     }
 
     public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string

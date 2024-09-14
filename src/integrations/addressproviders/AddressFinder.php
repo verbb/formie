@@ -39,7 +39,7 @@ class AddressFinder extends AddressProvider
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Use [Address Finder](https://addressfinder.com.au/) to suggest Australian and New Zealand addresses, for address fields.');
+        return Craft::t('formie', 'Use {link} to suggest Australian and New Zealand addresses, for address fields.', ['link' => '[Address Finder](https://addressfinder.com.au/)']);
     }
 
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array

@@ -77,7 +77,7 @@ class Pardot extends Crm implements OAuthProviderInterface
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings

@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set activateUser = form.settings.integrations[handle].activateUser ?? false %}
 {% set mergeUserGroups = form.settings.integrations[handle].mergeUserGroups ?? false %}
@@ -9,7 +11,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -19,7 +21,7 @@
 
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="user">
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, getCollectionFields }">
-        {{ forms.checkboxSelectField({
+        {{ macros.proxyField(fieldVariables, 'checkboxSelectField', {
             label: 'User Group' | t('formie'),
             instructions: 'Select user groups to assign this new user to.' | t('formie'),
             id: 'groupIds',
@@ -28,14 +30,14 @@
             values: groupIds,
         }) }}
 
-        {{ forms.lightswitchField({
+        {{ macros.proxyField(fieldVariables, 'lightswitchField', {
             label: 'Activate User' | t('formie'),
             instructions: 'Whether to activate the user automatically.' | t('formie'),
             name: 'activateUser',
             on: activateUser,
         }) }}
                                 
-        {{ forms.lightswitchField({
+        {{ macros.proxyField(fieldVariables, 'lightswitchField', {
             label: 'Send Activation Email' | t('formie'),
             instructions: 'Whether to send the activation email for the user automatically.' | t('formie'),
             name: 'sendActivationEmail',
@@ -44,7 +46,7 @@
 
         <integration-field-mapping
             label="{{ 'User Attribute Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your user attributes.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} attributes.' | t('formie', { label: 'User' }) }}"
             name-label="{{ integration.displayName() }}"
             id="attribute-mapping"
             name="attributeMapping"
@@ -54,7 +56,7 @@
 
         <integration-field-mapping
             label="{{ 'User Field Mapping' | t('formie') }}"
-            instructions="{{ 'Choose how your form fields should map to your user fields.' | t('formie') }}"
+            instructions="{{ 'Choose how your form fields should map to your {label} fields.' | t('formie', { label: 'User' }) }}"
             name-label="{{ integration.displayName() }}"
             id="field-mapping"
             name="fieldMapping"
@@ -69,7 +71,7 @@
         </ul>
 
         <div style="margin-bottom: 24px;" v-pre>
-            {{ forms.lightswitchField({
+            {{ macros.proxyField(fieldVariables, 'lightswitchField', {
                 label: 'Overwrite Content' | t('formie'),
                 instructions: 'Whether to overwrite existing content, even if empty values are provided.' | t('formie'),
                 name: 'overwriteValues',
@@ -78,7 +80,7 @@
 
             {% set updateElement = form.settings.integrations[handle].updateElement ?? false %}
 
-            {{ forms.lightswitchField({
+            {{ macros.proxyField(fieldVariables, 'lightswitchField', {
                 label: 'Update Users' | t('formie'),
                 instructions: 'Whether this integration should update an existing user if found, or always create a new user. ' | t('formie'),
                 id: 'updateElement',
@@ -99,7 +101,7 @@
                 :rows="getCollectionFields('users', {{ integration.getUpdateAttributes() | json_encode }})"
             ></integration-field-mapping>
                                         
-            {{ forms.lightswitchField({
+            {{ macros.proxyField(fieldVariables, 'lightswitchField', {
                 label: 'Merge User Groups' | t('formie'),
                 instructions: 'Whether existing user groups should be merged with any set above. Otherwise, any existing user groups will be overwritten.' | t('formie'),
                 name: 'mergeUserGroups',
@@ -110,7 +112,7 @@
         <div style="margin-bottom: 24px;" v-pre>
             {% set updateSearchIndexes = form.settings.integrations[handle].updateSearchIndexes ?? true %}
 
-            {{ forms.lightswitchField({
+            {{ macros.proxyField(fieldVariables, 'lightswitchField', {
                 label: 'Update Search Index' | t('formie'),
                 instructions: 'Whether this integration should update the search indexes to include content for this element. ' | t('formie'),
                 id: 'updateSearchIndexes',
