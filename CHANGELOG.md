@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.30 - 2024-09-14
+
+### Added
+- Added `Integration::getSettingsHtmlVariables()` and `Integration::getFormSettingsHtmlVariables()`.
+- Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
+
+### Changed
+- Updated Password field `autocomplete` attribute.
+- Improve Integration form instructions translations to remove duplicate translation strings.
+- Improve Integration form instructions translations to remove duplicate translation strings.
+- Improve Integration settings instructions translations to remove duplicate translation strings.
+- Update integration descriptions to be dynamic for better translation.
+- Days and Months predefined options now use Craft’s locale helpers for consistency.
+- Country and State predefined options now use `commerceguys/addressing` for consistency.
+
+### Fixed
+- Fixed an error when creating forms where a default Form Template had required fields.
+- Fixed an error when fetching Signature field image.
+
 ## 2.1.29 - 2024-09-07
 
 ### Added
