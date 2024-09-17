@@ -133,7 +133,9 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
 
         $btn.insertBefore($('.search-container'));
 
-        const $option = menu.$options.filter('[data-state=' + Craft.getQueryParam('state') + ']');
+        // Set the current state based on query string, or plugin defaults
+        const currentState = Craft.getQueryParam('state') ? Craft.getQueryParam('state') : Craft.Formie.defaultState;
+        const $option = menu.$options.filter('[data-state=' + currentState + ']');
 
         if ($option.length) {
             menu.selectOption($option[0]);

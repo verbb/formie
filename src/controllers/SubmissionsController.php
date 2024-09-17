@@ -91,7 +91,9 @@ class SubmissionsController extends Controller
 
         $this->requirePermission('formie-accessSubmissions');
 
-        return $this->renderTemplate('formie/submissions/index');
+        return $this->renderTemplate('formie/submissions/index', [
+            'defaultState' => $settings->submissionsBehaviour,
+        ]);
     }
 
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response

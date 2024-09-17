@@ -31,6 +31,7 @@
     {% endfor %}
 
     Craft.Formie.editableForms = {{ editableForms | json_encode() | raw }};
+    Craft.Formie.defaultState = {{ defaultState | json_encode() | raw }};
 
     {% if formHandle is defined %}
         window.defaultFormieFormHandle = '{{ formHandle }}';
