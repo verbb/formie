@@ -58,7 +58,7 @@ class Settings extends Model
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
-    public ?array $submissionsBehaviour = null;
+    public string $submissionsBehaviour = 'all';
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -98,11 +98,21 @@ class Settings extends Model
         unset($config['enableGatsbyCompatibility']);
 
         // Normalize config
-        if (!array_key_exists('submissionsBehaviour', $config) || array_key_exists('submissionsBehaviour', $config) && $config['submissionsBehaviour'] === null) {
-            $config['submissionsBehaviour'] = ['incomplete', 'spam'];
+        if (isset($config['submissionsBehaviour']) && is_array($config['submissionsBehaviour'])) {
+            $config['submissionsBehaviour'] = 'all';
         }
 
         parent::__construct($config);
+    }
+
+    public function setAttributes($values, $safeOnly = true): void
+    {
+        // Normalize config
+        if (isset($values['submissionsBehaviour']) && is_array($values['submissionsBehaviour'])) {
+            $values['submissionsBehaviour'] = 'all';
+        }
+
+        parent::setAttributes($values, $safeOnly);
     }
 
     public function validateAlertEmails($attribute): void

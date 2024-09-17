@@ -86,16 +86,12 @@ class SubmissionsController extends Controller
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $submissionsBehaviour = $settings->submissionsBehaviour ?? [];
 
         $this->getView()->registerAssetBundle(CpAsset::class);
 
         $this->requirePermission('formie-accessSubmissions');
 
-        return $this->renderTemplate('formie/submissions/index', [
-            'includeIncomplete' => in_array('incomplete', $submissionsBehaviour),
-            'includeSpam' => in_array('spam', $submissionsBehaviour),
-        ]);
+        return $this->renderTemplate('formie/submissions/index');
     }
 
     public function actionEditSubmission(string $formHandle, int $submissionId = null, ?Submission $submission = null, ?string $site = null): Response
