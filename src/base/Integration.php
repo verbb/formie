@@ -14,6 +14,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Phone;
+use verbb\formie\models\Stencil;
 use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
@@ -287,7 +288,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return '';
     }
 
-    public function getFormSettingsHtmlVariables(Form $form): array
+    public function getFormSettingsHtmlVariables(Form|Stencil $form): array
     {
         return [
             'integration' => $this,
