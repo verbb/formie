@@ -13,37 +13,14 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.on('selectSource', $.proxy(this, 'updateButton'));
         this.on('selectSite', $.proxy(this, 'updateButton'));
 
-        this.isIncomplete = Craft.Formie.includeIncomplete ? null : false;
-        this.isSpam = Craft.Formie.includeSpam ? null : false;
-
         // Include incomplete and spam submissions by default
         settings.criteria = {
-            isIncomplete: this.isIncomplete,
-            isSpam: this.isSpam,
+            isIncomplete: null,
+            isSpam: null,
         };
 
         // Find the settings menubtn, and add a new option to it. A little extra work as this needs to be done before
-        // the parent `BaseElementIndex::init()`.
-        var $main = $container.find('.main');
         var $toolbar = $container.find('#toolbar:first');
-        var $statusMenuBtn = $toolbar.find('.statusmenubtn:first');
-        var $menubtn = $statusMenuBtn.menubtn().data('menubtn');
-
-        if ($menubtn) {
-            var $incomplete = $('<li><a data-incomplete><span class="icon" data-icon="draft"></span> ' + Craft.t('formie', 'Incomplete') + '</a></li>');
-            var $spam = $('<li><a data-spam><span class="icon" data-icon="bug"></span> ' + Craft.t('formie', 'Spam') + '</a></li>');
-            var $hr = $('<hr class="padded">');
-
-            $menubtn.menu.addOptions($incomplete.children());
-            $menubtn.menu.addOptions($spam.children());
-
-            $hr.appendTo($menubtn.menu.$container.find('ul:first'));
-            $incomplete.appendTo($menubtn.menu.$container.find('ul:first'));
-            $spam.appendTo($menubtn.menu.$container.find('ul:first'));
-
-            // Hijack the event
-            $menubtn.menu.on('optionselect', $.proxy(this, '_handleStatusChange'));
-        }
 
         Craft.ui.createDateRangePicker({
             onChange: function (startDate, endDate) {
@@ -54,6 +31,9 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         }).appendTo($toolbar);
 
         this.base(elementType, $container, settings);
+
+        // Setup our custom state menu button
+        this.setupStateButton();
     },
 
     afterInit() {
@@ -72,43 +52,92 @@ Craft.Formie.SubmissionIndex = Craft.BaseElementIndex.extend({
         this.base();
     },
 
-    _handleStatusChange(ev) {
-        this.statusMenu.$options.removeClass('sel');
-        var $option = $(ev.selectedOption).addClass('sel');
-        this.$statusMenuBtn.html($option.html());
+    setupStateButton() {
+        let $btn = $('<button/>', {
+            type: 'button',
+            class: 'btn menubtn statusmenubtn',
+        }).append(
+            $('<span/>', {
+                class: 'status disabled',
+            }),
+            $('<span/>', {
+                text: Craft.t('formie', 'All'),
+            })
+        );
 
-        this.trashed = false;
-        this.drafts = null;
-        this.status = null;
-        this.settings.criteria.isIncomplete = this.isIncomplete;
-        this.settings.criteria.isSpam = this.isSpam;
-        let queryParam = null;
+        let $menu = $('<div/>', { class: 'menu' }).append(
+            $('<ul/>', { class: 'padded' }).append(
+                $('<li/>').append(
+                    $('<a/>', { 'data-state': 'all' }).append(
+                        $('<span/>', { class: 'status disabled' }),
+                        $('<span/>', { text: Craft.t('formie', 'All') })
+                    )
+                ),
+                $('<li/>').append(
+                    $('<a/>', { 'data-state': 'complete' }).append(
+                        $('<span/>', { class: 'icon', 'data-icon': 'check' }),
+                        $('<span/>', { text: Craft.t('formie', 'Complete') })
+                    )
+                ),
+                $('<li/>').append(
+                    $('<a/>', { 'data-state': 'incomplete' }).append(
+                        $('<span/>', { class: 'icon', 'data-icon': 'draft' }),
+                        $('<span/>', { text: Craft.t('formie', 'Incomplete') })
+                    )
+                ),
+                $('<li/>').append(
+                    $('<a/>', { 'data-state': 'spam' }).append(
+                        $('<span/>', { class: 'icon', 'data-icon': 'bug' }),
+                        $('<span/>', { text: Craft.t('formie', 'Spam') })
+                    )
+                )
+            )
+        );
 
-        if (Garnish.hasAttr($option, 'data-spam')) {
-            this.settings.criteria.isSpam = true;
-            queryParam = 'spam';
-        } else if (Garnish.hasAttr($option, 'data-incomplete')) {
-            this.settings.criteria.isIncomplete = true;
-            queryParam = 'incomplete';
-        } else if (Garnish.hasAttr($option, 'data-trashed')) {
-            this.trashed = true;
-            this.settings.criteria.isIncomplete = null;
-            this.settings.criteria.isSpam = null;
-            queryParam = 'trashed';
-        } else if (Garnish.hasAttr($option, 'data-drafts')) {
-            this.drafts = true;
-            queryParam = 'drafts';
-        } else {
-            this.status = $option.data('status');
-            queryParam = this.status;
+        var self = this;
+
+        var menu = new Garnish.Menu($menu, {
+            onOptionSelect: function (option) {
+                var $option = $(option);
+                $btn.html($option.html());
+                menu.setPositionRelativeToAnchor();
+                $menu.find('.sel').removeClass('sel');
+                $option.addClass('sel');
+
+                if ($option.data('state') === 'all') {
+                    self.settings.criteria.isIncomplete = null;
+                    self.settings.criteria.isSpam = null;
+                }
+
+                if ($option.data('state') === 'complete') {
+                    self.settings.criteria.isIncomplete = false;
+                    self.settings.criteria.isSpam = false;
+                }
+
+                if ($option.data('state') === 'incomplete') {
+                    self.settings.criteria.isIncomplete = true;
+                    self.settings.criteria.isSpam = false;
+                }
+
+                if ($option.data('state') === 'spam') {
+                    self.settings.criteria.isIncomplete = false;
+                    self.settings.criteria.isSpam = true;
+                }
+        
+                Craft.setQueryParam('state', $option.data('state'));
+                self.updateElements();
+            },
+        });
+
+        new Garnish.MenuBtn($btn, menu);
+
+        $btn.insertBefore($('.search-container'));
+
+        const $option = menu.$options.filter('[data-state=' + Craft.getQueryParam('state') + ']');
+
+        if ($option.length) {
+            menu.selectOption($option[0]);
         }
-
-        if (this.activeViewMenu) {
-            this.activeViewMenu.updateSortField();
-        }
-
-        Craft.setQueryParam('status', queryParam);
-        this.updateElements();
     },
     
     getViewClass(mode) {
