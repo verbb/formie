@@ -168,6 +168,9 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        // Ensure that we allow saving any status elements
+        $value->status(null);
+
         return $value->ids();
     }
 
@@ -628,6 +631,9 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
+        // Ensure that the element query allows all statuses for the CP
+        $value->status(null);
+
         return Craft::$app->getView()->renderTemplate($this->cpInputTemplate, $this->cpInputTemplateVariables($value->all(), $element));
     }
 
