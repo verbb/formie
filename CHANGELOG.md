@@ -278,6 +278,13 @@
 ### Added
 - Added `FieldInterface::subfieldLabelPosition` for GraphQL.
 
+### Changed
+- Radio Button fields `data-field-type` attribute has been changed from `fui-type-radio-buttons` to `fui-type-radio`.
+- Date fields `data-field-type` attribute has been changed from `fui-type-date-time` to `fui-type-date`.
+- Email fields `data-field-type` attribute has been changed from `fui-type-email-address` to `fui-type-email`.
+- Hidden fields `data-field-type` attribute has been changed from `fui-type-hidden-field` to `fui-type-hidden`.
+- Phone fields `data-field-type` attribute has been changed from `fui-type-phone-number` to `fui-type-phone`.
+
 ### Fixed
 - Fixed Opayo payments not sending customer email address.
 - Fixed Phone fields default value not working.
