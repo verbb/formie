@@ -651,12 +651,21 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 ];
             }
 
+            // There's no consensus for what makes a required field, but this is close!
+            $required = false;
+            $isCreateable = $field['createable'] ?? null;
+            $isNillable = $field['nillable'] ?? null;
+
+            if ($isCreateable === true && $isNillable === false && $field['type'] !== 'boolean') {
+                $required = true;
+            }
+
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
                 'sourceType' => $field['type'],
-                'required' => !$field['nillable'],
+                'required' => $required,
                 'options' => $options,
             ]);
         }
