@@ -153,7 +153,7 @@ class RecentSubmissions extends Widget
         ];
 
         // Postgres won't like querying `*`
-        $formIds = ($this->formIds === '*') ? null : $this->formIds;
+        $formIds = ($this->formIds === '*' || $this->formIds === ['*']) ? null : $this->formIds;
 
         if ($this->displayType === 'list') {
             $filteredFormIds = [];
