@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\formfields\Signature;
 
@@ -106,11 +107,28 @@ class FieldsController extends Controller
             $submission = Submission::find()->uid($submissionUid)->one();
 
             if ($submission && $form = $submission->getForm()) {
-                $field = $form->getFieldById($fieldId);
+                $signatureValue = null;
 
-                if ($field instanceof Signature) {
-                    $value = $field->getFieldValue($submission);
-                    $base64 = explode('base64,', $value);
+                foreach ($form->getCustomFields() as $field) {
+                    if ($field->id === $fieldId) {
+                        $signatureValue = $submission->getFieldValue($field->handle);
+                    }
+
+                    if ($field instanceof NestedFieldInterface) {
+                        foreach ($field->getCustomFields() as $nestedField) {
+                            if ($nestedField->id === $fieldId) {
+                                $row = $submission->getFieldValue($field->handle)->one();
+
+                                if ($row) {
+                                    $signatureValue = $row->getFieldValue($nestedField->handle);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if ($signatureValue) {
+                    $base64 = explode('base64,', $signatureValue);
                     $image = base64_decode(end($base64));
 
                     $response = Craft::$app->getResponse();
