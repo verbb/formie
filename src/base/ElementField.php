@@ -350,6 +350,9 @@ abstract class ElementField extends Field implements ElementFieldInterface
                 $query = static::elementType()::find()->id($value);
             }
 
+            // Ensure that disabled elements can be populated, just in case
+            $query->status(null);
+
             $this->defaultValue = $query;
         }
     }
