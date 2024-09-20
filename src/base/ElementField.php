@@ -713,7 +713,13 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        $query = $this->getElementsQuery()->orderBy('RAND()');
+        $query = $this->getElementsQuery();
+
+        if (Craft::$app->getDb()->getIsMysql()) {
+            $query->orderBy('RAND()');
+        } else {
+            $query->orderBy('RANDOM()');
+        }
 
         // Check if we should limit to 1 if a (single) dropdown or radio
         if ($this->displayType === 'radio' || ($this->displayType === 'dropdown' && !$this->multi)) {
