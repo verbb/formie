@@ -1896,6 +1896,9 @@ class Form extends Element
         $formLayout = unserialize(serialize($this->getFormLayout()));
         $this->_clearLayoutIdentifiers($formLayout);
 
+        $formSettings = clone $this->settings;
+        $formSettings->setForm(null);
+
         $notifications = [];
 
         foreach ($this->getNotifications() as $notification) {
@@ -1913,6 +1916,7 @@ class Form extends Element
             'title' => Craft::t('formie', '{title} Copy', ['title' => $this->title]),
             'formLayout' => $formLayout,
             'notifications' => $notifications,
+            'settings' => $formSettings,
         ];
     }
 
