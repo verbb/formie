@@ -674,7 +674,13 @@ class Submissions extends Component
                 case formfields\Tags::class:
                 case formfields\Users::class:
                 case formfields\Variants::class:
-                    $query = $field->getElementsQuery()->orderBy('RAND()');
+                    $query = $field->getElementsQuery();
+
+                    if (Craft::$app->db->getIsMysql()) {
+                        $query->orderBy('RAND()');
+                    } else {
+                        $query->orderBy('RANDOM()');
+                    }
 
                     // Check if we should limit to 1 if a (single) dropdown or radio
                     if ($field->displayType === 'radio' || ($field->displayType === 'dropdown' && !$field->multiple)) {
