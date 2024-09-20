@@ -676,7 +676,7 @@ class Submissions extends Component
                 case formfields\Variants::class:
                     $query = $field->getElementsQuery();
 
-                    if (Craft::$app->db->getIsMysql()) {
+                    if (Craft::$app->getDb()->getIsMysql()) {
                         $query->orderBy('RAND()');
                     } else {
                         $query->orderBy('RANDOM()');
