@@ -163,6 +163,9 @@ abstract class ElementField extends Field implements ElementFieldInterface
             $query->id(false);
         }
 
+        // Allow any status for now, probably refactor `modifyElementFieldQuery` for next breakpoint
+        $query->status(null);
+
         return $query;
     }
 
