@@ -1674,6 +1674,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         $removedProperties = [
+            'vid',
             'brandNewField',
             'hasLabel',
             'isNested',

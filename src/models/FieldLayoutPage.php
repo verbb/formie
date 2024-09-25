@@ -48,6 +48,7 @@ class FieldLayoutPage extends SavableComponent
             $config['pageSettings'] = ArrayHelper::remove($config, 'settings', []);
         }
 
+        unset($config['enableConditions']);
         unset($config['notificationFlag']);
 
         parent::__construct($config);
