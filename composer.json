@@ -38,7 +38,7 @@
         "nystudio107/craft-plugin-vite": "^5.0.0",
         "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0",
         "symfony/expression-language": "^5.3.0",
-        "verbb/auth": "^2.0.13",
+        "verbb/auth": "^2.0.15",
         "verbb/base": "^3.0.4",
         "voku/anti-xss": "^4.1"
     },
