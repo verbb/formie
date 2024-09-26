@@ -231,6 +231,10 @@ class Salesforce extends Crm implements OAuthProviderInterface
             // Get Case fields
             if ($this->mapToCase) {
                 $response = $this->request('GET', 'sobjects/Case/describe');
+
+                // Debug
+                Formie::log(Json::encode($response));
+
                 $fields = $response['fields'] ?? [];
                 $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
