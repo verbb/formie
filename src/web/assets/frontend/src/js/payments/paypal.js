@@ -192,6 +192,8 @@ export class FormiePayPal extends FormiePaymentProvider {
                             this.addError(t('Missing Authorization ID for approval.'));
                         } else {
                             this.addSuccess(t('Payment authorized. Finalize the form to complete payment.'));
+                            // Remove the button so it's not rendered after successful payment
+                            this.$input.innerHTML = '';
                         }
                     } catch (error) {
                         console.error(error);
