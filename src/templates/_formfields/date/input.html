@@ -7,7 +7,14 @@
 {# Keep track of the outer date field #}
 {% set dateField = field %}
 
-{% if field.displayType == 'calendar' or field.displayType == 'datePicker' %}
+{% if field.displayType == 'datePicker' %}
+    {{ forms.text({
+        name: 's',
+        value: value ? value | date('c', false, false),
+    }) }}
+{% endif %}
+
+{% if field.displayType == 'calendar' %}
     {% if field.getIsDate() or field.getIsDateTime() %}
         {% include 'formie/_formfields/date/_date' %}
     {% endif %}
