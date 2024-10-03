@@ -73,7 +73,7 @@ class Payment extends Model
     public function getField(): ?PaymentField
     {
         if (!isset($this->_field)) {
-            $this->_field = Craft::$app->getFields()->getFieldById($this->fieldId);
+            $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
 
         return $this->_field;
