@@ -367,7 +367,11 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 $values[$k] = $formattedValue;
             }
         } else {
-            $values = $this->defineValueAsString($value);
+            $values = [
+                '__toString' => $this->defineValueAsString($value),
+                'date' => $value->format($this->getDateFormat()),
+                'time' => $value->format($this->getTimeFormat()),
+            ];
         }
 
         return $values;
