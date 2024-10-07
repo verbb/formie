@@ -99,10 +99,7 @@ class Calculations extends Field implements PreviewableFieldInterface
 
         // Replace `{field:handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
         // and because some characters won't work well with the expressionLanguage parser
-        $formula = preg_replace_callback('/({.*?})/', function($matches) {
-            $string = $matches[1] ?? '';
-            return str_replace([':', '{', '}'], ['_', '', ''], $string);
-        }, $formula);
+        $formula = str_replace(['{', '}', ':', '.'], ['', '', '_', '_'], $formula);
 
         return $this->_renderedFormula = [
             'formula' => $formula,
@@ -273,7 +270,7 @@ class Calculations extends Field implements PreviewableFieldInterface
     // Private Methods
     // =========================================================================
 
-    private function _getFieldVariable(string $fieldKey, mixed $element = null, array $inputNames = []): ?array
+    private function _getFieldVariable(string $fieldKey, mixed $element = null): ?array
     {
         // Check for nested field handles
         if (str_contains($fieldKey, '.')) {
@@ -290,35 +287,23 @@ class Calculations extends Field implements PreviewableFieldInterface
         }
 
         if ($field = $element->getFieldByHandle($fieldHandle)) {
+            $namespace = Html::getInputNameAttribute($field->getFullNamespace());
+
             if ($field instanceof SingleNestedFieldInterface) {
-                $inputNames = array_merge($inputNames, [$fieldHandle]);
-
-                return $this->_getFieldVariable($fieldKey, $field, $inputNames);
+                return $this->_getFieldVariable($fieldKey, $field);
             }
-
-            if ($field instanceof SubFieldInterface) {
-                $inputNames = array_merge($inputNames, [$fieldHandle, $fieldKey]);
-
-                return [
-                    'handle' => Html::getInputNameAttribute($inputNames),
-                    'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace),
-                    'type' => get_class($field),
-                ];
-            }
-
-            $inputNames[] = $fieldHandle;
 
             if ($field instanceof Checkboxes) {
                 return [
-                    'handle' => Html::getInputNameAttribute($inputNames),
-                    'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace) . '[]',
+                    'handle' => $fieldHandle,
+                    'name' => Html::namespaceInputName($fieldHandle, $namespace) . '[]',
                     'type' => get_class($field),
                 ];
             }
 
             return [
-                'handle' => Html::getInputNameAttribute($inputNames),
-                'name' => Html::namespaceInputName(Html::getInputNameAttribute($inputNames), $field->namespace),
+                'handle' => $fieldHandle,
+                'name' => Html::namespaceInputName($fieldHandle, $namespace),
                 'type' => get_class($field),
             ];
         }
