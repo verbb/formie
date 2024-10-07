@@ -157,8 +157,10 @@ export class FormieCalculations {
 
             this.$input.value = result;
 
-            // Trigger a `input` event for the input as well
-            this.$input.dispatchEvent(new Event('input'));
+            // Trigger a `input` event for the input as well. Delay to ensure it's fired after any source input field
+            setTimeout(() => {
+                this.$input.dispatchEvent(new Event('input', { bubbles: true }));
+            }, 100);
         } catch (ex) {
             console.error(ex);
 
