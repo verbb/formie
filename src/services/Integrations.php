@@ -146,6 +146,7 @@ class Integrations extends Component
             crm\HubSpot::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
+            crm\IterableIntegration::class,
             crm\Klaviyo::class,
             crm\KlaviyoLegacy::class,
             crm\Maximizer::class,
