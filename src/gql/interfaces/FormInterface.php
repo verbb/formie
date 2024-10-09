@@ -127,8 +127,8 @@ class FormInterface extends Element
                     ],
                 ],
                 'resolve' => function($source, $arguments) {
-                    $options = Json::decodeIfJson($arguments['options'] ?? null);
-                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
+                    $options = Json::decodeIfJson($arguments['options'] ?? []);
+                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? []);
 
                     if ($populateFormValues) {
                         Formie::$plugin->getRendering()->populateFormValues($source, $populateFormValues);
