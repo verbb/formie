@@ -356,22 +356,24 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
 
         $values = [];
 
-        if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
-            foreach ($props as $k => $format) {
-                $formattedValue = '';
+        if ($value) {
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                foreach ($props as $k => $format) {
+                    $formattedValue = '';
 
-                if ($value && $value instanceof DateTime) {
-                    $formattedValue = $value->format($format);
+                    if ($value && $value instanceof DateTime) {
+                        $formattedValue = $value->format($format);
+                    }
+
+                    $values[$k] = $formattedValue;
                 }
-
-                $values[$k] = $formattedValue;
+            } else {
+                $values = [
+                    '__toString' => $this->defineValueAsString($value),
+                    'date' => $value->format($this->getDateFormat()),
+                    'time' => $value->format($this->getTimeFormat()),
+                ];
             }
-        } else {
-            $values = [
-                '__toString' => $this->defineValueAsString($value),
-                'date' => $value->format($this->getDateFormat()),
-                'time' => $value->format($this->getTimeFormat()),
-            ];
         }
 
         return $values;
