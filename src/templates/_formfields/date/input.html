@@ -9,7 +9,7 @@
 
 {% if field.displayType == 'datePicker' %}
     {{ forms.text({
-        name: 's',
+        name: field.handle,
         value: value ? value | date('c', false, false),
     }) }}
 {% endif %}
