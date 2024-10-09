@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
+use verbb\formie\events\ModifyFrontEndJsTranslationsEvent;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
@@ -40,6 +41,7 @@ class Rendering extends Component
     public const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     public const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
     public const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
+    public const EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS = 'modifyFrontEndJsTranslations';
     public const RENDER_TYPE_CSS = 'css';
     public const RENDER_TYPE_JS = 'js';
 
@@ -287,7 +289,7 @@ class Rendering extends Component
 
     public function getFrontEndJsTranslations(): array
     {
-        return $this->_getTranslatedStrings([
+        $strings = [
             // Core validators
             '{attribute} cannot be blank.',
             '{attribute} is not a valid email address.',
@@ -339,7 +341,15 @@ class Rendering extends Component
             'Invalid amount.',
             'Invalid currency.',
             'Provide a value for “{label}” to proceed.',
+        ];
+
+        // Allow plugins to modify JS translation strings
+        $event = new ModifyFrontEndJsTranslationsEvent([
+            'strings' => $strings,
         ]);
+        $this->trigger(self::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS, $event);
+
+        return $this->_getTranslatedStrings($event->strings);
     }
 
     public function getFormComponentTemplatePath(Form $form, string $component): string

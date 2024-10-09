@@ -131,6 +131,19 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_RENDER_FIELD, function(Modif
 });
 ```
 
+### The `modifyFrontEndJsTranslations` event
+The event that is triggered to modify or define additional translation strings for JS modules.
+
+```php
+use verbb\formie\events\ModifyFrontEndJsTranslationsEvent;
+use verbb\formie\services\Rendering;
+use yii\base\Event;
+
+Event::on(Rendering::class, Rendering::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS, function(ModifyFrontEndJsTranslationsEvent $event) {
+    $event->strings[] = 'My custom string';
+});
+```
+
 
 
 
