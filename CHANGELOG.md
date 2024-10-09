@@ -306,6 +306,17 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.31 - 2024-10-09
+
+### Added
+- Add Iterable Email Marketing integration.
+
+### Fixed
+- Fix toggling the enabled state of integrations not updating in the sidebar.
+- Fix an error when previewing email notifications with Element fields in Postgres.
+- Fix Signature field support for Group fields when accessing their image remotely.
+- Fix an error when editing a Stencil with integrations enabled.
+
 ## 2.1.30 - 2024-09-14
 
 ### Added
@@ -583,6 +594,13 @@
 
 ### Added
 - Added `FieldInterface::subfieldLabelPosition` for GraphQL.
+
+### Changed
+- Radio Button fields `data-field-type` attribute has been changed from `fui-type-radio-buttons` to `fui-type-radio`.
+- Date fields `data-field-type` attribute has been changed from `fui-type-date-time` to `fui-type-date`.
+- Email fields `data-field-type` attribute has been changed from `fui-type-email-address` to `fui-type-email`.
+- Hidden fields `data-field-type` attribute has been changed from `fui-type-hidden-field` to `fui-type-hidden`.
+- Phone fields `data-field-type` attribute has been changed from `fui-type-phone-number` to `fui-type-phone`.
 
 ### Fixed
 - Fixed Opayo payments not sending customer email address.
