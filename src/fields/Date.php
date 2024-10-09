@@ -435,6 +435,12 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             $attribute = "field:$fieldKey";
             $isEmpty = fn() => $field->isValueEmpty($value, $element);
 
+            // Special-handling for date picker/calendar, where the date/time field is required, but it's a single field
+            if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+                // Strip out `.date` or `.time` from the end of the string
+                $attribute = preg_replace('/(\.date|\.time)$/', '', $attribute);
+            }
+
             if ($scenario === Element::SCENARIO_LIVE && $field->required) {
                 (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
             }
