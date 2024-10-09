@@ -232,6 +232,8 @@ export default {
         fieldCanRequire() {
             const disallowedFields = {
                 'verbb\\formie\\fields\\Address': false,
+                'verbb\\formie\\fields\\Date': false,
+                'verbb\\formie\\fields\\Group': false,
                 'verbb\\formie\\fields\\Heading': false,
                 'verbb\\formie\\fields\\Hidden': false,
                 'verbb\\formie\\fields\\Html': false,
@@ -244,6 +246,7 @@ export default {
 
             // TODO: Probably refactor this to PHP
             const disallowedField = disallowedFields[this.field.type];
+
             if (typeof disallowedField === 'boolean') {
                 return disallowedField;
             } if (typeof disallowedField === 'function') {
