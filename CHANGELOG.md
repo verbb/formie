@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.31 - 2024-10-09
+
+### Added
+- Add Iterable Email Marketing integration.
+
+### Fixed
+- Fix toggling the enabled state of integrations not updating in the sidebar.
+- Fix an error when previewing email notifications with Element fields in Postgres.
+- Fix Signature field support for Group fields when accessing their image remotely.
+- Fix an error when editing a Stencil with integrations enabled.
+
 ## 2.1.30 - 2024-09-14
 
 ### Added
