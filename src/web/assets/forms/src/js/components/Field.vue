@@ -37,7 +37,7 @@
                     <span v-if="field.settings.label && field.settings.label.length">{{ field.settings.label }}</span>
                     <span v-else>{{ fieldtype.label }}</span>
 
-                    <span v-if="field.settings.required" class="error"> *</span>
+                    <span v-if="isRequired()" class="error"> *</span>
                 </label>
 
                 <span v-if="field.isSynced" class="fui-field-synced">
@@ -532,6 +532,25 @@ export default {
 
         markAsError(error) {
             this.field.hasError = error;
+        },
+
+        isRequired() {
+            // Special-case for date fields (calendar or datepicker)
+            if (this.field.type === 'verbb\\formie\\fields\\Date') {
+                for (let i = 0; i < this.field.settings.rows.length; i++) {
+                    const obj = this.field.settings.rows[i];
+
+                    if (obj.fields) {
+                        for (let j = 0; j < obj.fields.length; j++) {
+                            if (obj.fields[j].settings.required) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return this.field.settings.required;
         },
     },
 
