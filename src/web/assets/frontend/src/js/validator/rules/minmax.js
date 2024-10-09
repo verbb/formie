@@ -24,14 +24,14 @@ export const message = ({ input, label, t }) => {
     const max = input.hasAttribute('max') ? parseFloat(input.getAttribute('max')) : null;
 
     if (min !== null && max !== null) {
-        return `${label} must be between ${min} and ${max}.`;
+        return t('{attribute} must be between {min} and {max}.', { attribute: label, min, max });
     } if (min !== null) {
-        return `${label} must be no less than ${min}.`;
+        return t('{attribute} must be no less than {min}.', { attribute: label, min });
     } if (max !== null) {
-        return `${label} must be no greater than ${max}.`;
+        return t('{attribute} must be no greater than {max}.', { attribute: label, max });
     }
 
-    return `${label} has an invalid value.`;
+    return t('{attribute} has an invalid value.', { attribute: label });
 };
 
 export default {

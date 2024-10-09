@@ -295,6 +295,10 @@ class Rendering extends Component
             '{attribute} is not a valid number.',
             '{attribute} is not a valid format.',
             '{name} must match {value}.',
+            '{attribute} must be between {min} and {max}.',
+            '{attribute} must be no less than {min}.',
+            '{attribute} must be no greater than {max}.',
+            '{attribute} has an invalid value.',
 
             // Custom validators
             'File {filename} must be smaller than {filesize} MB.',
