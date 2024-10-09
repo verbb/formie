@@ -206,7 +206,7 @@ class MultiLineText extends Field implements PreviewableFieldInterface, Sortable
     {
         $modules = [];
 
-        if ($this->limit && $this->max) {
+        if ($this->limit) {
             $modules[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
                 'module' => 'FormieTextLimit',

@@ -193,7 +193,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
 
     public function getFrontEndJsModules(): ?array
     {
-        if ($this->limit && $this->max) {
+        if ($this->limit) {
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
                 'module' => 'FormieTextLimit',

@@ -309,6 +309,10 @@ class Rendering extends Component
             '{startTag}{num}{endTag} characters left',
             '{startTag}{num}{endTag} word left',
             '{startTag}{num}{endTag} words left',
+            '{attribute} must be no less than {min} characters.',
+            '{attribute} must be no greater than {max} characters.',
+            '{attribute} must be no less than {min} words.',
+            '{attribute} must be no greater than {max} words.',
 
             // General
             'Unable to parse response `{e}`.',

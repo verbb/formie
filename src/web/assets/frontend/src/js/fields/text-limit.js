@@ -8,18 +8,14 @@ export class FormieTextLimit {
         this.$text = this.$field.querySelector('[data-limit]');
         this.$input = this.$field.querySelector('input, textarea');
 
-        if (this.$text) {
-            this.initTextLimits();
-        } else {
-            console.error('Unable to find rich text field “[data-limit]”');
-        }
+        this.initTextLimits();
     }
 
     initTextLimits() {
-        this.minChars = this.$text.getAttribute('data-min-chars');
-        this.maxChars = this.$text.getAttribute('data-max-chars');
-        this.minWords = this.$text.getAttribute('data-min-words');
-        this.maxWords = this.$text.getAttribute('data-max-words');
+        this.minChars = this.$input.getAttribute('data-min-chars');
+        this.maxChars = this.$input.getAttribute('data-max-chars');
+        this.minWords = this.$input.getAttribute('data-min-words');
+        this.maxWords = this.$input.getAttribute('data-max-words');
 
         if (this.maxChars) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
@@ -58,9 +54,10 @@ export class FormieTextLimit {
             }
 
             return true;
-        }, ({ input }) => {
-            return t('You must enter at least {limit} characters.', {
-                limit: input.getAttribute('data-min-chars'),
+        }, ({ label, input }) => {
+            return t('{attribute} must be no less than {min} characters.', {
+                attribute: label,
+                min: input.getAttribute('data-min-chars'),
             });
         });
 
@@ -79,9 +76,10 @@ export class FormieTextLimit {
             }
 
             return true;
-        }, ({ input }) => {
-            return t('Limited to {limit} characters.', {
-                limit: input.getAttribute('data-max-chars'),
+        }, ({ label, input }) => {
+            return t('{attribute} must be no greater than {max} characters.', {
+                attribute: label,
+                max: input.getAttribute('data-max-chars'),
             });
         });
 
@@ -101,9 +99,10 @@ export class FormieTextLimit {
             }
 
             return true;
-        }, ({ input }) => {
-            return t('You must enter at least {limit} words.', {
-                limit: input.getAttribute('data-min-words'),
+        }, ({ label, input }) => {
+            return t('{attribute} must be no less than {min} words.', {
+                attribute: label,
+                min: input.getAttribute('data-min-words'),
             });
         });
 
@@ -123,9 +122,10 @@ export class FormieTextLimit {
             }
 
             return true;
-        }, ({ input }) => {
-            return t('Limited to {limit} words.', {
-                limit: input.getAttribute('data-max-words'),
+        }, ({ label, input }) => {
+            return t('{attribute} must be no greater than {max} words.', {
+                attribute: label,
+                max: input.getAttribute('data-max-words'),
             });
         });
     }
@@ -142,11 +142,14 @@ export class FormieTextLimit {
                 extraClasses.push('fui-limit-number-error');
             }
 
-            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
-                num: String(charactersLeft),
-                startTag: `<span class="${extraClasses.join(' ')}">`,
-                endTag: '</span>',
-            });
+            if (this.$text) {
+                this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                    num: String(charactersLeft),
+                    startTag: `<span class="${extraClasses.join(' ')}">`,
+                    endTag: '</span>',
+                });
+
+            }
         }, 1);
     }
 
@@ -163,11 +166,13 @@ export class FormieTextLimit {
                 extraClasses.push('fui-limit-number-error');
             }
 
-            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
-                num: String(wordsLeft),
-                startTag: `<span class="${extraClasses.join(' ')}">`,
-                endTag: '</span>',
-            });
+            if (this.$text) {
+                this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                    num: String(wordsLeft),
+                    startTag: `<span class="${extraClasses.join(' ')}">`,
+                    endTag: '</span>',
+                });
+            }
         }, 1);
     }
 
