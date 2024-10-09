@@ -1,5 +1,37 @@
 # Changelog
 
+## 3.0.8 - 2024-10-09
+
+### Added
+- Add Iterable Email Marketing integration.
+- Add Iterable CRM integration.
+- Add separate dropdown in Submissions index view in the control panel for state (all, complete, incomplete, spam), rather than bundle with status.
+
+### Changed
+- Update “All Submissions Behaviour” to select-list to pick a specific collection of submissions to show for any source.
+
+### Fixed
+- Fix toggling the enabled state of integrations not updating in the sidebar.
+- Fix an error when previewing email notifications with Element fields in Postgres.
+- Fix Signature field support for Group fields when accessing their image remotely.
+- Fix an error when editing a Stencil with integrations enabled.
+- Fix an error saving date picker Date fields in the control panel.
+- Fix an error when parsing Date field values.
+- Fix an error when using a Calculations field in combination with a Group field.
+- Fix an error when using Calculations field values for payment field amounts.
+- Fix Date fields not working correctly for variable-picker values.
+- Fix payment field reference not working correctly.
+- Fix Date fields (for date pickers) not showing correctly when editing a submission in the control panel.
+- Fix an error when editing stencils with invalid (deprecated) data.
+- Fix element fields not working correctly for disabled elements.
+- Fix an error when previewing email notifications with Element fields in Postgres.
+- Fix form settings not being set correctly when duplicating a form.
+- Fix an error for Submissions dashboard widget.
+- Fix Signature field support for Group fields when accessing their image remotely.
+- Fix element fields not working correctly for disabled elements.
+- Fix Salesforce integration and some fields being shown as required, when they aren’t.
+- Fix an error when editing a Stencil with integrations enabled.
+
 ## 3.0.7 - 2024-09-14
 
 ### Added
