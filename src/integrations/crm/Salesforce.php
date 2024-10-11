@@ -677,7 +677,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $customFields;
     }
 
-    private function _prepPayload($fields)
+    private function _prepPayload(array $fields): array
     {
         $payload = $fields;
 
