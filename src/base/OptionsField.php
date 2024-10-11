@@ -10,6 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\gql\arguments\OptionFieldArguments;
+use verbb\formie\gql\resolvers\OptionFieldResolver;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -19,8 +21,6 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\gql\arguments\OptionField as OptionFieldArguments;
-use craft\gql\resolvers\OptionField as OptionFieldResolver;
 use craft\helpers\Json;
 
 use yii\db\Schema;
