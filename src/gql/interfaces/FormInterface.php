@@ -137,6 +137,22 @@ class FormInterface extends Element
                     return Formie::$plugin->getRendering()->renderForm($source, $options);
                 },
             ],
+            'templateCss' => [
+                'name' => 'templateCss',
+                'type' => Type::string(),
+                'description' => 'The form’s CSS for rendering.',
+                'resolve' => function($source, $arguments) {
+                    return Formie::$plugin->getRendering()->renderCss(true);
+                },
+            ],
+            'templateJs' => [
+                'name' => 'templateJs',
+                'type' => Type::string(),
+                'description' => 'The form’s JS for rendering and functionality.',
+                'resolve' => function($source, $arguments) {
+                    return Formie::$plugin->getRendering()->renderJs(true);
+                },
+            ],
             'csrfToken' => [
                 'name' => 'csrfToken',
                 'type' => CsrfTokenType::getType(),
