@@ -7,7 +7,6 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Repeater;
@@ -797,7 +796,7 @@ class FileUpload extends ElementField
         }
 
         // Fetch the default handling
-        return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
