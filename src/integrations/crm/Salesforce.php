@@ -6,13 +6,16 @@ use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\fs\Local;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\FileHelper;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -502,6 +505,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                     return false;
                 }
+
+                $attachmentPayload = [
+                    'FirstPublishLocationId' => $caseId,
+                ];
+
+                $this->processAttachments($submission, $this->caseFieldMapping, $this->getFormSettingValue('case'), $attachmentPayload);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -694,5 +703,45 @@ class Salesforce extends Crm implements OAuthProviderInterface
         }
 
         return $payload;
+    }
+
+    protected function processAttachments(Submission $submission, array $fieldMapping, array $fieldSettings, array $payload): void
+    {
+        // For any mapped File Upload fields, also add as an attachment
+        $fileUploads = $this->getMappedFieldsByType($submission, $fieldMapping, $fieldSettings, FileUpload::class);
+        $localAttachments = [];
+
+        foreach ($fileUploads as $fileUpload) {
+            $assets = $fileUpload['value']->all();
+
+            foreach ($assets as $asset) {
+                // Check for local assets - they're easy
+                if (get_class($asset->getVolume()->getFs()) === Local::class) {
+                    $path = $asset->getVolume()->getFs()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
+
+                    $path = FileHelper::normalizePath($path);
+                } else {
+                    // Make a local copy of the file, and store, so we can delete
+                    $localAttachments[] = $path = $asset->getCopyOfFile();
+                }
+
+                $fileContent = base64_encode(file_get_contents($path));
+                $fileName = basename($path);
+
+                $attachmentPayload = array_merge($payload, [
+                    'Title' => $fileName,
+                    'PathOnClient' => $fileName,
+                    'VersionData' => $fileContent,
+                ]);
+
+                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', $attachmentPayload);
+            }
+        }
+
+        foreach ($localAttachments as $path) {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
     }
 }

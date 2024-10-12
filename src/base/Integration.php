@@ -588,6 +588,33 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->fieldValues;
     }
 
+    public function getMappedFieldsByType(Submission $submission, array $fieldMapping, array $fieldSettings, string $type): array
+    {
+        $fields = [];
+
+        foreach ($fieldMapping as $tag => $fieldKey) {
+            // Don't let in un-mapped fields
+            if ($fieldKey === '' || !str_starts_with($fieldKey, '{field:')) {
+                continue;
+            }
+
+            $fieldInfo = $this->getMappedFieldInfo($fieldKey, $submission);
+            $field = $fieldInfo['field'];
+
+            if (!$field || get_class($field) !== $type) {
+                continue;
+            }
+
+            $fields[] = [
+                'integrationField' => ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField(),
+                'field' => $field,
+                'value' => $submission->getFieldValue($field->fieldKey),
+            ];
+        }
+
+        return $fields;
+    }
+
     public function populateContext(): void
     {
         $request = Craft::$app->getRequest();
