@@ -44,7 +44,7 @@ export class FormiePaymentProvider {
     removeSuccess() {
         removeClasses(this.$field, this.successClass);
 
-        const $success = this.$field.querySelector(`.${this.successMessageClass}`);
+        const $success = this.$field.querySelector('[data-payment-success]');
 
         if ($success) {
             $success.remove();
@@ -61,8 +61,10 @@ export class FormiePaymentProvider {
         }
 
         const $success = document.createElement('div');
-        $success.className = this.successMessageClass;
         $success.textContent = message;
+        $success.setAttribute('data-payment-success', '');
+
+        addClasses($success, this.successMessageClass);
 
         $fieldContainer.appendChild($success);
     }
@@ -70,7 +72,7 @@ export class FormiePaymentProvider {
     removeError() {
         removeClasses(this.$field, this.errorClass);
 
-        const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
+        const $error = this.$field.querySelector('[data-payment-error]');
 
         if ($error) {
             $error.remove();
@@ -87,8 +89,10 @@ export class FormiePaymentProvider {
         }
 
         const $error = document.createElement('div');
-        $error.className = this.errorMessageClass;
         $error.textContent = message;
+        $error.setAttribute('data-payment-error', '');
+
+        addClasses($error, this.errorMessageClass);
 
         $fieldContainer.appendChild($error);
 
