@@ -41,6 +41,7 @@ class Zoho extends Crm
     
     public ?string $clientId = null;
     public ?string $clientSecret = null;
+    public ?string $dataCenter = 'US';
     public ?string $apiServer = null;
     public ?string $apiLocation = null;
     public ?string $apiDomain = null;
@@ -56,22 +57,33 @@ class Zoho extends Crm
     public ?array $accountFieldMapping = null;
     public ?array $quoteFieldMapping = null;
 
+    private array $dataCenterDomain = [
+        'US' => 'https://accounts.zoho.com',
+        'AU' => 'https://accounts.zoho.com.au',
+        'EU' => 'https://accounts.zoho.eu',
+        'IN' => 'https://accounts.zoho.in',
+        'CN' => 'https://accounts.zoho.com.cn',
+        'JP' => 'https://accounts.zoho.jp',
+        'CA' => 'https://accounts.zohocloud.ca',
+    ];
+
 
     // Public Methods
     // =========================================================================
 
+    private function getDataCenterDomain(): string
+    {
+        return $this->dataCenterDomain[$this->dataCenter] ?? $this->dataCenterDomain['US'];
+    }
+
     public function getAuthorizeUrl(): string
     {
-        return 'https://accounts.zoho.com/oauth/v2/auth';
+        return $this->getDataCenterDomain() . '/oauth/v2/auth';
     }
 
     public function getAccessTokenUrl(): string
     {
-        // Populated after OAuth connection
-        $url = $this->apiServer ?: 'https://accounts.zoho.com';
-        $url = rtrim($url, '/');
-
-        return "$url/oauth/v2/token";
+        return $this->getDataCenterDomain() . '/oauth/v2/token';
     }
 
     public function getClientId(): string
@@ -82,6 +94,11 @@ class Zoho extends Crm
     public function getClientSecret(): string
     {
         return App::parseEnv($this->clientSecret);
+    }
+
+    public function getDataCenter(): ?string
+    {
+        return App::parseEnv($this->dataCenter);
     }
 
     /**
@@ -107,6 +124,7 @@ class Zoho extends Crm
     {
         return [
             'access_type' => 'offline',
+            'prompt' => 'consent',
         ];
     }
 
@@ -148,7 +166,7 @@ class Zoho extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
+        $rules[] = [['clientId', 'clientSecret', 'dataCenter'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');
