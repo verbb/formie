@@ -1,31 +1,15 @@
-{# Because of browser limitations, we can't populate a `<input type="file">` field if we are on a #}
-{# multi-page, page reload form with already uploaded assets. As such, we'll get an validation #}
-{# error when going back to a previous page and submitting again, as the field will be empty #}
-{# despite files being uploaded. Here, force the field to be non-required if a value exists. #}
+{# If the submission has files submitted already, and we are on a multi-page, page reload form with #}
+{# already uploaded assets, we need to delegate this task to a third-party library to handle #}
+{# populating the `<input type="file">` field. The data object below provides this, but force #}
+{# the field to be non-required if a value exists anyway. #}
 {% set required = value and value.all() ? false : field.required %}
 
 {{ fieldtag('fieldInput', {
     required: required ? true : false,
+    data: {
+        'field-handle': field.handle,
+        'files': value and value.all() ? value.ids(),
+        'allowed-kinds': field.restrictFiles ? field.allowedKinds : [],
+        'readable-accept': field.accept,
+    }
 }) }}
-
-{% if value %}
-    {% set elements = value.all() %}
-
-    {% if elements %}
-        {% fieldtag 'fieldSummary' %}
-            {% if elements | length == 1 %}
-                <p>{{ '{num} file uploaded.' | t('formie', { num: elements | length }) }}</p>
-            {% else %}
-                <p>{{ '{num} files uploaded.' | t('formie', { num: elements | length }) }}</p>
-            {% endif %}
-
-            {% fieldtag 'fieldSummaryContainer' %}
-                {% for element in elements %}
-                    {% fieldtag 'fieldSummaryItem' %}
-                        {{ element.filename }}
-                    {% endfieldtag %}
-                {% endfor %}
-            {% endfieldtag %}
-        {% endfieldtag %}
-    {% endif %}
-{% endif %}
