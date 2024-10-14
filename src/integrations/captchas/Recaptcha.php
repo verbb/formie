@@ -189,9 +189,10 @@ class Recaptcha extends Captcha
 
             $result = Json::decode((string)$response->getBody(), true);
 
+            $isValid = $result['tokenProperties']['valid'] ?? false;
             $reason = $result['tokenProperties']['invalidReason'] ?? false;
 
-            if ($reason) {
+            if (!$isValid && $reason) {
                 $this->spamReason = $reason;
             }
 
@@ -205,7 +206,7 @@ class Recaptcha extends Captcha
                 return $scoreRating;
             }
 
-            return $result['tokenProperties']['valid'] ?? false;
+            return $isValid;
         }
 
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
