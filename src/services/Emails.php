@@ -529,6 +529,9 @@ class Emails extends Component
         // Ensure that we purify any strings, which also handles any special (allowed) characters
         $string = HtmlPurifier::process($string);
 
+        // Some entities aren't decoded like `&amp;`, `&gt;` and `&lt;`
+        $string = html_entity_decode($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
         return $string;
     }
 
