@@ -173,6 +173,11 @@ export class FormieStripe extends FormiePaymentProvider {
             return;
         }
 
+        // Handle when trying to submit the form without Stripe.js being ready
+        if (!this.elements) {
+            return;
+        }
+
         e.preventDefault();
 
         // Save for later to trigger real submit
