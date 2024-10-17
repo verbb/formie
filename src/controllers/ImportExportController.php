@@ -149,46 +149,12 @@ class ImportExportController extends Controller
         }
 
         $json = Json::decode(file_get_contents($fileLocation));
+   
+        
+        $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
-        // Find an existing form with the same handle
-        $existingForm = null;
-        $formHandle = $json['handle'] ?? null;
-
-        if ($formHandle) {
-            $existingForm = Formie::$plugin->getForms()->getFormByHandle($formHandle);
-        }
-
-        // When creating a new form, change the handle
-        if ($formAction === 'create') {
-            $formHandles = (new Query())
-                ->select(['handle'])
-                ->from(Table::FORMIE_FORMS)
-                ->column();
-
-            $json['handle'] = HandleHelper::getUniqueHandle($formHandles, $json['handle']);
-        }
-
-        if ($formAction === 'update') {
-            // Update the form (force)
-            $form = ImportExportHelper::createFormFromImport($json, $existingForm);
-        } else {
-            // Create the form element, ready to go
-            $form = ImportExportHelper::createFormFromImport($json);
-        }
-
-        // Because we also export the UID for forms, we need to check if we're importing a new form, but we've
-        // found a form with the same UID. If this happens, then the original form will be overwritten
-        if ($formAction === 'create') {
-            // Is there already a form that exists with this UID? Then we need to assign a new one.
-            // See discussion https://github.com/verbb/formie/discussions/1696 and actual issue https://github.com/verbb/formie/issues/1725
-            $existingForm = Formie::$plugin->getForms()->getFormByHandle($form->handle);
-
-            if ($existingForm) {
-                $form->uid = StringHelper::UUID();
-            }
-        }
-
-        if (!Craft::$app->getElements()->saveElement($form)) {
+        // check for errors
+        if( $form->getConsolidatedErrors() ){
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
