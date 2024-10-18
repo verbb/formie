@@ -57,6 +57,16 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function getFormBuilderSettings(): array
+    {
+        $settings = parent::getFormBuilderSettings();
+
+        // Ensure the form builder knows about our dynamically-generated options
+        $settings['options'] = $this->options();
+
+        return $settings;
+    }
+
     public function options(): array
     {
         foreach (static::getCountryOptions() as $country) {
