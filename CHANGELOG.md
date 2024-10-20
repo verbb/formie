@@ -1,5 +1,33 @@
 # Changelog
 
+## 3.0.9 - 2024-10-20
+
+### Added
+- Add `data-repeater-row-id` attribute to Repeater field rows.
+- Add Data Center setting for Zoho CRM Integration.
+- Add attachment support for File Upload fields for Salesforce Case objects.
+- Add `templateCss` and `templateJs` for GraphQL.
+- Add `Rendering::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS` event.
+
+### Fixed
+- Fix reCaptcha Enterprise flagging spam in certain situations.
+- Fix an error with Sent Notifications, when called too early before a `dateCrated` has been set.
+- Fix Address field Country sub field not working with conditions.
+- Fix an error when migrating from Formie 2 for Postgres for some integrations.
+- Fix Stripe payment error/success messages not working with `resetClasses`.
+- Fix an error when trying to submit a form without Stripe.js being ready.
+- Fix an error with Email Notification subject and special characters.
+- Fix reCaptcha Enterprise flagging spam in certain situations.
+- Fix option-fields (Checkboxes, Dropdown, Radio) not working correctly for GraphQL.
+- Fix File Upload fields not working in integrations correctly.
+- Fix Single-Line and Multi-Line Text fields when limiting values, not being translated consistently client-side.
+- Fix Number input client-side validation strings not being translated.
+- Fix an error when using `templateHtml` for GraphQL.
+- Fix Date field preview for Date Picker/Calendar when an inner field is marked as required.
+- Fix some fields being able to be marked as required, when they shouldn’t.
+- Fix Datepicker/Calendar Date fields not working correctly in a Repeater.
+- Fix some session errors on Craft Cloud. (thanks @timkelty).
+
 ## 3.0.8 - 2024-10-09
 
 ### Added
