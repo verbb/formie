@@ -264,6 +264,7 @@ class Repeater extends MultiNestedField
             return new HtmlTag('div', [
                 'class' => 'fui-repeater-row',
                 'data-repeater-row' => '__ROW__',
+                'data-repeater-row-id' => '__ROW__',
             ]);
         }
 

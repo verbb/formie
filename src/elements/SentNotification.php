@@ -237,7 +237,8 @@ class SentNotification extends Element
 
     public function __toString(): string
     {
-        return $this->dateCreated->format('M j, Y H:i:s A');
+        // Just in case we try and render the element before a `dateCreated` exists
+        return $this->dateCreated?->format('M j, Y H:i:s A') ?? parent::__toString();
     }
     
     public function canView(User $user): bool

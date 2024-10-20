@@ -67,9 +67,9 @@
     errors: integration.getErrors('useDeveloper'),
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Data Center' | t('formie'),
-    instructions: 'Select your {provider} Data Center here.' | t('formie', { provider: integration.displayName() }),
+    instructions: 'Select your {name} {label} here.' | t('formie'),
     name: 'dataCenter',
     required: true,
     suggestEnvVars: true,
@@ -81,6 +81,7 @@
         { label: 'IN' | t('formie'), value: 'IN' },
         { label: 'CN' | t('formie'), value: 'CN' },
         { label: 'JP' | t('formie'), value: 'JP' },
+        { label: 'CA' | t('formie'), value: 'CA' },
     ],
     warning: macros.configWarning('dataCenter', 'formie'),
     errors: integration.getErrors('dataCenter'),
