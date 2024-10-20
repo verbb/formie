@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.32 - 2024-10-20
+
+### Added
+- Add `data-repeater-row-id` attribute to Repeater field rows.
+- Add Data Center setting for Zoho CRM Integration.
+
+### Fixed
+- Fix reCaptcha Enterprise flagging spam in certain situations.
+- Fix an error with Sent Notifications, when called too early before a `dateCrated` has been set.
+
 ## 2.1.31 - 2024-10-09
 
 ### Added
