@@ -1,9 +1,9 @@
 {% set element = element ?? null %}
+    
+{% set id = row.id ?? '__ROW__' %}
 
 {% set html %}
     <fieldset class="fui-fieldset">
-        {% set id = row.id ?? '__ROW__' %}
-        
         {% namespace "rows[#{id}][fields]" %}
             {# There will only ever be 1 page. #}
             {% set page = field.fieldLayout.pages[0] ?? null %}
@@ -42,5 +42,6 @@
 {{ tag('div', {
     class: 'fui-repeater-row',
     'data-repeater-row': true,
+    'data-repeater-row-id': id,
     html: html,
 }) }}
