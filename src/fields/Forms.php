@@ -17,6 +17,16 @@ class Forms extends BaseRelationField
     // Public Methods
     // =========================================================================
 
+    public function __construct($config = [])
+    {
+        // Fix an error (not sure of cause...)
+        if (array_key_exists('formId', $config)) {
+            unset($config['formId']);
+        }
+
+        parent::__construct($config);
+    }
+
     /**
      * @inheritdoc
      */
