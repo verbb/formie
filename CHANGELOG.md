@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.6.46 - 2024-10-24
+
+### Added
+- Add the ability for `Submission::setStatus` to accept the handle of a status.
+
+### Fixed
+- Fix an error when a non-Formie field was mistakenly added to a form.
+
 ## 1.6.45 - 2024-08-01
 
 ### Fixed
