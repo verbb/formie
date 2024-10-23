@@ -901,8 +901,8 @@ class Fields extends Component
         }
 
         try {
-            $field = ComponentHelper::createComponent($config, FieldInterface::class);
-        } catch (MissingComponentException $e) {
+            $field = ComponentHelper::createComponent($config, FormFieldInterface::class);
+        } catch (InvalidConfigException | MissingComponentException $e) {
             $config['errorMessage'] = $e->getMessage();
             $config['expectedType'] = $config['type'];
             unset($config['type']);
