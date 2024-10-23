@@ -67,18 +67,17 @@ class Recaptcha extends Captcha
      */
     public function getSettingsHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', [
-            'integration' => $this,
-            'languageOptions' => $this->_getLanguageOptions(),
-        ]);
+        $variables = $this->getSettingsHtmlVariables();
+        $variables['languageOptions'] = $this->_getLanguageOptions();
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', $variables);
     }
 
     public function getFormSettingsHtml($form): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        $variables = $this->getFormSettingsHtmlVariables($form);
+        
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', $variables);
     }
 
     /**
@@ -203,9 +202,10 @@ class Recaptcha extends Captcha
 
             $result = Json::decode((string)$response->getBody(), true);
 
+            $isValid = $result['tokenProperties']['valid'] ?? false;
             $reason = $result['tokenProperties']['invalidReason'] ?? false;
 
-            if ($reason) {
+            if (!$isValid && $reason) {
                 $this->spamReason = $reason;
             }
 
@@ -219,7 +219,7 @@ class Recaptcha extends Captcha
                 return $scoreRating;
             }
 
-            return $result['tokenProperties']['valid'] ?? false;
+            return $isValid;
         }
 
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [

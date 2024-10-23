@@ -20,6 +20,7 @@ class FriendlyCaptcha extends Captcha
     public ?string $secretKey = null;
     public ?string $siteKey = null;
     public string $language = 'en';
+    public string $startMode = 'none';
 
 
     // Public Methods
@@ -40,18 +41,17 @@ class FriendlyCaptcha extends Captcha
      */
     public function getSettingsHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_plugin-settings', [
-            'integration' => $this,
-            'languageOptions' => $this->_getLanguageOptions(),
-        ]);
+        $variables = $this->getSettingsHtmlVariables();
+        $variables['languageOptions'] = $this->_getLanguageOptions();
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_plugin-settings', $variables);
     }
 
     public function getFormSettingsHtml($form): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        $variables = $this->getFormSettingsHtmlVariables($form);
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_form-settings', $variables);
     }
 
     /**
@@ -74,6 +74,7 @@ class FriendlyCaptcha extends Captcha
             'siteKey' => App::parseEnv($this->siteKey),
             'formId' => $form->getFormId(),
             'language' => $this->_getMatchedLanguageId() ?? 'en',
+            'startMode' => $this->startMode ?? 'none',
         ];
 
         $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/friendly-captcha.js');

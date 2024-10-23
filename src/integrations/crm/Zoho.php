@@ -41,6 +41,7 @@ class Zoho extends Crm
     
     public ?string $clientId = null;
     public ?string $clientSecret = null;
+    public ?string $dataCenter = 'US';
     public ?string $apiServer = null;
     public ?string $apiLocation = null;
     public ?string $apiDomain = null;
@@ -56,22 +57,33 @@ class Zoho extends Crm
     public ?array $accountFieldMapping = null;
     public ?array $quoteFieldMapping = null;
 
+    private array $dataCenterDomain = [
+        'US' => 'https://accounts.zoho.com',
+        'AU' => 'https://accounts.zoho.com.au',
+        'EU' => 'https://accounts.zoho.eu',
+        'IN' => 'https://accounts.zoho.in',
+        'CN' => 'https://accounts.zoho.com.cn',
+        'JP' => 'https://accounts.zoho.jp',
+        'CA' => 'https://accounts.zohocloud.ca',
+    ];
+
 
     // Public Methods
     // =========================================================================
 
+    private function getDataCenterDomain(): string
+    {
+        return $this->dataCenterDomain[$this->dataCenter] ?? $this->dataCenterDomain['US'];
+    }
+
     public function getAuthorizeUrl(): string
     {
-        return 'https://accounts.zoho.com/oauth/v2/auth';
+        return $this->getDataCenterDomain() . '/oauth/v2/auth';
     }
 
     public function getAccessTokenUrl(): string
     {
-        // Populated after OAuth connection
-        $url = $this->apiServer ?: 'https://accounts.zoho.com';
-        $url = rtrim($url, '/');
-
-        return "$url/oauth/v2/token";
+        return $this->getDataCenterDomain() . '/oauth/v2/token';
     }
 
     public function getClientId(): string
@@ -82,6 +94,11 @@ class Zoho extends Crm
     public function getClientSecret(): string
     {
         return App::parseEnv($this->clientSecret);
+    }
+
+    public function getDataCenter(): ?string
+    {
+        return App::parseEnv($this->dataCenter);
     }
 
     /**
@@ -107,6 +124,7 @@ class Zoho extends Crm
     {
         return [
             'access_type' => 'offline',
+            'prompt' => 'consent',
         ];
     }
 
@@ -138,7 +156,7 @@ class Zoho extends Crm
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Zoho customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     /**
@@ -148,7 +166,7 @@ class Zoho extends Crm
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret'], 'required'];
+        $rules[] = [['clientId', 'clientSecret', 'dataCenter'], 'required'];
 
         $contact = $this->getFormSettingValue('contact');
         $deal = $this->getFormSettingValue('deal');
@@ -195,19 +213,25 @@ class Zoho extends Crm
         $settings = [];
 
         try {
-            $contactFields = $this->_getModuleFields('Contacts');
-            $dealFields = $this->_getModuleFields('Deals');
-            $leadsFields = $this->_getModuleFields('Leads');
-            $accountFields = $this->_getModuleFields('Accounts');
-            $quoteFields = $this->_getModuleFields('Quotes');
+            if ($this->mapToContact) {
+                $settings['contact'] = $this->_getModuleFields('Contacts');
+            }
 
-            $settings = [
-                'contact' => $contactFields,
-                'deal' => $dealFields,
-                'lead' => $leadsFields,
-                'account' => $accountFields,
-                'quote' => $quoteFields,
-            ];
+            if ($this->mapToDeal) {
+                $settings['deal'] = $this->_getModuleFields('Deals');
+            }
+
+            if ($this->mapToLead) {
+                $settings['lead'] = $this->_getModuleFields('Leads');
+            }
+
+            if ($this->mapToAccount) {
+                $settings['account'] = $this->_getModuleFields('Accounts');
+            }
+
+            if ($this->mapToQuote) {
+                $settings['quote'] = $this->_getModuleFields('Quotes');
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

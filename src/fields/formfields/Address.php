@@ -77,6 +77,7 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         $repo = new CountryRepository($locale);
 
         $countries = [];
+        
         foreach ($repo->getList() as $value => $label) {
             $countries[] = compact('value', 'label');
         }

@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://sugarcrm.com/" target="_blank">{name}</a> and login to your account.
@@ -17,7 +19,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -26,9 +28,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Username' | t('formie'),
-    instructions: 'Enter your {name} Username here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'username',
     required: true,
     suggestEnvVars: true,
@@ -37,9 +39,9 @@
     errors: integration.getErrors('username'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Password' | t('formie'),
-    instructions: 'Enter your {name} Password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'password',
     required: true,
     suggestEnvVars: true,
@@ -48,9 +50,9 @@
     errors: integration.getErrors('password'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Domain' | t('formie'),
-    instructions: 'Enter your full {name} Domain here. e.g. `https://example.sugarcrm.com`' | t('formie', { name: integration.displayName() }) | md,
+    instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.sugarcrm.com' }),
     name: 'apiDomain',
     required: true,
     suggestEnvVars: true,

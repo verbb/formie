@@ -43,17 +43,16 @@ class Turnstile extends Captcha
      */
     public function getSettingsHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_plugin-settings', [
-            'integration' => $this,
-        ]);
+        $variables = $this->getSettingsHtmlVariables();
+
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_plugin-settings', $variables);
     }
 
     public function getFormSettingsHtml($form): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        $variables = $this->getFormSettingsHtmlVariables($form);
+        
+        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_form-settings', $variables);
     }
 
     /**

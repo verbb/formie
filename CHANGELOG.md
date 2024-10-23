@@ -1,5 +1,62 @@
 # Changelog
 
+## 2.1.32 - 2024-10-20
+
+### Added
+- Add `data-repeater-row-id` attribute to Repeater field rows.
+- Add Data Center setting for Zoho CRM Integration.
+
+### Fixed
+- Fix reCaptcha Enterprise flagging spam in certain situations.
+- Fix an error with Sent Notifications, when called too early before a `dateCrated` has been set.
+
+## 2.1.31 - 2024-10-09
+
+### Added
+- Add Iterable Email Marketing integration.
+
+### Fixed
+- Fix toggling the enabled state of integrations not updating in the sidebar.
+- Fix an error when previewing email notifications with Element fields in Postgres.
+- Fix Signature field support for Group fields when accessing their image remotely.
+- Fix an error when editing a Stencil with integrations enabled.
+
+## 2.1.30 - 2024-09-14
+
+### Added
+- Added `Integration::getSettingsHtmlVariables()` and `Integration::getFormSettingsHtmlVariables()`.
+- Added support for all CRM integrations to only fetch data objects for ones that are enabled in the form builder integration settings.
+
+### Changed
+- Updated Password field `autocomplete` attribute.
+- Improve Integration form instructions translations to remove duplicate translation strings.
+- Improve Integration form instructions translations to remove duplicate translation strings.
+- Improve Integration settings instructions translations to remove duplicate translation strings.
+- Update integration descriptions to be dynamic for better translation.
+- Days and Months predefined options now use Craft’s locale helpers for consistency.
+- Country and State predefined options now use `commerceguys/addressing` for consistency.
+
+### Fixed
+- Fixed an error when creating forms where a default Form Template had required fields.
+- Fixed an error when fetching Signature field image.
+
+## 2.1.29 - 2024-09-07
+
+### Added
+- Added “Start Mode” setting to Friendly Captcha.
+- Added the ability to set `scriptAttributes` and `jsAttributes` for `<script>` tags that Formie uses.
+- Added the ability for `craft.formie.renderJs` to set JS attributes for scripts.
+
+### Changed
+- Changed Phone input autocomplete from `tel-national` to `tel` to ensure valid autocomplete value.
+
+### Fixed
+- Fixed an issue for Stripe and Opayo 3DS handling in combination with captchas not working correctly.
+- Fixed an error for GraphQL when querying submissions with brand-new Group fields with no content.
+- Fixed an error with Freshdesk integration when handling duplicate contacts.
+- Fixed an error with Salesforce integration when handling duplicate leads.
+- Fixed global “View Form Usage” user permission not appearing.
+
 ## 2.1.28 - 2024-08-29
 
 ### Fixed
@@ -241,6 +298,13 @@
 
 ### Added
 - Added `FieldInterface::subfieldLabelPosition` for GraphQL.
+
+### Changed
+- Radio Button fields `data-field-type` attribute has been changed from `fui-type-radio-buttons` to `fui-type-radio`.
+- Date fields `data-field-type` attribute has been changed from `fui-type-date-time` to `fui-type-date`.
+- Email fields `data-field-type` attribute has been changed from `fui-type-email-address` to `fui-type-email`.
+- Hidden fields `data-field-type` attribute has been changed from `fui-type-hidden-field` to `fui-type-hidden`.
+- Phone fields `data-field-type` attribute has been changed from `fui-type-phone-number` to `fui-type-phone`.
 
 ### Fixed
 - Fixed Opayo payments not sending customer email address.

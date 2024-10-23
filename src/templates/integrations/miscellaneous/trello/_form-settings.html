@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set cardName = form.settings.integrations[handle].cardName ?? '' %}
 
@@ -13,7 +15,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -28,7 +30,7 @@
                 <label id="boardId-label" for="boardId" class="required">{{ 'Board' | t('formie') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Select which {name} board to add a card to.' | t('formie', { name: integration.displayName() }) }}</p>
+                    <p>{{ 'Select which {name} board to add a card to.' | t('formie', { name: displayName }) }}</p>
                 </div>
             </div>
 
@@ -56,7 +58,7 @@
                 <label id="listId-label" for="listId" class="required">{{ 'List' | t('formie') }}</label>
 
                 <div class="instructions">
-                    <p>{{ 'Select which {name} list to add a card to.' | t('formie', { name: integration.displayName() }) }}</p>
+                    <p>{{ 'Select which {name} list to add a card to.' | t('formie', { name: displayName }) }}</p>
                 </div>
             </div>
 
@@ -81,7 +83,7 @@
 
         {{ forms.textField({
             label: 'Card Name' | t('formie'),
-            instructions: 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }),
+            instructions: 'This text will be sent to {name}.' | t('formie', { name: displayName }),
             name: 'cardName',
             required: true,
             value: cardName ?? '',
@@ -96,7 +98,7 @@
         <form-kit
             type="richText"
             label="{{ 'Card Description' | t('formie') }}"
-            help="{{ 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }) }}"
+            help="{{ 'This text will be sent to {name}.' | t('formie', { name: displayName }) }}"
             v-model="model.cardDescription" 
             :required="true"
             variables="plainTextVariables"

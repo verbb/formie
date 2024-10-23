@@ -43,7 +43,7 @@ class Avochato extends Crm
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Avochato customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     /**
@@ -72,65 +72,63 @@ class Avochato extends Crm
         $settings = [];
 
         try {
-            $contactFields = [
-                new IntegrationField([
-                    'handle' => 'phone',
-                    'name' => Craft::t('formie', 'Phone Number'),
-                    'required' => true,
-                ]),
-                new IntegrationField([
-                    'handle' => 'name',
-                    'name' => Craft::t('formie', 'Name'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'email',
-                    'name' => Craft::t('formie', 'Email'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'other_phone',
-                    'name' => Craft::t('formie', 'Other Phone'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'company',
-                    'name' => Craft::t('formie', 'Company'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'street',
-                    'name' => Craft::t('formie', 'Street'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'city',
-                    'name' => Craft::t('formie', 'City'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'state',
-                    'name' => Craft::t('formie', 'State'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'zip',
-                    'name' => Craft::t('formie', 'Zip'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'country',
-                    'name' => Craft::t('formie', 'Country'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'opted_out',
-                    'name' => Craft::t('formie', 'Opted-Out'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'visible',
-                    'name' => Craft::t('formie', 'Visible'),
-                ]),
-                new IntegrationField([
-                    'handle' => 'tags',
-                    'name' => Craft::t('formie', 'Tags'),
-                ]),
-            ];
-
-            $settings = [
-                'contact' => $contactFields,
-            ];
+            if ($this->mapToContact) {
+                $settings['contact'] = [
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'name',
+                        'name' => Craft::t('formie', 'Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'other_phone',
+                        'name' => Craft::t('formie', 'Other Phone'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'company',
+                        'name' => Craft::t('formie', 'Company'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'street',
+                        'name' => Craft::t('formie', 'Street'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'state',
+                        'name' => Craft::t('formie', 'State'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'zip',
+                        'name' => Craft::t('formie', 'Zip'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'opted_out',
+                        'name' => Craft::t('formie', 'Opted-Out'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'visible',
+                        'name' => Craft::t('formie', 'Visible'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                    ]),
+                ];
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

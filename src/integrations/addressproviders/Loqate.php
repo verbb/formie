@@ -41,7 +41,7 @@ class Loqate extends AddressProvider
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Use [Loqate](https://www.loqate.com/) to suggest addresses, for address fields.');
+        return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Loqate](https://www.loqate.com/)']);
     }
 
     /**

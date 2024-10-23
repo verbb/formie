@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Connect to the {name} API
 1. Go to the <a href="https://console.cloud.google.com/project/_/apiui/apis/enabled" target="_blank">Google Cloud Platform Console</a>.
@@ -12,12 +14,12 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
-    instructions: 'Enter your {name} API Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiKey',
     required: true,
     suggestEnvVars: true,
@@ -26,9 +28,20 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Geocoding API Key' | t('formie'),
-    instructions: 'Enter your {name} Geocoding API Key here, if different to your API Key.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here, if different to your API Key.' | t('formie'),
     name: 'geocodingApiKey',
     suggestEnvVars: true,
     value: integration.settings.geocodingApiKey ?? '',
@@ -36,9 +49,9 @@
     errors: integration.getErrors('geocodingApiKey'),
 }) }}
 
-{{ forms.editableTableField({
+{{ macros.proxyField(fieldVariables, 'editableTableField', {
     label: 'Options' | t('formie'),
-    instructions: 'Provide any additional options, as per the [Google Places docs](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete).' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Google Places docs](https://developers.google.com/maps/documentation/javascript/places-autocomplete#add-autocomplete)' }),
     id: 'options',
     name: 'options',
     cols: [

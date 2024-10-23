@@ -120,6 +120,7 @@ class Integrations extends Component
             emailmarketing\EmailOctopus::class,
             emailmarketing\GetResponse::class,
             emailmarketing\IContact::class,
+            emailmarketing\IterableIntegration::class,
             emailmarketing\Klaviyo::class,
             emailmarketing\KlaviyoLegacy::class,
             emailmarketing\Mailchimp::class,

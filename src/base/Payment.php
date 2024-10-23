@@ -149,10 +149,9 @@ abstract class Payment extends Integration
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getIntegrationHandle();
+        $variables = $this->getSettingsHtmlVariables();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", [
-            'integration' => $this,
-        ]);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", $variables);
     }
 
     /**

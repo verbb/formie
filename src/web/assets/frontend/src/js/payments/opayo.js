@@ -202,7 +202,8 @@ export class FormieOpayo extends FormiePaymentProvider {
         // Add a flag for server-side to check and finalise
         this.updateInputs('opayo3DSComplete', e.data.value.transactionId);
 
-        this.submitHandler.submitForm();
+        // Handle resubmitting the form properly
+        this.processResubmit();
     }
 
     onValidate3DS(e) {

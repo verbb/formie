@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\IntegrationConnectionEvent;
@@ -13,6 +14,7 @@ use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 use verbb\formie\models\Phone;
+use verbb\formie\models\Stencil;
 use verbb\formie\models\Token;
 use verbb\formie\records\Integration as IntegrationRecord;
 
@@ -265,17 +267,37 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         return '';
     }
 
+    public function getSettingsHtmlVariables(): array
+    {
+        return [
+            'integration' => $this,
+            'fieldVariables' => [
+                'plugin' => 'formie',
+                'name' => $this::displayName(),
+            ],
+        ];
+    }
+
     public function getFormSettingsHtml($form): string
     {
         return '';
+    }
+
+    public function getFormSettingsHtmlVariables(Form|Stencil $form): array
+    {
+        return [
+            'integration' => $this,
+            'form' => $form,
+            'fieldVariables' => [
+                'plugin' => 'formie',
+                'name' => $this::displayName(),
+            ],
+        ];
     }
 
     public function hasValidSettings(): bool

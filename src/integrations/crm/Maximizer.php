@@ -51,7 +51,7 @@ class Maximizer extends Crm
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Maximizer customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     /**
@@ -87,36 +87,35 @@ class Maximizer extends Crm
         $settings = [];
 
         try {
-            $response = $this->request('POST', 'AbEntryGetFieldInfo', [
-                'json' => [
-                    'AbEntry' => [
-                        'Options' => [
-                            'Complex' => true,
+            if ($this->mapToContact) {
+                $response = $this->request('POST', 'AbEntryGetFieldInfo', [
+                    'json' => [
+                        'AbEntry' => [
+                            'Options' => [
+                                'Complex' => true,
+                            ],
                         ],
                     ],
-                ],
-            ]);
+                ]);
 
-            $fields = $response['AbEntry']['Data']['properties'] ?? [];
-            $contactFields = $this->_getCustomFields($fields);
+                $fields = $response['AbEntry']['Data']['properties'] ?? [];
+                $settings['contact'] = $this->_getCustomFields($fields);
+            }
 
-            $response = $this->request('POST', 'OpportunityGetFieldInfo', [
-                'json' => [
-                    'Opportunity' => [
-                        'Options' => [
-                            'Complex' => true,
+            if ($this->mapToOpportunity) {
+                $response = $this->request('POST', 'OpportunityGetFieldInfo', [
+                    'json' => [
+                        'Opportunity' => [
+                            'Options' => [
+                                'Complex' => true,
+                            ],
                         ],
                     ],
-                ],
-            ]);
+                ]);
 
-            $fields = $response['Opportunity']['Data']['properties'] ?? [];
-            $opportunityFields = $this->_getCustomFields($fields);
-
-            $settings = [
-                'contact' => $contactFields,
-                'opportunity' => $opportunityFields,
-            ];
+                $fields = $response['Opportunity']['Data']['properties'] ?? [];
+                $settings['opportunity'] = $this->_getCustomFields($fields);
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }

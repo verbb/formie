@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to your <a href="https://www.opayo.com/" target="_blank">MyOpayo Administrator account</a>.
@@ -16,12 +18,12 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Vendor Name' | t('formie'),
-    instructions: 'Enter your {name} Vendor Name here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'vendorName',
     required: true,
     suggestEnvVars: true,
@@ -30,9 +32,9 @@
     errors: integration.getErrors('vendorName'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Integration Key' | t('formie'),
-    instructions: 'Enter your {name} Integration Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationKey',
     required: true,
     suggestEnvVars: true,
@@ -41,9 +43,9 @@
     errors: integration.getErrors('integrationKey'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Integration Password' | t('formie'),
-    instructions: 'Enter your {name} Integration Password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'integrationPassword',
     required: true,
     suggestEnvVars: true,
@@ -52,9 +54,9 @@
     errors: integration.getErrors('integrationPassword'),
 }) }}
 
-{{ forms.booleanMenuField({
+{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
-    instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie'),
     name: 'useSandbox',
     includeEnvVars: true,
     value: integration.settings.useSandbox ?? false,

@@ -388,6 +388,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             return new HtmlTag('div', [
                 'class' => 'fui-repeater-row',
                 'data-repeater-row' => true,
+                'data-repeater-row-id' => $context['id'] ?? '__ROW__',
             ]);
         }
 
