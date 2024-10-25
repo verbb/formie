@@ -123,6 +123,15 @@ class Name extends SubField implements PreviewableFieldInterface
         return false;
     }
 
+    public function getIsRequired(): ?bool
+    {
+        if (!$this->useMultipleFields) {
+            return $this->required;
+        }
+
+        return parent::getIsRequired();
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         // Quit early if a non-multi Name field, it's just plain text
