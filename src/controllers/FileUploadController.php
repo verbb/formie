@@ -336,7 +336,7 @@ class FileUploadController extends Controller
         if (!$parent) {
             return $submission->getFieldValue($initiator)->ids();
         }
-        $row = $this->_getRowFromSubmission($submission, $parent, $initiator, $isNewRow, $rowIndex);
+        $row = $this->_getRowFromSubmission($submission, $parent, $isNewRow, $rowIndex);
         return $row->getFieldValue($initiator)->ids();
     }
 
