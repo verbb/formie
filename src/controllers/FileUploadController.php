@@ -132,7 +132,13 @@ class FileUploadController extends Controller
 
         $submission = $this->_populateSubmission($form);
         $initiator = $this->_getTypedParam('initiator', 'string');
-        $field = $form->getFieldByHandle($initiator);
+        $parent = $this->_getTypedParam('parent', 'string');
+        $isNewRow = $this->_getTypedParam('isNewRow', 'boolean');
+        $rowIndex = $this->_getTypedParam('rowIndex', 'int');
+        $field = $form->getFieldByHandle($parent ?: $initiator);
+        if ($parent) {
+            $field = $field->getFieldByHandle($initiator);
+        }
         $volume = Craft::$app->getVolumes()->getVolumeByUid(explode(':', $field->uploadLocationSource)[1]);
         $file = UploadedFile::getInstanceByName("file");
 
@@ -154,11 +160,17 @@ class FileUploadController extends Controller
         $result = Craft::$app->getElements()->saveElement($asset);
 
         if ($submissionId) {
-            $assetIds = $submission->getFieldValue($initiator)->ids();
+            $assetIds = $this->_getAssetIdsFromSubmission($submission, $parent, $initiator, $isNewRow, $rowIndex);
             $assetIds[] = $asset->id;
-            $submission->setFieldValue($initiator, $assetIds);
-            // Save the submission
-            $success = Craft::$app->getElements()->saveElement($submission, false);
+
+            // Save the row or the submission
+
+            if ($parent) {
+                $row = $this->_getRowFromSubmission($submission, $parent, $isNewRow, $rowIndex);
+                $success = $this->_setAssetIdsForRow($assetIds, $row, $initiator);
+            } else {
+                $success = $this->_setAssetIdsForSubmission($assetIds, $submission, $initiator);
+            }
 
             if ($success) {
                 return $this->asJson(["id" => $asset->id, "url" => $asset->getUrl(), "submissionId" => $submission->id]);
@@ -318,5 +330,40 @@ class FileUploadController extends Controller
         if (!$success) {
             throw new BadRequestHttpException("Unable to delete asset on disk: $assetId", "Upload");
         }
+    }
+
+    private function _getAssetIdsFromSubmission(Submission $submission, $parent, $initiator, $isNewRow, $rowIndex) {
+        if (!$parent) {
+            return $submission->getFieldValue($initiator)->ids();
+        }
+        $row = $this->_getRowFromSubmission($submission, $parent, $initiator, $isNewRow, $rowIndex);
+        return $row->getFieldValue($initiator)->ids();
+    }
+
+    private function _setAssetIdsForSubmission(array $assetIds, Submission $submission, $initiator) {
+        $submission->setFieldValue($initiator, $assetIds);
+        return Craft::$app->getElements()->saveElement($submission);
+    }
+
+    private function _getRowFromSubmission(Submission $submission, $parent, $isNewRow, $rowIndex) {
+        $result = null;
+        $rows = $submission->getFieldValue($parent)->all();
+        $rowCounter = 1;
+        foreach($rows as $row) {
+            if (!$isNewRow && $row->id == $rowIndex) {
+                $result = $row;
+            } else {
+                if ($rowCounter == $rowIndex) {
+                    $result = $row;
+                }
+                $rowCounter++;
+            }
+        }
+        return $result;
+    }
+
+    private function _setAssetIdsForRow($assetIds, $row, $initiator) {
+        $row->setFieldValue($initiator, $assetIds);
+        return Craft::$app->getElements()->saveElement($row);
     }
 }

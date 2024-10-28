@@ -70,11 +70,22 @@ const initializeUppyFiles = function(uppy, files) {
 
 const createUppyInstance = function($this) {
     const container = $this.$field.querySelector('[type="file"]');
-    const { fuiId } = container.dataset;
+    const { fuiId, parent } = container.dataset;
     const fieldName = container.name;
-    const parent = container.parentNode;
+    const { parentNode } = container;
     if (!fuiId) {
         return;
+    }
+    let rowIndex = false;
+    let isNewRow = false;
+    if (parent) {
+        const repeaterRowId = container.closest('.fui-repeater-row').dataset?.repeaterRowId;
+        if (repeaterRowId && repeaterRowId.startsWith('new')) {
+            isNewRow = true;
+            rowIndex = parseInt(repeaterRowId.replace('new', ''), 10);
+        } else {
+            rowIndex = parseInt(repeaterRowId, 10);
+        }
     }
     const files = container.dataset.files ? JSON.parse(container.dataset.files) : [];
     const { uppyOptions } = $this;
@@ -93,6 +104,9 @@ const createUppyInstance = function($this) {
         },
         meta: {
             initiator: container.dataset.fieldHandle,
+            parent,
+            isNewRow,
+            rowIndex,
         },
         autoProceed: false,
         ...uppyOptions.core,
@@ -104,7 +118,7 @@ const createUppyInstance = function($this) {
         inline: true,
         height: 300,
         width: 'auto',
-        target: parent,
+        target: parentNode,
         theme: 'auto',
         showRemoveButtonAfterComplete: true,
         doneButtonHandler: null,
@@ -142,7 +156,7 @@ const createUppyInstance = function($this) {
         fileUploadInput.name = fieldName;
         fileUploadInput.type = 'hidden';
         fileUploadInput.value = assetId;
-        parent.appendChild(fileUploadInput);
+        parentNode.appendChild(fileUploadInput);
     });
 
     uppy.on('upload-error', () => {
