@@ -11,5 +11,6 @@
         'files': value and value.all() ? value.ids(),
         'allowed-kinds': field.restrictFiles ? field.allowedKinds : [],
         'readable-accept': field.accept,
+        'parent': field.isNested ? field.parentField.handle : false,
     }
 }) }}
