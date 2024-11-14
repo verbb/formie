@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.47 - 2024-11-15
+
+### Fixed
+- Fix a PHP error for pre PHP 8.
+
 ## 1.6.46 - 2024-10-24
 
 ### Added
