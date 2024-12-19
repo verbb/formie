@@ -228,8 +228,8 @@ class ImportExportHelper
                                 }
                                 
                                 // Handle Group/Repeater to do the same, but slightly different
-                                if (isset($field['rows'])) {
-                                    foreach ($field['rows'] as $nestedRowKey => &$nestedRow) {
+                                if (isset($field['settings']['rows'])) {
+                                    foreach ($field['settings']['rows'] as $nestedRowKey => &$nestedRow) {
                                         if (isset($nestedRow['fields'])) {
                                             foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
                                                 $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['settings']['handle']] ?? null;
