@@ -92,7 +92,7 @@ class Checkboxes extends OptionsField
         $rules = parent::getElementValidationRules();
 
         if ($this->limitOptions) {
-            $rules[] = [$this->fieldKey, 'validateLimitOptions', 'skipOnEmpty' => false];
+            $rules[] = [$this->handle, 'validateLimitOptions', 'skipOnEmpty' => false];
         }
 
         return $rules;

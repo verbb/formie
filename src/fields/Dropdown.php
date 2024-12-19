@@ -91,7 +91,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         $rules = parent::getElementValidationRules();
 
         if ($this->limitOptions) {
-            $rules[] = [$this->fieldKey, 'validateLimitOptions', 'skipOnEmpty' => false];
+            $rules[] = [$this->handle, 'validateLimitOptions', 'skipOnEmpty' => false];
         }
 
         return $rules;
