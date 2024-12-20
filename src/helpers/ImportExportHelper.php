@@ -150,14 +150,7 @@ class ImportExportHelper
 
         // Store the fields on an existing form, so we can retain their IDs later
         if ($existingForm) {
-            $existingFields = ArrayHelper::index($existingForm->getFields(), 'handle');
-
-            // Handle any nested fields from Group/Repeater. Save them as `repeaterHandle_fields`.
-            foreach ($existingFields as $existingField) {
-                if ($existingField instanceof NestedFieldInterface) {
-                    $existingFields[$existingField->handle . '_fields'] = ArrayHelper::index($existingField->getFields(), 'handle');
-                }
-            }
+            $existingFields = self::buildFieldMap($existingForm->getFields());
 
             // Reset the form layout so it's from scratch
             $form->setFormLayout(new FieldLayout());
@@ -212,40 +205,9 @@ class ImportExportHelper
             }
         }
 
-        // Check if this is updating an existing form. We want to try and find existing fields
-        // and attach the IDs of them to page data, so new fields aren't created (and their submission data lost)
-        foreach ($existingFields as $existingField) {
-            // Try to find the field data in the import, and attach the ID
-            foreach ($pages as $pageKey => &$page) {
-                if (isset($page['rows'])) {
-                    foreach ($page['rows'] as $rowKey => &$row) {
-                        if (isset($row['fields'])) {
-                            foreach ($row['fields'] as $fieldKey => &$field) {
-                                $existingField = $existingFields[$field['settings']['handle']] ?? null;
-
-                                if ($existingField) {
-                                    $field['id'] = $existingField->id;
-                                }
-                                
-                                // Handle Group/Repeater to do the same, but slightly different
-                                if (isset($field['settings']['rows'])) {
-                                    foreach ($field['settings']['rows'] as $nestedRowKey => &$nestedRow) {
-                                        if (isset($nestedRow['fields'])) {
-                                            foreach ($nestedRow['fields'] as $nestedFieldKey => &$nestedField) {
-                                                $existingNestedField = $existingFields[$field['settings']['handle'] . '_fields'][$nestedField['settings']['handle']] ?? null;
-
-                                                if ($existingNestedField) {
-                                                    $nestedField['id'] = $existingNestedField->id;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // Traverse import data and update field IDs
+        foreach ($pages as &$page) {
+            self::updateFieldIdsInImport($page, $existingFields);
         }
 
         // Ensure the pages/rows/fields are prepped properly
@@ -389,6 +351,45 @@ class ImportExportHelper
 
                 // Cleanup any isolated fields
                 $page['rows'] = array_filter($page['rows']);
+            }
+        }
+    }
+
+    private static function buildFieldMap(array $fields, string $prefix = ''): array
+    {
+        $fieldMap = [];
+
+        foreach ($fields as $field) {
+            $key = $prefix ? "$prefix.{$field->handle}" : $field->handle;
+            $fieldMap[$key] = $field;
+
+            // Check for nested fields
+            if ($field instanceof NestedFieldInterface) {
+                $nestedFields = $field->getFields();
+                $fieldMap = array_merge($fieldMap, self::buildFieldMap($nestedFields, $key));
+            }
+        }
+
+        return $fieldMap;
+    }
+
+    private static function updateFieldIdsInImport(array &$data, array $existingFields, string $prefix = ''): void
+    {
+        if (isset($data['rows'])) {
+            foreach ($data['rows'] as &$row) {
+                if (isset($row['fields'])) {
+                    foreach ($row['fields'] as &$field) {
+                        $key = $prefix ? "$prefix.{$field['settings']['handle']}" : $field['settings']['handle'];
+                        if (isset($existingFields[$key])) {
+                            $field['id'] = $existingFields[$key]->id;
+                        }
+
+                        // Recursively handle nested fields
+                        if (isset($field['settings']['rows'])) {
+                            self::updateFieldIdsInImport($field['settings'], $existingFields, $key);
+                        }
+                    }
+                }
             }
         }
     }
