@@ -210,6 +210,37 @@ export default {
                 return { label: status.name, value: status.handle };
             });
 
+            const sites = Craft.sites.map((site) => {
+                return { label: site.name, value: site.handle };
+            });
+
+            options.push({
+                label: Craft.t('formie', 'Submission'),
+                options: [
+                    { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
+                    { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
+                    { label: Craft.t('formie', 'Form Name'), value: '{submission:formName}' },
+                    {
+                        label: Craft.t('formie', 'Site'),
+                        value: '{submission:siteHandle}',
+                        valueType: 'select',
+                        valueOptions: [
+                            { label: Craft.t('formie', 'Select an option'), value: '' },
+                            ...sites,
+                        ],
+                    },
+                    {
+                        label: Craft.t('formie', 'Status'),
+                        value: '{submission:status}',
+                        valueType: 'select',
+                        valueOptions: [
+                            { label: Craft.t('formie', 'Select an option'), value: '' },
+                            ...statuses,
+                        ],
+                    },
+                ],
+            });
+
             // Special-case for page conditions, we don't want to include any fields that are on a future page
             if (this.context.attrs.isPageModal) {
                 // First, collect the handles of all field on this page and previous ones.
