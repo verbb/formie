@@ -837,7 +837,8 @@ class FileUpload extends ElementField
     {
         $sourceKey = $this->uploadLocationSource;
 
-        if ($sourceKey && str_starts_with($sourceKey, 'volume:')) {
+
+        if ($sourceKey && (str_starts_with($sourceKey, 'volume:') || str_starts_with($sourceKey, 'folder:'))) {
             $parts = explode(':', $sourceKey);
 
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);

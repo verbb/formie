@@ -827,6 +827,7 @@ class Fields extends Component
         $fieldRecord->save(false);
 
         $field->id = $fieldRecord->id;
+        $field->uid = $fieldRecord->uid;
 
         $field->afterSave($isNewField);
 

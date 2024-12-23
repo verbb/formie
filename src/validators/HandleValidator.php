@@ -41,4 +41,23 @@ class HandleValidator extends Validator
             }
         }
     }
+
+    public function validateValue($value): ?array
+    {
+        $reservedWords = array_map('strtolower', $this->reservedWords);
+        $lcHandle = strtolower($value);
+
+        if (in_array($lcHandle, $reservedWords, true)) {
+            return [Craft::t('app', '“{handle}” is a reserved word.', ['handle' => $value]), []];
+        } else {
+            if (!preg_match('/^' . static::$handlePattern . '$/', $value)) {
+                $altMessage = Craft::t('app', '“{handle}” isn’t a valid handle.', ['handle' => $value]);
+                $message = $this->message ?? $altMessage;
+
+                return [$message, []];
+            }
+        }
+
+        return null;
+    }
 }

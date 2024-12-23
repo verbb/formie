@@ -1478,6 +1478,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $rules[] = [['label', 'handle'], 'required'];
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
         $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => $this->getReservedHandles()];
+        $rules[] = [['handle'], 'string', 'max' => 64];
 
         $rules[] = [
             ['handle'],

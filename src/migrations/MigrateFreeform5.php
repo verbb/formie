@@ -1,6 +1,10 @@
 <?php
 namespace verbb\formie\migrations;
 
+use craft\helpers\StringHelper as CraftStringHelper;
+use ReflectionClass;
+use ReflectionProperty;
+use verbb\formie\base\Field;
 use verbb\formie\Formie;
 use verbb\formie\base\FormFieldInterface as FormieFieldInterface;
 use verbb\formie\elements\Form as FormieForm;
@@ -32,6 +36,7 @@ use DateTime;
 use DateTimeZone;
 use Throwable;
 
+use verbb\formie\validators\HandleValidator;
 use yii\base\InvalidConfigException;
 use yii\helpers\Markdown;
 
@@ -105,7 +110,7 @@ class MigrateFreeform5 extends Migration
 
         try {
             $form = new FormieForm();
-            $form->title = $freeformForm->name;
+            $form->title = $freeformForm->getName();
             $form->handle = $this->_getHandle($freeformForm);
             $form->settings->submissionTitleFormat = $freeformForm->submissionTitle != '{{ dateCreated|date("Y-m-d H:i:s") }}' ? $freeformForm->submissionTitle : '';
             $form->settings->submitMethod = $freeformForm->isAjaxEnabled() ? 'ajax' : 'page-reload';
@@ -127,7 +132,7 @@ class MigrateFreeform5 extends Migration
             $form = $this->_form = $event->newForm;
 
             if ($fieldLayout = $this->_buildFieldLayout($freeformForm)) {
-                $form->setFormFieldLayout($fieldLayout);
+                $form->setFormLayout($fieldLayout);
             }
 
             if (!$event->isValid) {
@@ -135,7 +140,7 @@ class MigrateFreeform5 extends Migration
                 return $form;
             }
 
-            if (!Formie::$plugin->getForms()->saveForm($form)) {
+            if (!Craft::$app->getElements()->saveElement($form)) {
                 $this->stdout("    > Failed to save form “{$form->handle}”.", Console::FG_RED);
 
                 foreach ($form->getErrors() as $attr => $errors) {
@@ -207,8 +212,6 @@ class MigrateFreeform5 extends Migration
             foreach ($entry->getFieldCollection() as $field) {
                 // Parse the handle for a few things just in case
                 $handle = $this->_getFieldHandle($field->getHandle(), false);
-
-                $field = $entry->$handle;
 
                 try {
                     switch (get_class($field)) {
@@ -307,10 +310,16 @@ class MigrateFreeform5 extends Migration
             $this->stdout("Notifications: Preparing to migrate notification.");
 
             foreach ($notifications as $notification) {
+                if (! $notification->getTemplate()) {
+                    $this->stdout("    > Skipped notification “{$notification->getName()}” because no template was defined.", Console::FG_YELLOW);
+                    continue;
+                }
+
                 try {
                     $newNotification = new Notification();
                     $newNotification->formId = $this->_form->id;
                     $newNotification->name = $notification->getName();
+                    $newNotification->handle = $this->getNotificationHandle($notification->getTemplate()->getHandle());
                     $newNotification->subject = $notification->getTemplate()->getSubject();
                     $newNotification->recipients = 'email';
                     $newNotification->to = implode(',', $notification->getRecipients()->emailsToArray());
@@ -398,23 +407,37 @@ class MigrateFreeform5 extends Migration
         }
     }
 
+    private function getNotificationHandle($currentHandle): string
+    {
+        $newHandle = $currentHandle;
+
+        // Check for invalid handles from Freeform, and convert it automatically
+        if (str_contains($currentHandle, '-')) {
+            $newHandle = str_replace('-', '_', $currentHandle);
+
+            $this->stdout("    > Handle “{$currentHandle}” is invalid, using “{$newHandle}” instead.", Console::FG_YELLOW);
+        }
+
+        return $newHandle;
+    }
+
     private function _buildFieldLayout(FreeformForm $form): FieldLayout
     {
-        $fieldLayout = new FieldLayout(['type' => Form::class]);
-        $fieldLayout->type = Form::class;
+        $fieldLayout = new FieldLayout(['type' => FormieForm::class]);
+        $fieldLayout->type = FormieForm::class;
 
         $pages = [];
         $fields = [];
         $layout = $form->getLayout();
 
         foreach ($layout->getPages() as $pageIndex => $page) {
-            $newPage = new FieldLayoutPage();
-            $newPage->name = $page->getLabel();
-            $newPage->sortOrder = '' . $pageIndex;
-
-            $pageFields = [];
+            $newPage = [];
+            $newPage['label'] = $page->getLabel();
+            $newPage['sortOrder'] = '' . $pageIndex;
 
             foreach ($page->getRows() as $rowIndex => $row) {
+                $newRow = [];
+
                 foreach ($row as $fieldIndex => $field) {
                     $newField = $this->_mapField($field);
 
@@ -448,13 +471,17 @@ class MigrateFreeform5 extends Migration
                             }
                         } else {
                             $newField->sortOrder = $fieldIndex;
-                            $newField->rowIndex = $rowIndex;
-                            $pageFields[] = $newField;
-                            $fields[] = $newField;
+                            $newField->rowId = $rowIndex; //?
+
+                            $newRow['fields'][] = $newField;
                         }
                     } else {
                         $this->stdout("    > Failed to migrate field “{$field->getHandle()}” on form “{$form->handle}”. Unsupported field.", Console::FG_RED);
                     }
+                }
+
+                if ($newRow) {
+                    $newPage['rows'][] = $newRow;
                 }
             }
 
@@ -465,13 +492,10 @@ class MigrateFreeform5 extends Migration
             $newPage['settings']['submitButtonLabel'] = $page->getButtons()->getSubmitLabel();
             $newPage['settings']['backButtonLabel'] = $page->getButtons()->getBackLabel();
 
-            $newPage->setLayout($fieldLayout);
-            $newPage->setCustomFields($pageFields);
             $pages[] = $newPage;
         }
 
         $fieldLayout->setPages($pages);
-        $fieldLayout->setCustomFields($fields);
 
         return $fieldLayout;
     }
@@ -585,7 +609,7 @@ class MigrateFreeform5 extends Migration
                 $this->_applyFieldDefaults($newField);
 
                 $newField->label = $field->getLabel();
-                $newField->handle = $field->getHash();
+                $newField->handle = $field->getHandle();
                 $newField->htmlContent = $field->getValue();
                 $newField->labelPosition = HiddenPosition::class;
                 break;
@@ -709,8 +733,8 @@ class MigrateFreeform5 extends Migration
                 return null;
         }
 
-        if (!$newField->name) {
-            $newField->name = $field->getLabel();
+        if (!$newField->label) {
+            $newField->label = $field->getLabel();
         }
 
         if (!$newField->handle) {
@@ -761,6 +785,36 @@ class MigrateFreeform5 extends Migration
 
             if ($showLog) {
                 $this->stdout("    > Handle “{$currentHandle}” contains an invalid character, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            }
+        }
+
+        // If the handle is longer than 64 characters cut the remainder off
+        if (strlen($newHandle) > 64) {
+            $currentHandle = $newHandle;
+            $newHandle = substr($newHandle, 0, 64);
+
+            if ($showLog) {
+                $this->stdout("    > Handle “{$currentHandle}” is longer than the allowed 64 characters, will use “{$newHandle}” instead.", Console::FG_YELLOW);
+            }
+        }
+
+        // Validate the handle on it's correctness
+        try {
+            $reflection = new ReflectionClass(Submission::class);
+            $reserved =  array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+        } catch (Throwable $e) {
+            $reserved = [];
+        }
+        $validator = new HandleValidator([
+            'reservedWords' => $reserved,
+        ]);
+        if(! $validator->validate($newHandle)) {
+            $newHandle = 'formie_' . CraftStringHelper::randomString(10);
+
+            if ($showLog) {
+                $this->stdout("    > Handle “{$currentHandle}” is invalid, will use the generated “{$newHandle}” instead.", Console::FG_YELLOW);
             }
         }
 

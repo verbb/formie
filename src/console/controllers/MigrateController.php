@@ -82,7 +82,7 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform(['formId' => $formId]);
+            $migration = new MigrateFreeform4(['formId' => $formId]);
             $migration->setConsoleRequest($this);
             $migration->up();
         }
@@ -110,7 +110,7 @@ class MigrateController extends Controller
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform(['formId' => $formId]);
+            $migration = new MigrateFreeform5(['formId' => $formId]);
             $migration->setConsoleRequest($this);
             $migration->up();
         }
