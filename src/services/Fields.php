@@ -429,6 +429,14 @@ class Fields extends Component
             $config = ['type' => $config];
         }
 
+        // If already a `MissingField` (typically serialized in stencil), convert back
+        if ($config['type'] === formiefields\MissingField::class) {
+            $config = [
+                'type' => $config['settings']['expectedType'],
+                'settings' => $config['settings']['settings'] ?? [],
+            ];
+        }
+
         try {
             $field = ComponentHelper::createComponent($config, FieldInterface::class);
         } catch (MissingComponentException $e) {
