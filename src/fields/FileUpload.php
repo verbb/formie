@@ -653,7 +653,7 @@ class FileUpload extends ElementField
             // The easiest method is to just re-serialize all field values and save the content as a whole
             $content = $element->serializeFieldValues();
             
-            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Json::encode($content)], ['id' => $element->id]);
+            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $element->id]);
         }
     }
 
