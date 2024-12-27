@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.16 - 2024-12-27
+
+### Added
+- Add context property for integrations to record extra data at submission time.
+- Add support for Pardot tracking cookies for Form Handler.
+- Add support for field conditions to use non-field conditions such as status.
+
+### Fixed
+- Fix any serialized `MissingField` classes not being converted back when the field is no longer missing.
+- Fix an error importing forms and nested fields not retaining their submission content.
+- Fix Dropdown and Checkboxes not validating correctly when in a nested field.
+- Fix `Db::prepareForJsonColumn` deprecation and handling.
+- Fix an error with Usage tab when Formie forms are referenced in a Neo block.
+- Fix Freeform 4/5 migration. (thanks @ThomasDeMarez).
+
 ## 3.0.15 - 2024-12-17
 
 ### Added
