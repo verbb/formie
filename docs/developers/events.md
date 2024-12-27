@@ -2120,10 +2120,10 @@ You can use this event to custom Sprout Forms or Freeform field to a field Formi
 
 ```php
 use verbb\formie\events\ModifyMigrationFieldEvent;
-use verbb\formie\migrations\MigrateFreeform;
+use verbb\formie\migrations\MigrateFreeform4;
 use yii\base\Event;
 
-Event::on(MigrateFreeform::class, MigrateFreeform::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
+Event::on(MigrateFreeform4::class, MigrateFreeform4::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
     $field = $event->field;
     $newField = $event->newField;
     // ...

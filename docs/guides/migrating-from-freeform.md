@@ -1,5 +1,10 @@
 # Migrating from Freeform
-If your existing site has forms, submissions and email notifications from [Solspace Freeform v3](https://docs.solspace.com/craft/freeform/v3/), it can be easily migrated over to Formie. Your existing content with Freeform will not be touched.
+If your existing site has forms, submissions and email notifications from [Solspace Freeform](https://docs.solspace.com/craft/freeform/v5/), it can be easily migrated over to Formie. Your existing content with Freeform will not be touched.
+
+We support the following Freeform versions:
+- Freeform 3.x
+- Freeform 4.x
+- Freeform 5.x
 
 To migrate your forms and form data, install Formie, and navigate to Formie → Settings → Migrations → Freeform. You'll need to have Freeform installed and enabled for this setting to appear.
 

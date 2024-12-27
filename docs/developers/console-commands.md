@@ -127,5 +127,9 @@ Option | Description
 `--form-handle` | The Freeform form handle(s) to migrate. Can be set to multiple comma-separated handles. Omit to migrate all.
 
 ```shell
-./craft formie/migrate/migrate-freeform --form-handle=form1,anotherForm
+./craft formie/migrate/migrate-freeform4 --form-handle=form1,anotherForm
+```
+
+```shell
+./craft formie/migrate/migrate-freeform5 --form-handle=form1,anotherForm
 ```

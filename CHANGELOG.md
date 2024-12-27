@@ -484,6 +484,12 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.37 - 2024-12-27
+
+### Added
+- Add context property for integrations to record extra data at submission time.
+- Add support for Pardot tracking cookies for Form Handler.
+
 ## 2.1.36 - 2024-12-17
 
 ### Added
