@@ -232,7 +232,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         foreach ($forms as $form) {
             $fieldLayout = null;
-            $templateId = $form['templateId'];
+            $templateId = $form['templateId'] ?? null;
 
             if ($templateId) {
                 $template = (new Query())->from(Table::FORMIE_FORM_TEMPLATES)->where(['id' => $templateId])->one();
@@ -577,7 +577,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             if ($title) {
                 $this->update(Table::ELEMENTS_SITES, ['title' => $title], ['elementId' => $elementId]);
-                $this->delete('{{%content}}', ['elementId' => $elementId]);
+                $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
             
                 echo '    > Updated form #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
