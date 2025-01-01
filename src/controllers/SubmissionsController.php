@@ -12,12 +12,14 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
+use verbb\formie\storage\SessionStorage;
 use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
 use craft\base\Element;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\Json;
+use craft\helpers\Session;
 use craft\models\Site;
 use craft\web\Controller;
 
@@ -446,6 +448,14 @@ class SubmissionsController extends Controller
 
         // Update the storage mechanism, which can't be set via sessions, and we've re-fetched the form
         $form->setStorageBehaviour($storage);
+
+        // If using session storage, there seems to be an issue in some browsers (Firefox, Safari) 
+        // where if working with sessions (get/set) for the first time, it doesn't work.
+        // So set a random value to kick the session into gear, so that it's ready for Formie.
+        // See https://github.com/verbb/formie/issues/2194
+        if ($form->getStorage() instanceof SessionStorage) {
+            Session::set('formie:nonce', rand());
+        }
 
         // If we're going back, and want to  navigate without saving
         if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
