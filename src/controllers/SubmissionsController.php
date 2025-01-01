@@ -449,9 +449,8 @@ class SubmissionsController extends Controller
         // Update the storage mechanism, which can't be set via sessions, and we've re-fetched the form
         $form->setStorageBehaviour($storage);
 
-        // If using session storage, there seems to be an issue in some browsers (Firefox, Safari) 
-        // where if working with sessions (get/set) for the first time, it doesn't work.
-        // So set a random value to kick the session into gear, so that it's ready for Formie.
+        // If using session storage, we need to ensure the session is started before using it. `Session::exists()` isn't enough.
+        // There's no `Session::open()` function yet, so simply set a random value to kick off sessions.
         // See https://github.com/verbb/formie/issues/2194
         if ($form->getStorage() instanceof SessionStorage) {
             Session::set('formie:nonce', rand());
