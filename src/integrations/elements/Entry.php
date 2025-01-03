@@ -196,12 +196,12 @@ class Entry extends Element
                 'sectionUid' => $sectionUid,
             ]);
 
-            $entry->siteId = $submission->siteId;
-            $entry->typeId = $entryTypeId;
-            $entry->sectionId = $sectionId;
+            $entryType = Craft::$app->getEntries()->getEntryTypeByUid($entryTypeUid);
+            $section = Craft::$app->getEntries()->getSectionByUid($sectionUid);
 
-            $entryType = Craft::$app->getEntries()->getEntryTypeById($entryTypeId);
-            $section = Craft::$app->getEntries()->getSectionById($sectionId);
+            $entry->siteId = $submission->siteId;
+            $entry->typeId = $entryType->id;
+            $entry->sectionId = $section->id;
 
             if ($this->defaultAuthorId) {
                 $entry->authorId = $this->defaultAuthorId;
