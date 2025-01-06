@@ -257,6 +257,7 @@ export default {
     font-size: 12px;
     font-weight: 600;
     height: auto;
+    min-height: auto;
 }
 
 .fui-notification-preview .field {

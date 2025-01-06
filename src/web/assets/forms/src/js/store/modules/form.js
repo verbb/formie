@@ -608,12 +608,6 @@ const getters = {
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
             } else if (field.settings.rows && !field.isMultiNested) {
                 // Include the string representation of fields, if Sub-Fields
                 if (field.hasSubFields) {
@@ -701,12 +695,6 @@ const getters = {
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
             } else if (field.settings.rows) {
                 // Handle Group fields (single-nesting field types) and Sub-Fields
                 fieldOptions.push({
@@ -785,12 +773,6 @@ const getters = {
             }
 
             if (field.type === 'verbb\\formie\\fields\\Name' && !field.settings.useMultipleFields) {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
                 fieldOptions.push({
                     ...field,
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
