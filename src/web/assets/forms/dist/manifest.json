@@ -83,7 +83,7 @@
     ]
   },
   "src/js/formie-form.js": {
-    "file": "assets/formie-form-VYyT6-Pz.js",
+    "file": "assets/formie-form-ytuAgPia.js",
     "src": "src/js/formie-form.js",
     "isEntry": true,
     "imports": [
@@ -91,7 +91,7 @@
       "_Modal-nXsJgH7X.js"
     ],
     "css": [
-      "assets/formie-form-JbW8yNe3.css"
+      "assets/formie-form-i8niGUPj.css"
     ]
   },
   "src/js/formie-integration-settings.js": {
