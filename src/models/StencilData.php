@@ -68,6 +68,7 @@ class StencilData extends Model
 
                     if ($field instanceof NestedField) {
                         $settings['rows'] = $serializeRows($field->getRows());
+                        $settings['nestedLayoutId'] = null;
                     }
 
                     $rowData['fields'][] = [
