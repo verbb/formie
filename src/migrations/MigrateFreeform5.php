@@ -1,11 +1,8 @@
 <?php
 namespace verbb\formie\migrations;
 
-use craft\helpers\StringHelper as CraftStringHelper;
-use ReflectionClass;
-use ReflectionProperty;
-use verbb\formie\base\Field;
 use verbb\formie\Formie;
+use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FormFieldInterface as FormieFieldInterface;
 use verbb\formie\elements\Form as FormieForm;
 use verbb\formie\elements\Submission;
@@ -24,6 +21,7 @@ use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\prosemirror\toprosemirror\Renderer;
+use verbb\formie\validators\HandleValidator;
 
 use Craft;
 use craft\console\Controller;
@@ -34,9 +32,10 @@ use craft\helpers\Json;
 
 use DateTime;
 use DateTimeZone;
+use ReflectionClass;
+use ReflectionProperty;
 use Throwable;
 
-use verbb\formie\validators\HandleValidator;
 use yii\base\InvalidConfigException;
 use yii\helpers\Markdown;
 
@@ -310,7 +309,7 @@ class MigrateFreeform5 extends Migration
             $this->stdout("Notifications: Preparing to migrate notification.");
 
             foreach ($notifications as $notification) {
-                if (! $notification->getTemplate()) {
+                if (!$notification->getTemplate()) {
                     $this->stdout("    > Skipped notification “{$notification->getName()}” because no template was defined.", Console::FG_YELLOW);
                     continue;
                 }
@@ -471,7 +470,6 @@ class MigrateFreeform5 extends Migration
                             }
                         } else {
                             $newField->sortOrder = $fieldIndex;
-                            $newField->rowId = $rowIndex; //?
 
                             $newRow['fields'][] = $newField;
                         }
@@ -811,7 +809,7 @@ class MigrateFreeform5 extends Migration
             'reservedWords' => $reserved,
         ]);
         if(! $validator->validate($newHandle)) {
-            $newHandle = 'formie_' . CraftStringHelper::randomString(10);
+            $newHandle = 'formie_' . StringHelper::randomString(10);
 
             if ($showLog) {
                 $this->stdout("    > Handle “{$currentHandle}” is invalid, will use the generated “{$newHandle}” instead.", Console::FG_YELLOW);
