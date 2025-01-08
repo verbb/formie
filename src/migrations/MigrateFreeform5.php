@@ -799,16 +799,19 @@ class MigrateFreeform5 extends Migration
         // Validate the handle on it's correctness
         try {
             $reflection = new ReflectionClass(Submission::class);
+            
             $reserved =  array_map(function($prop) {
                 return $prop->name;
             }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
         } catch (Throwable $e) {
             $reserved = [];
         }
+
         $validator = new HandleValidator([
             'reservedWords' => $reserved,
         ]);
-        if(! $validator->validate($newHandle)) {
+
+        if (!$validator->validate($newHandle)) {
             $newHandle = 'formie_' . StringHelper::randomString(10);
 
             if ($showLog) {
