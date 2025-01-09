@@ -381,6 +381,8 @@ class FormsController extends Controller
             }
         }
 
+        $settings = Formie::$plugin->getSettings();
+
         /** @var Form $form */
         $form = $variables['form'];
 
@@ -399,6 +401,7 @@ class FormsController extends Controller
             'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+            'filterIntegrationMapping' => $settings->filterIntegrationMapping,
         ];
 
         $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs($form, $variables);

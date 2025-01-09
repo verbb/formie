@@ -166,18 +166,25 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                 },
 
                 getFormData(options = {}) {
-                    const formData = new FormData(this.getFormElement());
-                    const data = new FormData();
+                    let data = new FormData();
 
-                    // Filter out empty integration field mapping values, to keep payload size down
-                    const pattern = /^settings\[integrations\]\[.+\]\[.*fieldMapping.*\]$/i;
+                    // For Craft Cloud, we need to be mindful of what is sent to the server, due to platform requirements
+                    // but some people do have issues with mapping going away, so opt-in.
+                    if (settings.filterIntegrationMapping) {
+                        const formData = new FormData(this.getFormElement());
 
-                    for (const [key, value] of formData.entries()) {
-                        if (pattern.test(key) && value === '') {
-                            continue;
+                        // Filter out empty integration field mapping values, to keep payload size down
+                        const pattern = /^settings\[integrations\]\[.+\]\[.*fieldMapping.*\]$/i;
+
+                        for (const [key, value] of formData.entries()) {
+                            if (pattern.test(key) && value === '') {
+                                continue;
+                            }
+
+                            data.append(key, value);
                         }
-
-                        data.append(key, value);
+                    } else {
+                        data = new FormData(this.getFormElement());
                     }
 
                     // Add serialized models for form and notifications

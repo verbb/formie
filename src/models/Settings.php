@@ -36,6 +36,7 @@ class Settings extends Model
     public bool $enableUnloadWarning = true;
     public bool $enableBackSubmission = true;
     public int $ajaxTimeout = 10;
+    public bool $filterIntegrationMapping = true;
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
 

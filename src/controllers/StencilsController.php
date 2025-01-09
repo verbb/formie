@@ -203,6 +203,8 @@ class StencilsController extends Controller
             $variables['title'] = Craft::t('formie', 'Create a new stencil');
         }
 
+        $settings = Formie::$plugin->getSettings();
+
         /** @var Stencil $stencil */
         $stencil = $variables['stencil'];
 
@@ -221,6 +223,7 @@ class StencilsController extends Controller
             'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+            'filterIntegrationMapping' => $settings->filterIntegrationMapping,
         ];
 
         $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs();
