@@ -66,3 +66,16 @@ export const waitForElement = function(selector, $element) {
         });
     });
 };
+
+export const getScriptUrl = function($form, url) {
+    const modifyScriptUrlEvent = new CustomEvent('modifyScriptUrl', {
+        bubbles: true,
+        detail: {
+            url,
+        },
+    });
+
+    $form.dispatchEvent(modifyScriptUrlEvent);
+
+    return modifyScriptUrlEvent.detail.url;
+};

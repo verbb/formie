@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, getScriptUrl } from '../utils/utils';
 import intlTelInput from 'intl-tel-input';
 
 export class FormiePhoneCountry {
@@ -29,7 +29,7 @@ export class FormiePhoneCountry {
             initialCountry: 'auto',
             autoPlaceholder: 'off',
             formatOnDisplay: false,
-            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js',
+            utilsScript: getScriptUrl(this.$form, 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js'),
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
