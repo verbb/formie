@@ -2177,32 +2177,48 @@ class Form extends Element
         if ($this->settings->limitSubmissions) {
             $query = Submission::find()->formId($this->id);
 
-            if ($this->settings->limitSubmissionsType === 'total') {
-                $submissions = $query->count();
-            } else if ($this->settings->limitSubmissionsType === 'day') {
+            // Get the appropriate settings for the limit type
+            if ($this->settings->limitSubmissions === 'ipAddress') {
+                $limitSubmissionsType = $this->settings->limitSubmissionsIpAddressType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsIpAddressNumber;
+
+                // Ensure that we actually are storing IPs, otherwise nothing really to compare
+                if (!$this->settings->collectIp) {
+                    return true;
+                }
+
+                $query->ipAddress(Craft::$app->getRequest()->userIP);
+            } else {
+                $limitSubmissionsType = $this->settings->limitSubmissionsType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsNumber;
+            }
+
+            if ($limitSubmissionsType === 'day') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'week') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'month') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'year') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
             }
 
-            if ($submissions >= $this->settings->limitSubmissionsNumber) {
+            $submissions = $query->count();
+
+            if ($submissions >= $limitSubmissionsNumber) {
                 return false;
             }
         }
