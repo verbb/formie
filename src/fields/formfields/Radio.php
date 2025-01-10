@@ -4,7 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\positions;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -50,6 +50,18 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
 
     // Public Methods
     // =========================================================================
+
+    public function supportsLabelPosition(string $class): bool
+    {
+        // Restricted due to use of `<legend>`
+        $disabled = [
+            positions\BelowInput::class,
+            positions\LeftInput::class,
+            positions\RightInput::class,
+        ];
+
+        return in_array($class, $disabled) ? false : parent::supportsLabelPosition($class);
+    }
 
     /**
      * @inheritDoc
@@ -243,7 +255,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
                     'fui-legend',
                 ],
                 'data' => [
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
                 ],
             ]);
         }

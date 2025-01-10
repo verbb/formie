@@ -697,6 +697,10 @@ class Fields extends Component
 
             foreach ($event->options as $class) {
                 if ($class::supports($field)) {
+                    if ($field && !$field->supportsLabelPosition($class)) {
+                        continue;
+                    }
+
                     $supportedPositions[] = $class;
                 }
             }
@@ -752,6 +756,10 @@ class Fields extends Component
 
             foreach ($event->options as $class) {
                 if ($class::supports($field)) {
+                    if ($field && !$field->supportsInstructionsPosition($class)) {
+                        continue;
+                    }
+
                     $supportedPositions[] = $class;
                 }
             }

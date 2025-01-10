@@ -4,7 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\positions;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -82,6 +82,18 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
         parent::init();
 
         $this->multi = true;
+    }
+
+    public function supportsLabelPosition(string $class): bool
+    {
+        // Restricted due to use of `<legend>`
+        $disabled = [
+            positions\BelowInput::class,
+            positions\LeftInput::class,
+            positions\RightInput::class,
+        ];
+
+        return in_array($class, $disabled) ? false : parent::supportsLabelPosition($class);
     }
 
     /**
@@ -368,7 +380,7 @@ class Checkboxes extends BaseOptionsField implements FormFieldInterface
                     'fui-legend',
                 ],
                 'data' => [
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
                 ],
             ]);
         }

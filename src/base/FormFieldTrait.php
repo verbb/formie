@@ -622,6 +622,16 @@ trait FormFieldTrait
         return $this->visibility === 'hidden';
     }
 
+    public function supportsLabelPosition(string $class): bool
+    {
+        return true;
+    }
+
+    public function supportsInstructionsPosition(string $class): bool
+    {
+        return true;
+    }
+
     /**
      * @inheritDoc
      */
