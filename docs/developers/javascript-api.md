@@ -211,6 +211,51 @@ const vm = new Vue({
 
 This means Formie will initialise forms once Vue has been loaded, and the DOM is ready.
 
+## Validation
+Formie uses it's own client-side validation library, which handles validating field values client-side with JavaScript.
+
+You can also register your own validation handling, which is split into two parts — the validation logic, and the validation message.
+
+```js
+let $form = document.querySelector('#formie-form-1');
+
+// Wait until Formie's Theme JS is ready before registering validations. Only Formie's Theme JS enables our JS validation.
+$form.addEventListener('onFormieThemeReady', (event) => {
+    // Add the validator
+    event.detail.addValidator('minLength', ({ input }) => {
+        const limit = input.getAttribute('data-limit');
+
+        // Don't trigger this validation unless there's the `data-limit` attribute
+        if (!limit) {
+            return true;
+        }
+
+        return input.value.length > limit;
+    }, ({ label, input, t }) => {
+        const limit = input.getAttribute('data-limit');
+
+        return t('The value entered in {label} must be at least {limit} characters long.', { label, limit });
+    });
+});
+```
+
+Registering your validator is on the `onFormieThemeReady` event, using the `addValidator(name, validator, message)` function. The `name` param should be something descriptive, and can be used to refer to the validation elsewhere. The `validator` param should be a function that returns a boolean value on whether the value is valid or not. The `message` argument should take care of returning a string for when validation fails.
+
+In the above example, we are creating a `minLength` validator, used to flag if a field value is below a certain character count.
+
+The `validator` and `message` functions have access to some variables:
+
+Variable | Description
+--- | ---
+`input` | The `<input>` HTML element.
+`label` | The label text for the field, useful for error messages.
+`field` | The outermost wrapper for the field, as a HTML element.
+`config` | The config for the validator class.
+`t` | A shortcut to the translation function for the `formie` category.
+
+The validation logic is fired on **every** update to a field's input value, so be mindful not to include any process-intensive logic in this callback (unless required). It is also fired for **every** input, so you'll want to ensure that you're evaluating just your logic.
+
+For example, you'll notice above that we check for a `data-limit` attribute on our `<input>` HTML element. As this is fired for every input, we don't want to interfere with any other validators logic, just for any field with a `data-limit` attribute for setting the `minLength`. Of course, the implementation of how you determine this is up to you.
 
 ## JavaScript Events
 Formie's JavaScript provides a number of event hooks for the form and fields, which you can hook into in your own JS files.
@@ -476,59 +521,6 @@ function onValidate(e) {
     }
 }
 ```
-
-## Theme JS Events
-The [Theme JS](docs:developers/front-end-js) file provides some event hooks for the form.
-
-### The `registerFormieValidation` event
-The event that is triggered to register or modify validation messages and rules.
-
-```js
-function customRule() {
-    return {
-        myRule(field) {
-            return someLogic;
-        },
-    };
-}
-
-function customMessage() {
-    return {
-        myRule(field) {
-            return t('This is a custom rule {value}.', {
-                value: field.getAttribute('data-value'),
-            });
-        },
-    };
-}
-
-let $form = document.querySelector('#formie-form-1');
-$form.addEventListener('registerFormieValidation', (e) => {
-    e.preventDefault();
-
-    // Add our custom validations logic and methods
-    e.detail.validatorSettings.customValidations = {
-        ...e.detail.validatorSettings.customValidations,
-        ...this.customRule(),
-    };
-
-    // Add our custom messages
-    e.detail.validatorSettings.messages = {
-        ...e.detail.validatorSettings.messages,
-        ...this.customMessage(),
-    };
-
-    // ...
-});
-
-// jQuery
-$('#formie-form-1').on('registerFormieValidation', function(e) {
-    e.preventDefault();
-
-    // ...
-});
-```
-
 
 ## Conditions
 You can also hook into events that are triggered before and after conditional logic has been triggered for a field. This is useful in particular to be notified when a field has been conditionally hidden or shown, or to add additional handling before evaulating conditions.
