@@ -37,6 +37,7 @@ class Settings extends Model
     public int $ajaxTimeout = 10;
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
+    public bool $outputConsoleMessages = true;
 
     // General Fields
     public array $disabledFields = [];

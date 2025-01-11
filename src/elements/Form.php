@@ -1842,6 +1842,7 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'outputConsoleMessages' => $pluginSettings->outputConsoleMessages,
             'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
 
             // Generate the refresh token here to make use of `UrlHelper` generation
