@@ -1,4 +1,4 @@
-import { t } from './utils/utils';
+import { t, getAjaxClient } from './utils/utils';
 import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {
@@ -277,11 +277,7 @@ export class FormieFormTheme {
                 });
 
                 // Ensure we still update the current page server-side
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', e.target.getAttribute('href'), true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                const xhr = getAjaxClient(this.$form, 'GET', e.target.getAttribute('href'), true);
                 xhr.send();
             });
         });
@@ -518,11 +514,7 @@ export class FormieFormTheme {
         const method = this.$form.getAttribute('method');
         const action = this.$form.getAttribute('action');
 
-        const xhr = new XMLHttpRequest();
-        xhr.open(method ? method : 'POST', action ? action : window.location.href, true);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        const xhr = getAjaxClient(this.$form, method ? method : 'POST', action ? action : window.location.href, true);
         xhr.timeout = (this.settings.ajaxTimeout || 10) * 1000;
 
         this.beforeSubmit();

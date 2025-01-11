@@ -79,3 +79,22 @@ export const getScriptUrl = function($form, url) {
 
     return modifyScriptUrlEvent.detail.url;
 };
+
+export const getAjaxClient = function($form, method, url, async, user, password) {
+    const client = new XMLHttpRequest();
+    client.open(method, url, async, user, password);
+    client.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    client.setRequestHeader('Accept', 'application/json');
+    client.setRequestHeader('Cache-Control', 'no-cache');
+
+    const modifyAjaxClientEvent = new CustomEvent('modifyAjaxClient', {
+        bubbles: true,
+        detail: {
+            client,
+        },
+    });
+
+    $form.dispatchEvent(modifyAjaxClientEvent);
+
+    return modifyAjaxClientEvent.detail.client;
+};
