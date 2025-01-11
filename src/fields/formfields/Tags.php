@@ -81,6 +81,7 @@ class Tags extends CraftTags implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public ?string $layout = null;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -201,6 +202,7 @@ class Tags extends CraftTags implements FormFieldInterface
         return [
             'source' => $tag,
             'placeholder' => Craft::t('formie', 'Select a tag'),
+            'layout' => 'vertical',
         ];
     }
 
@@ -534,6 +536,16 @@ class Tags extends CraftTags implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
                     ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
+                ],
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
                 ],
             ]),
             SchemaHelper::labelPosition($this),

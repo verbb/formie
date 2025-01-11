@@ -87,6 +87,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public ?string $layout = null;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -133,6 +134,7 @@ class Products extends CommerceProducts implements FormFieldInterface
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a product'),
+            'layout' => 'vertical',
             'labelSource' => 'title',
             'orderBy' => 'title ASC',
         ];
@@ -436,6 +438,16 @@ class Products extends CommerceProducts implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
+                ],
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
                 'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
@@ -477,7 +489,10 @@ class Products extends CommerceProducts implements FormFieldInterface
         if (in_array($this->displayType, ['checkboxes', 'radio'])) {
             if ($key === 'fieldContainer') {
                 return new HtmlTag('fieldset', [
-                    'class' => 'fui-fieldset',
+                    'class' => [
+                        'fui-fieldset',
+                        'fui-layout-' . $this->layout ?? 'vertical',
+                    ],
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
                 ]);
             }
