@@ -1,0 +1,6 @@
+{{ fieldtag('tableHeadingInput', {
+    value: row[colId] ?? '',
+    name: field.getHtmlName("#{index}[#{colId}]"),
+}) }}
+
+{{ row[colId] ?? '' }}

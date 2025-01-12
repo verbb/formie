@@ -606,7 +606,10 @@ class Emails extends Component
             }
 
             if ($path) {
-                $message->attach($path, ['fileName' => $asset->filename]);
+                $message->attach($path, [
+                    'fileName' => $asset->filename,
+                    'contentType' => $asset->getMimeType(),
+                ]);
             }
         }
     }

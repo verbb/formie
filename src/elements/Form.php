@@ -322,6 +322,19 @@ class Form extends Element
     {
         // Only set to "live" after creating the form. Otherwise Form Template fields validate.
         if ($this->id) {
+            $newLayoutId = $this->templateId;
+            $savedLayoutId = (new Query())
+                ->select(['templateId'])
+                ->from(['{{%formie_forms}}'])
+                ->where(['id' => $this->id])
+                ->scalar();
+
+            // To make things more complicated, we need to check if we're applying a new template, and not validate
+            // immediately, only on next save. This is because the UI needs to catch up once the form template has changed.
+            if (!$savedLayoutId || (!$newLayoutId && $savedLayoutId)) {
+                return self::SCENARIO_ESSENTIALS;
+            }
+
             return self::SCENARIO_LIVE;
         }
 

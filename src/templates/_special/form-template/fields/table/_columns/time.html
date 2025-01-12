@@ -1,0 +1,7 @@
+{% set rowValue = (row[colId] ?? null) ? (row[colId] | date('H:i', false)) : null %}
+
+{{ fieldtag('tableTimeInput', {
+    id: rowId,
+    value: rowValue,
+    name: field.getHtmlName("#{index}[#{colId}][time]"),
+}) }}

@@ -272,6 +272,17 @@ For a full list of available tags, refer to the below:
 - `fieldTableBodyColumn`
 - `fieldAddButton`
 - `fieldRemoveButton`
+- `tableCheckboxInput`
+- `tableColorInput`
+- `tableDateInput`
+- `tableEmailInput`
+- `tableHeadingInput`
+- `tableMultilineInput`
+- `tableNumberInput`
+- `tableSelectInput`
+- `tableSinglelineInput`
+- `tableTimeInput`
+- `tableUrlInput`
 
 ### Field Types
 In addition, you can also target fields on a particular type. You can then provide all the same field-level tag configs that you would for general fields.

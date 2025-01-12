@@ -1921,7 +1921,6 @@ Event::on(Tokens::class, Tokens::EVENT_AFTER_DELETE_TOKEN, function(TokenEvent $
 ```
 
 
-
 ## Address Provider Integration Events
 
 ### The `modifyAddressProviderHtml` event
@@ -1937,6 +1936,44 @@ Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTM
     // ...
 });
 ```
+
+
+## Element Integration Events
+
+### The `modifyElementFields` event
+The event that is triggered for an Element integration, which returns the available fields to map Formie field values to for the element.
+
+```php
+use verbb\formie\events\ModifyElementFieldsEvent;
+use verbb\formie\integrations\elements\Entry;
+use yii\base\Event;
+
+Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_FIELDS, function(ModifyElementFieldsEvent $event) {
+    $fieldLayout = $event->fieldLayout;
+    $fields = $event->fields;
+    // ...
+});
+```
+
+### The `modifyElementMatch` event
+The event that is triggered for an Element integration, when matching against an existing element. This determines whether the integration should create a new element, or update an existing one.
+
+```php
+use verbb\formie\events\ModifyElementMatchEvent;
+use verbb\formie\integrations\elements\Entry;
+use yii\base\Event;
+
+Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_MATCH, function(ModifyElementMatchEvent $event) {
+    $elementType = $event->elementType;
+    $identifier = $event->identifier;
+    $submission = $event->submission;
+    $criteria = $event->criteria;
+    $element = $event->element;
+    // ...
+});
+```
+
+
 
 ## Microsoft Dynamics 365 Events
 

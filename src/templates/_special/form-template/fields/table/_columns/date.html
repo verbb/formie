@@ -1,0 +1,7 @@
+{% set rowValue = (row[colId] ?? null) ? (row[colId] | date('Y-m-d', false)) : null %}
+
+{{ fieldtag('tableDateInput', {
+    id: rowId,
+    value: rowValue,
+    name: field.getHtmlName("#{index}[#{colId}][date]"),
+}) }}

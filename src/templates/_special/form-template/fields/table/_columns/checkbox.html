@@ -1,0 +1,14 @@
+{{ hiddenInput(field.getHtmlName("#{index}[#{colId}]"), '') }}
+
+<div class="fui-checkbox">
+    {{ fieldtag('tableCheckboxInput', {
+        id: rowId,
+        value: '1',
+        checked: (row[colId] ?? false) ? true : false,
+        name: field.getHtmlName("#{index}[#{colId}]"),
+    }) }}
+
+    <label for="{{ rowId }}" class="fui-checkbox-label">
+        &nbsp;<span data-fui-sr-only>{{ col.heading | t('formie') }}</span>
+    </label>
+</div>

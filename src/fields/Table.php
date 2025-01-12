@@ -611,6 +611,80 @@ class Table extends Field
             ]);
         }
 
+        if ($key === 'tableCheckboxInput') {
+            return new HtmlTag('input', [
+                'type' => 'checkbox',
+                'class' => 'fui-input fui-checkbox-input',
+            ]);
+        }
+
+        if ($key === 'tableColorInput') {
+            return new HtmlTag('input', [
+                'type' => 'color',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableDateInput') {
+            return new HtmlTag('input', [
+                'type' => 'date',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableEmailInput') {
+            return new HtmlTag('input', [
+                'type' => 'email',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableHeadingInput') {
+            return new HtmlTag('input', [
+                'type' => 'hidden',
+            ]);
+        }
+
+        if ($key === 'tableMultilineInput') {
+            return new HtmlTag('textarea', [
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableNumberInput') {
+            return new HtmlTag('input', [
+                'type' => 'number',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableSelectInput') {
+            return new HtmlTag('select', [
+                'class' => 'fui-select',
+            ]);
+        }
+
+        if ($key === 'tableSinglelineInput') {
+            return new HtmlTag('input', [
+                'type' => 'text',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableTimeInput') {
+            return new HtmlTag('input', [
+                'type' => 'time',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableUrlInput') {
+            return new HtmlTag('input', [
+                'type' => 'url',
+                'class' => 'fui-input',
+            ]);
+        }
+
         return parent::defineHtmlTag($key, $context);
     }
 
