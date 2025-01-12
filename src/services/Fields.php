@@ -98,16 +98,19 @@ class Fields extends Component
             ArrayHelper::remove($registeredFields, formfields\MissingField::class),
         ]);
 
-        $commonFields = array_filter([
+        $basicFields = array_filter([
             ArrayHelper::remove($registeredFields, formfields\SingleLineText::class),
             ArrayHelper::remove($registeredFields, formfields\MultiLineText::class),
-            ArrayHelper::remove($registeredFields, formfields\Radio::class),
-            ArrayHelper::remove($registeredFields, formfields\Checkboxes::class),
-            ArrayHelper::remove($registeredFields, formfields\Dropdown::class),
-            ArrayHelper::remove($registeredFields, formfields\Number::class),
             ArrayHelper::remove($registeredFields, formfields\Name::class),
             ArrayHelper::remove($registeredFields, formfields\Email::class),
             ArrayHelper::remove($registeredFields, formfields\Phone::class),
+            ArrayHelper::remove($registeredFields, formfields\Number::class),
+        ]);
+
+        $optionFields = array_filter([
+            ArrayHelper::remove($registeredFields, formfields\Radio::class),
+            ArrayHelper::remove($registeredFields, formfields\Checkboxes::class),
+            ArrayHelper::remove($registeredFields, formfields\Dropdown::class),
             ArrayHelper::remove($registeredFields, formfields\Agree::class),
         ]);
 
@@ -115,19 +118,25 @@ class Fields extends Component
             ArrayHelper::remove($registeredFields, formfields\Date::class),
             ArrayHelper::remove($registeredFields, formfields\Address::class),
             ArrayHelper::remove($registeredFields, formfields\FileUpload::class),
-            ArrayHelper::remove($registeredFields, formfields\Recipients::class),
+            ArrayHelper::remove($registeredFields, formfields\Password::class),
             ArrayHelper::remove($registeredFields, formfields\Hidden::class),
+            ArrayHelper::remove($registeredFields, formfields\Recipients::class),
+            ArrayHelper::remove($registeredFields, formfields\Signature::class),
+            ArrayHelper::remove($registeredFields, formfields\Calculations::class),
+            ArrayHelper::remove($registeredFields, formfields\Payment::class),
+        ]);
+
+        $dynamicFields = array_filter([
             ArrayHelper::remove($registeredFields, formfields\Repeater::class),
-            ArrayHelper::remove($registeredFields, formfields\Table::class),
             ArrayHelper::remove($registeredFields, formfields\Group::class),
+            ArrayHelper::remove($registeredFields, formfields\Table::class),
+        ]);
+
+        $cosmeticFields = array_filter([
             ArrayHelper::remove($registeredFields, formfields\Heading::class),
             ArrayHelper::remove($registeredFields, formfields\Section::class),
             ArrayHelper::remove($registeredFields, formfields\Html::class),
             ArrayHelper::remove($registeredFields, formfields\Summary::class),
-            ArrayHelper::remove($registeredFields, formfields\Password::class),
-            ArrayHelper::remove($registeredFields, formfields\Signature::class),
-            ArrayHelper::remove($registeredFields, formfields\Calculations::class),
-            ArrayHelper::remove($registeredFields, formfields\Payment::class),
         ]);
 
         $elementFields = array_filter([
@@ -159,11 +168,19 @@ class Fields extends Component
             ];
         }
 
-        if ($commonFields) {
+        if ($basicFields) {
             $groupedFields[] = [
-                'label' => Craft::t('formie', 'Common Fields'),
-                'handle' => 'common',
-                'fields' => $commonFields,
+                'label' => Craft::t('formie', 'Basic Fields'),
+                'handle' => 'basic',
+                'fields' => $basicFields,
+            ];
+        }
+
+        if ($optionFields) {
+            $groupedFields[] = [
+                'label' => Craft::t('formie', 'Option Fields'),
+                'handle' => 'option',
+                'fields' => $optionFields,
             ];
         }
 
@@ -172,6 +189,22 @@ class Fields extends Component
                 'label' => Craft::t('formie', 'Advanced Fields'),
                 'handle' => 'advanced',
                 'fields' => $advancedFields,
+            ];
+        }
+
+        if ($dynamicFields) {
+            $groupedFields[] = [
+                'label' => Craft::t('formie', 'Dynamic Fields'),
+                'handle' => 'dynamic',
+                'fields' => $dynamicFields,
+            ];
+        }
+
+        if ($cosmeticFields) {
+            $groupedFields[] = [
+                'label' => Craft::t('formie', 'Cosmetic Fields'),
+                'handle' => 'cosmetic',
+                'fields' => $cosmeticFields,
             ];
         }
 
