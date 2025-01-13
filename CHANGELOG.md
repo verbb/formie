@@ -9,7 +9,6 @@
 - Add `filterIntegrationMapping` plugin setting to opt out of automatic filtering of integration mapping values.
 
 ### Changed
-- Bump `guzzlehttp/oauth-subscriber`.
 - Table field column templates are now split into separate files for easier overriding.
 - Improve JS source map filesize.
 
