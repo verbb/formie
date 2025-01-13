@@ -1,5 +1,38 @@
 # Changelog
 
+## 3.0.17 - 2025-01-13
+
+### Added
+- Add `contentType` to email attachments.
+- Add theme config options for Table field inner field inputs.
+- Add `Element::EVENT_MODIFY_ELEMENT_MATCH` event to control behaviour for Element integrations and matching an existing element.
+- Add `filterIntegrationMapping` plugin setting to opt out of automatic filtering of integration mapping values.
+
+### Changed
+- Bump `guzzlehttp/oauth-subscriber`.
+- Table field column templates are now split into separate files for easier overriding.
+- Improve JS source map filesize.
+
+### Fixed
+- Fix signature field image matching on existing field, in some instances.
+- Fix email notifications not correctly saving conditional recipients.
+- Fix an error with migrating forms from Freeform 5.
+- Fix Freeform 5 migration for some invalid field handles.
+- Fix Freeform migration console commands.
+- Fix some special unicode characters being stripped out of some text values for text-based fields.
+- Fix Date fields and the “Available Days” setting not working correctly.
+- Fix Entry element integration “Update Element Mapping” values being blank.
+- Fix an error when setting a form template with required fields and validation handling.
+- Fix a Formie 2 migration error for Calculation fields.
+- Fix an error with some OAuth integrations and refresh token scopes..
+- Fix Stencils incorrectly saving nested field layout data for sub-fields.
+- Fix Entry element integration “Update Element Mapping” values.
+- Fix Date fields (Simple) not providing the correct variable picker token for email notifications.
+- Fix email notification “Send Test Email” button visual issue.
+- Fix an error with Entry element integrations.
+- Fix an issue with multi-page forms with session management in some browsers.
+- Fix Formie 2 > 3 migration not retaining Form Template custom field values for forms.
+
 ## 3.0.16 - 2024-12-27
 
 ### Added
