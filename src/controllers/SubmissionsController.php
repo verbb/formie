@@ -255,6 +255,10 @@ class SubmissionsController extends Controller
         $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
 
+        if ($request->getBodyParam('markAsComplete')) {
+            $submission->isIncomplete = false;
+        }
+
         // Save the submission
         if ($request->getBodyParam('saveAction') === 'draft') {
             $submission->setScenario(Element::SCENARIO_ESSENTIALS);
