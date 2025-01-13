@@ -173,7 +173,14 @@ function repeaterField(node) {
 
         // Populate the values is empty
         if (isEmpty(node._value) && !isEmpty(node.context.initialValue)) {
-            node.context._value = clone(node.context.initialValue);
+            const values = clone(node.context.initialValue);
+
+            // Populate the model with correct `__id` for each item
+            values.forEach((item) => {
+                item = setId(item);
+            });
+
+            node.context.node.input(values);
         }
 
         // Set the total columns now, so we can keep track of all added/deleted cols
