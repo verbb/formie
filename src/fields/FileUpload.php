@@ -652,6 +652,14 @@ class FileUpload extends ElementField
             // because this is triggered after the element has been saved, and we don't want to end up in a loop.
             // The easiest method is to just re-serialize all field values and save the content as a whole
             $content = Json::decode(Json::encode($element->serializeFieldValues()));
+
+            // Handle MariaDB 10.x specifically, which only has LONGTEXT column support, and doesn't handle array data
+            // unlike MariaDB 11.x, which does.
+            $db = Craft::$app->getDb();
+
+            if ($db->getIsMaria() && version_compare($db->getServerVersion(), '11.0', '<')) {
+                $content = Json::encode($content);
+            }
             
             Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $element->id]);
         }
