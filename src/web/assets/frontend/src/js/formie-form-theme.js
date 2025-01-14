@@ -809,6 +809,7 @@ export class FormieFormTheme {
 
         // Update tabs and progress bar if we're using them
         const $progress = this.$form.querySelector('[data-fui-progress-bar]');
+        const $progressValue = this.$form.querySelector('[data-fui-progress-value]');
 
         if ($progress && data.nextPageIndex >= 0) {
             const pageIndex = parseInt(data.nextPageIndex, 10) + 1;
@@ -816,7 +817,9 @@ export class FormieFormTheme {
 
             $progress.style.width = `${progress}%`;
             $progress.setAttribute('aria-valuenow', progress);
-            $progress.textContent = `${progress}%`;
+
+            $progressValue.setAttribute('data-fui-progress-value', progress);
+            $progressValue.textContent = `${progress}%`;
         }
 
         const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');

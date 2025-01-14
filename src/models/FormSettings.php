@@ -31,6 +31,7 @@ class FormSettings extends Model
     public bool $displayPageProgress = false;
     public bool $scrollToTop = true;
     public string $progressPosition = 'end';
+    public string $progressValuePosition = 'inside-center';
     public ?string $defaultLabelPosition = null;
     public ?string $defaultInstructionsPosition = null;
 

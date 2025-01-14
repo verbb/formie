@@ -1500,6 +1500,7 @@ class Form extends Element
                     'fui-form',
                     'fui-labels-' . $defaultLabelPosition,
                     $this->settings->displayPageProgress ? "fui-progress-{$this->settings->progressPosition}" : false,
+                    $this->settings->displayPageProgress ? "fui-progress-value-{$this->settings->progressValuePosition}" : false,
                     $this->settings->validationOnFocus ? 'fui-validate-on-focus' : false,
                 ],
                 'method' => 'post',
@@ -1747,8 +1748,11 @@ class Form extends Element
         }
 
         if ($key === 'progressValue') {
+            $progress = $context['progress'] ?? null;
+
             return new HtmlTag('span', [
                 'class' => 'fui-progress-value',
+                'data-fui-progress-value' => $progress,
             ]);
         }
 

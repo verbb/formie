@@ -181,6 +181,7 @@
         "loadingIndicator":"spinner",
         "loadingIndicatorText":"",
         "progressPosition":"end",
+        "progressValuePosition":"inside-center",
         "redirectUrl":null,
         "scrollToTop":"1",
         "submissionTitleFormat":"{timestamp}",
