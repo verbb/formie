@@ -1306,6 +1306,10 @@ class Submission extends CustomElement
         $rules[] = [['title'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'number', 'integerOnly' => true];
 
+        // Required for typecasting the JSON column
+        // https://github.com/yiisoft/yii2/issues/15839
+        $rules[] = [['content'], 'safe'];
+
         // Fire a 'defineSubmissionRules' event
         $event = new SubmissionRulesEvent([
             'rules' => $rules,
