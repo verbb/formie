@@ -207,11 +207,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         return parent::getIsRequired();
     }
 
-    public function hasSubFields(): bool
-    {
-        return !in_array($this->displayType, ['dropdowns', 'inputs']);
-    }
-
     public function getFormBuilderSettings(): array
     {
         $settings = parent::getFormBuilderSettings();
