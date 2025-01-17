@@ -716,9 +716,7 @@ export class FormieFormTheme {
             }
 
             // Smooth-scroll to the top of the form.
-            if (this.settings.scrollToTop) {
-                this.scrollToForm();
-            }
+            this.scrollToForm();
         }
 
         // Reset values regardless, for the moment
@@ -853,9 +851,7 @@ export class FormieFormTheme {
         }
 
         // Smooth-scroll to the top of the form.
-        if (this.settings.scrollToTop) {
-            this.scrollToForm();
-        }
+        this.scrollToForm();
     }
 
     setCurrentPage(pageId) {
@@ -884,14 +880,10 @@ export class FormieFormTheme {
     }
 
     scrollToForm() {
-        // Check for scroll-padding-top or `scroll-margin-top`
-        const extraPadding = parseInt(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-        const extraMargin = parseInt(getComputedStyle(document.documentElement).scrollMarginTop) || 0;
-
         // Because the form can be hidden, use the parent wrapper
-        window.scrollTo({
-            top: this.$form.parentNode.getBoundingClientRect().top + window.pageYOffset - 100 - extraPadding - extraMargin,
+        this.$form.parentNode.scrollIntoView({
             behavior: 'smooth',
+            block: 'start', // Align to the top of the viewport
         });
     }
 
