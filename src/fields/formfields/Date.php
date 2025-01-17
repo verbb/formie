@@ -117,7 +117,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
-    public int $minYearRange = 100;
+    public int $minYearRange = -100;
     public int $maxYearRange = 100;
     public mixed $availableDaysOfWeek = '*';
 
@@ -1101,7 +1101,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
             [
                 '$formkit' => 'fieldWrap',
                 'label' => Craft::t('formie', 'Year Range'),
-                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select.'),
+                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select. Use negative values for start to offset into the past from the current year.'),
                 'if' => '$get(displayType).value == dropdowns',
                 'children' => [
                     [
@@ -1113,6 +1113,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
                             SchemaHelper::numberField([
                                 'name' => 'minYearRange',
                                 'inputClass' => 'text flex-grow',
+                                'validation' => 'number',
                                 'sections-schema' => [
                                     'prefix' => [
                                         '$el' => 'span',
@@ -1504,7 +1505,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     {
         $defaultValue = $this->defaultValue ?: new DateTime();
         $year = (int)$defaultValue->format('Y');
-        $minYear = $year - $this->minYearRange;
+        $minYear = $year + $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
 
         $options = [['value' => '', 'label' => $this->yearPlaceholder, 'disabled' => true]];
