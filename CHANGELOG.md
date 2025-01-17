@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.18 - 2025-01-17
+
+### Added
+- Add support for inline CSS for some string content (Multi-Line Rich Text content).
+- Add `Variables::EVENT_PARSE_VARIABLES` to allow you to parse custom registered variables.
+
+### Fixed
+- Fix reCAPTCHA Enterprise and score validation.
+- Fix Dropdown and Input Date fields not saving correctly.
+- Fix content errors with File Upload fields and MariaDB installs.
+- Fix TableInput Vue component not respecting `initialValue` values.
+- Fix a migration from Formie 2 for Email fields with Blocked Domains setting.
+
 ## 3.0.17 - 2025-01-13
 
 ### Added
