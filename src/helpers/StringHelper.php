@@ -28,7 +28,12 @@ class StringHelper extends CraftStringHelper
 
     public static function cleanString(string $str): string
     {
-        return (new AntiXSS())->xss_clean($str);
+        $antiXss = new AntiXSS();
+        
+        // Allow inline CSS for rich text
+        $antiXss->removeEvilAttributes(['style']);
+
+        return $antiXss->xss_clean((string)$str);
     }
 
     public static function decdec(string $str): string

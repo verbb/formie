@@ -531,6 +531,19 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.39 - 2025-01-17
+
+### Added
+- Add support for inline CSS for some string content (Multi-Line Rich Text content).
+- Add `Variables::EVENT_PARSE_VARIABLES` to allow you to parse custom registered variables.
+
+### Changed
+- Bump `guzzlehttp/oauth-subscriber` to `^0.8.1`.
+- Lock `league/oauth2-client` to `2.7.0` to prevent an issue with refresh token scopes on some providers.
+
+### Fixed
+- Fix reCAPTCHA Enterprise and score validation.
+
 ## 2.1.38 - 2025-01-13
 
 ### Added

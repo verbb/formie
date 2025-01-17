@@ -196,11 +196,13 @@ class Recaptcha extends Captcha
                 $this->spamReason = $reason;
             }
 
-            if (isset($result['score'])) {
-                $scoreRating = ($result['score'] >= $this->minScore);
+            $score = $result['riskAnalysis']['score'] ?? $result['score'] ?? null;
+
+            if ($score) {
+                $scoreRating = ($score >= $this->minScore);
 
                 if (!$scoreRating) {
-                    $this->spamReason = 'Score ' . $result['score'] . ' is below threshold ' . $this->minScore . '.';
+                    $this->spamReason = 'Score ' . $score . ' is below threshold ' . $this->minScore . '.';
                 }
 
                 return $scoreRating;
