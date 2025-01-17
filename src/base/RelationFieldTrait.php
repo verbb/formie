@@ -42,6 +42,8 @@ trait RelationFieldTrait
     public string $labelSource = 'title';
     public string $orderBy = 'title ASC';
     public bool $multiple = false;
+    public string $sourceType = 'groups';
+    public array $sourceElements = [];
 
     protected ?ElementQuery $elementsQuery = null;
 
@@ -82,6 +84,19 @@ trait RelationFieldTrait
             // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
             // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
             $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
+        }
+
+        if ($ids = ArrayHelper::getColumn($this->sourceElements, 'id')) {
+            $elements = static::elementType()::find()->id($ids)->all();
+
+            // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
+            $settings['sourceElementsOptions'] = array_map(function($input) {
+                return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
+            }, $elements);
+
+            // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
+            // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
+            $settings['sourceElementsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
         }
 
         // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request

@@ -337,6 +337,10 @@ class Tags extends CraftTags implements FormFieldInterface
     {
         $query = Tag::find();
 
+        if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
+        }
+        
         if ($group = $this->_getTagGroup()) {
             $query->group($group);
         }
@@ -459,14 +463,39 @@ class Tags extends CraftTags implements FormFieldInterface
                 'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source'),
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Sources'),
                 'help' => Craft::t('formie', 'Which source do you want to select tags from?'),
-                'name' => 'source',
+                'name' => 'sources',
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'element-class' => count($options) === 1 ? 'hidden' : false,
+                'if' => '$get(sourceType).value == groups',
+                'showAllOption' => true,
+                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select tags from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => FormieTag::class,
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),

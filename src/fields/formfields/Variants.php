@@ -204,21 +204,25 @@ class Variants extends CommerceVariants implements FormFieldInterface
     {
         $query = Variant::find();
 
-        if ($this->source !== '*') {
-            // Try to find the criteria we're restricting by - if any
-            $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
-            $criteria = $elementSource['criteria'] ?? [];
+        if ($this->sourceType === 'groups') {
+            if ($this->sources !== '*') {
+                // Try to find the criteria we're restricting by - if any
+                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
+                $criteria = $elementSource['criteria'] ?? [];
 
-            // Apply the criteria on our query
-            Craft::configure($query, $criteria);
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
 
-            // Handle conditions by parsing the rules and applying to query
-            $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+                // Handle conditions by parsing the rules and applying to query
+                $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
 
-            foreach ($conditionRules as $conditionRule) {
-                $rule = Craft::createObject($conditionRule);
-                $rule->modifyQuery($query);
+                foreach ($conditionRules as $conditionRule) {
+                    $rule = Craft::createObject($conditionRule);
+                    $rule->modifyQuery($query);
+                }
             }
+        } else if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
         // Restrict elements to be on the current site, for multi-sites
@@ -358,14 +362,39 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source'),
-                'help' => Craft::t('formie', 'Which source do you want to select variants from?'),
-                'name' => 'source',
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select variants from?'),
+                'name' => 'sources',
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'element-class' => count($options) === 1 ? 'hidden' : false,
+                'if' => '$get(sourceType).value == groups',
+                'showAllOption' => true,
+                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select variants from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),

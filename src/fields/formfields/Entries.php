@@ -176,43 +176,47 @@ class Entries extends CraftEntries implements FormFieldInterface
     {
         $query = Entry::find();
 
-        if ($this->sources !== '*') {
-            $criteria = [];
+        if ($this->sourceType === 'groups') {
+            if ($this->sources !== '*') {
+                $criteria = [];
 
-            // Try to find the criteria we're restricting by - if any
-            foreach ($this->sources as $source) {
-                // Check if we're looking for a type
-                if (str_contains($source, 'type:')) {
-                    $entryTypeUid = str_replace('type:', '', $source);
-                    $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
+                // Try to find the criteria we're restricting by - if any
+                foreach ($this->sources as $source) {
+                    // Check if we're looking for a type
+                    if (str_contains($source, 'type:')) {
+                        $entryTypeUid = str_replace('type:', '', $source);
+                        $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
 
-                    if ($entryType) {
-                        $criteria[] = ['typeId' => $entryType->id];
-                    }
-                } else {
-                    // This is a custom source, so use the custom criteria
-                    $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                    $criteria[] = $elementSource['criteria'] ?? [];
+                        if ($entryType) {
+                            $criteria[] = ['typeId' => $entryType->id];
+                        }
+                    } else {
+                        // This is a custom source, so use the custom criteria
+                        $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
+                        $criteria[] = $elementSource['criteria'] ?? [];
 
-                    // Handle conditions by parsing the rules and applying to query
-                    $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+                        // Handle conditions by parsing the rules and applying to query
+                        $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
 
-                    foreach ($conditionRules as $conditionRule) {
-                        $rule = Craft::createObject($conditionRule);
-                        $rule->modifyQuery($query);
+                        foreach ($conditionRules as $conditionRule) {
+                            $rule = Craft::createObject($conditionRule);
+                            $rule->modifyQuery($query);
+                        }
                     }
                 }
+
+                $criteria = array_merge_recursive(...$criteria);
+
+                // Some criteria doesn't support array-syntax, which will happen with merging recursively
+                if (isset($criteria['editable'])) {
+                    $criteria['editable'] = $criteria['editable'][0] ?? false;
+                }
+
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
             }
-
-            $criteria = array_merge_recursive(...$criteria);
-
-            // Some criteria doesn't support array-syntax, which will happen with merging recursively
-            if (isset($criteria['editable'])) {
-                $criteria['editable'] = $criteria['editable'][0] ?? false;
-            }
-
-            // Apply the criteria on our query
-            Craft::configure($query, $criteria);
+        } else if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
         // Restrict elements to be on the current site, for multi-sites
@@ -388,6 +392,15 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(displayType).value == dropdown',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
                 'help' => Craft::t('formie', 'Which sources do you want to select entries from?'),
@@ -395,9 +408,24 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
+                'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select entries from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
