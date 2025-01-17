@@ -1510,7 +1510,7 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
 
         $options = [['value' => '', 'label' => $this->yearPlaceholder, 'disabled' => true]];
 
-        for ($y = $minYear; $y < $maxYear; $y++) {
+        for ($y = $minYear; $y <= $maxYear; $y++) {
             $options[] = ['value' => $y, 'label' => $y];
         }
 
