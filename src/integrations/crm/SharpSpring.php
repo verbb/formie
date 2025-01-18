@@ -331,6 +331,12 @@ class SharpSpring extends Crm
         // Serialize the field values in a SharpSpring-specific fashion
         $serializedValues = $this->_serializeValuesForForm($submission);
 
+        // Establish tracking by retrieving cookie and setting the field if it's set
+        if (isset($_COOKIE['__ss_tk'])) {
+            $trackingid__sb = $_COOKIE['__ss_tk'];
+            $serializedValues = $serializedValues['trackingid__sb'] = $trackingid__sb;
+        }
+
         // Send the payload to SharpSpring to tell them what fields are available
         // Create a new client because this isn't the same API as the rest of the integration.
         $request = Craft::createGuzzleClient()->request('GET', "$formUrl/$endpoint/jsonp", [
