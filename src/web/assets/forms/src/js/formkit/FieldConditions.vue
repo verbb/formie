@@ -111,6 +111,8 @@ export default {
                 { label: Craft.t('formie', 'contains'), value: 'contains' },
                 { label: Craft.t('formie', 'starts with'), value: 'startsWith' },
                 { label: Craft.t('formie', 'ends with'), value: 'endsWith' },
+                { label: Craft.t('formie', 'is visible'), value: 'visible' },
+                { label: Craft.t('formie', 'is hidden'), value: 'hidden' },
             ],
             settings: {},
             defaultSettings: {
