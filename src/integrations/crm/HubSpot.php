@@ -645,6 +645,17 @@ class HubSpot extends Crm
 
             foreach ($formFields as $formField) {
                 $fields[] = $formField;
+
+                // Check for "dependentField" (conditional fields) to include
+                $dependentFieldFilters = $formField['dependentFieldFilters'] ?? [];
+
+                foreach ($dependentFieldFilters as $dependentFieldFilter) {
+                    $dependentFormField = $dependentFieldFilter['dependentFormField'] ?? null;
+
+                    if ($dependentFormField) {
+                        $fields[] = $dependentFormField;
+                    }
+                }
             }
         }
 
