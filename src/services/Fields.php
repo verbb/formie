@@ -647,6 +647,15 @@ class Fields extends Component
         $config['settings']['required'] = (bool)$field->required;
         $config['settings']['instructions'] = $field->instructions;
 
+        // Set the parent field on any nested fields
+        if ($field instanceof NestedFieldInterface) {
+            if ($fieldLayout = $field->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $subField) {
+                    $subField->setParentField($field);
+                }
+            }
+        }
+
         // Nested fields have rows of their own.
         if ($config['supportsNested'] = ($field instanceof NestedFieldInterface)) {
             $config['isElementField'] = true;
@@ -663,6 +672,10 @@ class Fields extends Component
 
         // Whether this field is nested inside another one
         $config['isNested'] = $field->isNested;
+
+        if ($parentField = $field->getParentField()) {
+            $config['parentField'] = get_class($parentField);
+        }
 
         // Whether this is an element field
         if ($field instanceof BaseRelationField) {
