@@ -8,9 +8,9 @@ export class FormiePhoneCountry {
         this.$field = settings.$field.querySelector('input[type="tel"]');
         this.$countryInput = settings.$field.querySelector('[data-country]');
 
-        this.countryShowDialCode = settings.countryShowDialCode;
         this.countryDefaultValue = settings.countryDefaultValue;
         this.countryAllowed = settings.countryAllowed;
+        this.language = settings.language;
 
         if (this.$field && this.$countryInput) {
             this.initValidator();
@@ -23,13 +23,16 @@ export class FormiePhoneCountry {
         const options = {
             allowDropdown: true,
             autoHideDialCode: true,
+            autoInsertDialCode: true,
             nationalMode: false,
             preferredCountries: [],
-            separateDialCode: false,
+            separateDialCode: true,
+            showSelectedDialCode: true,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
             formatOnDisplay: false,
-            utilsScript: getScriptUrl(this.$form, 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js'),
+            formatAsYouType: false,
+            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.1.1/js/utils.min.js',
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
@@ -44,15 +47,12 @@ export class FormiePhoneCountry {
             // Also put it into national mode for input-ease
             if (options.onlyCountries.length === 1) {
                 options.allowDropdown = false;
+                options.separateDialCode = false;
                 options.nationalMode = true;
             }
 
             // Save this on the field so we can check during validation
             this.$field.restrictedCountries = true;
-        }
-
-        if (this.countryShowDialCode) {
-            options.separateDialCode = true;
         }
 
         if (this.countryDefaultValue) {

@@ -71,7 +71,7 @@
         "friendly-challenge": "^0.9.11",
         "hostic-dom": "^0.8.7",
         "install": "^0.13.0",
-        "intl-tel-input": "^17.0.16",
+        "intl-tel-input": "^23.1.1",
         "js-cookie": "^3.0.5",
         "locutus": "^2.0.16",
         "markdown-it": "^13.0.1",
