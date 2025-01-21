@@ -193,13 +193,13 @@ class Entry extends Element
         try {
             [$sectionUid, $entryTypeUid] = explode(':', $this->entryTypeSection);
 
-            $entry = $this->getElementForPayload(EntryElement::class, $entryTypeUid, $submission, [
-                'typeUid' => $entryTypeUid,
-                'sectionUid' => $sectionUid,
-            ]);
-
             $entryType = Craft::$app->getEntries()->getEntryTypeByUid($entryTypeUid);
             $section = Craft::$app->getEntries()->getSectionByUid($sectionUid);
+
+            $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeSection, $submission, [
+                'typeId' => $entryType->id,
+                'sectionId' => $section->id,
+            ]);
 
             $entry->siteId = $submission->siteId;
             $entry->typeId = $entryType->id;
