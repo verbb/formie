@@ -1,7 +1,7 @@
 <template>
     <tr class="fui-notification-row">
-        <td class="flex">
-            <a href="#" class="flex" style="--s: 0;" :class="{ 'error': hasError }" @click.prevent="openModal">
+        <td class="flex flex-nowrap">
+            <a href="#" class="flex flex-nowrap" style="--s: 0;" :class="{ 'error': hasError }" @click.prevent="openModal">
                 <span class="status" :class="(notification.enabled ? 'on' : 'disabled')"></span>
                 <strong><FormKit type="variableText" variables="plainTextVariables" :value="notification.name" readonly="true" /></strong>
             </a>
@@ -180,6 +180,22 @@ export default {
     text-transform: uppercase;
     font-weight: 700;
     border: 1px #c8d3e0 solid;
+}
+
+.fui-notification-row [data-type="variableText"] {
+    overflow-x: auto;
+}
+
+.fui-notification-row .fui-tags-list .tiptap {
+    white-space: nowrap;
+
+    [contenteditable="false"] {
+        white-space: nowrap !important;
+    }
+}
+
+.fui-notification-row .fui-tag-wrap {
+    white-space: normal !important;
 }
 
 </style>
