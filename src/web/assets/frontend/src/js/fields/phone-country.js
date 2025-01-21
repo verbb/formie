@@ -1,5 +1,5 @@
 import { t, eventKey } from '../utils/utils';
-import intlTelInput from 'intl-tel-input';
+import intlTelInput from 'intl-tel-input/intlTelInputWithUtils';
 
 export class FormiePhoneCountry {
     constructor(settings = {}) {
@@ -32,7 +32,6 @@ export class FormiePhoneCountry {
             autoPlaceholder: 'off',
             formatOnDisplay: false,
             formatAsYouType: false,
-            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.1.1/js/utils.min.js',
             validationNumberTypes: null,
         };
 
