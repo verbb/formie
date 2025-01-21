@@ -3,9 +3,9 @@
         {% for field in field.getFields(false) %}
             {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-            <strong>{{ field.label | t('formie') }}: </strong>{{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}<br>
+            <strong>{{ field.label | t('formie') }}: </strong>{{ field.getValueAsString(value, submission) }}<br>
         {% endfor %}
     {% else %}
-        {{ value ? field.getValueAsString(value, submission) : notification.getPlaceholder() }}
+        {{ field.getValueAsString(value, submission) }}
     {% endif %}
 {% endapply %}

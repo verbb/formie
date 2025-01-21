@@ -4,6 +4,4 @@
     {% else %}
         {{ field.getValueAsString(value, submission) | nl2br }}
     {% endif %}
-{% else %}
-    {{ notification.getPlaceholder() }}
 {% endif %}
