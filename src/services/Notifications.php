@@ -73,7 +73,10 @@ class Notifications extends Component
 
     public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
     {
-        return ArrayHelper::whereMultiple($this->_notifications(), ['formId' => $form->id, 'handle' => $handle])[0] ?? null;
+        return ArrayHelper::firstWhere(
+            $this->_notifications(),
+            fn(Notification $notification) => $notification->formId === $form->id && $notification->handle === $handle,
+        );
     }
 
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
