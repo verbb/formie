@@ -652,12 +652,12 @@ class FileUpload extends ElementField
             // We now need to update the submission with the IDs of asset for this field, so do a direct record update
             // because this is triggered after the element has been saved, and we don't want to end up in a loop.
             // Using direct queries is also too risky with JSON columns and database engines.
-            $record = SubmissionRecord::findOne($element->id);
+            if ($record = SubmissionRecord::findOne($element->id)) {
+                // Re-serializing submission values will include IDs now
+                $record->content = $element->serializeFieldValues();
 
-            // Re-serializing submission values will include IDs now
-            $record->content = $element->serializeFieldValues();
-
-            $record->save(false);
+                $record->save(false);
+            }
         }
     }
 
