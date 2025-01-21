@@ -18,6 +18,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
+use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -648,20 +649,15 @@ class FileUpload extends ElementField
                 }
             }
 
-            // We now need to update the submission with the IDs of asset for this field, so do a direct query
+            // We now need to update the submission with the IDs of asset for this field, so do a direct record update
             // because this is triggered after the element has been saved, and we don't want to end up in a loop.
-            // The easiest method is to just re-serialize all field values and save the content as a whole
-            $content = Json::decode(Json::encode($element->serializeFieldValues()));
+            // Using direct queries is also too risky with JSON columns and database engines.
+            $record = SubmissionRecord::findOne($element->id);
 
-            // Handle MariaDB 10.x specifically, which only has LONGTEXT column support, and doesn't handle array data
-            // unlike MariaDB 11.x, which does.
-            $db = Craft::$app->getDb();
+            // Re-serializing submission values will include IDs now
+            $record->content = $element->serializeFieldValues();
 
-            if ($db->getIsMaria() && version_compare($db->getServerVersion(), '11.0', '<')) {
-                $content = Json::encode($content);
-            }
-            
-            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $element->id]);
+            $record->save(false);
         }
     }
 
