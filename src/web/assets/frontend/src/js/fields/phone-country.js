@@ -33,6 +33,7 @@ export class FormiePhoneCountry {
             formatOnDisplay: false,
             formatAsYouType: false,
             utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/23.1.1/js/utils.min.js',
+            validationNumberTypes: null,
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
@@ -123,7 +124,7 @@ export class FormiePhoneCountry {
             }
 
             if (input.value.trim() && input.validator) {
-                if (input.validator.isValidNumber(false)) {
+                if (input.validator.isValidNumber()) {
                     const countryData = input.validator.getSelectedCountryData();
                     const selectedCountryCode = countryData.iso2;
 
