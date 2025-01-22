@@ -321,6 +321,9 @@ class Formie extends Plugin
     private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
+            // Delete NestedFieldRow elements (they aren't registered with `getAllElementTypes`)
+            $this->getSubmissions()->deleteNestedFieldRows();
+
             // Delete fields with no form.
             $this->getFields()->deleteOrphanedFields();
 

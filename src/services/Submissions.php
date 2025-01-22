@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\events\PruneSubmissionEvent;
@@ -27,6 +28,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
@@ -491,6 +493,15 @@ class Submissions extends Component
         if ($submissionCount) {
             $event->contentSummary[] = $submissionCount == 1 ? Craft::t('formie', '1 form submission') : Craft::t('formie', '{num} form submissions', ['num' => $submissionCount]);
         }
+    }
+
+    public function deleteNestedFieldRows(): void
+    {
+        Db::delete(Table::ELEMENTS, [
+            'and',
+            ['not', ['dateDeleted' => null]],
+            ['type' => NestedFieldRow::class],
+        ]);
     }
 
     /**
