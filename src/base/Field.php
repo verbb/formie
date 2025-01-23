@@ -401,6 +401,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // This might occur if the field was set to encrypted, but changed later. We still need to
         // decrypt field content
         if (is_string($value)) {
+            // Ensure that we sanitize content
+            $value = StringHelper::cleanString($value);
+
             if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
                 $value = StringHelper::decdec($value);
             }
