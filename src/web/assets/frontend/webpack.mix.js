@@ -29,10 +29,12 @@ mix.js('./src/js/fields/signature.js', 'js/fields');
 mix.js('./src/js/fields/calculations.js', 'js/fields');
 
 // Integrations
+mix.js('./src/js/address-providers/address-provider.js', 'js/address-providers');
 mix.js('./src/js/address-providers/algolia-places.js', 'js/address-providers');
 mix.js('./src/js/address-providers/google-address.js', 'js/address-providers');
 mix.js('./src/js/address-providers/address-finder.js', 'js/address-providers');
 mix.js('./src/js/address-providers/loqate.js', 'js/address-providers');
+mix.js('./src/js/captchas/captcha-provider.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-checkbox.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-invisible.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v3.js', 'js/captchas');
@@ -42,6 +44,7 @@ mix.js('./src/js/captchas/duplicate.js', 'js/captchas');
 mix.js('./src/js/captchas/hcaptcha.js', 'js/captchas');
 mix.js('./src/js/captchas/friendly-captcha.js', 'js/captchas');
 mix.js('./src/js/captchas/turnstile.js', 'js/captchas');
+mix.js('./src/js/payments/payment-provider.js', 'js/payments');
 mix.js('./src/js/payments/stripe.js', 'js/payments');
 mix.js('./src/js/payments/paypal.js', 'js/payments');
 mix.js('./src/js/payments/payway.js', 'js/payments');
