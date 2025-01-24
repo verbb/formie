@@ -253,9 +253,15 @@ Variable | Description
 `config` | The config for the validator class.
 `t` | A shortcut to the translation function for the `formie` category.
 
-The validation logic is fired on **every** update to a field's input value, so be mindful not to include any process-intensive logic in this callback (unless required). It is also fired for **every** input, so you'll want to ensure that you're evaluating just your logic.
+The validation logic is fired for **every** input, so you'll want to ensure that you're evaluating just your logic.
 
 For example, you'll notice above that we check for a `data-limit` attribute on our `<input>` HTML element. As this is fired for every input, we don't want to interfere with any other validators logic, just for any field with a `data-limit` attribute for setting the `minLength`. Of course, the implementation of how you determine this is up to you.
+
+The triggering method for this validation will be controlled by settings on the form:
+- **Validate Form on Submit** - the validator only fires when hitting submit, and is "live" until the error is resolved.
+- **Validate When Typing** - the validator fires on every "update" event, like adding input or changing state.
+
+If neither of these settings are enabled, your validator won't fire, as client-side validation will be disabled.
 
 ## JavaScript Events
 Formie's JavaScript provides a number of event hooks for the form and fields, which you can hook into in your own JS files.
