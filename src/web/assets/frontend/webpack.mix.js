@@ -50,6 +50,9 @@ mix.js('./src/js/payments/paypal.js', 'js/payments');
 mix.js('./src/js/payments/payway.js', 'js/payments');
 mix.js('./src/js/payments/opayo.js', 'js/payments');
 
+// Copy some static files
+mix.copy('../../../../node_modules/intl-tel-input/build/img/**/*', 'dist/css/img');
+
 // Setup additional CSS-related options including Tailwind and any other PostCSS items
 mix.options({
     // Disable processing css urls for speed

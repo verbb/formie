@@ -37,5 +37,17 @@
     "/css/fields/phone-country.css": "/css/fields/phone-country.css",
     "/css/fields/tags.css": "/css/fields/tags.css",
     "/css/formie-theme.css": "/css/formie-theme.css",
-    "/css/formie-base.css": "/css/formie-base.css"
+    "/css/formie-base.css": "/css/formie-base.css",
+    "/css/img/flags.png": "/css/img/flags.png",
+    "/css/img/flags.webp": "/css/img/flags.webp",
+    "/css/img/flags@2x.png": "/css/img/flags@2x.png",
+    "/css/img/flags@2x.webp": "/css/img/flags@2x.webp",
+    "/css/img/globe_light.png": "/css/img/globe_light.png",
+    "/css/img/globe_light.webp": "/css/img/globe_light.webp",
+    "/css/img/globe_light@2x.png": "/css/img/globe_light@2x.png",
+    "/css/img/globe_light@2x.webp": "/css/img/globe_light@2x.webp",
+    "/css/img/globe.png": "/css/img/globe.png",
+    "/css/img/globe.webp": "/css/img/globe.webp",
+    "/css/img/globe@2x.png": "/css/img/globe@2x.png",
+    "/css/img/globe@2x.webp": "/css/img/globe@2x.webp"
 }
