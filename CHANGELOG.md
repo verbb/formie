@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.0.19 - 2025-01-24
+
+### Changed
+- The `intl-tel-input` for Phone number fields no longer lazy-loads it’s utilities script.
+- Update `intl-tel-input` for the latest number validation handling.
+- Fields in email notification content, when referenced via their variable tag now no longer show their “no response” placeholder text. These still exist for grouped content like “All Fields”.
+
+### Fixed
+- Fix incorrectly bundled `intl-tel-input` version.
+- Fix some string content not being escaped properly.
+- Fix Freeform 5 migration for success behaviour.
+- Fix default value for Date field not being set correctly.
+- Fix File Upload handling for some database engines (MariaDB).
+- Fix an error with Entry element integrations when updating values.
+- Fix email notifications table when columns contained long variable tags.
+- Fix incorrect logic when calling `Notifications::getFormNotificationByHandle()`.
+
 ## 3.0.18 - 2025-01-17
 
 ### Added
