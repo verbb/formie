@@ -544,6 +544,14 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.40 - 2025-01-24
+
+### Fixed
+- Fix incorrectly bundled `intl-tel-input` version.
+- Fix some string content not being escaped properly.
+- Fix Freeform 5 migration for success behaviour.
+- Fix default value for Date field not being set correctly.
+
 ## 2.1.39 - 2025-01-17
 
 ### Added

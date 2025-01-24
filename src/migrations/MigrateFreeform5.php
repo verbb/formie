@@ -113,8 +113,19 @@ class MigrateFreeform5 extends Migration
             $form->handle = $this->_getHandle($freeformForm);
             $form->settings->submissionTitleFormat = $freeformForm->submissionTitle != '{{ dateCreated|date("Y-m-d H:i:s") }}' ? $freeformForm->submissionTitle : '';
             $form->settings->submitMethod = $freeformForm->isAjaxEnabled() ? 'ajax' : 'page-reload';
-            $form->settings->submitActionUrl = $freeformForm->returnUrl;
-            $form->settings->submitAction = 'url';
+
+            $behaviorSettings = $freeformForm->getSettings()->getBehavior();
+
+            if ($behaviorSettings->successBehavior === 'reload') {
+                $form->settings->submitActionMessage = (new Renderer)->render('<p>' . $behaviorSettings->successMessage . '</p>')['content'] ?? [];
+                $form->settings->submitAction = 'message';
+            } else if ($behaviorSettings->successBehavior === 'redirect-return-url') {
+                $form->settings->submitActionUrl = $behaviorSettings->returnUrl;
+                $form->settings->submitAction = 'url';
+            } else if ($behaviorSettings->successBehavior === 'load-success-template') {
+                $form->settings->submitActionMessage = (new Renderer)->render('<p>' . $behaviorSettings->successMessage . '</p>')['content'] ?? [];
+                $form->settings->submitAction = 'message';
+            }
 
             // Set default template
             if ($templateId = $settings->getDefaultFormTemplateId()) {
