@@ -32,7 +32,7 @@ We have a specific syntax for defining your spam keywords to give you flexibilit
 [match: (spam OR junk) AND email]
 
 # Flags content if it contains either "spam" or "junk" along with "email".
-[match: NOT client
+[match: NOT client]
 ```
 
 You can simply define your keywords each on a new line or include logic operators like "AND", "OR" or "NOT", including parenthesis to group logic as required.
