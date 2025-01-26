@@ -31,7 +31,7 @@ We have a specific syntax for defining your spam keywords to give you flexibilit
 # Flags content if it contains either "spam" or "junk" along with "email".
 [match: (spam OR junk) AND email]
 
-# Flags content if it doesn't contains "client".
+# Flags content if it doesn't contain "client".
 [match: NOT client]
 ```
 
