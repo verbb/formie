@@ -126,6 +126,7 @@ class Integrations extends Component
             emailmarketing\Klaviyo::class,
             emailmarketing\KlaviyoLegacy::class,
             emailmarketing\Mailchimp::class,
+            emailmarketing\Mailcoach::class,
             emailmarketing\Mailjet::class,
             emailmarketing\MailerLite::class,
             emailmarketing\Moosend::class,
