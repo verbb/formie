@@ -118,6 +118,7 @@ class Integrations extends Component
             emailmarketing\ConvertKit::class,
             emailmarketing\CustomerIo::class,
             emailmarketing\Drip::class,
+            emailmarketing\Ecomail::class,
             emailmarketing\EmailOctopus::class,
             emailmarketing\GetResponse::class,
             emailmarketing\IContact::class,
