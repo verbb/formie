@@ -135,6 +135,7 @@ class Integrations extends Component
             emailmarketing\Ortto::class,
             emailmarketing\Sender::class,
             emailmarketing\Sendinblue::class,
+            emailmarketing\Vero::class,
         ];
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('campaign')) {
