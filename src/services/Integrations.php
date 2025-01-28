@@ -116,6 +116,7 @@ class Integrations extends Component
             emailmarketing\CampaignMonitor::class,
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
+            emailmarketing\CustomerIo::class,
             emailmarketing\Drip::class,
             emailmarketing\EmailOctopus::class,
             emailmarketing\GetResponse::class,
