@@ -132,6 +132,7 @@ class Integrations extends Component
             emailmarketing\Moosend::class,
             emailmarketing\Omnisend::class,
             emailmarketing\Ontraport::class,
+            emailmarketing\Ortto::class,
             emailmarketing\Sender::class,
             emailmarketing\Sendinblue::class,
         ];
