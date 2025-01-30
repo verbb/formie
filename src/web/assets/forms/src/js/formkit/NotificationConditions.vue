@@ -102,6 +102,16 @@ export default {
         },
     },
 
+    data() {
+        return {
+            defaultSettings: {
+                sendRule: 'send',
+                conditionRule: 'all',
+                conditions: [],
+            },
+        };
+    },
+
     watch: {
         settings: {
             deep: true,
