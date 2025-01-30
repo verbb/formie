@@ -524,7 +524,7 @@ class Formie extends Plugin
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->error && $event->job instanceof BaseJob) {
-                $event->job->updatePayload($event);
+                $event->job->onError($event);
             }
         });
 
