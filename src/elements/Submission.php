@@ -764,6 +764,15 @@ class Submission extends CustomElement
         return null;
     }
 
+    public function getFormHandle(): ?string
+    {
+        if ($form = $this->getForm()) {
+            return $form->handle;
+        }
+
+        return null;
+    }
+
     public function getSiteHandle(): ?string
     {
         if ($site = $this->getSite()) {
