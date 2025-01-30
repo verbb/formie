@@ -7,7 +7,6 @@ const TabList = {
     render() {
         // Add magic indexes to each <Tab> component
         this.$slots.default()[0].children.forEach((node, index) => {
-            // console.log(node.props.index)
             node.props.index = index;
         });
 

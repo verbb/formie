@@ -66,9 +66,6 @@ export default {
                 let testField = field;
                 let options = field.settings.options || [];
 
-
-                console.log(field.field);
-
                 // Check for group/repeater fields
                 if (field.hasNestedFields) {
                     options = field.subField.settings.options || [];
