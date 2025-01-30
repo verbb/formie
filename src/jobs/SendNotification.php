@@ -3,6 +3,7 @@ namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\helpers\Json;
@@ -14,9 +15,9 @@ class SendNotification extends BaseJob
     // =========================================================================
 
     public ?int $submissionId = null;
-    public ?array $submission = null;
     public ?int $notificationId = null;
-    public ?array $notification = null;
+    public array $submissionData = [];
+    public array $notificationData = [];
     public mixed $email = null;
 
 
@@ -47,19 +48,9 @@ class SendNotification extends BaseJob
         Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
         Craft::$app->getSites()->setCurrentSite($submission->getSite());
 
-        $this->submission = $submission->toArray();
-        $this->notification = $notification->toArray();
-        $this->notification['content'] = $notification->getParsedContent();
-
-        // Add a little extra info for submission fields
-        foreach ($submission->getFields() as $field) {
-            $this->submission['fields'][] = [
-                'type' => get_class($field),
-                'handle' => $field->handle,
-                'settings' => $field->settings,
-                'value' => $submission->getFieldValue($field->handle),
-            ];
-        }
+        // Store some context to the queue job description
+        $this->submissionData = $this->_getSubmissionData($submission);
+        $this->notificationData = $this->_getNotificationData($notification);
 
         $this->setProgress($queue, 0.75);
 
@@ -77,11 +68,64 @@ class SendNotification extends BaseJob
         $this->setProgress($queue, 1);
     }
 
+
     // Protected Methods
     // =========================================================================
 
     protected function defaultDescription(): string
     {
         return Craft::t('formie', 'Sending form notification.');
+    }
+
+    protected function handleError(mixed $job, mixed $jobData): void
+    {
+        $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
+
+        if ($notification) {
+            $jobData->notificationData = $this->_getNotificationData($notification);
+        }
+
+        // Be sure to fetch spam submissions too, if we have Formie set to email those
+        $submission = Submission::find()->id($this->submissionId)->isSpam(null)->one();
+
+        if ($submission) {
+            // Don't use the full submission class as an array, which can cause infinite loops
+            // when used with dynamic variables in Hidden fields.
+            $jobData->submissionData = $this->_getSubmissionData($submission);
+        }
+
+        $jobData->email = $job->email;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getNotificationData(Notification $notification): array
+    {
+        $notificationData = $notification->toArray();
+        $notificationData['content'] = $notification->getParsedContent();
+
+        return $notificationData;
+    }
+
+    private function _getSubmissionData(Submission $submission): array
+    {
+        $submissionData = $submission->toArray([
+            'id',
+            'status',
+            'userId',
+            'ipAddress',
+            'isIncomplete',
+            'isSpam',
+            'spamReason',
+            'spamClass',
+            'snapshot',
+        ]);
+
+        $submissionData['form'] = $submission->getFormHandle();
+        $submissionData['fields'] = $submission->getValuesAsJson();
+
+        return $submissionData;
     }
 }
