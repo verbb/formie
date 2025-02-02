@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.0.20 - 2025-02-02
+
+### Added
+- Add `Submission::getFormHandle()`.
+
+### Changed
+- Refactor queue jobs to provide better feedback on errors and logging data.
+- Improve queue job feedback on error to include the payload being sent.
+
+### Fixed
+- Fix an error with Group and Repeater fields with required File Upload fields on multi-page Ajax forms.
+- Fix Group and Repeater fields not respecting “Include in Email Notifications” setting and conditionally hidden fields in email notifications.
+- Remove incorrect `Campaign = Kampagne` German translation for the Campaign plugin.
+- Fix Single-Line text fields in the control panel not showing limit details correctly.
+- Fix Multi-Line text fields in the control panel not showing limit details correctly.
+- Fix new email notifications not having the conditions logic set correctly.
+- Fix email notification queue job causing an infinite loop in some scenarios, and provide better logging feedback.
+- Fix an error in Craft 5.6+ where fields’ `queryCondition()` function wasn’t being called.
+- Fix some sidebar elements not displaying correctly when editing submissions in the control panel on Craft 5.6+.
+
 ## 3.0.19 - 2025-01-24
 
 ### Changed
