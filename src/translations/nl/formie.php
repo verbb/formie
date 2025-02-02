@@ -397,7 +397,6 @@ return [
     'Call' => 'Bellen',
     'Cambodia' => 'Cambodja',
     'Cameroon' => 'Kameroen',
-    'Campaign' => 'Campagne',
     'Campaign ID' => 'Campagne-ID',
     'Campaign IDs' => 'Campagne-ID\'s',
     'Campaign Monitor' => 'Campaign Monitor',

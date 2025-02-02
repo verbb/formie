@@ -347,7 +347,6 @@ return [
   'Calendar Event' => 'Calendar Event',
   'Calender' => 'Calender',
   'Call' => 'Call',
-  'Campaign' => 'Campaign',
   'Campaign ID' => 'Campaign ID',
   'Campaign IDs' => 'Campaign IDs',
   'Campaign Monitor' => 'Campaign Monitor',

@@ -77,7 +77,13 @@ export class FormieFileUpload {
 
     onAfterSubmit() {
         // For multi-page Ajax forms, we don't want to submit the file uploads multiple times, so clear the content after success
-        this.$field.querySelector('[type="file"]').value = null;
+        // But only if they're not in nested fields, which need the data. Otherwise for Ajax forms, we'd need to load up the saved
+        // nestedRow IDs into HTML, and we don't do that.
+        const $fileInput = this.$field.querySelector('[type="file"]');
+
+        if ($fileInput && !$fileInput.getAttribute('name').includes('[rows]')) {
+            $fileInput.value = null;
+        }
     }
 }
 

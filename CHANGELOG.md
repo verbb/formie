@@ -561,6 +561,13 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.41 - 2025-02-02
+
+### Fixed
+- Fix an error with Group and Repeater fields with required File Upload fields on multi-page Ajax forms.
+- Fix Group and Repeater fields not respecting “Include in Email Notifications” setting and conditionally hidden fields in email notifications.
+- Remove incorrect `Campaign = Kampagne` German translation for the Campaign plugin.
+
 ## 2.1.40 - 2025-01-24
 
 ### Fixed

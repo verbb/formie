@@ -28,10 +28,8 @@ Follow the below steps to connect to the Stripe API.
 1. Select Stripe as the **Integration Provider**.
 
 ### Step 2. Connect to the Stripe API
-1. Go to your <a href="https://dashboard.stripe.com/account/apikeys" target="_blank">Stripe API Keys</a> page in your Stripe dashboard.
+1. Go to your <a href="https://dashboard.stripe.com/apikeys" target="_blank">Stripe Developers - API Keys</a> page in your Stripe dashboard.
 1. On the top-right of your screen, ensure the **Test Mode** lightswitch is in the **off** position if you wish to use Live details, or **on** if you wish to use Test details.
-1. On the top-right of your screen, click **Developers**.
-1. On the left-hand sidebar, click **API Keys**.
 1. Copy the **Publishable Key** from Stripe and paste in the **Publishable Key** field in Formie.
 1. Copy the **Secret Key** from Stripe and paste in the **Secret Key** field in Formie.
 1. We **strongly recommend** you use `.env` variables to store these keys.
@@ -42,9 +40,9 @@ Follow the below steps to connect to the Stripe API.
 
 ### Step 4. Configure Webhooks (for subscriptions)
 1. In order for subscriptions to work, you must populate some settings for webhooks.
-1. In Stripe, on the top-right of your screen, click **Developers**.
-1. On the left-hand sidebar, click **Webhooks**.
-1. Click the **Add an endpoint** button.
+1. In Stripe, on the left-hand sidebar menu, click **Developers**.
+1. On the top sub-menu, click **Webhooks**.
+1. Click the **Create an event destination** button.
 1. Copy the **Redirect URI** from below and paste in the **Endpoint URL** in Stripe.
 1. Click the **Select Events** button under the "Select events to listen to" heading.
 1. We recommend emitting all possible events, but the required events are:
@@ -54,6 +52,9 @@ Follow the below steps to connect to the Stripe API.
     - `invoice.created`
     - `invoice.payment_failed`
     - `invoice.payment_succeeded`
+    - `payment_intent.succeeded`
+    - `payment_intent.payment_failed`
+    - `payment_intent.canceled`
     - `plan.deleted`
     - `plan.updated`
 1. Once created look for the **Signing secret** item and click **Reveal Secret**.

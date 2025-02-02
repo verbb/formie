@@ -479,7 +479,6 @@ return [
     'Lead Reason ID' => 'Lead-Grund-ID',
     'Reason' => 'Grund',
     'Campaign ID' => 'Kampagnen-ID',
-    'Campaign' => 'Kampagne',
     'Keyword' => 'Schlüsselwort',
     'Sales Account ID' => 'Verkaufskonto-ID',
     'Deal Stage ID' => 'Deal-Phasen-ID',
