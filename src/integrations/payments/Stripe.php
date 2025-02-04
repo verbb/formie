@@ -298,7 +298,7 @@ class Stripe extends Payment
             ];
 
             // Add in extra settings configured at the field level
-            $this->_setPayloadDetails($payload, $submission);
+            $this->_setPayloadDetails($payload, $submission, 'subscription');
 
             // Raise a `modifySubscriptionPayload` event
             $event = new ModifyPaymentPayloadEvent([
@@ -437,7 +437,7 @@ class Stripe extends Payment
             }
 
             // Add in extra settings configured at the field level
-            $this->_setPayloadDetails($payload, $submission);
+            $this->_setPayloadDetails($payload, $submission, 'single');
 
             // Raise a `modifySinglePayload` event
             $event = new ModifyPaymentPayloadEvent([
@@ -1375,7 +1375,7 @@ class Stripe extends Payment
         }
     }
 
-    private function _setPayloadDetails(array &$payload, Submission $submission): void
+    private function _setPayloadDetails(array &$payload, Submission $submission, string $type): void
     {
         $field = $this->getField();
         $paymentDescription = $this->getFieldSetting('paymentDescription');
@@ -1387,7 +1387,7 @@ class Stripe extends Payment
             $payload['description'] = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
         }
 
-        if ($paymentReceipt && $paymentReceiptEmail) {
+        if ($paymentReceipt && $paymentReceiptEmail && $type === 'single') {
             $payload['receipt_email'] = Variables::getParsedValue($paymentReceiptEmail, $submission, $submission->getForm());
         }
 
