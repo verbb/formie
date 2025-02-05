@@ -90,7 +90,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 }
 
                 // Roll our own validation, due to lack of field layout and elements
-                $attribute = "field:$fieldKey";
+                $attribute = 'field:' . $field->getErrorKey();
                 $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
 
                 if ($scenario === Element::SCENARIO_LIVE && $field->required) {

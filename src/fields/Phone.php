@@ -164,6 +164,19 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         return false;
     }
 
+    public function getErrorKey(): string
+    {
+        // Ensure that we use the proper sub-field for validation errors
+        return parent::getErrorKey() . '.number';
+    }
+
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        // Because Phone fields aren't technically sub-fields, but they act like one with nested
+        // field content, we want to ensure field validation picks up the correct field label
+        $labels[$this->fieldKey . '.number'] = $this->label;
+    }
+
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         if ($value instanceof PhoneModel && !$value->number) {

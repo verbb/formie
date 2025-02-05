@@ -390,6 +390,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->_row = Formie::$plugin->getFields()->getRowById($this->rowId);
     }
 
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        return;
+    }
+
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->normalizeValue($value, $element);
@@ -711,6 +716,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $names = ArrayHelper::filterEmpty([...$names, $this->handle]);
         
         return implode('.', $names);
+    }
+
+    public function getErrorKey(): string
+    {
+        return $this->fieldKey;
     }
 
     public function getFieldTypeConfig(): array

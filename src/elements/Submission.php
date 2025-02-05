@@ -387,7 +387,10 @@ class Submission extends CustomElement
         $processFields = function ($fields) use (&$processFields, &$labels) {
             foreach ($fields as $field) {
                 $labels[$field->fieldKey] = $field->label;
-                
+
+                // Allow fields to modify the attribute labels
+                $field->modifyAttributeLabels($labels);
+
                 if ($field instanceof NestedFieldInterface) {
                     $processFields($field->getFields());
                 }
@@ -1259,7 +1262,7 @@ class Submission extends CustomElement
             $fields = $formLayout->getVisiblePageFields($this);
 
             foreach ($fields as $field) {
-                $attribute = "field:$field->handle";
+                $attribute = 'field:' . $field->getErrorKey();
 
                 if ($field->getIsDisabled()) {
                     continue;

@@ -431,15 +431,13 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         $scenario = $element->getScenario();
 
         foreach ($this->getFields() as $field) {
-            $fieldKey = $field->fieldKey;
-
             // No need to validate if the field is conditionally hidden or disabled
             if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                 continue;
             }
 
             // Roll our own validation, due to lack of field layout and elements
-            $attribute = "field:$fieldKey";
+            $attribute = 'field:' . $field->getErrorKey();
             $isEmpty = fn() => $field->isValueEmpty($value, $element);
 
             // Special-handling for date picker/calendar, where the date/time field is required, but it's a single field

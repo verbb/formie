@@ -54,8 +54,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
         $scenario = $element->getScenario();
 
         foreach ($this->getFields() as $field) {
-            $fieldKey = $field->fieldKey;
-            $value = $element->getFieldValue($fieldKey);
+            $value = $element->getFieldValue($field->fieldKey);
 
             // No need to validate if the field is conditionally hidden or disabled
             if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
@@ -63,7 +62,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             }
 
             // Roll our own validation, due to lack of field layout and elements
-            $attribute = "field:$fieldKey";
+            $attribute = 'field:' . $field->getErrorKey();
             $isEmpty = fn() => $field->isValueEmpty($value, $element);
 
             if ($scenario === Element::SCENARIO_LIVE && $field->required) {
