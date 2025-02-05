@@ -1,4 +1,4 @@
-import { t, eventKey, ensureVariable } from '../utils/utils';
+import { t, ensureVariable } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 
 export class FormiePayPal extends FormiePaymentProvider {
@@ -55,7 +55,7 @@ export class FormiePayPal extends FormiePaymentProvider {
         this.$input.innerHTML = '';
 
         // Remove unique event listeners
-        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'paypal'));
+        this.form.removeEventListener(this.eventKey('onAfterFormieSubmit', 'paypal'));
     }
 
     getScriptUrl() {
@@ -104,7 +104,7 @@ export class FormiePayPal extends FormiePaymentProvider {
         }
 
         // Attach custom event listeners on the form
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'paypal'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, this.eventKey('onAfterFormieSubmit', 'paypal'), this.onAfterSubmit.bind(this));
     }
 
     getStyleSettings() {

@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 import { dialog } from '@rynpsc/dialog';
 import Payment from 'payment';
@@ -36,9 +36,9 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.onAfterSubmit();
 
         // Remove unique event listeners
-        this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'opayo'));
-        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'opayo'));
-        this.form.removeEventListener(eventKey('FormiePaymentOpayo3DS', 'opayo'));
+        this.form.removeEventListener(this.eventKey('onFormiePaymentValidate', 'opayo'));
+        this.form.removeEventListener(this.eventKey('onAfterFormieSubmit', 'opayo'));
+        this.form.removeEventListener(this.eventKey('FormiePaymentOpayo3DS', 'opayo'));
     }
 
     initField() {
@@ -63,9 +63,9 @@ export class FormieOpayo extends FormiePaymentProvider {
         // Attach custom event listeners on the form
         // Prevent binding multiple times. This can cause multiple payments!
         if (!this.boundEvents) {
-            this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'opayo'), this.onValidate.bind(this));
-            this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'opayo'), this.onAfterSubmit.bind(this));
-            this.form.addEventListener(this.$form, eventKey('FormiePaymentOpayo3DS', 'opayo'), this.onValidate3DS.bind(this));
+            this.form.addEventListener(this.$form, this.eventKey('onFormiePaymentValidate', 'opayo'), this.onValidate.bind(this));
+            this.form.addEventListener(this.$form, this.eventKey('onAfterFormieSubmit', 'opayo'), this.onAfterSubmit.bind(this));
+            this.form.addEventListener(this.$form, this.eventKey('FormiePaymentOpayo3DS', 'opayo'), this.onValidate3DS.bind(this));
 
             this.boundEvents = true;
         }

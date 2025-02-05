@@ -41,6 +41,11 @@ export class FormiePaymentProvider {
         }, 500);
     }
 
+    eventKey(eventName, namespace) {
+        // Create event keys specific to this payment field, so multiple payment fields in conditions are unbound correctly
+        return eventKey(eventName, `${namespace}-${this.$field.getAttribute('data-field-handle')}`);
+    }
+
     removeSuccess() {
         removeClasses(this.$field, this.successClass);
 

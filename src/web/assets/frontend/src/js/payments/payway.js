@@ -1,4 +1,4 @@
-import { t, eventKey, ensureVariable } from '../utils/utils';
+import { t, ensureVariable } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 
 export class FormiePayWay extends FormiePaymentProvider {
@@ -43,8 +43,8 @@ export class FormiePayWay extends FormiePaymentProvider {
         this.onAfterSubmit();
 
         // Remove unique event listeners
-        this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'payway'));
-        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'payway'));
+        this.form.removeEventListener(this.eventKey('onFormiePaymentValidate', 'payway'));
+        this.form.removeEventListener(this.eventKey('onAfterFormieSubmit', 'payway'));
     }
 
     initField() {
@@ -72,8 +72,8 @@ export class FormiePayWay extends FormiePaymentProvider {
         }
 
         // Attach custom event listeners on the form
-        this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'payway'), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'payway'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, this.eventKey('onFormiePaymentValidate', 'payway'), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, this.eventKey('onAfterFormieSubmit', 'payway'), this.onAfterSubmit.bind(this));
     }
 
     mountCard() {
