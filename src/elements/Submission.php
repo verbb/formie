@@ -839,8 +839,10 @@ class Submission extends CustomElement
 
         foreach ($this->getFields() as $field) {
             if ($field instanceof Payment && ($paymentIntegration = $field->getPaymentIntegration())) {
-                // Set the payment field on the integration, for ease-of-use
-                $paymentIntegration->setField($field);
+                // Ensure that the field matches the integration details for multi-payment field forms
+                if ($paymentIntegration->field->id !== $field->id) {
+                    continue;
+                }
 
                 if ($summaryHtml = $paymentIntegration->getSubmissionSummaryHtml($this, $field)) {
                     $html .= $summaryHtml;
