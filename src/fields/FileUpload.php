@@ -246,8 +246,11 @@ class FileUpload extends ElementField
         $sizeMinLimit = $this->sizeMinLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
-                $filenames[] = $file['filename'];
+            // Watch for data (GQL), which doesn't support this validation yet
+            if (isset($file['path'])) {
+                if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
+                    $filenames[] = $file['filename'];
+                }
             }
         }
 
@@ -268,8 +271,11 @@ class FileUpload extends ElementField
         $sizeLimit = $this->sizeLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
-                $filenames[] = $file['filename'];
+            // Watch for data (GQL), which doesn't support this validation yet
+            if (isset($file['path'])) {
+                if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
+                    $filenames[] = $file['filename'];
+                }
             }
         }
 
