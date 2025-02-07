@@ -160,6 +160,11 @@ class Stencils extends Component
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
 
+        // Protect against firing too early before Formie has installed
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_STENCILS)) {
+            return;
+        }
+
         // Ensure template configs are applied first
         $projectConfig = Craft::$app->getProjectConfig();
         $formTemplates = $projectConfig->get(FormTemplates::CONFIG_TEMPLATES_KEY, true) ?? [];
@@ -266,6 +271,11 @@ class Stencils extends Component
     public function handleDeletedStencil(ConfigEvent $event): void
     {
         $stencilUid = $event->tokenMatches[0];
+
+        // Protect against firing too early before Formie has installed
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_STENCILS)) {
+            return;
+        }
 
         $stencil = $this->getStencilByUid($stencilUid);
 
