@@ -14,6 +14,7 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\base\LocalFsInterface;
+use craft\elements\db\AssetQuery;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\FileHelper;
@@ -76,6 +77,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public ?array $caseFieldMapping = null;
     public bool $duplicateLeadTask = false;
     public string $duplicateLeadTaskSubject = 'Task';
+    public bool $mapToContactAttachments = false;
+    public bool $mapToLeadAttachments = false;
+    public bool $mapToOpportunityAttachments = false;
+    public bool $mapToAccountAttachments = false;
+    public bool $mapToCaseAttachments = false;
 
     private array $users = [];
 
@@ -292,6 +298,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                     return false;
                 }
+
+                if ($this->mapToAccountAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $accountId,
+                    ]);
+                }
             }
 
             $contactId = null;
@@ -348,6 +360,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     $contactId = $response['records'][0]['Id'] ?? '';
                     $contactOwnerId = $response['records'][0]['OwnerId'] ?? '';
                 }
+
+                if ($this->mapToContactAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $contactId,
+                    ]);
+                }
             }
 
             if ($this->mapToLead) {
@@ -380,6 +398,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
                         ]), true);
 
                         return false;
+                    }
+
+                    if ($this->mapToLeadAttachments) {
+                        $this->processAttachments($submission, [
+                            'FirstPublishLocationId' => $leadId,
+                        ]);
                     }
                 } catch (Throwable $e) {
                     Integration::apiError($this, $e, false);
@@ -477,6 +501,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                     return false;
                 }
+
+                if ($this->mapToOpportunityAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $opportunityId,
+                    ]);
+                }
             }
 
             if ($this->mapToCase) {
@@ -507,11 +537,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     return false;
                 }
 
-                $attachmentPayload = [
-                    'FirstPublishLocationId' => $caseId,
-                ];
-
-                $this->processAttachments($submission, $this->caseFieldMapping, $this->getFormSettingValue('case'), $attachmentPayload);
+                if ($this->mapToCaseAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $caseId,
+                    ]);
+                }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -568,6 +598,40 @@ class Salesforce extends Crm implements OAuthProviderInterface
         ];
 
         return $rules;
+    }
+
+    protected function processAttachments(Submission $submission, array $payload): void
+    {
+        $localAttachments = [];
+
+        // For any File Upload field, add as an attachment.
+        if ($assets = $this->_getAssetsForSubmission($submission)) {
+            foreach ($assets as $asset) {
+                $path = Assets::getFullAssetFilePath($asset);
+
+                // If a non-local asset, store so we can delete later
+                if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                    $localAttachments[] = $path;
+                }
+
+                $fileContent = base64_encode(file_get_contents($path));
+                $fileName = basename($path);
+
+                $attachmentPayload = array_merge($payload, [
+                    'Title' => $fileName,
+                    'PathOnClient' => $fileName,
+                    'VersionData' => $fileContent,
+                ]);
+
+                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', $attachmentPayload);
+            }
+        }
+
+        foreach ($localAttachments as $path) {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
     }
 
 
@@ -706,40 +770,16 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $payload;
     }
 
-    protected function processAttachments(Submission $submission, array $fieldMapping, array $fieldSettings, array $payload): void
+    private function _getAssetsForSubmission(Submission $submission): array
     {
-        // For any mapped File Upload fields, also add as an attachment
-        $fileUploads = $this->getMappedFieldsByType($submission, $fieldMapping, $fieldSettings, FileUpload::class);
-        $localAttachments = [];
+        $assets = [];
 
-        foreach ($fileUploads as $fileUpload) {
-            $assets = $fileUpload['value']->all();
-
-            foreach ($assets as $asset) {
-                $path = Assets::getFullAssetFilePath($asset);
-
-                // If a non-local asset, store so we can delete later
-                if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
-                    $localAttachments[] = $path;
-                }
-
-                $fileContent = base64_encode(file_get_contents($path));
-                $fileName = basename($path);
-
-                $attachmentPayload = array_merge($payload, [
-                    'Title' => $fileName,
-                    'PathOnClient' => $fileName,
-                    'VersionData' => $fileContent,
-                ]);
-
-                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', $attachmentPayload);
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            if ($value instanceof AssetQuery) {
+                $assets[] = $value->all();
             }
         }
 
-        foreach ($localAttachments as $path) {
-            if (file_exists($path)) {
-                unlink($path);
-            }
-        }
+        return array_merge(...$assets);
     }
 }
