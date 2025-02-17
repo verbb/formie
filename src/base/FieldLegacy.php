@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\elements\db\ElementQueryInterface;
