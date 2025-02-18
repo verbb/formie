@@ -89,7 +89,7 @@
             <!-- //////////////////////// -->
             <td v-if="col.type === 'checkbox'" :key="i" class="checkbox-cell" :width="col.width">
                 <div class="checkbox-wrapper">
-                    <input :id="col.handle + '-' + index" v-model="model[col.id]" type="checkbox" class="checkbox">
+                    <input :id="col.handle + '-' + index" v-model="model[colId(col)]" type="checkbox" class="checkbox">
                     <label :for="col.handle + '-' + index"></label>
                 </div>
             </td>
@@ -102,14 +102,14 @@
                         </div>
                     </div>
 
-                    <input v-model="model[col.id]" type="text" class="text color-input" size="10" autocomplete="off">
+                    <input v-model="model[colId(col)]" type="text" class="text color-input" size="10" autocomplete="off">
                 </div>
             </td>
 
             <td v-if="col.type === 'date'" :key="i" class="date-cell textual" :width="col.width">
                 <div class="datewrapper">
                     <input
-                        v-model="model[col.id]"
+                        v-model="model[colId(col)]"
                         type="text"
                         class="text hasDatepicker"
                         size="10"
@@ -121,11 +121,11 @@
             </td>
 
             <td v-if="col.type === 'email'" :key="i" class="email-cell textual" :width="col.width">
-                <input v-model="model[col.id]" type="email" class="text fullwidth" autocomplete="off">
+                <input v-model="model[colId(col)]" type="email" class="text fullwidth" autocomplete="off">
             </td>
 
             <td v-if="col.type === 'heading'" :key="i" class="" :width="col.width">
-                <input v-model="model[col.id]" type="text" class="text fullwidth" autocomplete="off">
+                <input v-model="model[colId(col)]" type="text" class="text fullwidth" autocomplete="off">
             </td>
 
             <td v-if="col.type === 'lightswitch'" :key="i" class="lightswitch-cell" :width="col.width">
@@ -133,22 +133,22 @@
                     <div class="lightswitch-container">
                         <div class="handle"></div>
                     </div>
-                    <input v-model="model[col.id]" type="hidden">
+                    <input v-model="model[colId(col)]" type="hidden">
                 </div>
             </td>
 
             <td v-if="col.type === 'multiline'" :key="i" class="multiline-cell textual" :width="col.width">
-                <textarea v-model="model[col.id]" rows="1" style="min-height: 36px;"></textarea>
+                <textarea v-model="model[colId(col)]" rows="1" style="min-height: 36px;"></textarea>
             </td>
 
             <td v-if="col.type === 'number'" :key="i" class="number-cell textual" :width="col.width">
-                <input v-model="model[col.id]" type="number" class="text fullwidth" autocomplete="off">
+                <input v-model="model[colId(col)]" type="number" class="text fullwidth" autocomplete="off">
             </td>
 
             <td v-if="col.type === 'time'" :key="i" class="time-cell textual" :width="col.width">
                 <div class="timewrapper">
                     <input
-                        v-model="model[col.id]"
+                        v-model="model[colId(col)]"
                         type="text"
                         class="text ui-timepicker-input"
                         size="10"
@@ -161,18 +161,18 @@
 
             <td v-if="col.type === 'select'" :key="i" class="select-cell" :width="col.width">
                 <div class="select small">
-                    <select v-model="model[col.id]">
+                    <select v-model="model[colId(col)]">
                         <option v-for="(option, optIndex) in col.options" :key="optIndex" :value="option.value">{{ option.label }}</option>
                     </select>
                 </div>
             </td>
 
             <td v-if="col.type === 'singleline'" :key="i" class="singleline-cell textual" :width="col.width">
-                <input v-model="model[col.id]" type="text" class="text fullwidth" autocomplete="off">
+                <input v-model="model[colId(col)]" type="text" class="text fullwidth" autocomplete="off">
             </td>
 
             <td v-if="col.type === 'url'" :key="i" class="url-cell textual " :width="col.width">
-                <input v-model="model[col.id]" type="url" class="text fullwidth" autocomplete="off">
+                <input v-model="model[colId(col)]" type="url" class="text fullwidth" autocomplete="off">
             </td>
         </template>
 
@@ -375,6 +375,11 @@ export default {
 
         openModal() {
             this.showModal = true;
+        },
+
+        colId(col) {
+            // Use either `name` or `id` for column values
+            return col.name ?? col.id;
         },
 
         _getName(type, fallback) {
