@@ -108,6 +108,19 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         }
     }
 
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        // We need to factor in the error message key for Repeater blocks, but at this point we don't know what they are
+        // so fudge it a little, and generate 70 label keys, and hope that people aren't making more than 70 rows.
+        for ($i = 0; $i < 70; $i++) { 
+            foreach ($this->getFields() as $field) {
+                $field->setParentField($this, $i);
+
+                $labels[$field->fieldKey] = $field->label;
+            }
+        }
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         if (!is_array($value)) {
