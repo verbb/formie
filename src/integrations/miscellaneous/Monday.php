@@ -175,7 +175,7 @@ class Monday extends Miscellaneous
     {
         try {
             $response = $this->request('POST', '/', [
-                'form_params' => [
+                'json' => [
                     'query' => '
                         query {
                             me {
@@ -335,7 +335,7 @@ class Monday extends Miscellaneous
     private function _getPaginated($limit = 100, $page = 1, $items = [])
     {
         $response = $this->request('POST', '/', [
-            'form_params' => [
+            'json' => [
                 'query' => '
                     query {
                         boards (limit:' . $limit . ', page:' . $page . ') {
