@@ -62,9 +62,10 @@ Follow the below steps to connect to the Monday API.
 
 ### Step 2. Connect to the Monday API
 1. Go to <a href="https://monday.com/" target="_blank">Monday</a> and login to your account.
-1. Click on your profile dropdown on the bottom-left of the screen, and select **Admin**.
-1. In the left-hand sidebar menu, click on **API**.
-1. Copy the **API v2 Token** from Monday and paste in the **API Key** field in Formie.
+1. Click on your profile dropdown on the top-right of the screen, and select **Administration**.
+1. In the left-hand sidebar menu, click on **Connections**.
+1. In the top menu, click on **API**.
+1. Copy the **Personal API Token** from Monday and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
