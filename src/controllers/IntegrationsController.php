@@ -211,6 +211,9 @@ class IntegrationsController extends Controller
 
     public function actionCallback(): ?Response
     {
+        // Restore the session data that we saved before authorization redirection from the cache back to session
+        Session::restoreSession($this->request->getParam('state'));
+        
         // Get both the origin (failure) and redirect (success) URLs
         $origin = Session::get('origin');
         $redirect = Session::get('redirect');
