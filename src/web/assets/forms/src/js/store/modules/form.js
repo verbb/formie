@@ -438,6 +438,8 @@ const getters = {
                 'verbb\\formie\\fields\\Email',
                 'verbb\\formie\\fields\\Hidden',
                 'verbb\\formie\\fields\\Recipients',
+
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [
@@ -466,6 +468,8 @@ const getters = {
             options.includedTypes = [
                 'verbb\\formie\\fields\\Number',
                 'verbb\\formie\\fields\\Hidden',
+
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [
@@ -519,7 +523,7 @@ const getters = {
                 'verbb\\formie\\fields\\subfields\\AddressState',
                 'verbb\\formie\\fields\\subfields\\AddressCountry',
 
-                ...options.extra ?? [],
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [

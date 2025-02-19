@@ -114,8 +114,6 @@ export default {
                 includeGeneral: false,
                 includedTypes: [
                     'verbb\\formie\\fields\\Calculations',
-                ],
-                excludedTypes: [
                     'verbb\\formie\\fields\\Checkboxes',
                 ],
             });
@@ -124,7 +122,7 @@ export default {
             // Maybe refactor this into the getter in Formie 2?
             fields = fields.filter((field) => {
                 if (this.editingField && this.editingField.field) {
-                    if (field.value === `{field.${this.editingField.field.handle}}`) {
+                    if (field.value === `{field:${this.editingField.field.settings.handle}}`) {
                         return false;
                     }
                 }
