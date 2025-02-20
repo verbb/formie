@@ -16,6 +16,9 @@ use verbb\formie\records\Form as FormRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\base\ElementInterface;
+use craft\base\FieldInterface;
+use craft\base\NestedElementInterface;
 use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Db;
@@ -212,6 +215,7 @@ class Forms extends Component
 
     public function getFormUsage(Form $form): array
     {
+        $elements = [];
         $settings = Formie::$plugin->getSettings();
         $includeDrafts = $settings->includeDraftElementUsage;
         $includeRevisions = $settings->includeRevisionElementUsage;
@@ -231,9 +235,57 @@ class Forms extends Component
                 $query->andWhere(['elements.revisionId' => null]);
             }
 
-            return $query->all();
+            foreach ($query->all() as $index => $info) {
+                $element = Craft::$app->getElements()->getElementById($info['id'], $info['type']);
+                $field = Craft::$app->getFields()->getFieldById($info['fieldId']);
+
+                // Build items backwards first, as we're starting with the most deeply-nested element,
+                // resolve the parent of elements, which we transform afterwards to children for correct rendering
+                if ($element) {
+                    $nestedElements = $this->_handleNestedElement($element, $field, 0);
+
+                    // Sort their items descending
+                    usort($nestedElements, function ($a, $b) {
+                        return $b['level'] <=> $a['level'];
+                    });
+
+                    // With elements now properly sorted, update their level
+                    foreach ($nestedElements as $index => $nestedElement) {
+                        $nestedElements[$index]['level'] = $index;
+                    }
+
+                    $elements[] = $nestedElements;
+                }
+            }
         }
 
-        return [];
+        // Flatten nested array
+        return array_merge(...$elements);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level): array
+    {
+        $elements = [];
+
+        $elements[] = [
+            'element' => $element,
+            'field' => $field,
+            'level' => $level,
+        ];
+
+        if ($element instanceof NestedElementInterface && $element->ownerId) {
+            $ownerElement = Craft::$app->getElements()->getElementById($element->ownerId, null, $element->siteId);
+            $ownerField = Craft::$app->getFields()->getFieldById($element->fieldId);
+
+            if ($ownerElement) {
+                $elements = array_merge($elements, $this->_handleNestedElement($ownerElement, $ownerField, $level + 1));
+            }
+        }
+
+        return $elements;
     }
 }
