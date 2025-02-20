@@ -30,6 +30,7 @@ use craft\helpers\Json;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
+
 use Throwable;
 
 class Forms extends Component
@@ -271,19 +272,27 @@ class Forms extends Component
     {
         $elements = [];
 
-        $elements[] = [
-            'element' => $element,
-            'field' => $field,
-            'level' => $level,
-        ];
+        try {
+            $elements[] = [
+                'element' => $element,
+                'field' => $field,
+                'level' => $level,
+            ];
 
-        if ($element instanceof NestedElementInterface && $element->ownerId) {
-            $ownerElement = Craft::$app->getElements()->getElementById($element->ownerId, null, $element->siteId);
-            $ownerField = Craft::$app->getFields()->getFieldById($element->fieldId);
+            if ($element instanceof NestedElementInterface && $element->ownerId) {
+                try {
+                    $ownerElement = Craft::$app->getElements()->getElementById($element->ownerId, null, $element->siteId);
+                    $ownerField = Craft::$app->getFields()->getFieldById($element->fieldId);
 
-            if ($ownerElement) {
-                $elements = array_merge($elements, $this->_handleNestedElement($ownerElement, $ownerField, $level + 1));
+                    if ($ownerElement) {
+                        $elements = array_merge($elements, $this->_handleNestedElement($ownerElement, $ownerField, $level + 1));
+                    }
+                } catch (Throwable $e) {
+                    // Skip over
+                }
             }
+        } catch (Throwable $e) {
+            // Skip over
         }
 
         return $elements;
