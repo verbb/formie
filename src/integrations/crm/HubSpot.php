@@ -129,7 +129,7 @@ class HubSpot extends Crm
                     $settings['forms'][] = new IntegrationCollection([
                         'id' => $form['portalId'] . '__' . $form['guid'],
                         'name' => $form['name'],
-                        'fields' => $this->_getFields($form),
+                        'fields' => $this->_getFormFields($form),
                     ]);
                 }
 
@@ -376,15 +376,29 @@ class HubSpot extends Crm
                 $formPayload = [];
 
                 // Handle GDPR fields
-                $legalConsentOptions = ArrayHelper::remove($formValues, 'legalConsentOptions');
+                $legalConsentOptionsMarketing = ArrayHelper::remove($formValues, 'legalConsentOptionsMarketing');
+                $legalConsentOptionsProcessing = ArrayHelper::remove($formValues, 'legalConsentOptionsProcessing');
 
-                if ($legalConsentOptions) {
+                if ($legalConsentOptionsProcessing || $legalConsentOptionsMarketing) {
+                    $legalConsentOptionsMarketingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsMarketing');
+                    $legalConsentOptionsProcessingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsProcessing');
+
                     $formPayload['legalConsentOptions'] = [
                         'consent' => [
                             'consentToProcess' => true,
-                            'text' => 'I consent',
+                            'text' => $legalConsentOptionsProcessingField['data']['text'] ?? '',
                         ],
                     ];
+
+                    if ($legalConsentOptionsMarketing) {
+                        $formPayload['legalConsentOptions']['communications'] = [
+                            [
+                                'value' => true,
+                                'subscriptionTypeId' => $legalConsentOptionsMarketingField['data']['typeId'] ?? '',
+                                'text' => $legalConsentOptionsMarketingField['data']['text'] ?? '',
+                            ]
+                        ];
+                    }
                 }
 
                 // Extract some values that shouldn't be part of the form payload
@@ -614,7 +628,26 @@ class HubSpot extends Crm
         return $customFields;
     }
 
-    private function _getFields($form): array
+    private function _getField(string $dataHandle, string $dataId, string $fieldHandle): array
+    {
+        $objects = $this->cache['settings'][$dataHandle] ?? [];
+
+        foreach ($objects as $object) {
+            if ($object['id'] === $dataId) {
+                $fields = $object['fields'] ?? [];
+
+                foreach ($fields as $field) {
+                    if ($field['handle'] === $fieldHandle) {
+                        return $field;
+                    }
+                }
+            }
+        }
+
+        return [];
+    }
+
+    private function _getFormFields($form): array
     {
         $fields = [];
 
@@ -648,10 +681,42 @@ class HubSpot extends Crm
 
         foreach ($metaData as $data) {
             if ($data['name'] === 'legalConsentOptions') {
+                $consentData = Json::decode($data['value']);
+
+                $processingConsentType = $consentData['processingConsentType'] ?? 'REQUIRED_CHECKBOX';
+
                 $extraFields[] = new IntegrationField([
-                    'handle' => 'legalConsentOptions',
-                    'name' => Craft::t('formie', 'Legal Consent Options'),
+                    'handle' => 'legalConsentOptionsMarketing',
+                    'name' => Craft::t('formie', 'Legal Consent (Marketing)'),
+                    'options' => [
+                        'label' => Craft::t('formie', 'Consent'),
+                        'options' => [
+                            ['label' => Craft::t('formie', 'True'), 'value' => 'true'],
+                            ['label' => Craft::t('formie', 'False'), 'value' => 'false']
+                        ]
+                    ],
+                    'data' => [
+                        'text' => strip_tags($consentData['communicationConsentCheckboxes'][0]['label'] ?? ''),
+                        'typeId' => $consentData['communicationConsentCheckboxes'][0]['communicationTypeId'] ?? '',
+                    ],
                 ]);
+
+                if ($processingConsentType === 'REQUIRED_CHECKBOX') {
+                    $extraFields[] = new IntegrationField([
+                        'handle' => 'legalConsentOptionsProcessing',
+                        'name' => Craft::t('formie', 'Legal Consent (Processing)'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Consent'),
+                            'options' => [
+                                ['label' => Craft::t('formie', 'True'), 'value' => 'true'],
+                                ['label' => Craft::t('formie', 'False'), 'value' => 'false']
+                            ]
+                        ],
+                        'data' => [
+                            'text' => strip_tags($consentData['processingConsentCheckboxLabel'] ?? ''),
+                        ],
+                    ]);
+                }
             }
         }
 
