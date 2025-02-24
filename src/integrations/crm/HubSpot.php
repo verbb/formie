@@ -425,7 +425,7 @@ class HubSpot extends Crm
                     ];
 
                     if ($legalConsentOptionsMarketing) {
-                        $formPayload['legalConsentOptions']['communications'] = [
+                        $formPayload['legalConsentOptions']['consent']['communications'] = [
                             [
                                 'value' => true,
                                 'subscriptionTypeId' => $legalConsentOptionsMarketingField['data']['typeId'] ?? '',
@@ -693,6 +693,7 @@ class HubSpot extends Crm
                 $extraFields[] = new IntegrationField([
                     'handle' => 'legalConsentOptionsMarketing',
                     'name' => Craft::t('formie', 'Legal Consent (Marketing)'),
+                    'type' => IntegrationField::TYPE_BOOLEAN,
                     'options' => [
                         'label' => Craft::t('formie', 'Consent'),
                         'options' => [
@@ -710,6 +711,7 @@ class HubSpot extends Crm
                     $extraFields[] = new IntegrationField([
                         'handle' => 'legalConsentOptionsProcessing',
                         'name' => Craft::t('formie', 'Legal Consent (Processing)'),
+                        'type' => IntegrationField::TYPE_BOOLEAN,
                         'options' => [
                             'label' => Craft::t('formie', 'Consent'),
                             'options' => [
