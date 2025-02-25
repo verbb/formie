@@ -6,6 +6,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -409,9 +410,9 @@ class HubSpot extends Crm
                 // Prepare the payload for HubSpot, required for v1 API
                 $formPayload = [];
 
-                // Handle GDPR fields
-                $legalConsentOptionsMarketing = ArrayHelper::remove($formValues, 'legalConsentOptionsMarketing');
-                $legalConsentOptionsProcessing = ArrayHelper::remove($formValues, 'legalConsentOptionsProcessing');
+                // Handle GDPR fields - don't forget to cast as boolean, as in `EVENT_MODIFY_FIELD_MAPPING_VALUE` we cast boolean as string
+                $legalConsentOptionsMarketing = StringHelper::toBoolean(ArrayHelper::remove($formValues, 'legalConsentOptionsMarketing'));
+                $legalConsentOptionsProcessing = StringHelper::toBoolean(ArrayHelper::remove($formValues, 'legalConsentOptionsProcessing'));
 
                 if ($legalConsentOptionsProcessing || $legalConsentOptionsMarketing) {
                     $legalConsentOptionsMarketingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsMarketing');
