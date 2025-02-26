@@ -291,6 +291,29 @@ class Agree extends FormField implements PreviewableFieldInterface, SortableFiel
 
         $id = $this->getHtmlId($form);
 
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => [
+                    'fui-fieldset',
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
+            return new HtmlTag('legend', [
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'field-label' => true,
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
+            ]);
+        }
+
         if ($key === 'fieldOption') {
             return new HtmlTag('div', [
                 'class' => 'fui-checkbox',
