@@ -14,7 +14,9 @@
                     {% set labelExtraContent = fieldtag('locationLink') %}
                 {% endif %}
 
+                {# Pass in the raw value from this parent field #}
                 {{ craft.formie.renderField(form, field, {
+                    value: value[field.handle] ?? null,
                     labelExtraContent: labelExtraContent,
                 }) }}
             {% endfor %}
