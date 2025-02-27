@@ -8,8 +8,6 @@
                 {# Update the namespace for the field #}
                 {% do field.setParentField(nameField) %}
 
-                {{ craft.formie.renderField(form, field) }}
-
                 {# Pass in the raw value from this parent field #}
                 {{ craft.formie.renderField(form, field, {
                     value: value[field.handle] ?? null,
