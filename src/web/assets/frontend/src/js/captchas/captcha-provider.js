@@ -25,7 +25,13 @@ export class FormieCaptchaProvider {
                     this.onShow();
                 }
             }
-        }, { root: this.$form });
+        }, {
+            root: this.$form,
+
+            // Include a large margin to cater for when other elements might cover the placeholder
+            // as `IntersectionObserver` won't deem the placeholder in view if under something else
+            rootMargin: '50px',
+        });
 
         // Watch for when the input is visible/hidden, in the context of the form. But wait a little to start watching
         // to prevent double binding when still loading the form, or hidden behind conditions.
