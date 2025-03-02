@@ -34,7 +34,10 @@ class IterableIntegration extends Crm
 
     public ?string $apiKey = null;
     public bool $mapToUser = false;
+    public bool $mapToMessageType = false;
     public ?array $userFieldMapping = null;
+    public ?array $messageTypeFieldMapping = null;
+    public ?string $messageTypeId = null;
 
 
     // Public Methods
@@ -55,35 +58,91 @@ class IterableIntegration extends Crm
         $settings = [];
 
         try {
-            // Get User fields
-            if ($this->mapToUser) {
+            if (Craft::$app->getRequest()->getParam('refreshMessageTypes')) {
+                // Reset the message types
+                $settings['messageType'] = [];
+
+                $response = $this->request('GET', 'messageTypes');
+                $messageTypes = $response['messageTypes'] ?? [];
+
                 $response = $this->request('GET', 'users/getFields');
                 $fields = $response['fields'] ?? [];
 
-                $settings['user'] = array_merge([
-                    new IntegrationField([
-                        'handle' => 'email',
-                        'name' => Craft::t('formie', 'Email'),
-                        'required' => true,
-                    ]),
-                ], $this->_getCustomFields($fields, [
-                    'devices',
-                    'email',
-                    'profile',
-                    'userId',
-                    'emailListIds',
-                    'itblDS',
-                    'itblUserId',
-                    'profileUpdatedAt',
-                    'receivedSMSDisclaimer',
-                    'subscribedMessageTypeIds',
-                    'unsubscribedChannelIds',
-                    'unsubscribedMessageTypeIds',
-                    'userListIds',
-                ]));
+                foreach ($messageTypes as $messageType) {
+                    $messageTypeFields = array_merge([
+                        new IntegrationField([
+                            'handle' => 'email',
+                            'name' => Craft::t('formie', 'Email'),
+                            'required' => true,
+                        ]),
+                    ], $this->_getCustomFields($fields, [
+                        'devices',
+                        'email',
+                        'profile',
+                        'userId',
+                        'emailListIds',
+                        'itblDS',
+                        'itblUserId',
+                        'profileUpdatedAt',
+                        'receivedSMSDisclaimer',
+                        'subscribedMessageTypeIds',
+                        'unsubscribedChannelIds',
+                        'unsubscribedMessageTypeIds',
+                        'userListIds',
+                    ]));
+
+                    $settings['messageTypes'][] = new IntegrationCollection([
+                        'id' => (string)$messageType['id'],
+                        'name' => $messageType['name'],
+                        'fields' => $messageTypeFields,
+                    ]);
+                }
+
+                // Sort message types by name
+                usort($settings['messageTypes'], function($a, $b) {
+                    return strcmp($a['name'], $b['name']);
+                });
+            } else {
+                // Get User fields
+                if ($this->mapToUser) {
+                    $response = $this->request('GET', 'users/getFields');
+                    $fields = $response['fields'] ?? [];
+
+                    $settings['user'] = array_merge([
+                        new IntegrationField([
+                            'handle' => 'email',
+                            'name' => Craft::t('formie', 'Email'),
+                            'required' => true,
+                        ]),
+                    ], $this->_getCustomFields($fields, [
+                        'devices',
+                        'email',
+                        'profile',
+                        'userId',
+                        'emailListIds',
+                        'itblDS',
+                        'itblUserId',
+                        'profileUpdatedAt',
+                        'receivedSMSDisclaimer',
+                        'subscribedMessageTypeIds',
+                        'unsubscribedChannelIds',
+                        'unsubscribedMessageTypeIds',
+                        'userListIds',
+                    ]));
+                }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
+        }
+
+        // Because we have split settings for partial settings fetches, enssure we populate settings from cache
+        // So we need to unserialize the cached form settings, and combine with any new settings and return
+        $cachedSettings = $this->cache['settings'] ?? [];
+
+        if ($cachedSettings) {
+            $formSettings = new IntegrationFormSettings();
+            $formSettings->unserialize($cachedSettings);
+            $settings = array_merge($formSettings->collections, $settings);
         }
 
         return new IntegrationFormSettings($settings);
@@ -93,6 +152,7 @@ class IterableIntegration extends Crm
     {
         try {
             $userValues = $this->getFieldMappingValues($submission, $this->userFieldMapping, 'user');
+            $messageTypeValues = $this->getFieldMappingValues($submission, $this->messageTypeFieldMapping, 'messageTypes');
 
             if ($this->mapToUser) {
                 $email = ArrayHelper::remove($userValues, 'email');
@@ -111,6 +171,35 @@ class IterableIntegration extends Crm
 
                 if ($response === false) {
                     return true;
+                }
+            }
+
+            if ($this->mapToMessageType) {
+                // Pull out email, as it needs to be top level
+                $email = ArrayHelper::remove($messageTypeValues, 'email');
+
+                $payload = [
+                    'email' => $email,
+                    'subscribedMessageTypeIds' => [
+                        (int)$this->messageTypeId,
+                    ],
+                ];
+
+                $response = $this->deliverPayload($submission, 'users/updateSubscriptions', $payload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $code = $response['code'] ?? '';
+
+                if ($code !== 'Success') {
+                    Integration::error($this, Craft::t('formie', 'Invalid subscription status {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($payload),
+                    ]), true);
+
+                    return false;
                 }
             }
         } catch (Throwable $e) {
@@ -145,6 +234,23 @@ class IterableIntegration extends Crm
             'base_uri' => 'https://api.iterable.com/api/',
             'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
+    {
+        // When mapping to message types, the field settings will be an array of `IntegrationCollection` objects.
+        // So we need to select the type's settings that we're mapping to and return just the field.
+        if ($fieldSettings === 'messageTypes') {
+            $collections = $this->getFormSettingValue($fieldSettings);
+
+            foreach ($collections as $collection) {
+                if ($collection->id === $this->messageTypeId) {
+                    $fieldSettings = $collection->fields;
+                }
+            }
+        }
+
+        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
     }
 
 
