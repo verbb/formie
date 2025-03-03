@@ -102,7 +102,8 @@ class Agree extends FormField implements PreviewableFieldInterface, SortableFiel
      */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return (bool)$value;
+        // Allow null value to represent proper empty state
+        return ($value === null) ? null : (bool)$value;
     }
 
     /**
