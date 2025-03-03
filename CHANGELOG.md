@@ -581,6 +581,25 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.42 - 2025-03-04
+
+### Added
+- Add “Message Type” to Iterable CRM integration.
+- Add the ability for IntegrationField’s to contain static `data` in their definitions.
+- Add support for Table field to use `id` or `name` values when defining a row schema.
+
+### Changed
+- Improve Hubspot GDPR handling for marketing and processing options.
+- Update Monday integration instructions.
+
+### Fixed
+- Fix Agree field not allowing `null` value as an empty state indicator.
+- Fix Agree field markup to match correct accessibility guidelines.
+- Fix Hubspot GDPR handling.
+- Fix Monday integration connection requests.
+- Fix an error when applying Formie-related project config when uninstalled.
+- Fix Phone number fields flag icons in the form builder.
+
 ## 2.1.41 - 2025-02-02
 
 ### Fixed

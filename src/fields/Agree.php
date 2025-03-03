@@ -90,7 +90,8 @@ class Agree extends Field implements PreviewableFieldInterface, SortableFieldInt
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return (bool)$value;
+        // Allow null value to represent proper empty state
+        return ($value === null) ? null : (bool)$value;
     }
 
     public function getDescriptionHtml(): Markup
