@@ -799,7 +799,12 @@ class Submission extends CustomElement
             return $this->_status = $form->getDefaultStatus();
         }
 
-        return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
+        if ($status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+            return $this->_status = $status;
+        }
+
+        // Just in case there's no default status set in settings, pick the first available
+        return $this->_status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
     }
 
     public function setStatus(Status|string $status): void
