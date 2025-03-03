@@ -126,6 +126,7 @@ class Stencil extends Model
             'title' => $this->getTitle(),
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
+            'templateId' => $this->templateId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
             'isStencil' => true,
