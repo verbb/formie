@@ -1,5 +1,40 @@
 # Changelog
 
+## 3.0.21 - 2025-03-04
+
+### Added
+- Add “Message Type” to Iterable CRM integration.
+- Add the ability for IntegrationField’s to contain static `data` in their definitions.
+- Add support for Table field to use `id` or `name` values when defining a row schema.
+- Add “Attach File Uploads” for all data objects for Salesforce integration.
+
+### Changed
+- Improve Hubspot GDPR handling for marketing and processing options.
+- Update Monday integration instructions.
+
+### Fixed
+- Fix Agree field not allowing `null` value as an empty state indicator.
+- Fix Agree field markup to match correct accessibility guidelines.
+- Fix Hubspot GDPR handling.
+- Fix Monday integration connection requests.
+- Fix an error when applying Formie-related project config when uninstalled.
+- Fix Phone number fields flag icons in the form builder.
+- Fix form usage throwing errors in some instances.
+- Fix an error determining the default status for a submission, if none are set.
+- Fix an error with Email Notifications when no valid fields could be found to be included in the email content.
+- Fix Form Template setting not persisting for Stencils.
+- Fix an error for captchas not rendering if the captcha placeholder was visually obscured.
+- Fix Address and Multi-Name fields not working correctly when populating their field content.
+- Fix Calculations field variables not being set correctly, when referencing other fields.
+- Fix handling for some integrations where session data isn’t being persisted when connecting via OAuth.
+- Fix server-side error messages for Repeater fields.
+- Fix an error for File Upload fields with GraphQL, when min/max size limits were set.
+- Fix a display issue for forms with multiple payment fields with the same integration.
+- Fix payment summary display when editing a submission for Craft 5.6+.
+- Fix multiple Payment fields not validating correctly when re-initializing the fields’ JS.
+- Fix Phone Number server-side validation error.
+- Fix an error with Stripe payments for subscriptions when including a payment receipt.
+
 ## 3.0.20 - 2025-02-02
 
 ### Added
