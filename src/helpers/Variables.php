@@ -321,6 +321,7 @@ class Variables
             'form' => $form,
             'notification' => $notification,
             'submission' => $submission,
+            'fields' => [],
         ];
 
         // Send through any fields that should be rendered
