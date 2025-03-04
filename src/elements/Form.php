@@ -1058,6 +1058,11 @@ class Form extends Element
         return $this->_submitActionEntry;
     }
 
+    public function setRedirectEntry(Entry $entry): void
+    {
+        $this->_submitActionEntry = $entry;
+    }
+
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this);
