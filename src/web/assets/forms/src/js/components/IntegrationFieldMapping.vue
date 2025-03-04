@@ -174,6 +174,7 @@ export default {
                     { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
                     { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
                     { label: Craft.t('formie', 'Form Name'), value: '{submission:formName}' },
+                    { label: Craft.t('formie', 'Submission Date'), value: '{submission:dateCreated}' },
                 ],
             });
 
