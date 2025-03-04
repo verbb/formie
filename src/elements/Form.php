@@ -258,6 +258,7 @@ class Form extends Element
 
     public bool $resetClasses = false;
     public ?int $pageCount = null;
+    public bool $isApplyingStencil = false;
 
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
@@ -1955,8 +1956,8 @@ class Form extends Element
             return false;
         }
 
-        // If a new form, enable any globally-enabled captchas
-        if ($isNew) {
+        // If a new form, enable any globally-enabled captchas - but not if applying a stencil
+        if ($isNew && !$this->isApplyingStencil) {
             foreach (Formie::$plugin->getIntegrations()->getAllCaptchas() as $captcha) {
                 if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
                     $this->settings->integrations[$captcha->handle]['enabled'] = true;

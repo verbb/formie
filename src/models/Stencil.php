@@ -246,6 +246,7 @@ class Stencil extends Model
     {
         $this->data->populateToForm($form);
 
+        $form->isApplyingStencil = true;
         $form->setTemplate($this->getTemplate());
         $form->setDefaultStatus($this->getDefaultStatus());
     }
