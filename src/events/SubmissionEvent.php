@@ -15,5 +15,6 @@ class SubmissionEvent extends CancelableEvent
     public ?Form $form = null;
     public ?string $submitAction = null;
     public ?bool $success = null;
+    public bool $forceRedirect = false;
     
 }

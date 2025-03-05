@@ -706,6 +706,11 @@ class SubmissionsController extends Controller
         // Get the URL for redirection (ignore last page checks, already done)
         $url = $form->getRedirectUrl(false);
 
+        // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has opted to force a redirect, rather than rely on the `redirect` POST param
+        if ($event->forceRedirect) {
+            return $this->redirect($url);
+        }
+
         return $this->redirectToPostedUrl($submission, $url);
     }
 
