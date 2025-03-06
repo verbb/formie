@@ -104,20 +104,22 @@ class FieldLayoutPage extends SavableComponent
 
     public function getRows(bool $includeDisabled = true): array
     {
+        $rows = $this->_rows;
+
         // Filter out rows that have disabled/hidden fields or are disabled altogether
         if ($includeDisabled) {
-            return $this->_rows;
+            return $rows;
         }
 
         foreach ($this->_rows as $rowKey => $row) {
             $fields = $row->getFields($includeDisabled);
             
             if (!$fields) {
-                unset($this->_rows[$rowKey]);
+                unset($rows[$rowKey]);
             }
         }
 
-        return $this->_rows;
+        return $rows;
     }
 
     public function setRows(array $rows): void
