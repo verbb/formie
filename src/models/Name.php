@@ -50,6 +50,11 @@ class Name extends Model
         return (string)$this->name;
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->__toString() === '';
+    }
+
     /**
      * Returns a concatenated string of name parts.
      *

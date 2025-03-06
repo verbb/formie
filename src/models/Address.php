@@ -45,4 +45,9 @@ class Address extends Model
         return implode(', ', $address);
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->__toString() === '';
+    }
+
 }

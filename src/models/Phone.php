@@ -84,6 +84,11 @@ class Phone extends Model
         }
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->__toString() === '';
+    }
+
     public function getCountryCode(): string
     {
         if ($this->hasCountryCode) {

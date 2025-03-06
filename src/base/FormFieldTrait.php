@@ -675,21 +675,28 @@ trait FormFieldTrait
 
     public function getFieldValue($element, $handle = '', $attributePrefix = '')
     {
+        $value = null;
+
         // Allow handle to be overridden
         if (!$handle) {
             $handle = $this->handle;
         }
 
         // If we pass in an element (submission), fetch the value on that
-        $value = $element->{$handle} ?? null;
+        if ($element instanceof ElementInterface) {
+            $value = $element->{$handle} ?? null;
+        }
 
         // If we pass in an array, fetch the value on that
         if (is_array($element)) {
             $value = $element[$handle] ?? null;
         }
 
-        // Otherwise, check if there are any default values
-        if ($value === null) {
+        // Otherwise, check if there are any default values. Add an extra check for object-based content
+        $hasIsEmptyMethod = is_object($value) && method_exists($value, 'isEmpty');
+        $isEmpty = $hasIsEmptyMethod && $value->isEmpty();
+
+        if ($value === null || $isEmpty) {
             $defaultValue = $this->getDefaultValue($attributePrefix);
 
             if ($defaultValue !== null) {
