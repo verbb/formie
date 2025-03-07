@@ -673,7 +673,10 @@ class SubmissionsController extends Controller
         $form = $event->form;
 
         if ($request->getAcceptsJson()) {
-            return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
+            return $this->_returnJsonResponse(true, $submission, $form, $nextPage, [
+                // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
+                'redirectUrl' => $event->redirectUrl,
+            ]);
         }
 
         if (!empty($nextPage)) {
@@ -706,9 +709,9 @@ class SubmissionsController extends Controller
         // Get the URL for redirection (ignore last page checks, already done)
         $url = $form->getRedirectUrl(false);
 
-        // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has opted to force a redirect, rather than rely on the `redirect` POST param
-        if ($event->forceRedirect) {
-            return $this->redirect($url);
+        // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
+        if ($event->redirectUrl) {
+            return $this->redirect($event->redirectUrl);
         }
 
         return $this->redirectToPostedUrl($submission, $url);
@@ -1013,6 +1016,9 @@ class SubmissionsController extends Controller
 
         $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
 
+        // Set the `redirectUrl` unless we've passed in an override
+        $extras['redirectUrl'] = $extras['redirectUrl'] ?? $redirectUrl;
+
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
@@ -1020,7 +1026,6 @@ class SubmissionsController extends Controller
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? null,
             'isFinalPage' => $nextPage ? false : true,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
-            'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
             'events' => $form->getFrontEndJsEvents(),
         ], $extras);
