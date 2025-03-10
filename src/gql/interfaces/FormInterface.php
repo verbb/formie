@@ -149,8 +149,20 @@ class FormInterface extends Element
                 'name' => 'templateJs',
                 'type' => Type::string(),
                 'description' => 'The form’s JS for rendering and functionality.',
+                'args' => [
+                    'useObserver' => [
+                        'name' => 'useObserver',
+                        'description' => 'Whether to automatically initialize the form’s JS when visible.',
+                        'type' => Type::boolean(),
+                    ],
+                    'initJs' => [
+                        'name' => 'initJs',
+                        'description' => 'Whether to automatically initialize the form’s JS.',
+                        'type' => Type::boolean(),
+                    ],
+                ],
                 'resolve' => function($source, $arguments) {
-                    return Formie::$plugin->getRendering()->renderJs(true);
+                    return Formie::$plugin->getRendering()->renderJs(true, $arguments);
                 },
             ],
             'csrfToken' => [
