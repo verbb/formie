@@ -405,6 +405,10 @@ class FormsController extends Controller
         ];
 
         $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs($form, $variables);
+
+        // When only one tab is available (user permissions) Craft will change `tabs` to `null` for some reason.
+        // So we need to use both `tabs` and `formTabs`
+        $variables['formTabs'] = $variables['tabs'];
     }
 
     private function _updateFormPermission(Form $form): void
