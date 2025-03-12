@@ -19,4 +19,13 @@ class Categories extends FeedMeCategories
     public static string $class = CategoriesField::class;
     public static string $name = 'Categories';
 
+
+    // Templates
+    // =========================================================================
+
+    public function getMappingTemplate(): string
+    {
+        return 'formie/integrations/feedme/fields/categories';
+    }
+
 }

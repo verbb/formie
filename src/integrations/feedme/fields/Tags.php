@@ -18,4 +18,13 @@ class Tags extends FeedMeTags
     public static string $class = TagsField::class;
     public static string $name = 'Tags';
 
+
+    // Templates
+    // =========================================================================
+
+    public function getMappingTemplate(): string
+    {
+        return 'formie/integrations/feedme/fields/tags';
+    }
+
 }
