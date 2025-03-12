@@ -47,7 +47,13 @@ class Submission extends Element
     public function getGroups(): array
     {
         if (Formie::$plugin) {
-            return Formie::$plugin->getForms()->getAllForms();
+            $forms = Formie::$plugin->getForms()->getAllForms();
+
+            usort($forms, function ($a, $b) {
+                return strcmp($a->title, $b->title);
+            });
+
+            return $forms;
         }
 
         return [];
