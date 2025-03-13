@@ -1349,6 +1349,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
+        // Allow events to modify the value
+        $value = $this->getValueForEmail($value, $notification, $submission);
+        
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
         $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
 
