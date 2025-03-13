@@ -1602,10 +1602,10 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): string
+    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
     {
-        // A string-representation will largely suit our needs
-        return $this->defineValueAsString($value, $element);
+        // Let email templates (or the field) define what email value should be
+        return $value;
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
