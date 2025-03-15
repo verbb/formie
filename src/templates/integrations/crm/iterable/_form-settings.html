@@ -106,7 +106,7 @@
                     name-label="{{ integration.displayName() }}"
                     id="message-type-field-mapping"
                     name="messageTypeFieldMapping"
-                    :value="get(messageType, 'settings.integrations.{{ handle }}.messageTypeFieldMapping')"
+                    :value="get(form, 'settings.integrations.{{ handle }}.messageTypeFieldMapping')"
                     :rows="getSourceFields('messageTypes')"
                 ></integration-field-mapping>
 
