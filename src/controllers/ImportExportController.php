@@ -71,6 +71,11 @@ class ImportExportController extends Controller
 
         $json = Json::decode(file_get_contents($fileLocation));
 
+        // Check if this is multiple forms exports (from Forms index) - just use the one
+        if (isset($json[0])) {
+            $json = $json[0];
+        }
+
         // Find an existing form with the same handle
         $existingForm = null;
         $formHandle = $json['handle'] ?? null;
