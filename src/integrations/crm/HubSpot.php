@@ -380,6 +380,11 @@ class HubSpot extends Crm
                 $legalConsentOptionsMarketing = ArrayHelper::remove($formValues, 'legalConsentOptionsMarketing');
                 $legalConsentOptionsProcessing = ArrayHelper::remove($formValues, 'legalConsentOptionsProcessing');
 
+                // Don't forget to cast as boolean, as in `EVENT_MODIFY_FIELD_MAPPING_VALUE` we cast boolean as string.
+                // Tested separately to the above when not mapped at all.
+                $legalConsentOptionsMarketing = StringHelper::toBoolean((string)$legalConsentOptionsMarketing);
+                $legalConsentOptionsProcessing = StringHelper::toBoolean((string)$legalConsentOptionsProcessing);
+
                 if ($legalConsentOptionsProcessing || $legalConsentOptionsMarketing) {
                     // Don't forget to cast as boolean, as in `EVENT_MODIFY_FIELD_MAPPING_VALUE` we cast boolean as string.
                     // Tested separately to the above when not mapped at all.
