@@ -414,32 +414,30 @@ class HubSpot extends Crm
                 $legalConsentOptionsMarketing = ArrayHelper::remove($formValues, 'legalConsentOptionsMarketing');
                 $legalConsentOptionsProcessing = ArrayHelper::remove($formValues, 'legalConsentOptionsProcessing');
 
+                // Don't forget to cast as boolean, as in `EVENT_MODIFY_FIELD_MAPPING_VALUE` we cast boolean as string.
+                // Tested separately to the above when not mapped at all.
+                $legalConsentOptionsMarketing = StringHelper::toBoolean((string)$legalConsentOptionsMarketing);
+                $legalConsentOptionsProcessing = StringHelper::toBoolean((string)$legalConsentOptionsProcessing);
+
                 if ($legalConsentOptionsProcessing || $legalConsentOptionsMarketing) {
-                    // Don't forget to cast as boolean, as in `EVENT_MODIFY_FIELD_MAPPING_VALUE` we cast boolean as string.
-                    // Tested separately to the above when not mapped at all.
-                    $legalConsentOptionsMarketing = StringHelper::toBoolean($legalConsentOptionsMarketing);
-                    $legalConsentOptionsProcessing = StringHelper::toBoolean($legalConsentOptionsProcessing);
+                    $legalConsentOptionsMarketingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsMarketing');
+                    $legalConsentOptionsProcessingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsProcessing');
 
-                    if ($legalConsentOptionsProcessing || $legalConsentOptionsMarketing) {
-                        $legalConsentOptionsMarketingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsMarketing');
-                        $legalConsentOptionsProcessingField = $this->_getField('forms', $this->formId, 'legalConsentOptionsProcessing');
+                    $formPayload['legalConsentOptions'] = [
+                        'consent' => [
+                            'consentToProcess' => true,
+                            'text' => $legalConsentOptionsProcessingField['data']['text'] ?? '',
+                        ],
+                    ];
 
-                        $formPayload['legalConsentOptions'] = [
-                            'consent' => [
-                                'consentToProcess' => true,
-                                'text' => $legalConsentOptionsProcessingField['data']['text'] ?? '',
-                            ],
+                    if ($legalConsentOptionsMarketing) {
+                        $formPayload['legalConsentOptions']['consent']['communications'] = [
+                            [
+                                'value' => true,
+                                'subscriptionTypeId' => $legalConsentOptionsMarketingField['data']['typeId'] ?? '',
+                                'text' => $legalConsentOptionsMarketingField['data']['text'] ?? '',
+                            ]
                         ];
-
-                        if ($legalConsentOptionsMarketing) {
-                            $formPayload['legalConsentOptions']['consent']['communications'] = [
-                                [
-                                    'value' => true,
-                                    'subscriptionTypeId' => $legalConsentOptionsMarketingField['data']['typeId'] ?? '',
-                                    'text' => $legalConsentOptionsMarketingField['data']['text'] ?? '',
-                                ]
-                            ];
-                        }
                     }
                 }
 
