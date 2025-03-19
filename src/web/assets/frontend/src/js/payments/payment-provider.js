@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { t, addClasses, removeClasses, eventKey } from '../utils/utils';
+import { t, addClasses, removeClasses, eventKey, currencyToFloat } from '../utils/utils';
 import { getFieldValue, getFieldLabel } from '../utils/fields';
 
 export class FormiePaymentProvider {
@@ -198,8 +198,15 @@ export class FormiePaymentProvider {
         return { billing_details: billing };
     }
 
-    getFieldValue(handle) {
-        return getFieldValue(this.$form, handle);
+    getFieldValue(handle, type = 'string') {
+        const value = getFieldValue(this.$form, handle);
+
+        // We should do some extra processing depending on the type
+        if (type === 'float' || type === 'int' || type === 'number') {
+            return currencyToFloat(value);
+        }
+
+        return value;
     }
 
     getFieldLabel(handle) {

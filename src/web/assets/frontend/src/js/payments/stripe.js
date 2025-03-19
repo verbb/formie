@@ -264,7 +264,7 @@ export class FormieStripe extends FormiePaymentProvider {
         const amount = this.initialPaymentInformation?.amount ?? null;
         const currency = this.initialPaymentInformation?.currency ?? null;
 
-        const amountValue = this.getFieldValue(amount);
+        const amountValue = this.getFieldValue(amount, 'number');
         const currencyValue = this.getFieldValue(currency);
 
         const amountLabel = this.getFieldLabel(amount);
