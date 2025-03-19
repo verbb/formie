@@ -159,6 +159,13 @@ class Payment extends Field
                 'name' => 'paymentIntegrationType',
                 'type' => Type::string(),
             ],
+            'providerSettings' => [
+                'name' => 'providerSettings',
+                'type' => Type::string(),
+                'resolve' => function($source, $arguments) {
+                    return Json::encode($source->providerSettings);
+                },
+            ],
         ]);
     }
 
