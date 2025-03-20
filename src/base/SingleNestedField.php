@@ -230,7 +230,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = '';
 
-        foreach ($this->getEnabledFields($element) as $field) {
+        foreach ($this->getVisibleEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $html = $field->getValueForSummary($subValue, $element);
 

@@ -217,6 +217,21 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
+            if ($field->getIsCosmetic() || $field->getIsDisabled()) {
+                continue;
+            }
+
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
+    public function getVisibleEnabledFields(ElementInterface $element = null): array
+    {
+        $fields = [];
+
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                 continue;
             }

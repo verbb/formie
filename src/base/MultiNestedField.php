@@ -322,7 +322,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = '';
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getEnabledFields($element) as $field) {
+            foreach ($this->getVisibleEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
                 
