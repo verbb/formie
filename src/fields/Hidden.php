@@ -254,7 +254,6 @@ class Hidden extends Field implements PreviewableFieldInterface, SortableFieldIn
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
             SchemaHelper::enableContentEncryptionField(),
-            SchemaHelper::columnTypeField(),
         ];
     }
 
