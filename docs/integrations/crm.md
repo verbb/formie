@@ -539,7 +539,8 @@ Follow the below steps to connect to the Pardot API.
     - In the **Permitted Users** field, select **All users may self-authorize**.
     - In the **IP Relaxation** field, select **Relaxed IP restrictions**.
 1. Click the **Save** button.
-1. In the left-hand side menu, select **Pardot** → **Pardot Account Setup**.
+1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
+1. Enter **Business Unit** in the Quick Find box, and click on **Business Unit Setup**.
 1. Copy the **Business Unit ID** from Pardot and paste in the **Business Unit ID** field in Formie.
 
 ### Step 3. Test Connection
