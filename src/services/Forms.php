@@ -35,6 +35,13 @@ use Throwable;
 
 class Forms extends Component
 {
+    // Properties
+    // =========================================================================
+
+    private array $_cachedElements = [];
+    private array $_cachedFields = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -221,59 +228,78 @@ class Forms extends Component
         $includeDrafts = $settings->includeDraftElementUsage;
         $includeRevisions = $settings->includeRevisionElementUsage;
 
-        if ($form) {
-            $query = (new Query())
-                ->select(['elements.id', 'elements.type', 'relations.fieldId'])
-                ->from(['relations' => Table::RELATIONS])
-                ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
-                ->where(['relations.targetId' => $form->id]);
+        if (!$form) {
+            return $elements;
+        }
 
-            if (!$includeDrafts) {
-                $query->andWhere(['elements.draftId' => null]);
+        $query = (new Query())
+            ->select(['elements.id', 'elements.type', 'relations.fieldId'])
+            ->from(['relations' => Table::RELATIONS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
+            ->where(['relations.targetId' => $form->id]);
+
+        if (!$includeDrafts) {
+            $query->andWhere(['elements.draftId' => null]);
+        }
+
+        if (!$includeRevisions) {
+            $query->andWhere(['elements.revisionId' => null]);
+        }
+
+        foreach ($query->all() as $info) {
+            // Use the combined element cache, keyed solely by element id.
+            $elementId = $info['id'];
+            
+            if (isset($this->_cachedElements[$elementId])) {
+                $element = $this->_cachedElements[$elementId];
+            } else {
+                $element = Craft::$app->getElements()->getElementById($elementId, $info['type']);
+                $this->_cachedElements[$elementId] = $element;
             }
 
-            if (!$includeRevisions) {
-                $query->andWhere(['elements.revisionId' => null]);
+            // Use the combined field cache.
+            $fieldId = $info['fieldId'];
+            
+            if (isset($this->_cachedFields[$fieldId])) {
+                $field = $this->_cachedFields[$fieldId];
+            } else {
+                $field = Craft::$app->getFields()->getFieldById($fieldId);
+                $this->_cachedFields[$fieldId] = $field;
             }
 
-            foreach ($query->all() as $index => $info) {
-                $element = Craft::$app->getElements()->getElementById($info['id'], $info['type']);
-                $field = Craft::$app->getFields()->getFieldById($info['fieldId']);
+            if (!$element) {
+                continue;
+            }
 
-                // Build items backwards first, as we're starting with the most deeply-nested element,
-                // resolve the parent of elements, which we transform afterwards to children for correct rendering
-                if ($element) {
-                    $nestedElements = $this->_handleNestedElement($element, $field, 0);
+            if (isset($elements[$element->id])) {
+                continue;
+            }
 
-                    // Sort their items descending
-                    usort($nestedElements, function ($a, $b) {
-                        return $b['level'] <=> $a['level'];
-                    });
+            $nestedElements = [];
+            $this->_handleNestedElement($element, $field, 0, $nestedElements);
 
-                    // With elements now properly sorted, update their level
-                    foreach ($nestedElements as $index => $nestedElement) {
-                        $nestedElements[$index]['level'] = $index;
-                    }
+            // Sort descending by level and reassign levels.
+            usort($nestedElements, function ($a, $b) {
+                return $b['level'] <=> $a['level'];
+            });
 
-                    $elements[] = $nestedElements;
-                }
+            foreach ($nestedElements as $i => $nestedElement) {
+                $nestedElement['level'] = $i;
+                $elements[$nestedElement['element']->id] = $nestedElement;
             }
         }
 
-        // Flatten nested array
-        return array_merge(...$elements);
+        return array_values($elements);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level): array
+    private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level, array &$accumulator = []): void
     {
-        $elements = [];
-
         try {
-            $elements[] = [
+            $accumulator[] = [
                 'element' => $element,
                 'field' => $field,
                 'level' => $level,
@@ -281,20 +307,35 @@ class Forms extends Component
 
             if ($element instanceof NestedElementInterface && $element->ownerId) {
                 try {
-                    $ownerElement = Craft::$app->getElements()->getElementById($element->ownerId, null, $element->siteId);
-                    $ownerField = Craft::$app->getFields()->getFieldById($element->fieldId);
+                    // Retrieve (or cache) the owner element using its id.
+                    $ownerId = $element->ownerId;
+
+                    if (isset($this->_cachedElements[$ownerId])) {
+                        $ownerElement = $this->_cachedElements[$ownerId];
+                    } else {
+                        $ownerElement = Craft::$app->getElements()->getElementById($ownerId, null, $element->siteId);
+                        $this->_cachedElements[$ownerId] = $ownerElement;
+                    }
+
+                    // Retrieve (or cache) the owner field using its id.
+                    $fieldId = $element->fieldId;
+
+                    if (isset($this->_cachedFields[$fieldId])) {
+                        $ownerField = $this->_cachedFields[$fieldId];
+                    } else {
+                        $ownerField = Craft::$app->getFields()->getFieldById($fieldId);
+                        $this->_cachedFields[$fieldId] = $ownerField;
+                    }
 
                     if ($ownerElement) {
-                        $elements = array_merge($elements, $this->_handleNestedElement($ownerElement, $ownerField, $level + 1));
+                        $this->_handleNestedElement($ownerElement, $ownerField, $level + 1, $accumulator);
                     }
                 } catch (Throwable $e) {
-                    // Skip over
+                    // Skip over owner-related errors
                 }
             }
         } catch (Throwable $e) {
             // Skip over
         }
-
-        return $elements;
     }
 }
