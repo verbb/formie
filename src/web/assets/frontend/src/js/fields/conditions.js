@@ -342,7 +342,14 @@ export class FormieConditions {
         const $parent = $field.closest('[data-fui-field-count]');
 
         if ($parent) {
-            const $fields = $parent.querySelectorAll('[data-field-handle]:not([data-conditionally-hidden])');
+            const allFields = $parent.querySelectorAll('[data-field-handle]:not([data-conditionally-hidden])');
+
+            // Ensure that we're only checking on the first "level" of fields. For isntance, a Group field itself
+            // might be conditionally hidden, but their inner fields won't be, producing incorrect results.
+            // https://github.com/verbb/formie/issues/2337
+            const $fields = Array.from(allFields).filter((el) => {
+                return el.closest('[data-fui-field-count]') === $parent;
+            });
 
             $parent.setAttribute('data-fui-field-count', $fields.length);
 
