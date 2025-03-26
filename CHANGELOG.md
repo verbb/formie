@@ -35,7 +35,7 @@
 - Fix an error for Feed Me when mapping to element fields.
 - Fix a display error when only “Fields” tab is available for editing, when editing a form.
 - Fix an issue where a form’s UID could be out of sync.
-- Fix redirect override when setting via the.
+- Fix redirect override when setting via the `EVENT_AFTER_SUBMISSION_REQUEST` event.
 - Fix an error where fields and rows were being incorrectly filtered when rendering a form multiple times.
 - Fix when new Forms are created from a Stencil, their enabled captchas not being respected.
 
