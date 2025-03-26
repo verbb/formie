@@ -616,6 +616,18 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.43 - 2025-03-27
+
+### Added
+- Add `Submission Date` to some field mapping controls.
+
+### Fixed
+- Fix some errors with Submissions widget for invalid dates and `weekStartDay` user settings.
+- Fix an error when importing a form, made from an export from the Forms element index.
+- Fix HubSpot GDPR processing when not enabled.
+- Fix an issue with Iterable integration field mapping.
+- Fix some fields not having their default values set correctly.
+
 ## 2.1.42 - 2025-03-04
 
 ### Added

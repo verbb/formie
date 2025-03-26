@@ -107,11 +107,19 @@ class RecentSubmissions extends Widget
     public ?DateTime $startDate = null;
     public ?DateTime $endDate = null;
     public mixed $dateRange = null;
-    public ?int $weekStartDay = 1;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        if (array_key_exists('weekStartDay', $config)) {
+            unset($config['weekStartDay']);
+        }
+
+        parent::__construct($config);
+    }
 
     public function init(): void
     {
@@ -119,12 +127,6 @@ class RecentSubmissions extends Widget
 
         if (!$this->title) {
             $this->title = self::displayName();
-        }
-
-        $user = Craft::$app->getUser()->getIdentity();
-
-        if ($user) {
-            $this->weekStartDay = $user->getPreference('weekStartDay');
         }
     }
 
@@ -208,8 +210,10 @@ class RecentSubmissions extends Widget
                     'total' => 0,
                 ]);
 
-                foreach ($chartData as $key => $data) {
-                    $combinedChartData[$key][$form->title] = $data['total'];
+                if ($chartData) {
+                    foreach ($chartData as $key => $data) {
+                        $combinedChartData[$key][$form->title] = $data['total'];
+                    }
                 }
             }
 
@@ -316,8 +320,10 @@ class RecentSubmissions extends Widget
         }
 
         if ($dateRange === self::DATE_RANGE_THISWEEK) {
-            if (date('l') != self::START_DAY_INT_TO_DAY[$this->weekStartDay]) {
-                $date = DateTimeHelper::toDateTime(strtotime('last ' . self::START_DAY_INT_TO_DAY[$this->weekStartDay]));
+            $weekStartDay = DateTimeHelper::firstWeekDay();
+
+            if (date('l') != self::START_DAY_INT_TO_DAY[$weekStartDay]) {
+                $date = DateTimeHelper::toDateTime(strtotime('last ' . self::START_DAY_INT_TO_DAY[$weekStartDay]));
             }
         }
 
@@ -330,18 +336,26 @@ class RecentSubmissions extends Widget
             // Minus one so we include today as a "past day"
             $number--;
             $date = $this->_getEndDate($dateRange);
-            $interval = new DateInterval('P' . $number . 'D');
-            $date->sub($interval);
+
+            if ($date) {
+                $interval = new DateInterval('P' . $number . 'D');
+                $date->sub($interval);
+            }
         }
 
         if ($dateRange === self::DATE_RANGE_PASTYEAR) {
             $date = $this->_getEndDate($dateRange);
-            $interval = new DateInterval('P1Y');
-            $date->sub($interval);
-            $date->add(new DateInterval('P1M'));
+
+            if ($date) {
+                $interval = new DateInterval('P1Y');
+                $date->sub($interval);
+                $date->add(new DateInterval('P1M'));
+            }
         }
 
-        $date->setTime(0, 0, 0);
+        if ($date instanceof DateTime) {
+            $date->setTime(0, 0, 0);
+        }
 
         return $date;
     }
@@ -355,14 +369,17 @@ class RecentSubmissions extends Widget
         }
 
         if ($dateRange === self::DATE_RANGE_THISWEEK) {
-            $endDayOfWeek = self::START_DAY_INT_TO_END_DAY[$this->weekStartDay];
+            $weekStartDay = DateTimeHelper::firstWeekDay();
+            $endDayOfWeek = self::START_DAY_INT_TO_END_DAY[$weekStartDay] ?? null;
 
             if (date('l') != $endDayOfWeek) {
                 $date = DateTimeHelper::toDateTime(strtotime('next ' . $endDayOfWeek));
             }
         }
 
-        $date->setTime(23, 59, 59);
+        if ($date instanceof DateTime) {
+            $date->setTime(23, 59, 59);
+        }
 
         return $date;
     }
@@ -378,8 +395,19 @@ class RecentSubmissions extends Widget
             return null;
         }
 
-        $dateKeyDate = DateTimeHelper::toDateTime($this->_getStartDate($this->dateRange)->format('U'));
+        $startDate = $this->_getStartDate($this->dateRange);
+
+        if (!$startDate) {
+            return null;
+        }
+
+        $dateKeyDate = DateTimeHelper::toDateTime($startDate->format('U'));
         $endDate = $this->_getEndDate($this->dateRange);
+
+        if (!$endDate) {
+            return null;
+        }
+
         while ($dateKeyDate <= $endDate) {
             $key = $dateKeyDate->format($options['dateKeyFormat']);
 
