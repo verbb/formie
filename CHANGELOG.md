@@ -8,6 +8,7 @@
 - Add back `Field::EVENT_MODIFY_VALUE_FOR_EMAIL` events to modify the value used in Email Notifications.
 - Add `SubmissionEvent::forceRedirect` option for events to force a redirect on form submission.
 - Add `Form::setRedirectEntry()`.
+- Add the ability to pass arguments to `templateJs` for GraphQL queries to control JS initialization.
 
 ### Changed
 - Improve performance of form usage for large sites and content structures.
@@ -34,7 +35,6 @@
 - Fix an error for Feed Me when mapping to element fields.
 - Fix a display error when only “Fields” tab is available for editing, when editing a form.
 - Fix an issue where a form’s UID could be out of sync.
-- Add the ability to pass arguments to `templateJs` for GraphQL queries to control JS initialization.
 - Fix redirect override when setting via the.
 - Fix an error where fields and rows were being incorrectly filtered when rendering a form multiple times.
 - Fix when new Forms are created from a Stencil, their enabled captchas not being respected.
