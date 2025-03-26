@@ -15,7 +15,7 @@
 - Improve Submission export performance, by removing eager-loading non Formie fields.
 - Update `Field::defineValueForEmail` to return the raw value for the field, rather than the string-representation of the value.
 - Updated Feed Me integration for submissions to list forms in alphabetical order.
-- Update GraphQL resolvers to use  correctly.
+- Update GraphQL resolvers to use `ElementCollection` correctly.
 
 ### Fixed
 - Fix some errors with Submissions widget for invalid dates and `weekStartDay` user settings.
