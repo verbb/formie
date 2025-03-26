@@ -379,13 +379,18 @@ class ImportExportHelper
             foreach ($data['rows'] as &$row) {
                 if (isset($row['fields'])) {
                     foreach ($row['fields'] as &$field) {
-                        $key = $prefix ? "$prefix.{$field['settings']['handle']}" : $field['settings']['handle'];
+                        // Support legacy handling
+                        $handle = $field['handle'] ?? $field['settings']['handle'] ?? null;
+                        $rows = $field['rows'] ?? $field['settings']['rows'] ?? null;
+
+                        $key = $prefix ? "$prefix.{$handle}" : $handle;
+
                         if (isset($existingFields[$key])) {
                             $field['id'] = $existingFields[$key]->id;
                         }
 
                         // Recursively handle nested fields
-                        if (isset($field['settings']['rows'])) {
+                        if ($rows && is_array($rows)) {
                             self::updateFieldIdsInImport($field['settings'], $existingFields, $key);
                         }
                     }
