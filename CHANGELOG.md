@@ -1,5 +1,47 @@
 # Changelog
 
+## 3.0.22 - 2025-03-27
+
+### Added
+- Add `Submission Date` to some field mapping controls.
+- Add support for Recipients field to set the “Email Notification Value”.
+- Add back `Field::EVENT_MODIFY_VALUE_FOR_EMAIL` events to modify the value used in Email Notifications.
+- Add `SubmissionEvent::forceRedirect` option for events to force a redirect on form submission.
+- Add `Form::setRedirectEntry()`.
+
+### Changed
+- Improve performance of form usage for large sites and content structures.
+- Improve Submission export performance, by removing eager-loading non Formie fields.
+- Update `Field::defineValueForEmail` to return the raw value for the field, rather than the string-representation of the value.
+- Updated Feed Me integration for submissions to list forms in alphabetical order.
+- Update GraphQL resolvers to use  correctly.
+
+### Fixed
+- Fix some errors with Submissions widget for invalid dates and `weekStartDay` user settings.
+- Fix an error when importing a form, made from an export from the Forms element index.
+- Fix HubSpot GDPR processing when not enabled.
+- Fix an issue with Iterable integration field mapping.
+- Fix some fields not having their default values set correctly.
+- Fix an error when importing a Formie 2.x export.
+- Fix an issue where the row’s empty state wasn’t updated for nested or sub-fields using conditions.
+- Fix an error when trying to query Form Template fields for a form with GraphQL.
+- Fix Nested Fields not having their summary field values reporting correctly (value as string, json, exports, summary).
+- Fix Stripe dynamic amount not processing currency values.
+- Fix `providerSettings` when querying Payment fields in GraphQL.
+- Fix an error with Payment fields when viewing a submission in the control panel in some instances.
+- Fix a race condition for Repeater fields when set to use a minimum number of instances.
+- Fix Feed Me being able to map to cosmetic fields.
+- Fix an error for Feed Me when mapping to element fields.
+- Fix a display error when only “Fields” tab is available for editing, when editing a form.
+- Fix an issue where a form’s UID could be out of sync.
+- Add the ability to pass arguments to `templateJs` for GraphQL queries to control JS initialization.
+- Fix redirect override when setting via the.
+- Fix an error where fields and rows were being incorrectly filtered when rendering a form multiple times.
+- Fix when new Forms are created from a Stencil, their enabled captchas not being respected.
+
+### Removed
+- Remove unused “Column Type” setting from Hidden fields.
+
 ## 3.0.21 - 2025-03-04
 
 ### Added
