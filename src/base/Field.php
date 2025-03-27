@@ -91,6 +91,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
+    public const EVENT_MODIFY_VALUE_FOR_VARIABLE = 'modifyValueForVariable';
     public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
 
     public const TRANSLATION_METHOD_NONE = 'none';
