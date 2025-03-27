@@ -180,15 +180,6 @@ class Name extends SubField implements PreviewableFieldInterface
         ]);
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        if ($this->useMultipleFields) {
-            return parent::getValueForVariable($value, $submission, $notification);
-        }
-
-        return Field::getValueForVariable($value, $submission, $notification);
-    }
-
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -468,6 +459,15 @@ class Name extends SubField implements PreviewableFieldInterface
         }
         
         return $faker->name;
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if ($this->useMultipleFields) {
+            return parent::defineValueForVariable($value, $submission, $notification);
+        }
+
+        return Field::defineValueForVariable($value, $submission, $notification);
     }
 
 }

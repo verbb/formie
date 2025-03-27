@@ -344,43 +344,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         return $value;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        $props = [
-            'year' => 'Y',
-            'month' => 'm',
-            'day' => 'd',
-            'hour' => 'H',
-            'minute' => 'i',
-            'second' => 's',
-            'ampm' => 'a',
-        ];
-
-        $values = [];
-
-        if ($value) {
-            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
-                foreach ($props as $k => $format) {
-                    $formattedValue = '';
-
-                    if ($value && $value instanceof DateTime) {
-                        $formattedValue = $value->format($format);
-                    }
-
-                    $values[$k] = $formattedValue;
-                }
-            } else {
-                $values = [
-                    '__toString' => $this->defineValueAsString($value),
-                    'date' => $value->format($this->getDateFormat()),
-                    'time' => $value->format($this->getTimeFormat()),
-                ];
-            }
-        }
-
-        return $values;
-    }
-
     public function getMinDate()
     {
         if ($this->minDateOption === 'today') {
@@ -1430,6 +1393,43 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->dateTime();
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $props = [
+            'year' => 'Y',
+            'month' => 'm',
+            'day' => 'd',
+            'hour' => 'H',
+            'minute' => 'i',
+            'second' => 's',
+            'ampm' => 'a',
+        ];
+
+        $values = [];
+
+        if ($value) {
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                foreach ($props as $k => $format) {
+                    $formattedValue = '';
+
+                    if ($value && $value instanceof DateTime) {
+                        $formattedValue = $value->format($format);
+                    }
+
+                    $values[$k] = $formattedValue;
+                }
+            } else {
+                $values = [
+                    '__toString' => $this->defineValueAsString($value),
+                    'date' => $value->format($this->getDateFormat()),
+                    'time' => $value->format($this->getTimeFormat()),
+                ];
+            }
+        }
+
+        return $values;
     }
 
 

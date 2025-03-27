@@ -81,11 +81,6 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $options;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return $this->_getValueLabel($value);
-    }
-
     public function defineGeneralSchema(): array
     {
         return [
@@ -140,6 +135,11 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
         return $this->_getValueLabel($value);
     }

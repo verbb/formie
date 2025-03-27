@@ -585,7 +585,18 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        return (string)$this->getEmailHtml($submission, $notification, $value);
+        $value = $this->defineValueForVariable($value, $submission, $notification);
+
+        $event = new ModifyFieldEmailValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $submission,
+            'notification' => $notification,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_VARIABLE, $event);
+
+        return $event->value;
     }
 
     public function populateValue(mixed $value, ?Submission $submission): void
@@ -1612,6 +1623,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->text;
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value);
     }
 
     protected static function normalizeConfig(array &$config = []): void

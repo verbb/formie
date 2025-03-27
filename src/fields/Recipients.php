@@ -164,16 +164,6 @@ class Recipients extends Field implements PreviewableFieldInterface
         return $this->getValueAsString($this->getFakeValue($value), $submission);
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        // Respect the format picker for "Email Notification Value" 
-        if ($value instanceof SingleOptionFieldData) {
-            return $this->emailValue === 'label' ? $value->label : $value->value;
-        }
-
-        return parent::getValueForVariable($value, $submission, $notification);
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/preview', [
@@ -628,6 +618,16 @@ class Recipients extends Field implements PreviewableFieldInterface
         } else if ($this->displayType === 'hidden') {
             return $faker->email;
         }
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Respect the format picker for "Email Notification Value" 
+        if ($value instanceof SingleOptionFieldData) {
+            return $this->emailValue === 'label' ? $value->label : $value->value;
+        }
+
+        return parent::defineValueForVariable($value, $submission, $notification);
     }
 
     protected function setPrePopulatedValue(mixed $value): mixed

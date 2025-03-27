@@ -59,26 +59,6 @@ class Group extends SingleNestedField
     // Public Methods
     // =========================================================================
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        $values = [];
-
-        foreach ($this->getFields() as $nestedField) {
-            $value = $submission->getFieldValue($nestedField->fieldKey);
-            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
-
-            if (is_array($fieldValues)) {
-                foreach ($fieldValues as $key => $fieldValue) {
-                    $values[$nestedField->handle][$key] = $fieldValue;
-                }
-            } else {
-                $values[$nestedField->handle] = $fieldValues;
-            }
-        }
-
-        return $values;
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
@@ -202,5 +182,25 @@ class Group extends SingleNestedField
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields());
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $nestedField) {
+            $value = $submission->getFieldValue($nestedField->fieldKey);
+            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
+
+            if (is_array($fieldValues)) {
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $values[$nestedField->handle][$key] = $fieldValue;
+                }
+            } else {
+                $values[$nestedField->handle] = $fieldValues;
+            }
+        }
+
+        return $values;
     }
 }
