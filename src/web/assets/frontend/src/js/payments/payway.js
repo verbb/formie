@@ -77,6 +77,12 @@ export class FormiePayWay extends FormiePaymentProvider {
     }
 
     mountCard() {
+        // Prevent against mounting the card on a destroyed form (race condition with conditions and multi-init)
+        // Probably should refactor this to handle registering observers (IntersectionObserver)
+        if (this.form.destroyed) {
+            return;
+        }
+
         payway.createCreditCardFrame({
             layout: 'wide',
             publishableApiKey: this.publishableKey,

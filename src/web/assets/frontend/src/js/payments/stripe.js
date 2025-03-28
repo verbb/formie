@@ -89,6 +89,12 @@ export class FormieStripe extends FormiePaymentProvider {
     }
 
     mountCard() {
+        // Prevent against mounting the card on a destroyed form (race condition with conditions and multi-init)
+        // Probably should refactor this to handle registering observers (IntersectionObserver)
+        if (this.form.destroyed) {
+            return;
+        }
+
         this.stripe = Stripe(this.publishableKey);
 
         const elements = this.stripe.elements();
