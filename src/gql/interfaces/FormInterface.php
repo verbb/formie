@@ -215,7 +215,7 @@ class FormInterface extends Element
                 'type' => Type::string(),
                 'description' => 'The form’s endpoint for sending submissions to, if using POST requests.',
                 'resolve' => function ($source) {
-                    return UrlHelper::actionUrl('formie/submission/submit');
+                    return UrlHelper::actionUrl('formie/submissions/submit');
                 },
             ],
             'isAvailable' => [
