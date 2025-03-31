@@ -303,7 +303,17 @@ class Formie extends Plugin
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
             $formPermissions = [
-                'formie-createForms' => ['label' => Craft::t('formie', 'Create forms')],
+                'formie-createForms' => [
+                    'label' => Craft::t('formie', 'Create forms'),
+                    'nested' => [
+                        'formie-createFormAppearance' => ['label' => Craft::t('formie', 'Show form appearance tab')],
+                        'formie-createFormBehavior' => ['label' => Craft::t('formie', 'Show form behaviour tab')],
+                        'formie-createNotifications' => ['label' => Craft::t('formie', 'Show form email notifications tab')],
+                        'formie-createFormIntegrations' => ['label' => Craft::t('formie', 'Show form integrations tab')],
+                        'formie-createFormUsage' => ['label' => Craft::t('formie', 'Show form usage tab')],
+                        'formie-createFormSettings' => ['label' => Craft::t('formie', 'Show form settings tab')],
+                    ],
+                ],
                 'formie-deleteForms' => ['label' => Craft::t('formie', 'Delete forms')],
                 'formie-manageForms' => [
                     'label' => Craft::t('formie', 'Manage all forms'),

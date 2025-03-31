@@ -425,31 +425,31 @@ class FormsController extends Controller
         $permissions[] = "formie-manageForms{$suffix}";
 
         // Add all nested permissions according to top-level permissions set
-        if ($userService->checkPermission('formie-showFormAppearance')) {
+        if ($userService->checkPermission('formie-showFormAppearance') || $userService->checkPermission('formie-createFormAppearance')) {
             $permissions[] = "formie-showFormAppearance{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormBehavior')) {
+        if ($userService->checkPermission('formie-showFormBehavior') || $userService->checkPermission('formie-createFormBehavior')) {
             $permissions[] = "formie-showFormBehavior{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotifications')) {
+        if ($userService->checkPermission('formie-showNotifications') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotifications{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotificationsAdvanced')) {
+        if ($userService->checkPermission('formie-showNotificationsAdvanced') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotificationsAdvanced{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotificationsTemplates')) {
+        if ($userService->checkPermission('formie-showNotificationsTemplates') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotificationsTemplates{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormIntegrations')) {
+        if ($userService->checkPermission('formie-showFormIntegrations') || $userService->checkPermission('formie-createFormIntegrations')) {
             $permissions[] = "formie-showFormIntegrations{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormSettings')) {
+        if ($userService->checkPermission('formie-showFormSettings') || $userService->checkPermission('formie-createFormSettings')) {
             $permissions[] = "formie-showFormSettings{$suffix}";
         }
 
