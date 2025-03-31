@@ -243,7 +243,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $response = $this->request('GET', 'sobjects/Case/describe');
 
                 // Debug
-                Formie::log(Json::encode($response));
+                Formie::info(Json::encode($response));
 
                 $fields = $response['fields'] ?? [];
                 $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);

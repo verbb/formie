@@ -59,7 +59,7 @@ class MissingField extends Field implements MissingComponentInterface
             parent::__set($name, $value);
         } catch (Throwable $e) {
             // Let it slide, but log it, _just_ in case.
-            Formie::log('{message} {file}:{line}', [
+            Formie::info('{message} {file}:{line}', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
