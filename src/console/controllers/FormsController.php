@@ -119,7 +119,7 @@ class FormsController extends Controller
     }
 
     /**
-     * List all possible Formie forms to be exported or imported.
+     * List all available Formie forms that can be exported or imported.
      */
     public function actionList($folderPath = null): int
     {
@@ -146,10 +146,10 @@ class FormsController extends Controller
         $allForms = Formie::$plugin->getForms()->getAllForms();
         if (!empty($allForms)) {
             $listEntries[] = [
-                'title' => 'Formie forms:',
+                'title' => 'Existing forms:',
                 'entriesList' => array_map(function ($form) {
                     return [
-                        'name' => "$form->id: $form->handle",
+                        'name' => "[$form->id] $form->handle",
                         'title' => $form->title
                     ];
                 }, $allForms)
@@ -179,6 +179,11 @@ class FormsController extends Controller
     {
         $formIds = null;
 
+        if ($idsOrHandles === null) {
+            $this->stderr('No arguments provided' . PHP_EOL, Console::FG_RED);
+            return ExitCode::UNSPECIFIED_ERROR;
+        }
+
         foreach (explode(',', $idsOrHandles) as $idOrHandle) {
             if (is_numeric($idOrHandle)) {
                 $formIds[] = $idOrHandle;
@@ -205,10 +210,10 @@ class FormsController extends Controller
         foreach (Db::each($query) as $element) {
             try {
                 $formExport = ImportExportHelper::generateFormExport($element);
-                $json = Json::encode($formExport, JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK);
+                $json = Json::encode($formExport, JSON_PRETTY_PRINT);
                 $exportPath = $this->generateExportPathByHandle($element->handle);
                 FileHelper::writeToFile($exportPath, $json);
-                $this->stdout("Exporting form $element->id to $exportPath." . PHP_EOL, Console::FG_GREEN);
+                $this->stdout("Exporting form $element->id to $exportPath" . PHP_EOL, Console::FG_GREEN);
             } catch (Throwable $e) {
 
                 $this->stderr("Unable to export form $element->id." . PHP_EOL, Console::FG_RED);
@@ -224,14 +229,20 @@ class FormsController extends Controller
      */
     public function actionImport($fileLocation = null): int
     {
+
         if ($fileLocation === null) {
             $this->stderr('You must provide a path to a JSON file.' . PHP_EOL, Console::FG_RED);
             return ExitCode::UNSPECIFIED_ERROR;
         }
 
         if (!is_file($fileLocation)) {
-            $this->stderr("No file exists at the given path." . PHP_EOL, Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            // Expected absolute path
+            // Try export folder
+            $fileLocation = $this->getExportPath() . DIRECTORY_SEPARATOR  . $fileLocation;
+            if (!is_file($fileLocation)) {
+                $this->stderr("No file exists at the given path." . PHP_EOL, Console::FG_RED);
+                return ExitCode::UNSPECIFIED_ERROR;
+            }
         }
 
         if (strtolower(pathinfo($fileLocation, PATHINFO_EXTENSION)) !== 'json') {

@@ -275,11 +275,11 @@ class ImportExportHelper
     public static function importFormFromJson($json, $formAction = "update"): Form
     {
 
-       // Check if this is multiple forms exports (from Forms index) - just use the one
+        // Check if this is multiple forms exports (from Forms index) - just use the one
         if (isset($json[0])) {
             $json = $json[0];
         }
-      
+        
         // Find an existing form with the same handle
         $existingForm = null;
         $formHandle = $json['handle'] ?? null;

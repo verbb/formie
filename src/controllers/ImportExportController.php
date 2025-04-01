@@ -155,7 +155,6 @@ class ImportExportController extends Controller
 
         $json = Json::decode(file_get_contents($fileLocation));
    
-        
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
         // check for errors
