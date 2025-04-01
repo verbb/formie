@@ -88,6 +88,7 @@ class Zoho extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['dc'] = $this->getDataCenter();
         $config['useDeveloper'] = $this->getUseDeveloper();
 
@@ -110,7 +111,7 @@ class Zoho extends Crm implements OAuthProviderInterface
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Zoho customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings

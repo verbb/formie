@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to your <a href="https://developer.paypal.com/developer/applications/" target="_blank">PayPal REST API</a> application settings.
@@ -15,12 +17,12 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} Client ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientId',
     required: true,
     suggestEnvVars: true,
@@ -29,9 +31,9 @@
     errors: integration.getErrors('clientId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'clientSecret',
     required: true,
     suggestEnvVars: true,
@@ -40,9 +42,9 @@
     errors: integration.getErrors('clientSecret'),
 }) }}
 
-{{ forms.booleanMenuField({
+{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Use Sandbox' | t('formie'),
-    instructions: 'Whether to use the {name} sandbox.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie'),
     name: 'useSandbox',
     includeEnvVars: true,
     value: integration.settings.useSandbox ?? false,

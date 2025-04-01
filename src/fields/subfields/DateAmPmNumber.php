@@ -7,7 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateAmPmNumber extends Number implements SubFieldInnerFieldInterface
+class DateAmPmNumber extends DateNumber implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -26,4 +26,10 @@ class DateAmPmNumber extends Number implements SubFieldInnerFieldInterface
     {
         return 'fields/number';
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public string $validationFormatParam = 'a';
 }

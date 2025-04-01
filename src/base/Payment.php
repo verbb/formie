@@ -128,10 +128,9 @@ abstract class Payment extends Integration
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getIntegrationHandle();
+        $variables = $this->getSettingsHtmlVariables();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", [
-            'integration' => $this,
-        ]);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", $variables);
     }
 
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
@@ -331,6 +330,11 @@ abstract class Payment extends Integration
         }
 
         return $default;
+    }
+
+    public function modifyFieldSettings(array $settings): array
+    {
+        return $settings;
     }
 
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag

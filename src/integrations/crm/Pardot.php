@@ -68,16 +68,37 @@ class Pardot extends Crm implements OAuthProviderInterface
         return App::parseBooleanEnv($this->useSandbox);
     }
 
+    public function getBusinessUnitId(): string
+    {
+        return App::parseEnv($this->businessUnitId);
+    }
+
     public function getApiDomain(): string
     {
         $prefix = $this->getUseSandbox() ? 'pi.demo' : 'pi';
 
-        return "https://{$prefix}.pardot.com/api";
+        return "https://{$prefix}.pardot.com/api/";
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Pardot customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
+    }
+
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['domain'] = $this->getApiDomain();
+        $config['baseApiUrl'] = $this->getApiDomain();
+
+        return $config;
+    }
+
+    public function request(string $method, string $uri, array $options = []): mixed
+    {
+        $options['headers']['Pardot-Business-Unit-Id'] = $this->getBusinessUnitId();
+
+        return parent::request($method, $uri, $options);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -455,6 +476,23 @@ class Pardot extends Crm implements OAuthProviderInterface
         return $value;
     }
 
+    public function populateContext(): void
+    {
+        parent::populateContext();
+
+        // Allow us to save the tracking cookie at the time of submission, so grab later
+        $trackingData = [];
+        $pattern = '/^visitor_id[0-9]+(-hash)?$/';
+
+        foreach ($_COOKIE as $key => $value) {
+            if (preg_match($pattern, $key)) {
+                $trackingData[$key] = $value;
+            }
+        }
+        
+        $this->context['pardot_tracking'] = $trackingData;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -498,6 +536,10 @@ class Pardot extends Crm implements OAuthProviderInterface
 
         // Flatten array to dot-notation
         $payload = ArrayHelper::flatten($payload);
+
+        // Add in cookie tracking support, if available
+        $trackingData = $this->context['pardot_tracking'] ?? [];
+        $payload = array_merge($payload, $trackingData);
 
         // Fire a 'modifyPayload' event
         $event = new ModifyPayloadEvent([

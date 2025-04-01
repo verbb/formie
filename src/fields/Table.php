@@ -10,7 +10,9 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\fields\data\ColorData;
+use verbb\formie\gql\types\TableRowType;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
+use verbb\formie\gql\types\generators\TableRowTypeGenerator;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
@@ -21,8 +23,6 @@ use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\fields\Table as CraftTable;
 use craft\gql\GqlEntityRegistry;
-use craft\gql\types\generators\TableRowType as TableRowTypeGenerator;
-use craft\gql\types\TableRow;
 use craft\helpers\Component;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
@@ -321,11 +321,6 @@ class Table extends Field
         return $serialized;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-    }
-
     public function getContentGqlType(): Type|array
     {
         $type = TableRowTypeGenerator::generateType($this);
@@ -339,7 +334,7 @@ class Table extends Field
 
         return Type::listOf(GqlEntityRegistry::getOrCreate($typeName, fn() => new InputObjectType([
             'name' => $typeName,
-            'fields' => fn() => TableRow::prepareRowFieldDefinition($this->columns, false),
+            'fields' => fn() => TableRowType::prepareRowFieldDefinition($this),
         ])));
     }
 
@@ -613,6 +608,80 @@ class Table extends Field
                 'data' => [
                     'remove-table-row' => $this->handle,
                 ],
+            ]);
+        }
+
+        if ($key === 'tableCheckboxInput') {
+            return new HtmlTag('input', [
+                'type' => 'checkbox',
+                'class' => 'fui-input fui-checkbox-input',
+            ]);
+        }
+
+        if ($key === 'tableColorInput') {
+            return new HtmlTag('input', [
+                'type' => 'color',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableDateInput') {
+            return new HtmlTag('input', [
+                'type' => 'date',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableEmailInput') {
+            return new HtmlTag('input', [
+                'type' => 'email',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableHeadingInput') {
+            return new HtmlTag('input', [
+                'type' => 'hidden',
+            ]);
+        }
+
+        if ($key === 'tableMultilineInput') {
+            return new HtmlTag('textarea', [
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableNumberInput') {
+            return new HtmlTag('input', [
+                'type' => 'number',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableSelectInput') {
+            return new HtmlTag('select', [
+                'class' => 'fui-select',
+            ]);
+        }
+
+        if ($key === 'tableSinglelineInput') {
+            return new HtmlTag('input', [
+                'type' => 'text',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableTimeInput') {
+            return new HtmlTag('input', [
+                'type' => 'time',
+                'class' => 'fui-input',
+            ]);
+        }
+
+        if ($key === 'tableUrlInput') {
+            return new HtmlTag('input', [
+                'type' => 'url',
+                'class' => 'fui-input',
             ]);
         }
 

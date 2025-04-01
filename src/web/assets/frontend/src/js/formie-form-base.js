@@ -86,35 +86,48 @@ export class FormieFormBase {
         this.addEventListener(this.$form, 'submit', (e) => {
             e.preventDefault();
 
-            const beforeSubmitEvent = this.eventObject('onBeforeFormieSubmit', {
-                submitHandler: this,
-            });
+            this.initSubmit();
+        }, false);
+    }
 
-            if (!this.$form.dispatchEvent(beforeSubmitEvent)) {
+    initSubmit() {
+        const beforeSubmitEvent = this.eventObject('onBeforeFormieSubmit', {
+            submitHandler: this,
+        });
+
+        if (!this.$form.dispatchEvent(beforeSubmitEvent)) {
+            return;
+        }
+
+        this.processSubmit();
+    }
+
+    processSubmit(skip = []) {
+        // Add a little delay for UX
+        setTimeout(() => {
+            // Call the validation hooks
+            if (!this.validate() || !this.afterValidate()) {
                 return;
             }
 
-            // Add a little delay for UX
-            setTimeout(() => {
-                // Call the validation hooks
-                if (!this.validate() || !this.afterValidate()) {
-                    return;
-                }
+            // Trigger Captchas
+            if (!skip.includes('captcha') && !this.validateCaptchas()) {
+                return;
+            }
 
-                // Trigger Captchas
-                if (!this.validateCaptchas()) {
-                    return;
-                }
+            // Trigger Payment Integrations
+            if (!skip.includes('payment') && !this.validatePayment()) {
+                return;
+            }
 
-                // Trigger Payment Integrations
-                if (!this.validatePayment()) {
-                    return;
-                }
+            // Trigger an (used) event for users to do any last minute things
+            if (!this.validateCustom()) {
+                return;
+            }
 
-                // Proceed with submitting the form, which raises other validation events
-                this.submitForm();
-            }, 300);
-        }, false);
+            // Proceed with submitting the form, which raises other validation events
+            this.submitForm();
+        }, 300);
     }
 
     validate() {
@@ -147,6 +160,15 @@ export class FormieFormBase {
     validatePayment() {
         // Create an event for payments, separate to validation
         const validateEvent = this.eventObject('onFormiePaymentValidate', {
+            submitHandler: this,
+        });
+
+        return this.$form.dispatchEvent(validateEvent);
+    }
+
+    validateCustom() {
+        // Create an event for custom actions, separate to validation
+        const validateEvent = this.eventObject('onFormieCustomValidate', {
             submitHandler: this,
         });
 

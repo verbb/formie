@@ -7,7 +7,6 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\ElementField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Repeater;
@@ -19,6 +18,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
+use verbb\formie\records\Submission as SubmissionRecord;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -40,6 +40,7 @@ use craft\helpers\ElementHelper;
 use craft\helpers\FileHelper;
 use craft\helpers\Gql as GqlHelper;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\models\Volume;
 use craft\models\VolumeFolder;
@@ -84,6 +85,7 @@ class FileUpload extends ElementField
     // Properties
     // =========================================================================
 
+    public bool $allowMultipleSources = false;
     public ?string $sizeLimit = null;
     public ?string $sizeMinLimit = null;
     public ?string $limitFiles = null;
@@ -108,6 +110,14 @@ class FileUpload extends ElementField
         // Normalize the options
         if (array_key_exists('restrictLocation', $config)) {
             unset($config['restrictLocation']);
+        }
+
+        // Setup defaults from the plugin-level
+        /* @var Settings $settings */
+        $settings = Formie::$plugin->getSettings();
+
+        if (!isset($config['uploadLocationSource'])) {
+            $config['uploadLocationSource'] = $settings->defaultFileUploadVolume ?? null;
         }
 
         parent::__construct($config);
@@ -236,8 +246,11 @@ class FileUpload extends ElementField
         $sizeMinLimit = $this->sizeMinLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
-                $filenames[] = $file['filename'];
+            // Watch for data (GQL), which doesn't support this validation yet
+            if (isset($file['path'])) {
+                if (file_exists($file['path']) && (filesize($file['path']) < $sizeMinLimit)) {
+                    $filenames[] = $file['filename'];
+                }
             }
         }
 
@@ -258,8 +271,11 @@ class FileUpload extends ElementField
         $sizeLimit = $this->sizeLimit * 1000 * 1000;
 
         foreach ($uploadedFiles as $file) {
-            if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
-                $filenames[] = $file['filename'];
+            // Watch for data (GQL), which doesn't support this validation yet
+            if (isset($file['path'])) {
+                if (file_exists($file['path']) && (filesize($file['path']) > $sizeLimit)) {
+                    $filenames[] = $file['filename'];
+                }
             }
         }
 
@@ -537,117 +553,6 @@ class FileUpload extends ElementField
         parent::afterElementSave($element, $isNew);
     }
 
-    private function _processAssets(ElementInterface $element): void
-    {
-        $query = $element->getFieldValue($this->fieldKey);
-        $assetsService = Craft::$app->getAssets();
-
-        $getUploadFolderId = function() use ($element, &$_targetFolderId): int {
-            return $_targetFolderId ?? ($_targetFolderId = $this->_uploadFolder($element)->id);
-        };
-
-        // Were there any uploaded files?
-        $uploadedFiles = $this->_getUploadedFiles($element);
-
-        if (!empty($uploadedFiles)) {
-            $uploadFolderId = $getUploadFolderId();
-
-            // Convert them to assets
-            $assetIds = [];
-
-            foreach ($uploadedFiles as $file) {
-                $tempPath = Assets::tempFilePath($file['filename']);
-
-                switch ($file['type']) {
-                    case 'data':
-                        FileHelper::writeToFile($tempPath, $file['data']);
-                        break;
-                    case 'file':
-                        rename($file['path'], $tempPath);
-                        break;
-                    case 'upload':
-                        move_uploaded_file($file['path'], $tempPath);
-                        break;
-                }
-
-                $uploadFolder = $assetsService->getFolderById($uploadFolderId);
-                $asset = new Asset();
-                $asset->tempFilePath = $tempPath;
-                $asset->setFilename($file['filename']);
-                $asset->newFolderId = $uploadFolderId;
-                $asset->setVolumeId($uploadFolder->volumeId);
-                $asset->uploaderId = Craft::$app->getUser()->getId();
-                $asset->avoidFilenameConflicts = true;
-                $asset->setScenario(Asset::SCENARIO_CREATE);
-
-                if (Craft::$app->getElements()->saveElement($asset)) {
-                    $assetIds[] = $asset->id;
-                } else {
-                    Formie::info('Couldn’t save uploaded asset due to validation errors: ' . implode(', ', $asset->getFirstErrors()));
-                }
-            }
-
-            if (!empty($assetIds)) {
-                // Add the newly uploaded IDs to the mix.
-                if (is_array($query->id)) {
-                    $query = $this->normalizeValue(array_merge($query->id, $assetIds), $element);
-                } else {
-                    $query = $this->normalizeValue($assetIds, $element);
-                }
-
-                $element->setFieldValue($this->fieldKey, $query);
-
-                // Unset the GQL data, but only for this field. If in a repeater, there's more to process
-                if ($paramName = $this->requestParamName($element)) {
-                    unset($this->_uploadedDataFiles[$paramName]);
-                }
-            }
-        }
-
-        // Are there any related assets?
-        $assets = $query->all();
-
-        if (!empty($assets)) {
-            $rootRestrictedFolderId = $this->_uploadFolder($element)->id;
-
-            $assetsToMove = array_filter($assets, function(Asset $asset) use ($rootRestrictedFolderId, $assetsService) {
-                if ($asset->folderId === $rootRestrictedFolderId) {
-                    return false;
-                }
-
-                $rootRestrictedFolder = $assetsService->getFolderById($rootRestrictedFolderId);
-
-                return (
-                    $asset->volumeId !== $rootRestrictedFolder->volumeId ||
-                    !str_starts_with($asset->folderPath, $rootRestrictedFolder->path)
-                );
-            });
-
-            if (!empty($assetsToMove)) {
-                $uploadFolder = $assetsService->getFolderById($getUploadFolderId());
-
-                // Resolve all conflicts by keeping both
-                foreach ($assetsToMove as $asset) {
-                    $asset->avoidFilenameConflicts = true;
-
-                    try {
-                        $assetsService->moveAsset($asset, $uploadFolder);
-                    } catch (FsObjectNotFoundException $e) {
-                        // Don't freak out about that.
-                        Formie::info('Couldn’t move asset because the file doesn’t exist: ' . $e->getMessage());
-                    }
-                }
-            }
-
-            // We now need to update the submission with the IDs of asset for this field, so do a direct query
-            // because this is triggered after the element has been saved, and we don't want to end up in a loop.
-            // The easiest method is to just re-serialize all field values and save the content as a whole
-            $content = $element->serializeFieldValues();
-            
-            Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($content)], ['id' => $element->id]);
-        }
-    }
-
     public function getContentGqlMutationArgumentType(): Type|array
     {
         return FileUploadInputType::getType($this);
@@ -762,10 +667,12 @@ class FileUpload extends ElementField
 
         $variables['fsType'] = $uploadFs ? get_class($uploadFs) : null;
         $variables['showFolders'] = true;
-        $variables['canUpload'] = ($uploadVolume && $uploadFs);
         $variables['defaultFieldLayoutId'] = $uploadVolume->fieldLayoutId ?? null;
         $variables['limit'] = $this->limitFiles;
         $variables['showSourcePath'] = false;
+
+        // The outer "Upload" button only supports a true Assets field. Uploads within the element select are fine.
+        $variables['canUpload'] = false;
 
         return $variables;
     }
@@ -795,7 +702,7 @@ class FileUpload extends ElementField
         }
 
         // Fetch the default handling
-        return $this->traitDefineValueForIntegration($value, $integrationField, $integration, $element);
+        return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
@@ -822,11 +729,125 @@ class FileUpload extends ElementField
     // Private Methods
     // =========================================================================
 
+    private function _processAssets(ElementInterface $element): void
+    {
+        $query = $element->getFieldValue($this->fieldKey);
+        $assetsService = Craft::$app->getAssets();
+
+        $getUploadFolderId = function() use ($element, &$_targetFolderId): int {
+            return $_targetFolderId ?? ($_targetFolderId = $this->_uploadFolder($element)->id);
+        };
+
+        // Were there any uploaded files?
+        $uploadedFiles = $this->_getUploadedFiles($element);
+
+        if (!empty($uploadedFiles)) {
+            $uploadFolderId = $getUploadFolderId();
+
+            // Convert them to assets
+            $assetIds = [];
+
+            foreach ($uploadedFiles as $file) {
+                $tempPath = Assets::tempFilePath($file['filename']);
+
+                switch ($file['type']) {
+                    case 'data':
+                        FileHelper::writeToFile($tempPath, $file['data']);
+                        break;
+                    case 'file':
+                        rename($file['path'], $tempPath);
+                        break;
+                    case 'upload':
+                        move_uploaded_file($file['path'], $tempPath);
+                        break;
+                }
+
+                $uploadFolder = $assetsService->getFolderById($uploadFolderId);
+                $asset = new Asset();
+                $asset->tempFilePath = $tempPath;
+                $asset->setFilename($file['filename']);
+                $asset->newFolderId = $uploadFolderId;
+                $asset->setVolumeId($uploadFolder->volumeId);
+                $asset->uploaderId = Craft::$app->getUser()->getId();
+                $asset->avoidFilenameConflicts = true;
+                $asset->setScenario(Asset::SCENARIO_CREATE);
+
+                if (Craft::$app->getElements()->saveElement($asset)) {
+                    $assetIds[] = $asset->id;
+                } else {
+                    Formie::info('Couldn’t save uploaded asset due to validation errors: ' . implode(', ', $asset->getFirstErrors()));
+                }
+            }
+
+            if (!empty($assetIds)) {
+                // Add the newly uploaded IDs to the mix.
+                if (is_array($query->id)) {
+                    $query = $this->normalizeValue(array_merge($query->id, $assetIds), $element);
+                } else {
+                    $query = $this->normalizeValue($assetIds, $element);
+                }
+
+                $element->setFieldValue($this->fieldKey, $query);
+
+                // Unset the GQL data, but only for this field. If in a repeater, there's more to process
+                if ($paramName = $this->requestParamName($element)) {
+                    unset($this->_uploadedDataFiles[$paramName]);
+                }
+            }
+        }
+
+        // Are there any related assets?
+        $assets = $query->all();
+
+        if (!empty($assets)) {
+            $rootRestrictedFolderId = $this->_uploadFolder($element)->id;
+
+            $assetsToMove = array_filter($assets, function(Asset $asset) use ($rootRestrictedFolderId, $assetsService) {
+                if ($asset->folderId === $rootRestrictedFolderId) {
+                    return false;
+                }
+
+                $rootRestrictedFolder = $assetsService->getFolderById($rootRestrictedFolderId);
+
+                return (
+                    $asset->volumeId !== $rootRestrictedFolder->volumeId ||
+                    !str_starts_with($asset->folderPath, $rootRestrictedFolder->path)
+                );
+            });
+
+            if (!empty($assetsToMove)) {
+                $uploadFolder = $assetsService->getFolderById($getUploadFolderId());
+
+                // Resolve all conflicts by keeping both
+                foreach ($assetsToMove as $asset) {
+                    $asset->avoidFilenameConflicts = true;
+
+                    try {
+                        $assetsService->moveAsset($asset, $uploadFolder);
+                    } catch (FsObjectNotFoundException $e) {
+                        // Don't freak out about that.
+                        Formie::info('Couldn’t move asset because the file doesn’t exist: ' . $e->getMessage());
+                    }
+                }
+            }
+
+            // We now need to update the submission with the IDs of asset for this field, so do a direct record update
+            // because this is triggered after the element has been saved, and we don't want to end up in a loop.
+            // Using direct queries is also too risky with JSON columns and database engines.
+            if ($record = SubmissionRecord::findOne($element->id)) {
+                // Re-serializing submission values will include IDs now
+                $record->content = $element->serializeFieldValues();
+
+                $record->save(false);
+            }
+        }
+    }
+
     private function _getVolume(): ?Volume
     {
         $sourceKey = $this->uploadLocationSource;
 
-        if ($sourceKey && str_starts_with($sourceKey, 'volume:')) {
+        if ($sourceKey && (str_starts_with($sourceKey, 'volume:') || str_starts_with($sourceKey, 'folder:'))) {
             $parts = explode(':', $sourceKey);
 
             return Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
@@ -835,7 +856,7 @@ class FileUpload extends ElementField
         return null;
     }
 
-    private function _humanFilesize($size, $precision = 2): string
+    private function _humanFilesize(mixed $size, int $precision = 2): string
     {
         for ($i = 0; ($size / 1024) > 0.9; $i++, $size /= 1024) {
         }

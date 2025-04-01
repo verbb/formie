@@ -131,4 +131,8 @@ export default {
     margin-top: 10px;
 }
 
+.fui-notification-test .fui-refresh-btn {
+    flex-shrink: 0;
+}
+
 </style>

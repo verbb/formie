@@ -11,10 +11,11 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\SortableFieldInterface;
 
 use Faker\Generator as FakerFactory;
 
-class Radio extends OptionsField
+class Radio extends OptionsField implements SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

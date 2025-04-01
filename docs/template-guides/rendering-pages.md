@@ -4,7 +4,7 @@ In some cases, you may wish to render specific pages, rather than an entire form
 Rendering a page can be achieved with the following Twig.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% for page in form.getPages() %}
     {{ craft.formie.renderPage(form, page) }}
@@ -16,7 +16,7 @@ Here, we fetch the [Form](docs:developers/form) object, call `getPages()` to fet
 This may be particularly useful if you want control over the `<form>` element of a form, rather than rely on `craft.formie.renderForm()`.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 <form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
@@ -40,6 +40,35 @@ Let's run through a few things of note:
 Make sure to include the `data-fui-form` attribute with JSON configuration from the form. Without this attribute, Formie's JavaScript will fail to initialise, meaning client-side validation, captchas and more will not work.
 :::
 
+## CSS & JS
+You'll probably notice your form is looking a little plain and some aspects of it won't work like validation, captchas and more. That's because unlike calling `craft.formie.renderForm()`, rendering just form pages won't automatically add Formie's CSS or JavaScript to the webpage for you.
+
+To address this, we just need to include a call to ensure Formie's CSS and JS is added to the webpage.
+
+```twig
+{% set form = craft.formie.forms.handle('contactUs').one() %}
+
+{% do craft.formie.registerAssets(form) %}
+
+<form method="post" data-fui-form="{{ form.configJson }}">
+```
+
+This will respect the [Form Template](docs:feature-tour/form-templates) setting you may have on your form, which controls where to render the CSS and JS.
+
+It's important to include this `registerAssets` before the `<form>` rendering tag. You could also include them separately as below:
+
+```twig
+{% set form = craft.formie.forms.handle('contactUs').one() %}
+
+{% do craft.formie.renderFormCss(form) %}
+{% do craft.formie.renderFormJs(form) %}
+
+<form method="post" data-fui-form="{{ form.configJson }}">
+```
+
+Read further on the [`registerAssets()`](docs:template-guides/available-variables#craft-formie-registerAssets), [`renderFormCss()`](docs:template-guides/available-variables#craft-formie-renderFormCss) and [`renderFormJs()`](docs:template-guides/available-variables#craft-formie-renderFormJs) functions.
+
+
 ## Render Options
 A second argument to `renderPage()` allows you to pass in variables used as [Render Options](docs:theming/render-options).
 
@@ -48,7 +77,7 @@ A second argument to `renderPage()` allows you to pass in variables used as [Ren
     someOption: 'someValue',
 } %}
 
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% for page in form.getPages() %}
     {{ craft.formie.renderPage(form, page, renderOptions) }}
@@ -75,7 +104,7 @@ Check out the [Page](docs:developers/page) object for all available settings.
 You can render rows for a page, rather than relying on the render function to output them. In this instance, you would want to [Render the Field](docs:template-guides/rendering-fields), rather than the entire page.
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 <form method="post" data-fui-form="{{ form.configJson }}">
     {{ csrfInput() }}
@@ -102,7 +131,7 @@ You can render rows for a page, rather than relying on the render function to ou
 As shown above, we can fetch all available pages on a form using `form.getPages()`. 
 
 ```twig
-{% set form = craft.formie.forms({ handle: 'contactForm' }).one() %}
+{% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% for page in form.getPages() %}
     {{ page.name }}

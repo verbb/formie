@@ -1,0 +1,5 @@
+<p>
+    <strong>{{ field.label | t('formie') }}</strong><br>
+
+    {{ field.getEmailHtml(submission, notification, value) | raw }}
+</p>

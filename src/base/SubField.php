@@ -43,6 +43,11 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
         return false;
     }
 
+    public function hasFieldLayout(): bool
+    {
+        return $this->hasSubFields();
+    }
+
     public function settingsAttributes(): array
     {
         $attributes = parent::settingsAttributes();
@@ -54,26 +59,6 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
     public function getSubFields(): array
     {
         return $this->defineSubFields();
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        $values = [];
-
-        foreach ($this->getFields() as $subField) {
-            $value = $submission->getFieldValue($subField->fieldKey);
-            $fieldValues = Variables::getParsedFieldValue($subField, $value, $submission, $notification);
-
-            if (is_array($fieldValues)) {
-                foreach ($fieldValues as $key => $fieldValue) {
-                    $values[$subField->handle][$key] = $fieldValue;
-                }
-            } else {
-                $values[$subField->handle] = $fieldValues;
-            }
-        }
-
-        return $values;
     }
 
     public function getDefaultFieldLayout(): FieldLayout
@@ -182,5 +167,27 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
     protected function defineSubFields(): array
     {
         return [];
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $values = [
+            '__toString' => StringHelper::toString($value),
+        ];
+
+        foreach ($this->getFields() as $subField) {
+            $value = $submission->getFieldValue($subField->fieldKey);
+            $fieldValues = Variables::getParsedFieldValue($subField, $value, $submission, $notification);
+
+            if (is_array($fieldValues)) {
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $values[$subField->handle][$key] = $fieldValue;
+                }
+            } else {
+                $values[$subField->handle] = $fieldValues;
+            }
+        }
+
+        return $values;
     }
 }

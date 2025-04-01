@@ -89,7 +89,9 @@ class CustomElement extends Element
     public function setFieldContent(null|string|array $content): void
     {
         if (is_string($content)) {
-            $content = Json::decode($content);
+            if (Json::isJsonObject($content)) {
+                $content = Json::decode($content);
+            }
         }
 
         if ($content) {

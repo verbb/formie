@@ -44,7 +44,7 @@ class m240313_000000_subfields extends Migration
             if ($field['type'] === fields\Date::class) {
                 $displayType = $settings['displayType'] ?? 'calendar';
 
-                if ($displayType == 'calendar') {
+                if ($displayType == 'calendar' || $displayType == 'datePicker') {
                     // Get the field layout for the field, or if it already exists with fields, skip
                     $fieldLayout = $this->_getFieldLayout($settings);
 
@@ -319,6 +319,7 @@ class m240313_000000_subfields extends Migration
                         'type' => fields\SingleLineText::class,
                         'label' => $settings['dateLabel'] ?? Craft::t('formie', 'Date'),
                         'handle' => 'date',
+                        'enabled' => $settings['includeDate'] ?? true,
                         'required' => $settings['required'] ?? false,
                         'placeholder' => $settings['placeholder'] ?? null,
                         'errorMessage' => $settings['errorMessage'] ?? null,
@@ -339,6 +340,7 @@ class m240313_000000_subfields extends Migration
                         'type' => fields\SingleLineText::class,
                         'label' => $settings['timeLabel'] ?? Craft::t('formie', 'Time'),
                         'handle' => 'time',
+                        'enabled' => $settings['includeTime'] ?? true,
                         'required' => $settings['required'] ?? false,
                         'placeholder' => $settings['placeholder'] ?? null,
                         'errorMessage' => $settings['errorMessage'] ?? null,

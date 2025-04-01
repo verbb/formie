@@ -127,14 +127,42 @@ class FormInterface extends Element
                     ],
                 ],
                 'resolve' => function($source, $arguments) {
-                    $options = Json::decodeIfJson($arguments['options'] ?? null);
-                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? null);
+                    $options = Json::decodeIfJson($arguments['options'] ?? []);
+                    $populateFormValues = Json::decodeIfJson($arguments['populateFormValues'] ?? []);
 
                     if ($populateFormValues) {
                         Formie::$plugin->getRendering()->populateFormValues($source, $populateFormValues);
                     }
 
                     return Formie::$plugin->getRendering()->renderForm($source, $options);
+                },
+            ],
+            'templateCss' => [
+                'name' => 'templateCss',
+                'type' => Type::string(),
+                'description' => 'The form’s CSS for rendering.',
+                'resolve' => function($source, $arguments) {
+                    return Formie::$plugin->getRendering()->renderCss(true);
+                },
+            ],
+            'templateJs' => [
+                'name' => 'templateJs',
+                'type' => Type::string(),
+                'description' => 'The form’s JS for rendering and functionality.',
+                'args' => [
+                    'useObserver' => [
+                        'name' => 'useObserver',
+                        'description' => 'Whether to automatically initialize the form’s JS when visible.',
+                        'type' => Type::boolean(),
+                    ],
+                    'initJs' => [
+                        'name' => 'initJs',
+                        'description' => 'Whether to automatically initialize the form’s JS.',
+                        'type' => Type::boolean(),
+                    ],
+                ],
+                'resolve' => function($source, $arguments) {
+                    return Formie::$plugin->getRendering()->renderJs(true, $arguments);
                 },
             ],
             'csrfToken' => [
@@ -187,7 +215,7 @@ class FormInterface extends Element
                 'type' => Type::string(),
                 'description' => 'The form’s endpoint for sending submissions to, if using POST requests.',
                 'resolve' => function ($source) {
-                    return UrlHelper::actionUrl('formie/submission/submit');
+                    return UrlHelper::actionUrl('formie/submissions/submit');
                 },
             ],
             'isAvailable' => [

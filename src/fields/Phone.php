@@ -6,6 +6,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
@@ -14,6 +15,7 @@ use verbb\formie\models\Phone as PhoneModel;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
@@ -28,7 +30,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends Field implements PreviewableFieldInterface
+class Phone extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -46,6 +48,58 @@ class Phone extends Field implements PreviewableFieldInterface
     public static function getCountryOptions(): array
     {
         return Formie::$plugin->getPhone()->getCountries();
+    }
+
+    public static function getCountryLanguageOptions(): array
+    {
+        // See support https://github.com/jackocnr/intl-tel-input/tree/master/build/js/i18n
+        $languages = [
+            'Auto' => 'auto',
+            'Arabic' => 'ar',
+            'Bengali' => 'bn',
+            'Bosnian' => 'bs',
+            'Bulgarian' => 'bg',
+            'Catalan' => 'ca',
+            'Chinese' => 'zh',
+            'Croatian' => 'hr',
+            'Czech' => 'cs',
+            'Dutch' => 'nl',
+            'English' => 'en',
+            'Finnish' => 'fi',
+            'French' => 'fr',
+            'German' => 'de',
+            'Greek' => 'el',
+            'Hindi' => 'hi',
+            'Hungarian' => 'hu',
+            'Indonesian' => 'id',
+            'Italian' => 'it',
+            'Japanese' => 'ja',
+            'Korean' => 'ko',
+            'Marathi' => 'mr',
+            'Persian' => 'fa',
+            'Polish' => 'pl',
+            'Portuguese' => 'pt',
+            'Romanian' => 'ro',
+            'Russian' => 'ru',
+            'Slovak' => 'sk',
+            'Spanish' => 'es',
+            'Swedish' => 'sv',
+            'Telugu' => 'te',
+            'Thai' => 'th',
+            'Turkish' => 'tr',
+            'Urdu' => 'ur',
+        ];
+
+        $languageOptions = [];
+
+        foreach ($languages as $languageName => $languageCode) {
+            $languageOptions[] = [
+                'label' => Craft::t('formie', $languageName),
+                'value' => $languageCode,
+            ];
+        }
+
+        return $languageOptions;
     }
 
     public static function dbType(): string
@@ -81,6 +135,7 @@ class Phone extends Field implements PreviewableFieldInterface
 
     public bool $countryEnabled = true;
     public ?string $countryDefaultValue = null;
+    public string $countryLanguage = 'auto';
     public array $countryAllowed = [];
 
 
@@ -107,6 +162,28 @@ class Phone extends Field implements PreviewableFieldInterface
         }
 
         return false;
+    }
+
+    public function getErrorKey(): string
+    {
+        // Ensure that we use the proper sub-field for validation errors
+        return parent::getErrorKey() . '.number';
+    }
+
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        // Because Phone fields aren't technically sub-fields, but they act like one with nested
+        // field content, we want to ensure field validation picks up the correct field label
+        $labels[$this->fieldKey . '.number'] = $this->label;
+    }
+
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        if ($value instanceof PhoneModel && !$value->number) {
+            return true;
+        }
+
+        return parent::isValueEmpty($value, $element);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -141,6 +218,7 @@ class Phone extends Field implements PreviewableFieldInterface
                 'settings' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
                     'countryAllowed' => $this->countryAllowed,
+                    'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ];
         }
@@ -155,27 +233,27 @@ class Phone extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function populateValue(mixed $value, ?Submission $submission): void
-    {
-        // Ensure that we normalize the default value. TODO: we should move this to the parent function
-        $this->defaultValue = $this->normalizeValue($value, $submission);
-    }
-
-    public function getDefaultValue(string $attributePrefix = ''): mixed
-    {
-        // Ensure that we normalize the default value. TODO: we should move this to the parent function
-        $defaultValue = parent::getDefaultValue($attributePrefix);
-        $defaultValue = $this->normalizeValue(parent::getDefaultValue($attributePrefix), null);
-
-        return $defaultValue;
-    }
-
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
             'countryOptions' => [
                 'name' => 'countryOptions',
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+            ],
+            'countryEnabled' => [
+                'name' => 'countryEnabled',
+                'type' => Type::boolean(),
+            ],
+            'countryDefaultValue' => [
+                'name' => 'countryDefaultValue',
+                'type' => Type::string(),
+            ],
+            'countryAllowed' => [
+                'name' => 'countryAllowed',
+                'type' => Type::string(),
+                'resolve' => function($field) {
+                    return Json::encode($field->countryAllowed);
+                },
             ],
         ]);
     }
@@ -217,6 +295,16 @@ class Phone extends Field implements PreviewableFieldInterface
                     static::getCountryOptions()
                 ),
             ]),
+            // TODO: https://github.com/verbb/formie/issues/2042
+            // SchemaHelper::selectField([
+            //     'label' => Craft::t('formie', 'Language'),
+            //     'help' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
+            //     'name' => 'countryLanguage',
+            //     'if' => '$get(countryEnabled).value',
+            //     'options' => array_merge(
+            //         static::getCountryLanguageOptions()
+            //     ),
+            // ]),
         ];
     }
 
@@ -286,7 +374,7 @@ class Phone extends Field implements PreviewableFieldInterface
                 ],
                 'name' => $this->getHtmlName('number'),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'tel-national',
+                'autocomplete' => 'tel',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,
@@ -340,5 +428,39 @@ class Phone extends Field implements PreviewableFieldInterface
         }
 
         return $faker->phoneNumber;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getMatchedLanguageId()
+    {
+        if ($this->countryLanguage && $this->countryLanguage != 'auto') {
+            return $this->countryLanguage;
+        }
+
+        $currentLanguageId = Craft::$app->getLocale()->getLanguageID();
+        $allCraftLocales = Craft::$app->getI18n()->getAllLocales();
+        $allCraftLanguageIds = ArrayHelper::getColumn($allCraftLocales, 'id');
+        $allRecaptchaLanguageIds = ArrayHelper::getColumn(static::getCountryLanguageOptions(), 'value');
+        $matchedLanguageIds = array_intersect($allRecaptchaLanguageIds, $allCraftLanguageIds);
+
+        // If our current request Language ID matches a language ID, use it
+        if (in_array($currentLanguageId, $matchedLanguageIds, true)) {
+            return $currentLanguageId;
+        }
+
+        // If our current language ID has a more generic match, use it
+        if (str_contains($currentLanguageId, '-')) {
+            $parts = explode('-', $currentLanguageId);
+            $baseLanguageId = $parts['0'] ?? null;
+
+            if (in_array($baseLanguageId, $matchedLanguageIds, true)) {
+                return $baseLanguageId;
+            }
+        }
+
+        return null;
     }
 }

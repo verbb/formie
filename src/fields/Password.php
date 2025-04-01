@@ -13,8 +13,9 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
-class Password extends Field implements PreviewableFieldInterface
+class Password extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -166,7 +167,7 @@ class Password extends Field implements PreviewableFieldInterface
                 ],
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'email',
+                'autocomplete' => 'off',
                 'required' => $this->required ? true : null,
                 'data' => [
                     'fui-id' => $dataId,

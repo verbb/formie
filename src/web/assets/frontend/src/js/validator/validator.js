@@ -11,6 +11,7 @@ class FormieValidator {
 
         this.config = {
             live: false,
+            inputErrorIndicatorAttribute: 'data-field-has-error',
             fieldContainerErrorClass: 'fui-error',
             inputErrorClass: 'fui-error',
             messagesClass: 'fui-errors',
@@ -51,8 +52,12 @@ class FormieValidator {
 
     inputs(inputOrSelector = null) {
         // If this was a single form input, return straight away
-        if (inputOrSelector instanceof HTMLElement && inputOrSelector.getAttribute('type')) {
-            return [inputOrSelector];
+        if (inputOrSelector instanceof HTMLElement) {
+            const validFormTags = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'];
+
+            if (validFormTags.includes(inputOrSelector.tagName.toUpperCase())) {
+                return [inputOrSelector];
+            }
         }
 
         // Otherwise, it's a selector to a regular DOM element. Find all inputs within that.
@@ -125,6 +130,7 @@ class FormieValidator {
 
         removeClasses(fieldContainer, this.config.fieldContainerErrorClass);
         removeClasses(input, this.config.inputErrorClass);
+        input.removeAttribute(this.config.inputErrorIndicatorAttribute);
 
         this.emitEvent(input, 'formieValidatorClearError');
     }
@@ -184,6 +190,7 @@ class FormieValidator {
         // Add error classes to field and field container
         addClasses(fieldContainer, this.config.fieldContainerErrorClass);
         addClasses(input, this.config.inputErrorClass);
+        input.setAttribute(this.config.inputErrorIndicatorAttribute, true);
 
         this.emitEvent(input, 'formieValidatorShowError', {
             validatorName,
@@ -307,7 +314,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
+        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
             return;
         }
 
@@ -328,7 +335,7 @@ class FormieValidator {
         }
 
         // Only run on fields with errors
-        if (this.config.inputErrorClass.length && !e.target.classList.contains(this.config.inputErrorClass)) {
+        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
             return;
         }
 

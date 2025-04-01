@@ -65,7 +65,6 @@ Submission queries support the following parameters:
 | [limit](#limit)                               | Determines the number of submissions that should be returned.
 | [offset](#offset)                             | Determines how many submissions should be skipped in the results.
 | [orderBy](#orderby)                           | Determines the order that the submissions should be returned in. (If empty, defaults to `postDate DESC`.)
-| [relatedTo](#relatedto)                       | Narrows the query results to only submissions that are related to certain other elements.
 | [status](#status)                             | Narrows the query results based on the submissions’ statuses.
 | [statusId](#statusId)                         | Narrows the query results based on the submissions’ statuses, per their IDs.
 | [title](#title)                               | Narrows the query results based on the submissions’ titles.
@@ -452,30 +451,6 @@ Determines the order that the submissions should be returned in.
 // Fetch all submissions in order of date created
 $submissions = \verbb\formie\elements\Submission::find()
     ->orderBy('elements.dateCreated asc')
-    ->all();
-```
-:::
-
-
-
-### `relatedTo`
-
-Narrows the query results to only submissions that are related to certain other elements.
-
-See [Relations](https://craftcms.com/docs/4.x/relations.html) for a full explanation of how to work with this parameter.
-
-::: code
-```twig Twig
-{# Fetch all submissions that are related to myCategory #}
-{% set submissions = craft.formie.submissions()
-    .relatedTo(myCategory)
-    .all() %}
-```
-
-```php PHP
-// Fetch all submissions that are related to $myCategory
-$submissions = \verbb\formie\elements\Submission::find()
-    ->relatedTo($myCategory)
     ->all();
 ```
 :::

@@ -67,9 +67,20 @@
                     {{ hiddenInput('editingSubmission', true) }}
                 {% endif %}
 
+                {% if form.getStorageBehaviour() != 'session' %}
+                    {{ hiddenInput('storage', form.getStorageBehaviour()) }}
+                    {{ hiddenInput('pageIndex', form.getCurrentPageIndex()) }}
+                {% endif %}
+
                 {% if form.getRedirectUrl() %}
                     {{ redirectInput(form.getRedirectUrl()) }}
                 {% endif %}
+
+                {% set customInputs = renderOptions.customInputs ?? {} %}
+
+                {% for inputName, inputValue in customInputs %}
+                    {{ hiddenInput(inputName, inputValue) }}
+                {% endfor %}
 
                 {% formtag 'formContainer' %}
                     {% hook 'formie.form.start' %}

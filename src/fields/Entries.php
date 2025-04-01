@@ -108,6 +108,39 @@ class Entries extends ElementField
         return array_merge($options, ...$extraOptions);
     }
 
+    public function getSourceOptions(): array
+    {
+        $options = [];
+        $optionNames = [];
+
+        foreach ($this->availableSources() as $source) {
+            // Make sure it's not a heading
+            if (!isset($source['heading'])) {
+                $options[] = [
+                    'label' => $source['label'],
+                    'value' => $source['key'],
+                ];
+
+                $sectionId = $source['criteria']['sectionId'] ?? null;
+
+                if ($sectionId && !is_array($sectionId)) {
+                    $entryTypes = Craft::$app->getEntries()->getEntryTypesBySectionId($sectionId);
+
+                    foreach ($entryTypes as $entryType) {
+                        $options[] = [
+                            'label' => $source['label'] . ': ' . $entryType['name'],
+                            'value' => 'type:' . $entryType['uid'],
+                        ];
+                    }
+                }
+            }
+        }
+
+        ArrayHelper::multisort($options, 'label', SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $options;
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [

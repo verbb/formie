@@ -54,9 +54,9 @@
             options: [{
                 label: 'Default Volume' | t('formie'),
                 value: '',
-            }] | merge(craft.app.volumes.getAllVolumes() | map(template => {
-                label: template.name,
-                value: 'folder:' ~ template.uid,
+            }] | merge(craft.app.volumes.getAllVolumes() | map(volume => {
+                label: volume.name,
+                value: 'volume:' ~ volume.uid,
             })),
         }) }}
 
@@ -75,8 +75,11 @@
                 label: 'Default Display Type' | t('formie'),
                 value: '',
             },{
-                label: 'Calendar' | t('formie'),
+                label: 'Calendar (Simple)' | t('formie'),
                 value: 'calendar',
+            },{
+                label: 'Calendar (Advanced)' | t('formie'),
+                value: 'datePicker',
             },{
                 label: 'Dropdowns' | t('formie'),
                 value: 'dropdowns',

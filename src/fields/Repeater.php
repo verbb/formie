@@ -90,11 +90,6 @@ class Repeater extends MultiNestedField
         return $modules;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-    }
-
     public function getConfigJson(): ?string
     {
         // Override `getConfigJson` as we don't want to initialise any inner fields immediately.
@@ -269,6 +264,7 @@ class Repeater extends MultiNestedField
             return new HtmlTag('div', [
                 'class' => 'fui-repeater-row',
                 'data-repeater-row' => '__ROW__',
+                'data-repeater-row-id' => '__ROW__',
             ]);
         }
 

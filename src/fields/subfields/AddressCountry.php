@@ -2,9 +2,11 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\elements\Submission;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -56,6 +58,16 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 
     // Public Methods
     // =========================================================================
+
+    public function getFormBuilderSettings(): array
+    {
+        $settings = parent::getFormBuilderSettings();
+
+        // Ensure the form builder knows about our dynamically-generated options
+        $settings['options'] = $this->options();
+
+        return $settings;
+    }
 
     public function options(): array
     {
@@ -123,6 +135,11 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
     }
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    {
+        return $this->_getValueLabel($value);
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
         return $this->_getValueLabel($value);
     }

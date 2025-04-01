@@ -81,7 +81,7 @@ export const createVueApp = (props) => {
     app.config.globalProperties.t = t;
 
     // Provide `this.clone()` for easy object cloning in SFCs.
-    app.config.globalProperties.clone = clone,
+    app.config.globalProperties.clone = clone;
 
     // Global events. Accessible via `this.$events` in SFCs.
     app.config.globalProperties.$events = events;

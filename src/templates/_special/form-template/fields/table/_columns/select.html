@@ -1,0 +1,9 @@
+{% fieldtag 'tableSelectInput' with {
+    name: field.getHtmlName("#{index}[#{colId}]"),
+} %}
+    {% for option in col.options %}
+        <option value="{{ option.value }}" {{ option.value == (row[colId] ?? '') ? 'selected' }}>
+            {{ option.label | t('formie') }}
+        </option>
+    {% endfor %}
+{% endfieldtag %}

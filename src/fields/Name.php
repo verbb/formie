@@ -123,6 +123,15 @@ class Name extends SubField implements PreviewableFieldInterface
         return false;
     }
 
+    public function getIsRequired(): ?bool
+    {
+        if (!$this->useMultipleFields) {
+            return $this->required;
+        }
+
+        return parent::getIsRequired();
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         // Quit early if a non-multi Name field, it's just plain text
@@ -169,15 +178,6 @@ class Name extends SubField implements PreviewableFieldInterface
         return Craft::$app->getView()->renderTemplate('formie/_formfields/name/preview', [
             'field' => $this,
         ]);
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        if ($this->useMultipleFields) {
-            return parent::getValueForVariable($value, $submission, $notification);
-        }
-
-        return (string)$value;
     }
 
     public function getSettingGqlTypes(): array
@@ -459,6 +459,15 @@ class Name extends SubField implements PreviewableFieldInterface
         }
         
         return $faker->name;
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        if ($this->useMultipleFields) {
+            return parent::defineValueForVariable($value, $submission, $notification);
+        }
+
+        return Field::defineValueForVariable($value, $submission, $notification);
     }
 
 }

@@ -11,6 +11,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 
 use Faker\Generator as FakerFactory;
 
@@ -18,7 +19,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
-class MultiLineText extends Field implements PreviewableFieldInterface
+class MultiLineText extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -83,15 +84,6 @@ class MultiLineText extends Field implements PreviewableFieldInterface
         $value = $value !== '' ? $value : null;
 
         return parent::normalizeValue($value, $element);
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        if ($this->useRichText) {
-            return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
-        } else {
-            return nl2br($this->getValueAsString($value, $submission));
-        }
     }
 
     public function getElementValidationRules(): array
@@ -178,7 +170,7 @@ class MultiLineText extends Field implements PreviewableFieldInterface
         $value = $element->getFieldValue($this->fieldKey);
         $count = count(explode(' ', $value));
 
-        if ($count > $min) {
+        if ($count < $min) {
             $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
@@ -214,7 +206,7 @@ class MultiLineText extends Field implements PreviewableFieldInterface
     {
         $modules = [];
 
-        if ($this->limit && $this->max) {
+        if ($this->limit) {
             $modules[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
                 'module' => 'FormieTextLimit',

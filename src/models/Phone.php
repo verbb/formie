@@ -65,8 +65,9 @@ class Phone extends Model
 
                 return $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
             } catch (NumberParseException $e) {
-                if ($this->number) {
-                    $countryString = $this->country ? '(' . $this->country . ') ' : '';
+                if ($this->number && is_numeric($this->number)) {
+                    // Consider the number still valid
+                    $countryString = $this->country && is_numeric($this->country) ? '(' . $this->country . ') ' : '';
 
                     return $countryString . $this->number;
                 }
@@ -76,6 +77,11 @@ class Phone extends Model
         } else {
             return (string)$this->number;
         }
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->__toString() === '';
     }
 
     public function getCountryCode(): string
@@ -100,7 +106,11 @@ class Phone extends Model
     public function getCountryName(): string
     {
         if ($this->country) {
-            return Craft::$app->getAddresses()->getCountryRepository()->get($this->country)->getName();
+            try {
+                return Craft::$app->getAddresses()->getCountryRepository()->get($this->country)->getName();
+            } catch (Throwable $e) {
+
+            }
         }
 
         return '';

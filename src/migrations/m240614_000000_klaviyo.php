@@ -10,9 +10,9 @@ use craft\db\Migration;
 
 class m240614_000000_klaviyo extends Migration
 {
-    /**
-     * @inheritdoc
-     */
+    // Public Methods
+    // =========================================================================
+
     public function safeUp(): bool
     {
         $this->update('{{%formie_integrations}}', ['type' => KlaviyoEMLegacy::class], ['type' => KlaviyoEM::class]);
@@ -21,9 +21,6 @@ class m240614_000000_klaviyo extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m240614_000000_klaviyo cannot be reverted.\n";

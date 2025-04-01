@@ -177,7 +177,9 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         if (this.submitHandler) {
             // Run the next submit action for the form. TODO: make this better!
             if (this.submitHandler.validatePayment()) {
-                this.submitHandler.submitForm();
+                if (this.submitHandler.validateCustom()) {
+                    this.submitHandler.submitForm();
+                }
             }
         }
     }

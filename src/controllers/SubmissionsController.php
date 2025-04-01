@@ -12,12 +12,14 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\Settings;
+use verbb\formie\storage\SessionStorage;
 use verbb\formie\web\assets\cp\CpAsset;
 
 use Craft;
 use craft\base\Element;
 use craft\errors\SiteNotFoundException;
 use craft\helpers\Json;
+use craft\helpers\Session;
 use craft\models\Site;
 use craft\web\Controller;
 
@@ -86,15 +88,13 @@ class SubmissionsController extends Controller
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
-        $submissionsBehaviour = $settings->submissionsBehaviour ?? [];
 
         $this->getView()->registerAssetBundle(CpAsset::class);
 
         $this->requirePermission('formie-accessSubmissions');
 
         return $this->renderTemplate('formie/submissions/index', [
-            'includeIncomplete' => in_array('incomplete', $submissionsBehaviour),
-            'includeSpam' => in_array('spam', $submissionsBehaviour),
+            'defaultState' => $settings->submissionsBehaviour,
         ]);
     }
 
@@ -426,6 +426,7 @@ class SubmissionsController extends Controller
         $goToPageId = $this->_getTypedParam('goToPageId', 'id');
         $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
+        $storage = $this->_getTypedParam('storage', 'string', 'session');
 
         Formie::info("Submission triggered for {$handle}.");
 
@@ -438,11 +439,22 @@ class SubmissionsController extends Controller
 
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form);
+        $submission->isNewSubmission = true;
 
         $pages = $form->getPages();
         $settings = $form->settings;
         $defaultStatus = $form->getDefaultStatus();
         $errorMessage = $form->settings->getErrorMessage();
+
+        // Update the storage mechanism, which can't be set via sessions, and we've re-fetched the form
+        $form->setStorageBehaviour($storage);
+
+        // If using session storage, we need to ensure the session is started before using it. `Session::exists()` isn't enough.
+        // There's no `Session::open()` function yet, so simply set a random value to kick off sessions.
+        // See https://github.com/verbb/formie/issues/2194
+        if ($form->getStorage() instanceof SessionStorage) {
+            Session::set('formie:nonce', rand());
+        }
 
         // If we're going back, and want to  navigate without saving
         if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
@@ -661,7 +673,10 @@ class SubmissionsController extends Controller
         $form = $event->form;
 
         if ($request->getAcceptsJson()) {
-            return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
+            return $this->_returnJsonResponse(true, $submission, $form, $nextPage, [
+                // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
+                'redirectUrl' => $event->redirectUrl,
+            ]);
         }
 
         if (!empty($nextPage)) {
@@ -693,6 +708,11 @@ class SubmissionsController extends Controller
 
         // Get the URL for redirection (ignore last page checks, already done)
         $url = $form->getRedirectUrl(false);
+
+        // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
+        if ($event->redirectUrl) {
+            return $this->redirect($event->redirectUrl);
+        }
 
         return $this->redirectToPostedUrl($submission, $url);
     }
@@ -814,6 +834,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('id'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         $notifications = $submission->getForm()->getNotifications();
@@ -842,6 +864,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('submissionId'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         if (!$notification) {
@@ -880,6 +904,8 @@ class SubmissionsController extends Controller
 
         $submission = Submission::find()
             ->id($request->getParam('submissionId'))
+            ->isIncomplete(null)
+            ->isSpam(null)
             ->one();
 
         if (!$submission) {
@@ -990,14 +1016,16 @@ class SubmissionsController extends Controller
 
         $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
 
+        // Set the `redirectUrl` unless we've passed in an override
+        $extras['redirectUrl'] = $extras['redirectUrl'] ?? $redirectUrl;
+
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
-            'currentPageId' => $form->getCurrentPage()->id,
             'nextPageId' => $nextPage->id ?? null,
-            'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,
+            'nextPageIndex' => $form->getPageIndex($nextPage) ?? null,
+            'isFinalPage' => $nextPage ? false : true,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
-            'redirectUrl' => $redirectUrl,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
             'events' => $form->getFrontEndJsEvents(),
         ], $extras);

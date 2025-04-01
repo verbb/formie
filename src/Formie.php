@@ -21,6 +21,7 @@ use verbb\formie\gql\queries\SubmissionQuery;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
+use verbb\formie\integrations\link\FormLinkType;
 use verbb\formie\jobs\BaseJob;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
@@ -58,6 +59,7 @@ use craft\events\RegisterGqlTypesEvent;
 use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\fields\Link;
 use craft\helpers\Cp;
 use craft\queue\Queue;
 use craft\services\Dashboard;
@@ -99,7 +101,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '3.4.6';
+    public string $schemaVersion = '3.4.8';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -301,7 +303,17 @@ class Formie extends Plugin
     {
         Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
             $formPermissions = [
-                'formie-createForms' => ['label' => Craft::t('formie', 'Create forms')],
+                'formie-createForms' => [
+                    'label' => Craft::t('formie', 'Create forms'),
+                    'nested' => [
+                        'formie-createFormAppearance' => ['label' => Craft::t('formie', 'Show form appearance tab')],
+                        'formie-createFormBehavior' => ['label' => Craft::t('formie', 'Show form behaviour tab')],
+                        'formie-createNotifications' => ['label' => Craft::t('formie', 'Show form email notifications tab')],
+                        'formie-createFormIntegrations' => ['label' => Craft::t('formie', 'Show form integrations tab')],
+                        'formie-createFormUsage' => ['label' => Craft::t('formie', 'Show form usage tab')],
+                        'formie-createFormSettings' => ['label' => Craft::t('formie', 'Show form settings tab')],
+                    ],
+                ],
                 'formie-deleteForms' => ['label' => Craft::t('formie', 'Delete forms')],
                 'formie-manageForms' => [
                     'label' => Craft::t('formie', 'Manage all forms'),
@@ -515,13 +527,14 @@ class Formie extends Plugin
         Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
+        Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_SORT_OPTIONS, [$this->getSubmissions(), 'defineSourceSortOptions']);
 
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Submission::class, 'defineElementChipHtml']);
 
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
             if ($event->error && $event->job instanceof BaseJob) {
-                $event->job->updatePayload($event);
+                $event->job->onError($event);
             }
         });
 
@@ -568,11 +581,22 @@ class Formie extends Plugin
                 $event->fields = array_merge($event->fields, $fields);
             });
         }
+
+        if (version_compare(Craft::$app->getInfo()->version, '5.3.0', '>=')) {
+            Event::on(Link::class, Link::EVENT_REGISTER_LINK_TYPES, function(RegisterComponentTypesEvent $event) {
+                $event->types[] = FormLinkType::class;
+            });
+        }
     }
 
     private function _registerProjectConfigEventHandlers(): void
     {
         $projectConfigService = Craft::$app->getProjectConfig();
+
+        // Protect against firing too early before Formie has installed
+        if (!Craft::$app->getPlugins()->isPluginInstalled(Formie::getInstance()->id)) {
+            return;
+        }
 
         $statusesService = $this->getStatuses();
         $projectConfigService

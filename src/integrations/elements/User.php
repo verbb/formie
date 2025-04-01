@@ -35,6 +35,7 @@ class User extends Element
     // =========================================================================
 
     public array $groupIds = [];
+    public array $groupUids = [];
     public bool $activateUser = false;
     public bool $mergeUserGroups = false;
     public bool $sendActivationEmail = true;
@@ -45,7 +46,7 @@ class User extends Element
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Map content provided by form submissions to create User elements.');
+        return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -176,8 +177,8 @@ class User extends Element
                 $userGroups = $user->getGroups();
             }
 
-            foreach ($this->groupIds as $groupId) {
-                if ($group = Craft::$app->getUserGroups()->getGroupById($groupId)) {
+            foreach ($this->groupUids as $groupUid) {
+                if ($group = Craft::$app->getUserGroups()->getGroupByUid($groupUid)) {
                     $userGroups[] = $group;
                 }
             }
@@ -260,20 +261,41 @@ class User extends Element
 
             if ($user->getStatus() == UserElement::STATUS_PENDING) {
                 if ($this->activateUser) {
-                    Craft::$app->getUsers()->activateUser($user);
+                    if (!Craft::$app->getUsers()->activateUser($user)) {
+                        Integration::error($this, Craft::t('formie', 'Unable to activate user for “{type}” element integration. Error: {error}.', [
+                            'type' => $this->handle,
+                            'error' => Json::encode($user->getErrors()),
+                        ]), true);
+
+                        return false;
+                    }
 
                     $autoLogin = true;
                 }
 
                 if ($this->sendActivationEmail) {
-                    Craft::$app->getUsers()->sendActivationEmail($user);
+                    if (!Craft::$app->getUsers()->sendActivationEmail($user)) {
+                        Integration::error($this, Craft::t('formie', 'Unable to send user activation email for “{type}” element integration. Error: {error}.', [
+                            'type' => $this->handle,
+                            'error' => Json::encode($user->getErrors()),
+                        ]), true);
+
+                        return false;
+                    }
                 }
             }
 
             if ($userGroups) {
                 $groupIds = ArrayHelper::getColumn($userGroups, 'id');
 
-                Craft::$app->getUsers()->assignUserToGroups($user->id, $groupIds);
+                if (!Craft::$app->getUsers()->assignUserToGroups($user->id, $groupIds)) {
+                    Integration::error($this, Craft::t('formie', 'Unable to assign user groups for “{type}” element integration. Error: {error}.', [
+                            'type' => $this->handle,
+                            'error' => Json::encode($user->getErrors()),
+                        ]), true);
+
+                        return false;
+                }
             }
 
             // Important to wipe out the field mapped to their password, and save the submission. We don't want to permanently
@@ -326,7 +348,7 @@ class User extends Element
         foreach (Craft::$app->getUserGroups()->getAllGroups() as $key => $group) {
             $userGroups[] = [
                 'label' => $group->name,
-                'value' => $group->id,
+                'value' => $group->uid,
             ];
         }
 

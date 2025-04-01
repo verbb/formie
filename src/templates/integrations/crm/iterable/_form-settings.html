@@ -1,0 +1,121 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set mapToUser = form.settings.integrations[handle].mapToUser ?? '' %}
+{% set mapToMessageType = form.settings.integrations[handle].mapToMessageType ?? '' %}
+{% set messageTypeId = form.settings.integrations[handle].messageTypeId ?? '' %}
+
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ messageTypeId }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Refresh Integration' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to User' | t('formie'),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Users' }),
+            id: 'mapToUser',
+            name: 'mapToUser',
+            on: mapToUser,
+            toggle: 'map-to-user',
+        }) }}
+
+        <div id="map-to-user" class="{{ not mapToUser ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'User Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'User' }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="user-field-mapping"
+                name="userFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.userFieldMapping')"
+                :rows="get(settings, 'user')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.userFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.userFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Message Type' | t('formie'),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Message Type' }),
+            id: 'mapToMessageType',
+            name: 'mapToMessageType',
+            on: mapToMessageType,
+            toggle: 'map-to-message-type',
+        }) }}
+
+        <div id="map-to-message-type" class="{{ not mapToMessageType ? 'hidden' }}">
+            <div class="field">
+                <div class="heading">
+                    <label id="sourceId-label" for="sourceId" class="required">{{ 'Message Type' | t('formie') }}</label>
+
+                    <div class="instructions">
+                        <p>{{ 'Select your {name} Message Type.' | t('formie', { name: displayName }) }}</p>
+                    </div>
+                </div>
+
+                <div class="input ltr">
+                    <div class="select">
+                        <select :value="sourceId" @input="input('sourceId', $event.target.value)" name="messageTypeId" required>
+                            <option value="">{{ 'Select an option' | t('formie') }}</option>
+
+                            <option v-for="(option, index) in get(settings, 'messageTypes')" :key="index" :value="option.id">${ option.name }</option>
+                        </select>
+                    </div>
+
+                    <button class="btn fui-btn-transparent" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh({ refreshMessageTypes: true })"></button>
+                </div>
+
+                <ul v-if="!isEmpty(get(messageType, 'settings.integrations.{{ handle }}.errors.messageTypeId'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(messageType, 'settings.integrations.{{ handle }}.errors.messageTypeId')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+
+            <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+                <span data-icon="alert"></span>
+                <span v-html="errorMessage"></span>
+            </div>
+
+            <div>
+                <integration-field-mapping
+                    label="{{ 'Message Type Field Mapping' | t('formie') }}"
+                    instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Message Type' }) }}"
+                    name-label="{{ integration.displayName() }}"
+                    id="message-type-field-mapping"
+                    name="messageTypeFieldMapping"
+                    :value="get(form, 'settings.integrations.{{ handle }}.messageTypeFieldMapping')"
+                    :rows="getSourceFields('messageTypes')"
+                ></integration-field-mapping>
+
+                <ul v-if="!isEmpty(get(messageType, 'settings.integrations.{{ handle }}.errors.messageTypeFieldMapping'))" class="errors" v-cloak>
+                    <li v-for="(error, index) in get(messageType, 'settings.integrations.{{ handle }}.errors.messageTypeFieldMapping')" :key="index">
+                        ${ error }
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </template>
+</integration-form-settings>

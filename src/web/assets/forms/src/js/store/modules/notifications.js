@@ -35,16 +35,20 @@ const mutations = {
 
     DELETE_NOTIFICATION(state, payload) {
         const { id } = payload;
-        const index = findIndex(state, { id });
+        const index = findIndex(state, { __id: id });
 
-        state.splice(index, 1);
+        if (index > -1) {
+            state.splice(index, 1);
+        }
     },
 
     SET_PROP(state, payload) {
         const { id, prop, value } = payload;
-        const index = findIndex(state, { id });
+        const index = findIndex(state, { __id: id });
 
-        state[index][prop] = value;
+        if (index > -1) {
+            state[index][prop] = value;
+        }
     },
 };
 

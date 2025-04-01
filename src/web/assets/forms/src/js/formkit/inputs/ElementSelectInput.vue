@@ -1,6 +1,6 @@
 <template>
     <div :id="id" class="elementselect">
-        <div ref="elements" class="elements" v-html="elementsHtml"></div>
+        <ul ref="elements" class="elements chips chips-small" v-html="elementsHtml"></ul>
 
         <div class="flex">
             <button type="button" class="btn dashed add icon">{{ selectionLabel }}</button>
@@ -95,7 +95,9 @@ export default {
     },
 
     mounted() {
-        this.createModal();
+        this.$nextTick().then(() => {
+            this.createModal();
+        });
     },
 
     methods: {
@@ -131,7 +133,10 @@ export default {
                         delete this.modal.modal;
                     }
                 } else {
-                    this.modal = new Craft.BaseElementSelectInput(config);
+                    const jsClass = config.jsClass || 'Craft.BaseElementSelectInput';
+                    const ClassReference = jsClass.split('.').reduce((acc, curr) => { return acc && acc[curr]; }, window);
+
+                    this.modal = new ClassReference(config);
                 }
             }
         },

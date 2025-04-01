@@ -7,7 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateHourNumber extends Number implements SubFieldInnerFieldInterface
+class DateHourNumber extends DateNumber implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -26,4 +26,10 @@ class DateHourNumber extends Number implements SubFieldInnerFieldInterface
     {
         return 'fields/number';
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public string $validationFormatParam = 'G';
 }

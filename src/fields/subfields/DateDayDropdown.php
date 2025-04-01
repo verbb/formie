@@ -7,7 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateDayDropdown extends Dropdown implements SubFieldInnerFieldInterface
+class DateDayDropdown extends DateDropdown implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -26,4 +26,10 @@ class DateDayDropdown extends Dropdown implements SubFieldInnerFieldInterface
     {
         return 'fields/dropdown';
     }
+    
+
+    // Properties
+    // =========================================================================
+
+    public string $validationFormatParam = 'j';
 }

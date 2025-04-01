@@ -86,18 +86,14 @@ class FormQuery extends ElementQuery
             'formie_forms.dataRetentionValue',
             'formie_forms.userDeletedAction',
             'formie_forms.fileUploadsAction',
-            'formie_forms.uid',
         ]);
 
-        if ($this->pageCount) {
-            $pageQuery = (new Query())
-                ->select(['COUNT(*)'])
-                ->from(['pages' => Table::FORMIE_FIELD_LAYOUT_PAGES])
-                ->where('[[pages.formId]] = [[formie_forms.id]]');
+        $pageQuery = (new Query())
+            ->select(['COUNT(*)'])
+            ->from(['pages' => Table::FORMIE_FIELD_LAYOUT_PAGES])
+            ->where('[[pages.layoutId]] = [[formie_forms.layoutId]]');
 
-            $this->subQuery->addSelect(['pageCount' => $pageQuery]);
-            $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
-        }
+        $this->subQuery->addSelect(['pageCount' => $pageQuery]);
 
         if ($this->handle) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.handle', $this->handle));
@@ -109,6 +105,10 @@ class FormQuery extends ElementQuery
 
         if ($this->templateId) {
             $this->subQuery->andWhere(Db::parseParam('formie_forms.templateId', $this->templateId));
+        }
+
+        if ($this->pageCount) {
+            $this->query->andWhere(Db::parseParam('pageCount', $this->pageCount));
         }
 
         return parent::beforePrepare();

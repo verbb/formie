@@ -7,6 +7,7 @@ use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\StorageInterface;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
@@ -139,25 +140,6 @@ class Form extends Element
 
         return $sources;
     }
-    
-    protected static function indexElements(ElementQueryInterface $elementQuery, ?string $sourceKey): array
-    {
-        $userSession = Craft::$app->getUser();
-        $elements = $elementQuery->all();
-
-        // Filter out any elements the user doesn't have access to view
-        // Can the user edit _every_ form?
-        if (!$userSession->checkPermission('formie-manageForms')) {
-            // Find all UIDs the user has permission to
-            foreach ($elements as $key => $element) {
-                if (!$userSession->checkPermission('formie-manageForms:' . $element->uid)) {
-                    unset($elements[$key]);
-                }
-            }
-        }
-
-        return array_values($elements);
-    }
 
     protected static function defineActions(string $source = null): array
     {
@@ -276,6 +258,7 @@ class Form extends Element
 
     public bool $resetClasses = false;
     public ?int $pageCount = null;
+    public bool $isApplyingStencil = false;
 
     private ?FieldLayout $_fieldLayout = null;
     private ?FormLayout $_formLayout = null;
@@ -293,12 +276,12 @@ class Form extends Element
     private array $_frontEndJsEvents = [];
     private ?string $_redirectUrl = null;
     private ?string $_actionUrl = null;
+    private string $_storageBehaviour = 'session';
 
     // Render Options
+    private array $_renderOptions = [];
     private array $_themeConfig = [];
     private ?string $_sessionKey = null;
-
-    private static ?array $_layoutsByType = null;
 
 
     // Public Methods
@@ -334,6 +317,29 @@ class Form extends Element
         if ($this->settings instanceof FormSettings) {
             $this->settings->setForm($this);
         }
+    }
+
+    public function getScenario()
+    {
+        // Only set to "live" after creating the form. Otherwise Form Template fields validate.
+        if ($this->id) {
+            $newLayoutId = $this->templateId;
+            $savedLayoutId = (new Query())
+                ->select(['templateId'])
+                ->from(['{{%formie_forms}}'])
+                ->where(['id' => $this->id])
+                ->scalar();
+
+            // To make things more complicated, we need to check if we're applying a new template, and not validate
+            // immediately, only on next save. This is because the UI needs to catch up once the form template has changed.
+            if (!$savedLayoutId || (!$newLayoutId && $savedLayoutId)) {
+                return self::SCENARIO_ESSENTIALS;
+            }
+
+            return self::SCENARIO_LIVE;
+        }
+
+        return parent::getScenario();
     }
     
     public function canView(User $user): bool
@@ -647,7 +653,7 @@ class Form extends Element
 
         if ($pages) {
             // Check if there's a session variable
-            $pageId = Session::get($this->_getSessionKey('pageId'));
+            $pageId = $this->getStorage()->getCurrentPageId($this);
 
             if ($pageId) {
                 $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
@@ -762,24 +768,14 @@ class Form extends Element
 
     public function setCurrentPage(FieldLayoutPage $page = null): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
-            return;
+        if ($page) {
+            $this->getStorage()->setCurrentPageId($this, $page->id);
         }
-
-        if (!$page) {
-            return;
-        }
-
-        Session::set($this->_getSessionKey('pageId'), $page->id);
     }
 
     public function resetCurrentPage(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
-            return;
-        }
-
-        Session::remove($this->_getSessionKey('pageId'));
+        $this->getStorage()->resetCurrentPageId($this);
     }
 
     public function isLastPage(FieldLayoutPage $currentPage = null): bool
@@ -866,6 +862,21 @@ class Form extends Element
         Session::remove($this->_getSessionKey('submissionId'));
 
         $this->_currentSubmission = null;
+    }
+
+    public function getStorageBehaviour(): string
+    {
+        return $this->_storageBehaviour;
+    }
+
+    public function setStorageBehaviour(string $behaviour): void
+    {
+        $this->_storageBehaviour = $behaviour;
+    }
+
+    public function getStorage(): StorageInterface
+    {
+        return Formie::$plugin->getStorage()->getStorage($this->getStorageBehaviour());
     }
 
     public function setSubmission(?Submission $submission): void
@@ -1045,6 +1056,11 @@ class Form extends Element
         }
 
         return $this->_submitActionEntry;
+    }
+
+    public function setRedirectEntry(Entry $entry): void
+    {
+        $this->_submitActionEntry = $entry;
     }
 
     public function getGqlTypeName(): string
@@ -1424,6 +1440,8 @@ class Form extends Element
 
     public function applyRenderOptions(array $renderOptions = []): void
     {
+        $this->_renderOptions = $renderOptions;
+
         // Allow a session key to be provided to scope incomplete submission content.
         // Base64 encode it not for security, just so it's not plain text an "obvious".
         $sessionKey = $renderOptions['sessionKey'] ?? null;
@@ -1501,7 +1519,14 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
+
+            // Generate the refresh token here to make use of `UrlHelper` generation
+            'refreshTokenUrl' => UrlHelper::actionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
         ];
+
+        // Render options could contain settings for script tag attributes (CSP)
+        $settings['scriptAttributes'] = $this->_renderOptions['scriptAttributes'] ?? [];
 
         $registeredJs = [];
 
@@ -1895,33 +1920,10 @@ class Form extends Element
         // Prepare the layout/pages/rows/fields by stripping out IDs and UIDs. 
         // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
         $formLayout = unserialize(serialize($this->getFormLayout()));
-        $formLayout->id = null;
-        // $formLayout->ownerId = null;
-        $formLayout->uid = '';
+        $this->_clearLayoutIdentifiers($formLayout);
 
-        foreach ($formLayout->getPages() as $page) {
-            $page->id = null;
-            // $page->ownerId = null;
-            $page->layoutId = null;
-            $page->uid = '';
-
-            foreach ($page->getRows() as $row) {
-                $row->id = null;
-                // $row->ownerId = null;
-                $row->layoutId = null;
-                $row->pageId = null;
-                $row->uid = '';
-
-                foreach ($row->getFields() as $field) {
-                    $field->id = null;
-                    // $field->ownerId = null;
-                    $field->layoutId = null;
-                    $field->pageId = null;
-                    $field->rowId = null;
-                    $field->uid = '';
-                }
-            }
-        }
+        $formSettings = clone $this->settings;
+        $formSettings->setForm(null);
 
         $notifications = [];
 
@@ -1940,6 +1942,7 @@ class Form extends Element
             'title' => Craft::t('formie', '{title} Copy', ['title' => $this->title]),
             'formLayout' => $formLayout,
             'notifications' => $notifications,
+            'settings' => $formSettings,
         ];
     }
 
@@ -1956,6 +1959,15 @@ class Form extends Element
         // Ensure any parent validations run first
         if (!parent::beforeSave($isNew)) {
             return false;
+        }
+
+        // If a new form, enable any globally-enabled captchas - but not if applying a stencil
+        if ($isNew && !$this->isApplyingStencil) {
+            foreach (Formie::$plugin->getIntegrations()->getAllCaptchas() as $captcha) {
+                if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
+                    $this->settings->integrations[$captcha->handle]['enabled'] = true;
+                }
+            }
         }
 
         // Save the field layout as the last step
@@ -2123,6 +2135,15 @@ class Form extends Element
 
     protected function cpEditUrl(): ?string
     {
+        $userSession = Craft::$app->getUser();
+
+        // Check if the user has permission to edit this form
+        if ($userSession && !$userSession->checkPermission('formie-manageForms')) {
+            if (!$userSession->checkPermission('formie-manageForms:' . $this->uid)) {
+                return null;
+            }
+        }
+        
         return UrlHelper::cpUrl("formie/forms/edit/{$this->id}");
     }
     
@@ -2178,5 +2199,39 @@ class Form extends Element
         }
 
         return $errors;
+    }
+
+    private function _clearLayoutIdentifiers(FormLayout $layout): void
+    {
+        $layout->id = null;
+        $layout->uid = '';
+
+        foreach ($layout->getPages() as $page) {
+            $page->id = null;
+            $page->layoutId = null;
+            $page->uid = '';
+
+            foreach ($page->getRows() as $row) {
+                $row->id = null;
+                $row->layoutId = null;
+                $row->pageId = null;
+                $row->uid = '';
+
+                foreach ($row->getFields() as $field) {
+                    $field->id = null;
+                    $field->layoutId = null;
+                    $field->pageId = null;
+                    $field->rowId = null;
+                    $field->uid = '';
+
+                    if ($field instanceof NestedFieldInterface) {
+                        $this->_clearLayoutIdentifiers($field->getFieldLayout());
+
+                        // Set after processing
+                        $field->nestedLayoutId = null;
+                    }
+                }
+            }
+        }
     }
 }

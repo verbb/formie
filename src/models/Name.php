@@ -51,6 +51,11 @@ class Name extends Model
         return (string)$this->name;
     }
 
+    public function isEmpty(): bool
+    {
+        return $this->__toString() === '';
+    }
+
     public function getName(): string
     {
         if (!$this->isMultiple) {

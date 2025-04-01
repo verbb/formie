@@ -42,17 +42,13 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
     {
         $typeName = Form::gqlTypeNameByContext($context);
 
-        if ($createdType = GqlEntityRegistry::getEntity($typeName)) {
-            return $createdType;
-        }
-
-        $contentFieldGqlTypes = self::getContentFields($context);
-        $formFields = Craft::$app->getGql()->prepareFieldDefinitions(array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes), $typeName);
-
-        return GqlEntityRegistry::createEntity($typeName, new FormType([
+        return GqlEntityRegistry::getOrCreate($typeName, fn() => new FormType([
             'name' => $typeName,
-            'fields' => function() use ($formFields) {
-                return $formFields;
+            'fields' => function() use ($context, $typeName) {
+                $contentFieldGqlTypes = self::getContentFields($context);
+                $formFields = array_merge(FormInterface::getFieldDefinitions(), $contentFieldGqlTypes);
+
+                return Craft::$app->getGql()->prepareFieldDefinitions($formFields, $typeName);
             },
         ]));
     }
@@ -73,10 +69,19 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
 
         $contentFieldGqlTypes = [];
 
-        /** @var Field $contentField */
+        // Handle form fields
         foreach ($context->getFields() as $contentField) {
             if ($contentField->includeInGqlSchema($schema)) {
                 $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+            }
+        }
+
+        // Handle Form template fields
+        if ($fieldLayout = $context->getFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $contentField) {
+                if ($contentField->includeInGqlSchema($schema)) {
+                    $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+                }
             }
         }
 

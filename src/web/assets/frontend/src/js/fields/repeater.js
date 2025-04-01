@@ -41,9 +41,7 @@ export class FormieRepeater {
 
         // Create any minRows automatically if the field is empty
         if ((!$rows || !$rows.length) && this.minRows) {
-            for (let i = 0; i < this.minRows; i++) {
-                this.addRow();
-            }
+            this.addMultipleRows(this.minRows);
         }
 
         // Emit an "init" event
@@ -72,6 +70,7 @@ export class FormieRepeater {
 
         // Initialize any new nested fields with JS
         if (isNew) {
+            const { Formie } = this.form.config;
             const fieldConfigs = Formie.parseFieldConfig($row, this.$form);
 
             Object.keys(fieldConfigs).forEach((module) => {
@@ -101,7 +100,7 @@ export class FormieRepeater {
         });
     }
 
-    addRow() {
+    async addRow() {
         const handle = this.$addButton.getAttribute('data-add-repeater-row');
         const template = document.querySelector(`[data-repeater-template="${handle}"]`);
         const numRows = this.getNumRows();
@@ -111,10 +110,7 @@ export class FormieRepeater {
                 return;
             }
 
-            // We don't want this real-time. We want to maintain a counter to ensure
-            // there's no collisions of new rows overwriting or jumbling up old rows
-            // when removing them (adding 2, remove 1st, add new - results in issues).
-            const id = `new${this.rowCounter + 1}`;
+            const id = this.rowCounter;
             const html = template.innerHTML.replace(/__ROW__/g, id);
 
             let $newRow = document.createElement('div');
@@ -123,21 +119,28 @@ export class FormieRepeater {
 
             this.$field.querySelector('[data-repeater-rows]').appendChild($newRow);
 
-            setTimeout(() => {
-                this.updateButton();
+            // Wait a little for the UI to be ready. Use a promise to ensure proper callback handling
+            await new Promise((resolve) => { return setTimeout(resolve, 50); });
 
-                const event = new CustomEvent('append', {
-                    bubbles: true,
-                    detail: {
-                        repeater: this,
-                        row: $newRow,
-                        form: this.$form,
-                    },
-                });
-                this.$field.dispatchEvent(event);
+            this.updateButton();
 
-                this.initRow(event.detail.row, true);
-            }, 50);
+            const event = new CustomEvent('append', {
+                bubbles: true,
+                detail: {
+                    repeater: this,
+                    row: $newRow,
+                    form: this.$form,
+                },
+            });
+            this.$field.dispatchEvent(event);
+
+            this.initRow(event.detail.row, true);
+        }
+    }
+
+    async addMultipleRows(count) {
+        for (let i = 0; i < count; i++) {
+            await this.addRow();
         }
     }
 

@@ -1,7 +1,8 @@
 <?php
 namespace verbb\formie\console\controllers;
 
-use verbb\formie\migrations\MigrateFreeform;
+use verbb\formie\migrations\MigrateFreeform4;
+use verbb\formie\migrations\MigrateFreeform5;
 use verbb\formie\migrations\MigrateSproutForms;
 
 use craft\console\Controller;
@@ -62,9 +63,9 @@ class MigrateController extends Controller
     }
 
     /**
-     * Migrates Solspace Freeform forms to Formie forms.
+     * Migrates Solspace Freeform 4 forms to Formie forms.
      */
-    public function actionMigrateFreeform(): int
+    public function actionMigrateFreeform4(): int
     {
         $formIds = Freeform::getInstance()->forms->getAllFormIds();
 
@@ -74,14 +75,42 @@ class MigrateController extends Controller
             $formIds = [];
 
             foreach ($formHandles as $formHandle) {
-                $formIds[] = Freeform::getInstance()->forms->getFormByHandle($formHandle)->id;
+                $formIds[] = Freeform::getInstance()->forms->getFormByHandle($formHandle)->getId();
             }
         }
 
         foreach ($formIds as $formId) {
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
-            $migration = new MigrateFreeform(['formId' => $formId]);
+            $migration = new MigrateFreeform4(['formId' => $formId]);
+            $migration->setConsoleRequest($this);
+            $migration->up();
+        }
+
+        return ExitCode::OK;
+    }
+
+    /**
+     * Migrates Solspace Freeform 5 forms to Formie forms.
+     */
+    public function actionMigrateFreeform5(): int
+    {
+        $formIds = Freeform::getInstance()->forms->getAllFormIds();
+
+        if ($this->formHandle !== null) {
+            $formHandles = explode(',', $this->formHandle);
+
+            $formIds = [];
+
+            foreach ($formHandles as $formHandle) {
+                $formIds[] = Freeform::getInstance()->forms->getFormByHandle($formHandle)->getId();
+            }
+        }
+
+        foreach ($formIds as $formId) {
+            $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
+
+            $migration = new MigrateFreeform5(['formId' => $formId]);
             $migration->setConsoleRequest($this);
             $migration->up();
         }

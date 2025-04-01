@@ -162,6 +162,9 @@ export class FormieConditions {
                     testOptions.isDate = true;
                 }
 
+                // Ensure that the value is cast as a string, numbers compared with strings don't work so well.
+                const conditionValue = value == null ? '' : String(value);
+
                 // Handle agree fields, which are a single checkbox, checked/unchecked
                 if ($target.getAttribute('data-fui-input-type') === 'agree') {
                     // Ignore the empty, hidden checkbox
@@ -170,23 +173,23 @@ export class FormieConditions {
                     }
 
                     // Convert the value to boolean to compare
-                    result = this.testCondition(logic, (value == '0') ? false : true, $target.checked);
+                    result = this.testCondition(logic, (conditionValue == '0') ? false : true, $target.checked);
 
                     results[resultKey].push(result);
                 } else if (inputType === 'checkbox' || inputType === 'radio') {
                     // Handle (multi) checkboxes and radio, which are a bit of a pain
-                    result = this.testCondition(logic, value, $target.value) && $target.checked;
+                    result = this.testCondition(logic, conditionValue, $target.value) && $target.checked;
 
                     results[resultKey].push(result);
                 } else if (tagName === 'select' && $target.hasAttribute('multiple')) {
                     // Handle multi-selects
                     Array.from($target.options).forEach(($option) => {
-                        result = this.testCondition(logic, value, $option.value) && $option.selected;
+                        result = this.testCondition(logic, conditionValue, $option.value) && $option.selected;
 
                         results[resultKey].push(result);
                     });
                 } else {
-                    result = this.testCondition(logic, value, $target.value, testOptions);
+                    result = this.testCondition(logic, conditionValue, $target.value, testOptions);
 
                     results[resultKey].push(result);
                 }
@@ -339,7 +342,14 @@ export class FormieConditions {
         const $parent = $field.closest('[data-fui-field-count]');
 
         if ($parent) {
-            const $fields = $parent.querySelectorAll('[data-field-handle]:not([data-conditionally-hidden])');
+            const allFields = $parent.querySelectorAll('[data-field-handle]:not([data-conditionally-hidden])');
+
+            // Ensure that we're only checking on the first "level" of fields. For isntance, a Group field itself
+            // might be conditionally hidden, but their inner fields won't be, producing incorrect results.
+            // https://github.com/verbb/formie/issues/2337
+            const $fields = Array.from(allFields).filter((el) => {
+                return el.closest('[data-fui-field-count]') === $parent;
+            });
 
             $parent.setAttribute('data-fui-field-count', $fields.length);
 

@@ -45,13 +45,14 @@ class Entry extends Element
     {
         // Normalize the options
         unset($config['entryTypeId']);
+        unset($config['entryTypeUid']);
 
         parent::__construct($config);
     }
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Map content provided by form submissions to create Entry elements.');
+        return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -69,7 +70,7 @@ class Entry extends Element
                 $fields = $this->getFieldLayoutFields($entryType->getFieldLayout());
 
                 $customFields[$section->name][] = new IntegrationCollection([
-                    'id' => $section->id . ':' . $entryType->id,
+                    'id' => $section->uid . ':' . $entryType->uid,
                     'name' => $entryType->name,
                     'fields' => $fields,
                 ]);
@@ -142,7 +143,9 @@ class Entry extends Element
             }
 
             foreach ($section->getEntryTypes() as $entryType) {
-                $attributes[$section->id . ':' . $entryType->id] = [
+                $key = $section->uid . ':' . $entryType->uid;
+
+                $attributes[$key] = [
                     new IntegrationField([
                         'name' => Craft::t('app', 'ID'),
                         'handle' => 'id',
@@ -166,7 +169,7 @@ class Entry extends Element
                         continue;
                     }
 
-                    $attributes[$section->id . ':' . $entryType->id][] = new IntegrationField([
+                    $attributes[$key][] = new IntegrationField([
                         'handle' => $field->handle,
                         'name' => $field->name,
                         'type' => $this->getFieldTypeForField(get_class($field)),
@@ -188,19 +191,19 @@ class Entry extends Element
         }
 
         try {
-            [$sectionId, $entryTypeId] = explode(':', $this->entryTypeSection);
+            [$sectionUid, $entryTypeUid] = explode(':', $this->entryTypeSection);
 
-            $entry = $this->getElementForPayload(EntryElement::class, $entryTypeId, $submission, [
-                'typeId' => $entryTypeId,
-                'sectionId' => $sectionId,
+            $entryType = Craft::$app->getEntries()->getEntryTypeByUid($entryTypeUid);
+            $section = Craft::$app->getEntries()->getSectionByUid($sectionUid);
+
+            $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeSection, $submission, [
+                'typeId' => $entryType->id,
+                'sectionId' => $section->id,
             ]);
 
             $entry->siteId = $submission->siteId;
-            $entry->typeId = $entryTypeId;
-            $entry->sectionId = $sectionId;
-
-            $entryType = Craft::$app->getEntries()->getEntryTypeById($entryTypeId);
-            $section = Craft::$app->getEntries()->getSectionById($sectionId);
+            $entry->typeId = $entryType->id;
+            $entry->sectionId = $section->id;
 
             if ($this->defaultAuthorId) {
                 $entry->authorId = $this->defaultAuthorId;

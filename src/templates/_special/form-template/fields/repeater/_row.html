@@ -10,7 +10,10 @@
                         {# Update the namespace for the field, to include the specific block index #}
                         {% do field.setParentField(repeaterField, index) %}
 
-                        {{ craft.formie.renderField(form, field) }}
+                        {# Pass in the raw value from this parent field #}
+                        {{ craft.formie.renderField(form, field, {
+                            value: block[field.handle] ?? null,
+                        }) }}
                     {% endfor %}
                 {% endfieldtag %}
             {% endfor %}

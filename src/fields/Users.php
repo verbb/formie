@@ -83,6 +83,16 @@ class Users extends ElementField
         ]);
     }
 
+    public function getElementsQuery(): ElementQueryInterface
+    {
+        $query = parent::getElementsQuery();
+
+        // Only return users that are active
+        $query->status(User::STATUS_ACTIVE);
+
+        return $query;
+    }
+
     public function defineLabelSourceOptions(): array
     {
         $options = [

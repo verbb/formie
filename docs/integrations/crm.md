@@ -264,11 +264,17 @@ Follow the below steps to connect to the HubSpot API.
 1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
 1. Copy the **Access Token** from HubSpot and paste in the **Access Token** field in Formie.
 
-### Step 3. Test Connection
+### Step 3. Disable Automatic Form Collection
+1. In HubSpot, click on the **Settings** cog icon in the top right-hand of the screen.
+1. In the left-hand sidebar menu, click on **Marketing** → **Forms**.
+1. Click the **Non-Hubspot Forms** button.
+1. For **Collect data from website forms** ensure that this is switched to **Off**.
+
+### Step 4. Test Connection
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 4. Form Setting
+### Step 5. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
@@ -521,6 +527,9 @@ Follow the below steps to connect to the Pardot API.
     - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
         - **Manage Pardot services (pardot_api)**.
         - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
+    - Tick **Require Secret for Web Server Flow**.
+    - Untick **Require Secret for Refresh Token Flow**.
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Pardot and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Pardot and paste in the **Consumer Secret** field in Formie.
@@ -530,7 +539,8 @@ Follow the below steps to connect to the Pardot API.
     - In the **Permitted Users** field, select **All users may self-authorize**.
     - In the **IP Relaxation** field, select **Relaxed IP restrictions**.
 1. Click the **Save** button.
-1. In the left-hand side menu, select **Pardot** → **Pardot Account Setup**.
+1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
+1. Enter **Business Unit** in the Quick Find box, and click on **Business Unit Setup**.
 1. Copy the **Business Unit ID** from Pardot and paste in the **Business Unit ID** field in Formie.
 
 ### Step 3. Test Connection
@@ -644,13 +654,12 @@ Follow the below steps to connect to the Salesforce API.
 1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
     - In the **Callback URL** field, enter the value from the **Redirect URI** field in Formie.
     - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
-        - **Access and manage your data (api)**
-        - **Allow access to your unique identifier (openid)**.
-        - **Perform requests on your behalf at any time (refresh_token, offline_access)**.
-    - These may also appear named as the following:
         - **Manage user data via APIs (api)**
         - **Access unique user identifiers (openid)**
         - **Perform requests at any time (refresh_token, offline_access)**
+    - Untick **Require Proof Key for Code Exchange (PKCE) Extension for Supported Authorization Flows**.
+    - Tick **Require Secret for Web Server Flow**.
+    - Untick **Require Secret for Refresh Token Flow**.
 1. Click the **Save** button.
 1. Copy the **Consumer Key** from Salesforce and paste in the **Consumer Key** field in Formie.
 1. Copy the **Consumer Secret** from Salesforce and paste in the **Consumer Secret** field in Formie.
@@ -658,7 +667,10 @@ Follow the below steps to connect to the Salesforce API.
 1. Click on the **Edit Policies** button.
 1. In the **OAuth policies** section:
     - In the **Permitted Users** field, select **All users may self-authorize**.
-    - In the **IP Relaxation** field, select **Relaxed IP restrictions**.
+    - In the **IP Relaxation** field, select **Relax IP restrictions**.
+    - In the **Refresh Token Policy** field, select **Refresh token is valid until revoked**.
+1. In the **Session Policies** section:
+    - Untick **High assurance session required**.
 1. Click the **Save** button.
 
 ### Step 3. Test Connection
@@ -717,11 +729,20 @@ Follow the below steps to connect to the SharpSpring API.
 1. Copy the **Account ID** from SharpSpring and paste in the **Account ID** field in Formie.
 1. Copy the **Secret Key** from SharpSpring and paste in the **Secret Key** field in Formie.
 
-### Step 3. Test Connection
+### Step 3. Provide Form Base URL
+1. If you do not wish to map Formie Submission to a SharpSpring form, you can skip this step.
+1. Click **Marketing** > **Content** > **Forms** in SharpSpring's top toolbar.
+1. Click the **Create Form** button.
+1. Enter a name for the form and select the **Native Form** radio button. Click the **Continue** button.
+1. On the next screen, you'll be presented with embed instructions. We want to extract two bits of information.
+1. Seach for the line `__ss_noform.push(['baseURI', 'https://app-xxxx.marketingautomation.services/webforms/receivePostback/xxxx/']);`
+1. Copy the _just_ the **URL** value from the embed code (between the single quotes) and paste in the **Form URL** field below.
+
+### Step 4. Test Connection
 1. Save this integration.
 1. Click on the **Refresh** button in the right-hand sidebar.
 
-### Step 4. Form Setting
+### Step 5. Form Setting
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.

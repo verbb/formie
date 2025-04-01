@@ -1,9 +1,12 @@
 <?php
 namespace verbb\formie\web\twig;
 
+use verbb\formie\base\Field;
+use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\models\Notification;
 use verbb\formie\web\twig\tokenparsers\FieldTagTokenParser;
 use verbb\formie\web\twig\tokenparsers\FormTagTokenParser;
 
@@ -60,10 +63,18 @@ class Extension extends AbstractExtension
 
     public function formieInclude(Environment $env, $context, $template, $variables = [], $withContext = true, $ignoreMissing = false, $sandboxed = false): string
     {
+        // This might be an email notification template
+        $notification = $context['notification'] ?? null;
+
+        if ($notification instanceof Notification) {
+            // Render the provided include depending on form template overrides
+            return $notification->renderTemplate($template, array_merge($context, $variables));
+        }
+
         // Get the form from the context
         $form = $context['form'] ?? null;
 
-        if ($form) {
+        if ($form instanceof Form) {
             // Render the provided include depending on form template overrides
             return $form->renderTemplate($template, array_merge($context, $variables));
         }
@@ -105,7 +116,7 @@ class Extension extends AbstractExtension
     {
         $form = $context['form'] ?? null;
 
-        if ($form) {
+        if ($form instanceof Form) {
             $htmlTag = $form->renderHtmlTag($key, $context);
 
             if ($htmlTag) {
@@ -129,7 +140,7 @@ class Extension extends AbstractExtension
     {
         $field = $context['field'] ?? null;
 
-        if ($field) {
+        if ($field instanceof Field) {
             $htmlTag = $field->renderHtmlTag($key, $context);
 
             if ($htmlTag) {

@@ -23,7 +23,8 @@
     {% endif %}
 
     {% for option in fieldOptions %}
-        {% set selected = option.value is defined and option.value in value %}
+        {# Ensure we cast as strings to compare #}
+        {% set selected = option.value is defined and ('' ~ option.value) in value %}
 
         {% fieldtag 'fieldOption' %}
             {{ fieldtag('fieldInput', {

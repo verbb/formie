@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationResponse;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\helpers\Json;
 
@@ -64,6 +65,7 @@ class TriggerIntegration extends BaseJob
 
         $this->setProgress($queue, 1);
     }
+    
 
     // Protected Methods
     // =========================================================================
@@ -71,5 +73,29 @@ class TriggerIntegration extends BaseJob
     protected function defaultDescription(): string
     {
         return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
+    }
+
+    protected function handleError(mixed $job, mixed $jobData): void
+    {
+        $payload = $job->payload;
+
+        // For element integrations, add in custom fields with a bit more context
+        if ($payload instanceof ElementInterface) {
+            $element = $job->payload;
+            $payload = Json::decode(Json::encode($payload));
+
+            if ($fieldLayout = $element->getFieldLayout()) {
+                foreach ($fieldLayout->getCustomFields() as $field) {
+                    $payload['fields'][] = [
+                        'type' => get_class($field),
+                        'handle' => $field->handle,
+                        'value' => $element->getFieldValue($field->handle),
+                    ];
+                }
+            }
+        }
+
+        // Set the payload attribute to be updated
+        $jobData->payload = $payload;
     }
 }

@@ -119,7 +119,12 @@ class Html extends CraftHtmlHelper
         $mergedConfigs = [];
 
         foreach ($config as $key => $keyConfig) {
-            $extraKeyConfig = $extraConfig[$key] ?? [];
+            $extraKeyConfig = null;
+
+            // Don't use a null coalescene operator here, as `null` is a valid value to provide
+            if (array_key_exists($key, $extraConfig)) {
+                $extraKeyConfig =  $extraConfig[$key];
+            }
 
             // If just a plain setting, that's easy
             if (!is_array($keyConfig) || !is_array($extraKeyConfig)) {

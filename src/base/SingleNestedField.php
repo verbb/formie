@@ -9,6 +9,7 @@ use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\gql\resolvers\elements\NestedFieldRowResolver;
 use verbb\formie\gql\types\generators\NestedFieldGenerator;
 use verbb\formie\gql\types\input\GroupInputType;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -27,6 +28,7 @@ use craft\helpers\Template;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
+use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
 abstract class SingleNestedField extends NestedField implements SingleNestedFieldInterface
@@ -49,10 +51,10 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
 
     public function validateBlocks(ElementInterface $element): void
     {
+        $scenario = $element->getScenario();
+
         foreach ($this->getFields() as $field) {
-            $fieldKey = $field->fieldKey;
-            $value = $element->getFieldValue($fieldKey);
-            $isEmpty = $field->isValueEmpty($value, $element);
+            $value = $element->getFieldValue($field->fieldKey);
 
             // No need to validate if the field is conditionally hidden or disabled
             if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
@@ -60,12 +62,19 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             }
 
             // Roll our own validation, due to lack of field layout and elements
-            if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+            $attribute = 'field:' . $field->getErrorKey();
+            $isEmpty = fn() => $field->isValueEmpty($value, $element);
+
+            if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
-                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                    $validator->validateAttributes($element);
+                }
             }
         }
     }
@@ -109,6 +118,29 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             $field->setParentField($this);
 
             $values[$field->uid] = $field->serializeValue($fieldValue, $element);
+        }
+
+        return $values;
+    }
+
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // When comparing for conditions, ensure we aren't using the UIDs of nested fields yet, that's used in `serializeValue()`.
+        if (!is_array($value) && !$value instanceof Model) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            // Get the value from the field's UID (database) or it's handle (POST)
+            $fieldValue = $value[$field->uid] ?? $value[$field->handle] ?? null;
+
+            // Ensure that the inner fields know about this specific block, to handle getting values properly
+            $field->setParentField($this);
+
+            $values[$field->handle] = $field->serializeValue($fieldValue, $submission);
         }
 
         return $values;
@@ -198,7 +230,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     {
         $values = '';
 
-        foreach ($this->getEnabledFields($element) as $field) {
+        foreach ($this->getVisibleEnabledFields($element) as $field) {
             $subValue = $element->getFieldValue($field->fieldKey);
             $html = $field->getValueForSummary($subValue, $element);
 

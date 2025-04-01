@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ParseVariablesEvent;
 use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\SingleOptionFieldData;
@@ -35,6 +36,7 @@ class Variables
     // =========================================================================
 
     public const EVENT_REGISTER_VARIABLES = 'registerVariables';
+    public const EVENT_PARSE_VARIABLES = 'parseVariables';
 
 
     // Static Methods
@@ -71,6 +73,7 @@ class Variables
             ['label' => Craft::t('formie', 'General'), 'heading' => true],
             ['label' => Craft::t('formie', 'System Name'), 'value' => '{systemName}'],
             ['label' => Craft::t('formie', 'Site Name'), 'value' => '{siteName}'],
+            ['label' => Craft::t('formie', 'Site Handle'), 'value' => '{siteHandle}'],
             ['label' => Craft::t('formie', 'Timestamp'), 'value' => '{timestamp}'],
             ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => '{dateUs}'],
             ['label' => Craft::t('formie', 'Date (dd/mm/yyyy)'), 'value' => '{dateInt}'],
@@ -149,9 +152,16 @@ class Variables
         // Parse aliases and env variables
         $value = App::parseEnv($value);
 
-        // Use a cache key based on the submission, or few unsaved submissions, the formId
+        // Use a cache key based on the submission, or for unsaved submissions - the formId.
+        // Be sure to prefix things by what they are to prevent ID collision between form/submission elements.
         // This helps to only cache it per-submission, when being run in queues.
-        $cacheKey = $submission->id ?? $form->id ?? mt_rand();
+        $cacheKey = mt_rand();
+
+        if ($submission && $submission->id) {
+            $cacheKey = 'submission' . $submission->id;
+        } else if ($form && $form->id) {
+            $cacheKey = 'form' . $form->id;
+        }
 
         // Check to see if we have these already calculated for the request and submission
         // Just saves a good bunch of calculating values like looping through fields
@@ -170,7 +180,9 @@ class Variables
 
             // Site Info
             $site = self::_getSite($submission);
+            $siteId = $site->id ?? '';
             $siteName = $site->name ?? '';
+            $siteHandle = $site->handle ?? '';
 
             // Force-set the current site. This will either be the current site the user is on for front-end requests,
             // or the site saved against the submission. When being run from a queue there's no concept of the 'site'
@@ -192,21 +204,24 @@ class Variables
             // Form Info
             $formName = $form->title ?? '';
 
-            Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
+            $variables = [
                 'formName' => $formName,
                 'submissionUrl' => $submission?->getCpEditUrl() ?? '',
                 'submissionId' => $submission->id ?? null,
                 'submissionUid' => $submission->uid ?? null,
                 'submissionDate' => $dateCreated?->format('Y-m-d H:i:s'),
+                'submissionSite' => $submission?->siteId ?? null,
 
-                'siteName' => $siteName,
                 'systemEmail' => $systemEmail,
                 'systemReplyTo' => $systemReplyTo,
                 'systemName' => $systemName,
                 'craft' => new CraftVariable(),
                 'currentSite' => $site,
                 'currentUser' => $currentUser,
+                'siteName' => $siteName,
                 'siteUrl' => $site->getBaseUrl(),
+                'siteId' => $siteId,
+                'siteHandle' => $siteHandle,
 
                 'timestamp' => $now->format('Y-m-d H:i:s'),
                 'dateUs' => $now->format('m/d/Y'),
@@ -221,14 +236,15 @@ class Variables
                 'userFullName' => $userFullName,
                 'userFirstName' => $userFirstName,
                 'userLastName' => $userLastName,
-            ]);
+            ];
 
             // Add support for all global sets
             foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
-                Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, [
-                    $globalSet->handle => $globalSet,
-                ]);
+                $variables[$globalSet->handle] = $globalSet;
             }
+
+            // Cache variables in-memory for better performance next parse
+            Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, $variables);
         }
 
         $fieldVariables[] = self::getParsedFieldValues($form, $submission, $notification);
@@ -258,9 +274,19 @@ class Variables
             }
         }
 
+        // Allow plugins to modify the variables
+        $event = new ParseVariablesEvent([
+            'submission' => $submission,
+            'form' => $form,
+            'notification' => $notification,
+            'value' => $value,
+            'variables' => $variables,
+        ]);
+        Event::trigger(self::class, self::EVENT_PARSE_VARIABLES, $event);
+
         // Try to parse submission + extra variables
         try {
-            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $variables);
+            return Formie::$plugin->getTemplates()->renderObjectTemplate($value, $submission, $event->variables);
         } catch (Throwable $e) {
             Formie::error('Failed to render dynamic string “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $originalValue,
@@ -291,11 +317,14 @@ class Variables
             $notification = new Notification();
         }
 
-        // Need to switch back to the CP to render our fields email HTML
-        $view = Craft::$app->getView();
-        $oldTemplateMode = $view->getTemplateMode();
-        $view->setTemplateMode($view::TEMPLATE_MODE_CP);
+        $renderOptions = [
+            'form' => $form,
+            'notification' => $notification,
+            'submission' => $submission,
+            'fields' => [],
+        ];
 
+        // Send through any fields that should be rendered
         foreach ($form->getFields() as $field) {
             if (!$field->includeInEmail) {
                 continue;
@@ -305,29 +334,13 @@ class Variables
                 continue;
             }
 
-            $value = $submission->getFieldValue($field->handle);
-
-            $html = $field->getEmailHtml($submission, $notification, $value);
-
-            if ($html === false) {
-                continue;
-            }
-
-            // Save to "allFields" for all fields
-            $data['allFields'] .= (string)$html;
-
-            // Save to "allVisibleFields" only if not hidden
-            if (!$field->getIsHidden()) {
-                $data['allVisibleFields'] .= (string)$html;
-            }
-
-            // Save to "allFields" only if it has content
-            if (!empty($field->getValueAsString($value, $submission))) {
-                $data['allContentFields'] .= (string)$html;
-            }
+            $renderOptions['fields'][] = $field;
         }
 
-        $view->setTemplateMode($oldTemplateMode);
+        // Let the email templates take over to handle the rendering
+        $data['allFields'] = $notification->renderTemplate('all-fields', $renderOptions);
+        $data['allContentFields'] = $notification->renderTemplate('all-content-fields', $renderOptions);
+        $data['allVisibleFields'] = $notification->renderTemplate('all-visible-fields', $renderOptions);
 
         return $data;
     }

@@ -9,6 +9,7 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\ArrayHelper;
 
 use GuzzleHttp\Client;
 
@@ -39,7 +40,7 @@ class Klaviyo extends Crm
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Klaviyo customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -65,6 +66,14 @@ class Klaviyo extends Crm
                     new IntegrationField([
                         'handle' => 'phone_number',
                         'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address1',
+                        'name' => Craft::t('formie', 'Address 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address2',
+                        'name' => Craft::t('formie', 'Address 2'),
                     ]),
                     new IntegrationField([
                         'handle' => 'city',
@@ -103,6 +112,20 @@ class Klaviyo extends Crm
     {
         try {
             $profileValues = $this->getFieldMappingValues($submission, $this->profileFieldMapping, 'profile');
+
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($profileValues, 'address1'),
+                'address2' => ArrayHelper::remove($profileValues, 'address2'),
+                'city' => ArrayHelper::remove($profileValues, 'city'),
+                'region' => ArrayHelper::remove($profileValues, 'region'),
+                'zip' => ArrayHelper::remove($profileValues, 'zip'),
+                'country' => ArrayHelper::remove($profileValues, 'country'),
+            ]);
+
+            if ($location) {
+                $profileValues['location'] = $location;
+            }
 
             $profilePayload = [
                 'data' => [

@@ -7,7 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateYearNumber extends Number implements SubFieldInnerFieldInterface
+class DateYearNumber extends DateNumber implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -26,4 +26,10 @@ class DateYearNumber extends Number implements SubFieldInnerFieldInterface
     {
         return 'fields/number';
     }
+
+
+    // Properties
+    // =========================================================================
+
+    public string $validationFormatParam = 'Y';
 }

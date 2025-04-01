@@ -13,6 +13,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Template;
 
 use yii\db\Schema;
@@ -21,7 +22,7 @@ use GraphQL\Type\Definition\Type;
 
 use Twig\Markup;
 
-class Agree extends Field implements PreviewableFieldInterface
+class Agree extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -89,7 +90,8 @@ class Agree extends Field implements PreviewableFieldInterface
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return (bool)$value;
+        // Allow null value to represent proper empty state
+        return ($value === null) ? null : (bool)$value;
     }
 
     public function getDescriptionHtml(): Markup
@@ -236,6 +238,29 @@ class Agree extends Field implements PreviewableFieldInterface
         $form = $context['form'] ?? null;
 
         $id = $this->getHtmlId($form);
+
+        if ($key === 'fieldContainer') {
+            return new HtmlTag('fieldset', [
+                'class' => [
+                    'fui-fieldset',
+                ],
+                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+            ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            $labelPosition = $context['labelPosition'] ?? null;
+
+            return new HtmlTag('legend', [
+                'class' => [
+                    'fui-legend',
+                ],
+                'data' => [
+                    'field-label' => true,
+                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ],
+            ]);
+        }
 
         if ($key === 'fieldOption') {
             return new HtmlTag('div', [

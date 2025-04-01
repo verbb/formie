@@ -59,24 +59,6 @@ class Group extends SingleNestedField
     // Public Methods
     // =========================================================================
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        $values = [];
-
-        foreach ($this->getFields() as $nestedField) {
-            $value = $submission->getFieldValue($nestedField->fieldKey);
-            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
-
-            if (is_array($fieldValues)) {
-                foreach ($fieldValues as $key => $fieldValue) {
-                    $values[$nestedField->handle][$key] = $fieldValue;
-                }
-            }
-        }
-
-        return $values;
-    }
-
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/group/preview', [
@@ -136,7 +118,7 @@ class Group extends SingleNestedField
 
         return [
             'name' => $this->handle,
-            'type' => Type::nonNull(Gql::getUnionType($typeName, $typeArray)),
+            'type' => Gql::getUnionType($typeName, $typeArray),
             'resolve' => function($submission) {
                 // Some fields like the in-built elements (Assets, Entries, etc) will assume the value of a repeater row
                 // in an element, but it's not. Instead make it a dynamic model that'll work for the most part.
@@ -200,5 +182,25 @@ class Group extends SingleNestedField
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields());
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $values = [];
+
+        foreach ($this->getFields() as $nestedField) {
+            $value = $submission->getFieldValue($nestedField->fieldKey);
+            $fieldValues = Variables::getParsedFieldValue($nestedField, $value, $submission, $notification);
+
+            if (is_array($fieldValues)) {
+                foreach ($fieldValues as $key => $fieldValue) {
+                    $values[$nestedField->handle][$key] = $fieldValue;
+                }
+            } else {
+                $values[$nestedField->handle] = $fieldValues;
+            }
+        }
+
+        return $values;
     }
 }

@@ -1,4 +1,4 @@
-import { find, merge } from 'lodash-es';
+import { find, mergeWith } from 'lodash-es';
 import { newId } from '@utils/string';
 import { clone } from '@utils/object';
 
@@ -63,7 +63,11 @@ const getters = {
 
             // Allow other settings to be overridden
             if (settings) {
-                newField = merge(newField, settings);
+                // Use `mergeWith` to handle replacing nested objects and arrays, rather than merge
+                // Useful for SubFields with nested fields that aren't the default. Think Date Dropdowns.
+                newField = mergeWith(newField, settings, (objValue, srcValue) => {
+                    return srcValue;
+                });
             }
 
             // Set a new client-side ID for the field

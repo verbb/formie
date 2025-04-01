@@ -27,7 +27,9 @@ use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\services\Elements;
 
+use yii\base\InvalidConfigException;
 use yii\db\ExpressionInterface;
+use yii\validators\Validator;
 
 use GraphQL\Type\Definition\Type;
 
@@ -41,6 +43,18 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
     // Static Methods
     // =========================================================================
+
+    public static function lowerDisplayName(): string
+    {
+        // Legacy setting for Craft 5 migration. Remove at the next breakpoint
+        return StringHelper::toLowerCase(static::displayName());
+    }
+
+    public static function defaultCardAttributes(): array
+    {
+        // Legacy setting for Craft 5 migration. Remove at the next breakpoint
+        return [];
+    }
 
     public static function queryCondition(array $instances, mixed $value, array &$params): ?array
     {
@@ -61,12 +75,22 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $qb = Craft::$app->getDb()->getQueryBuilder();
         $valueSql = static::valueSql($instances);
 
-        foreach ($param->values as $key => $value) {
-            // Key will likely contain a numeric for the block `0.email` - remove that.
-            $key = preg_replace('/^[0-9].*?\./', '', $key);
+        // We need to swap handles for UIDs to fetch content.
+        // e.g. `['multiNameInGroup' => ['firstName' => 'Peter']]` to `['xxxxxxxx' => ['xxxxxxxx' => 'Peter']]`
+        // This is because JSON-searching can only be done once level at a time.
+        $firstInstance = $instances[0];
+        $uidMap = $firstInstance->getNestedFieldHandleUidMap();
 
-            $condition[] = $qb->jsonContains($valueSql, [$key => $value]);
+        // Flatten the params used to make matching easy
+        $preppedValues = [];
+
+        foreach (ArrayHelper::flatten($param->values) as $handlePath => $value) {
+            if (array_key_exists($handlePath, $uidMap)) {
+                $preppedValues[$uidMap[$handlePath]] = $value;
+            }
         }
+
+        $condition[] = $qb->jsonContains($valueSql, ArrayHelper::expand($preppedValues));
 
         return $negate ? ['not', $condition] : $condition;
     }
@@ -77,7 +101,7 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
     public ?int $nestedLayoutId = null;
 
-    // TODO: remove at the next breakpoint. Still required for Formie 2>3 migration.
+    // TODO: remove at the next breakpoint (3.1). Still required for Formie 2>3 migration.
     public mixed $contentTable = null;
 
     private ?FieldLayout $_fieldLayout = null;
@@ -95,6 +119,11 @@ abstract class NestedField extends Field implements NestedFieldInterface
     {
         // Nested fields themselves can't be required, only their inner fields can
         return null;
+    }
+
+    public function hasFieldLayout(): bool
+    {
+        return true;
     }
 
     public function settingsAttributes(): array
@@ -128,7 +157,9 @@ abstract class NestedField extends Field implements NestedFieldInterface
         }
 
         // Set the rows for the field layout. There's only ever one page for nested fields, and there's always one page for a layout
-        $this->getFieldLayout()->getPages()[0]->setRows($rows);
+        if ($pages = $this->getFieldLayout()->getPages()) {
+            $pages[0]->setRows($rows);
+        }
     }
 
     public function getFields(bool $includeDisabled = true): array
@@ -186,6 +217,21 @@ abstract class NestedField extends Field implements NestedFieldInterface
         $fields = [];
 
         foreach ($this->getFields() as $field) {
+            if ($field->getIsCosmetic() || $field->getIsDisabled()) {
+                continue;
+            }
+
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
+    public function getVisibleEnabledFields(ElementInterface $element = null): array
+    {
+        $fields = [];
+
+        foreach ($this->getFields() as $field) {
             if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                 continue;
             }
@@ -230,6 +276,10 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
     public function validateFieldLayout(): void
     {
+        if (!$this->hasFieldLayout()) {
+            return;
+        }
+
         $fieldLayout = $this->getFieldLayout();
 
         if (!$fieldLayout->validate()) {
@@ -249,20 +299,22 @@ abstract class NestedField extends Field implements NestedFieldInterface
             return false;
         }
 
-        // Save the field layout as the last step
-        if (!Formie::$plugin->getFields()->saveLayout($this->getFieldLayout())) {
-            foreach ($this->getFieldLayout()->getPages() as $page) {
-                $errors = ArrayHelper::flatten($page->getErrors());
+        // Save the field layout as the last step - only if this has a field layout. Some SubFields opt-out
+        if ($this->hasFieldLayout()) {
+            if (!Formie::$plugin->getFields()->saveLayout($this->getFieldLayout())) {
+                foreach ($this->getFieldLayout()->getPages() as $page) {
+                    $errors = ArrayHelper::flatten($page->getErrors());
 
-                foreach ($errors as $errorKey => $error) {
-                    $this->addError($errorKey, $error);
+                    foreach ($errors as $errorKey => $error) {
+                        $this->addError($errorKey, $error);
+                    }
                 }
+
+                return false;
             }
 
-            return false;
+            $this->nestedLayoutId = $this->getFieldLayout()->id;
         }
-
-        $this->nestedLayoutId = $this->getFieldLayout()->id;
 
         return true;
     }
@@ -334,6 +386,47 @@ abstract class NestedField extends Field implements NestedFieldInterface
         ]);
     }
 
+    public function validateCustomFieldAttribute(string $attribute, ?array $params = null): void
+    {
+        /** @var array|null $params */
+        [$element, $field, $method, $fieldParams] = $params;
+
+        if (is_string($method) && !is_callable($method)) {
+            $method = [$field, $method];
+        }
+
+        $method($element, $fieldParams);
+    }
+
+    public function getNestedFieldHandleUidMap(array $fields = null, string $handlePrefix = '', string $uidPrefix = ''): array
+    {
+        if ($fields === null) {
+            // Fetch the top-level fields
+            $fields = $this->getFields();
+        }
+
+        $fieldMap = [];
+
+        foreach ($fields as $field) {
+            $uid = $field->uid;
+            $handle = $field->handle;
+            
+            // Prefix with dot-notation for nested fields
+            $fullHandle = $handlePrefix ? $handlePrefix . '.' . $handle : $handle;
+            $fullUid = $uidPrefix ? $uidPrefix . '.' . $uid : $uid;
+
+            // Add the current field to the map
+            $fieldMap[$fullHandle] = $fullUid;
+
+            // If the field is an instance of NestedFieldInterface, recurse
+            if ($field instanceof NestedFieldInterface) {
+                $fieldMap += $this->getNestedFieldHandleUidMap($field->getFields(), $fullHandle, $fullUid);
+            }
+        }
+
+        return $fieldMap;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -347,10 +440,19 @@ abstract class NestedField extends Field implements NestedFieldInterface
         return $rules;
     }
 
-    protected function normalizeFieldValidator(string $attribute, mixed $rule, FieldInterface $field, ElementInterface $element, bool $isEmpty): void
+    protected function normalizeFieldValidator(string $attribute, mixed $rule, FieldInterface $field, ElementInterface $element, callable $isEmpty): Validator
     {
+        if ($rule instanceof Validator) {
+            return $rule;
+        }
+
         if (is_string($rule)) {
-            $rule = [$attribute, $rule];
+            // "Validator" syntax
+            $rule = [$attribute, $rule, 'on' => [$element::SCENARIO_DEFAULT, $element::SCENARIO_LIVE]];
+        }
+
+        if (!is_array($rule) || !isset($rule[0])) {
+            throw new InvalidConfigException('Invalid validation rule for custom field "' . $field->handle . '".');
         }
 
         if (isset($rule[1])) {
@@ -363,11 +465,30 @@ abstract class NestedField extends Field implements NestedFieldInterface
             array_unshift($rule, $attribute);
         }
 
-        $method = $rule[1] ?? null;
+        if (is_callable($rule[1]) || $field->hasMethod($rule[1])) {
+            // InlineValidator assumes that the closure is on the model being validated
+            // so it won’t pass a reference to the element
+            $rule['params'] = [
+                $element,
+                $field,
+                $rule[1],
+                $rule['params'] ?? null,
+            ];
 
-        if ($field->hasMethod($method)) {
-            $field->$method($element);
+            $rule[1] = 'validateCustomFieldAttribute';
         }
+
+        // Set 'isEmpty' to the field's isEmpty() method by default
+        if (!array_key_exists('isEmpty', $rule)) {
+            $rule['isEmpty'] = $isEmpty;
+        }
+
+        // Set 'on' to the main scenarios by default
+        if (!array_key_exists('on', $rule)) {
+            $rule['on'] = [$element::SCENARIO_DEFAULT, $element::SCENARIO_LIVE];
+        }
+
+        return Validator::createValidator($rule[1], $this, (array)$rule[0], array_slice($rule, 2));
     }
 
 }

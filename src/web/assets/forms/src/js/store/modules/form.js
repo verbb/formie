@@ -438,6 +438,8 @@ const getters = {
                 'verbb\\formie\\fields\\Email',
                 'verbb\\formie\\fields\\Hidden',
                 'verbb\\formie\\fields\\Recipients',
+
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [
@@ -466,6 +468,8 @@ const getters = {
             options.includedTypes = [
                 'verbb\\formie\\fields\\Number',
                 'verbb\\formie\\fields\\Hidden',
+
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [
@@ -502,10 +506,24 @@ const getters = {
                 'verbb\\formie\\fields\\Radio',
                 'verbb\\formie\\fields\\SingleLineText',
 
-                // Some fields that's values have __toString implemented.
+                // Some fields have __toString implemented.
                 'verbb\\formie\\fields\\Name',
+                'verbb\\formie\\fields\\subfields\\NameFirst',
+                'verbb\\formie\\fields\\subfields\\NameLast',
+                'verbb\\formie\\fields\\subfields\\NameMiddle',
+                'verbb\\formie\\fields\\subfields\\NamePrefix',
 
-                ...options.extra ?? [],
+                // Some fields have __toString implemented.
+                'verbb\\formie\\fields\\Address',
+                'verbb\\formie\\fields\\subfields\\Address1',
+                'verbb\\formie\\fields\\subfields\\Address2',
+                'verbb\\formie\\fields\\subfields\\Address3',
+                'verbb\\formie\\fields\\subfields\\AddressCity',
+                'verbb\\formie\\fields\\subfields\\AddressZip',
+                'verbb\\formie\\fields\\subfields\\AddressState',
+                'verbb\\formie\\fields\\subfields\\AddressCountry',
+
+                ...options.includedTypes ?? [],
             ];
 
             let fields = [
@@ -594,13 +612,16 @@ const getters = {
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
             } else if (field.settings.rows && !field.isMultiNested) {
+                // Include the string representation of fields, if Sub-Fields
+                if (field.hasSubFields) {
+                    fieldOptions.push({
+                        ...field,
+                        label: labelPrefix + truncate(field.settings.label, { length: 60 }),
+                        value: `{field:${handlePrefix}${field.settings.handle}.__toString}`,
+                    });
+                }
+
                 // Unable to select inner Repeater fields, until we design a better UI to handle repeatable values.
                 // Handle Group fields (single-nesting field types) and Sub-Fields
                 field.settings.rows.forEach((row) => {
@@ -673,12 +694,6 @@ const getters = {
             }
 
             if (field.type === 'verbb\\formie\\fields\\Name' && !field.settings.useMultipleFields) {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
                 fieldOptions.push({
                     ...field,
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
@@ -767,12 +782,6 @@ const getters = {
                     label: labelPrefix + truncate(field.settings.label, { length: 60 }),
                     value: `{field:${handlePrefix}${field.settings.handle}}`,
                 });
-            } else if (field.type === 'verbb\\formie\\fields\\Date' && field.settings.displayType === 'calendar') {
-                fieldOptions.push({
-                    ...field,
-                    label: labelPrefix + truncate(field.settings.label, { length: 60 }),
-                    value: `{field:${handlePrefix}${field.settings.handle}}`,
-                });
             } else if (field.settings.rows) {
                 if (field.isMultiNested) {
                     const contextField = rootState.formie.editingField;
@@ -786,6 +795,15 @@ const getters = {
                         });
                     }
                 } else {
+                    // Include the string representation of fields, if Sub-Fields
+                    if (field.hasSubFields) {
+                        fieldOptions.push({
+                            ...field,
+                            label: labelPrefix + truncate(field.settings.label, { length: 60 }),
+                            value: `{field:${handlePrefix}${field.settings.handle}.__toString}`,
+                        });
+                    }
+
                     // Handle Group fields (single-nesting field types) and Sub-Fields
                     field.settings.rows.forEach((row) => {
                         row.fields.forEach((nestedField) => {

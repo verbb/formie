@@ -44,6 +44,11 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
     // Public Methods
     // =========================================================================
 
+    public function allowDuplicateLabels(): bool
+    {
+        return true;
+    }
+
     public function getDefaultOptions(): array
     {
         $options = [
@@ -66,10 +71,43 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $event->options;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    public function defineGeneralSchema(): array
     {
-        // Craft::dd([$value, $this->_getValueLabel($value)]);
-        return $this->_getValueLabel($value);
+        return [
+            SchemaHelper::labelField(),
+            SchemaHelper::tableField([
+                'label' => Craft::t('formie', 'Options'),
+                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'name' => 'options',
+                'validation' => '+min:1|uniqueTableCellValue',
+                'allowMultipleDefault' => false,
+                'enableBulkOptions' => true,
+                'predefinedOptions' => $this->getPredefinedOptions(),
+                'newRowDefaults' => [
+                    'label' => '',
+                    'value' => '',
+                    'isOptgroup' => false,
+                    'isDefault' => false,
+                ],
+                'columns' => [
+                    [
+                        'type' => 'label',
+                        'label' => Craft::t('formie', 'Option Label'),
+                        'class' => 'singleline-cell textual',
+                    ],
+                    [
+                        'type' => 'value',
+                        'label' => Craft::t('formie', 'Value'),
+                        'class' => 'code singleline-cell textual',
+                    ],
+                    [
+                        'type' => 'default',
+                        'label' => Craft::t('formie', 'Default'),
+                        'class' => 'thin checkbox-cell',
+                    ],
+                ],
+            ]),
+        ];
     }
 
 
@@ -96,6 +134,11 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return $this->_getValueLabel($value);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -103,7 +146,7 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
     private function _getValueLabel(mixed $value): string
     {
         if ($value) {
-            if ($prefixOption = ArrayHelper::firstWhere($this->getDefaultOptions(), 'value', $value)) {
+            if ($prefixOption = ArrayHelper::firstWhere($this->options(), 'value', $value)) {
                 return $prefixOption['label'] ?? '';
             }
         }

@@ -70,6 +70,15 @@ class Payment extends Field
         }
     }
 
+    public function modifyFieldSettings(array $settings): array
+    {
+        if ($integration = $this->getPaymentIntegration()) {
+            return $integration->modifyFieldSettings($settings);
+        }
+
+        return $settings;
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = parent::normalizeValue($value, $element);
@@ -83,11 +92,6 @@ class Payment extends Field
         $model->setElement($element);
 
         return $model;
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
     }
 
     public function getPreviewInputHtml(): string
@@ -154,6 +158,13 @@ class Payment extends Field
             'paymentIntegrationType' => [
                 'name' => 'paymentIntegrationType',
                 'type' => Type::string(),
+            ],
+            'providerSettings' => [
+                'name' => 'providerSettings',
+                'type' => Type::string(),
+                'resolve' => function($source, $arguments) {
+                    return Json::encode($source->providerSettings);
+                },
             ],
         ]);
     }

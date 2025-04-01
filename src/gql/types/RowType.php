@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\types;
 
+use verbb\formie\fields\MissingField;
 use verbb\formie\gql\interfaces\RowInterface;
 
 use craft\gql\base\ObjectType;
@@ -28,6 +29,10 @@ class RowType extends ObjectType
 
         $fields = $source['fields'] ?? [];
         $includeDisabled = $arguments['includeDisabled'] ?? false;
+
+        $fields = array_filter($fields, function($field) {
+            return !($field instanceof MissingField);
+        });
 
         // Don't include disabled fields by default for GQL
         if (!$includeDisabled) {

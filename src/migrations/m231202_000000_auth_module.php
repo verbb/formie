@@ -41,7 +41,7 @@ class m231202_000000_auth_module extends Migration
                     'ownerHandle' => 'formie',
                     'providerType' => $token['type'],
                     'tokenType' => 'oauth2',
-                    'reference' => $tokenId,
+                    'reference' => (string)$tokenId,
                     'accessToken' => $token['accessToken'],
                     'secret' => $token['secret'],
                     'expires' => $token['endOfLife'],

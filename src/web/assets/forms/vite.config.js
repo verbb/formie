@@ -22,6 +22,9 @@ export default ({ command }) => ({
                 'formie-form-new': 'src/js/formie-form-new.js',
                 'formie-form': 'src/js/formie-form.js',
             },
+            output: {
+                sourcemapExcludeSources: true,
+            },
         },
     },
 

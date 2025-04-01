@@ -1,8 +1,11 @@
 <?php
 namespace verbb\formie\options;
 
-use Craft;
 use verbb\formie\base\PredefinedOption;
+
+use Craft;
+
+use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
 class StatesAustralia extends PredefinedOption
 {
@@ -39,39 +42,19 @@ class StatesAustralia extends PredefinedOption
 
     public static function getDataOptions(): array
     {
-        return [
-            [
-                'name' => Craft::t('formie', 'Australian Capital Territory'),
-                'short' => 'ACT',
-            ],
-            [
-                'name' => Craft::t('formie', 'New South Wales'),
-                'short' => 'NSW',
-            ],
-            [
-                'name' => Craft::t('formie', 'Northern Territory'),
-                'short' => 'NT',
-            ],
-            [
-                'name' => Craft::t('formie', 'Queensland'),
-                'short' => 'QLD',
-            ],
-            [
-                'name' => Craft::t('formie', 'South Australia'),
-                'short' => 'SA',
-            ],
-            [
-                'name' => Craft::t('formie', 'Tasmania'),
-                'short' => 'TAS',
-            ],
-            [
-                'name' => Craft::t('formie', 'Victoria'),
-                'short' => 'VIC',
-            ],
-            [
-                'name' => Craft::t('formie', 'Western Australia'),
-                'short' => 'WA',
-            ],
-        ];
+        $locale = Craft::$app->getLocale()->getLanguageID();
+
+        $subdivisionRepository = new SubdivisionRepository();
+
+        $states = [];
+
+        foreach ($subdivisionRepository->getAll(['AU']) as $state) {
+            $states[] = [
+                'name' => $state->getName(),
+                'short' => $state->getCode(),
+            ];
+        }
+
+        return $states;
     }
 }

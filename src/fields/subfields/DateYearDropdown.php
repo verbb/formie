@@ -10,7 +10,7 @@ use craft\base\ElementInterface;
 
 use DateTime;
 
-class DateYearDropdown extends Dropdown implements SubFieldInnerFieldInterface
+class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -34,6 +34,7 @@ class DateYearDropdown extends Dropdown implements SubFieldInnerFieldInterface
     // Properties
     // =========================================================================
 
+    public string $validationFormatParam = 'Y';
     public int $minYearRange = 100;
     public int $maxYearRange = 100;
 

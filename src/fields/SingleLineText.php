@@ -10,11 +10,12 @@ use verbb\formie\models\HtmlTag;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\errors\InvalidFieldException;
 
 use GraphQL\Type\Definition\Type;
 
-class SingleLineText extends Field implements PreviewableFieldInterface
+class SingleLineText extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -158,7 +159,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface
         $value = $element->getFieldValue($this->fieldKey);
         $count = count(explode(' ', $value));
 
-        if ($count > $min) {
+        if ($count < $min) {
             $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
@@ -192,7 +193,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface
 
     public function getFrontEndJsModules(): ?array
     {
-        if ($this->limit && $this->max) {
+        if ($this->limit) {
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
                 'module' => 'FormieTextLimit',

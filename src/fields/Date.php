@@ -25,8 +25,10 @@ use verbb\formie\models\Settings;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
+use craft\base\Element;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Component;
 use craft\helpers\DateTimeHelper;
@@ -40,11 +42,13 @@ use GraphQL\Type\Definition\Type;
 
 use yii\base\Event;
 use yii\db\Schema;
+use yii\validators\RequiredValidator;
+use yii\validators\Validator;
 
 use DateTime;
 use DateTimeZone;
 
-class Date extends SubField implements PreviewableFieldInterface
+class Date extends SubField implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -89,12 +93,12 @@ class Date extends SubField implements PreviewableFieldInterface
     public ?string $defaultOption = null;
     public array $datePickerOptions = [];
     public string $minDateOption = '';
-    public ?DateTime $minDate = null;
+    public DateTime|string|null $minDate = null;
     public string $minDateOffset = 'add';
     public int $minDateOffsetNumber = 0;
     public string $minDateOffsetType = 'days';
     public string $maxDateOption = '';
-    public ?DateTime $maxDate = null;
+    public DateTime|string|null $maxDate = null;
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
@@ -111,12 +115,31 @@ class Date extends SubField implements PreviewableFieldInterface
             unset($config['layouts']);
         }
 
+        // Normalize date settings to ensure we strip timezones (they're saved without one)
         if (isset($config['minDate'])) {
-            $config['minDate'] = self::toDateTime($config['minDate']) ?: null;
+            if (!($config['minDate'] instanceof DateTime)) {
+                $config['minDate'] = DateTimeHelper::toDateTime($config['minDate'], false, false) ?: null;
+            }
         }
 
         if (isset($config['maxDate'])) {
-            $config['maxDate'] = self::toDateTime($config['maxDate']) ?: null;
+            if (!($config['maxDate'] instanceof DateTime)) {
+                $config['maxDate'] = DateTimeHelper::toDateTime($config['maxDate'], false, false) ?: null;
+            }
+        }
+
+        if (isset($config['defaultOption'])) {
+            if (isset($config['defaultValue']) && $config['defaultOption'] === 'date') {
+                if (!($config['defaultValue'] instanceof DateTime)) {
+                    $config['defaultValue'] = DateTimeHelper::toDateTime($config['defaultValue'], false, false) ?: null;
+                }
+            } else if ($config['defaultOption'] === 'today') {
+                $config['defaultValue'] = DateTimeHelper::toDateTime(new DateTime('today'), false, false);
+            } else {
+                $config['defaultValue'] = null;
+            }
+        } else {
+            $config['defaultValue'] = null;
         }
 
         if (array_key_exists('useDatePicker', $config) && $config['useDatePicker']) {
@@ -168,32 +191,6 @@ class Date extends SubField implements PreviewableFieldInterface
         parent::__construct($config);
     }
 
-    public function init(): void
-    {
-        parent::init();
-
-        if ($this->defaultOption === 'date') {
-            if ($this->defaultValue && !$this->defaultValue instanceof DateTime) {
-                // Assume setting to system time for this instance
-                $defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, true);
-
-                if ($defaultValue) {
-                    $this->defaultValue = $defaultValue;
-                } else {
-                    // If DateTime cast failed, fall back to empty default
-                    $this->defaultValue = null;
-                }
-            } else {
-                $this->defaultValue = null;
-            }
-        } else if ($this->defaultOption === 'today') {
-            // Assume setting to system time for this instance
-            $this->defaultValue = DateTimeHelper::toDateTime(new DateTime(), false, true);
-        } else {
-            $this->defaultValue = null;
-        }
-    }
-
     public function getIsRequired(): ?bool
     {
         // Calendar-based fields might not have their sub-fields visible, but could be required. Best to show a required
@@ -208,11 +205,6 @@ class Date extends SubField implements PreviewableFieldInterface
 
         // Nested fields themselves can't be required, only their inner fields can
         return parent::getIsRequired();
-    }
-
-    public function hasSubFields(): bool
-    {
-        return !in_array($this->displayType, ['dropdowns', 'inputs']);
     }
 
     public function getFormBuilderSettings(): array
@@ -276,27 +268,26 @@ class Date extends SubField implements PreviewableFieldInterface
 
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
-        if ($value && $this->getIsDateTime()) {
-            return Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
+        $html = '';
+        
+        // Ensure that the timezone we use is UTC, as the dates are set in that. We don't want them converted
+        $timeZone = Craft::$app->getFormatter()->timeZone;
+        Craft::$app->getFormatter()->timeZone = 'UTC';
+
+        if ($value) {
+            if ($this->getIsDateTime()) {
+                $html = Craft::$app->getFormatter()->asDatetime($value, Locale::LENGTH_SHORT);
+            } else if ($this->getIsTime()) {
+                $html = Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
+            } else if ($this->getIsDate()) {
+                $html = Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
+            }
         }
 
-        if ($value && $this->getIsTime()) {
-            return Craft::$app->getFormatter()->asTime($value, Locale::LENGTH_SHORT);
-        }
+        // Set the original timezone back, just in case
+        Craft::$app->getFormatter()->timeZone = $timeZone;
 
-        if ($value && $this->getIsDate()) {
-            return Craft::$app->getFormatter()->asDate($value, Locale::LENGTH_SHORT);
-        }
-
-        return '';
-    }
-
-    public function getDefaultValue(string $attributePrefix = ''): mixed
-    {
-        $defaultValue = parent::getDefaultValue($attributePrefix);
-
-        // Ensure default values are treated the same way as normal values
-        return $this->normalizeValue($defaultValue, null);
+        return $html;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -353,37 +344,6 @@ class Date extends SubField implements PreviewableFieldInterface
         return $value;
     }
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        $props = [
-            'year' => 'Y',
-            'month' => 'm',
-            'day' => 'd',
-            'hour' => 'H',
-            'minute' => 'i',
-            'second' => 's',
-            'ampm' => 'a',
-        ];
-
-        $values = [];
-
-        if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
-            foreach ($props as $k => $format) {
-                $formattedValue = '';
-
-                if ($value && $value instanceof DateTime) {
-                    $formattedValue = $value->format($format);
-                }
-
-                $values[$k] = $formattedValue;
-            }
-        } else {
-            $values = $this->defineValueAsString($value);
-        }
-
-        return $values;
-    }
-
     public function getMinDate()
     {
         if ($this->minDateOption === 'today') {
@@ -431,18 +391,34 @@ class Date extends SubField implements PreviewableFieldInterface
         // We override default sub-field validations for "blocks" (the nested sub-fields), and makes
         // it more complicated that a Date field's value is a DateTime.
         $value = $element->getFieldValue($this->fieldKey);
-        $isEmpty = $this->isValueEmpty($value, $element);
+        $scenario = $element->getScenario();
 
         foreach ($this->getFields() as $field) {
-            $fieldKey = $field->fieldKey;
+            // No need to validate if the field is conditionally hidden or disabled
+            if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                continue;
+            }
 
             // Roll our own validation, due to lack of field layout and elements
-            if ($field->required && $isEmpty) {
-                $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+            $attribute = 'field:' . $field->getErrorKey();
+            $isEmpty = fn() => $field->isValueEmpty($value, $element);
+
+            // Special-handling for date picker/calendar, where the date/time field is required, but it's a single field
+            if ($this->displayType === 'calendar' || $this->displayType === 'datePicker') {
+                // Strip out `.date` or `.time` from the end of the string
+                $attribute = preg_replace('/(\.date|\.time)$/', '', $attribute);
+            }
+
+            if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
             }
 
             foreach ($field->getElementValidationRules() as $rule) {
-                $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                    $validator->validateAttributes($element);
+                }
             }
         }
     }
@@ -556,10 +532,7 @@ class Date extends SubField implements PreviewableFieldInterface
     {
         // An alias for `defaultValue` for GQL, as `defaultValue` returns a date, not string
         if ($this->defaultValue instanceof DateTime) {
-            // Strip off timezone info, it's not applicable here
-            $this->defaultValue = new DateTime($this->defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-            return $this->defaultValue->format('c');
+            return $this->defaultValue->format('Y-m-d\TH:i:s');
         }
         
         return $this->defaultValue;
@@ -644,6 +617,24 @@ class Date extends SubField implements PreviewableFieldInterface
         }
 
         return $options;
+    }
+
+    public function beforeSave(bool $isNew): bool
+    {
+        // Ensure that dates have timezone information stripped off
+        if ($this->defaultValue instanceof DateTime) {
+            $this->defaultValue = Db::prepareDateForDb($this->defaultValue);
+        }
+
+        if ($this->minDate instanceof DateTime) {
+            $this->minDate = Db::prepareDateForDb($this->minDate);
+        }
+
+        if ($this->maxDate instanceof DateTime) {
+            $this->maxDate = Db::prepareDateForDb($this->maxDate);
+        }
+
+        return parent::beforeSave($isNew);
     }
 
     public function defineGeneralSchema(): array
@@ -927,17 +918,16 @@ class Date extends SubField implements PreviewableFieldInterface
                 'name' => 'defaultValue',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    $defaultValue = $field->defaultValue;
-
-                    if ($defaultValue instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $defaultValue = new DateTime($defaultValue->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $defaultValue->format('c');
+                    if ($field->defaultValue instanceof DateTime) {
+                        return $field->defaultValue->format('Y-m-d\TH:i:s');
                     }
 
-                    return $defaultValue;
+                    return $field->defaultValue;
                 },
+            ],
+            'displayType' => [
+                'name' => 'displayType',
+                'type' => Type::string(),
             ],
             'defaultDate' => [
                 'name' => 'defaultDate',
@@ -948,10 +938,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->minDate instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $field->minDate = new DateTime($field->minDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $field->minDate->format('c');
+                        return $field->minDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->minDate;
@@ -962,10 +949,7 @@ class Date extends SubField implements PreviewableFieldInterface
                 'type' => DateTimeType::getType(),
                 'resolve' => function($field) {
                     if ($field->maxDate instanceof DateTime) {
-                        // Strip off timezone info, it's not applicable here
-                        $field->maxDate = new DateTime($field->maxDate->format('Y-m-d H:i:s'), new DateTimeZone('UTC'));
-
-                        return $field->maxDate->format('c');
+                        return $field->maxDate->format('Y-m-d\TH:i:s');
                     }
 
                     return $field->maxDate;
@@ -977,7 +961,7 @@ class Date extends SubField implements PreviewableFieldInterface
             ],
             'availableDaysOfWeek' => [
                 'name' => 'availableDaysOfWeek',
-                'type' => Type::string(),
+                'type' => Type::listOf(Type::string()),
                 'resolve' => function($field) {
                     $values = [];
                     $options = ArrayHelper::index($field->getWeekDayNamesOptions(), 'value');
@@ -996,7 +980,7 @@ class Date extends SubField implements PreviewableFieldInterface
                         }
                     }
 
-                    return Json::encode($values);
+                    return $values;
                 },
             ],
         ]);
@@ -1141,6 +1125,11 @@ class Date extends SubField implements PreviewableFieldInterface
         $format = !$format ? ($this->getDateFormat() . $this->getTimeFormat()) : $format;
         $format = preg_replace('/[.\-:\/ ]/', '', $format);
         $formattingMap = str_split($format);
+
+        // Fix an error in some instances where the defaultValue isn't normalised when saving a form.
+        if (!$this->defaultValue instanceof DateTime) {
+            $this->defaultValue = DateTimeHelper::toDateTime($this->defaultValue, false, false) ?: null;
+        }
 
         $date = $this->defaultValue ?: new DateTime();
         $year = (int)$date->format('Y');
@@ -1404,6 +1393,43 @@ class Date extends SubField implements PreviewableFieldInterface
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->dateTime();
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $props = [
+            'year' => 'Y',
+            'month' => 'm',
+            'day' => 'd',
+            'hour' => 'H',
+            'minute' => 'i',
+            'second' => 's',
+            'ampm' => 'a',
+        ];
+
+        $values = [];
+
+        if ($value) {
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                foreach ($props as $k => $format) {
+                    $formattedValue = '';
+
+                    if ($value && $value instanceof DateTime) {
+                        $formattedValue = $value->format($format);
+                    }
+
+                    $values[$k] = $formattedValue;
+                }
+            } else {
+                $values = [
+                    '__toString' => $this->defineValueAsString($value),
+                    'date' => $value->format($this->getDateFormat()),
+                    'time' => $value->format($this->getTimeFormat()),
+                ];
+            }
+        }
+
+        return $values;
     }
 
 

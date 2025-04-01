@@ -44,15 +44,6 @@ class SubmissionExport extends ElementExporter
     public function export(ElementQueryInterface $query): array
     {
         try {
-            // Eager-load as much as we can
-            $eagerLoadableFields = [];
-
-            foreach (Craft::$app->getFields()->getAllFields() as $field) {
-                if ($field instanceof EagerLoadingFieldInterface && strpos($field->context, 'formie') !== false) {
-                    $eagerLoadableFields[] = $field->handle;
-                }
-            }
-
             $data = [];
 
             $attributes = [
@@ -72,9 +63,6 @@ class SubmissionExport extends ElementExporter
                 'trashed' => Craft::t('site', 'Trashed'),
                 'status' => Craft::t('site', 'Status'),
             ];
-
-            /** @var ElementQuery $query */
-            $query->with($eagerLoadableFields);
 
             foreach ($query->each() as $element) {
                 // We want to grab some more values than just the attributes produced from `toArray`

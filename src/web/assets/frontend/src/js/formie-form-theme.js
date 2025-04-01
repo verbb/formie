@@ -761,6 +761,13 @@ export class FormieFormTheme {
     setCurrentPage(pageId) {
         this.settings.currentPageId = pageId;
         this.$currentPage = this.$form.querySelector(`#${this.getPageId(pageId)}`);
+
+        // Update the input, if we're client-driven
+        const $input = this.$form.querySelector('input[type="hidden"][name="pageIndex"]');
+
+        if ($input) {
+            $input.value = this.getCurrentPageIndex();
+        }
     }
 
     getCurrentPage() {

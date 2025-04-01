@@ -9,6 +9,7 @@ use verbb\formie\base\MultiNestedField;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
@@ -28,6 +29,9 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
 use Throwable;
+
+use yii\validators\RequiredValidator;
+use yii\validators\Validator;
 
 abstract class MultiNestedField extends NestedField implements MultiNestedFieldInterface
 {
@@ -49,9 +53,10 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
     public function validateBlocks(ElementInterface $element): void
     {
+        $scenario = $element->getScenario();
         $value = $element->getFieldValue($this->fieldKey);
 
-        if ($element->getScenario() === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
+        if ($scenario === Element::SCENARIO_LIVE && ($this->minRows || $this->maxRows)) {
             $arrayValidator = new ArrayValidator([
                 'min' => $this->minRows ?: null,
                 'max' => $this->maxRows ?: null,
@@ -78,7 +83,6 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
 
                 $fieldKey = "$this->handle.$rowKey.$field->handle";
                 $subValue = $element->getFieldValue($fieldKey);
-                $isEmpty = $field->isValueEmpty($subValue, $element);
 
                 // No need to validate if the field is conditionally hidden or disabled
                 if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
@@ -86,13 +90,33 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 }
 
                 // Roll our own validation, due to lack of field layout and elements
-                if ($field->required && $isEmpty) {
-                    $element->addError($fieldKey, Craft::t('formie', '{attribute} cannot be blank.', ['attribute' => $field->label]));
+                $attribute = 'field:' . $field->getErrorKey();
+                $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
+
+                if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                    (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
                 }
 
                 foreach ($field->getElementValidationRules() as $rule) {
-                    $this->normalizeFieldValidator($fieldKey, $rule, $field, $element, $isEmpty);
+                    $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                    if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                        $validator->validateAttributes($element);
+                    }
                 }
+            }
+        }
+    }
+
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        // We need to factor in the error message key for Repeater blocks, but at this point we don't know what they are
+        // so fudge it a little, and generate 70 label keys, and hope that people aren't making more than 70 rows.
+        for ($i = 0; $i < 70; $i++) { 
+            foreach ($this->getFields() as $field) {
+                $field->setParentField($this, $i);
+
+                $labels[$field->fieldKey] = $field->label;
             }
         }
     }
@@ -123,6 +147,9 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
             }
         }
 
+        // Reset any `new1` or `row1` keys
+        $values = array_values($values);
+
         return $values;
     }
 
@@ -144,6 +171,34 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 $field->setParentField($this, $rowKey);
 
                 $values[$rowKey][$field->uid] = $field->serializeValue($fieldValue, $element);
+            }
+        }
+
+        // Reset any `new1` or `row1` keys
+        $values = array_values($values);
+
+        return $values;
+    }
+
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // When comparing for conditions, ensure we aren't using the UIDs of nested fields yet, that's used in `serializeValue()`.
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        // Serialize all inner fields
+        $values = [];
+
+        foreach ($this->getFields() as $field) {
+            foreach ($value as $rowKey => $row) {
+                // Get the value from the field's UID (database) or it's handle (POST)
+                $fieldValue = $row[$field->uid] ?? $row[$field->handle] ?? null;
+
+                // Ensure that the inner fields know about this specific block, to handle getting values properly
+                $field->setParentField($this, $rowKey);
+
+                $values[$rowKey][$field->handle] = $field->serializeValue($fieldValue, $submission);
             }
         }
 
@@ -267,7 +322,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
         $values = '';
 
         foreach ($value as $rowKey => $row) {
-            foreach ($this->getEnabledFields($element) as $field) {
+            foreach ($this->getVisibleEnabledFields($element) as $field) {
                 // Ensure that the inner fields know about this specific block, to handle getting values properly
                 $field->setParentField($this, $rowKey);
                 

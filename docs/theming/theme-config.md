@@ -272,6 +272,17 @@ For a full list of available tags, refer to the below:
 - `fieldTableBodyColumn`
 - `fieldAddButton`
 - `fieldRemoveButton`
+- `tableCheckboxInput`
+- `tableColorInput`
+- `tableDateInput`
+- `tableEmailInput`
+- `tableHeadingInput`
+- `tableMultilineInput`
+- `tableNumberInput`
+- `tableSelectInput`
+- `tableSinglelineInput`
+- `tableTimeInput`
+- `tableUrlInput`
 
 ### Field Types
 In addition, you can also target fields on a particular type. You can then provide all the same field-level tag configs that you would for general fields.
@@ -450,8 +461,8 @@ Your Twig template can be whatever you need, just ensure to wrap is as a string 
 ## Ready-Made Configs
 We've put together a few full-featured and drop-in theme config's for you to use in your forms. Each example completely removes Formie's default `fui-*` classes. You're welcome to use them as-is, or modify them for your next project.
 
-- [Tailwind](https://github.com/verbb/formie-theme-configs/blob/main/tailwind/index.html)
-- [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/main/bootstrap/index.html)
+- [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html)
+- [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html)
 
 :::tip
 Have a theme config you'd like to share? [Drop us a line](/contact).

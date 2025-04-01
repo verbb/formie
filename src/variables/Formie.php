@@ -223,7 +223,8 @@ class Formie
         $plugins = [];
 
         if (Plugin::isPluginInstalledAndEnabled('freeform')) {
-            $plugins['migrate/freeform'] = ['title' => Craft::t('formie', 'Freeform')];
+            $plugins['migrate/freeform4'] = ['title' => Craft::t('formie', 'Freeform 4')];
+            $plugins['migrate/freeform5'] = ['title' => Craft::t('formie', 'Freeform 5')];
         }
 
         if (Plugin::isPluginInstalledAndEnabled('sprout-forms')) {

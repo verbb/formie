@@ -87,7 +87,7 @@ class UpdateSubmissionContent extends BaseJob
             }
 
             if ($contentChanged) {
-                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => Db::prepareForJsonColumn($content)], ['id' => $submission['id']]);
+                Db::update(Table::FORMIE_SUBMISSIONS, ['content' => $content], ['id' => $submission['id']]);
             }
         }
     }

@@ -1,0 +1,5 @@
+{{ fieldtag('tableUrlInput', {
+    id: rowId,
+    value: row[colId] ?? '',
+    name: field.getHtmlName("#{index}[#{colId}]"),
+}) }}

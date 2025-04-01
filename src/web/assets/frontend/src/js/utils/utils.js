@@ -115,3 +115,26 @@ export const removeClasses = function(element, classes) {
         element.classList.remove(className);
     });
 };
+
+export const currencyToFloat = function(currencyString) {
+    // Remove all non-numeric characters except for digits, periods, and commas
+    let sanitized = currencyString.replace(/[^\d.,-]/g, '');
+
+    // Handle cases where comma is used as a decimal separator
+    const hasComma = sanitized.includes(',');
+    const hasDot = sanitized.includes('.');
+
+    if (hasComma && hasDot) {
+        // Assume the last comma is a decimal separator (e.g., "1.234,56" -> "1234.56")
+        sanitized = sanitized.replace(/\./g, '').replace(/,/, '.');
+    } else if (hasComma && !hasDot) {
+        // Assume it's a European format (e.g., "1.234,56" -> "1234.56")
+        sanitized = sanitized.replace(/,/, '.');
+    } else {
+        // Assume a standard decimal format (e.g., "$1,234.56" -> "1234.56")
+        sanitized = sanitized.replace(/,/g, '');
+    }
+
+    // Convert to float
+    return parseFloat(sanitized);
+};

@@ -62,9 +62,10 @@ Follow the below steps to connect to the Monday API.
 
 ### Step 2. Connect to the Monday API
 1. Go to <a href="https://monday.com/" target="_blank">Monday</a> and login to your account.
-1. Click on your profile dropdown on the bottom-left of the screen, and select **Admin**.
-1. In the left-hand sidebar menu, click on **API**.
-1. Copy the **API v2 Token** from Monday and paste in the **API Key** field in Formie.
+1. Click on your profile dropdown on the top-right of the screen, and select **Administration**.
+1. In the left-hand sidebar menu, click on **Connections**.
+1. In the top menu, click on **API**.
+1. Copy the **Personal API Token** from Monday and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
@@ -177,7 +178,7 @@ http://formie.test/actions/formie/integrations/callback
 Using this URL for providers won't work, as it'll detect `.test` is a non-public domain name. Using the Proxy Redirect URI will change the redirect URL to be:
 
 ```
-https://formie.verbb.io?return=http://formie.test/actions/formie/integrations/callback
+https://proxy.verbb.io?return=http://formie.test/actions/formie/integrations/callback
 ```
 
 Here, it routes the request through to our Verbb servers, which forwards on the request to the URL in the `return` parameter (which would be your local project).

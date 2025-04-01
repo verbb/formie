@@ -25,6 +25,7 @@ class FieldLayout extends SavableComponent
     // =========================================================================
 
     public ?string $uid = null;
+    public ?string $type = null;
 
     private array $_deletedItems = [];
     private array $_pages = [];

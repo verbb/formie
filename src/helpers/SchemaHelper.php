@@ -5,6 +5,8 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\Formie;
 
 use Craft;
+use craft\helpers\Html;
+use craft\helpers\StringHelper;
 
 class SchemaHelper
 {
@@ -476,5 +478,23 @@ class SchemaHelper
                 self::setFieldAttributes($field['children']);
             }
         }
+    }
+
+    public static function renderElementSelect(string $handle, array $elements, array $config): array
+    {
+        $view = Craft::$app->getView();
+
+        $config['id'] = Html::id($handle . '-' . StringHelper::randomString(10));
+        $config['name'] = $handle;
+        $config['elements'] = $elements;
+
+        $view->startJsBuffer();
+        $html = $view->renderTemplate('_includes/forms/elementSelect', $config);
+        $js = $view->clearJsBuffer();
+
+        return [
+            ('__elementSelectHtml_' . $handle) => $html,
+            ('__elementSelectJs_' . $handle) => $js,
+        ];
     }
 }

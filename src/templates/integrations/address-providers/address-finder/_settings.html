@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Connect to the {name} API
 1. Login to your <a href="https://portal.addressfinder.net/sessions/login" target="_blank">{name}</a> account.
@@ -9,10 +11,10 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
     name: 'apiKey',
     required: true,
@@ -22,7 +24,7 @@
     errors: integration.getErrors('apiKey'),
 }) }}
 
-{{ forms.selectField({
+{{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Country Code' | t('formie'),
     name: 'countryCode',
     required: true,
@@ -36,9 +38,9 @@
     ],
 }) }}
 
-{{ forms.editableTableField({
+{{ macros.proxyField(fieldVariables, 'editableTableField', {
     label: 'Widget Options' | t('formie'),
-    instructions: 'Provide any additional options, as per the [Address Finder docs](https://addressfinder.com.au/docs/widget_docs).' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[Address Finder docs](https://addressfinder.com.au/docs/widget_docs)' }),
     id: 'widgetOptions',
     name: 'widgetOptions',
     cols: [

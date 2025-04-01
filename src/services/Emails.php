@@ -9,18 +9,19 @@ use verbb\formie\events\MailRenderEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
+use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
 use Craft;
+use craft\base\LocalFsInterface;
 use craft\elements\Asset;
 use craft\elements\db\AssetQuery;
-use craft\fs\Local;
 use craft\helpers\App;
-use craft\helpers\Assets;
 use craft\helpers\FileHelper;
+use craft\helpers\HtmlPurifier;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\mail\Message;
@@ -211,6 +212,8 @@ class Emails extends Component
         // Subject:
         try {
             $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification);
+            $subject = $this->_getFilteredString($subject);
+
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
@@ -509,26 +512,40 @@ class Emails extends Component
     // Private Methods
     // =========================================================================
 
-    private function _htmlToPlainText($html): string
+    private function _htmlToPlainText(string $html): string
     {
         $html = new Html2Text($html);
 
         return $html->getText();
     }
 
-    private function _getFilteredString($string): string
+    private function _getFilteredString(string $string): string
     {
         $string = trim(App::parseEnv(trim($string)));
 
         // Strip out any emoji's
-        return trim(StringHelper::replaceMb4($string, ''));
+        $string = trim(StringHelper::replaceMb4($string, ''));
+
+        // Ensure that we purify any strings, which also handles any special (allowed) characters
+        $string = HtmlPurifier::process($string);
+
+        // Some entities aren't decoded like `&amp;`, `&gt;` and `&lt;`
+        $string = html_entity_decode($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return $string;
     }
 
-    private function _getParsedEmails($emails): array
+    private function _getParsedEmails(string $emails): array
     {
+        $emailsEnv = [];
+
+        // In case special characters exist in the string, that interfere with splitting (encoded apostrophe `&#039`)
+        // which only really occurs when the value is dynamic, and coming from a mapped field value, where values are encoded
+        $emails = HtmlPurifier::process($emails);
+
+        // Split the emails
         $emails = str_replace(';', ',', $emails);
         $emails = preg_split('/[\s,]+/', $emails);
-        $emailsEnv = [];
 
         foreach (array_filter($emails) as $email) {
             // Prevent non-utf characters sneaking in.
@@ -567,14 +584,11 @@ class Emails extends Component
     private function _attachAssetsToEmail($assets, Message $message): void
     {
         foreach ($assets as $asset) {
-            $path = '';
+            $path = Assets::getFullAssetFilePath($asset);
 
-            // Check for local assets - they're easy
-            if (get_class($asset->getVolume()->getFs()) === Local::class) {
-                $path = $this->_getFullAssetFilePath($asset);
-            } else {
-                // Make a local copy of the file, and store, so we can delete
-                $this->_tempAttachments[] = $path = $asset->getCopyOfFile();
+            // If a non-local asset, store so we can delete later
+            if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                $this->_tempAttachments[] = $path;
             }
 
             // Check for asset size, 0kb files are technically invalid (or at least spammy)
@@ -592,16 +606,12 @@ class Emails extends Component
             }
 
             if ($path) {
-                $message->attach($path, ['fileName' => $asset->filename]);
+                $message->attach($path, [
+                    'fileName' => $asset->filename,
+                    'contentType' => $asset->getMimeType(),
+                ]);
             }
         }
-    }
-
-    private function _getFullAssetFilePath(Asset $asset): string
-    {
-        $path = $asset->getVolume()->getFs()->getRootPath() . DIRECTORY_SEPARATOR . $asset->getPath();
-
-        return FileHelper::normalizePath($path);
     }
 
     private function _serializeEmail($email): array

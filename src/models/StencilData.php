@@ -68,6 +68,7 @@ class StencilData extends Model
 
                     if ($field instanceof NestedField) {
                         $settings['rows'] = $serializeRows($field->getRows());
+                        $settings['nestedLayoutId'] = null;
                     }
 
                     $rowData['fields'][] = [
@@ -133,8 +134,8 @@ class StencilData extends Model
         if (array_key_exists('availabilitySubmissions', $config)) {
             unset($config['availabilitySubmissions']);
         }
-
-        // Normalize notifications
+        
+        // Normalize form layout
         if (array_key_exists('pages', $config)) {
             if (is_array($config['pages'])) {
                 foreach ($config['pages'] as &$page) {
@@ -147,7 +148,7 @@ class StencilData extends Model
             }
         }
 
-        // Normalize form layout
+        // Normalize notifications
         if (array_key_exists('notifications', $config) && $config['notifications']) {
             if (is_array($config['notifications'])) {
                 foreach ($config['notifications'] as &$notification) {

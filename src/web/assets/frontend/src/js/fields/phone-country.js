@@ -1,5 +1,5 @@
 import { t, eventKey } from '../utils/utils';
-import intlTelInput from 'intl-tel-input';
+import intlTelInput from 'intl-tel-input/intlTelInputWithUtils';
 
 export class FormiePhoneCountry {
     constructor(settings = {}) {
@@ -10,6 +10,7 @@ export class FormiePhoneCountry {
 
         this.countryDefaultValue = settings.countryDefaultValue;
         this.countryAllowed = settings.countryAllowed;
+        this.language = settings.language;
 
         if (this.$field && this.$countryInput) {
             this.initValidator();
@@ -22,13 +23,16 @@ export class FormiePhoneCountry {
         const options = {
             allowDropdown: true,
             autoHideDialCode: true,
+            autoInsertDialCode: true,
             nationalMode: false,
             preferredCountries: [],
             separateDialCode: true,
+            showSelectedDialCode: true,
             initialCountry: 'auto',
             autoPlaceholder: 'off',
             formatOnDisplay: false,
-            utilsScript: 'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js',
+            formatAsYouType: false,
+            validationNumberTypes: null,
         };
 
         if (this.countryAllowed && this.countryAllowed.length) {
@@ -43,6 +47,7 @@ export class FormiePhoneCountry {
             // Also put it into national mode for input-ease
             if (options.onlyCountries.length === 1) {
                 options.allowDropdown = false;
+                options.separateDialCode = false;
                 options.nationalMode = true;
             }
 
@@ -111,6 +116,12 @@ export class FormiePhoneCountry {
 
     registerValidation(e) {
         e.validator.addValidator('phoneCountry', ({ input }) => {
+            const type = input.getAttribute('type');
+
+            if (type !== 'tel') {
+                return true;
+            }
+
             if (input.value.trim() && input.validator) {
                 if (input.validator.isValidNumber()) {
                     const countryData = input.validator.getSelectedCountryData();
@@ -134,9 +145,11 @@ export class FormiePhoneCountry {
                     return false;
                 }
             }
+
+            return true;
         }, ({ input }) => {
             const errorMap = ['Invalid number', 'Invalid country code', 'Too short', 'Too long'];
-            const errorCode = input.validator.getValidationError();
+            const errorCode = input.validator ? input.validator.getValidationError() : '';
             const errorMessage = errorMap[errorCode] || 'Invalid number';
 
             return t(errorMessage);

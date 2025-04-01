@@ -8,16 +8,14 @@ export class FormieTextLimit {
         this.$text = this.$field.querySelector('[data-limit]');
         this.$input = this.$field.querySelector('input, textarea');
 
-        if (this.$text) {
-            this.initTextLimits();
-        } else {
-            console.error('Unable to find rich text field “[data-limit]”');
-        }
+        this.initTextLimits();
     }
 
     initTextLimits() {
-        this.maxChars = this.$text.getAttribute('data-max-chars');
-        this.maxWords = this.$text.getAttribute('data-max-words');
+        this.minChars = this.$input.getAttribute('data-min-chars');
+        this.maxChars = this.$input.getAttribute('data-max-chars');
+        this.minWords = this.$input.getAttribute('data-min-words');
+        this.maxWords = this.$input.getAttribute('data-max-words');
 
         if (this.maxChars) {
             this.form.addEventListener(this.$input, eventKey('paste'), this.characterCheck.bind(this), false);
@@ -36,6 +34,100 @@ export class FormieTextLimit {
             // Fire immediately
             this.$input.dispatchEvent(new Event('keydown', { bubbles: true }));
         }
+
+        this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
+    }
+
+    registerValidation(e) {
+        e.validator.addValidator('textMinCharacterLimit', ({ input }) => {
+            const limit = input.getAttribute('data-min-chars');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const charactersLeft = limit - this.count(value);
+
+            if (charactersLeft > 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ label, input }) => {
+            return t('{attribute} must be no less than {min} characters.', {
+                attribute: label,
+                min: input.getAttribute('data-min-chars'),
+            });
+        });
+
+        e.validator.addValidator('textMaxCharacterLimit', ({ input }) => {
+            const limit = input.getAttribute('data-max-chars');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const charactersLeft = limit - this.count(value);
+
+            if (charactersLeft < 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ label, input }) => {
+            return t('{attribute} must be no greater than {max} characters.', {
+                attribute: label,
+                max: input.getAttribute('data-max-chars'),
+            });
+        });
+
+        e.validator.addValidator('textMinWordLimit', ({ input }) => {
+            const limit = input.getAttribute('data-min-words');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const wordCount = value.split(/\S+/).length - 1;
+            const wordsLeft = limit - wordCount;
+
+            if (wordsLeft > 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ label, input }) => {
+            return t('{attribute} must be no less than {min} words.', {
+                attribute: label,
+                min: input.getAttribute('data-min-words'),
+            });
+        });
+
+        e.validator.addValidator('textMaxWordLimit', ({ input }) => {
+            const limit = input.getAttribute('data-max-words');
+
+            if (!limit) {
+                return true;
+            }
+
+            const value = this.stripTags(input.value);
+            const wordCount = value.split(/\S+/).length - 1;
+            const wordsLeft = limit - wordCount;
+
+            if (wordsLeft < 0) {
+                return false;
+            }
+
+            return true;
+        }, ({ label, input }) => {
+            return t('{attribute} must be no greater than {max} words.', {
+                attribute: label,
+                max: input.getAttribute('data-max-words'),
+            });
+        });
     }
 
     characterCheck(e) {
@@ -50,11 +142,14 @@ export class FormieTextLimit {
                 extraClasses.push('fui-limit-number-error');
             }
 
-            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
-                num: String(charactersLeft),
-                startTag: `<span class="${extraClasses.join(' ')}">`,
-                endTag: '</span>',
-            });
+            if (this.$text) {
+                this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                    num: String(charactersLeft),
+                    startTag: `<span class="${extraClasses.join(' ')}">`,
+                    endTag: '</span>',
+                });
+
+            }
         }, 1);
     }
 
@@ -71,11 +166,13 @@ export class FormieTextLimit {
                 extraClasses.push('fui-limit-number-error');
             }
 
-            this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
-                num: String(wordsLeft),
-                startTag: `<span class="${extraClasses.join(' ')}">`,
-                endTag: '</span>',
-            });
+            if (this.$text) {
+                this.$text.innerHTML = t(`{startTag}{num}{endTag} ${type} left`, {
+                    num: String(wordsLeft),
+                    startTag: `<span class="${extraClasses.join(' ')}">`,
+                    endTag: '</span>',
+                });
+            }
         }, 1);
     }
 

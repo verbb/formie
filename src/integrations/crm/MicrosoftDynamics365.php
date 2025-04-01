@@ -58,6 +58,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public string $impersonateHeader = 'CallerObjectId';
     public ?string $impersonateUserId = null;
     public ?string $apiVersion = 'v9.0';
+    public ?string $tenant = 'common';
     public bool $mapToContact = false;
     public bool $mapToLead = false;
     public bool $mapToOpportunity = false;
@@ -91,6 +92,11 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         return App::parseEnv($this->apiVersion);
     }
 
+    public function getTenant(): string
+    {
+        return App::parseEnv($this->tenant);
+    }
+
     public function getBaseApiUrl(?Token $token): ?string
     {
         $url = rtrim($this->getApiDomain(), '/');
@@ -102,9 +108,10 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['defaultEndPointVersion'] = '1.0';
         $config['resource'] = $this->getApiDomain();
-        $config['tenant'] = 'common';
+        $config['tenant'] = $this->getTenant();
 
         return $config;
     }
@@ -126,7 +133,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Microsoft Dynamics 365 customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -432,6 +439,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             'CanBeSecuredForCreate',
             'CanBeSecuredForUpdate',
             'LogicalName',
+            'SchemaName',
             'DisplayName',
             'RequiredLevel',
         ];
@@ -472,22 +480,13 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         foreach ($attributes as $field) {
             $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
-            $customField = $field['IsCustomAttribute'] ?? false;
+            $logicalName = $field['LogicalName'] ?? '';
+            $handle = $this->_getFieldHandle($field);
             $canCreate = $field['IsValidForCreate'] ?? false;
             $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
             $type = $field['AttributeType'] ?? '';
             $odataType = $field['@odata.type'] ?? '';
             $metadataId = $field['MetadataId'] ?? '';
-
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                // Dynamics is _supposed_ to use the `SchemaName` for custom fields, but if null, use `LogicalName`
-                $handle = $field['SchemaName'] ?? $field['LogicalName'] ?? '';
-            } else {
-                $handle = $field['LogicalName'] ?? '';
-            }
-
-            $key = $handle;
 
             $excludedTypes = [
                 'Customer',
@@ -497,13 +496,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 'Virtual',
             ];
 
-            if (!$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
+            if (!$logicalName || !$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
                 continue;
-            }
-
-            // Relational fields need a special handle
-            if ($odataType === '#Microsoft.Dynamics.CRM.LookupAttributeMetadata') {
-                $handle .= '@odata.bind';
             }
 
             // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
@@ -517,8 +511,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
             }
 
-            // Index by handle for easy lookup with PickLists
-            $fields[$key] = new IntegrationField([
+            // Index by `LogicalName` for easy lookup later with Picklist and Lookup fields
+            $fields[$logicalName] = new IntegrationField([
                 'handle' => $handle,
                 'name' => $label,
                 'type' => $this->convertFieldType($type),
@@ -542,28 +536,23 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Do another call for PickList fields, to populate any set options to pick from
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
             'query' => [
-                '$select' => 'IsCustomAttribute,LogicalName,SchemaName',
-                '$expand' => 'GlobalOptionSet($select=Options)',
+                '$select' => 'LogicalName,SchemaName',
+                '$expand' => 'GlobalOptionSet($select=Options),OptionSet($select=Options)',
             ]
         ]);
+
         $pickListFields = $response['value'] ?? [];
 
         foreach ($pickListFields as $pickListField) {
-            $customField = $pickListField['IsCustomAttribute'] ?? false;
             $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
             $options = [];
 
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                $handle = $pickListField['SchemaName'] ?? '';
-            } else {
-                $handle = $pickListField['LogicalName'] ?? '';
-            }
+            $logicalName = $pickListField['LogicalName'] ?? '';
 
             // Get the field to add options to
-            $field = $fields[$handle] ?? null;
+            $field = $fields[$logicalName] ?? null;
 
-            if (!$handle || !$pickList || !$field) {
+            if (!$pickList || !$field) {
                 continue;
             }
 
@@ -610,66 +599,71 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         // Get all the fields that are relational
         $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
             'query' => [
-                '$select' => 'IsCustomAttribute,LogicalName,SchemaName,Targets',
+                '$select' => 'LogicalName,SchemaName,Targets',
             ],
         ]);
 
         $relationFields = $response['value'] ?? [];
 
-        // Define a schema so that we can query each entity according to the target (index)
+        // Create a unique list of entities we need to fetch things for.
+        $entities = [];
+
+        foreach ($relationFields as $relationField) {
+            $entities[] = $relationField['Targets'] ?? [];
+        }
+
+        // Get unique entities used (destructure for performance)
+        $entities = array_values(array_unique(array_merge(...$entities)));
+
+        // Filter out some core entities, which seem to require admin priviledges
+        $entities = array_values(array_filter($entities, function($entityName) {
+            return !str_starts_with($entityName, 'msdyn');
+        }));
+
+        // For each entity, define a schema so that we can query each entity according to the target (index)
         // the endpoint to query (entity) and what attributes to use for the label/value to pick from
-        $targetSchemas = [
-            'businessunit' => [
-                'entity' => 'businessunits',
-                'label' => 'name',
-                'value' => 'businessunitid',
-            ],
-            'systemuser' => [
-                'entity' => 'systemusers',
-                'label' => 'fullname',
-                'value' => 'systemuserid',
-            ],
-            'account' => [
-                'entity' => 'accounts',
-                'label' => 'name',
-                'value' => 'accountid',
-            ],
-            'contact' => [
-                'entity' => 'contacts',
-                'label' => 'fullname',
-                'value' => 'contactid',
-            ],
-            'lead' => [
-                'entity' => 'leads',
-                'label' => 'fullname',
-                'value' => 'leadid',
-            ],
-            'incident' => [
-                'entity' => 'incidents',
-                'label' => 'title',
-                'value' => 'incidentid',
-            ],
-            'transactioncurrency' => [
-                'entity' => 'transactioncurrencies',
-                'label' => 'currencyname',
-                'value' => 'transactioncurrencyid',
-            ],
-            'team' => [
-                'entity' => 'teams',
-                'label' => 'name',
-                'value' => 'teamid',
-            ],
-            'campaign' => [
-                'entity' => 'campaigns',
-                'label' => 'name',
-                'value' => 'campaignid',
-            ],
-            'pricelevel' => [
-                'entity' => 'pricelevels',
-                'label' => 'name',
-                'value' => 'pricelevelid',
-            ],
-        ];
+        $targetSchemas = [];
+
+        // Build a filter string to read `(LogicalName eq 'account') or (LogicalName eq 'businessunit')`
+        // to fetch just the entities we have Lookup fields for.
+        $entityDefinitionFilter = array_map(function($entityName) {
+            return "(LogicalName eq '$entityName')";
+        }, $entities);
+
+        // Note there's a max filter limit of 25, so we need to chunk
+        $entityDefinitionFilterChunks = array_chunk($entityDefinitionFilter, 25);
+
+        // Get all entity definitions
+        foreach ($entityDefinitionFilterChunks as $entityDefinitionFilterChunk) {
+            $response = $this->request('GET', 'EntityDefinitions', [
+                'query' => [
+                    '$filter' => implode(' or ', $entityDefinitionFilterChunk),
+                    '$select' => 'DisplayName,LogicalName,SchemaName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName,EntitySetName',
+                ],
+            ]);
+
+            $entityDefinitions = $response['value'] ?? [];
+
+            foreach ($entityDefinitions as $entityDefinition) {
+                $entitySchema = [
+                    'entity' => $entityDefinition['EntitySetName'],
+                    'label' => $entityDefinition['PrimaryNameAttribute'],
+                    'value' => $entityDefinition['PrimaryIdAttribute'],
+                    'select' => [$entityDefinition['PrimaryNameAttribute'], $entityDefinition['PrimaryIdAttribute']],
+                ];
+
+                // Special handling for system users
+                if ($entityDefinition['LogicalName'] === 'systemuser') {
+                    $entitySchema['select'][] = 'applicationid';
+                    $entitySchema['orderby'] = $entityDefinition['PrimaryNameAttribute'];
+
+                    // Exclude system accounts that are application default
+                    $entitySchema['filter'] = 'applicationid eq null and isdisabled eq false';
+                }
+
+                $targetSchemas[$entityDefinition['LogicalName']] = $entitySchema;
+            }
+        }
 
         $event = new MicrosoftDynamics365TargetSchemasEvent([
             'targetSchemas' => $targetSchemas,
@@ -698,11 +692,7 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
 
                 // We don't really need that much from the entities
-                $select = [$targetSchema['label'], $targetSchema['value']];
-
-                if ($target === 'systemuser') {
-                    $select[] = 'applicationid';
-                }
+                $select = $targetSchema['select'] ?? [$targetSchema['label'], $targetSchema['value']];
 
                 // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
                 $response = $this->request('GET', $targetSchema['entity'], [
@@ -718,11 +708,6 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 $entities = $response['value'] ?? [];
 
                 foreach ($entities as $entity) {
-                    // Special-case for systemusers
-                    if ($target === 'systemuser' && isset($entity['applicationid'])) {
-                        continue;
-                    }
-
                     $label = $entity[$targetSchema['label']] ?? '';
                     $value = $entity[$targetSchema['value']] ?? '';
 
@@ -736,16 +721,8 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
         // With all possible options populated, add the options into the fields
         foreach ($relationFields as $relationField) {
-            $customField = $relationField['IsCustomAttribute'] ?? false;
             $targets = $relationField['Targets'] ?? [];
             $options = [];
-
-            // Pick the correct field handle, depending on custom fields
-            if ($customField) {
-                $handle = $relationField['SchemaName'] ?? '';
-            } else {
-                $handle = $relationField['LogicalName'] ?? '';
-            }
 
             foreach ($targets as $target) {
                 // Get the options for this field
@@ -754,10 +731,12 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
                 }
             }
 
-            // Get the field to add options to
-            $field = $fields[$handle] ?? null;
+            $logicalName = $relationField['LogicalName'] ?? '';
 
-            if (!$handle || !$field || !$options) {
+            // Get the field to add options to
+            $field = $fields[$logicalName] ?? null;
+
+            if (!$field || !$options) {
                 continue;
             }
 
@@ -783,6 +762,23 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         }
 
         return $path;
+    }
+
+    private function _getFieldHandle(array $field): string
+    {
+        $customField = $field['IsCustomAttribute'] ?? null;
+        $type = $field['@odata.type'] ?? '';
+
+        // Relational fields use the `SchemaName`, but only if a custom field or entity
+        if ($type === '#Microsoft.Dynamics.CRM.LookupAttributeMetadata') {
+            $schemaName = $field['SchemaName'] ?? '';
+            $logicalName = $field['LogicalName'] ?? '';
+            $handle = ($customField) ? $schemaName : $logicalName;
+
+            return $handle . '@odata.bind';
+        }
+
+        return $field['LogicalName'] ?? '';
     }
 
     private function _getSystemUsersOptions(): array

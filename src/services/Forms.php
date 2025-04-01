@@ -16,6 +16,9 @@ use verbb\formie\records\Form as FormRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\base\ElementInterface;
+use craft\base\FieldInterface;
+use craft\base\NestedElementInterface;
 use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Db;
@@ -27,10 +30,18 @@ use craft\helpers\Json;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
+
 use Throwable;
 
 class Forms extends Component
 {
+    // Properties
+    // =========================================================================
+
+    private array $_cachedElements = [];
+    private array $_cachedFields = [];
+
+
     // Public Methods
     // =========================================================================
 
@@ -212,28 +223,119 @@ class Forms extends Component
 
     public function getFormUsage(Form $form): array
     {
+        $elements = [];
         $settings = Formie::$plugin->getSettings();
         $includeDrafts = $settings->includeDraftElementUsage;
         $includeRevisions = $settings->includeRevisionElementUsage;
 
-        if ($form) {
-            $query = (new Query())
-                ->select(['elements.id', 'elements.type', 'relations.fieldId'])
-                ->from(['relations' => Table::RELATIONS])
-                ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
-                ->where(['relations.targetId' => $form->id]);
-
-            if (!$includeDrafts) {
-                $query->andWhere(['elements.draftId' => null]);
-            }
-
-            if (!$includeRevisions) {
-                $query->andWhere(['elements.revisionId' => null]);
-            }
-
-            return $query->all();
+        if (!$form) {
+            return $elements;
         }
 
-        return [];
+        $query = (new Query())
+            ->select(['elements.id', 'elements.type', 'relations.fieldId'])
+            ->from(['relations' => Table::RELATIONS])
+            ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
+            ->where(['relations.targetId' => $form->id]);
+
+        if (!$includeDrafts) {
+            $query->andWhere(['elements.draftId' => null]);
+        }
+
+        if (!$includeRevisions) {
+            $query->andWhere(['elements.revisionId' => null]);
+        }
+
+        foreach ($query->all() as $info) {
+            // Use the combined element cache, keyed solely by element id.
+            $elementId = $info['id'];
+            
+            if (isset($this->_cachedElements[$elementId])) {
+                $element = $this->_cachedElements[$elementId];
+            } else {
+                $element = Craft::$app->getElements()->getElementById($elementId, $info['type']);
+                $this->_cachedElements[$elementId] = $element;
+            }
+
+            // Use the combined field cache.
+            $fieldId = $info['fieldId'];
+            
+            if (isset($this->_cachedFields[$fieldId])) {
+                $field = $this->_cachedFields[$fieldId];
+            } else {
+                $field = Craft::$app->getFields()->getFieldById($fieldId);
+                $this->_cachedFields[$fieldId] = $field;
+            }
+
+            if (!$element) {
+                continue;
+            }
+
+            if (isset($elements[$element->id])) {
+                continue;
+            }
+
+            $nestedElements = [];
+            $this->_handleNestedElement($element, $field, 0, $nestedElements);
+
+            // Sort descending by level and reassign levels.
+            usort($nestedElements, function ($a, $b) {
+                return $b['level'] <=> $a['level'];
+            });
+
+            foreach ($nestedElements as $i => $nestedElement) {
+                $nestedElement['level'] = $i;
+                $elements[$nestedElement['element']->id] = $nestedElement;
+            }
+        }
+
+        return array_values($elements);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level, array &$accumulator = []): void
+    {
+        try {
+            $accumulator[] = [
+                'element' => $element,
+                'field' => $field,
+                'level' => $level,
+            ];
+
+            if ($element instanceof NestedElementInterface && $element->ownerId) {
+                try {
+                    // Retrieve (or cache) the owner element using its id.
+                    $ownerId = $element->ownerId;
+
+                    if (isset($this->_cachedElements[$ownerId])) {
+                        $ownerElement = $this->_cachedElements[$ownerId];
+                    } else {
+                        $ownerElement = Craft::$app->getElements()->getElementById($ownerId, null, $element->siteId);
+                        $this->_cachedElements[$ownerId] = $ownerElement;
+                    }
+
+                    // Retrieve (or cache) the owner field using its id.
+                    $fieldId = $element->fieldId;
+
+                    if (isset($this->_cachedFields[$fieldId])) {
+                        $ownerField = $this->_cachedFields[$fieldId];
+                    } else {
+                        $ownerField = Craft::$app->getFields()->getFieldById($fieldId);
+                        $this->_cachedFields[$fieldId] = $ownerField;
+                    }
+
+                    if ($ownerElement) {
+                        $this->_handleNestedElement($ownerElement, $ownerField, $level + 1, $accumulator);
+                    }
+                } catch (Throwable $e) {
+                    // Skip over owner-related errors
+                }
+            }
+        } catch (Throwable $e) {
+            // Skip over
+        }
     }
 }

@@ -150,7 +150,7 @@ class SupportController extends Controller
             //
             try {
                 $formExport = ImportExportHelper::generateFormExport($form);
-                $json = Json::encode($formExport, JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK);
+                $json = Json::encode($formExport, JSON_PRETTY_PRINT);
 
                 $tempFileForm = $backupPath . '/' . StringHelper::toLowerCase('formie_' . gmdate('ymd_His') . '.json');
                 FileHelper::writeToFile($tempFileForm, $json);
@@ -176,7 +176,10 @@ class SupportController extends Controller
                         FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                     } else {
                         $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                        $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                        if ($templateFile) {
+                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                        }
                     }
                 }
 
@@ -192,7 +195,10 @@ class SupportController extends Controller
                             FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                         } else {
                             $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                            if ($templateFile) {
+                                $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                            }
                         }
                     }
 
@@ -204,7 +210,10 @@ class SupportController extends Controller
                             FileHelper::addFilesToZip($zip, $templatePath, $destPath);
                         } else {
                             $templateFile = Craft::$app->getView()->resolveTemplate($template->template, View::TEMPLATE_MODE_SITE);
-                            $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+
+                            if ($templateFile) {
+                                $zip->addFile($templateFile, $destPath . DIRECTORY_SEPARATOR . pathinfo($templateFile, PATHINFO_BASENAME));
+                            }
                         }
                     }
                 }

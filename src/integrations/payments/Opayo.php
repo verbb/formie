@@ -96,7 +96,7 @@ class Opayo extends Payment
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Provide payment capabilities for your forms with Opayo.');
+        return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
     }
 
     public function hasValidSettings(): bool
@@ -733,7 +733,7 @@ class Opayo extends Payment
 
         $billingName = $this->getFieldSetting('billingDetails.billingName');
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $payload['customerEmail'] = $this->getFieldSetting('billingDetails.billingEmail');
+        $payload['customerEMail'] = $this->getFieldSetting('billingDetails.billingEmail');
 
         if ($billingName) {
             $integrationField = new IntegrationField();

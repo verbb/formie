@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { t, eventKey, clone, ensureVariable, debounce } from '../utils/utils';
+import { t, clone, ensureVariable, debounce } from '../utils/utils';
 import { getFieldName } from '../utils/fields';
 import { FormiePaymentProvider } from './payment-provider';
 
@@ -54,9 +54,9 @@ export class FormieStripe extends FormiePaymentProvider {
             this.boundEvents = false;
 
             // Remove unique event listeners
-            this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'stripe'));
-            this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'stripe'));
-            this.form.removeEventListener(eventKey('FormiePaymentStripeConfirm', 'stripe'));
+            this.form.removeEventListener(this.eventKey('onFormiePaymentValidate', 'stripe'));
+            this.form.removeEventListener(this.eventKey('onAfterFormieSubmit', 'stripe'));
+            this.form.removeEventListener(this.eventKey('FormiePaymentStripeConfirm', 'stripe'));
         }
     }
 
@@ -87,9 +87,9 @@ export class FormieStripe extends FormiePaymentProvider {
             // Attach custom event listeners on the form
             // Prevent binding multiple times. This can cause multiple payments!
             if (!this.boundEvents) {
-                this.form.addEventListener(this.$form, eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
-                this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
-                this.form.addEventListener(this.$form, eventKey('FormiePaymentStripeConfirm', 'stripe'), this.onValidateConfirm.bind(this));
+                this.form.addEventListener(this.$form, this.eventKey('onFormiePaymentValidate', 'stripe'), this.onValidate.bind(this));
+                this.form.addEventListener(this.$form, this.eventKey('onAfterFormieSubmit', 'stripe'), this.onAfterSubmit.bind(this));
+                this.form.addEventListener(this.$form, this.eventKey('FormiePaymentStripeConfirm', 'stripe'), this.onValidateConfirm.bind(this));
 
                 this.boundEvents = true;
             }
@@ -173,6 +173,11 @@ export class FormieStripe extends FormiePaymentProvider {
             return;
         }
 
+        // Handle when trying to submit the form without Stripe.js being ready
+        if (!this.elements) {
+            return;
+        }
+
         e.preventDefault();
 
         // Save for later to trigger real submit
@@ -240,7 +245,8 @@ export class FormieStripe extends FormiePaymentProvider {
             this.updateInputs('stripeSubscriptionId', data.subscriptionId);
             this.updateInputs('stripePaymentIntentId', result.paymentIntent.id);
 
-            this.submitHandler.submitForm();
+            // Handle resubmitting the form properly
+            this.processResubmit();
         });
     }
 
@@ -258,7 +264,7 @@ export class FormieStripe extends FormiePaymentProvider {
         const amount = this.initialPaymentInformation?.amount ?? null;
         const currency = this.initialPaymentInformation?.currency ?? null;
 
-        const amountValue = this.getFieldValue(amount);
+        const amountValue = this.getFieldValue(amount, 'number');
         const currencyValue = this.getFieldValue(currency);
 
         const amountLabel = this.getFieldLabel(amount);

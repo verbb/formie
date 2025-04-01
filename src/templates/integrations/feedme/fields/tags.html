@@ -1,0 +1,37 @@
+{# ------------------------ #}
+{# Available Variables #}
+{# ------------------------ #}
+{# Attributes: #}
+{# type, name, handle, instructions, attribute, default, feed, feedData #}
+{# ------------------------ #}
+{# Fields: #}
+{# name, handle, instructions, feed, feedData, field, fieldClass #}
+{# ------------------------ #}
+
+{% import 'feed-me/_macros' as feedMeMacro %}
+{% import '_includes/forms' as forms %}
+
+{% if field is defined %}
+    {% set default = default ?? {
+        type: 'elementselect',
+        options: {
+            elementType: fieldClass.elementType,
+            selectionLabel: "Default Tag"|t('feed-me'),
+            sources: field.source ? [field.source] : '*',
+        },
+    } %}
+{% endif %}
+
+{# Get any sub-fields for the element. Also check to go only one level deep #}
+{% if field is defined and isSubElementField is not defined %}
+    {% set elementFields = [] %}
+
+    {# Prevent infinite loop by only allow elements that are not the same as this #}
+    {% for elementField in craft.feedme.getElementLayoutByField(className(field), field) %}
+        {% if craft.feedme.supportedSubField(className(elementField)) %}
+            {% set elementFields = elementFields|merge([ elementField ]) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{% extends 'feed-me/_includes/fields/_base' %}

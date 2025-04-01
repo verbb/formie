@@ -46,6 +46,7 @@ use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\helpers\Template as TemplateHelper;
+use craft\records\EntryType as EntryTypeRecord;
 use craft\services\ElementSources;
 use craft\services\Elements;
 
@@ -65,6 +66,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\db\Expression;
+use yii\db\ExpressionInterface;
 use yii\validators\NumberValidator;
 
 abstract class ElementField extends Field implements ElementFieldInterface
@@ -73,6 +75,33 @@ abstract class ElementField extends Field implements ElementFieldInterface
     // =========================================================================
 
     abstract public static function elementType(): string;
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
+        $values = [];
+
+        if (is_array($value)) {
+            foreach ($value as $element) {
+                if ($element instanceof ElementInterface) {
+                    $values[] = $element->id;
+                }
+
+                if (is_int($element)) {
+                    $values[] = $element;
+                }
+            }
+        }
+
+        if ($value instanceof ElementInterface) {
+            $values[] = $value->id;
+        }
+
+        if (is_int($value)) {
+            $values[] = $value;
+        }
+
+        return parent::queryCondition($instances, Json::encode($values), $params);
+    }
 
 
     // Constants
@@ -131,7 +160,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
         $config = parent::getFormBuilderConfig();
         $config['isElementField'] = true;
 
-        return $this->modifyFieldSettings($config);
+        return $config;
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
@@ -151,23 +180,39 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
         $query = static::elementType()::find();
 
+        // Restrict elements to be on the current site, for multi-sites
+        if (Craft::$app->getIsMultiSite()) {
+            $query->siteId($this->targetSiteId($element));
+        }
+
         if (is_array($value)) {
-            $query->id(array_values(array_filter($value)))->fixedOrder();
+            // Check if the array contains associative arrays with an 'id' key
+            if (isset($value[0]) && is_array($value[0]) && array_key_exists('id', $value[0])) {
+                $value = ArrayHelper::getColumn($value, 'id');
+            }
+
+            // Cleanup to ensure only valid IDs
+            $ids = array_values(array_filter($value, function($id) {
+                return !empty($id);
+            }));
+
+            $query->id($ids)->fixedOrder();
         } else {
             $query->id(false);
         }
+
+        // Allow any status for now, probably refactor `modifyElementFieldQuery` for next breakpoint
+        $query->status(null);
 
         return $query;
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return $value->ids();
-    }
+        // Ensure that we allow saving any status elements
+        $value->status(null);
 
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return (string)$this->getEmailHtml($submission, $notification, $value, ['hideName' => true]);
+        return $value->ids();
     }
 
     public function getElementsQuery(): ElementQueryInterface
@@ -193,6 +238,14 @@ abstract class ElementField extends Field implements ElementFieldInterface
                     // Handle conditions by parsing the rules and applying to query
                     $sourceCondition = $conditionsService->createCondition($elementSource['condition']);
                     $sourceCondition->modifyQuery($query);
+                } else if (str_contains($sourceKey, 'type:')) {
+                    // Special-case for entries, maybe redactor?
+                    $entryTypeUid = str_replace('type:', '', $sourceKey);
+                    $entryType = EntryTypeRecord::find()->where(['uid' => $entryTypeUid])->one();
+
+                    if ($entryType) {
+                        $criteria[] = ['typeId' => $entryType->id];
+                    }
                 } else {
                     $sourceCriteria = $elementSource['criteria'] ?? [];
 
@@ -226,8 +279,13 @@ abstract class ElementField extends Field implements ElementFieldInterface
             }
         }
 
-        $query->limit($this->limitOptions);
-        $query->orderBy($this->orderBy);
+        if ($this->limitOptions) {
+            $query->limit($this->limitOptions);
+        }
+
+        if ($this->orderBy) {
+            $query->orderBy($this->orderBy);
+        }
 
         // Allow any template-defined elementQuery to override
         if ($this->elementsQuery) {
@@ -331,9 +389,18 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public function populateValue(mixed $value, ?Submission $submission): void
     {
-        $query = static::elementType()::find()->id($value);
+        if ($value) {
+            if ($value instanceof ElementQuery) {
+                $query = $value;
+            } else {
+                $query = static::elementType()::find()->id($value);
+            }
 
-        $this->defaultValue = $query;
+            // Ensure that disabled elements can be populated, just in case
+            $query->status(null);
+
+            $this->defaultValue = $query;
+        }
     }
 
     public function getFieldOptions(): array
@@ -613,15 +680,38 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
+        // Ensure that the element query allows all statuses for the CP
+        $value->status(null);
+
         return Craft::$app->getView()->renderTemplate($this->cpInputTemplate, $this->cpInputTemplateVariables($value->all(), $element));
     }
 
     protected function availableSources(): array
     {
-        return ArrayHelper::where(
+        $sources = ArrayHelper::where(
             Craft::$app->getElementSources()->getSources(static::elementType(), 'modal'),
             fn($s) => $s['type'] !== ElementSources::TYPE_HEADING
         );
+
+        // Ensure that we always include a "All" option, even if people are removing it from sources in events
+        if ($this->allowMultipleSources) {
+            $hasAllSource = false;
+
+            foreach ($sources as $key => $source) {
+                if (isset($source['key']) && $source['key'] === '*') {
+                    $hasAllSource = true;
+                }
+            }
+
+            if (!$hasAllSource) {
+                array_unshift($sources, [
+                    'key' => '*',
+                    'label' => Craft::t('formie', 'All'),
+                ]);
+            }
+        }
+
+        return $sources;
     }
 
     protected function setPrePopulatedValue(mixed $value): array
@@ -689,7 +779,13 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        $query = $this->getElementsQuery()->orderBy('RAND()');
+        $query = $this->getElementsQuery();
+
+        if (Craft::$app->getDb()->getIsMysql()) {
+            $query->orderBy('RAND()');
+        } else {
+            $query->orderBy('RANDOM()');
+        }
 
         // Check if we should limit to 1 if a (single) dropdown or radio
         if ($this->displayType === 'radio' || ($this->displayType === 'dropdown' && !$this->multi)) {
@@ -736,6 +832,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
         }
 
         return $element->title;
+    }
+
+    protected function targetSiteId(?ElementInterface $element = null): int
+    {
+        return $element->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
     }
 
 

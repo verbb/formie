@@ -101,7 +101,8 @@ class ConditionsHelper
                 if (str_starts_with($variables['field'], '{submission:')) {
                     $variables['field'] = str_replace(['{submission:', '}'], ['', ''], $variables['field']);
 
-                    $variables['field'] = ArrayHelper::getValue($submission, $variables['field']);
+                    // DOn't use `ArrayHelper::getValue()` to allow getters to take over
+                    $variables['field'] = $submission->{$variables['field']};
                 } else {
                     $variables['field'] = str_replace(['{field:', '}'], ['', ''], $variables['field']);
 

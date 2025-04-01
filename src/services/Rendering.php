@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
+use verbb\formie\events\ModifyFrontEndJsTranslationsEvent;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
@@ -14,6 +15,7 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\Component;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template as TemplateHelper;
@@ -39,6 +41,7 @@ class Rendering extends Component
     public const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     public const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
     public const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
+    public const EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS = 'modifyFrontEndJsTranslations';
     public const RENDER_TYPE_CSS = 'css';
     public const RENDER_TYPE_JS = 'js';
 
@@ -110,24 +113,13 @@ class Rendering extends Component
         $outputJs = $form->getFrontEndTemplateOption('outputJsBase');
 
         if ($outputCssLocation !== FormTemplate::MANUAL && $outputCss && $renderCss) {
-            $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS);
+            $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS, false, $renderOptions);
 
             $output = TemplateHelper::raw($output . $css);
         }
 
-        // Some attributes are JS-render related
-        $jsAttributes = [];
-
-        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
-            $jsAttributes['data-manual-init'] = true;
-        }
-
-        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
-            $jsAttributes['data-bypass-observer'] = true;
-        }
-
         if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs && $renderJs) {
-            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS, false, $jsAttributes);
+            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS, false, $renderOptions);
 
             $output = TemplateHelper::raw($output . $js);
         }
@@ -214,7 +206,7 @@ class Rendering extends Component
         $this->renderForm($form, $renderOptions, false);
     }
 
-    public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $attributes = []): ?Markup
+    public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $renderOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
@@ -245,13 +237,15 @@ class Rendering extends Component
         $output = [];
 
         if ($type !== self::RENDER_TYPE_JS) {
+            $cssAttributes = $renderOptions['cssAttributes'] ?? [];
+
             // Only output this if we're not showing the theme. We bundle the two together
             // during build, so we don't have to serve two stylesheets.
             if ($outputCssLayout && !$outputCssTheme) {
                 if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssLayout);
                 } else {
-                    $output[] = Html::cssFile($cssLayout, $attributes);
+                    $output[] = Html::cssFile($cssLayout, $cssAttributes);
                 }
             }
 
@@ -259,27 +253,31 @@ class Rendering extends Component
                 if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
                     $view->registerCssFile($cssTheme);
                 } else {
-                    $output[] = Html::cssFile($cssTheme, $attributes);
+                    $output[] = Html::cssFile($cssTheme, $cssAttributes);
                 }
             }
         }
 
         if ($type !== self::RENDER_TYPE_CSS) {
+            // Some attributes are JS-render related
+            $scriptAttributes = $this->_getScriptAttributes($renderOptions);
+            $jsAttributes = $this->_getJsAttributes($renderOptions);
+
             // Only output this file once. It's applicable to all forms on a page.
             if (!$this->_renderedJs) {
                 if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
-                    $view->registerJsFile($jsFile, array_merge(['defer' => true], $attributes));
+                    $view->registerJsFile($jsFile, $jsAttributes);
                 } else {
-                    $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $attributes));
+                    $output[] = Html::jsFile($jsFile, $jsAttributes);
                 }
 
                 // Add locale definition JS variables
                 $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
                 if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
-                    $view->registerJs($jsString, View::POS_END);
+                    $view->registerScript($jsString, View::POS_END, $scriptAttributes);
                 } else {
-                    $output[] = Html::script($jsString, ['type' => 'text/javascript']);
+                    $output[] = Html::script($jsString, $scriptAttributes);
                 }
 
                 $this->_renderedJs = true;
@@ -291,7 +289,7 @@ class Rendering extends Component
 
     public function getFrontEndJsTranslations(): array
     {
-        return $this->_getTranslatedStrings([
+        $strings = [
             // Core validators
             '{attribute} cannot be blank.',
             '{attribute} is not a valid email address.',
@@ -299,6 +297,10 @@ class Rendering extends Component
             '{attribute} is not a valid number.',
             '{attribute} is not a valid format.',
             '{name} must match {value}.',
+            '{attribute} must be between {min} and {max}.',
+            '{attribute} must be no less than {min}.',
+            '{attribute} must be no greater than {max}.',
+            '{attribute} has an invalid value.',
 
             // Custom validators
             'File {filename} must be smaller than {filesize} MB.',
@@ -309,6 +311,10 @@ class Rendering extends Component
             '{startTag}{num}{endTag} characters left',
             '{startTag}{num}{endTag} word left',
             '{startTag}{num}{endTag} words left',
+            '{attribute} must be no less than {min} characters.',
+            '{attribute} must be no greater than {max} characters.',
+            '{attribute} must be no less than {min} words.',
+            '{attribute} must be no greater than {max} words.',
 
             // General
             'Unable to parse response `{e}`.',
@@ -335,7 +341,15 @@ class Rendering extends Component
             'Invalid amount.',
             'Invalid currency.',
             'Provide a value for “{label}” to proceed.',
+        ];
+
+        // Allow plugins to modify JS translation strings
+        $event = new ModifyFrontEndJsTranslationsEvent([
+            'strings' => $strings,
         ]);
+        $this->trigger(self::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS, $event);
+
+        return $this->_getTranslatedStrings($event->strings);
     }
 
     public function getFormComponentTemplatePath(Form $form, string $component): string
@@ -567,22 +581,19 @@ class Rendering extends Component
         $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
 
         // Some attributes are JS-render related
-        $jsAttributes = $renderOptions;
-
-        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
-            $jsAttributes['data-manual-init'] = true;
-        }
+        $scriptAttributes = $this->_getScriptAttributes($renderOptions);
+        $jsAttributes = $this->_getJsAttributes($renderOptions);
 
         if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
             $jsAttributes['data-bypass-observer'] = false;
         }
 
         if ($inline) {
-            $output[] = Html::jsFile($jsFile, array_merge(['defer' => true], $jsAttributes));
-            $output[] = Html::script($jsString, ['type' => 'text/javascript']);
+            $output[] = Html::jsFile($jsFile, $jsAttributes);
+            $output[] = Html::script($jsString, $scriptAttributes);
         } else {
-            $view->registerJsFile($jsFile, array_merge(['defer' => true], $jsAttributes));
-            $view->registerJs($jsString, View::POS_END);
+            $view->registerJsFile($jsFile, $jsAttributes);
+            $view->registerScript($jsString, View::POS_END, $scriptAttributes);
         }
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
@@ -616,5 +627,31 @@ class Rendering extends Component
         }
 
         return null;
+    }
+
+    private function _getJsAttributes(array $renderOptions): array
+    {
+        // Some attributes are JS-render related
+        $attributes = $this->_getScriptAttributes($renderOptions);
+        $jsAttributes = $renderOptions['jsAttributes'] ?? [];
+        $jsAttributes = array_merge($attributes, ['defer' => true], $jsAttributes);
+
+        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
+            $jsAttributes['data-manual-init'] = true;
+        }
+
+        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
+            $jsAttributes['data-bypass-observer'] = true;
+        }
+
+        return $jsAttributes;
+    }
+
+    private function _getScriptAttributes(array $renderOptions): array
+    {
+        $attributes = ['type' => 'text/javascript'];
+        $scriptAttributes = $renderOptions['scriptAttributes'] ?? [];
+
+        return array_merge($attributes, $scriptAttributes);
     }
 }

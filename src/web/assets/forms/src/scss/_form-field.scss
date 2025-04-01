@@ -182,6 +182,52 @@
     }
 }
 
+.fui-field-visibility-hidden .fui-field-preview {
+    opacity: 0.5;
+}
+
+.fui-field-visibility-icon-hidden {
+    display: flex;
+    align-items: center;
+    font-size: 10px !important;
+    margin-left: 8px;
+    font-weight: 500;
+    padding: 0 6px;
+    border-radius: 10px;
+    color: #818cf8;
+    background: #eef2ff;
+    border: 1px solid #818cf8;
+
+    svg {
+        width: 13px;
+        height: 13px;
+        margin-right: 5px;
+    }
+}
+
+.fui-field-visibility-disabled .fui-field-preview {
+    opacity: 0.5;
+}
+
+.fui-field-visibility-icon-disabled {
+    display: flex;
+    align-items: center;
+    font-size: 10px !important;
+    margin-left: 8px;
+    font-weight: 500;
+    padding: 0 6px;
+    border-radius: 10px;
+    color: #94a3b8;
+    background: #f1f5f9;
+    border: 1px solid #94a3b8;
+
+    svg {
+        width: 13px;
+        height: 13px;
+        margin-right: 5px;
+    }
+}
+
 .fui-field-actions {
     opacity: 0;
     position: absolute;

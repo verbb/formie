@@ -22,6 +22,7 @@ use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
+use verbb\formie\services\Storage;
 use verbb\formie\services\Submissions;
 use verbb\formie\services\Subscriptions;
 use verbb\formie\web\assets\forms\FormsAsset;
@@ -89,6 +90,7 @@ trait PluginTrait
                 'service' => Service::class,
                 'statuses' => Statuses::class,
                 'stencils' => Stencils::class,
+                'storage' => Storage::class,
                 'submissions' => Submissions::class,
                 'subscriptions' => Subscriptions::class,
                 'templates' => [
@@ -229,6 +231,11 @@ trait PluginTrait
     public function getStencils(): Stencils
     {
         return $this->get('stencils');
+    }
+
+    public function getStorage(): Storage
+    {
+        return $this->get('storage');
     }
 
     public function getSubmissions(): Submissions

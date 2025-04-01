@@ -14,6 +14,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
 use craft\web\View;
@@ -23,7 +24,7 @@ use GraphQL\Type\Definition\Type;
 use Throwable;
 use DateTime;
 
-class Hidden extends Field implements PreviewableFieldInterface
+class Hidden extends Field implements PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -253,7 +254,6 @@ class Hidden extends Field implements PreviewableFieldInterface
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField(),
             SchemaHelper::enableContentEncryptionField(),
-            SchemaHelper::columnTypeField(),
         ];
     }
 

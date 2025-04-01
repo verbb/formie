@@ -18,4 +18,13 @@ class Users extends FeedMeUsers
     public static string $class = UsersField::class;
     public static string $name = 'Users';
 
+
+    // Templates
+    // =========================================================================
+
+    public function getMappingTemplate(): string
+    {
+        return 'formie/integrations/feedme/fields/users';
+    }
+
 }

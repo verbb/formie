@@ -1,11 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use Craft;
 use craft\base\ElementInterface;
+use craft\base\PreviewableFieldInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\enums\AttributeStatus;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
+use craft\helpers\UrlHelper;
 use craft\models\GqlSchema;
 
 use GraphQL\Type\Definition\Type;
@@ -17,7 +20,7 @@ use yii\validators\Validator;
 
 trait FieldLegacy
 {
-    // Misc - To remove at next breakpoint, but required for the Formie 2 > 3 migration
+    // Misc - To remove at next breakpoint (3.1), but required for the Formie 2 > 3 migration
     public mixed $layoutElement = null;
     public mixed $columnType = null;
     public ?string $context = null;
@@ -73,9 +76,36 @@ trait FieldLegacy
         return ElementHelper::attributeHtml($value);
     }
 
+    public function previewPlaceholderHtml(mixed $value, ?ElementInterface $element): string
+    {
+        if (!$this instanceof PreviewableFieldInterface) {
+            return '';
+        }
+
+        if ($value !== null) {
+            return $value;
+        }
+
+        if ($element !== null) {
+            return $element->getFieldValue($this->handle);
+        }
+
+        return $this->getUiLabel();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getHandle(): ?string
+    {
+        return $this->handle;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return $this->id ? UrlHelper::cpUrl("settings/fields/edit/$this->id") : null;
     }
 
     public function getUiLabel(): string

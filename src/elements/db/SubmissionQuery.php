@@ -3,6 +3,7 @@ namespace verbb\formie\elements\db;
 
 use craft\elements\User;
 use verbb\formie\Formie;
+use verbb\formie\behaviors\CustomFieldBehavior;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
@@ -39,26 +40,21 @@ class SubmissionQuery extends ElementQuery
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
-    private array $_customFieldParams = [];
-
 
     // Public Methods
     // =========================================================================
 
-    public function __call($name, $params)
+    public function behaviors(): array
     {
-        // Add support for `.fieldHandle()` calls, as we're rolling our own fields, we don't get it automatically
-        try {
-            return parent::__call($name, $params);
-        } catch (UnknownMethodException $e) {
-            if (in_array($name, Fields::getFieldHandles())) {
-                $this->_customFieldParams[$name] = $params[0];
-            } else {
-                throw $e;
-            }
+        $behaviors = parent::behaviors();
 
-            return $this;
-        }
+        // Override the Craft custom field behavior with our own
+        $behaviors['customFields'] = [
+            'class' => CustomFieldBehavior::class,
+            'hasMethods' => true,
+        ];
+
+        return $behaviors;
     }
 
     public function form(Form|array|string|null $value): static
@@ -165,24 +161,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    public function field(array $values): static
-    {
-        // Allows querying on custom fields with key/values, and supports dot-notation for complex fields like Group/Repeater
-        foreach ($values as $fieldKey => $value) {
-            $fieldKey = explode('.', $fieldKey);
-            $handle = array_shift($fieldKey);
-            $fieldKey = implode('.', $fieldKey);
-
-            if ($fieldKey) {
-                $this->$handle([$fieldKey => $value]);
-            } else {
-                $this->$handle($value);
-            }
-        }
-
-        return $this;
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -235,14 +213,21 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->after, '>='));
         }
 
-        // Check if we're querying custom fields, we're rolling our own fields
-        if ($this->_customFieldParams) {
-            $query = Craft::$app->getDb()->getQueryBuilder()->jsonContains('formie_submissions.content', $this->_customFieldParams);
+        return parent::beforePrepare();
+    }
 
-            $this->subQuery->andWhere($query);
+    protected function afterPrepare(): bool
+    {
+        // Add our own handling for custom fields, as the base `ElementQuery` class assumes the traditional approach
+        // using the CustomFieldBehavior that Formie doesn't use.
+        // Craft 5.6+ also changed behaviour, so things are working correctly in earlier versions. 
+        // See https://github.com/craftcms/cms/commit/1459e6d4b7cfd5d5cb439b33acddef810b622e2c
+        // and https://github.com/verbb/formie/issues/2263
+        if (version_compare(Craft::$app->getInfo()->version, '5.6.0', '>=')) {
+            $this->_applyCustomFieldParams();
         }
 
-        return parent::beforePrepare();
+        return parent::afterPrepare();
     }
 
     protected function statusCondition(string $status): mixed
@@ -261,5 +246,65 @@ class SubmissionQuery extends ElementQuery
         }
 
         return parent::statusCondition($status);
+    }
+
+    protected function customFields(): array
+    {
+        if (!$this->withCustomFields) {
+            return [];
+        }
+
+        // Use Formie's custom fields
+        return Formie::$plugin->getFields()->getAllFields();
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    private function _applyCustomFieldParams(): void
+    {
+        if (is_array($this->customFields)) {
+            $fieldAttributes = $this->getBehavior('customFields');
+
+            // Group the fields by handle and field UUID
+            $fieldsByHandle = [];
+
+            foreach ($this->customFields as $field) {
+                $fieldsByHandle[$field->handle][$field->uid][] = $field;
+            }
+
+            foreach ($fieldsByHandle as $handle => $instancesByUid) {
+                // $fieldAttributes->$handle will return true even if it's set to null, so can't use isset() here
+                if ($handle === 'owner' || ($fieldAttributes->$handle ?? null) === null) {
+                    continue;
+                }
+
+                $conditions = [];
+                $params = [];
+
+                foreach ($instancesByUid as $instances) {
+                    $firstInstance = $instances[0];
+                    $condition = $firstInstance::queryCondition($instances, $fieldAttributes->$handle, $params);
+
+                    // aborting?
+                    if ($condition === false) {
+                        throw new QueryAbortedException();
+                    }
+
+                    if ($condition !== null) {
+                        $conditions[] = $condition;
+                    }
+                }
+
+                if (!empty($conditions)) {
+                    if (count($conditions) === 1) {
+                        $this->subQuery->andWhere(reset($conditions), $params);
+                    } else {
+                        $this->subQuery->andWhere(['or', ...$conditions], $params);
+                    }
+                }
+            }
+        }
     }
 }

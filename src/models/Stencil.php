@@ -126,6 +126,7 @@ class Stencil extends Model
             'title' => $this->getTitle(),
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
+            'templateId' => $this->templateId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
             'isStencil' => true,
@@ -245,6 +246,7 @@ class Stencil extends Model
     {
         $this->data->populateToForm($form);
 
+        $form->isApplyingStencil = true;
         $form->setTemplate($this->getTemplate());
         $form->setDefaultStatus($this->getDefaultStatus());
     }

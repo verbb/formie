@@ -6,16 +6,23 @@ use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\FileUpload;
+use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\base\LocalFsInterface;
+use craft\elements\db\AssetQuery;
 use craft\helpers\App;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\FileHelper;
 use craft\helpers\Json;
 
 use yii\base\Event;
+
+use GuzzleHttp\Exception\RequestException;
 
 use DateTime;
 use Throwable;
@@ -70,6 +77,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public ?array $caseFieldMapping = null;
     public bool $duplicateLeadTask = false;
     public string $duplicateLeadTaskSubject = 'Task';
+    public bool $mapToContactAttachments = false;
+    public bool $mapToLeadAttachments = false;
+    public bool $mapToOpportunityAttachments = false;
+    public bool $mapToAccountAttachments = false;
+    public bool $mapToCaseAttachments = false;
 
     private array $users = [];
 
@@ -134,6 +146,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public function getOAuthProviderConfig(): array
     {
         $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
         $config['domain'] = $this->getApiDomain();
 
         return $config;
@@ -175,7 +188,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Manage your Salesforce customers by providing important information on their conversion on your site.');
+        return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -228,8 +241,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
             // Get Case fields
             if ($this->mapToCase) {
                 $response = $this->request('GET', 'sobjects/Case/describe');
+
+                // Debug
+                Formie::info(Json::encode($response));
+
                 $fields = $response['fields'] ?? [];
-                $settings['case'] = $this->_getCustomFields($fields);
+                $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -280,6 +297,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     ]), true);
 
                     return false;
+                }
+
+                if ($this->mapToAccountAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $accountId,
+                    ]);
                 }
             }
 
@@ -337,6 +360,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     $contactId = $response['records'][0]['Id'] ?? '';
                     $contactOwnerId = $response['records'][0]['OwnerId'] ?? '';
                 }
+
+                if ($this->mapToContactAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $contactId,
+                    ]);
+                }
             }
 
             if ($this->mapToLead) {
@@ -370,48 +399,57 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                         return false;
                     }
+
+                    if ($this->mapToLeadAttachments) {
+                        $this->processAttachments($submission, [
+                            'FirstPublishLocationId' => $leadId,
+                        ]);
+                    }
                 } catch (Throwable $e) {
-                    $taskCreated = false;
                     Integration::apiError($this, $e, false);
 
+                    $taskCreated = false;
+
                     // Check if we should enable tasks to be created for duplicates
-                    $response = Json::decode((string)$e->getResponse()->getBody());
-                    $responseCode = $response[0]['errorCode'] ?? '';
+                    if ($e instanceof RequestException && $e->getResponse()) {
+                        $response = Json::decode((string)$e->getResponse()->getBody());
+                        $responseCode = $response[0]['errorCode'] ?? '';
 
-                    // Check if a duplicate lead and if we should create a task instead.
-                    if ($responseCode === 'DUPLICATES_DETECTED') {
-                        Integration::info($this, 'Duplicate lead found.', false);
+                        // Check if a duplicate lead and if we should create a task instead.
+                        if ($responseCode === 'DUPLICATES_DETECTED') {
+                            Integration::info($this, 'Duplicate lead found.', false);
 
-                        if ($this->duplicateLeadTask) {
-                            Integration::info($this, 'Attempting to create task for duplicate lead.', false);
+                            if ($this->duplicateLeadTask) {
+                                Integration::info($this, 'Attempting to create task for duplicate lead.', false);
 
-                            $taskPayload = [
-                                'Subject' => $this->duplicateLeadTaskSubject,
-                                'WhoId' => $contactId,
-                                'Description' => '',
-                            ];
+                                $taskPayload = [
+                                    'Subject' => $this->duplicateLeadTaskSubject,
+                                    'WhoId' => $contactId,
+                                    'Description' => '',
+                                ];
 
-                            foreach ($leadPayload as $key => $item) {
-                                $taskPayload['Description'] .= $key . ': ' . $item . "\n";
-                            }
-
-                            try {
-                                $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
-
-                                if ($response === false) {
-                                    return true;
+                                foreach ($leadPayload as $key => $item) {
+                                    $taskPayload['Description'] .= $key . ': ' . $item . "\n";
                                 }
 
-                                $taskCreated = true;
+                                try {
+                                    $response = $this->deliverPayload($submission, 'sobjects/Task', $taskPayload);
 
-                                Integration::info($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
-                                    'response' => Json::encode($response),
-                                    'payload' => Json::encode($taskPayload),
-                                ]));
-                            } catch (Throwable $e) {
-                                Integration::apiError($this, $e);
+                                    if ($response === false) {
+                                        return true;
+                                    }
 
-                                return false;
+                                    $taskCreated = true;
+
+                                    Integration::info($this, Craft::t('formie', 'Response from task-creation {response}. Sent payload {payload}', [
+                                        'response' => Json::encode($response),
+                                        'payload' => Json::encode($taskPayload),
+                                    ]));
+                                } catch (Throwable $e) {
+                                    Integration::apiError($this, $e);
+
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -463,6 +501,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                     return false;
                 }
+
+                if ($this->mapToOpportunityAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $opportunityId,
+                    ]);
+                }
             }
 
             if ($this->mapToCase) {
@@ -491,6 +535,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     ]), true);
 
                     return false;
+                }
+
+                if ($this->mapToCaseAttachments) {
+                    $this->processAttachments($submission, [
+                        'FirstPublishLocationId' => $caseId,
+                    ]);
                 }
             }
         } catch (Throwable $e) {
@@ -548,6 +598,40 @@ class Salesforce extends Crm implements OAuthProviderInterface
         ];
 
         return $rules;
+    }
+
+    protected function processAttachments(Submission $submission, array $payload): void
+    {
+        $localAttachments = [];
+
+        // For any File Upload field, add as an attachment.
+        if ($assets = $this->_getAssetsForSubmission($submission)) {
+            foreach ($assets as $asset) {
+                $path = Assets::getFullAssetFilePath($asset);
+
+                // If a non-local asset, store so we can delete later
+                if (!($asset->getVolume()->getFs() instanceof LocalFsInterface)) {
+                    $localAttachments[] = $path;
+                }
+
+                $fileContent = base64_encode(file_get_contents($path));
+                $fileName = basename($path);
+
+                $attachmentPayload = array_merge($payload, [
+                    'Title' => $fileName,
+                    'PathOnClient' => $fileName,
+                    'VersionData' => $fileContent,
+                ]);
+
+                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', $attachmentPayload);
+            }
+        }
+
+        foreach ($localAttachments as $path) {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
     }
 
 
@@ -645,12 +729,21 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 ];
             }
 
+            // There's no consensus for what makes a required field, but this is close!
+            $required = false;
+            $isCreateable = $field['createable'] ?? null;
+            $isNillable = $field['nillable'] ?? null;
+
+            if ($isCreateable === true && $isNillable === false && $field['type'] !== 'boolean') {
+                $required = true;
+            }
+
             $customFields[] = new IntegrationField([
                 'handle' => $field['name'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($field['type']),
                 'sourceType' => $field['type'],
-                'required' => !$field['nillable'],
+                'required' => $required,
                 'options' => $options,
             ]);
         }
@@ -658,7 +751,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $customFields;
     }
 
-    private function _prepPayload($fields)
+    private function _prepPayload(array $fields): array
     {
         $payload = $fields;
 
@@ -675,5 +768,18 @@ class Salesforce extends Crm implements OAuthProviderInterface
         }
 
         return $payload;
+    }
+
+    private function _getAssetsForSubmission(Submission $submission): array
+    {
+        $assets = [];
+
+        foreach ($submission->getFieldValuesForField(FileUpload::class) as $value) {
+            if ($value instanceof AssetQuery) {
+                $assets[] = $value->all();
+            }
+        }
+
+        return array_merge(...$assets);
     }
 }

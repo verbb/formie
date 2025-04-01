@@ -171,11 +171,6 @@ class Recipients extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
-    {
-        return false;
-    }
-
     public function options(): array
     {
         return $this->options;
@@ -254,9 +249,9 @@ class Recipients extends Field implements PreviewableFieldInterface
         return null;
     }
 
-    public function getDefaultValue(string $attributePrefix = ''): mixed
+    public function getDefaultValue(): mixed
     {
-        $value = parent::getDefaultValue($attributePrefix) ?? $this->defaultValue;
+        $value = parent::getDefaultValue() ?? $this->defaultValue;
 
         // If the default value from the parent field (query params, etc.) is empty, use the default values
         // set in the field option settings.
@@ -465,6 +460,13 @@ class Recipients extends Field implements PreviewableFieldInterface
             ]),
             SchemaHelper::prePopulate(),
             SchemaHelper::includeInEmailField(),
+            SchemaHelper::emailNotificationValue([
+                'if' => '$get(displayType).value != hidden',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
+                    ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
+                ],
+            ]),
         ];
     }
 
@@ -616,6 +618,16 @@ class Recipients extends Field implements PreviewableFieldInterface
         } else if ($this->displayType === 'hidden') {
             return $faker->email;
         }
+    }
+
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Respect the format picker for "Email Notification Value" 
+        if ($value instanceof SingleOptionFieldData) {
+            return $this->emailValue === 'label' ? $value->label : $value->value;
+        }
+
+        return parent::defineValueForVariable($value, $submission, $notification);
     }
 
     protected function setPrePopulatedValue(mixed $value): mixed

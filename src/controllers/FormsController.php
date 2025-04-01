@@ -317,7 +317,7 @@ class FormsController extends Controller
     public function actionRefreshTokens(): Response
     {
         // Ensure that the session has started, just in case
-        Session::exists();
+        Craft::$app->getSession()->open();
 
         $params = [
             'csrf' => [
@@ -340,6 +340,9 @@ class FormsController extends Controller
                 $params['captchas'][$captcha->handle] = $jsVariables;
             }
         }
+
+        // Prevent the browser from caching the response
+        $this->response->setNoCacheHeaders();
 
         return $this->asJson($params);
     }
@@ -378,6 +381,8 @@ class FormsController extends Controller
             }
         }
 
+        $settings = Formie::$plugin->getSettings();
+
         /** @var Form $form */
         $form = $variables['form'];
 
@@ -396,9 +401,14 @@ class FormsController extends Controller
             'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
             'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
             'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+            'filterIntegrationMapping' => $settings->filterIntegrationMapping,
         ];
 
         $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs($form, $variables);
+
+        // When only one tab is available (user permissions) Craft will change `tabs` to `null` for some reason.
+        // So we need to use both `tabs` and `formTabs`
+        $variables['formTabs'] = $variables['tabs'];
     }
 
     private function _updateFormPermission(Form $form): void
@@ -415,31 +425,31 @@ class FormsController extends Controller
         $permissions[] = "formie-manageForms{$suffix}";
 
         // Add all nested permissions according to top-level permissions set
-        if ($userService->checkPermission('formie-showFormAppearance')) {
+        if ($userService->checkPermission('formie-showFormAppearance') || $userService->checkPermission('formie-createFormAppearance')) {
             $permissions[] = "formie-showFormAppearance{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormBehavior')) {
+        if ($userService->checkPermission('formie-showFormBehavior') || $userService->checkPermission('formie-createFormBehavior')) {
             $permissions[] = "formie-showFormBehavior{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotifications')) {
+        if ($userService->checkPermission('formie-showNotifications') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotifications{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotificationsAdvanced')) {
+        if ($userService->checkPermission('formie-showNotificationsAdvanced') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotificationsAdvanced{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showNotificationsTemplates')) {
+        if ($userService->checkPermission('formie-showNotificationsTemplates') || $userService->checkPermission('formie-createNotifications')) {
             $permissions[] = "formie-showNotificationsTemplates{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormIntegrations')) {
+        if ($userService->checkPermission('formie-showFormIntegrations') || $userService->checkPermission('formie-createFormIntegrations')) {
             $permissions[] = "formie-showFormIntegrations{$suffix}";
         }
 
-        if ($userService->checkPermission('formie-showFormSettings')) {
+        if ($userService->checkPermission('formie-showFormSettings') || $userService->checkPermission('formie-createFormSettings')) {
             $permissions[] = "formie-showFormSettings{$suffix}";
         }
 

@@ -1,0 +1,9 @@
+{% if field.displayType == 'dropdown' %}
+    {{ formieInclude('fields/dropdown') }}
+{% elseif field.displayType == 'radio' %}
+    {{ formieInclude('fields/radio') }}
+{% elseif field.displayType == 'checkboxes' %}
+    {{ formieInclude('fields/checkboxes') }}
+{% else %}
+    {{ field.getValueAsString(value, submission) }}
+{% endif %}

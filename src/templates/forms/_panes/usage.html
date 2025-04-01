@@ -1,62 +1,3 @@
-{% macro tableColumns(element, field, options) %}
-    {% set class = 'element-row' %}
-    {% set showDrafts = options.showDrafts ?? false %}
-    {% set showRevisions = options.showRevisions ?? false %}
-
-    {% set render = true %}
-    {% set render = not showDrafts and element.isDraft() ? false : render %}
-    {% set render = not showRevisions and element.isRevision() ? false : render %}
-
-    {% if element is instance of('craft\\elements\\MatrixBlock') or element is instance of('verbb\\supertable\\elements\\SuperTableBlockElement') or element is instance of('benf\\neo\\elements\\Block') %}
-        {# Add a check here to ensure there's a valid owner (`getOwner()` will throw a hard-error) #}
-        {% set owner = craft.app.getElements().getElementById(element.ownerId, null, element.siteId) %}
-        {% set ownerField = craft.app.getFields().getFieldById(element.fieldId) %}
-
-        {% if owner %}
-            {{ _self.tableColumns(owner, ownerField, options) }}
-
-            {% set class = 'owner-row' %}
-        {% else %}
-            {% set render = false %}
-        {% endif %}
-    {% endif %}
-
-    {% if render %}
-        <tr class="{{ class }}">
-            <th>
-                {{ elementChip(element, {
-                    single: true,
-                }) }}
-            </th>
-
-            <td>{{ element.displayName() }}</td>
-
-            {% if element.isRevision() %}
-                <td>{{ 'Revision' | t('app') }}</td>
-            {% elseif element.isDraft() %}
-                <td>{{ 'Draft' | t('app') }}</td>
-            {% else %}
-                <td>{{ element.getStatus() | title }}</td>
-            {% endif %}
-
-            <td>
-                {% if field %}
-                    <code>{{ field.handle }}</code>
-                {% else %}
-                    <i>{{ 'Unknown field' | t('formie') }}</i>
-                {% endif %}
-            </td>
-        </tr>
-    {% endif %}
-{% endmacro %}
-
-{% set settings = craft.formie.plugin.settings %}
-
-{% set options = {
-    showDrafts: settings.includeDraftElementUsage,
-    showRevisions: settings.includeRevisionElementUsage,
-} %}
-
 {% if formUsage %}
     <table id="formie-audit" class="data fullwidth collapsible formie-table">
         <thead>
@@ -66,13 +7,32 @@
             <th>{{ 'Field' | t('formie') }}</th>
         </thead>
         <tbody>
-            {% for info in formUsage %}
-                {% set element = craft.app.getElements().getElementById(info.id, info.type) %}
-                {% set field = craft.app.getFields().getFieldById(info.fieldId) %}
+            {% for row in formUsage %}
+                <tr class="element-row">
+                    <th style="padding-left: {{ (row.level + 1) * 12 }}px;">
+                        <a href="{{ row.element.getCpEditUrl() }}">
+                            {{ row.element.getChipLabelHtml() | raw }}
+                        </a>
+                    </th>
 
-                {% if element %}
-                    {{ _self.tableColumns(element, field, options) }}
-                {% endif %}
+                    <td>{{ row.element.displayName() }}</td>
+
+                    {% if row.element.isRevision() %}
+                        <td>{{ 'Revision' | t('app') }}</td>
+                    {% elseif row.element.isDraft() %}
+                        <td>{{ 'Draft' | t('app') }}</td>
+                    {% else %}
+                        <td>{{ row.element.getStatus() | title }}</td>
+                    {% endif %}
+
+                    <td>
+                        {% if row.field %}
+                            <code>{{ row.field.handle }}</code>
+                        {% else %}
+                            <i>{{ 'Unknown field' | t('formie') }}</i>
+                        {% endif %}
+                    </td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

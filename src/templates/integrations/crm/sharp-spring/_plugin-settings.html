@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://sharpspring.com/" target="_blank">{name}</a> and login to your account.
@@ -10,7 +12,8 @@
 1. Copy the **Account ID** from {name} and paste in the **Account ID** field below.
 1. Copy the **Secret Key** from {name} and paste in the **Secret Key** field below.
 
-### Step 2. Connect to the {name} API
+### Step 2. Provide Form Base URL
+1. If you do not wish to map Formie Submission to a SharpSpring form, you can skip this step.
 1. Click **Marketing** > **Content** > **Forms** in {name}'s top toolbar.
 1. Click the **Create Form** button.
 1. Enter a name for the form and select the **Native Form** radio button. Click the **Continue** button.
@@ -24,7 +27,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -33,9 +36,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Account ID' | t('formie'),
-    instructions: 'Enter your {name} Account ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'accountId',
     required: true,
     suggestEnvVars: true,
@@ -44,9 +47,9 @@
     errors: integration.getErrors('accountId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Secret Key' | t('formie'),
-    instructions: 'Enter your {name} Secret Key here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
@@ -55,11 +58,11 @@
     errors: integration.getErrors('secretKey'),
 }) }}
 
-{{ forms.autosuggestField({
-    label: 'Form URL' | t('formie'),
-    instructions: 'Enter your {name} Form URL here.' | t('formie', { name: integration.displayName() }),
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Form Base URL' | t('formie'),
+    instructions: 'Enter your {name} Form Base URL here if you wish to map to a {name} form.' | t('formie'),
     name: 'formUrl',
-    required: true,
+    required: false,
     suggestEnvVars: true,
     value: integration.settings.formUrl ?? '',
     warning: macros.configWarning('formUrl', 'formie'),

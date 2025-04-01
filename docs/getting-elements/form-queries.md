@@ -57,7 +57,6 @@ Form queries support the following parameters:
 | [limit](#limit)                               | Determines the number of forms that should be returned.
 | [offset](#offset)                             | Determines how many forms should be skipped in the results.
 | [orderBy](#orderby)                           | Determines the order that the forms should be returned in. (If empty, defaults to `postDate DESC`.)
-| [relatedTo](#relatedto)                       | Narrows the query results to only forms that are related to certain other elements.
 | [template](#template)                         | Narrows the query results based on the forms’ template.
 | [templateId](#templateId)                     | Narrows the query results based on the forms’ template, per their IDs.
 | [title](#title)                               | Narrows the query results based on the forms’ titles.
@@ -298,30 +297,6 @@ Determines the order that the forms should be returned in.
 // Fetch all forms in order of date created
 $forms = \verbb\formie\elements\Form::find()
     ->orderBy('elements.dateCreated asc')
-    ->all();
-```
-:::
-
-
-
-### `relatedTo`
-
-Narrows the query results to only forms that are related to certain other elements.
-
-See [Relations](https://craftcms.com/docs/4.x/relations.html) for a full explanation of how to work with this parameter.
-
-::: code
-```twig Twig
-{# Fetch all forms that are related to myCategory #}
-{% set forms = craft.formie.forms()
-    .relatedTo(myCategory)
-    .all() %}
-```
-
-```php PHP
-// Fetch all forms that are related to $myCategory
-$forms = \verbb\formie\elements\Form::find()
-    ->relatedTo($myCategory)
     ->all();
 ```
 :::

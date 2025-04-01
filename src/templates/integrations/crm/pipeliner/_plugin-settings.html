@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
+{% set displayName = integration.displayName() %}
+
 {% set instructions %}
 ### Step 1. Connect to the {name} API
 1. Go to <a href="https://www.pipelinersales.com/" target="_blank">{name}</a> and login to your account.
@@ -16,7 +18,7 @@
 {% endset %}
 
 <div class="fui-settings-block">
-    {{ instructions | t('formie', { name: integration.displayName() }) | md }}
+    {{ instructions | t('formie', { name: displayName }) | md }}
 </div>
 
 {% if not craft.app.config.general.allowAdminChanges %}
@@ -25,9 +27,9 @@
     </span>
 {% endif %}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Token' | t('formie'),
-    instructions: 'Enter your {name} API token here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiToken',
     required: true,
     suggestEnvVars: true,
@@ -36,9 +38,9 @@
     errors: integration.getErrors('apiToken'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Password' | t('formie'),
-    instructions: 'Enter your {name} API password here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiPassword',
     required: true,
     suggestEnvVars: true,
@@ -47,9 +49,9 @@
     errors: integration.getErrors('apiPassword'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Space ID' | t('formie'),
-    instructions: 'Enter your {name} API Space ID here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiSpaceId',
     required: true,
     suggestEnvVars: true,
@@ -58,9 +60,9 @@
     errors: integration.getErrors('apiSpaceId'),
 }) }}
 
-{{ forms.autosuggestField({
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Service URL' | t('formie'),
-    instructions: 'Enter your {name} API Service URL here.' | t('formie', { name: integration.displayName() }),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
     name: 'apiServiceUrl',
     required: true,
     suggestEnvVars: true,

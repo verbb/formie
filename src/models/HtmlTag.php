@@ -54,15 +54,16 @@ class HtmlTag extends Model
         // Filter nested arrays like classes
         $this->attributes = ArrayHelper::filterEmptyFalse($this->attributes);
 
-        // Provide support for Twig-in-config syntax for really complex stuff. Just for classes.
-        $classes = $this->attributes['class'] ?? [];
+        // Provide support for Twig-in-config syntax for really complex stuff. Just for classes and style.
+        foreach (['class', 'style'] as $attribute) {
+            $items = $this->attributes[$attribute] ?? [];
 
-        if ($classes) {
-            foreach ($classes as $key => $class) {
-                if (str_contains($class, '{{')) {
-                    $parsed = Craft::$app->getView()->renderString($class, $context);
-
-                    $this->attributes['class'][$key] = $parsed;
+            if ($items) {
+                foreach ($items as $key => $item) {
+                    if (str_contains($item, '{{')) {
+                        $parsed = Craft::$app->getView()->renderString($item, $context);
+                        $this->attributes[$attribute][$key] = $parsed;
+                    }
                 }
             }
         }

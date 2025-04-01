@@ -6,13 +6,12 @@ use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\Table;
 
 use craft\elements\db\ElementQuery;
+use craft\elements\ElementCollection;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
 
 use GraphQL\Language\AST\InlineFragmentNode;
 use GraphQL\Type\Definition\ResolveInfo;
-
-use Illuminate\Support\Collection;
 
 class SubmissionResolver extends ElementResolver
 {
@@ -38,7 +37,7 @@ class SubmissionResolver extends ElementResolver
         $pairs = GqlHelper::extractAllowedEntitiesFromSchema('read');
 
         if (!GqlHelper::canQuerySubmissions()) {
-            return Collection::empty();
+            return ElementCollection::empty();
         }
 
         if (!GqlHelper::canSchema('formieSubmissions.all')) {

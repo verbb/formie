@@ -73,7 +73,10 @@ class Notifications extends Component
 
     public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
     {
-        return ArrayHelper::whereMultiple($this->_notifications(), ['formId' => $form->id, 'handle' => $handle])[0] ?? null;
+        return ArrayHelper::firstWhere(
+            $this->_notifications(),
+            fn(Notification $notification) => $notification->formId === $form->id && $notification->handle === $handle,
+        );
     }
 
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
@@ -102,7 +105,7 @@ class Notifications extends Component
             $notificationRecord->templateId = $notification->templateId;
             $notificationRecord->pdfTemplateId = $notification->pdfTemplateId;
             $notificationRecord->name = $notification->name;
-            $notificationRecord->handle = $notification->handle ?? $this->_getUniqueNotificationHandle($notification);
+            $notificationRecord->handle = $notification->handle ?? $this->getUniqueNotificationHandle($notification);
             $notificationRecord->enabled = $notification->enabled;
             $notificationRecord->subject = $notification->subject;
             $notificationRecord->recipients = $notification->recipients;
@@ -123,9 +126,24 @@ class Notifications extends Component
             $notificationRecord->conditions = $notification->conditions;
             $notificationRecord->customSettings = $notification->customSettings;
 
+            // Clear content for conditionally-set recipients to prevent zombie data
+            if ($notificationRecord->recipients === 'conditions') {
+                $notificationRecord->to = null;
+            } else {
+                $notificationRecord->toConditions = null;
+            }
+
+            // Clear content for conditionally-set recipients to prevent zombie data
+            if ($notificationRecord->recipients === 'conditions') {
+                $notificationRecord->to = null;
+            } else {
+                $notificationRecord->toConditions = null;
+            }
+
             $notificationRecord->save(false);
 
             $notification->id = $notificationRecord->id;
+            $notification->to = $notificationRecord->to;
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -176,6 +194,30 @@ class Notifications extends Component
         }
 
         return true;
+    }
+
+    public function getUniqueNotificationHandle(Notification $notification): string
+    {
+        $increment = 1;
+        $notificationHandle = StringHelper::toHandle($notification->name);
+        $handle = $notificationHandle;
+
+        // Generate a unique notification handle. Note that they're not unique globally, just per-form.
+        while (true) {
+            $existingNotification = (new Query())
+                ->select(['*'])
+                ->from([Table::FORMIE_NOTIFICATIONS])
+                ->where(['handle' => $handle, 'formId' => $notification->formId])
+                ->one();
+
+            if (!$existingNotification) {
+                return substr($handle, 0, 50);
+            }
+
+            $handle = $notificationHandle . $increment;
+
+            $increment++;
+        }
     }
 
     public function buildNotificationsFromPost(): array
@@ -360,14 +402,14 @@ class Notifications extends Component
             'Content',
         ];
 
-        if ($user->checkPermission('formie-manageNotificationsAdvanced')) {
+        if ($user->checkPermission('formie-showNotificationsAdvanced')) {
             $definedTabs[] = 'Advanced';
         }
 
-        if ($user->checkPermission('formie-manageNotificationsTemplates')) {
+        if ($user->checkPermission('formie-showNotificationsTemplates')) {
             $definedTabs[] = 'Templates';
         }
-
+        
         $definedTabs[] = 'Settings';
         $definedTabs[] = 'Preview';
         $definedTabs[] = 'Conditions';
@@ -428,7 +470,7 @@ class Notifications extends Component
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Recipients'),
-                'help' => Craft::t('formie', 'Define who should receive this email notification.'),
+                'help' => Craft::t('formie', 'Define who should receive this email notification. Define either specific emails, or emails based on conditions.'),
                 'name' => 'recipients',
                 'validation' => 'required',
                 'required' => true,
@@ -449,7 +491,7 @@ class Notifications extends Component
             [
                 '$formkit' => 'notificationRecipients',
                 'label' => Craft::t('formie', 'Recipient Conditions'),
-                'help' => Craft::t('formie', 'Add conditional logic to determine which email addresses receive this email notification.'),
+                'help' => Craft::t('formie', 'Use conditional logic to determine which email addresses receive this email notification.'),
                 'name' => 'toConditions',
                 'id' => 'toConditions',
                 'if' => '$get(recipients).value == conditions',
@@ -685,29 +727,5 @@ class Notifications extends Component
         }
 
         return new NotificationRecord();
-    }
-
-    private function _getUniqueNotificationHandle(Notification $notification): string
-    {
-        $increment = 1;
-        $notificationHandle = StringHelper::toHandle($notification->name);
-        $handle = $notificationHandle;
-
-        // Generate a unique notification handle. Note that they're not unique globally, just per-form.
-        while (true) {
-            $existingNotification = (new Query())
-                ->select(['*'])
-                ->from([Table::FORMIE_NOTIFICATIONS])
-                ->where(['handle' => $handle, 'formId' => $notification->formId])
-                ->one();
-
-            if (!$existingNotification) {
-                return substr($handle, 0, 50);
-            }
-
-            $handle = $notificationHandle . $increment;
-
-            $increment++;
-        }
     }
 }

@@ -102,6 +102,13 @@ export class Formie {
                     $script.src = config.src;
                     $script.defer = true;
 
+                    // We might be passing in script tag attributes
+                    if (formConfig.settings.scriptAttributes) {
+                        Object.entries(formConfig.settings.scriptAttributes).forEach(([attribute, value]) => {
+                            $script.setAttribute(attribute, value);
+                        });
+                    }
+
                     // Initialize all matching fields - their config is already rendered in templates
                     $script.onload = () => {
                         if (config.module) {
@@ -280,8 +287,9 @@ export class Formie {
 
     refreshFormTokens(form, callback) {
         const { formHashId, formHandle } = form.config;
+        const url = form.settings.refreshTokenUrl.replace('FORM_PLACEHOLDER', formHandle);
 
-        fetch(`/actions/formie/forms/refresh-tokens?form=${formHandle}`)
+        fetch(url)
             .then((result) => { return result.json(); })
             .then((result) => {
                 // Fetch the form we want to deal with

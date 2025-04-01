@@ -6,6 +6,7 @@ use verbb\formie\base\Captcha;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FieldTrait;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
@@ -128,7 +129,7 @@ class Submission extends CustomElement
             $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
-                'defaultSort' => ['formie_submissions.title', 'desc'],
+                'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }
 
@@ -149,7 +150,7 @@ class Submission extends CustomElement
                     'handle' => $form->handle,
                 ],
                 'criteria' => ['formId' => $form->id],
-                'defaultSort' => ['formie_submissions.title', 'desc'],
+                'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }
 
@@ -246,7 +247,7 @@ class Submission extends CustomElement
         return [
             [
                 'label' => Craft::t('app', 'Title'),
-                'orderBy' => 'formie_submissions.title',
+                'orderBy' => 'elements_sites.title',
                 'attribute' => 'title',
             ],
             [
@@ -277,6 +278,7 @@ class Submission extends CustomElement
     public ?string $spamClass = null;
     public array $snapshot = [];
     public ?bool $validateCurrentPageOnly = null;
+    public bool $isNewSubmission = false;
 
     private ?Form $_form = null;
     private ?Status $_status = null;
@@ -376,6 +378,28 @@ class Submission extends CustomElement
         }
 
         return true;
+    }
+
+    public function attributeLabels(): array
+    {
+        $labels = parent::attributeLabels();
+
+        $processFields = function ($fields) use (&$processFields, &$labels) {
+            foreach ($fields as $field) {
+                $labels[$field->fieldKey] = $field->label;
+
+                // Allow fields to modify the attribute labels
+                $field->modifyAttributeLabels($labels);
+
+                if ($field instanceof NestedFieldInterface) {
+                    $processFields($field->getFields());
+                }
+            }
+        };
+
+        $processFields($this->getFields());
+
+        return $labels;
     }
 
     public function getStatus(): ?string
@@ -613,13 +637,13 @@ class Submission extends CustomElement
 
         // Return all values for a field for a given type. Includes nested fields like Group/Repeater.
         foreach ($this->getFields() as $field) {
-            if (get_class($field) === $type) {
+            if ($field instanceof $type) {
                 $fieldValues[$field->handle] = $this->getFieldValue($field->handle);
             }
 
             if ($field instanceof SingleNestedFieldInterface) {
                 foreach ($field->getFields() as $nestedField) {
-                    if (get_class($nestedField) === $type) {
+                    if ($nestedField instanceof $type) {
                         $fieldKey = "$field->handle.$nestedField->handle";
 
                         $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
@@ -632,7 +656,7 @@ class Submission extends CustomElement
 
                 foreach ($value as $rowKey => $row) {
                     foreach ($this->getFields() as $nestedField) {
-                        if (get_class($nestedField) === $type) {
+                        if ($nestedField instanceof $type) {
                             $fieldKey = "$field->handle.$rowKey.$nestedField->handle";
 
                             $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
@@ -701,14 +725,36 @@ class Submission extends CustomElement
         $fields = $this->snapshot['fields'] ?? [];
 
         foreach ($fields as $handle => $settings) {
-            $form->setFieldSettings($handle, $settings, false);
+            $this->setFieldSettings($handle, $settings);
         }
 
         // Do the same for form settings
         $formSettings = $this->snapshot['form'] ?? null;
 
         if ($formSettings) {
-            $form->settings->setAttributes($formSettings, false);
+            $this->_form->settings->setAttributes($formSettings, false);
+        }
+    }
+
+    public function setFieldSettings(string $handle, array $settings): void
+    {
+        $field = null;
+        
+        // Check for nested fields so we can use `group.dropdown` or `dropdown`.
+        $handles = explode('.', $handle);
+
+        if (count($handles) > 1) {
+            $parentField = $this->getFieldByHandle($handles[0]);
+
+            if ($parentField) {
+                $field = $parentField->getFieldByHandle($handles[1]);
+            }
+        } else {
+            $field = $this->getFieldByHandle($handles[0]);
+        }
+
+        if ($field) {
+            $field->setAttributes($settings, false);
         }
     }
 
@@ -716,6 +762,24 @@ class Submission extends CustomElement
     {
         if ($form = $this->getForm()) {
             return $form->title;
+        }
+
+        return null;
+    }
+
+    public function getFormHandle(): ?string
+    {
+        if ($form = $this->getForm()) {
+            return $form->handle;
+        }
+
+        return null;
+    }
+
+    public function getSiteHandle(): ?string
+    {
+        if ($site = $this->getSite()) {
+            return $site->handle;
         }
 
         return null;
@@ -735,7 +799,12 @@ class Submission extends CustomElement
             return $this->_status = $form->getDefaultStatus();
         }
 
-        return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
+        if ($status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+            return $this->_status = $status;
+        }
+
+        // Just in case there's no default status set in settings, pick the first available
+        return $this->_status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
     }
 
     public function setStatus(Status|string $status): void
@@ -775,8 +844,10 @@ class Submission extends CustomElement
 
         foreach ($this->getFields() as $field) {
             if ($field instanceof Payment && ($paymentIntegration = $field->getPaymentIntegration())) {
-                // Set the payment field on the integration, for ease-of-use
-                $paymentIntegration->setField($field);
+                // Ensure that the field matches the integration details for multi-payment field forms
+                if (!$paymentIntegration->field || $paymentIntegration->field->id !== $field->id) {
+                    continue;
+                }
 
                 if ($summaryHtml = $paymentIntegration->getSubmissionSummaryHtml($this, $field)) {
                     $html .= $summaryHtml;
@@ -1131,8 +1202,9 @@ class Submission extends CustomElement
         // Check to see if we need to save any relations
         Formie::$plugin->getRelations()->saveRelations($this);
 
-        // If the status has changed, fire any applicable email notifications
-        if ($this->hasStatusChanged()) {
+        // If the status has changed, fire any applicable email notifications. 
+        // Also check for `isNewSubmission` to see whether we're submitting something new, or just resaving.
+        if (!$this->isNewSubmission && $this->hasStatusChanged()) {
             // Only send notifications that match a status-change condition
             $form = $this->getForm();
             $notifications = $form->getEnabledNotifications();
@@ -1197,7 +1269,7 @@ class Submission extends CustomElement
             $fields = $formLayout->getVisiblePageFields($this);
 
             foreach ($fields as $field) {
-                $attribute = "field:$field->handle";
+                $attribute = 'field:' . $field->getErrorKey();
 
                 if ($field->getIsDisabled()) {
                     continue;
@@ -1252,6 +1324,10 @@ class Submission extends CustomElement
         $rules[] = [['title'], 'required'];
         $rules[] = [['title'], 'string', 'max' => 255];
         $rules[] = [['formId'], 'number', 'integerOnly' => true];
+
+        // Required for typecasting the JSON column
+        // https://github.com/yiisoft/yii2/issues/15839
+        $rules[] = [['content'], 'safe'];
 
         // Fire a 'defineSubmissionRules' event
         $event = new SubmissionRulesEvent([

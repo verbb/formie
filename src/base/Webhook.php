@@ -51,20 +51,17 @@ abstract class Webhook extends Integration
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
+        $variables = $this->getSettingsHtmlVariables();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_plugin-settings", [
-            'integration' => $this,
-        ]);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_plugin-settings", $variables);
     }
 
     public function getFormSettingsHtml(Form|Stencil $form): string
     {
         $handle = $this->getClassHandle();
+        $variables = $this->getFormSettingsHtmlVariables($form);
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_form-settings", [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_form-settings", $variables);
     }
 
 

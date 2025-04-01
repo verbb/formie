@@ -18,4 +18,13 @@ class Products extends FeedMeProducts
     public static string $class = ProductsField::class;
     public static string $name = 'Products';
 
+
+    // Templates
+    // =========================================================================
+
+    public function getMappingTemplate(): string
+    {
+        return 'formie/integrations/feedme/fields/products';
+    }
+
 }

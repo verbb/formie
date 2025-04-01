@@ -126,10 +126,10 @@ Old Class | New Class
 | `verbb\formie\base\FormField` | `verbb\formie\base\Field`
 | `verbb\formie\base\FormFieldInterface` | `verbb\formie\base\FieldInterface`
 | `verbb\formie\base\FormFieldTrait` | Removed. Use `verbb\formie\base\Field`
-| `verbb\formie\base\NestedFieldTrait` | Removed. `verbb\formie\base\NestedField`
-| `verbb\formie\base\RelationFieldTrait` | Removed. `verbb\formie\base\ElementField`
+| `verbb\formie\base\NestedFieldTrait` | Removed. Use `verbb\formie\base\NestedField`
+| `verbb\formie\base\RelationFieldTrait` | Removed. Use `verbb\formie\base\ElementField`
 | `verbb\formie\base\SubfieldInterface` | `verbb\formie\base\SubFieldInterface`
-| `verbb\formie\base\SubfieldTrait` | Removed. `verbb\formie\base\SubField`
+| `verbb\formie\base\SubfieldTrait` | Removed. Use `verbb\formie\base\SubField`
 | `verbb\formie\fields\formfields\Address` | `verbb\formie\fields\Address`
 | `verbb\formie\fields\formfields\Agree` | `verbb\formie\fields\Agree`
 | `verbb\formie\fields\formfields\Calculations` | `verbb\formie\fields\Calculations`
@@ -209,7 +209,7 @@ public function setForm(?Form $value): void
 
 // Formie v2 vs Formie v3
 public function getDefaultValue($attributePrefix = '')
-public function getDefaultValue(string $attributePrefix = ''): mixed
+public function getDefaultValue(): mixed
 
 // Formie v2 vs Formie v3
 public function setNamespace($value): void
@@ -592,6 +592,25 @@ $firstName = $this->getFieldByHandle('firstName');
 if ($firstName && $firstName->enabled) {
     $label = $firstName->label;
 }
+```
+
+## Element Queries
+
+### Submission Queries
+We have removed the `relatedTo` query parameter, which you might have used for checking against element field content. For example, you might have an Entries field in your form, and you want to find all Submissions that are `relatedTo` a specific entry.
+
+While you can still do this in Formie 3, you should query the specific field's content.
+
+```twig
+{% set relatedEntry = craft.entries.id(123).one() %}
+
+
+// Formie v2
+{% set submissions = craft.formie.submissions().form('contactForm').relatedTo(relatedEntry).all() %}
+
+
+// Formie v3
+{% set submissions = craft.formie.submissions().form('contactForm').entriesFieldHandle(relatedEntry).all() %}
 ```
 
 ## Content Tables

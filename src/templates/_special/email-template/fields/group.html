@@ -1,12 +1,8 @@
 {# Keep track of the outer group field #}
 {% set groupField = field %}
 
-<div style="margin: 1em 0;">
-    {% if not (renderOptions.hideName ?? false) %}
-        <strong>{{ field.label | t('formie') }}</strong>
-    {% endif %}
-
-    {% if value %}
+{% if value %}
+    <div style="margin: 1em 0;">
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             <tbody>
                 {% for field in field.getFields() %}
@@ -15,9 +11,7 @@
 
                     {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-                    {% set html = field.getEmailHtml(submission, notification, fieldValue, {
-                        hideName: true,
-                    }) %}
+                    {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
 
                     {% if html %}
                         <tr>
@@ -35,7 +29,5 @@
                 {% endfor %}
             </tbody>
         </table>
-    {% else %}
-        <p>{{ notification.getPlaceholder() }}</p>
-    {% endif %}
-</div>
+    </div>
+{% endif %}

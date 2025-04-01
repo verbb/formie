@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\options;
 
-use Craft;
 use verbb\formie\base\PredefinedOption;
+
+use Craft;
 
 class Satisfaction extends PredefinedOption
 {

@@ -102,6 +102,16 @@ export default {
         },
     },
 
+    data() {
+        return {
+            defaultSettings: {
+                sendRule: 'send',
+                conditionRule: 'all',
+                conditions: [],
+            },
+        };
+    },
+
     watch: {
         settings: {
             deep: true,
@@ -184,8 +194,13 @@ export default {
             const options = [];
 
             const allStatuses = this.$store.getters['formie/statuses']();
+
             const statuses = allStatuses.map((status) => {
                 return { label: status.name, value: status.handle };
+            });
+
+            const sites = Craft.sites.map((site) => {
+                return { label: site.name, value: site.handle };
             });
 
             options.push({
@@ -194,6 +209,16 @@ export default {
                     { label: Craft.t('formie', 'Title'), value: '{submission:title}' },
                     { label: Craft.t('formie', 'ID'), value: '{submission:id}' },
                     { label: Craft.t('formie', 'Form Name'), value: '{submission:formName}' },
+                    { label: Craft.t('formie', 'Submission Date'), value: '{submission:dateCreated}' },
+                    {
+                        label: Craft.t('formie', 'Site'),
+                        value: '{submission:siteHandle}',
+                        valueType: 'select',
+                        valueOptions: [
+                            { label: Craft.t('formie', 'Select an option'), value: '' },
+                            ...sites,
+                        ],
+                    },
                     {
                         label: Craft.t('formie', 'Status'),
                         value: '{submission:status}',

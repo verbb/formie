@@ -131,6 +131,19 @@ Event::on(Rendering::class, Rendering::EVENT_MODIFY_RENDER_FIELD, function(Modif
 });
 ```
 
+### The `modifyFrontEndJsTranslations` event
+The event that is triggered to modify or define additional translation strings for JS modules.
+
+```php
+use verbb\formie\events\ModifyFrontEndJsTranslationsEvent;
+use verbb\formie\services\Rendering;
+use yii\base\Event;
+
+Event::on(Rendering::class, Rendering::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS, function(ModifyFrontEndJsTranslationsEvent $event) {
+    $event->strings[] = 'My custom string';
+});
+```
+
 
 
 
@@ -1524,7 +1537,7 @@ Event::on(PdfTemplates::class, PdfTemplates::EVENT_MODIFY_RENDER_OPTIONS, functi
 ## Integration Events
 
 ### The `registerFormieIntegrations` event
-The event that is triggered for registering new captcha integrations.
+The event that is triggered for registering integrations.
 
 ```php
 use verbb\formie\events\RegisterIntegrationsEvent;
@@ -1532,7 +1545,14 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas = myCaptcha::class;
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->elements[] = ExampleElement::class;
+    $event->emailMarketing[] = ExampleEmailMarketing::class;
+    $event->crm[] = ExampleCrm::class;
+    $event->webhooks[] = ExampleWebhook::class;
+    $event->miscellaneous[] = ExampleMiscellaneous::class;
+    $event->payments[] = ExamplePayment::class;
     // ...
 });
 ```
@@ -1901,7 +1921,6 @@ Event::on(Tokens::class, Tokens::EVENT_AFTER_DELETE_TOKEN, function(TokenEvent $
 ```
 
 
-
 ## Address Provider Integration Events
 
 ### The `modifyAddressProviderHtml` event
@@ -1917,6 +1936,44 @@ Event::on(AddressFinder::class, AddressFinder::EVENT_MODIFY_ADDRESS_PROVIDER_HTM
     // ...
 });
 ```
+
+
+## Element Integration Events
+
+### The `modifyElementFields` event
+The event that is triggered for an Element integration, which returns the available fields to map Formie field values to for the element.
+
+```php
+use verbb\formie\events\ModifyElementFieldsEvent;
+use verbb\formie\integrations\elements\Entry;
+use yii\base\Event;
+
+Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_FIELDS, function(ModifyElementFieldsEvent $event) {
+    $fieldLayout = $event->fieldLayout;
+    $fields = $event->fields;
+    // ...
+});
+```
+
+### The `modifyElementMatch` event
+The event that is triggered for an Element integration, when matching against an existing element. This determines whether the integration should create a new element, or update an existing one.
+
+```php
+use verbb\formie\events\ModifyElementMatchEvent;
+use verbb\formie\integrations\elements\Entry;
+use yii\base\Event;
+
+Event::on(Entry::class, Entry::EVENT_MODIFY_ELEMENT_MATCH, function(ModifyElementMatchEvent $event) {
+    $elementType = $event->elementType;
+    $identifier = $event->identifier;
+    $submission = $event->submission;
+    $criteria = $event->criteria;
+    $element = $event->element;
+    // ...
+});
+```
+
+
 
 ## Microsoft Dynamics 365 Events
 
@@ -1939,20 +1996,21 @@ Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_REQUIR
 ```
 
 ### The `modifyTargetSchemas` event
-The event that is triggered to allow modification of the target schemas when populating lookup/relational fields.
+The event that is triggered to allow modification of the target schemas when populating lookup/relational fields in the field mapping.
 
-Formie populates lookup/relational field values of the common standard entities, but this event gives you a chance to modify the standard entities along with populating any custom entities in the mapping.
+By default Formie populates lookup/relational field values of entities discovered from the metadata of the Microsoft Dynamics 365 environment, but this event gives you a chance to modify both standard and custom entities to customise the values shown in the field mapping.
 
-Any modifications made to the standard entities such as `systemuser` or `campaign` will be merged and overwritten with the values from the event.
+Any modifications made to the standard entities such as `systemuser` or `campaign` will be merged, the values set in this event take priority.
 
-The following additional parameters are available for each entity:
+The following additional parameters are available for each entity for further customisation:
 
-* `expand` - For more complex queries related to one or more entities
-* `filter` - Specify a filter to modify the returned values
-* `limit` - Set the amount of values to return (defaults to 100 if not specifically set)
-* `orderby` - Order the returned values by a specific criteria e.g. `name asc`
+* `expand` - For performing more complex queries related to one or more entities.
+* `filter` - Specify a filter criteria to modify the returned values.
+* `limit` - Set the amount of values to return (defaults to 100 if not specifically set).
+* `orderby` - Order the returned values by a specific criteria e.g. `name asc`.
+* `select` - Array of values to return in the lookup e.g. `['fullname', 'systemuserid']`
 
-When using the `limit` option. Be mindful of the performance impact when refreshing the integration.
+When using the `limit` option and increasing the amount of values returned, be mindful of the performance impact when refreshing the integration.
 
 ```php
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
@@ -1961,20 +2019,19 @@ use yii\base\Event;
 
 Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_TARGET_SCHEMAS, function(MicrosoftDynamics365TargetSchemasEvent $event) {
     $event->targetSchemas = [
+        // Filter to modify the returned values for the systemuser entity
         'systemuser' => [
-            // Filter to modify the returned values
             'filter' => 'isdisabled eq false and invitestatuscode eq 4 or accessmode eq 4',
         ],
-        // Set the order to be something more logical for this entity and allow more than 100 values
+        // Set the orderby criteria be something more logical for this entity and allow more than 100 values
         'campaign' => [
             'orderby' => 'createdon desc',
-            'limit' => '150'
+            'limit' => 150
         ],
-        // A custom entity
+        // A custom entity with a custom orderby and filter
         'ccl1000_enquirytype' => [
-            'entity' => 'ccl1000_enquirytypes',
-            'label' => 'ccl1000_name',
-            'value' => 'ccl1000_enquirytypeid'
+            'orderby' => 'ccl1000_name asc',
+            'filter' => 'statecode eq 0',
         ]
     ];
 });
@@ -2100,10 +2157,10 @@ You can use this event to custom Sprout Forms or Freeform field to a field Formi
 
 ```php
 use verbb\formie\events\ModifyMigrationFieldEvent;
-use verbb\formie\migrations\MigrateFreeform;
+use verbb\formie\migrations\MigrateFreeform4;
 use yii\base\Event;
 
-Event::on(MigrateFreeform::class, MigrateFreeform::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
+Event::on(MigrateFreeform4::class, MigrateFreeform4::EVENT_MODIFY_FIELD, function(ModifyMigrationFieldEvent $event) {
     $field = $event->field;
     $newField = $event->newField;
     // ...

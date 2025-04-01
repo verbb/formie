@@ -10,6 +10,8 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\gql\arguments\OptionFieldArguments;
+use verbb\formie\gql\resolvers\OptionFieldResolver;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -19,8 +21,6 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
-use craft\gql\arguments\OptionField as OptionFieldArguments;
-use craft\gql\resolvers\OptionField as OptionFieldResolver;
 use craft\helpers\Json;
 
 use yii\db\Schema;
@@ -112,6 +112,16 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         return [];
     }
 
+    public function allowDuplicateLabels(): bool
+    {
+        return false;
+    }
+
+    public function allowDuplicateValues(): bool
+    {
+        return false;
+    }
+
     public function validateOptions(): void
     {
         $labels = [];
@@ -151,11 +161,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             $labels[$optgroup][$label] = $values[$value] = true;
         }
 
-        if ($hasDuplicateLabels) {
+        if (!$this->allowDuplicateLabels() && $hasDuplicateLabels) {
             $this->addError('options', Craft::t('app', 'All option labels must be unique.'));
         }
 
-        if ($hasDuplicateValues) {
+        if (!$this->allowDuplicateValues() && $hasDuplicateValues) {
             $this->addError('options', Craft::t('app', 'All option values must be unique.'));
         }
     }
@@ -194,7 +204,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 $selected = $this->isOptionSelected($option, $value, $selectedValues, $selectedBlankOption);
-                $options[] = new OptionData($option['label'], $option['value'], $selected, true);
+                $options[] = new OptionData($option['label'], (string)$option['value'], $selected, true);
                 $optionValues[] = (string)$option['value'];
                 $optionLabels[] = (string)$option['label'];
             }
@@ -244,16 +254,6 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         return parent::serializeValue($value, $element);
-    }
-
-    public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        // Respect the format picker for "Email Notification Value" 
-        if ($value instanceof SingleOptionFieldData) {
-            return $this->emailValue === 'label' ? $value->label : $value->value;
-        }
-
-        return parent::getValueForVariable($value, $submission, $notification);
     }
 
     public function getElementValidationRules(): array
@@ -413,6 +413,16 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         return $value->label ?? '';
     }
 
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // Respect the format picker for "Email Notification Value" 
+        if ($value instanceof SingleOptionFieldData) {
+            return $this->emailValue === 'label' ? $value->label : $value->value;
+        }
+
+        return parent::defineValueForVariable($value, $submission, $notification);
+    }
+
     protected function getPredefinedOptions(): array
     {
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
@@ -429,7 +439,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
     protected function isOptionSelected(array $option, mixed $value, array &$selectedValues, bool &$selectedBlankOption): bool
     {
-        return in_array($option['value'], $selectedValues, true);
+        return in_array((string)$option['value'], $selectedValues, true);
     }
 
     protected function translatedOptions(): array
@@ -444,7 +454,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
             } else {
                 $translatedOptions[] = [
                     'label' => Craft::t('formie', $option['label']),
-                    'value' => $option['value'],
+                    'value' => (string)$option['value'],
                 ];
             }
         }
@@ -459,7 +469,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
             foreach ($this->options() as $option) {
                 if (!empty($option['isDefault'])) {
-                    $defaultValues[] = $option['value'];
+                    $defaultValues[] = (string)$option['value'];
                 }
             }
 
@@ -468,7 +478,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
 
         foreach ($this->options() as $option) {
             if (!empty($option['isDefault'])) {
-                return $option['value'];
+                return (string)$option['value'];
             }
         }
 

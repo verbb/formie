@@ -60,7 +60,7 @@ class Fields extends Component
     {
         // Maintain a cache of all Formie field handles, because we can't rely on Craft's customFields behaviour.
         return Craft::$app->getCache()->getOrSet('formie:fieldHandles', function() {
-            return (new Query())->select(['handle'])->from(Table::FORMIE_FIELDS)->column();
+            return (new Query())->select(['handle', 'uid'])->from(Table::FORMIE_FIELDS)->indexBy('uid')->column();
         });
     }
 
@@ -377,7 +377,7 @@ class Fields extends Component
                 $pageFields = [];
 
                 $fields = $page->getFields();
-                ArrayHelper::multisort($fields, 'name', SORT_ASC, SORT_STRING);
+                ArrayHelper::multisort($fields, 'label', SORT_ASC, SORT_STRING);
 
                 foreach ($fields as $field) {
                     // Only include one instance of a synced field.
@@ -401,7 +401,7 @@ class Fields extends Component
             ];
         }
 
-        ArrayHelper::multisort($allFields, 'name', SORT_ASC, SORT_STRING);
+        ArrayHelper::multisort($allFields, 'label', SORT_ASC, SORT_STRING);
 
         array_unshift($existingFields, [
             'key' => '*',
@@ -429,6 +429,14 @@ class Fields extends Component
             $config = ['type' => $config];
         }
 
+        // If already a `MissingField` (typically serialized in stencil), convert back
+        if ($config['type'] === formiefields\MissingField::class) {
+            $config = [
+                'type' => $config['settings']['expectedType'],
+                'settings' => $config['settings']['settings'] ?? [],
+            ];
+        }
+
         try {
             $field = ComponentHelper::createComponent($config, FieldInterface::class);
         } catch (MissingComponentException $e) {
@@ -442,6 +450,35 @@ class Fields extends Component
         $field->afterCreateField($config);
 
         return $field;
+    }
+
+    public function getAllLayouts(): array
+    {
+        $layouts = [];
+
+        $layoutIds = (new Query())
+            ->select(['id'])
+            ->from(Table::FORMIE_FIELD_LAYOUTS)
+            ->column();
+
+        foreach ($layoutIds as $layoutId) {
+            $layouts[] = $this->getLayoutById($layoutId);
+        }
+
+        return $layouts;
+    }
+
+    public function getAllFields(): array
+    {
+        $fields = [];
+
+        $fieldRecords = (new Query())->from(Table::FORMIE_FIELDS)->all();
+
+        foreach ($fieldRecords as $fieldRecord) {
+            $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
+        }
+
+        return $fields;
     }
 
     public function getLayoutById(int $id): ?FieldLayout
@@ -798,6 +835,7 @@ class Fields extends Component
         $fieldRecord->save(false);
 
         $field->id = $fieldRecord->id;
+        $field->uid = $fieldRecord->uid;
 
         $field->afterSave($isNewField);
 
@@ -996,23 +1034,7 @@ class Fields extends Component
 
     public function getReservedHandles(): array
     {
-        try {
-            // Grab the reserved handles from Craft's base field class, which is a pain to fetch
-            $class = new ReflectionClass(Field::class);
-            $method = $class->getMethod('defineRules');
-            $method->setAccessible(true);
-            $rule = ArrayHelper::firstWhere($method->invoke(new PlainText()), function($rule) {
-                return $rule[1];
-            }, HandleValidator::class);
-
-            $reservedWords = $rule['reservedWords'];
-        } catch (ReflectionException $e) {
-            $reservedWords = [];
-        }
-
-        $handles = array_merge($reservedWords, HandleValidator::$baseReservedWords);
-
-        return array_values(array_unique($handles));
+        return (new formiefields\SingleLineText())->getReservedHandles();
     }
 
 

@@ -18,4 +18,13 @@ class Entries extends FeedMeEntries
     public static string $class = EntriesField::class;
     public static string $name = 'Entries';
 
+
+    // Templates
+    // =========================================================================
+
+    public function getMappingTemplate(): string
+    {
+        return 'formie/integrations/feedme/fields/entries';
+    }
+
 }

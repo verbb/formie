@@ -1,6 +1,11 @@
 <template>
     <slot
-        v-if="mounted" v-bind="$data" :input="input" :get-source-fields="getSourceFields" :get-collection-fields="getCollectionFields" :get="get"
+        v-if="mounted"
+        v-bind="$data"
+        :input="input"
+        :get-source-fields="getSourceFields"
+        :get-collection-fields="getCollectionFields"
+        :get="get"
         :is-empty="isEmpty"
         :refresh="refresh"
     ></slot>

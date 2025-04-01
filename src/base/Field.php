@@ -30,6 +30,7 @@ use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\BelowInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 use verbb\formie\records\Field as FieldRecord;
+use verbb\formie\validators\HandleValidator;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -45,7 +46,6 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Template;
-use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
 use GraphQL\Type\Definition\Type;
@@ -91,6 +91,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public const EVENT_MODIFY_VALUE_FOR_SUMMARY = 'modifyValueForSummary';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
+    public const EVENT_MODIFY_VALUE_FOR_VARIABLE = 'modifyValueForVariable';
     public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
 
     public const TRANSLATION_METHOD_NONE = 'none';
@@ -122,6 +123,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return StringHelper::toKebabCase(static::className());
     }
 
+    public static function lowerClassName(): string
+    {
+        return StringHelper::toLowerCase(static::className());
+    }
+
     public static function phpType(): string
     {
         return 'mixed';
@@ -130,6 +136,42 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public static function dbType(): array|string|null
     {
         return Schema::TYPE_TEXT;
+    }
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
+        $valueSql = static::valueSql($instances);
+
+        if ($valueSql === null) {
+            return false;
+        }
+
+        if (is_array($value) && isset($value['value'])) {
+            $caseInsensitive = $value['caseInsensitive'] ?? false;
+            $value = $value['value'];
+        } else {
+            $caseInsensitive = false;
+        }
+
+        return Db::parseParam($valueSql, $value, caseInsensitive: $caseInsensitive, columnType: Schema::TYPE_JSON);
+    }
+
+    protected static function valueSql(array $instances, string $key = null): ?string
+    {
+        $valuesSql = array_filter(
+            array_map(fn(self $field) => $field->getValueSql($key), $instances),
+            fn(?string $valueSql) => $valueSql !== null,
+        );
+
+        if (empty($valuesSql)) {
+            return null;
+        }
+
+        if (count($valuesSql) === 1) {
+            return reset($valuesSql);
+        }
+
+        return sprintf('COALESCE(%s)', implode(',', $valuesSql));
     }
 
     public static function getFrontEndInputTemplatePath(): string
@@ -210,6 +252,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     private string $_namespace = 'fields';
     private ?string $_customNamespace = null;
     private ?bool $_isFresh = null;
+    private array $_valueSql = [];
 
 
     // Public Methods
@@ -348,6 +391,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->_row = Formie::$plugin->getFields()->getRowById($this->rowId);
     }
 
+    public function modifyAttributeLabels(array &$labels): void
+    {
+        return;
+    }
+
     public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element): mixed
     {
         return $this->normalizeValue($value, $element);
@@ -359,6 +407,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // This might occur if the field was set to encrypted, but changed later. We still need to
         // decrypt field content
         if (is_string($value)) {
+            // Ensure that we sanitize content
+            $value = StringHelper::cleanString($value);
+
             if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
                 $value = StringHelper::decdec($value);
             }
@@ -392,6 +443,23 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     {
         // Default to yii\validators\Validator::isEmpty()'s behavior
         return $value === null || $value === [] || $value === '';
+    }
+
+    public function getValueSql(?string $key = null): ?string
+    {
+        $cacheKey = $key ?? '*';
+        $this->_valueSql[$cacheKey] ??= $this->_valueSql($key) ?? false;
+
+        return $this->_valueSql[$cacheKey] ?: null;
+    }
+
+    public function getSortOption(): array
+    {
+        return [
+            'label' => Craft::t('site', $this->label),
+            'orderBy' => [$this->getValueSql(), 'id'],
+            'attribute' => "field:{$this->handle}",
+        ];
     }
 
     public function getValueAsString(mixed $value, ?ElementInterface $element = null): mixed
@@ -517,7 +585,18 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        return $this->getValueAsString($value, $submission);
+        $value = $this->defineValueForVariable($value, $submission, $notification);
+
+        $event = new ModifyFieldEmailValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $submission,
+            'notification' => $notification,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_VARIABLE, $event);
+
+        return $event->value;
     }
 
     public function populateValue(mixed $value, ?Submission $submission): void
@@ -651,6 +730,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return implode('.', $names);
     }
 
+    public function getErrorKey(): string
+    {
+        return $this->fieldKey;
+    }
+
     public function getFieldTypeConfig(): array
     {
         $config = [
@@ -703,6 +787,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'settings' => $this->getFormBuilderSettings(),
         ];
 
+        // Allow fields to modify the settings
+        $config = $this->modifyFieldSettings($config);
+
         // Fire a 'modifyFieldConfig' event
         $event = new ModifyFieldConfigEvent([
             'config' => $config,
@@ -726,21 +813,18 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $settings;
     }
 
-    public function getDefaultValue(string $attributePrefix = ''): mixed
+    public function modifyFieldSettings(array $settings): array
+    {
+        return $settings;
+    }
+
+    public function getDefaultValue(): mixed
     {
         $defaultValue = null;
-        $defaultValueAttribute = 'defaultValue';
-        $prePopulateAttribute = 'prePopulate';
-
-        // Handle nested fields that supply their own attribute to fetch default values from
-        if ($attributePrefix) {
-            $defaultValueAttribute = "{$attributePrefix}DefaultValue";
-            $prePopulateAttribute = "{$attributePrefix}PrePopulate";
-        }
 
         // Check for a query string is configured
-        if ($this->$prePopulateAttribute) {
-            $queryParam = Craft::$app->getRequest()->getParam($this->$prePopulateAttribute);
+        if ($this->prePopulate) {
+            $queryParam = Craft::$app->getRequest()->getParam($this->prePopulate);
 
             if ($queryParam !== null) {
                 $defaultValue = $this->setPrePopulatedValue($queryParam);
@@ -748,7 +832,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         if (!$defaultValue) {
-            $defaultValue = $this->$defaultValueAttribute;
+            $defaultValue = $this->defaultValue;
 
             // Parse the default value for variables
             if (!is_array($defaultValue) && !is_object($defaultValue)) {
@@ -875,7 +959,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             $config = Html::mergeHtmlConfigs([$key => $templateConfig], [$key => $classTemplateConfig])[$key] ?? [];
 
             // Check if the config is falsey - then don't render
-            if ($config === false || $config === null) {
+            if (!$config) {
                 $tag = null;
             } else {
                 // Are we resetting classes globally?
@@ -1277,6 +1361,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
+        // Allow events to modify the value
+        $value = $this->getValueForEmail($value, $notification, $submission);
+        
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
         $html = $notification->renderTemplate(static::getEmailTemplatePath(), $inputOptions);
 
@@ -1392,6 +1479,22 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $names;
     }
 
+    public function getReservedHandles(): array
+    {
+        try {
+            // Add public properties from submission class
+            $reflection = new ReflectionClass(Submission::class);
+
+            $handles = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+        } catch (Throwable $e) {
+            $handles = [];
+        }
+
+        return $handles;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -1401,14 +1504,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         $rules = parent::defineRules();
 
         $rules[] = [['label', 'handle'], 'required'];
-
         $rules[] = [['placeholder', 'errorMessage', 'cssClasses'], 'string', 'max' => 255];
-
-        $rules[] = [
-            ['handle'],
-            HandleValidator::class,
-            'reservedWords' => self::_getReservedWords(),
-        ];
+        $rules[] = [['handle'], HandleValidator::class, 'reservedWords' => $this->getReservedHandles()];
+        $rules[] = [['handle'], 'string', 'max' => 64];
 
         $rules[] = [
             ['handle'],
@@ -1516,10 +1614,10 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $this->defineValueAsString($value, $element);
     }
 
-    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): string
+    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
     {
-        // A string-representation will largely suit our needs
-        return $this->defineValueAsString($value, $element);
+        // Let email templates (or the field) define what email value should be
+        return $value;
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
@@ -1527,12 +1625,17 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $faker->text;
     }
 
+    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value);
+    }
+
     protected static function normalizeConfig(array &$config = []): void
     {
         // Normalise the config from Formie v1 to v2. This is a bit more reliable than a migration
         // updating all field settings, as the presence of these properties in field classes that don't
         // support them would be otherwise catastrophic, and blow up people's CP's.
-        // Eventually, these can be removed at the next breakpoint, as users re-save their fields.
+        // Eventually, these can be removed at the next breakpoint (3.1), as users re-save their fields.
         if (array_key_exists('columnWidth', $config)) {
             unset($config['columnWidth']);
         }
@@ -1624,6 +1727,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         }
 
         $removedProperties = [
+            'vid',
             'brandNewField',
             'hasLabel',
             'isNested',
@@ -1684,29 +1788,72 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     // Private Methods
     // =========================================================================
 
-    private static function _getReservedWords(): array
+    private function _valueSql(?string $key): ?string
     {
-        $reservedWords = [
-            ['form', 'field', 'submission'],
-        ];
+        $dbType = static::dbType();
 
-        try {
-            // Add public properties from submission class
-            $reflection = new ReflectionClass(Submission::class);
-            $reservedWords[] = array_map(function($prop) {
-                return $prop->name;
-            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
-
-            // Add public properties from form class
-            $reflection = new ReflectionClass(Form::class);
-            $reservedWords[] = array_map(function($prop) {
-                return $prop->name;
-            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
-        } catch (Throwable $e) {
-
+        if ($dbType === null) {
+            return null;
         }
 
-        return array_values(array_unique(array_merge(...$reservedWords)));
+        if ($key !== null && (!is_array($dbType) || !isset($dbType[$key]))) {
+            throw new InvalidArgumentException(sprintf('%s doesn’t store values under the key “%s”.', __CLASS__, $key));
+        }
+
+        $jsonPath = [$this->uid];
+
+        if (is_array($dbType)) {
+            // Get the primary value by default
+            $key ??= array_key_first($dbType);
+            $jsonPath[] = $key;
+            $dbType = $dbType[$key];
+        }
+
+        $db = Craft::$app->getDb();
+        $qb = $db->getQueryBuilder();
+        $sql = $qb->jsonExtract('formie_submissions.content', $jsonPath);
+
+        if ($db->getIsMysql()) {
+            // If the field uses an optimized DB type, cast it so its values can be indexed
+            // (see "Functional Key Parts" on https://dev.mysql.com/doc/refman/8.0/en/create-index.html)
+            $castType = match (Db::parseColumnType($dbType)) {
+                Schema::TYPE_CHAR,
+                Schema::TYPE_STRING,
+                'varchar' => 'CHAR(255)',
+                // only reliable way to compare booleans is as 'true'/'false' strings :(
+                Schema::TYPE_BOOLEAN => 'CHAR(5)',
+                Schema::TYPE_DATE => 'DATE',
+                Schema::TYPE_DATETIME => 'DATETIME',
+                Schema::TYPE_DECIMAL => 'DECIMAL',
+                Schema::TYPE_DOUBLE => 'DOUBLE',
+                Schema::TYPE_FLOAT => 'FLOAT',
+                Schema::TYPE_TINYINT,
+                Schema::TYPE_SMALLINT,
+                Schema::TYPE_INTEGER,
+                Schema::TYPE_BIGINT => 'SIGNED',
+                SCHEMA::TYPE_TIME => 'TIME',
+                default => null,
+            };
+
+            if ($castType !== null) {
+                // if a length was specified, replace the default with that
+                $length = Db::parseColumnLength($dbType);
+
+                if ($length) {
+                    $castType = preg_replace('/\(\d+\)/', "($length)", $castType);
+                } else if ($castType === 'DECIMAL') {
+                    [$precision, $scale] = Db::parseColumnPrecisionAndScale($dbType) ?? [null, null];
+
+                    if ($precision && $scale) {
+                        $castType .= "($precision,$scale)";
+                    }
+                }
+
+                $sql = "CAST($sql AS $castType)";
+            }
+        }
+
+        return $sql;
     }
 
 

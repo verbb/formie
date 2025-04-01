@@ -39,7 +39,7 @@ class Klaviyo extends EmailMarketing
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Sign up users to your Klaviyo lists to grow your audience for campaigns.');
+        return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -47,8 +47,7 @@ class Klaviyo extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists');
-            $lists = $response['data'] ?? [];
+            $lists = $this->_getPaginated('lists');
 
             foreach ($lists as $list) {
                 $listFields = [
@@ -68,6 +67,14 @@ class Klaviyo extends EmailMarketing
                     new IntegrationField([
                         'handle' => 'phone_number',
                         'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address1',
+                        'name' => Craft::t('formie', 'Address 1'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'address2',
+                        'name' => Craft::t('formie', 'Address 2'),
                     ]),
                     new IntegrationField([
                         'handle' => 'city',
@@ -135,6 +142,20 @@ class Klaviyo extends EmailMarketing
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
+            // Location values should be separate
+            $location = array_filter([
+                'address1' => ArrayHelper::remove($fieldValues, 'address1'),
+                'address2' => ArrayHelper::remove($fieldValues, 'address2'),
+                'city' => ArrayHelper::remove($fieldValues, 'city'),
+                'region' => ArrayHelper::remove($fieldValues, 'region'),
+                'zip' => ArrayHelper::remove($fieldValues, 'zip'),
+                'country' => ArrayHelper::remove($fieldValues, 'country'),
+            ]);
+
+            if ($location) {
+                $fieldValues['location'] = $location;
+            }
+
             // Create or update a Profile first
             $payload = [
                 'data' => [
@@ -163,7 +184,12 @@ class Klaviyo extends EmailMarketing
             // Extract any consent settings
             $smsConsent = ArrayHelper::remove($fieldValues, 'sms_consent');
 
-            $profile = $fieldValues;
+            // A profile subscription only allows a subset of information from the profile mapping
+            $profile = array_filter([
+                'email' => $fieldValues['email'] ?? null,
+                'phone_number' => $fieldValues['phone_number'] ?? null,
+            ]);
+
             $profile['subscriptions']['email']['marketing']['consent'] = 'SUBSCRIBED';
 
             if ($smsConsent) {
@@ -249,5 +275,36 @@ class Klaviyo extends EmailMarketing
         $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
 
         return $rules;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getPaginated(string $endpoint, int $limit = 10, ?string $cursor = null, array $items = []): array
+    {
+        $response = $this->request('GET', $endpoint, [
+            'query' => [
+                'sort' => 'name',
+                'page' => [
+                    'cursor' => $cursor,
+                ],
+            ],
+        ]);
+
+        $newItems = $response['data'] ?? [];
+        $cursor = $response['links']['next'] ?? 0;
+
+        $items = array_merge($items, $newItems);
+
+        if ($cursor) {
+            // Extract cursor from `https://a.klaviyo.com/api/lists?sort=name&page%5Bcursor%5D=bmV4dDo6bmFtZTo6VGVzdCA2`
+            parse_str(parse_url($cursor, PHP_URL_QUERY), $query);
+            $cursor = $query['page']['cursor'];
+
+            $items = $this->_getPaginated($endpoint, $limit, $cursor, $items);
+        }
+
+        return $items;
     }
 }

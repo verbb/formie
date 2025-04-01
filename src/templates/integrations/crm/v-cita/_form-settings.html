@@ -1,12 +1,14 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set mapToClient = form.settings.integrations[handle].mapToClient ?? '' %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to record user data if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -27,7 +29,7 @@
 
         {{ forms.lightswitchField({
             label: 'Map to Client' | t('formie'),
-            instructions: 'Whether to map form data to {name} Clients.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Clients' }),
             id: 'mapToClient',
             name: 'mapToClient',
             on: mapToClient,
@@ -37,7 +39,7 @@
         <div id="map-to-client" class="{{ not mapToClient ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Client Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} Client fields.' | t('formie', { name: integration.displayName() }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Client' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="client-field-mapping"
                 name="clientFieldMapping"

@@ -1,5 +1,5 @@
 // eslint-disable-next-line
-import { t, addClasses, removeClasses, eventKey } from '../utils/utils';
+import { t, addClasses, removeClasses, eventKey, currencyToFloat } from '../utils/utils';
 import { getFieldValue, getFieldLabel } from '../utils/fields';
 
 export class FormiePaymentProvider {
@@ -32,7 +32,13 @@ export class FormiePaymentProvider {
                     this.onShow();
                 }
             }
-        }, { root: this.$form });
+        }, {
+            root: this.$form,
+
+            // Include a large margin to cater for when other elements might cover the field
+            // as `IntersectionObserver` won't deem the field in view if under something else
+            rootMargin: '50px',
+        });
 
         // Watch for when the input is visible/hidden, in the context of the form. But wait a little to start watching
         // to prevent double binding when still loading the form, or hidden behind conditions.
@@ -41,10 +47,15 @@ export class FormiePaymentProvider {
         }, 500);
     }
 
+    eventKey(eventName, namespace) {
+        // Create event keys specific to this payment field, so multiple payment fields in conditions are unbound correctly
+        return eventKey(eventName, `${namespace}-${this.$field.getAttribute('data-field-handle')}`);
+    }
+
     removeSuccess() {
         removeClasses(this.$field, this.successClass);
 
-        const $success = this.$field.querySelector(`.${this.successMessageClass}`);
+        const $success = this.$field.querySelector('[data-payment-success]');
 
         if ($success) {
             $success.remove();
@@ -61,8 +72,10 @@ export class FormiePaymentProvider {
         }
 
         const $success = document.createElement('div');
-        $success.className = this.successMessageClass;
         $success.textContent = message;
+        $success.setAttribute('data-payment-success', '');
+
+        addClasses($success, this.successMessageClass);
 
         $fieldContainer.appendChild($success);
     }
@@ -70,7 +83,7 @@ export class FormiePaymentProvider {
     removeError() {
         removeClasses(this.$field, this.errorClass);
 
-        const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
+        const $error = this.$field.querySelector('[data-payment-error]');
 
         if ($error) {
             $error.remove();
@@ -87,8 +100,10 @@ export class FormiePaymentProvider {
         }
 
         const $error = document.createElement('div');
-        $error.className = this.errorMessageClass;
         $error.textContent = message;
+        $error.setAttribute('data-payment-error', '');
+
+        addClasses($error, this.errorMessageClass);
 
         $fieldContainer.appendChild($error);
 
@@ -183,8 +198,15 @@ export class FormiePaymentProvider {
         return { billing_details: billing };
     }
 
-    getFieldValue(handle) {
-        return getFieldValue(this.$form, handle);
+    getFieldValue(handle, type = 'string') {
+        const value = getFieldValue(this.$form, handle);
+
+        // We should do some extra processing depending on the type
+        if (type === 'float' || type === 'int' || type === 'number') {
+            return currencyToFloat(value);
+        }
+
+        return value;
     }
 
     getFieldLabel(handle) {
@@ -197,6 +219,15 @@ export class FormiePaymentProvider {
 
     onHide() {
 
+    }
+
+    processResubmit() {
+        // Refresh captcha/CSRF tokens, as we'll be submitting again.
+        this.form.config.Formie.refreshFormTokens(this.form);
+
+        // Resubmit the form, but skip payment handling, as we're done.
+        // This ensures captchas and other validation runs again in case something changed.
+        this.submitHandler.processSubmit(['payment']);
     }
 }
 

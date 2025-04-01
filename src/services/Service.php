@@ -3,6 +3,7 @@ namespace verbb\formie\services;
 
 use Craft;
 
+use craft\helpers\Session;
 use yii\base\Component;
 
 class Service extends Component
@@ -12,12 +13,20 @@ class Service extends Component
 
     public function setFlash(string $namespace, string $key, mixed $value, bool $removeAfterAccess = true): void
     {
+        if (!Session::exists()) {
+            return;
+        }
+
         $key = "formie.$namespace:$key";
         Craft::$app->getSession()->setFlash($key, $value, $removeAfterAccess);
     }
 
     public function getFlash(string $namespace, string $key, mixed $defaultValue = null, bool $delete = false): mixed
     {
+        if (!Session::exists()) {
+            return $defaultValue;
+        }
+
         $key = "formie.$namespace:$key";
         return Craft::$app->getSession()->getFlash($key, $defaultValue, $delete);
     }

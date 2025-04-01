@@ -1,0 +1,11 @@
+{% for field in fields %}
+    {% set value = submission.getFieldValue(field.fieldKey) %}
+
+    {% if field.getValueAsString(value, submission) and not field.getIsCosmetic() %}
+        {% if field.isValueEmpty(value, submission) %}
+            {{ notification.getPlaceholder() }}
+        {% else %}
+            {{ formieInclude('field') }}
+        {% endif %}
+    {% endif %}
+{% endfor %}

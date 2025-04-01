@@ -4,6 +4,14 @@
 {# despite files being uploaded. Here, force the field to be non-required if a value exists. #}
 {% set required = value and value.all() ? false : field.required %}
 
+{# Output any existing element IDs for already-uploaded assets, which can be overidden #}
+{# when uploading new files #}
+{% if value %}
+    {% for element in value.all() %}
+        <input type="hidden" name="{{ field.getHtmlName('[]') }}" value="{{ element.id }}">
+    {% endfor %}
+{% endif %}
+
 {{ fieldtag('fieldInput', {
     required: required ? true : false,
 }) }}

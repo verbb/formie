@@ -1,0 +1,5 @@
+{{ fieldtag('tableMultilineInput', {
+    id: rowId,
+    text: row[colId] ?? '',
+    name: field.getHtmlName("#{index}[#{colId}]"),
+}) }}

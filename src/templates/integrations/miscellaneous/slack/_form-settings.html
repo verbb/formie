@@ -1,6 +1,8 @@
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set channelType = form.settings.integrations[handle].channelType ?? '' %}
 {% set webhook = form.settings.integrations[handle].webhook ?? '' %}
@@ -13,7 +15,7 @@
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
-    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: integration.displayName() }) }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
     id="opt-in-field"
     name="optInField"
     :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
@@ -25,7 +27,7 @@
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, model }">
         {{ forms.selectField({
             label: 'Channel Type' | t('formie'),
-            instructions: 'Select what type of channel {name} will send the message to.' | t('formie', { name: integration.displayName() }),
+            instructions: 'Select what type of channel {name} will send the message to.' | t('formie', { name: displayName }),
             name: 'channelType',
             value: channelType,
             toggle: true,
@@ -51,7 +53,7 @@
                     <label id="channelId-label" for="channelId" class="required">{{ 'Channel' | t('formie') }}</label>
 
                     <div class="instructions">
-                        <p>{{ 'Select which {name} channel to post a message to.' | t('formie', { name: integration.displayName() }) }}</p>
+                        <p>{{ 'Select which {name} channel to post a message to.' | t('formie', { name: displayName }) }}</p>
                     </div>
                 </div>
 
@@ -81,7 +83,7 @@
                     <label id="userId-label" for="userId" class="required">{{ 'User' | t('app') }}</label>
 
                     <div class="instructions">
-                        <p>{{ 'Select which {name} user to post a message to.' | t('formie', { name: integration.displayName() }) }}</p>
+                        <p>{{ 'Select which {name} user to post a message to.' | t('formie', { name: displayName }) }}</p>
                     </div>
                 </div>
 
@@ -108,7 +110,7 @@
         <div id="channel-webhook" class="{{ channelType != 'webhook' ? 'hidden' }}">
             {{ forms.textField({
                 label: 'Webhook URL' | t('formie'),
-                instructions: 'Enter the {name} webhook URL that will be triggered.' | t('formie', { name: integration.displayName() }),
+                instructions: 'Enter the {name} webhook URL that will be triggered.' | t('formie', { name: displayName }),
                 name: 'webhook',
                 value: webhook,
                 required: true,
@@ -118,7 +120,7 @@
         <form-kit
             type="richText"
             label="{{ 'Message' | t('formie') }}"
-            help="{{ 'This text will be sent to {name}.' | t('formie', { name: integration.displayName() }) }}"
+            help="{{ 'This text will be sent to {name}.' | t('formie', { name: displayName }) }}"
             v-model="model.message"
             :required="true"
             variables="plainTextVariables"

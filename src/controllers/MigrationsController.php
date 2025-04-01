@@ -1,7 +1,8 @@
 <?php
 namespace verbb\formie\controllers;
 
-use verbb\formie\migrations\MigrateFreeform;
+use verbb\formie\migrations\MigrateFreeform4;
+use verbb\formie\migrations\MigrateFreeform5;
 use verbb\formie\migrations\MigrateSproutForms;
 
 use Craft;
@@ -61,7 +62,7 @@ class MigrationsController extends Controller
         $this->setSuccessFlash(Craft::t('formie', 'Forms migrated.'));
     }
 
-    public function actionFreeform(): void
+    public function actionFreeform4(): void
     {
         App::maxPowerCaptain();
 
@@ -86,7 +87,7 @@ class MigrationsController extends Controller
         }
 
         foreach ($forms as $form) {
-            $migration = new MigrateFreeform(['formId' => $form->id]);
+            $migration = new MigrateFreeform4(['formId' => $form->id]);
 
             try {
                 ob_start();
@@ -96,6 +97,51 @@ class MigrationsController extends Controller
                 $outputs[$form->id] = nl2br($output);
             } catch (Throwable $e) {
                 $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
+            }
+        }
+
+        Craft::$app->getUrlManager()->setRouteParams([
+            'outputs' => $outputs,
+        ]);
+
+        $this->setSuccessFlash(Craft::t('formie', 'Forms migrated.'));
+    }
+
+    public function actionFreeform5(): void
+    {
+        App::maxPowerCaptain();
+
+        // Backup!
+        Craft::$app->getDb()->backup();
+
+        $formIds = $this->request->getParam('formIds');
+
+        // Handle picking "all"
+        if ($formIds === '*') {
+            $formIds = Freeform::getInstance()->forms->getAllFormIds();
+        }
+
+        $forms = array_map([Freeform::getInstance()->forms, 'getFormById'], $formIds);
+
+        $outputs = [];
+
+        if (!$forms) {
+            $this->setFailFlash(Craft::t('formie', 'No forms selected.'));
+
+            return;
+        }
+
+        foreach ($forms as $form) {
+            $migration = new MigrateFreeform5(['formId' => $form->getId()]);
+
+            try {
+                ob_start();
+                $migration->up();
+                $output = ob_get_clean();
+
+                $outputs[$form->getId()] = nl2br($output);
+            } catch (Throwable $e) {
+                $outputs[$form->getId()] = 'Failed to migrate: ' . $e->getMessage();
             }
         }
 

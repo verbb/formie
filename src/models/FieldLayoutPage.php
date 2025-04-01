@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -47,6 +48,7 @@ class FieldLayoutPage extends SavableComponent
             $config['pageSettings'] = ArrayHelper::remove($config, 'settings', []);
         }
 
+        unset($config['enableConditions']);
         unset($config['notificationFlag']);
 
         parent::__construct($config);
@@ -102,20 +104,22 @@ class FieldLayoutPage extends SavableComponent
 
     public function getRows(bool $includeDisabled = true): array
     {
+        $rows = $this->_rows;
+
         // Filter out rows that have disabled/hidden fields or are disabled altogether
         if ($includeDisabled) {
-            return $this->_rows;
+            return $rows;
         }
 
         foreach ($this->_rows as $rowKey => $row) {
             $fields = $row->getFields($includeDisabled);
             
             if (!$fields) {
-                unset($this->_rows[$rowKey]);
+                unset($rows[$rowKey]);
             }
         }
 
-        return $this->_rows;
+        return $rows;
     }
 
     public function setRows(array $rows): void
@@ -254,10 +258,19 @@ class FieldLayoutPage extends SavableComponent
     {
         $errors = [];
 
-        if ($submission) {
-            foreach ($this->getFields() as $field) {
-                $errors[$field->handle] = $submission->getErrors()[$field->handle] ?? null;
+        // Ensure that we recursively check for nested/subfields for errors
+        $getFieldErrors = function(array $fields) use ($submission, &$errors, &$getFieldErrors) {
+            foreach ($fields as $field) {
+                $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
+
+                if ($field instanceof NestedFieldInterface) {
+                    $getFieldErrors($field->getFields());
+                }
             }
+        };
+
+        if ($submission) {
+            $getFieldErrors($this->getFields());
         }
 
         return array_filter($errors);

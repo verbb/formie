@@ -28,6 +28,9 @@ export function createTurnstile() {
         },
 
         render(ele, options, cb) {
+            // Important to check if recaptcha has been loaded, as rendering is lazy
+            this.checkCaptchaLoad();
+
             this.wait().then(() => {
                 cb(window.turnstile.render(ele, options));
             });
