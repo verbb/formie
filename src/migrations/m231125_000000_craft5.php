@@ -132,7 +132,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 'handle' => $this->string(64)->notNull(),
                 'type' => $this->string()->notNull(),
                 'sortOrder' => $this->smallInteger()->unsigned(),
-                'settings' => $this->text(),
+                'settings' => $this->mediumText(),
                 'dateCreated' => $this->dateTime()->notNull(),
                 'dateUpdated' => $this->dateTime()->notNull(),
                 'uid' => $this->uid(),
