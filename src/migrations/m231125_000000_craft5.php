@@ -6,6 +6,7 @@ use verbb\formie\fields;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\fields\subfields;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\positions\Hidden as HiddenPosition;
@@ -206,6 +207,9 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             // Sub-fields also need to be processed here, before their settings are removed as being invalid
             $layoutConfig = $this->_processLayoutSubFields($layoutConfig);
+
+            // Any extra processing (for some fields)
+            $layoutConfig = $this->_processLayoutFields($layoutConfig);
 
             $formLayout = new FieldLayout($layoutConfig);
 
@@ -532,6 +536,44 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                             $updatedConfig = true;
                         }
+                    }
+
+                    if ($updatedConfig) {
+                        $layoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][$fieldKey] = $field;
+                    }
+                }
+            }
+        }
+
+        return $layoutConfig;
+    }
+
+    private function _processLayoutFields(array $layoutConfig): array
+    {
+        foreach (($layoutConfig['pages'] ?? []) as $pageKey => $page) {
+            foreach (($page['rows'] ?? []) as $rowKey => $row) {
+                foreach (($row['fields'] ?? []) as $fieldKey => $field) {
+                    $updatedConfig = false;
+                    $type = $field['type'] ?? null;
+
+                    if (!$type) {
+                        continue;
+                    }
+
+                    if ($field['type'] === 'verbb\formie\fields\formfields\Section') {
+                        // Protect against label/handle being empty in some scenarios
+                        $field['label'] = $field['label'] ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
+                        $field['handle'] = $field['handle'] ?? StringHelper::appendUniqueIdentifier('sectionHandle');
+
+                        $updatedConfig = true;
+                    }
+
+                    if ($field['type'] === 'verbb\formie\fields\formfields\Summary') {
+                        // Protect against label/handle being empty in some scenarios
+                        $field['label'] = $field['label'] ?? StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Summary '));
+                        $field['handle'] = $field['handle'] ?? StringHelper::appendUniqueIdentifier('summaryHandle');
+
+                        $updatedConfig = true;
                     }
 
                     if ($updatedConfig) {
