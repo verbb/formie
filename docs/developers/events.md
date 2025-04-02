@@ -324,12 +324,12 @@ The event that is triggered before an integration is triggered.
 The `isValid` event property can be set to `false` to prevent the integration from proceeding.
 
 ```php
-use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\services\Submissions;
 use yii\base\Event;
 
-Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, function(SendNotificationEvent $event) {
-    $submissionId = $event->submissionId;
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, function(TriggerIntegrationEvent $event) {
+    $submission = $event->submission;
     $integration = $event->integration;
     // ...
 });
