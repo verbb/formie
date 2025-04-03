@@ -214,7 +214,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             $formLayout = new FieldLayout($layoutConfig);
 
             if (!Formie::$plugin->getFields()->saveLayout($formLayout)) {
-                echo '    > ' . $form['handle'] . ': Unable to save field layout - ' . Json::encode($formLayout->getErrors()) . PHP_EOL;
+                echo '    > ' . $form['handle'] . ': Unable to save field layout - ' . Json::encode($formLayout->getErrorsTree()) . PHP_EOL;
                 // echo '    > ' . Json::encode($layoutConfig);
 
                 return false;

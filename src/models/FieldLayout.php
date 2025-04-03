@@ -4,6 +4,7 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\NestedField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
@@ -195,6 +196,21 @@ class FieldLayout extends SavableComponent
         });
     }
 
+    public function getErrorsTree(): array
+    {
+        $errors = [];
+
+        // A slightly more verbose error function than `getErrors()` to specifically support nested layouts
+        // e.g. ['pageHandle.fieldHandle.nestedFieldHandle.label' => ['Label cannot be blank']]
+        foreach ($this->getPages() as $page) {
+            foreach ($page->getFields() as $field) {
+                $this->_collectErrorsRecursive($field, $page->handle, $errors);
+            }
+        }
+
+        return $errors;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -206,5 +222,33 @@ class FieldLayout extends SavableComponent
         $rules[] = [['pages'], 'validatePages'];
 
         return $rules;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _collectErrorsRecursive($field, string $prefix, array &$errors): void
+    {
+        // Check for errors on the current field.
+        if ($fieldErrors = $field->getErrors()) {
+            foreach ($fieldErrors as $errorKey => $error) {
+                // Skip errors that are already bubbled up (e.g. nested pages).
+                if (str_contains($errorKey, 'pages.')) {
+                    continue;
+                }
+
+                // Build the key based on the current prefix and the field's handle.
+                $errors[$prefix . '.' . $field->handle . '.' . $errorKey] = $error;
+            }
+        }
+
+        // If the field is a nested field, recurse through its children.
+        if ($field instanceof NestedField) {
+            foreach ($field->getFields() as $childField) {
+                // Append the current field's handle to the prefix.
+                $this->_collectErrorsRecursive($childField, $prefix . '.' . $field->handle, $errors);
+            }
+        }
     }
 }
