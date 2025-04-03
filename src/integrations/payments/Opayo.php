@@ -202,6 +202,7 @@ class Opayo extends Payment
      */
     public function processPayment(Submission $submission): bool
     {
+        $payload = [];
         $response = null;
         $result = false;
 
@@ -260,8 +261,10 @@ class Opayo extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
+            $payload = $event->payload;
+
             // Trigger the Opato payment to be captured
-            $response = $this->request('POST', 'transactions', ['json' => $event->payload]);
+            $response = $this->request('POST', 'transactions', ['json' => $payload]);
 
             $status = $response['status'] ?? null;
             $statusDetail = $response['statusDetail'] ?? null;
@@ -326,11 +329,12 @@ class Opayo extends Payment
             $result = true;
         } catch (Throwable $e) {
             // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”. Payload: “{payload}”', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
+                'payload' => Json::encode($payload),
             ]));
 
             Integration::apiError($this, $e, $this->throwApiError);
@@ -444,11 +448,12 @@ class Opayo extends Payment
             $responseData['transactionId'] = $transactionId;
         } catch (Throwable $e) {
             // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}. Payload: “{payload}”', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
+                'payload' => Json::encode($data ?? []),
             ]));
 
             $shouldShowError = true;
