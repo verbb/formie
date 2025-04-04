@@ -1,4 +1,5 @@
 <?php
+
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
@@ -45,11 +46,11 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Pardot');
     }
-    
+
 
     // Properties
     // =========================================================================
-    
+
     public ?string $businessUnitId = null;
     public bool|string $useSandbox = false;
     public bool $mapToProspect = false;
@@ -77,7 +78,7 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         $prefix = $this->getUseSandbox() ? 'pi.demo' : 'pi';
 
-        return "https://{$prefix}.pardot.com/api/";
+        return "https://{$prefix}.pardot.com/api";
     }
 
     public function getDescription(): string
@@ -85,13 +86,17 @@ class Pardot extends Crm implements OAuthProviderInterface
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    public function getOAuthProviderConfig(): array
+    public function getAuthorizationUrlOptions(): array
     {
-        $config = parent::getOAuthProviderConfig();
-        $config['domain'] = $this->getApiDomain();
-        $config['baseApiUrl'] = $this->getApiDomain();
+        $options = parent::getAuthorizationUrlOptions();
 
-        return $config;
+        $options['scope'] = [
+            'api',
+            'pardot_api',
+            'refresh_token',
+        ];
+
+        return $options;
     }
 
     public function request(string $method, string $uri, array $options = []): mixed
@@ -489,7 +494,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 $trackingData[$key] = $value;
             }
         }
-        
+
         $this->context['pardot_tracking'] = $trackingData;
     }
 
