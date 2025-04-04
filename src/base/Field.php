@@ -41,6 +41,7 @@ use craft\db\Query;
 use craft\fieldlayoutelements\CustomField;
 use craft\fields\BaseRelationField;
 use craft\gql\types\DateTime as DateTimeType;
+use craft\gql\types\QueryArgument;
 use craft\helpers\Cp;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
@@ -1420,12 +1421,25 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return 'Field_' . $end;
     }
 
+    public function getContentGqlType(): Type|array
+    {
+        return Type::string();
+    }
+
     public function getContentGqlMutationArgumentType(): Type|array
     {
         return [
             'name' => $this->handle,
             'type' => Type::string(),
             'description' => $this->instructions,
+        ];
+    }
+
+    public function getContentGqlQueryArgumentType(): Type|array
+    {
+        return [
+            'name' => $this->handle,
+            'type' => Type::listOf(QueryArgument::getType()),
         ];
     }
 

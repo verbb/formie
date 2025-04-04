@@ -731,6 +731,17 @@ This query is used to query for [Submission](docs:developers/submission) objects
 | `orderBy`| `String` | Sets the field the returned elements should be ordered by.
 | `form`| `[String]` | Narrows the query results based on the form’s handle.
 
+You can also query based on a field handle, like you would a regular element query in Twig.
+
+:::code
+```graphql GraphQL
+{
+    formieSubmissions (form: "contactForm", emailAddress: "psherman@wallaby.com") {
+        title
+    }
+}
+```
+
 #### Nested Fields
 An example for querying Repeater and Group field content.
 

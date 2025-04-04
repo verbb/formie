@@ -1,6 +1,10 @@
 <?php
 namespace verbb\formie\gql\arguments;
 
+use verbb\formie\Formie;
+use verbb\formie\elements\Submission;
+
+use Craft;
 use craft\gql\base\ElementArguments;
 
 use GraphQL\Type\Definition\Type;
@@ -12,7 +16,7 @@ class SubmissionArguments extends ElementArguments
 
     public static function getArguments(): array
     {
-        return array_merge(parent::getArguments(), [
+        return array_merge(parent::getArguments(), self::getContentArguments(), [
             'form' => [
                 'name' => 'form',
                 'type' => Type::listOf(Type::string()),
@@ -44,5 +48,16 @@ class SubmissionArguments extends ElementArguments
                 'description' => 'Narrows the query results based on the submission’s spam state.',
             ],
         ]);
+    }
+
+    public static function getContentArguments(): array
+    {
+        $arguments = [];
+
+        foreach (Formie::$plugin->getFields()->getAllFields() as $field) {
+            $arguments[$field->handle] = $field->getContentGqlQueryArgumentType();
+        }
+
+        return array_merge(parent::getContentArguments(), $arguments);
     }
 }
