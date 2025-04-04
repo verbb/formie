@@ -794,7 +794,25 @@ class Opayo extends Payment
 
         $billingName = $this->getFieldSetting('billingDetails.billingName');
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $payload['customerEMail'] = $this->getFieldSetting('billingDetails.billingEmail');
+        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
+
+        if ($billingEmail) {
+            $integrationField = new IntegrationField();
+            $integrationField->type = IntegrationField::TYPE_STRING;
+
+            $email = $this->getMappedFieldValue($billingEmail, $submission, $integrationField);
+            
+            // Only set if we have a valid email
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $payload['customerEMail'] = $email;
+            } else {
+                // Provide a default valid email if none provided
+                $payload['customerEMail'] = 'customer@example.com';
+            }
+        } else {
+            // Provide a default valid email if none provided
+            $payload['customerEMail'] = 'customer@example.com';
+        }
 
         if ($billingName) {
             $integrationField = new IntegrationField();
