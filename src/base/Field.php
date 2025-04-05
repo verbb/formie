@@ -327,6 +327,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return false;
     }
 
+    public function hasEmailPlaceholder(): bool
+    {
+        return true;
+    }
+
     public function getIsHidden(): bool
     {
         return $this->visibility === 'hidden';
