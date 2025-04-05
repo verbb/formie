@@ -82,6 +82,11 @@ class Agree extends Field implements PreviewableFieldInterface, SortableFieldInt
         return $names;
     }
 
+    public function hasEmailPlaceholder(): bool
+    {
+        return false;
+    }
+
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         // Use the default "empty" checks, but `false` is also considered empty here
