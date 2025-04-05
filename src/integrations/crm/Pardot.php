@@ -1,5 +1,4 @@
 <?php
-
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
