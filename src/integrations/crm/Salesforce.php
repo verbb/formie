@@ -70,11 +70,13 @@ class Salesforce extends Crm implements OAuthProviderInterface
     public bool $mapToOpportunity = false;
     public bool $mapToAccount = false;
     public bool $mapToCase = false;
+    public bool $mapToCampaignMember = false;
     public ?array $contactFieldMapping = null;
     public ?array $leadFieldMapping = null;
     public ?array $opportunityFieldMapping = null;
     public ?array $accountFieldMapping = null;
     public ?array $caseFieldMapping = null;
+    public ?array $campaignMemberFieldMapping = null;
     public bool $duplicateLeadTask = false;
     public string $duplicateLeadTaskSubject = 'Task';
     public bool $mapToContactAttachments = false;
@@ -248,6 +250,39 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $fields = $response['fields'] ?? [];
                 $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
+
+            // Get Campaign Memeber fields
+            if ($this->mapToCampaignMember) {
+                $response = $this->request('GET', 'sobjects/CampaignMember/describe');
+                $fields = $response['fields'] ?? [];
+
+                // Add in Campaigns
+                $response = $this->request('GET', 'query', [
+                    'query' => ['q' => 'SELECT ID,Name FROM Campaign'],
+                ]);
+
+                $campaignOptions = [];
+                $campaigns = $response['records'] ?? [];
+
+                foreach ($campaigns as $campaign) {
+                    $campaignOptions[] = [
+                        'label' => $campaign['Name'],
+                        'value' => $campaign['Id'],
+                    ];
+                }
+
+                $settings['campaignMember'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'CampaignId',
+                        'name' => Craft::t('formie', 'Campaign ID'),
+                        'required' => true,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Campaign'),
+                            'options' => $campaignOptions,
+                        ],
+                    ])
+                ], $this->_getCustomFields($fields));
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -275,6 +310,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
             $opportunityValues = $this->getFieldMappingValues($submission, $this->opportunityFieldMapping, 'opportunity');
             $accountValues = $this->getFieldMappingValues($submission, $this->accountFieldMapping, 'account');
             $caseValues = $this->getFieldMappingValues($submission, $this->caseFieldMapping, 'case');
+            $campaignMemberValues = $this->getFieldMappingValues($submission, $this->campaignMemberFieldMapping, 'campaignMember');
 
             $accountId = null;
             $accountOwnerId = null;
@@ -543,6 +579,39 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     ]);
                 }
             }
+
+            if ($this->mapToCampaignMember) {
+                $campaignMemberPayload = $this->_prepPayload($campaignMemberValues);
+
+                if ($contactId) {
+                    $campaignMemberPayload['ContactId'] = $contactId;
+                }
+
+                if ($accountId) {
+                    $campaignMemberPayload['AccountId'] = $accountId;
+                }
+
+                if ($leadId) {
+                    $campaignMemberPayload['LeadId'] = $leadId;
+                }
+
+                $response = $this->deliverPayload($submission, 'sobjects/CampaignMember', $campaignMemberPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                $campaignMemberId = $response['id'] ?? '';
+
+                if (!$campaignMemberId) {
+                    Integration::error($this, Craft::t('formie', 'Missing return “campaignMemberId” {response}. Sent payload {payload}', [
+                        'response' => Json::encode($response),
+                        'payload' => Json::encode($campaignMemberPayload),
+                    ]), true);
+
+                    return false;
+                }
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -594,6 +663,12 @@ class Salesforce extends Crm implements OAuthProviderInterface
         $rules[] = [
             ['caseFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
                 return $model->enabled && $model->mapToCase;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        $rules[] = [
+            ['campaignMemberFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
+                return $model->enabled && $model->mapToCampaignMember;
             }, 'on' => [Integration::SCENARIO_FORM],
         ];
 

@@ -11,6 +11,7 @@
 {% set mapToOpportunity = form.settings.integrations[handle].mapToOpportunity ?? '' %}
 {% set mapToAccount = form.settings.integrations[handle].mapToAccount ?? '' %}
 {% set mapToCase = form.settings.integrations[handle].mapToCase ?? '' %}
+{% set mapToCampaignMember = form.settings.integrations[handle].mapToCampaignMember ?? '' %}
 
 {% set duplicateLeadTask = form.settings.integrations[handle].duplicateLeadTask ?? '' %}
 {% set duplicateLeadTaskSubject = form.settings.integrations[handle].duplicateLeadTaskSubject ?? '' %}
@@ -230,6 +231,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.caseFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.caseFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Campaign Member' | t('formie'),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Campaign Members' }),
+            id: 'mapToCampaignMember',
+            name: 'mapToCampaignMember',
+            on: mapToCampaignMember,
+            toggle: 'map-to-campaign-member',
+        }) }}
+
+        <div id="map-to-campaign-member" class="{{ not mapToCampaignMember ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Campaign Member Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Campaign Member' }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="campaign-member-field-mapping"
+                name="campaignMemberFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.campaignMemberFieldMapping')"
+                :rows="get(settings, 'campaignMember')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.campaignMemberFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.campaignMemberFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>
