@@ -69,11 +69,12 @@ class Html extends CosmeticField
 
     public function getRenderedHtmlContent(): string
     {
+        $variables = $this->getRenderOptions();
         $htmlContent = trim($this->htmlContent);
 
         // Render Twig content first
         if ($htmlContent) {
-            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent);
+            $htmlContent = Craft::$app->getView()->renderString($this->htmlContent, $variables);
         }
 
         if ($this->purifyContent) {

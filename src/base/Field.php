@@ -255,6 +255,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     private ?bool $_isFresh = null;
     private array $_valueSql = [];
 
+    // Render Options
+    private array $_renderOptions = [];
+
 
     // Public Methods
     // =========================================================================
@@ -1246,6 +1249,14 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         if ($templateConfig) {
             $form->setThemeConfig($templateConfig);
         }
+
+        // Save for later
+        $this->_renderOptions = $renderOptions;
+    }
+
+    public function getRenderOptions(): array
+    {
+        return $this->_renderOptions;
     }
 
     public function getFrontEndJsModules(): ?array
