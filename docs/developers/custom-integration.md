@@ -631,7 +631,7 @@ class ExampleWebhook extends Webhook
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'This is an example email marketing integration.');
+        return Craft::t('formie', 'This is an example webhook integration.');
     }
 
     public function getSettingsHtml(): string
