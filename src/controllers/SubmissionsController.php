@@ -1188,9 +1188,12 @@ class SubmissionsController extends Controller
 
     private function _setTitle(Submission $submission, Form $form): void
     {
-        $submission->title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
+        $title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
 
-        // Set the default title for the submission, so it can save correctly
+        // In case any values are encoded for HTML, we should decode them here. This is after sanitization
+        $submission->title = html_entity_decode($title);
+
+        // // Set the default title for the submission, so it can save correctly
         if (!$submission->title) {
             $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
             $submission->title = $now->format('D, d M Y H:i:s');
