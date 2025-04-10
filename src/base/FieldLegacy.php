@@ -290,4 +290,9 @@ trait FieldLegacy
     {
         
     }
+
+    public function serializeValueForDb(mixed $value, ElementInterface $element): mixed
+    {
+        return $this->serializeValue($value, $element);
+    }
 }
