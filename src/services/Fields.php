@@ -87,7 +87,10 @@ class Fields extends Component
     // Properties
     // =========================================================================
 
+    private array $_layouts = [];
     private array $_fields = [];
+    private array $_fieldsForForm = [];
+    private array $_registeredFields = [];
     private array $_existingFields = [];
 
 
@@ -96,8 +99,8 @@ class Fields extends Component
 
     public function getRegisteredFields(bool $excludeDisabled = true): array
     {
-        if (count($this->_fields)) {
-            return $this->_fields;
+        if (count($this->_registeredFields)) {
+            return $this->_registeredFields;
         }
 
         $settings = Formie::$plugin->getSettings();
@@ -193,10 +196,10 @@ class Fields extends Component
                 continue;
             }
 
-            $this->_fields[$class] = new $class;
+            $this->_registeredFields[$class] = new $class;
         }
 
-        return $this->_fields;
+        return $this->_registeredFields;
     }
 
     public function getFormBuilderFieldTypes(): array
@@ -454,6 +457,10 @@ class Fields extends Component
 
     public function getAllLayouts(): array
     {
+        if ($this->_layouts) {
+            return $this->_layouts;
+        }
+
         $layouts = [];
 
         $layoutIds = (new Query())
@@ -465,11 +472,15 @@ class Fields extends Component
             $layouts[] = $this->getLayoutById($layoutId);
         }
 
-        return $layouts;
+        return $this->_layouts = $layouts;
     }
 
     public function getAllFields(): array
     {
+        if ($this->_fields) {
+            return $this->_fields;
+        }
+
         $fields = [];
 
         $fieldRecords = (new Query())->from(Table::FORMIE_FIELDS)->all();
@@ -478,7 +489,29 @@ class Fields extends Component
             $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
         }
 
-        return $fields;
+        return $this->_fields = $fields;
+    }
+
+    public function getAllFieldsForForm(int $formId): array
+    {
+        if (isset($this->_fieldsForForm[$formId])) {
+            return $this->_fieldsForForm[$formId];
+        }
+
+        $fields = [];
+
+        $fieldRecords = (new Query())
+            ->select(['f.*'])
+            ->from(['f' => Table::FORMIE_FIELDS])
+            ->innerJoin(['ff' => Table::FORMIE_FORMS], '[[f.layoutId]] = [[ff.layoutId]]')
+            ->where(['ff.id' => $formId])
+            ->all();
+
+        foreach ($fieldRecords as $fieldRecord) {
+            $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
+        }
+
+        return $this->_fieldsForForm[$formId] = $fields;
     }
 
     public function getLayoutById(int $id): ?FieldLayout

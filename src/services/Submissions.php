@@ -84,8 +84,8 @@ class Submissions extends Component
             return;
         }
 
-        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
-            foreach ($form->getFields() as $field) {
+        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($fields = Formie::$plugin->getFields()->getAllFieldsForForm($matches[1]))) {
+            foreach ($fields as $field) {
                 if ($field instanceof PreviewableFieldInterface) {
                     $event->attributes["field:{$field->handle}"] = ['label' => $field->label];
                 }
@@ -99,8 +99,8 @@ class Submissions extends Component
             return;
         }
 
-        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($form = Formie::$plugin->getForms()->getFormById($matches[1]))) {
-            foreach ($form->getFields() as $field) {
+        if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($fields = Formie::$plugin->getFields()->getAllFieldsForForm($matches[1]))) {
+            foreach ($fields as $field) {
                 if ($field instanceof SortableFieldInterface) {
                     $event->sortOptions["field:{$field->handle}"] = $field->getSortOption();
                 }

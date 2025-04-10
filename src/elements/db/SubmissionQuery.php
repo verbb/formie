@@ -254,7 +254,17 @@ class SubmissionQuery extends ElementQuery
             return [];
         }
 
-        // Use Formie's custom fields
+        // Craft will try and load custom fields when dealing with provisional drafts, which is rough for performance
+        // As submissions don't make use of provisional draft, we can discard this.
+        if ($this->withProvisionalDrafts || $this->provisionalDrafts) {
+            return [];
+        }
+
+        // Use Formie's custom fields. Ensure we only load the fields we need for performance.
+        if ($this->formId) {
+            return Formie::$plugin->getFields()->getAllFieldsForForm($this->formId);
+        }
+
         return Formie::$plugin->getFields()->getAllFields();
     }
 
