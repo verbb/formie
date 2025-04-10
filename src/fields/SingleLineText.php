@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\models\HtmlTag;
 
 use Craft;
@@ -73,6 +74,11 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
         $value = $value !== '' ? $value : null;
 
         return parent::normalizeValue($value, $element);
+    }
+
+    public function getElementConditionRuleType(): ?string
+    {
+        return TextFieldConditionRule::class;
     }
 
     public function getElementValidationRules(): array

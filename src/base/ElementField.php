@@ -7,6 +7,7 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\fields\conditions\ElementFieldConditionRule;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
@@ -108,6 +109,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
     // =========================================================================
 
     public const EVENT_MODIFY_ELEMENT_QUERY = 'modifyElementQuery';
+    public const EVENT_DEFINE_SELECTION_CRITERIA = 'defineSelectionCriteria';
 
 
     // Properties
@@ -126,6 +128,8 @@ abstract class ElementField extends Field implements ElementFieldInterface
     protected ?ElementQuery $elementsQuery = null;
     protected ?string $cpInputJsClass = null;
     protected string $cpInputTemplate = '_includes/forms/elementSelect';
+
+    private array|null|ElementConditionInterface $_selectionCondition = null;
 
 
     // Public Methods
@@ -213,6 +217,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
         $value->status(null);
 
         return $value->ids();
+    }
+
+    public function getElementConditionRuleType(): array|string|null
+    {
+        return ElementFieldConditionRule::class;
     }
 
     public function getElementsQuery(): ElementQueryInterface
@@ -561,6 +570,45 @@ abstract class ElementField extends Field implements ElementFieldInterface
         return $sources;
     }
 
+    public function getInputSelectionCriteria(): array
+    {
+        // Fire a 'defineSelectionCriteria event
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_SELECTION_CRITERIA)) {
+            $event = new ElementCriteriaEvent();
+            $this->trigger(self::EVENT_DEFINE_SELECTION_CRITERIA, $event);
+
+            return $event->criteria;
+        }
+
+        return [];
+    }
+
+    public function getSelectionCondition(): ?ElementConditionInterface
+    {
+        if ($this->_selectionCondition !== null && !$this->_selectionCondition instanceof ConditionInterface) {
+            $condition = Craft::$app->getConditions()->createCondition($this->_selectionCondition);
+            
+            if (!empty($condition->getConditionRules())) {
+                $this->_selectionCondition = $condition;
+            } else {
+                $this->_selectionCondition = null;
+            }
+        }
+
+        return $this->_selectionCondition;
+    }
+
+    public function setSelectionCondition(mixed $condition): void
+    {
+        if ($condition instanceof ConditionInterface && !$condition->getConditionRules()) {
+            $condition = null;
+        }
+
+        // Don't instantiate it unless we actually end up needing it.
+        // Avoids an infinite recursion bug (ElementCondition::selectableConditionRules() => getAllFields() => setSelectionCondition() => ...)
+        $this->_selectionCondition = $condition;
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -837,6 +885,11 @@ abstract class ElementField extends Field implements ElementFieldInterface
     protected function targetSiteId(?ElementInterface $element = null): int
     {
         return $element->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
+    }
+
+    protected function createSelectionCondition(): ?ElementConditionInterface
+    {
+        return null;
     }
 
 

@@ -454,6 +454,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $value === null || $value === [] || $value === '';
     }
 
+    public function getElementConditionRuleType(): array|string|null
+    {
+        return null;
+    }
+
     public function getValueSql(?string $key = null): ?string
     {
         $cacheKey = $key ?? '*';

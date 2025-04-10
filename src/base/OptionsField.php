@@ -7,6 +7,7 @@ use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\conditions\OptionsFieldConditionRule;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
@@ -254,6 +255,11 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
         }
 
         return parent::serializeValue($value, $element);
+    }
+
+    public function getElementConditionRuleType(): array|string|null
+    {
+        return OptionsFieldConditionRule::class;
     }
 
     public function getElementValidationRules(): array
