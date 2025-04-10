@@ -101,7 +101,7 @@ Instead of overriding each one of these elements, you can set the `--fui-primary
 
     /* Borders */
     --fui-border-color: #CBD5E1;
-    --fui-border-radius: 4;
+    --fui-border-radius: 4px;
 
     /* Focus states */
     --fui-focus-border-color: #94A3B8;
