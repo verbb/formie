@@ -368,17 +368,15 @@ If you have a lot of forms, or would rather not conditionally check _every_ form
 
 ```php
 Event::on(Submission::class, Submission::EVENT_DEFINE_RULES, function(SubmissionRulesEvent $event) {
-    if ($fieldLayout = $event->submission->getFieldLayout()) {
-        foreach ($fieldLayout->getCustomFields() as $field) {
-            // Check against the handle of the field
-            if ($field->handle === 'emailAddress') {
-                $event->rules[] = [['field:emailAddress'], 'required'];
-            }
+    foreach ($event->submission->getFields() as $field) {
+        // Check against the handle of the field
+        if ($field->handle === 'emailAddress') {
+            $event->rules[] = [['field:emailAddress'], 'required'];
+        }
 
-            // Or, for a more global-check - against the type of the field
-            if ($field instanceof \verbb\formie\fields\Email) {
-                $event->rules[] = [['field:emailAddress'], 'required'];
-            }
+        // Or, for a more global-check - against the type of the field
+        if ($field instanceof \verbb\formie\fields\Email) {
+            $event->rules[] = [['field:emailAddress'], 'required'];
         }
     }
 });
