@@ -4,13 +4,14 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
 use craft\helpers\Console;
+use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 use craft\web\UploadedFile;
 
@@ -115,7 +116,10 @@ class ImportExportController extends Controller
             $type = explode('\\', $field['type']);
             $type = array_pop($type);
 
-            $this->stdout("        > {$type}: “{$field['label']}” `({$field['handle']})`.", Console::FG_GREEN);
+            $label = Html::encode($field['label']);
+            $handle = Html::encode($field['handle']);
+
+            $this->stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
         }
 
         $notificationCount = Craft::t('app', '{num, number} {num, plural, =1{notification} other{notifications}}', ['num' => count($json['notifications'])]);
