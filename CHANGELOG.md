@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.24 - 2025-04-11
+
+### Fixed
+- Fix support for Craft 5.7+.
+
 ## 3.0.23 - 2025-04-11
 
 ### Added
