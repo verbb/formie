@@ -1,5 +1,39 @@
 # Changelog
 
+## 3.0.23 - 2025-04-11
+
+### Added
+- Add extra logging to Opayo payment failures.
+- Add the ability to assign a Campaign to a Contact/Lead/Account in Salesforce.
+- Add support for filtering submissions by fields in the control panel.
+- Add the ability for HTML fields to reference render options via Twig in their content.
+- Add the ability to provide submission query arguments for fields, for GraphQL.
+- Add `Field::EVENT_MODIFY_VALUE_FOR_VARIABLE`.
+- Add the ability to set the permissions of newly-created forms for users that have limited form access.
+
+### Change
+- Improve performance of submission editing screen in the control panel.
+- Improve performance of submissions element index in the control panel.
+- Improve field layout error output for nested fields and failed validation, which now references the page handle, field handle and any parent field handle.
+- Update deprecated `log()` function.
+- Move `Field::getValueForVariable` to `Field::defineValueForVariable`.
+
+### Fixed
+- Fix `submissionEndpoint` GraphQL property.
+- Fix an error for Phone fields, when initializing the form’s JS multiple times.
+- Fix payment field race condition when initializing form JS multiple times with conditions.
+- Fix an error with Opayo and billing email.
+- Fix an XSS vulnerability for importing forms with manipulated field content.
+- Fix an XSS vulnerability for email notification content.
+- Fix support for Craft 5.7+.
+- Fix submission titles displaying incorrectly when referencing some fields in their content.
+- Fix Agree field not rendering its empty value correctly in email notifications.
+- Fix email notifications not rendering empty valued fields correctly.
+- Fix Pardot integration not working correctly. (thanks @mirego).
+- Fix sub-field fields not having their label correctly set in some instances when upgrading to Formie 3.
+- Fix an error with Summary and Section fields for Formie 3 upgrades.
+- Fix large field settings throwing an error (particularly for Formie 3 upgrades).
+
 ## 3.0.22 - 2025-03-27
 
 ### Added
