@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.44 - 2025-04-11
+
+### Added
+- Add extra logging to Opayo payment failures.
+- Add the ability to assign a Campaign to a Contact/Lead/Account in Salesforce.
+
+### Fixed
+- Fix `submissionEndpoint` GraphQL property.
+- Fix an error for Phone fields, when initializing the form’s JS multiple times.
+- Fix payment field race condition when initializing form JS multiple times with conditions.
+- Fix an error with Opayo and billing email.
+- Fix an XSS vulnerability for importing forms with manipulated field content.
+- Fix an XSS vulnerability for email notification content.
+
 ## 2.1.43 - 2025-03-27
 
 ### Added
