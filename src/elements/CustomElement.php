@@ -189,7 +189,7 @@ class CustomElement extends Element
     // Protected Methods
     // =========================================================================
 
-    protected function fieldLayoutFields(bool $visibleOnly = false): array
+    protected function fieldLayoutFields(bool $visibleOnly = false, bool $editableOnly = false): array
     {
         return $this->getFields();
     }
