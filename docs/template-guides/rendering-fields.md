@@ -11,7 +11,7 @@ The `renderField()` requires both a [Form](docs:developers/form) object and a [F
     {{ actionInput('formie/submissions/submit') }}
     {{ hiddenInput('handle', form.handle) }}
 
-    {% for field in form.getCustomFields() %}
+    {% for field in form.getFields() %}
         {{ craft.formie.renderField(form, field) }}
     {% endfor %}
 </form>
@@ -79,7 +79,7 @@ A second argument to `renderField()` allows you to pass in variables used as [Re
 
 {% set form = craft.formie.forms.handle('contactUs').one() %}
 
-{% for field in form.getCustomFields() %}
+{% for field in form.getFields() %}
     {{ craft.formie.renderField(form, field, renderOptions) }}
 {% endfor %}
 ```

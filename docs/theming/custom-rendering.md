@@ -29,7 +29,7 @@ This guide serves as a starter. There are several aspects of templating that sho
         {{ redirectInput(form.getRedirectUrl()) }}
     {% endif %}
 
-    {% for field in form.getCustomFields() %}
+    {% for field in form.getFields() %}
         {% set value = field.defaultValue ?? null %}
         
         {{ field.getFrontEndInputHtml(form, value) }}
@@ -96,7 +96,7 @@ Then, we want to add information about the submission. This is important if the 
         {% endfor %}
     {% endif %}
 
-    {% for field in form.getCustomFields() %}
+    {% for field in form.getFields() %}
         {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
         {% set errors = submission.getErrors(field.handle) ?? null %}
         
@@ -205,7 +205,7 @@ That should provide us with a working example to continue building. Here's the t
     {% endif %}
 
     {# Render each field, according to its field template #}
-    {% for field in form.getCustomFields() %}
+    {% for field in form.getFields() %}
         {# Fetch the value if one exists, or use the default #}
         {% set value = attribute(submission, field.handle) ?? field.defaultValue ?? null %}
         {% set errors = submission.getErrors(field.handle) ?? null %}
