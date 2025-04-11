@@ -4,10 +4,10 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\helpers\StringHelper;
 use craft\web\Controller;
 
 use yii\web\Response;
@@ -54,7 +54,7 @@ class EmailController extends Controller
             'sender' => $email->getSender(),
             'replyTo' => $email->getReplyTo(),
             'subject' => $email->getSubject(),
-            'body' => $email->getHtmlBody(),
+            'body' => StringHelper::cleanString($email->getHtmlBody()),
         ]);
     }
 
