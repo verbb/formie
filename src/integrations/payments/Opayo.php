@@ -150,6 +150,7 @@ class Opayo extends Payment
 
     public function processPayment(Submission $submission): bool
     {
+        $payload = [];
         $response = null;
         $result = false;
 
@@ -208,8 +209,10 @@ class Opayo extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
+            $payload = $event->payload;
+
             // Trigger the Opato payment to be captured
-            $response = $this->request('POST', 'transactions', ['json' => $event->payload]);
+            $response = $this->request('POST', 'transactions', ['json' => $payload]);
 
             $status = $response['status'] ?? null;
             $statusDetail = $response['statusDetail'] ?? null;
@@ -274,11 +277,12 @@ class Opayo extends Payment
             $result = true;
         } catch (Throwable $e) {
             // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”. Payload: “{payload}”', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
+                'payload' => Json::encode($payload),
             ]));
 
             Integration::apiError($this, $e, $this->throwApiError);
@@ -391,11 +395,12 @@ class Opayo extends Payment
             $responseData['transactionId'] = $transactionId;
         } catch (Throwable $e) {
             // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
+            Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}. Payload: “{payload}”', [
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
+                'payload' => Json::encode($data ?? []),
             ]));
 
             $shouldShowError = true;
@@ -733,7 +738,25 @@ class Opayo extends Payment
 
         $billingName = $this->getFieldSetting('billingDetails.billingName');
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
-        $payload['customerEMail'] = $this->getFieldSetting('billingDetails.billingEmail');
+        $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
+
+        if ($billingEmail) {
+            $integrationField = new IntegrationField();
+            $integrationField->type = IntegrationField::TYPE_STRING;
+
+            $email = $this->getMappedFieldValue($billingEmail, $submission, $integrationField);
+            
+            // Only set if we have a valid email
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $payload['customerEMail'] = $email;
+            } else {
+                // Provide a default valid email if none provided
+                $payload['customerEMail'] = 'customer@example.com';
+            }
+        } else {
+            // Provide a default valid email if none provided
+            $payload['customerEMail'] = 'customer@example.com';
+        }
 
         if ($billingName) {
             $integrationField = new IntegrationField();

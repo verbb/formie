@@ -66,6 +66,11 @@ export class FormiePhoneCountry {
             }
         }
 
+        // Check if we're double-binding
+        if (this.$field.validator) {
+            this.$field.validator.destroy();
+        }
+
         this.validator = intlTelInput(this.$field, options);
 
         // Attach the validator to the field so we can access later

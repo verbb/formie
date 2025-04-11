@@ -11,6 +11,7 @@ use verbb\formie\models\Settings;
 use Craft;
 use craft\db\Query;
 use craft\helpers\Console;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\Controller;
 use craft\web\UploadedFile;
@@ -117,8 +118,8 @@ class ImportExportController extends Controller
             $type = array_pop($type);
 
             // Handle Formie v2 exports
-            $label = $field['label'] ?? $field['settings']['label'] ?? '';
-            $handle = $field['handle'] ?? $field['settings']['handle'] ?? '';
+            $label = Html::encode($field['label'] ?? $field['settings']['label'] ?? '');
+            $handle = Html::encode($field['handle'] ?? $field['settings']['handle'] ?? '');
 
             $this->stdout("        > {$type}: “{$label}” `({$handle})`.", Console::FG_GREEN);
         }
