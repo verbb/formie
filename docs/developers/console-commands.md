@@ -22,6 +22,50 @@ Option | Description
 ./craft formie/forms/delete --form-handle=form1,anotherForm
 ```
 
+## Import/Export
+
+### List Forms
+Lists all available Formie forms that can be exported or imported.
+
+Option | Description
+--- | ---
+`folderPath` | Optional path to look for JSON files. Defaults to the plugin's export folder.
+
+```shell
+./craft formie/forms/list
+```
+
+### Export Forms
+Export Formie forms as JSON files. Requires form IDs or handles as a comma-separated list.
+
+```shell
+./craft formie/forms/export 1,contact-form,newsletter
+```
+
+### Import Form
+Import a Formie form from a JSON file.
+
+Option | Description
+--- | ---
+`fileLocation` | Path to a JSON file to import. Can be relative to the plugin's export folder or an absolute path.
+`--create` | Whether to create a new form instead of updating an existing one. Default is false.
+
+```shell
+./craft formie/forms/import formie-contact-form.json
+```
+
+### Import All Forms
+Import all Formie form JSON files from a folder.
+
+Option | Description
+--- | ---
+`folderPath` | Optional path to look for JSON files. Defaults to the plugin's export folder.
+`--create` | Whether to create new forms instead of updating existing ones. Default is false.
+
+```shell
+./craft formie/forms/import-all
+```
+
 ## Submissions
 
 ### Re-save Submissions
