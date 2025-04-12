@@ -44,6 +44,7 @@ use Twig\Markup;
 
 use ReflectionClass;
 use ReflectionException;
+use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionUnionType;
@@ -693,8 +694,15 @@ trait FormFieldTrait
         }
 
         // Otherwise, check if there are any default values. Add an extra check for object-based content
-        $hasIsEmptyMethod = is_object($value) && method_exists($value, 'isEmpty');
-        $isEmpty = $hasIsEmptyMethod && $value->isEmpty();
+        $isEmpty = false;
+
+        if (is_object($value) && method_exists($value, 'isEmpty')) {
+            $reflection = new ReflectionMethod($value, 'isEmpty');
+
+            if ($reflection->isPublic()) {
+                $isEmpty = $value->isEmpty();
+            }
+        }
 
         if ($value === null || $isEmpty) {
             $defaultValue = $this->getDefaultValue($attributePrefix);
