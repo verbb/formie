@@ -52,14 +52,14 @@
             warning: macros.configWarning('useQueueForIntegrations', 'formie'),
         }) }}
 
-        {{ forms.selectField({
+        {{ forms.checkboxSelectField({
             label: 'Default Submissions State' | t('formie'),
             instructions: 'Set what sorts of submissions should be shown by default when viewing submissions.' | t('formie'),
             id: 'submissionsBehaviour',
             name: 'submissionsBehaviour',
-            value: settings.submissionsBehaviour,
+            values: settings.submissionsBehaviour,
+            showAllOption: true,
             options: [
-                { label: 'All', value: 'all' },
                 { label: 'Complete', value: 'complete' },
                 { label: 'Incomplete', value: 'incomplete' },
                 { label: 'Spam', value: 'spam' },
