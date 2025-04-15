@@ -51,6 +51,7 @@ class Rendering extends Component
     private array $_cssFiles = [];
     private array $_jsFiles = [];
     private array $_filesBuffers = [];
+    private array $_renderVariables = [];
 
 
     // Public Methods
@@ -693,6 +694,24 @@ class Rendering extends Component
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
+    public function setRenderVariables(array $variables = []): void
+    {
+        $this->_renderVariables = $variables;
+    }
+
+    public function getRenderVariables(string $key): mixed
+    {
+        return ArrayHelper::getValue($this->_renderVariables, $key);
+    }
+
+    public function registerScript(string $script, int $position = View::POS_END, array $options = [], ?string $key = null): void
+    {
+        // Merge in any render options for JS that have been defined
+        $options = array_unique(array_merge($options, $this->_getScriptAttributes()));
+
+        Craft::$app->getView()->registerScript($script, $position, $options, $key);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -723,7 +742,7 @@ class Rendering extends Component
         return null;
     }
 
-    private function _getJsAttributes(array $renderOptions): array
+    private function _getJsAttributes(array $renderOptions = []): array
     {
         // Some attributes are JS-render related
         $attributes = $this->_getScriptAttributes($renderOptions);
@@ -737,11 +756,11 @@ class Rendering extends Component
         return $jsAttributes;
     }
 
-    private function _getScriptAttributes(array $renderOptions): array
+    private function _getScriptAttributes(array $renderOptions = []): array
     {
-        $attributes = ['type' => 'text/javascript'];
+        $attributes = $this->getRenderVariables('scriptAttributes') ?? [];
         $scriptAttributes = $renderOptions['scriptAttributes'] ?? [];
 
-        return array_merge($attributes, $scriptAttributes);
+        return array_merge(['type' => 'text/javascript'], $attributes, $scriptAttributes);
     }
 }

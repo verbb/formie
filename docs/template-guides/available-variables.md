@@ -59,7 +59,7 @@ Used to specifically register the CSS and JS for a form. Takes the same argument
 
 
 ### `craft.formie.renderFormCss(form)`
-Allows specific placement of a form's CSS on the page. Takes the same arguments as `craft.formie.renderForm`
+Allows specific placement of a form's CSS on the page. Takes the same arguments as `craft.formie.renderForm`.
 
 ```twig
 {{ craft.formie.renderFormCss('contactForm') }}
@@ -71,7 +71,7 @@ Allows specific placement of a form's CSS on the page. Takes the same arguments 
 
 
 ### `craft.formie.renderFormJs(form)`
-Allows specific placement of a form's JS on the page. Takes the same arguments as `craft.formie.renderForm`
+Allows specific placement of a form's JS on the page. Takes the same arguments as `craft.formie.renderForm`.
 
 ```twig
 <div class="form-wrap">
@@ -111,6 +111,22 @@ Renders the Formie JavaScript (`formie.js`) file. Useful for SPA or lazy loading
         {{ craft.formie.renderForm('contactForm') }}
     </div>
 </body>
+```
+
+
+### `craft.formie.setRenderVariables(mixed)`
+Sets any render variables to be globally available to Formie for rendering. 
+
+This should be included _before_ a `craft.formie.renderForm()` call.
+
+```twig
+{{ craft.formie.setRenderVariables({
+    scriptAttributes: {
+        nonce: 'my-nonce',
+    },
+}) }}
+
+{{ craft.formie.renderForm('contactForm') }}
 ```
 
 
