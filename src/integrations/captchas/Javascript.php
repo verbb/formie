@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -80,7 +81,7 @@ class Javascript extends Captcha
 
         // Add the JS value separately, so it's not cached in the form as settings
         $js = 'window.Formie' . $sessionKey . '=' . Json::encode($value) . ';';
-        Craft::$app->getView()->registerJs($js, View::POS_END);
+        Formie::$plugin->getRendering()->registerScript($js, View::POS_END);
 
         return [
             'src' => $src,
