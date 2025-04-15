@@ -161,6 +161,16 @@ class Formie
         FormiePlugin::$plugin->getRendering()->populateFormValues($element, $values, $force);
     }
 
+    public function setRenderVariables(array $variables = []): void
+    {
+        FormiePlugin::$plugin->getRendering()->setRenderVariables($variables);
+    }
+
+    public function getRenderVariables(string $key): mixed
+    {
+        FormiePlugin::$plugin->getRendering()->getRenderVariables($key);
+    }
+
     public function getPlugin(): FormiePlugin
     {
         return FormiePlugin::$plugin;
