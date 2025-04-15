@@ -1,33 +1,15 @@
 <div class="fui-recent-submissions-container">
     {% if widget.displayType == 'list' %}
         {% if submissions %}
-            <table class="data fullwidth">
-                <thead>
-                    <tr>
-                        <th>{{ 'Title' | t }}</th>
-                        <th>{{ 'Form' | t }}</th>
-                        <th>{{ 'Date' | t }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for submission in submissions %}
-                        <tr>
-                            <td>
-                                <div class="element small hasstatus">
-                                    <span class="status on"></span>
-                                    <a href="{{ submission.getCpEditUrl() }}">{{ submission.title }}</a>
-                                </div>
-                            </td>
+            <ol class="widget__list" role="list">
+                {% for submission in submissions %}
+                    <li class="widget__list-item">
+                        <a href="{{ submission.getCpEditUrl() }}">{{ submission.title }}</a>
 
-                            <td>
-                                {{ submission.form.title }}
-                            </td>
-
-                            <td>{{ submission.dateCreated | date('short') }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        <span class="light">{{ submission.dateCreated | date('short') }}, {{ submission.form.title }}</span>
+                    </li>
+                {% endfor %}
+            </ol>
         {% else %}
             <p>{{ 'No submissions.' | t }}</p>
         {% endif %}
