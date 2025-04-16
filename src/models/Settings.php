@@ -60,7 +60,7 @@ class Settings extends Model
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
-    public string $submissionsBehaviour = '*';
+    public string $submissionsBehaviour = 'all';
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -93,7 +93,6 @@ class Settings extends Model
     // Export
     public string $defaultExportFolder = '@storage/formie-export';
 
-
     // Public Methods
     // =========================================================================
 
@@ -103,8 +102,8 @@ class Settings extends Model
         unset($config['enableGatsbyCompatibility']);
 
         // Normalize config
-        if (isset($config['submissionsBehaviour']) && $config['submissionsBehaviour'] === 'all') {
-            $config['submissionsBehaviour'] = '*';
+        if (isset($config['submissionsBehaviour']) && is_array($config['submissionsBehaviour'])) {
+            $config['submissionsBehaviour'] = 'all';
         }
 
         parent::__construct($config);
@@ -113,8 +112,8 @@ class Settings extends Model
     public function setAttributes($values, $safeOnly = true): void
     {
         // Normalize config
-        if (isset($values['submissionsBehaviour']) && $values['submissionsBehaviour'] === 'all') {
-            $values['submissionsBehaviour'] = '*';
+        if (isset($values['submissionsBehaviour']) && is_array($values['submissionsBehaviour'])) {
+            $values['submissionsBehaviour'] = 'all';
         }
 
         parent::setAttributes($values, $safeOnly);
