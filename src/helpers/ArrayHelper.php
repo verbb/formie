@@ -49,7 +49,7 @@ class ArrayHelper extends CraftArrayHelper
      * @return array
      * @link https://book.cakephp.org/4/en/core-libraries/hash.html#Cake\Utility\Hash::flatten
      */
-    public static function flatten(array $data, string $separator = '.'): array
+    public static function flatten($data, $separator = '.'): array
     {
         $result = [];
         $stack = [];
