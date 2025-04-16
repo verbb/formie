@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.25 - 2025-04-16
+
+### Added
+- Add `craft.formie.setRenderVariables()`.
+
+### Changed
+- Update JavaScript Captcha to use render variables for script attributes.
+- Change “Default Submissions State” setting to accept multiple values for states.
+- Change “Recent Submissions” dashboard widget table layout to list for better visual layout.
+
+### Fixed
+- Fix lightswitch UI for Craft 5.7+
+
 ## 3.0.24 - 2025-04-11
 
 ### Fixed
