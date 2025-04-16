@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.45 - 2025-04-16
+
+### Added
+- Add `craft.formie.setRenderVariables()`.
+
+### Changed
+- Update JavaScript Captcha to use render variables for script attributes.
+
+### Fixed
+- Fix an error with Craft 4.15+.
+- Fix an error when validating element field values.
+
 ## 2.1.44 - 2025-04-11
 
 ### Added
