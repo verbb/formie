@@ -104,6 +104,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 $fields = $response['fields'] ?? [];
 
                 $settings['contact'] = array_merge([
+                    // Extracted to make required
                     new IntegrationField([
                         'handle' => 'email1',
                         'name' => Craft::t('formie', 'Email'),
@@ -117,6 +118,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 $fields = $response['fields'] ?? [];
 
                 $settings['lead'] = array_merge([
+                    // Extracted to make required
                     new IntegrationField([
                         'handle' => 'email1',
                         'name' => Craft::t('formie', 'Email'),
@@ -130,6 +132,7 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 $fields = $response['fields'] ?? [];
 
                 $settings['account'] = array_merge([
+                    // Extracted to make required
                     new IntegrationField([
                         'handle' => 'email1',
                         'name' => Craft::t('formie', 'Email'),
@@ -187,13 +190,18 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 ];
 
                 // Find existing contacts
-                $response = $this->request('GET', 'data/Contact', [
-                    'json' => [
-                        'filters' => ['email' => $contactValues['email'] ?? ''],
-                    ],
-                ]);
+                $existingContactId = null;
+                $email = $contactValues['email1'] ?? null;
 
-                $existingContactId = $response['records'][0]['id'] ?? null;
+                if ($email) {
+                    $response = $this->request('GET', 'data/Contact', [
+                        'query' => [
+                            'filters' => ['any_email' => $email],
+                        ],
+                    ]);
+
+                    $existingContactId = $response['records'][0]['id'] ?? null;
+                }
 
                 // Update or create
                 if ($existingContactId) {
@@ -215,13 +223,18 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 ];
 
                 // Find existing leads
-                $response = $this->request('GET', 'data/Lead', [
-                    'json' => [
-                        'filters' => ['email' => $leadValues['email'] ?? ''],
-                    ],
-                ]);
+                $existingLeadId = null;
+                $email = $leadValues['email1'] ?? null;
 
-                $existingLeadId = $response['records'][0]['id'] ?? null;
+                if ($email) {
+                    $response = $this->request('GET', 'data/Lead', [
+                        'json' => [
+                            'filters' => ['any_email' => $email],
+                        ],
+                    ]);
+
+                    $existingLeadId = $response['records'][0]['id'] ?? null;
+                }
 
                 // Update or create
                 if ($existingLeadId) {
@@ -243,13 +256,18 @@ class OneCrm extends Crm implements OAuthProviderInterface
                 ];
 
                 // Find existing accounts
-                $response = $this->request('GET', 'data/Account', [
-                    'json' => [
-                        'filters' => ['email' => $accountValues['email'] ?? ''],
-                    ],
-                ]);
+                $existingAccountId = null;
+                $email = $accountValues['email1'] ?? null;
 
-                $existingAccountId = $response['records'][0]['id'] ?? null;
+                if ($email) {
+                    $response = $this->request('GET', 'data/Account', [
+                        'json' => [
+                            'filters' => ['any_email' => $email],
+                        ],
+                    ]);
+
+                    $existingAccountId = $response['records'][0]['id'] ?? null;
+                }
 
                 // Update or create
                 if ($existingAccountId) {
