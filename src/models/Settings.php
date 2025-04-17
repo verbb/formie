@@ -60,7 +60,7 @@ class Settings extends Model
     public bool $useQueueForIntegrations = true;
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
-    public string $submissionsBehaviour = 'all';
+    public string|array $submissionsBehaviour = 'all';
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -92,6 +92,7 @@ class Settings extends Model
 
     // Export
     public string $defaultExportFolder = '@storage/formie-export';
+
 
     // Public Methods
     // =========================================================================
