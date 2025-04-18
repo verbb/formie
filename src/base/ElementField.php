@@ -720,6 +720,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
             'showSiteMenu' => 'auto',
             'viewMode' => 'list',
             'limit' => $this->limitOptions ? $this->limitOptions : null,
+            'defaultPlacement' => 'end',
             'modalSettings' => [
                 'defaultSiteId' => $element->siteId ?? null,
             ],
