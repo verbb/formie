@@ -54,7 +54,7 @@ class EmailController extends Controller
             'sender' => $email->getSender(),
             'replyTo' => $email->getReplyTo(),
             'subject' => $email->getSubject(),
-            'body' => StringHelper::cleanString($email->getSymfonyEmail()->getHtmlBody()),
+            'body' => $email->getSymfonyEmail()->getHtmlBody(),
         ]);
     }
 

@@ -253,7 +253,7 @@ class Emails extends Component
             $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
 
             // Add it to our render variables
-            $renderVariables['contentHtml'] = Template::raw($parsedContent);
+            $renderVariables['contentHtml'] = Template::raw(StringHelper::cleanString($parsedContent));
 
             $event = new MailRenderEvent([
                 'email' => $newEmail,
