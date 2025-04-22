@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.0.26 - 2025-04-22
+
+### Fixed
+- Fix parsing of email notification content and HTML.
+- Fix 1CRM integration not querying existing data objects correctly.
+- Fix an error when viewing submissions in element fields for Craft 5.7+.
+- Fix an error with `submissionsBehaviour`.
+
 ## 3.0.25 - 2025-04-16
 
 ### Added
