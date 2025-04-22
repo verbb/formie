@@ -71,6 +71,11 @@ class FormQuery extends ElementQuery
 
     protected function beforePrepare(): bool
     {
+        // Prevent this from running in Craft's `m250315_131608_unlimited_authors` migration before our upgrade
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELD_LAYOUT_PAGES)) {
+            return false;
+        }
+        
         $this->joinElementTable('formie_forms');
 
         $this->query->select([
