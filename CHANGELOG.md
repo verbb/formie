@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.46 - 2025-04-22
+
+### Fixed
+- Fix parsing of email notification content and HTML.
+- Fix 1CRM integration not querying existing data objects correctly.
+
 ## 2.1.45 - 2025-04-16
 
 ### Added
