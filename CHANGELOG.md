@@ -5,6 +5,7 @@
 ### Fixed
 - Fix parsing of email notification content and HTML.
 - Fix 1CRM integration not querying existing data objects correctly.
+- Fix an error for payment fields when removing alert classes via Theme Config.
 
 ## 2.1.45 - 2025-04-16
 
