@@ -469,7 +469,7 @@ class Copper extends Crm
 
             if ($this->mapToLead) {
                 $leadPayload = array_merge($leadValues, [
-                    'custom_fields' => $peopleFields,
+                    'custom_fields' => $leadFields,
                 ]);
 
                 $response = $this->deliverPayload($submission, 'leads', $leadPayload);
