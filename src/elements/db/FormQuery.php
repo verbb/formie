@@ -4,6 +4,7 @@ namespace verbb\formie\elements\db;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FormTemplate;
 
+use Craft;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\helpers\Db;
