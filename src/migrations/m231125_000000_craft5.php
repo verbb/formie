@@ -619,7 +619,9 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             if ($title) {
                 $this->update(Table::ELEMENTS_SITES, ['title' => $title], ['elementId' => $elementId]);
-                $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
+
+                // Don't remove the original content here, instead do at the very end
+                // $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
             
                 echo '    > Updated form #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
@@ -1408,5 +1410,14 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         if ($this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'title')) {
             $this->dropColumn(Table::FORMIE_SUBMISSIONS, 'title');
         }
+
+        $forms = (new Query())->select('id')->from(Table::FORMIE_FORMS)->all();
+
+        foreach ($forms as $form) {
+            // Clear the original form's title so that it can be removed from the content table. Done at the very end
+            // during cleanup to prevent loss of migrated content - https://github.com/verbb/formie/issues/2384
+            $this->update('{{%content}}', ['title' => null], ['elementId' => $form['id']]);
+        }
+
     }
 }
