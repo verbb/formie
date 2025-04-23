@@ -261,7 +261,9 @@ class User extends Element
 
             if ($user->getStatus() == UserElement::STATUS_PENDING) {
                 if ($this->activateUser) {
-                    if (!Craft::$app->getUsers()->activateUser($user)) {
+                    Craft::$app->getUsers()->activateUser($user);
+
+                    if ($user->getErrors()) {
                         Integration::error($this, Craft::t('formie', 'Unable to activate user for “{type}” element integration. Error: {error}.', [
                             'type' => $this->handle,
                             'error' => Json::encode($user->getErrors()),
