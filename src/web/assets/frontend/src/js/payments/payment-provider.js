@@ -40,17 +40,23 @@ export class FormiePaymentProvider {
     }
 
     removeSuccess() {
-        this.$field.classList.remove(this.successClass);
+        if (this.successClass) {
+            this.$field.classList.remove(this.successClass);
+        }
 
-        const $success = this.$field.querySelector(`.${this.successMessageClass}`);
+        if (this.successMessageClass) {
+            const $success = this.$field.querySelector(`.${this.successMessageClass}`);
 
-        if ($success) {
-            $success.remove();
+            if ($success) {
+                $success.remove();
+            }
         }
     }
 
     addSuccess(message) {
-        this.$field.classList.add(this.successClass);
+        if (this.successClass) {
+            this.$field.classList.add(this.successClass);
+        }
 
         const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
@@ -59,24 +65,33 @@ export class FormiePaymentProvider {
         }
 
         const $success = document.createElement('div');
-        $success.className = this.successMessageClass;
         $success.textContent = message;
+
+        if (this.successMessageClass) {
+            $success.className = this.successMessageClass;
+        }
 
         $fieldContainer.appendChild($success);
     }
 
     removeError() {
-        this.$field.classList.remove(this.errorClass);
+        if (this.errorClass) {
+            this.$field.classList.remove(this.errorClass);
+        }
 
-        const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
+        if (this.errorMessageClass) {
+            const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
 
-        if ($error) {
-            $error.remove();
+            if ($error) {
+                $error.remove();
+            }
         }
     }
 
     addError(message) {
-        this.$field.classList.add(this.errorClass);
+        if (this.errorClass) {
+            this.$field.classList.add(this.errorClass);
+        }
 
         const $fieldContainer = this.$field.querySelector('[data-field-type] > div');
 
@@ -85,8 +100,11 @@ export class FormiePaymentProvider {
         }
 
         const $error = document.createElement('div');
-        $error.className = this.errorMessageClass;
         $error.textContent = message;
+
+        if (this.errorMessageClass) {
+            $error.className = this.errorMessageClass;
+        }
 
         $fieldContainer.appendChild($error);
 
