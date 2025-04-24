@@ -8,6 +8,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ParseVariablesEvent;
 use verbb\formie\events\RegisterVariablesEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
