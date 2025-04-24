@@ -44,12 +44,18 @@ export class FormieAddressProvider {
     }
 
     onStartFetchLocation() {
-        this.$locationBtn.classList.add(this.loadingClass);
+        if (this.loadingClass) {
+            this.$locationBtn.classList.add(this.loadingClass);
+        }
+
         this.$locationBtn.setAttribute('aria-disabled', true);
     }
 
     onEndFetchLocation() {
-        this.$locationBtn.classList.remove(this.loadingClass);
+        if (this.loadingClass) {
+            this.$locationBtn.classList.remove(this.loadingClass);
+        }
+
         this.$locationBtn.setAttribute('aria-disabled', false);
     }
 }

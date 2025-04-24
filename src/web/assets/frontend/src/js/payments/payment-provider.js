@@ -44,12 +44,10 @@ export class FormiePaymentProvider {
             this.$field.classList.remove(this.successClass);
         }
 
-        if (this.successMessageClass) {
-            const $success = this.$field.querySelector(`.${this.successMessageClass}`);
+        const $success = this.$field.querySelector('[data-fui-field-success-message]');
 
-            if ($success) {
-                $success.remove();
-            }
+        if ($success) {
+            $success.remove();
         }
     }
 
@@ -66,6 +64,7 @@ export class FormiePaymentProvider {
 
         const $success = document.createElement('div');
         $success.textContent = message;
+        $success.setAttribute('data-fui-field-success-message', '');
 
         if (this.successMessageClass) {
             $success.className = this.successMessageClass;
@@ -79,12 +78,10 @@ export class FormiePaymentProvider {
             this.$field.classList.remove(this.errorClass);
         }
 
-        if (this.errorMessageClass) {
-            const $error = this.$field.querySelector(`.${this.errorMessageClass}`);
+        const $error = this.$field.querySelector('[data-fui-field-error-message]');
 
-            if ($error) {
-                $error.remove();
-            }
+        if ($error) {
+            $error.remove();
         }
     }
 
@@ -101,6 +98,7 @@ export class FormiePaymentProvider {
 
         const $error = document.createElement('div');
         $error.textContent = message;
+        $success.setAttribute('data-fui-field-error-message', '');
 
         if (this.errorMessageClass) {
             $error.className = this.errorMessageClass;

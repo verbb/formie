@@ -52,7 +52,9 @@ export class FormieSummary {
                 return;
             }
 
-            $container.classList.add(this.loadingClass);
+            if (this.loadingClass) {
+                $container.classList.add(this.loadingClass);
+            }
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', window.location.href, true);
@@ -61,7 +63,9 @@ export class FormieSummary {
             xhr.setRequestHeader('Cache-Control', 'no-cache');
 
             xhr.onload = () => {
-                $container.classList.remove(this.loadingClass);
+                if (this.loadingClass) {
+                    $container.classList.remove(this.loadingClass);
+                }
 
                 if (xhr.status >= 200 && xhr.status < 300) {
                     // Replace the HTML for the field

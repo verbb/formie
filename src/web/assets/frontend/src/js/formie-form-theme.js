@@ -361,7 +361,7 @@ export class FormieFormTheme {
     }
 
     hideSuccess() {
-        const $successMessage = this.$form.parentNode.querySelector(`.${this.successMessageClass}`);
+        const $successMessage = this.$form.parentNode.querySelector('[data-fui-alert]');
 
         if ($successMessage && this.settings.submitActionMessageTimeout) {
             const timeout = parseInt(this.settings.submitActionMessageTimeout, 10) * 1000;
@@ -377,7 +377,7 @@ export class FormieFormTheme {
             // Always disable the button
             this.$submitBtn.setAttribute('disabled', true);
 
-            if (this.settings.loadingIndicator === 'spinner') {
+            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass) {
                 this.$submitBtn.classList.add(this.loadingClass);
             }
 
@@ -392,7 +392,7 @@ export class FormieFormTheme {
             // Always enable the button
             this.$submitBtn.removeAttribute('disabled');
 
-            if (this.settings.loadingIndicator === 'spinner') {
+            if (this.settings.loadingIndicator === 'spinner' && this.loadingClass) {
                 this.$submitBtn.classList.remove(this.loadingClass);
             }
 
@@ -467,7 +467,7 @@ export class FormieFormTheme {
         Object.keys(errors).forEach((pageId, index) => {
             const $tab = this.$form.parentNode.querySelector(`[data-fui-page-id="${pageId}"]`);
 
-            if ($tab) {
+            if ($tab && this.tabErrorClass) {
                 $tab.parentNode.classList.add(this.tabErrorClass);
             }
         });
@@ -480,7 +480,7 @@ export class FormieFormTheme {
     }
 
     removeFormAlert() {
-        const $alert = this.$form.parentNode.querySelector(`.${this.alertClass}`);
+        const $alert = this.$form.parentNode.querySelector('[data-fui-alert]');
 
         if ($alert) {
             $alert.remove();
@@ -491,7 +491,9 @@ export class FormieFormTheme {
         const $tabs = this.$form.parentNode.querySelectorAll('[data-fui-page-tab]');
 
         $tabs.forEach(($tab) => {
-            $tab.classList.remove(this.tabErrorClass);
+            if (this.tabErrorClass) {
+                $tab.classList.remove(this.tabErrorClass);
+            }
         });
     }
 
@@ -832,24 +834,28 @@ export class FormieFormTheme {
         if (data.nextPageId) {
             $tabs.forEach(($tab) => {
                 // Show the current page
-                if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
-                    $tab.classList.add(this.tabActiveClass);
-                } else {
-                    $tab.classList.remove(this.tabActiveClass);
+                if (this.tabActiveClass) {
+                    if ($tab.id === `${this.tabClass}-${data.nextPageId}`) {
+                        $tab.classList.add(this.tabActiveClass);
+                    } else {
+                        $tab.classList.remove(this.tabActiveClass);
+                    }
                 }
             });
 
             let isComplete = true;
 
             $tabs.forEach(($tab) => {
-                if ($tab.classList.contains(this.tabActiveClass)) {
+                if (this.tabActiveClass && $tab.classList.contains(this.tabActiveClass)) {
                     isComplete = false;
                 }
 
-                if (isComplete) {
-                    $tab.classList.add(this.tabCompleteClass);
-                } else {
-                    $tab.classList.remove(this.tabCompleteClass);
+                if (this.tabCompleteClass) {
+                    if (isComplete) {
+                        $tab.classList.add(this.tabCompleteClass);
+                    } else {
+                        $tab.classList.remove(this.tabCompleteClass);
+                    }
                 }
             });
 

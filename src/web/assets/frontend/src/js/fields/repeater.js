@@ -161,10 +161,16 @@ export class FormieRepeater {
 
     updateButton() {
         if (this.getNumRows() >= this.maxRows) {
-            this.$addButton.classList.add = this.disabledClass;
+            if (this.disabledClass) {
+                this.$addButton.classList.add(this.disabledClass);
+            }
+
             this.$addButton.setAttribute('disabled', 'disabled');
         } else {
-            this.$addButton.classList.remove = this.disabledClass;
+            if (this.disabledClass) {
+                this.$addButton.classList.remove(this.disabledClass);
+            }
+
             this.$addButton.removeAttribute('disabled');
         }
     }
