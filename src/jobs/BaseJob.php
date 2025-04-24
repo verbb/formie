@@ -2,6 +2,7 @@
 namespace verbb\formie\jobs;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 
 use Craft;
@@ -43,6 +44,9 @@ abstract class BaseJob extends CraftBaseJob
             $this->handleError($event->job, $jobData);
 
             $jobData = Craft::$app->getQueue()->serializer->serialize($jobData);
+
+            // Some environments need this sanitized...
+            $jobData = StringHelper::convertToUtf8($jobData);
 
             Db::update(Table::QUEUE, ['job' => $jobData], ['id' => $event->id], [], false);
         } catch (Throwable $e) {
