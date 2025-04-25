@@ -5,7 +5,7 @@ use verbb\formie\base\FieldInterface;
 
 use yii\base\Event;
 
-class RegisterDateTimeFormatOpionsEvent extends Event
+class RegisterDateTimeFormatOptionsEvent extends Event
 {
     // Properties
     // =========================================================================
@@ -14,3 +14,9 @@ class RegisterDateTimeFormatOpionsEvent extends Event
     public array $options = [];
     
 }
+
+class_alias(
+    RegisterDateTimeFormatOptionsEvent::class,
+    RegisterDateTimeFormatOpionsEvent::class
+);
+
