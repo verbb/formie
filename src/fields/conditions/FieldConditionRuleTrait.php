@@ -85,17 +85,17 @@ trait FieldConditionRuleTrait
         $value = $this->elementQueryParam();
 
         if ($value !== null) {
-            $fields = $this->fields();
-            $field = $fields[0];
-            $params = [];
-            $condition = $field::queryCondition($fields, $value, $params);
+            if ($field = $this->field()) {
+                $params = [];
+                $condition = $field::queryCondition([$field], $value, $params);
 
-            if ($condition === false) {
-                /** @phpstan-ignore-next-line */
-                $query->andWhere('0=1');
-            } elseif ($condition !== null) {
-                /** @phpstan-ignore-next-line */
-                $query->andWhere($condition, $params);
+                if ($condition === false) {
+                    /** @phpstan-ignore-next-line */
+                    $query->andWhere('0=1');
+                } elseif ($condition !== null) {
+                    /** @phpstan-ignore-next-line */
+                    $query->andWhere($condition, $params);
+                }
             }
         }
     }
