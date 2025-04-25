@@ -103,6 +103,8 @@ class Emails extends Component
                 $newEmail->setTo($to);
             }
         } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
+            
             $error = Craft::t('formie', 'Notification email parse error for “To: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->getToEmail($submission),
                 'message' => $e->getMessage(),
@@ -129,6 +131,8 @@ class Emails extends Component
                     $newEmail->setSender($sender);
                 }
             } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+                
                 $error = Craft::t('formie', 'Notification email parse error for “Sender: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->sender,
                     'message' => $e->getMessage(),
@@ -150,6 +154,8 @@ class Emails extends Component
                     $newEmail->setBcc($bcc);
                 }
             } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+                
                 $error = Craft::t('formie', 'Notification email parse error for “BCC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->bcc,
                     'message' => $e->getMessage(),
@@ -171,6 +177,8 @@ class Emails extends Component
                     $newEmail->setCc($cc);
                 }
             } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+                
                 $error = Craft::t('formie', 'Notification email parse error for CC: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->cc,
                     'message' => $e->getMessage(),
@@ -198,6 +206,8 @@ class Emails extends Component
                     }
                 }
             } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+                
                 $error = Craft::t('formie', 'Notification email parse error for ReplyTo: {value}”. Template error: “{message}” {file}:{line}', [
                     'value' => $notification->replyTo,
                     'message' => $e->getMessage(),
@@ -216,6 +226,8 @@ class Emails extends Component
 
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
+            
             $error = Craft::t('formie', 'Notification email parse error for Subject: {value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $notification->subject,
                 'message' => $e->getMessage(),
@@ -294,6 +306,8 @@ class Emails extends Component
 
             $newEmail->setTextBody($plainTextBody);
         } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
+            
             $error = Craft::t('formie', 'Notification email template parse error for “{value}”. Template error: “{message}” {file}:{line}', [
                 'value' => $templatePath,
                 'message' => $e->getMessage(),
@@ -418,6 +432,8 @@ class Emails extends Component
                 Formie::$plugin->getSentNotifications()->saveSentNotification($submission, $notification, $newEmail);
             }
         } catch (Throwable $e) {
+            Craft::$app->getErrorHandler()->logException($e);
+            
             $error = Craft::t('formie', 'Notification email “{notification}” could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
@@ -492,6 +508,8 @@ class Emails extends Component
 
                 $mail->send();
             } catch (Throwable $e) {
+                Craft::$app->getErrorHandler()->logException($e);
+                
                 $error = Craft::t('formie', 'Failure alert email could not be sent for submission “{submission}”. Error: {error} {file}:{line}', [
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
