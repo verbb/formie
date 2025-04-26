@@ -845,11 +845,11 @@ Event::on(Date::class, Date::EVENT_MODIFY_TIME_FORMAT, function(ModifyDateTimeFo
 The event that is triggered to register the available options to select for date formatting.
 
 ```php
-use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
+use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\fields\Date;
 use yii\base\Event;
 
-Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
+Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(RegisterDateTimeFormatOptionsEvent $event) {
     $event->options[] = ['label' => 'Standard Formatting', 'value' => 'Y-m-d'];
 });
 ```
@@ -858,11 +858,11 @@ Event::on(Date::class, Date::EVENT_REGISTER_DATE_FORMAT_OPTIONS, function(Regist
 The event that is triggered to register the available options to select for time formatting.
 
 ```php
-use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
+use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\fields\Date;
 use yii\base\Event;
 
-Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(RegisterDateTimeFormatOpionsEvent $event) {
+Event::on(Date::class, Date::EVENT_REGISTER_TIME_FORMAT_OPTIONS, function(RegisterDateTimeFormatOptionsEvent $event) {
     $event->options[] = ['label' => 'Standard Formatting', 'value' => 'H:i:s'];
 });
 ```
