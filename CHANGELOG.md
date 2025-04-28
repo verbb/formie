@@ -1,5 +1,25 @@
 # Changelog
 
+## 3.0.27 - 2025-04-29
+
+### Changed
+- Update Salesforce CRM integration attachment handling.
+- Ensure full errors are logged for integrations. (thanks @boboldehampsink).
+
+### Fixed
+- Fix a timezone issue with Date fields when setting a min/max date relative to today.
+- Fix PDF handling for Craft Cloud.
+- Fix `StringHelper::cleanString` handling.
+- Fix JavaScript errors when managing theme config classes.
+- Fix an error for payment fields when removing alert classes via Theme Config.
+- Fix typo with RegisterDateTimeFormatOptionsEvent. (thanks @jamesmacwhite).
+- Fix an issue when using conditions to filter submissions.
+- Fix an error on Craft Cloud when a failed queue job’s payload couldn’t be updated on a queue job.
+- Fix Formie 2 migration where form titles could be null in some circumstances.
+- Fix an error with User element integration when activating users.
+- Fix issue with custom Lead fields in Copper. (thanks @antcooper).
+- Fix an error when upgrading to Craft 5 and the `m250315_131608_unlimited_authors` Craft migration.
+
 ## 3.0.26 - 2025-04-22
 
 ### Fixed
