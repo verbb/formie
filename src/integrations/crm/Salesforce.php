@@ -336,9 +336,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 if ($this->mapToAccountAttachments) {
-                    $this->processAttachments($submission, [
-                        'FirstPublishLocationId' => $accountId,
-                    ]);
+                    $this->processAttachments($submission, $accountId);
                 }
             }
 
@@ -398,9 +396,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 if ($this->mapToContactAttachments) {
-                    $this->processAttachments($submission, [
-                        'FirstPublishLocationId' => $contactId,
-                    ]);
+                    $this->processAttachments($submission, $contactId);
                 }
             }
 
@@ -437,9 +433,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     }
 
                     if ($this->mapToLeadAttachments) {
-                        $this->processAttachments($submission, [
-                            'FirstPublishLocationId' => $leadId,
-                        ]);
+                        $this->processAttachments($submission, $leadId);
                     }
                 } catch (Throwable $e) {
                     Integration::apiError($this, $e, false);
@@ -539,9 +533,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 if ($this->mapToOpportunityAttachments) {
-                    $this->processAttachments($submission, [
-                        'FirstPublishLocationId' => $opportunityId,
-                    ]);
+                    $this->processAttachments($submission, $opportunityId);
                 }
             }
 
@@ -574,9 +566,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 if ($this->mapToCaseAttachments) {
-                    $this->processAttachments($submission, [
-                        'FirstPublishLocationId' => $caseId,
-                    ]);
+                    $this->processAttachments($submission, $caseId);
                 }
             }
 
@@ -675,13 +665,14 @@ class Salesforce extends Crm implements OAuthProviderInterface
         return $rules;
     }
 
-    protected function processAttachments(Submission $submission, array $payload): void
+    protected function processAttachments(Submission $submission, string $id): void
     {
         $localAttachments = [];
 
         // For any File Upload field, add as an attachment.
         if ($assets = $this->_getAssetsForSubmission($submission)) {
             foreach ($assets as $asset) {
+                // Step 1: Upload file as ContentVersion
                 $path = Assets::getFullAssetFilePath($asset);
 
                 // If a non-local asset, store so we can delete later
@@ -692,13 +683,36 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $fileContent = base64_encode(file_get_contents($path));
                 $fileName = basename($path);
 
-                $attachmentPayload = array_merge($payload, [
+                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', [
                     'Title' => $fileName,
                     'PathOnClient' => $fileName,
                     'VersionData' => $fileContent,
                 ]);
 
-                $response = $this->deliverPayload($submission, 'sobjects/ContentVersion', $attachmentPayload);
+                $contentVersionId = $response['id'] ?? null;
+
+                if (!$contentVersionId) {
+                    continue;
+                }
+
+                // Step 2: Get ContentDocumentId from ContentVersion
+                $query = "SELECT ContentDocumentId FROM ContentVersion WHERE Id = '$contentVersionId'";
+                $response = $this->request('GET', 'query', [
+                    'query' => ['q' => $query],
+                ]);
+
+                $records = $response['records'] ?? [];
+                $contentDocumentId = $records[0]['ContentDocumentId'] ?? null;
+
+                if (!$contentDocumentId) {
+                    continue;
+                }
+
+                $response = $this->deliverPayload($submission, 'sobjects/ContentDocumentLink', [
+                    'ContentDocumentId' => $contentDocumentId,
+                    'LinkedEntityId' => $id,
+                    'ShareType' => 'V',
+                ]);
             }
         }
 
