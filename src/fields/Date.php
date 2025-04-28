@@ -10,7 +10,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubField;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyDateTimeFormatEvent;
-use verbb\formie\events\RegisterDateTimeFormatOpionsEvent;
+use verbb\formie\events\RegisterDateTimeFormatOptionsEvent;
 use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\fields\subfields\DateYear;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
@@ -1472,7 +1472,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             ['label' => 'DD.MM.YYYY', 'value' => 'd.m.Y'],
         ];
 
-        $event = new RegisterDateTimeFormatOpionsEvent([
+        $event = new RegisterDateTimeFormatOptionsEvent([
             'field' => $this,
             'options' => $options,
         ]);
@@ -1491,7 +1491,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             ['label' => '59:59 (MM:SS)', 'value' => 'i:s'],
         ];
 
-        $event = new RegisterDateTimeFormatOpionsEvent([
+        $event = new RegisterDateTimeFormatOptionsEvent([
             'field' => $this,
             'options' => $options,
         ]);
