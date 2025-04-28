@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.47 - 2025-04-29
+
+### Fixed
+- Fix a timezone issue with Date fields when setting a min/max date relative to today.
+- Fix PDF handling for Craft Cloud.
+- Fix `StringHelper::cleanString` handling.
+- Fix JavaScript errors when managing theme config classes.
+- Fix an error for payment fields when removing alert classes via Theme Config.
+
 ## 2.1.46 - 2025-04-22
 
 ### Fixed
