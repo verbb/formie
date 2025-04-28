@@ -718,6 +718,22 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.47 - 2025-04-29
+
+### Fixed
+- Fix a timezone issue with Date fields when setting a min/max date relative to today.
+- Fix PDF handling for Craft Cloud.
+- Fix `StringHelper::cleanString` handling.
+- Fix JavaScript errors when managing theme config classes.
+- Fix an error for payment fields when removing alert classes via Theme Config.
+
+## 2.1.46 - 2025-04-22
+
+### Fixed
+- Fix parsing of email notification content and HTML.
+- Fix 1CRM integration not querying existing data objects correctly.
+- Fix an error for payment fields when removing alert classes via Theme Config.
+
 ## 2.1.45 - 2025-04-16
 
 ### Added

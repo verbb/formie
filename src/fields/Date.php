@@ -350,7 +350,10 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             $operator = $this->minDateOffset === 'add' ? '+' : '-';
             $interval = "{$operator}{$this->minDateOffsetNumber} {$this->minDateOffsetType}";
 
-            return self::toDateTime(DateTimeHelper::now())->modify($interval)->setTime(0, 0, 0);
+            $date = (new DateTime('now', new DateTimeZone('UTC')))->modify($interval);
+            $date->setTime(0, 0, 0);
+
+            return $date;
         }
 
         if ($this->minDateOption === 'date' && $this->minDate) {
@@ -366,7 +369,10 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             $operator = $this->maxDateOffset === 'add' ? '+' : '-';
             $interval = "{$operator}{$this->maxDateOffsetNumber} {$this->maxDateOffsetType}";
 
-            return self::toDateTime(DateTimeHelper::now())->modify($interval)->setTime(23, 59, 59);
+            $date = (new DateTime('now', new DateTimeZone('UTC')))->modify($interval);
+            $date->setTime(23, 59, 59);
+
+            return $date;
         }
 
         if ($this->maxDateOption === 'date' && $this->maxDate) {

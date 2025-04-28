@@ -303,7 +303,17 @@ export class FormieFormBase {
     }
 
     getClasses(key) {
-        return this.getThemeConfigAttributes(key).class || [];
+        const classes = this.getThemeConfigAttributes(key).class;
+
+        if (Array.isArray(classes)) {
+            return classes.filter((c) => { return typeof c === 'string' && c.trim(); }).join(' ').trim();
+        }
+
+        if (typeof classes === 'string') {
+            return classes.trim();
+        }
+
+        return '';
     }
 
     applyThemeConfig($element, key, applyClass = true) {
