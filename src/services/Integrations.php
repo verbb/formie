@@ -111,6 +111,7 @@ class Integrations extends Component
             emailmarketing\Adestra::class,
             emailmarketing\Autopilot::class,
             emailmarketing\AWeber::class,
+            emailmarketing\Beehiiv::class,
             emailmarketing\Benchmark::class,
             emailmarketing\Brevo::class,
             emailmarketing\CampaignMonitor::class,
