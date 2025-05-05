@@ -61,6 +61,17 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const TYPE_PAYMENT = 'payment';
     public const TYPE_WEBHOOK = 'webhook';
     public const TYPE_MISC = 'miscellaneous';
+    public const TYPE_CUSTOM = 'custom';
+    
+    public const CATEGORY_ADDRESS_PROVIDERS = 'addressProviders';
+    public const CATEGORY_CAPTCHAS = 'captchas';
+    public const CATEGORY_ELEMENTS = 'elements';
+    public const CATEGORY_EMAIL_MARKETING = 'emailMarketing';
+    public const CATEGORY_CRM = 'crm';
+    public const CATEGORY_PAYMENTS = 'payments';
+    public const CATEGORY_WEBHOOKS = 'webhooks';
+    public const CATEGORY_MISC = 'miscellaneous';
+    public const CATEGORY_CUSTOM = 'custom';
 
     public const SCENARIO_FORM = 'form';
 
@@ -235,6 +246,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function getHandle(): string
     {
         return $this->handle ?? '';
+    }
+
+    public function getType(): string
+    {
+        return self::TYPE_CUSTOM;
     }
 
     public function getClassHandle()

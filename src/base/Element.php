@@ -102,6 +102,16 @@ abstract class Element extends Integration
         });
     }
 
+    public function getType(): string
+    {
+        return self::TYPE_ELEMENT;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_ELEMENTS;
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();

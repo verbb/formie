@@ -26,6 +26,16 @@ abstract class Crm extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_CRM;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_CRM;
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();

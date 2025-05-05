@@ -32,6 +32,16 @@ abstract class Miscellaneous extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_MISC;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_MISC;
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();

@@ -1,32 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Step 1. Connect to the {name} API
-1. Go to <a href="https://dotdigital.com/" target="_blank">Dotdigital</a> and login to your account.
-1. Click the more-options (triple dots) in the bottom left corner and go to **Access** > **API users**.
-1. Click the **New user** button.
-1. Copy the **Email Address** from {name} and paste in the **Username** field below.
-1. Create a password and copy this from {name} and paste in the **Password** field below.
-1. Click the **Save** button.
-1. Copy the **API Endpoint** from {name} and paste in the **API Endpoint** field below.
-
-### Step 2. Test Connection
-1. Save this integration.
-1. Click on the **Refresh** button in the right-hand sidebar.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Username' | t('formie'),
@@ -60,3 +37,5 @@
     warning: macros.configWarning('apiDomain', 'formie'),
     errors: integration.getErrors('apiDomain'),
 }) }}
+
+{% endblock %}

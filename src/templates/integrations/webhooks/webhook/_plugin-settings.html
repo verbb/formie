@@ -1,7 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Webhook URL' | t('formie'),
@@ -12,3 +14,5 @@
     warning: macros.configWarning('webhook', 'formie'),
     errors: integration.getErrors('webhook'),
 }) }}
+
+{% endblock %}

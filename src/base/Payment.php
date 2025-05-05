@@ -133,6 +133,16 @@ abstract class Payment extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_PAYMENT;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_PAYMENTS;
+    }
+
     /**
      * @inheritDoc
      */

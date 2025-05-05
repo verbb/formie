@@ -1,56 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Step 1. Connect to the {name} API
-1. Go to <a href="https://www.salesforce.com" target="_blank">{name}</a> and login to your account.
-1. In the main menu, on the top-right, click the **Settings** icon and select **Setup**.
-1. In the left-hand sidebar, click on **Apps** → **App Manager**.
-1. Click the **New Connected App** button.
-1. Fill out all required fields.
-1. In the **API (Enable OAuth Settings)** section, tick the **Enable OAuth Settings** checkbox.
-    - In the **Callback URL** field, enter the value from the **Redirect URI** field below.
-    - In the **Selected OAuth Scopes** field, select the following permissions from the list and click **Add** arrow button:
-        - **Manage user data via APIs (api)**
-        - **Access unique user identifiers (openid)**
-        - **Perform requests at any time (refresh_token, offline_access)**
-1. Click the **Save** button.
-1. Copy the **Consumer Key** from {name} and paste in the **Consumer Key** field below.
-1. Copy the **Consumer Secret** from {name} and paste in the **Consumer Secret** field below.
-1. Click on the **Manage** button.
-1. Click on the **Edit Policies** button.
-1. In the **OAuth policies** section:
-    - In the **Permitted Users** field, select **All users may self-authorize**.
-    - In the **IP Relaxation** field, select **Relax IP restrictions**.
-    - In the **Refresh Token Policy** field, select **Refresh token is valid until revoked**.
-1. In the **Session Policies** section:
-    - Untick **High assurance session required**.
-1. Click the **Save** button.
-
-### Step 2. Test Connection
-1. Save this integration.
-1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Consumer Key' | t('formie'),
@@ -118,3 +71,5 @@
         errors: integration.getErrors('password'),
     }) }}
 </div>
+
+{% endblock %}

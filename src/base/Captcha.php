@@ -38,6 +38,16 @@ abstract class Captcha extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_CAPTCHA;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_CAPTCHAS;
+    }
+
     public function getIconUrl(): string
     {
         $handle = StringHelper::toKebabCase($this->getHandle());

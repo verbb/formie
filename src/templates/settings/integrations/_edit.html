@@ -9,7 +9,6 @@
 
 {% set bodyClass = 'fui-integrations-settings' %}
 {% set selectedSubnavItem = 'settings' %}
-{% set selectedTab = 'settings' %}
 
 {% if craft.app.config.general.allowAdminChanges %}
     {% set fullPageForm = true %}
@@ -32,6 +31,11 @@
     ] | filter %}
 {% endif %}
 
+{% set tabs = {
+    integration: { label: 'Integration' | t('formie'), url: '#integration' },
+    provider: { label: 'Provider' | t('formie'), url: '#provider' },
+} %}
+
 {% block content %}
 
 <input type="hidden" name="action" value="formie/integrations/save-integration">
@@ -49,7 +53,7 @@
     <div class="code error" style="margin-bottom: 24px;">{{ message }}</div>
 {% endif %}
 
-<div id="settings">
+<div id="integration">
     {{ forms.textField({
         first: true,
         label: 'Name' | t('formie'),
@@ -74,25 +78,15 @@
         errors: (integration is defined ? integration.getErrors('handle') : null),
         required: true,
     }) }}
+</div>
 
-    <hr>
-
-    {{ forms.selectField({
-        label: 'Integration Provider' | t('formie'),
-        instructions: 'Select the provider you wish to use for this integration.' | t('formie'),
-        id: 'type',
-        name: 'type',
-        options: integrationTypeOptions,
-        value: className(integration),
-        toggle: true,
-    }) }}
-
+<div id="provider" class="hidden">
     {{ missingIntegrationPlaceholder | raw }}
 
     {% for integrationType in integrationTypes %}
         {% set isCurrent = (integrationType == className(integration)) %}
 
-        <div id="{{ integrationType | id }}" {% if not isCurrent %}class="hidden"{% endif %}>
+        <div class="integration-provider-{{ integrationType | id }} {% if not isCurrent %}hidden{% endif %}">
             {% namespace 'types[' ~ integrationType ~ ']' %}
                 {% if isCurrent %}
                     {{ integration.getSettingsHtml() | raw }}
@@ -109,6 +103,17 @@
 {% block details %}
 
 <div class="meta">
+    {{ forms.selectField({
+        label: 'Provider' | t('formie'),
+        id: 'type',
+        name: 'type',
+        options: integrationTypeOptions,
+        value: className(integration),
+        toggle: true,
+        targetPrefix: '.integration-provider-',
+        required: true,
+    }) }}
+
     {{ forms.lightswitchField({
         first: true,
         label: 'Enabled' | t('formie'),

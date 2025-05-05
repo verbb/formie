@@ -34,6 +34,16 @@ abstract class Webhook extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_WEBHOOK;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_WEBHOOKS;
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();

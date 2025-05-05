@@ -39,6 +39,16 @@ abstract class AddressProvider extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_ADDRESS_PROVIDER;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_ADDRESS_PROVIDERS;
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();

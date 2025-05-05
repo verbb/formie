@@ -1,39 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Connect to the {name} API
-1. Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google API Console</a>.
-1. Select an existing project or create a new one.
-1. Go to the **APIs & Services** → **Library**  and enable the **Google Drive API** and **Google Sheets API** for the project.
-1. Next, go to the **APIs & Services** → **Credentials** section.
-1. Click **Create Credentials** → **OAuth client ID**.
-    1. On the following page, select the **Application Type** as **Web application**.
-    1. Provide a suitable **Name** so you can identify it in your Google account. This is not required by Formie.
-    1. Under the **Authorized JavaScript origins**, click **Add URI** and enter your project's Site URL.
-    1. Under the **Authorized redirect URIs**, click **Add URI** and enter the value from the **Redirect URI** field below.
-    1. Then click the **Create** button.
-1. Once created, a popup will appear with your OAuth credentials. Copy the **Client ID** and **Client Secret** values and paste into the fields below.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Proxy Redirect URI' | t('formie'),
@@ -77,3 +47,5 @@
     warning: macros.configWarning('spreadsheetId', 'formie'),
     errors: integration.getErrors('spreadsheetId'),
 }) }}
+
+{% endblock %}
