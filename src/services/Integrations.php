@@ -149,7 +149,6 @@ class Integrations extends Component
             crm\Capsule::class,
             crm\Copper::class,
             crm\Dotdigital::class,
-            // crm\Creatio::class,
             crm\Freshdesk::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
@@ -161,9 +160,7 @@ class Integrations extends Component
             crm\KlaviyoLegacy::class,
             crm\Maximizer::class,
             crm\Mercury::class,
-            // crm\MethodCrm::class,
             crm\MicrosoftDynamics365::class,
-            // crm\NetSuite::class,
             crm\OneCrm::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
@@ -174,7 +171,6 @@ class Integrations extends Component
             crm\SharpSpring::class,
             crm\SugarCrm::class,
             crm\VCita::class,
-            // crm\Zengine::class,
             crm\Zoho::class,
         ];
 
