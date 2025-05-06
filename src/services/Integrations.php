@@ -152,6 +152,7 @@ class Integrations extends Component
             crm\CiviCrm::class,
             crm\Copper::class,
             crm\Dotdigital::class,
+            crm\Flowlu::class,
             crm\Freshdesk::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
