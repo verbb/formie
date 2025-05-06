@@ -48,6 +48,7 @@ Formie integrates with the following providers:
 - Pipeliner
 - Salesflare
 - Salesforce
+- Salesmate
 - Scoro
 - SharpSpring
 - SugarCRM
