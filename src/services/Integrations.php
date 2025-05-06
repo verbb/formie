@@ -165,6 +165,7 @@ class Integrations extends Component
             crm\Maximizer::class,
             crm\Mercury::class,
             crm\MicrosoftDynamics365::class,
+            crm\NoCrm::class,
             crm\OneCrm::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
