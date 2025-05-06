@@ -149,6 +149,7 @@ class Integrations extends Component
             crm\Attio::class,
             crm\Avochato::class,
             crm\Capsule::class,
+            crm\CiviCrm::class,
             crm\Copper::class,
             crm\Dotdigital::class,
             crm\Freshdesk::class,
