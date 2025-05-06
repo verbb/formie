@@ -190,6 +190,7 @@ class Integrations extends Component
         ];
 
         $miscellaneous = [
+            miscellaneous\ClickUp::class,
             miscellaneous\GoogleSheets::class,
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
