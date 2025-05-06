@@ -21,15 +21,18 @@ For each data object, Formie will also fetch all available fields, and any provi
 
 ## Supported Providers
 Formie integrates with the following providers:
+- 1CRM
 - ActiveCampaign
 - Agile CRM
 - Avochato
 - Capsule CRM
 - Copper CRM
+- Dotdigital
 - Freshdesk
 - Freshsales
 - HubSpot
 - Infusionsoft
+- Iterable
 - Insightly
 - Klaviyo
 - Maximizer
@@ -49,6 +52,37 @@ Formie integrates with the following providers:
 :::tip
 Is your provider not in the list above? [Contact us](https://verbb.io/contact) to submit your interest, or look at the [Custom Integration](docs:developers/custom-integration) docs to write your own provider support.
 :::
+
+## 1CRM
+Follow the below steps to connect to the 1CRM API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select 1CRM as the **Integration Provider**.
+
+### Step 2. Connect to the 1CRM API
+1. Go to <a href="https://1crm.com" target="_blank">1CRM</a> and login to your account.
+1. Click on the **Admin** dropdown on the top-right of the screen, and select **Administration**.
+1. Click the **API Clients** link.
+1. Click the **Create** button.
+1. Select **Authorization Code** for the **Enabled Grant Types**.
+1. Copy the **ID** from 1CRM and paste in the **Client ID** field in Formie.
+1. Click the **Change API Secret** button and enter a value.
+1. Copy the **Secret** from 1CRM and paste in the **Client Secret** field in Formie.
+1. In the **Redirect URL** field, enter the value from the **Redirect URI** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to 1CRM, where you must approve Formie to access your 1CRM account.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
 
 
 ## ActiveCampaign
@@ -174,6 +208,35 @@ Follow the below steps to connect to the Copper API.
 1. Click the **Generate API Key** button.
 1. Copy the **API Key** from Copper and paste in the **API Key** field in Formie.
 1. Enter the email for your Copper account in the **API Email** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Dotdigital
+Follow the below steps to connect to the Dotdigital API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Dotdigital as the **Integration Provider**.
+
+### Step 2. Connect to the Dotdigital API
+1. Go to <a href="https://dotdigital.com/" target="_blank">Dotdigital</a> and login to your account.
+1. Click the more-options (triple dots) in the bottom left corner and go to **Access** > **API users**.
+1. Click the **New user** button.
+1. Copy the **Email Address** from Dotdigital and paste in the **Username** field in Formie.
+1. Create a password and copy this from Dotdigital and paste in the **Password** field in Formie.
+1. Click the **Save** button.
+1. Copy the **API Endpoint** from Dotdigital and paste in the **API Endpoint** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
@@ -324,6 +387,33 @@ Follow the below steps to connect to the Insightly API.
 1. Go to <a href="https://www.insightly.com/" target="_blank">Insightly</a> and login to your account.
 1. Click on your profile dropdown on the top-right of the screen, and select **User Settings**.
 1. Copy the **API Key** from Insightly and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Iterable
+Follow the below steps to connect to the Iterable API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Iterable as the **Integration Provider**.
+
+### Step 2. Connect to the Iterable API
+1. Go to <a href="https://app.iterable.com" target="_blank">Iterable</a> and login to your account.
+1. In the top menu, click **Integrations** and **API Keys**.
+1. Click on the **New API Key** button.
+1. Enter a **Name** and select **Server-side** for the **Type**.
+1. Copy the **API Key** from Iterable and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
