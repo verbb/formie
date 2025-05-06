@@ -69,9 +69,7 @@ class NoCrm extends Crm
 
         try {
             if ($this->mapToLead) {
-                $fields = [];
-
-                $settings['lead'] = array_merge([
+                $settings['lead'] = [
                     new IntegrationField([
                         'handle' => 'title',
                         'name' => Craft::t('formie', 'Title'),
@@ -95,7 +93,7 @@ class NoCrm extends Crm
                         'handle' => 'step',
                         'name' => Craft::t('formie', 'Step'),
                     ]),
-                ], $this->_getCustomFields($fields));
+                ];
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -163,36 +161,5 @@ class NoCrm extends Crm
             'base_uri' => "$url/api/v2/",
             'headers' => ['X-API-KEY' => App::parseEnv($this->apiKey)],
         ]);
-    }
-
-
-    // Private Methods
-    // =========================================================================
-
-    private function _convertFieldType($fieldType)
-    {
-        $fieldTypes = [
-            'date' => IntegrationField::TYPE_DATE,
-            'datetime' => IntegrationField::TYPE_DATETIME,
-            'number' => IntegrationField::TYPE_NUMBER,
-        ];
-
-        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
-    }
-
-    private function _getCustomFields($fields, $excludeNames = []): array
-    {
-        $customFields = [];
-
-        foreach ($fields as $key => $field) {
-            $customFields[] = new IntegrationField([
-                'handle' => (string)$field['id'],
-                'name' => $field['name'],
-                'type' => $this->_convertFieldType($field['type']),
-                'sourceType' => $field['type'],
-            ]);
-        }
-
-        return $customFields;
     }
 }

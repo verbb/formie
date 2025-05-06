@@ -330,6 +330,7 @@ Follow the below steps to connect to the Flowlu API.
 1. Click the **Add** button.
 1. Select all applications and click the **Save** button.
 1. Copy the **API Key** from Flowlu and paste in the **API Key** field in Formie.
+1. Enter the full domain (including `https://`) for your Flowlu account in the **Domain** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
