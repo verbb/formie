@@ -146,6 +146,7 @@ class Integrations extends Component
         $crm = [
             crm\ActiveCampaign::class,
             crm\Agile::class,
+            crm\Attio::class,
             crm\Avochato::class,
             crm\Capsule::class,
             crm\Copper::class,
