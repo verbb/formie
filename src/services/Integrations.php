@@ -173,6 +173,7 @@ class Integrations extends Component
             crm\Pipeliner::class,
             crm\Salesflare::class,
             crm\Salesforce::class,
+            crm\Salesmate::class,
             crm\Scoro::class,
             crm\SharpSpring::class,
             crm\SugarCrm::class,
