@@ -167,6 +167,7 @@ class Integrations extends Component
             crm\MicrosoftDynamics365::class,
             crm\NoCrm::class,
             crm\OneCrm::class,
+            crm\Outseta::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
             crm\Pipeliner::class,
