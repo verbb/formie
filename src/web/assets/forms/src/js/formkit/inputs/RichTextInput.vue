@@ -144,6 +144,14 @@ export default {
         linkOptions() {
             return get(this.context.attrs, 'linkOptions', []);
         },
+
+        disablePasteRules() {
+            return get(this.context.attrs, 'disable-paste-rules', false);
+        },
+
+        disableInputRules() {
+            return get(this.context.attrs, 'disable-input-rules', false);
+        },
     },
 
     watch: {
@@ -154,7 +162,7 @@ export default {
 
     mounted() {
         // Setup config for editor, from field config
-        this.editor = new Editor({
+        const options = {
             extensions: this.getExtensions(),
             content: this.valueToContent(this.clone(this.context._value)),
             autofocus: false,
@@ -162,7 +170,17 @@ export default {
                 this.json = this.editor.getJSON().content;
                 this.html = this.editor.getHTML();
             },
-        });
+        };
+
+        if (this.disablePasteRules) {
+            options.enablePasteRules = false;
+        }
+
+        if (this.disableInputRules) {
+            options.enableInputRules = false;
+        }
+
+        this.editor = new Editor(options);
 
         this.json = this.editor.getJSON().content;
         this.html = this.editor.getHTML();
