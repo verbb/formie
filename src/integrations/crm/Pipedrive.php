@@ -98,12 +98,15 @@ class Pipedrive extends Crm
                 ]);
             }
 
+            // Deals and Leads use the same custom fields
+            if ($this->mapToDeal || $this->mapToLead) {
+                $response = $this->request('GET', 'dealFields');
+                $dealLeadFields = $response['data'] ?? [];
+            }
+
             // Get Deal fields
             if ($this->mapToDeal) {
-                $response = $this->request('GET', 'dealFields');
-                $fields = $response['data'] ?? [];
-
-                $settings['deal'] = array_merge($this->_getCustomFields($fields), [
+                $settings['deal'] = array_merge($this->_getCustomFields($dealLeadFields), [
                     new IntegrationField([
                         'handle' => 'note',
                         'name' => Craft::t('formie', 'Note'),
@@ -113,7 +116,7 @@ class Pipedrive extends Crm
 
             // Get Lead fields - uses the same custom fields as deals
             if ($this->mapToLead) {
-                $settings['lead'] = array_merge($this->_getCustomFields($fields, ['currency', 'probability', 'stage_id', 'label', 'status']), [
+                $settings['lead'] = array_merge($this->_getCustomFields($dealLeadFields, ['currency', 'probability', 'stage_id', 'label', 'status']), [
                     new IntegrationField([
                         'handle' => 'owner_id',
                         'name' => Craft::t('formie', 'Owner ID'),
