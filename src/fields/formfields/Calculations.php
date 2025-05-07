@@ -155,6 +155,8 @@ class Calculations extends FormField implements PreviewableFieldInterface
                 'help' => Craft::t('formie', 'Provide the formula used to calculate the result for this field. Use arithmetic operators (`+`, `-`, `*`, `/`, etc) and reference other fields.'),
                 'name' => 'formula',
                 'variables' => 'calculationsVariables',
+                'disable-paste-rules' => true,
+                'disable-input-rules' => true,
             ], RichTextHelper::getRichTextConfig('fields.calculations'))),
         ];
     }
