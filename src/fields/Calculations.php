@@ -97,9 +97,13 @@ class Calculations extends Field implements PreviewableFieldInterface
             $variables[$newHandle] = $this->_getFieldVariable($handle);
         }
 
-        // Replace `{field:handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
-        // and because some characters won't work well with the expressionLanguage parser
-        $formula = str_replace(['{', '}', 'field:', '.'], ['', '', 'field_', '_'], $formula);
+        // Replace `{field.handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
+        // and because some characters won't work well with the expressionLanguage parser. It's important not to
+        // replace `.` characters outside of this string of course
+        $formula = preg_replace_callback('/({.*?})/', function($matches) {
+            $string = $matches[1] ?? '';
+            return str_replace(['.', ':', '{', '}'], ['_', '_', '', ''], $string);
+        }, $formula);
 
         return $this->_renderedFormula = [
             'formula' => $formula,
