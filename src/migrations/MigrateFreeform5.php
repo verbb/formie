@@ -4,6 +4,7 @@ namespace verbb\formie\migrations;
 use verbb\formie\Formie;
 use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FormFieldInterface as FormieFieldInterface;
+use verbb\formie\base\NestedFieldInterface as FormieNestedFieldInterface;
 use verbb\formie\elements\Form as FormieForm;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
@@ -255,6 +256,28 @@ class MigrateFreeform5 extends Migration
 
                             break;
 
+                        case freeformfields\Pro\GroupField::class:
+                            $values = [];
+
+                            foreach ($field->getLayout()->getRows() as $row) {
+                                foreach ($row->getFields() as $innerField) {
+                                    $values[$innerField->getHandle()] = $entry->getFormFieldValue($innerField);
+                                }
+                            }
+
+                            $submission->setFieldValue($handle, [
+                                'rows' => [
+                                    'new1' => [
+                                        'fields' => $values,
+                                    ],
+                                ],
+                                'sortOrder' => [
+                                    'new1',
+                                ],
+                            ]);
+
+                            break;
+
                         case freeformfields\HtmlField::class:
                             // Not implemented
                             break;
@@ -465,6 +488,16 @@ class MigrateFreeform5 extends Migration
                                     $this->stdout("    > $attr: $error", Console::FG_RED);
                                 }
                             }
+
+                            if ($newField instanceof FormieNestedFieldInterface) {
+                                foreach ($newField->getCustomFields() as $nestedField) {
+                                    foreach ($nestedField->getErrors() as $attr => $errors) {
+                                        foreach ($errors as $error) {
+                                            $this->stdout("    > $attr: $error", Console::FG_RED);
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             $newField->sortOrder = $fieldIndex;
                             $newField->rowIndex = $rowIndex;
@@ -599,6 +632,31 @@ class MigrateFreeform5 extends Migration
                 $newField->uploadLocationSubpath = $field->getDefaultUploadLocation();
                 $newField->restrictFiles = !empty($field->getFileKinds());
                 $newField->allowedKinds = $field->getFileKinds() ?? [];
+                break;
+
+            case freeformfields\Pro\GroupField::class:
+                /* @var freeformfields\HiddenField $field */
+                $newField = new formiefields\Group();
+
+                $newRows = [];
+
+                foreach ($field->getLayout()->getRows() as $rowKey => $row) {
+                    $newInnerFields = [];
+
+                    foreach ($row->getFields() as $fieldKey => $innerField) {
+                        $newInnerField = $this->_mapField($innerField);
+
+                        // Use the config data, not the prepped field object
+                        $newInnerFields[] = Formie::$plugin->getFields()->getSavedFieldConfig($newInnerField);
+                    }
+
+                    $newRows[] = [
+                        'fields' => $newInnerFields,
+                    ];
+                }
+
+                $newField->setRows($newRows);
+
                 break;
 
             case freeformfields\HiddenField::class:
