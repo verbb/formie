@@ -1328,6 +1328,7 @@ return [
     'Align Left' => 'Links ausrichten',
     'Align Center' => 'Zentriert ausrichten',
     'Align Right' => 'Rechts ausrichten',
+    'Clear' => 'Löschen',
     'Clear Formatting' => 'Formatierung entfernen',
     'HTML' => 'HTML',
     'HTML Content' => 'HTML-Inhalt',
