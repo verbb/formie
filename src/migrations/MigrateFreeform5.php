@@ -229,6 +229,36 @@ class MigrateFreeform5 extends Migration
 
                 try {
                     switch (get_class($field)) {
+                        case freeformfields\CheckboxField::class:
+                            $submission->setFieldValue($handle, $field->isChecked());
+                            break;
+
+                        case freeformfields\EmailField::class:
+                            $value = $field->getValue();
+
+                            // Handle older Freeform installs storing emails as array
+                            if (is_array($value)) {
+                                $submission->setFieldValue($handle, $value[0]);
+                            } else {
+                                $submission->setFieldValue($handle, $value);
+                            }
+                            
+                            break;
+
+                        case freeformfields\FileUploadField::class:
+                            $value = $field->getValue();
+
+                            if (!empty($value)) {
+                                $assets = Asset::find()->id($value)->ids();
+                                $submission->setFieldValue($handle, $assets);
+                            }
+
+                            break;
+
+                        case freeformfields\HtmlField::class:
+                            // Not implemented
+                            break;
+
                         case freeformfields\Pro\OpinionScaleField::class:
                             // Not implemented
                             break;
@@ -243,34 +273,6 @@ class MigrateFreeform5 extends Migration
 
                         case freeformfields\Pro\SignatureField::class:
                             // Not implemented
-                            break;
-
-                        case freeformfields\HtmlField::class:
-                            // Not implemented
-                            break;
-
-                        case freeformfields\CheckboxField::class:
-                            $submission->setFieldValue($handle, $field->isChecked());
-                            break;
-
-                        case freeformfields\FileUploadField::class:
-                            $value = $field->getValue();
-                            if (!empty($value)) {
-                                $assets = Asset::find()->id($value)->ids();
-                                $submission->setFieldValue($handle, $assets);
-                            }
-                            break;
-
-                        case freeformfields\EmailField::class:
-                            $value = $field->getValue();
-
-                            // Handle older Freeform installs storing emails as array
-                            if (is_array($value)) {
-                                $submission->setFieldValue($handle, $value[0]);
-                            } else {
-                                $submission->setFieldValue($handle, $value);
-                            }
-                            
                             break;
 
                         default:
