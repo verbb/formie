@@ -181,7 +181,8 @@ class MigrateFreeform4 extends Migration
 
     private function _migrateSubmissions(): void
     {
-        $status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
+        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $status = reset($statuses) ?: null;
 
         $entries = FreeformSubmission::find()->form($this->_freeformForm->handle)->all();
         $total = count($entries);
@@ -199,9 +200,12 @@ class MigrateFreeform4 extends Migration
             $submission = new Submission();
             $submission->title = $entry->title;
             $submission->setForm($this->_form);
-            $submission->setStatus($status);
             $submission->dateCreated = $entry->dateCreated;
             $submission->dateUpdated = $entry->dateUpdated;
+
+            if ($status) {
+                $submission->setStatus($status);
+            }
 
             foreach ($entry as $field) {
                 // Parse the handle for a few things just in case

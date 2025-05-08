@@ -187,7 +187,8 @@ class MigrateSproutForms extends Migration
 
     private function _migrateSubmissions(): void
     {
-        $status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
+        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $status = reset($statuses) ?: null;
 
         $fields = $this->_sproutForm->getFieldLayout()->getCustomFields();
         $entries = SproutFormsEntry::find()->formId($this->_sproutForm->id)->ids();
@@ -206,9 +207,12 @@ class MigrateSproutForms extends Migration
             $submission = new Submission();
             $submission->title = $entry->title;
             $submission->setForm($this->_form);
-            $submission->setStatus($status);
             $submission->dateCreated = $entry->dateCreated;
             $submission->dateUpdated = $entry->dateUpdated;
+
+            if ($status) {
+                $submission->setStatus($status);
+            }
 
             foreach ($fields as $field) {
                 // Parse the handle for a few things just in case
