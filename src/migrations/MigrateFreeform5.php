@@ -564,6 +564,17 @@ class MigrateFreeform5 extends Migration
 
                 break;
 
+            case freeformfields\DropdownField::class:
+                /* @var freeformfields\DropdownField $field */
+                $newField = new formiefields\Dropdown();
+                $this->_applyFieldDefaults($newField);
+
+                $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
+                break;
+
             case freeformfields\EmailField::class:
                 /* @var freeformfields\EmailField $field */
                 $newField = new formiefields\Email();
@@ -662,15 +673,15 @@ class MigrateFreeform5 extends Migration
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\DropdownField::class:
-                /* @var freeformfields\DropdownField $field */
-                $newField = new formiefields\Dropdown();
+            case freeformfields\Pro\RichTextField::class:
+                /* @var freeformfields\HtmlField $field */
+                $newField = new formiefields\Html();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->options = $this->_mapOptions($field->getOptions());
-
-                // Setup the default value properly in options
-                $newField->defaultValue = null;
+                $newField->label = $field->getLabel();
+                $newField->handle = $field->getHandle();
+                $newField->htmlContent = $field->getValue();
+                $newField->labelPosition = HiddenPosition::class;
                 break;
 
             case freeformfields\Pro\TableField::class:
