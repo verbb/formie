@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\integrations\captchas;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -156,10 +157,10 @@ class Recaptcha extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getCaptchaValue($submission, 'g-recaptcha-response');
+        $responseToken = $this->getCaptchaValue($submission, 'g-recaptcha-response');
 
         // Protect against invalid data being sent. No need to log, likely malicious
-        if (!$response || !is_string($response)) {
+        if (!$responseToken || !is_string($responseToken)) {
             $this->spamReason = 'Client-side token missing.';
 
             return false;
@@ -180,7 +181,7 @@ class Recaptcha extends Captcha
                 'json' => [
                     'event' => [
                         'siteKey' => $siteKey,
-                        'token' => $response,
+                        'token' => $responseToken,
                         'userAgent' => Craft::$app->getRequest()->getUserAgent(),
                         'userIpAddress' => Craft::$app->getRequest()->getRemoteIP(),
                     ],
@@ -214,7 +215,7 @@ class Recaptcha extends Captcha
         $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
             'form_params' => [
                 'secret' => $secretKey,
-                'response' => $response,
+                'response' => $responseToken,
                 'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
@@ -234,10 +235,20 @@ class Recaptcha extends Captcha
 
         if (!$success && !$this->spamReason) {
             $this->spamReason = Json::encode($result);
+
+            Formie::error(Craft::t('formie', '{token}:{spamReason}', [
+                'token' => $responseToken,
+                'spamReason' => Json::encode($result),
+            ]));
         }
 
         if (!$this->spamReason) {
             $this->spamReason = 'Captcha validation failed.';
+
+            Formie::error(Craft::t('formie', '{token}:{spamReason}', [
+                'token' => $responseToken,
+                'spamReason' => Json::encode($result),
+            ]));
         }
 
         return $success;

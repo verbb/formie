@@ -4,6 +4,7 @@ namespace verbb\formie\migrations;
 use verbb\formie\Formie;
 use verbb\formie\base\Field as FormieField;
 use verbb\formie\base\FormFieldInterface as FormieFieldInterface;
+use verbb\formie\base\NestedFieldInterface as FormieNestedFieldInterface;
 use verbb\formie\elements\Form as FormieForm;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMigrationFieldEvent;
@@ -229,6 +230,58 @@ class MigrateFreeform5 extends Migration
 
                 try {
                     switch (get_class($field)) {
+                        case freeformfields\CheckboxField::class:
+                            $submission->setFieldValue($handle, $field->isChecked());
+                            break;
+
+                        case freeformfields\EmailField::class:
+                            $value = $field->getValue();
+
+                            // Handle older Freeform installs storing emails as array
+                            if (is_array($value)) {
+                                $submission->setFieldValue($handle, $value[0]);
+                            } else {
+                                $submission->setFieldValue($handle, $value);
+                            }
+                            
+                            break;
+
+                        case freeformfields\FileUploadField::class:
+                            $value = $field->getValue();
+
+                            if (!empty($value)) {
+                                $assets = Asset::find()->id($value)->ids();
+                                $submission->setFieldValue($handle, $assets);
+                            }
+
+                            break;
+
+                        case freeformfields\Pro\GroupField::class:
+                            $values = [];
+
+                            foreach ($field->getLayout()->getRows() as $row) {
+                                foreach ($row->getFields() as $innerField) {
+                                    $values[$innerField->getHandle()] = $entry->getFormFieldValue($innerField);
+                                }
+                            }
+
+                            $submission->setFieldValue($handle, [
+                                'rows' => [
+                                    'new1' => [
+                                        'fields' => $values,
+                                    ],
+                                ],
+                                'sortOrder' => [
+                                    'new1',
+                                ],
+                            ]);
+
+                            break;
+
+                        case freeformfields\HtmlField::class:
+                            // Not implemented
+                            break;
+
                         case freeformfields\Pro\OpinionScaleField::class:
                             // Not implemented
                             break;
@@ -243,34 +296,6 @@ class MigrateFreeform5 extends Migration
 
                         case freeformfields\Pro\SignatureField::class:
                             // Not implemented
-                            break;
-
-                        case freeformfields\HtmlField::class:
-                            // Not implemented
-                            break;
-
-                        case freeformfields\CheckboxField::class:
-                            $submission->setFieldValue($handle, $field->isChecked());
-                            break;
-
-                        case freeformfields\FileUploadField::class:
-                            $value = $field->getValue();
-                            if (!empty($value)) {
-                                $assets = Asset::find()->id($value)->ids();
-                                $submission->setFieldValue($handle, $assets);
-                            }
-                            break;
-
-                        case freeformfields\EmailField::class:
-                            $value = $field->getValue();
-
-                            // Handle older Freeform installs storing emails as array
-                            if (is_array($value)) {
-                                $submission->setFieldValue($handle, $value[0]);
-                            } else {
-                                $submission->setFieldValue($handle, $value);
-                            }
-                            
                             break;
 
                         default:
@@ -483,6 +508,16 @@ class MigrateFreeform5 extends Migration
                                     $this->stdout("    > $attr: $error", Console::FG_RED);
                                 }
                             }
+
+                            if ($newField instanceof FormieNestedFieldInterface) {
+                                foreach ($newField->getCustomFields() as $nestedField) {
+                                    foreach ($nestedField->getErrors() as $attr => $errors) {
+                                        foreach ($errors as $error) {
+                                            $this->stdout("    > $attr: $error", Console::FG_RED);
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             $newField->sortOrder = $fieldIndex;
 
@@ -584,6 +619,17 @@ class MigrateFreeform5 extends Migration
 
                 break;
 
+            case freeformfields\DropdownField::class:
+                /* @var freeformfields\DropdownField $field */
+                $newField = new formiefields\Dropdown();
+                $this->_applyFieldDefaults($newField);
+
+                $newField->options = $this->_mapOptions($field->getOptions());
+
+                // Setup the default value properly in options
+                $newField->defaultValue = null;
+                break;
+
             case freeformfields\EmailField::class:
                 /* @var freeformfields\EmailField $field */
                 $newField = new formiefields\Email();
@@ -606,6 +652,31 @@ class MigrateFreeform5 extends Migration
                 $newField->uploadLocationSubpath = $field->getDefaultUploadLocation();
                 $newField->restrictFiles = !empty($field->getFileKinds());
                 $newField->allowedKinds = $field->getFileKinds() ?? [];
+                break;
+
+            case freeformfields\Pro\GroupField::class:
+                /* @var freeformfields\HiddenField $field */
+                $newField = new formiefields\Group();
+
+                $newRows = [];
+
+                foreach ($field->getLayout()->getRows() as $rowKey => $row) {
+                    $newInnerFields = [];
+
+                    foreach ($row->getFields() as $fieldKey => $innerField) {
+                        $newInnerField = $this->_mapField($innerField);
+
+                        // Use the config data, not the prepped field object
+                        $newInnerFields[] = Formie::$plugin->getFields()->getSavedFieldConfig($newInnerField);
+                    }
+
+                    $newRows[] = [
+                        'fields' => $newInnerFields,
+                    ];
+                }
+
+                $newField->setRows($newRows);
+
                 break;
 
             case freeformfields\HiddenField::class:
@@ -682,15 +753,15 @@ class MigrateFreeform5 extends Migration
                 $newField->defaultValue = null;
                 break;
 
-            case freeformfields\DropdownField::class:
-                /* @var freeformfields\DropdownField $field */
-                $newField = new formiefields\Dropdown();
+            case freeformfields\Pro\RichTextField::class:
+                /* @var freeformfields\HtmlField $field */
+                $newField = new formiefields\Html();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->options = $this->_mapOptions($field->getOptions());
-
-                // Setup the default value properly in options
-                $newField->defaultValue = null;
+                $newField->label = $field->getLabel();
+                $newField->handle = $field->getHandle();
+                $newField->htmlContent = $field->getValue();
+                $newField->labelPosition = HiddenPosition::class;
                 break;
 
             case freeformfields\Pro\TableField::class:
