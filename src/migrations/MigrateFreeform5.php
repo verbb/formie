@@ -265,16 +265,7 @@ class MigrateFreeform5 extends Migration
                                 }
                             }
 
-                            $submission->setFieldValue($handle, [
-                                'rows' => [
-                                    'new1' => [
-                                        'fields' => $values,
-                                    ],
-                                ],
-                                'sortOrder' => [
-                                    'new1',
-                                ],
-                            ]);
+                            $submission->setFieldValue($handle, $values);
 
                             break;
 
@@ -664,10 +655,7 @@ class MigrateFreeform5 extends Migration
                     $newInnerFields = [];
 
                     foreach ($row->getFields() as $fieldKey => $innerField) {
-                        $newInnerField = $this->_mapField($innerField);
-
-                        // Use the config data, not the prepped field object
-                        $newInnerFields[] = Formie::$plugin->getFields()->getSavedFieldConfig($newInnerField);
+                        $newInnerFields[] = $this->_mapField($innerField);
                     }
 
                     $newRows[] = [
