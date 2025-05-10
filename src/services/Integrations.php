@@ -63,19 +63,19 @@ class Integrations extends Component
     // =========================================================================
 
     private ?MemoizableArray $_integrations = null;
+    private array $_groupedIntegrationTypes = [];
     private ?array $_integrationsByType = null;
 
 
     // Public Methods
     // =========================================================================
 
-    /**
-     * Returns all registered integrations.
-     *
-     * @return array
-     */
     public function getAllIntegrationTypes(): array
     {
+        if ($this->_groupedIntegrationTypes) {
+            return $this->_groupedIntegrationTypes;
+        }
+
         $addressProviders = [
             addressproviders\Google::class,
             addressproviders\Algolia::class,
@@ -95,20 +95,14 @@ class Integrations extends Component
             captchas\Javascript::class,
             captchas\OopSpam::class,
             captchas\Recaptcha::class,
+            captchas\Snaptcha::class,
         ];
 
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {
-            $captchas[] = captchas\Snaptcha::class;
-        }
-
         $elements = [
+            elements\CalendarEvent::class,
             elements\Entry::class,
             elements\User::class,
         ];
-
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('calendar')) {
-            $elements[] = elements\CalendarEvent::class;
-        }
 
         $emailMarketing = [
             emailmarketing\ActiveCampaign::class,
@@ -118,6 +112,7 @@ class Integrations extends Component
             emailmarketing\Beehiiv::class,
             emailmarketing\Benchmark::class,
             emailmarketing\Brevo::class,
+            emailmarketing\Campaign::class,
             emailmarketing\CampaignMonitor::class,
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
@@ -142,10 +137,6 @@ class Integrations extends Component
             emailmarketing\Sendinblue::class,
             emailmarketing\Vero::class,
         ];
-
-        if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('campaign')) {
-            $emailMarketing[] = emailmarketing\Campaign::class;
-        }
 
         $crm = [
             crm\ActiveCampaign::class,
@@ -219,7 +210,7 @@ class Integrations extends Component
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
 
-        return [
+        $groupedTypes = [
             Integration::TYPE_ADDRESS_PROVIDER => $event->addressProviders,
             Integration::TYPE_CAPTCHA => $event->captchas,
             Integration::TYPE_ELEMENT => $event->elements,
@@ -229,6 +220,35 @@ class Integrations extends Component
             Integration::TYPE_WEBHOOK => $event->webhooks,
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
+
+        // Fetch all for performance
+        $plugins = Craft::$app->getPlugins()->getAllPlugins();
+
+        $groupedTypes = array_filter(array_map(function(array $integrations) use ($plugins) {
+            return array_values(array_filter($integrations, function(string $integrationClass) use ($plugins) {
+                foreach ((array)$integrationClass::getRequiredPlugins() as $pluginInfo) {
+                    $handle = $pluginInfo;
+                    $version = 0;
+
+                    if (is_array($pluginInfo)) {
+                        $handle = $pluginInfo['handle'] ?? '';
+                        $version = $pluginInfo['version'] ?? 0;
+                    }
+
+                    if (
+                        !Formie::$plugin->getService()->isPluginInstalledAndEnabled($handle) ||
+                        !isset($plugins[$handle]) ||
+                        version_compare($plugins[$handle]->getVersion(), $version, '<')
+                    ) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
+        }, $groupedTypes));
+
+        return $this->_groupedIntegrationTypes = $groupedTypes;
     }
 
     public function getIntegrationTypes($type)
@@ -236,13 +256,6 @@ class Integrations extends Component
         return $this->getAllIntegrationTypes()[$type] ?? [];
     }
 
-    /**
-     * Returns all integrations.
-     *
-     * @return array
-     * @throws UnknownPropertyException
-     * @throws InvalidConfigException
-     */
     public function getAllIntegrations(): array
     {
         return $this->_integrations()->all();

@@ -113,6 +113,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
+    public static function getRequiredPlugins(): array
+    {
+        return [];
+    }
+
     public static function log($integration, $message, $throwError = false): void
     {
         Formie::log($integration->name . ': ' . $message);
