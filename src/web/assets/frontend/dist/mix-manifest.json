@@ -29,6 +29,7 @@
     "/js/captchas/hcaptcha.js": "/js/captchas/hcaptcha.js",
     "/js/captchas/friendly-captcha.js": "/js/captchas/friendly-captcha.js",
     "/js/captchas/turnstile.js": "/js/captchas/turnstile.js",
+    "/js/captchas/captcha-eu.js": "/js/captchas/captcha-eu.js",
     "/js/payments/payment-provider.js": "/js/payments/payment-provider.js",
     "/js/payments/stripe.js": "/js/payments/stripe.js",
     "/js/payments/paypal.js": "/js/payments/paypal.js",
