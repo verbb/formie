@@ -84,17 +84,17 @@ class Integrations extends Component
         ];
 
         $captchas = [
-            captchas\Recaptcha::class,
-            captchas\Hcaptcha::class,
-            captchas\FriendlyCaptcha::class,
             captchas\Akismet::class,
             captchas\CaptchaEu::class,
             captchas\CleanTalk::class,
             captchas\Turnstile::class,
             captchas\Duplicate::class,
+            captchas\FriendlyCaptcha::class,
+            captchas\Hcaptcha::class,
             captchas\Honeypot::class,
             captchas\Javascript::class,
             captchas\OopSpam::class,
+            captchas\Recaptcha::class,
         ];
 
         if (Formie::$plugin->getService()->isPluginInstalledAndEnabled('snaptcha')) {
