@@ -89,6 +89,7 @@ class Integrations extends Component
             captchas\FriendlyCaptcha::class,
             captchas\Akismet::class,
             captchas\CaptchaEu::class,
+            captchas\CleanTalk::class,
             captchas\Turnstile::class,
             captchas\Duplicate::class,
             captchas\Honeypot::class,
