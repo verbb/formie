@@ -682,8 +682,9 @@ class MigrateFreeform5 extends Migration
 
                 $newField->label = $field->getLabel();
                 $newField->handle = $field->getHandle();
-                $newField->htmlContent = $field->getValue();
+                $newField->htmlContent = $field->getContent();
                 $newField->labelPosition = HiddenPosition::class;
+
                 break;
 
             case freeformfields\Pro\InvisibleField::class:
@@ -748,8 +749,9 @@ class MigrateFreeform5 extends Migration
 
                 $newField->label = $field->getLabel();
                 $newField->handle = $field->getHandle();
-                $newField->htmlContent = $field->getValue();
+                $newField->htmlContent = $field->getContent();
                 $newField->labelPosition = HiddenPosition::class;
+
                 break;
 
             case freeformfields\Pro\TableField::class:
