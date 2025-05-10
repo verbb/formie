@@ -5,7 +5,20 @@ Captchas have settings at the plugin level, as well as per-form, allowing you to
 
 We highly recommend using reCAPTCHA v3 for the most effective way to prevent spam submissions on your site.
 
-Formie comes with 4 core captchas.
+## Supported Providers
+Formie integrates with the following providers:
+- Akismet
+- Captcha.eu
+- CleanTalk
+- Cloudflare Turnstile
+- Duplicate
+- Friendly Captcha
+- hCaptcha
+- Honeypot
+- Javascript
+- OOPSpam
+- reCAPTCHA
+- [Snaptcha](https://plugins.craftcms.com/snaptcha)
 
 ## reCAPTCHA
 The recommended captcha to use, reCAPTCHA is a free service that protects your forms from spam and abuse. To get started, head to the [Google reCAPTCHA](https://www.google.com/recaptcha) page to register for API keys to use their service. Once you have these keys, go to Formie → Settings → Integrations → reCAPTCHA and enter your Site & Secret keys.
@@ -16,12 +29,6 @@ You can also configure which type of reCAPTCHA captcha to use. We highly recomme
 - reCAPTCHA v2 (Invisible)
 - reCAPTCHA v3
 - reCAPTCHA v3 (Enterprise)
-
-## hCaptcha
-[hCaptcha](https://www.hcaptcha.com/) is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative.
-
-## Snaptcha Plugin
-The [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha) is an invisible CAPTCHA that automatically validates forms and prevents spam-bots from submitting to your Craft CMS site.
 
 ## Duplicate
 This captcha checks for duplicate submissions, where bots might be submitting multiple times. This mechanism assigns a unique value to a submission, so if the same content is submitted again without refreshing or changing the form content, it will be marked as a duplicate. 
