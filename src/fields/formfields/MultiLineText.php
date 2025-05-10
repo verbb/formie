@@ -232,7 +232,7 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         $value = $element->getFieldValue($this->handle);
         $count = count(explode(' ', $value));
 
-        if ($count > $min) {
+        if ($count < $min) {
             $element->addError($this->handle, Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
