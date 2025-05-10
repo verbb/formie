@@ -45,9 +45,6 @@ abstract class BaseJob extends CraftBaseJob
 
             $jobData = Craft::$app->getQueue()->serializer->serialize($jobData);
 
-            // Some environments need this sanitized...
-            $jobData = StringHelper::convertToUtf8($jobData);
-
             Db::update(Table::QUEUE, ['job' => $jobData], ['id' => $event->id], [], false);
         } catch (Throwable $e) {
             Formie::error('Unable to update job info debug: “{message}” {file}:{line}. Trace: “{trace}”', [
