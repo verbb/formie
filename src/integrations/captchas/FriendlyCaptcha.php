@@ -106,6 +106,8 @@ class FriendlyCaptcha extends Captcha
         $response = $this->getRequestParam('frc-captcha-solution');
 
         if (!$response) {
+            $this->spamReason = 'Missing Friendly Captcha token.';
+
             return false;
         }
 
