@@ -101,6 +101,7 @@ class Integrations extends Component
         $elements = [
             elements\CalendarEvent::class,
             elements\Entry::class,
+            elements\Product::class,
             elements\User::class,
         ];
 
