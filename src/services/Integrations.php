@@ -192,6 +192,7 @@ class Integrations extends Component
         $miscellaneous = [
             miscellaneous\ClickUp::class,
             miscellaneous\GoogleSheets::class,
+            miscellaneous\Gorgias::class,
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
             miscellaneous\Slack::class,
