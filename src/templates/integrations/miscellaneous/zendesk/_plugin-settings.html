@@ -1,0 +1,41 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'domain',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.domain ?? '',
+    warning: macros.configWarning('domain', 'formie'),
+    errors: integration.getErrors('domain'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'username',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{% endblock %}

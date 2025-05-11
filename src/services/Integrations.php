@@ -197,6 +197,7 @@ class Integrations extends Component
             miscellaneous\Recruitee::class,
             miscellaneous\Slack::class,
             miscellaneous\Trello::class,
+            miscellaneous\Zendesk::class,
         ];
 
         $event = new RegisterIntegrationsEvent([
