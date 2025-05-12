@@ -467,7 +467,6 @@ class MigrateFreeform5 extends Migration
             foreach ($page->getLayout()->getAllRows() as $rowIndex => $row) {
                 $newRow = [];
 
-            foreach ($page->getLayout()->getAllRows() as $rowIndex => $row) {
                 foreach ($row->getAllFields() as $fieldIndex => $field) {
                     $newField = $this->_mapField($field);
 
