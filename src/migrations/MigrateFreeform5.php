@@ -259,8 +259,8 @@ class MigrateFreeform5 extends Migration
                         case freeformfields\Pro\GroupField::class:
                             $values = [];
 
-                            foreach ($field->getLayout()->getRows() as $row) {
-                                foreach ($row->getFields() as $innerField) {
+                            foreach ($field->getLayout()->getAllRows() as $row) {
+                                foreach ($row->getAllFields() as $innerField) {
                                     $values[$innerField->getHandle()] = $entry->getFormFieldValue($innerField);
                                 }
                             }
@@ -458,17 +458,17 @@ class MigrateFreeform5 extends Migration
 
         $pages = [];
         $fields = [];
-        $layout = $form->getLayout();
 
-        foreach ($layout->getPages() as $pageIndex => $page) {
+        foreach ($form->getPages() as $pageIndex => $page) {
             $newPage = [];
             $newPage['label'] = $page->getLabel();
             $newPage['sortOrder'] = '' . $pageIndex;
 
-            foreach ($page->getRows() as $rowIndex => $row) {
+            foreach ($page->getLayout()->getAllRows() as $rowIndex => $row) {
                 $newRow = [];
 
-                foreach ($row as $fieldIndex => $field) {
+            foreach ($page->getLayout()->getAllRows() as $rowIndex => $row) {
+                foreach ($row->getAllFields() as $fieldIndex => $field) {
                     $newField = $this->_mapField($field);
 
                     // Fire a 'modifyField' event
@@ -651,10 +651,10 @@ class MigrateFreeform5 extends Migration
 
                 $newRows = [];
 
-                foreach ($field->getLayout()->getRows() as $rowKey => $row) {
+                foreach ($field->getLayout()->getAllRows() as $rowKey => $row) {
                     $newInnerFields = [];
 
-                    foreach ($row->getFields() as $fieldKey => $innerField) {
+                    foreach ($row->getAllFields() as $fieldKey => $innerField) {
                         $newInnerFields[] = $this->_mapField($innerField);
                     }
 
@@ -672,7 +672,8 @@ class MigrateFreeform5 extends Migration
                 $newField = new formiefields\Hidden();
                 $this->_applyFieldDefaults($newField);
 
-                $newField->defaultValue = $field->getValue();
+                $newField->defaultOption = 'custom';
+                $newField->defaultValue = $field->getDefaultValue();
                 break;
 
             case freeformfields\HtmlField::class:
@@ -820,11 +821,11 @@ class MigrateFreeform5 extends Migration
 
         $newField->instructions = $field->getInstructions();
 
-        if (method_exists($field, 'getPlaceholder')) {
+        if (!$newField->placeholder && method_exists($field, 'getPlaceholder')) {
             $newField->placeholder = $field->getPlaceholder();
         }
 
-        if (method_exists($field, 'getValue')) {
+        if (!$newField->defaultValue && method_exists($field, 'getValue')) {
             $newField->defaultValue = $field->getValue();
 
             // Just use non-arrays for default values
