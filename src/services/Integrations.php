@@ -196,6 +196,7 @@ class Integrations extends Component
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
             miscellaneous\Slack::class,
+            miscellaneous\Telegram::class,
             miscellaneous\Trello::class,
             miscellaneous\Zendesk::class,
         ];
