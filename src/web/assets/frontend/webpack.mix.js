@@ -34,6 +34,7 @@ mix.js('./src/js/address-providers/algolia-places.js', 'js/address-providers');
 mix.js('./src/js/address-providers/google-address.js', 'js/address-providers');
 mix.js('./src/js/address-providers/address-finder.js', 'js/address-providers');
 mix.js('./src/js/address-providers/loqate.js', 'js/address-providers');
+mix.js('./src/js/address-providers/place-kit.js', 'js/address-providers');
 mix.js('./src/js/captchas/captcha-provider.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-checkbox.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-invisible.js', 'js/captchas');

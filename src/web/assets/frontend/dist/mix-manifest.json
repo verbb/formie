@@ -19,6 +19,7 @@
     "/js/address-providers/google-address.js": "/js/address-providers/google-address.js",
     "/js/address-providers/address-finder.js": "/js/address-providers/address-finder.js",
     "/js/address-providers/loqate.js": "/js/address-providers/loqate.js",
+    "/js/address-providers/place-kit.js": "/js/address-providers/place-kit.js",
     "/js/captchas/captcha-provider.js": "/js/captchas/captcha-provider.js",
     "/js/captchas/recaptcha-v2-checkbox.js": "/js/captchas/recaptcha-v2-checkbox.js",
     "/js/captchas/recaptcha-v2-invisible.js": "/js/captchas/recaptcha-v2-invisible.js",
