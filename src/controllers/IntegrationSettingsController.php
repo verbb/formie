@@ -185,7 +185,7 @@ class IntegrationSettingsController extends Controller
      */
     public function actionAutomationIndex(): Response
     {
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_WEBHOOK);
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_AUTOMATION);
         $typeName = 'Automations';
 
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
@@ -201,7 +201,7 @@ class IntegrationSettingsController extends Controller
      */
     public function actionEditAutomation(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
-        return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_WEBHOOK);
+        return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_AUTOMATION);
     }
 
     /**
