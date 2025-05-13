@@ -350,6 +350,9 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | - | - | -
 | `options` | `[FieldOption]` | Define the available options for users to select from.
 | `layout` | `String` | Select which layout to use for these fields.
+| `limitOptions`| `Boolean` | Whether the field should limit the number options to be selected.
+| `min`| `Int!` | The field’s minimum number of options to limit.
+| `max`| `Int!` | The field’s maximum number of options to limit.
 | `toggleCheckbox` | `String!` | Whether to add an additional checkbox to toggle all checkboxes in this field by. Either `null`, `top`, `bottom`.
 | `toggleCheckboxLabel` | `String!` | The label for the toggle checkbox field.
 

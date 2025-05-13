@@ -17,6 +17,8 @@ use craft\validators\ArrayValidator;
 
 use Faker\Generator as FakerFactory;
 
+use GraphQL\Type\Definition\Type;
+
 use yii\db\Schema;
 
 class Checkboxes extends OptionsField
@@ -136,6 +138,32 @@ class Checkboxes extends OptionsField
             'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/checkbox-radio.js'),
             'module' => 'FormieCheckboxRadio',
         ];
+    }
+
+    public function getSettingGqlTypes(): array
+    {
+        return array_merge(parent::getSettingGqlTypes(), [
+            'limitOptions' => [
+                'name' => 'limitOptions',
+                'type' => Type::boolean(),
+            ],
+            'min' => [
+                'name' => 'min',
+                'type' => Type::int(),
+            ],
+            'max' => [
+                'name' => 'max',
+                'type' => Type::int(),
+            ],
+            'toggleCheckbox' => [
+                'name' => 'toggleCheckbox',
+                'type' => Type::string(),
+            ],
+            'toggleCheckboxLabel' => [
+                'name' => 'toggleCheckboxLabel',
+                'type' => Type::string(),
+            ],
+        ]);
     }
 
     public function defineGeneralSchema(): array
