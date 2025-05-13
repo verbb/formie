@@ -296,3 +296,8 @@ class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrat
 
 class_alias('verbb\formie\integrations\messaging\Slack', 'verbb\formie\integrations\miscellaneous\Slack');
 class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integrations\miscellaneous\Telegram');
+
+class_alias('verbb\formie\events\ModifyAutomationPayloadEvent', 'verbb\formie\events\ModifyWebhookPayloadEvent');
+class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
+class_alias('verbb\formie\integrations\automations\Webhook', 'verbb\formie\integrations\webhooks\Webhook');
+class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');

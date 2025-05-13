@@ -3,7 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyWebhookPayloadEvent;
+use verbb\formie\events\ModifyAutomationPayloadEvent;
 
 use Craft;
 use craft\helpers\App;
@@ -14,11 +14,14 @@ use craft\helpers\UrlHelper;
 
 use yii\helpers\Markdown;
 
-abstract class Webhook extends Integration
+abstract class Automation extends Integration
 {
     // Constants
     // =========================================================================
 
+    public const EVENT_MODIFY_AUTOMATION_PAYLOAD = 'modifyAutomationPayload';
+
+    // Backward-compatibility until Formie 4
     public const EVENT_MODIFY_WEBHOOK_PAYLOAD = 'modifyWebhookPayload';
 
 
@@ -27,7 +30,7 @@ abstract class Webhook extends Integration
 
     public static function typeName(): string
     {
-        return Craft::t('formie', 'Webhooks');
+        return Craft::t('formie', 'Automations');
     }
 
 
@@ -36,19 +39,19 @@ abstract class Webhook extends Integration
 
     public function getType(): string
     {
-        return self::TYPE_WEBHOOK;
+        return self::TYPE_AUTOMATION;
     }
 
     public function getCategory(): string
     {
-        return self::CATEGORY_WEBHOOKS;
+        return self::CATEGORY_AUTOMATIONS;
     }
 
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/webhooks/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/automations/{$handle}.svg");
     }
 
     /**
@@ -59,7 +62,7 @@ abstract class Webhook extends Integration
         $handle = $this->getClassHandle();
         $variables = $this->getSettingsHtmlVariables();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_plugin-settings", $variables);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/automations/{$handle}/_plugin-settings", $variables);
     }
 
     public function getFormSettingsHtml($form): string
@@ -67,12 +70,12 @@ abstract class Webhook extends Integration
         $handle = $this->getClassHandle();
         $variables = $this->getFormSettingsHtmlVariables($form);
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/webhooks/{$handle}/_form-settings", $variables);
+        return Craft::$app->getView()->renderTemplate("formie/integrations/automations/{$handle}/_form-settings", $variables);
     }
 
     public function getCpEditUrl(): string
     {
-        return UrlHelper::cpUrl('formie/settings/webhooks/edit/' . $this->id);
+        return UrlHelper::cpUrl('formie/settings/automations/edit/' . $this->id);
     }
 
 
@@ -83,11 +86,14 @@ abstract class Webhook extends Integration
     {
         $payload = $this->generateSubmissionPayloadValues($submission);
 
-        // Fire a 'modifyWebhookPayload' event
-        $event = new ModifyWebhookPayloadEvent([
+        // Fire a 'modifyAutomationPayload' event
+        $event = new ModifyAutomationPayloadEvent([
             'submission' => $submission,
             'payload' => $payload,
         ]);
+        $this->trigger(self::EVENT_MODIFY_AUTOMATION_PAYLOAD, $event);
+
+        // Backward-compatibility until Formie 4
         $this->trigger(self::EVENT_MODIFY_WEBHOOK_PAYLOAD, $event);
 
         return $event->payload;

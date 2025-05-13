@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\integrations\webhooks;
+namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Webhook as BaseWebhook;
+use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -14,7 +14,7 @@ use GuzzleHttp\Client;
 
 use Throwable;
 
-class Webhook extends BaseWebhook
+class Webhook extends Automation
 {
     // Static Methods
     // =========================================================================

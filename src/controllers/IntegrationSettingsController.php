@@ -183,10 +183,10 @@ class IntegrationSettingsController extends Controller
     /**
      * @return Response
      */
-    public function actionWebhookIndex(): Response
+    public function actionAutomationIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_WEBHOOK);
-        $typeName = 'Webhooks';
+        $typeName = 'Automations';
 
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
@@ -199,9 +199,11 @@ class IntegrationSettingsController extends Controller
      * @return Response
      * @throws NotFoundHttpException if the requested integration cannot be found
      */
-    public function actionEditWebhook(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditAutomation(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
-        return $this->_editIntegration($integrationId, $integration, 'Webhooks', Integration::TYPE_WEBHOOK);
+        return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_WEBHOOK);
+    }
+
     /**
      * @return Response
      */

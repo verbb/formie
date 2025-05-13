@@ -5,7 +5,7 @@ use verbb\formie\elements\Submission;
 
 use yii\base\Event;
 
-class ModifyWebhookPayloadEvent extends Event
+class ModifyAutomationPayloadEvent extends Event
 {
     // Properties
     // =========================================================================

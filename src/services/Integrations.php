@@ -19,7 +19,7 @@ use verbb\formie\integrations\helpdesk;
 use verbb\formie\integrations\miscellaneous;
 use verbb\formie\integrations\messaging;
 use verbb\formie\integrations\payments;
-use verbb\formie\integrations\webhooks;
+use verbb\formie\integrations\automations;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
@@ -197,9 +197,9 @@ class Integrations extends Component
             payments\Stripe::class,
         ];
 
-        $webhooks = [
-            webhooks\Webhook::class,
-            webhooks\Zapier::class,
+        $automations = [
+            automations\Webhook::class,
+            automations\Zapier::class,
         ];
 
         $miscellaneous = [
@@ -219,7 +219,7 @@ class Integrations extends Component
             'helpDesk' => $helpDesk,
             'messaging' => $messaging,
             'payments' => $payments,
-            'webhooks' => $webhooks,
+            'automations' => $automations,
             'miscellaneous' => $miscellaneous,
         ]);
 
@@ -234,7 +234,7 @@ class Integrations extends Component
             Integration::TYPE_HELP_DESK => $event->helpDesk,
             Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
-            Integration::TYPE_WEBHOOK => $event->webhooks,
+            Integration::TYPE_AUTOMATION => $event->automations,
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
 

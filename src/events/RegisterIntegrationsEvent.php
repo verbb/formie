@@ -16,7 +16,7 @@ class RegisterIntegrationsEvent extends Event
     public ?array $helpDesk = [];
     public ?array $messaging = [];
     public ?array $payments = [];
-    public ?array $webhooks = [];
+    public ?array $automations = [];
     public ?array $miscellaneous = [];
     
 }

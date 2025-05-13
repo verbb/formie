@@ -1,15 +1,18 @@
-# Webhooks
-Webhooks are one of the provided integrations with Formie, and are used to forward on a payload of data to a specified URL. This can be useful to send to submission data to third-parties when a form is submitted. The third-party can then perform any number of actions.
+# Automations
+Automations are one of the provided integrations with Formie, and are used to forward on a payload of data to a specified URL. This can be useful to send to submission data to third-parties when a form is submitted. The third-party can then perform any number of actions.
 
 The URL can be set at the plugin-settings level, or customised per-form. When editing a form, you can trigger a test payload to be sent, with random-generated data to test your connections to your Webhook URL.
 
-There are 2 types of Webhooks Formie provides.
+## Supported Providers
+Formie integrates with the following providers:
+- Webhook
+- Zapier
 
 ## Webhook
 A general-purpose webhook can be used to send any URL you provide with the payload of content. This can be used to POST-forward content to a URL you choose.
 
 ### Step 1. Create the Integration
-1. Navigate to **Formie** → **Settings** → **Webhooks**.
+1. Navigate to **Formie** → **Settings** → **Automations**.
 1. Click the **New Integration** button.
 1. Select Webhook as the **Integration Provider**.
 
@@ -29,7 +32,7 @@ A general-purpose webhook can be used to send any URL you provide with the paylo
 Follow the below steps to connect to the Zapier API.
 
 ### Step 1. Create the Integration
-1. Navigate to **Formie** → **Settings** → **Webhooks**.
+1. Navigate to **Formie** → **Settings** → **Automations**.
 1. Click the **New Integration** button.
 1. Select Zapier as the **Integration Provider**.
 
