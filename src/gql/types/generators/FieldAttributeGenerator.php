@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\gql\types\generators;
 
-use verbb\formie\gql\types\FieldAttributeType;
-
+use Craft;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
 use craft\gql\GqlEntityRegistry;
+
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 
 class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInterface
 {
@@ -25,13 +27,22 @@ class FieldAttributeGenerator implements GeneratorInterface, SingleGeneratorInte
     public static function generateType(mixed $context = null): mixed
     {
         $typeName = self::getName($context);
-        $contentFields = FieldAttributeType::prepareRowFieldDefinition($typeName);
 
-        return GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new FieldAttributeType([
+        return GqlEntityRegistry::getEntity($typeName) ?: GqlEntityRegistry::createEntity($typeName, new ObjectType([
             'name' => $typeName,
-            'fields' => function() use ($contentFields) {
-                return $contentFields;
-            },
+            'fields' => Craft::$app->getGql()->prepareFieldDefinitions([
+                'label' => [
+                    'name' => 'label',
+                    'type' => Type::string(),
+                    'description' => 'The label attribute.',
+                ],
+
+                'value' => [
+                    'name' => 'value',
+                    'type' => Type::string(),
+                    'description' => 'The value attribute.',
+                ],
+            ], $typeName),
         ]));
     }
 }
