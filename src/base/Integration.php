@@ -73,7 +73,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const CATEGORY_HELP_DESK = 'helpDesk';
     public const CATEGORY_MESSAGING = 'messaging';
     public const CATEGORY_PAYMENTS = 'payments';
-    public const CATEGORY_AUTOMATION = 'automations';
+    public const CATEGORY_AUTOMATIONS = 'automations';
     public const CATEGORY_MISC = 'miscellaneous';
     public const CATEGORY_CUSTOM = 'custom';
 
