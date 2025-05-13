@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
-use verbb\formie\gql\types\generators\FieldAttributeGenerator;
+use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -238,7 +238,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         return array_merge(parent::getSettingGqlTypes(), [
             'countryOptions' => [
                 'name' => 'countryOptions',
-                'type' => Type::listOf(FieldAttributeGenerator::generateType()),
+                'type' => Type::listOf(CountryOptionGenerator::generateType()),
             ],
             'countryEnabled' => [
                 'name' => 'countryEnabled',

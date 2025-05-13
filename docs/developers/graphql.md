@@ -480,7 +480,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `countryPlaceholder` | `String` | The placeholder for the Country sub-field.
 | `countryDefaultValue` | `String` | The default value for the Country sub-field.
 | `countryEnabled` | `Boolean` | Whether the Country sub-field is enabled in the control panel.
-| `countryOptions` | `[FieldAttribute]` | An array of options available to pick a country from.
+| `countryOptions` | `[CountryOption]` | An array of options available to pick a country from.
 
 #### Products
 | Field | Type | Description
@@ -648,6 +648,15 @@ For option-based fields, a `FieldOption` represents a single option row.
 |`value` | `String` | The value of the option.
 |`isOptgroup` | `Boolean` | Whether this option has been marked as an `optgroup`.
 |`isDefault` | `Boolean` | Whether this option has been marked as a default.
+
+### The `CountryOption` interface
+For Phone fields, a `CountryOption` represents a single option row for countries.
+
+| Field | Type | Description
+| - | - | -
+|`label` | `String` | The label of the country.
+|`value` | `String` | The value of the country.
+|`code` | `String` | The area code or country code for the number.
 
 ### The `TableColumn` interface
 This interface defines the columns for a Table field.
