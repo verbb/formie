@@ -186,7 +186,10 @@ class Integrations extends Component
         ];
 
         $messaging = [
+            messaging\Slack::class,
+            messaging\Telegram::class,
         ];
+
         $payments = [
             payments\Opayo::class,
             payments\PayPal::class,
@@ -204,8 +207,6 @@ class Integrations extends Component
             miscellaneous\GoogleSheets::class,
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
-            miscellaneous\Slack::class,
-            miscellaneous\Telegram::class,
             miscellaneous\Trello::class,
         ];
 

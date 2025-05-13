@@ -293,3 +293,6 @@ trait PluginTrait
 class_alias('verbb\formie\integrations\helpdesk\Freshdesk', 'verbb\formie\integrations\crm\Freshdesk');
 class_alias('verbb\formie\integrations\helpdesk\Gorgias', 'verbb\formie\integrations\miscellaneous\Gorgias');
 class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrations\miscellaneous\Zendesk');
+
+class_alias('verbb\formie\integrations\messaging\Slack', 'verbb\formie\integrations\miscellaneous\Slack');
+class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integrations\miscellaneous\Telegram');

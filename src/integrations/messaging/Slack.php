@@ -1,9 +1,9 @@
 <?php
-namespace verbb\formie\integrations\miscellaneous;
+namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\Miscellaneous;
+use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\models\IntegrationFormSettings;
@@ -18,7 +18,7 @@ use Throwable;
 
 use GuzzleHttp\Client;
 
-class Slack extends Miscellaneous
+class Slack extends Messaging
 {
     // Constants
     // =========================================================================
