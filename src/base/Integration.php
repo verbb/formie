@@ -58,6 +58,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const TYPE_ELEMENT = 'element';
     public const TYPE_EMAIL_MARKETING = 'emailMarketing';
     public const TYPE_CRM = 'crm';
+    public const TYPE_HELP_DESK = 'helpDesk';
+    public const TYPE_MESSAGING = 'messaging';
     public const TYPE_PAYMENT = 'payment';
     public const TYPE_WEBHOOK = 'webhook';
     public const TYPE_MISC = 'miscellaneous';
@@ -68,6 +70,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const CATEGORY_ELEMENTS = 'elements';
     public const CATEGORY_EMAIL_MARKETING = 'emailMarketing';
     public const CATEGORY_CRM = 'crm';
+    public const CATEGORY_HELP_DESK = 'helpDesk';
+    public const CATEGORY_MESSAGING = 'messaging';
     public const CATEGORY_PAYMENTS = 'payments';
     public const CATEGORY_WEBHOOKS = 'webhooks';
     public const CATEGORY_MISC = 'miscellaneous';

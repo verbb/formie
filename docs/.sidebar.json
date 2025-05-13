@@ -81,6 +81,8 @@
             "integrations/elements",
             "integrations/email-marketing",
             "integrations/crm",
+            "integrations/help-desk",
+            "integrations/messaging",
             "integrations/payments",
             "integrations/webhooks",
             "integrations/miscellaneous"

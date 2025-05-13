@@ -15,7 +15,9 @@ use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
 use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
+use verbb\formie\integrations\helpdesk;
 use verbb\formie\integrations\miscellaneous;
+use verbb\formie\integrations\messaging;
 use verbb\formie\integrations\payments;
 use verbb\formie\integrations\webhooks;
 use verbb\formie\models\FieldLayoutPage;
@@ -178,6 +180,10 @@ class Integrations extends Component
             crm\Zoho::class,
         ];
 
+        $helpDesk = [
+        ];
+        $messaging = [
+        ];
         $payments = [
             payments\Opayo::class,
             payments\PayPal::class,
@@ -208,6 +214,8 @@ class Integrations extends Component
             'elements' => $elements,
             'emailMarketing' => $emailMarketing,
             'crm' => $crm,
+            'helpDesk' => $helpDesk,
+            'messaging' => $messaging,
             'payments' => $payments,
             'webhooks' => $webhooks,
             'miscellaneous' => $miscellaneous,
@@ -221,6 +229,8 @@ class Integrations extends Component
             Integration::TYPE_ELEMENT => $event->elements,
             Integration::TYPE_EMAIL_MARKETING => $event->emailMarketing,
             Integration::TYPE_CRM => $event->crm,
+            Integration::TYPE_HELP_DESK => $event->helpDesk,
+            Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
             Integration::TYPE_WEBHOOK => $event->webhooks,
             Integration::TYPE_MISC => $event->miscellaneous,

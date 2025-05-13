@@ -202,6 +202,52 @@ class IntegrationSettingsController extends Controller
     public function actionEditWebhook(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Webhooks', Integration::TYPE_WEBHOOK);
+    /**
+     * @return Response
+     */
+    public function actionMessagingIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_MESSAGING);
+        $typeName = 'Messaging';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    /**
+     * Edit an integration.
+     *
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
+     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
+     * @return Response
+     * @throws NotFoundHttpException if the requested integration cannot be found
+     */
+    public function actionEditMessaging(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Messaging', Integration::TYPE_MESSAGING);
+    }
+
+    /**
+     * @return Response
+     */
+    public function actionHelpDeskIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_HELP_DESK);
+        $typeName = 'Help Desk';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    /**
+     * Edit an integration.
+     *
+     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
+     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
+     * @return Response
+     * @throws NotFoundHttpException if the requested integration cannot be found
+     */
+    public function actionEditHelpDesk(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Help Desk', Integration::TYPE_HELP_DESK);
     }
 
     /**
