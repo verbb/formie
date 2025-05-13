@@ -1,7 +1,7 @@
 <?php
-namespace verbb\formie\integrations\crm;
+namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\base\Crm;
+use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
@@ -21,7 +21,7 @@ use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 
-class Freshdesk extends Crm
+class Freshdesk extends HelpDesk
 {
     // Static Methods
     // =========================================================================

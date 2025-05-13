@@ -1,8 +1,8 @@
 <?php
-namespace verbb\formie\integrations\miscellaneous;
+namespace verbb\formie\integrations\helpdesk;
 
 use verbb\formie\base\Integration;
-use verbb\formie\base\Miscellaneous;
+use verbb\formie\base\HelpDesk;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -17,7 +17,7 @@ use GuzzleHttp\Client;
 
 use Throwable;
 
-class Gorgias extends Miscellaneous
+class Gorgias extends HelpDesk
 {
     // Static Methods
     // =========================================================================

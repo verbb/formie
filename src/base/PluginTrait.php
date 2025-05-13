@@ -288,3 +288,8 @@ trait PluginTrait
         BaseHelper::setFileLogging('formie');
     }
 }
+
+// Handle deprecated classes via an alias, until Formie 4
+class_alias('verbb\formie\integrations\helpdesk\Freshdesk', 'verbb\formie\integrations\crm\Freshdesk');
+class_alias('verbb\formie\integrations\helpdesk\Gorgias', 'verbb\formie\integrations\miscellaneous\Gorgias');
+class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrations\miscellaneous\Zendesk');

@@ -152,7 +152,6 @@ class Integrations extends Component
             crm\Copper::class,
             crm\Dotdigital::class,
             crm\Flowlu::class,
-            crm\Freshdesk::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
             crm\HubSpotLegacy::class,
@@ -181,7 +180,11 @@ class Integrations extends Component
         ];
 
         $helpDesk = [
+            helpdesk\Freshdesk::class,
+            helpdesk\Gorgias::class,
+            helpdesk\Zendesk::class,
         ];
+
         $messaging = [
         ];
         $payments = [
@@ -199,13 +202,11 @@ class Integrations extends Component
         $miscellaneous = [
             miscellaneous\ClickUp::class,
             miscellaneous\GoogleSheets::class,
-            miscellaneous\Gorgias::class,
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
             miscellaneous\Slack::class,
             miscellaneous\Telegram::class,
             miscellaneous\Trello::class,
-            miscellaneous\Zendesk::class,
         ];
 
         $event = new RegisterIntegrationsEvent([
