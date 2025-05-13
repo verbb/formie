@@ -673,7 +673,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
-            $this->getQueueJob()->payload = $payload;
+            $this->getQueueJob()->payload = [
+                'payload' => $payload,
+                'endpoint' => $endpoint,
+                'method' => $method,
+            ];
         }
 
         $event = new SendIntegrationPayloadEvent([
