@@ -189,6 +189,7 @@ class Integrations extends Component
             messaging\Discord::class,
             messaging\Slack::class,
             messaging\Telegram::class,
+            messaging\Twilio::class,
         ];
 
         $payments = [
