@@ -32,7 +32,6 @@ class Install extends Migration
         $this->createTables();
         $this->createIndexes();
         $this->addForeignKeys();
-        $this->insertDefaultData();
 
         return true;
     }
@@ -48,6 +47,13 @@ class Install extends Migration
         Auth::getInstance()->getTokens()->deleteTokensByOwner('formie');
 
         return true;
+    }
+
+    protected function afterUp(): void
+    {
+        $this->insertDefaultData();
+        
+        parent::afterUp();
     }
 
     public function createTables(): void

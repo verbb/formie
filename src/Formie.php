@@ -593,11 +593,6 @@ class Formie extends Plugin
     {
         $projectConfigService = Craft::$app->getProjectConfig();
 
-        // Protect against firing too early before Formie has installed
-        if (!Craft::$app->getPlugins()->isPluginInstalled(Formie::getInstance()->id)) {
-            return;
-        }
-
         $statusesService = $this->getStatuses();
         $projectConfigService
             ->onAdd(StatusesService::CONFIG_STATUSES_KEY . '.{uid}', [$statusesService, 'handleChangedStatus'])
