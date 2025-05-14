@@ -186,6 +186,7 @@ class Integrations extends Component
         ];
 
         $messaging = [
+            messaging\Discord::class,
             messaging\Slack::class,
             messaging\Telegram::class,
         ];
