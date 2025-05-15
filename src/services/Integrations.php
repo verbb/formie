@@ -194,6 +194,7 @@ class Integrations extends Component
         ];
 
         $payments = [
+            payments\Bpoint::class,
             payments\Opayo::class,
             payments\PayPal::class,
             payments\PayWay::class,
