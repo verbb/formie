@@ -119,9 +119,6 @@ abstract class Element extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/elements/{$handle}.svg");
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();

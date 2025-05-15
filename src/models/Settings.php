@@ -178,9 +178,6 @@ class Settings extends Model
         return Craft::$app->getConfig()->getGeneral()->securityKey;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

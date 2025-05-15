@@ -58,17 +58,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Date/Time');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/date/icon.svg';
@@ -160,9 +154,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         if ($this->getIsTime()) {
@@ -223,9 +214,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->timeFormat;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getTableAttributeHtml(mixed $value, ElementInterface $element): string
     {
         if ($value && $this->getIsDateTime()) {
@@ -251,9 +239,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->normalizeValue($defaultValue);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if (!$value || $value instanceof DateTime) {
@@ -302,17 +287,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSearchKeywords(mixed $value, ElementInterface $element): string
     {
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         /* @var Settings $settings */
@@ -349,9 +328,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormattingChar($name): ?string
     {
         $formattingMap = [
@@ -367,9 +343,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $formattingMap[$name] ?? null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndSubfields($context): array
     {
         $subFields = [];
@@ -629,9 +602,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $event->rows;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSubfieldOptions(): array
     {
         return [
@@ -698,9 +668,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return null;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         // Keep to disable trait validation on subfields.
@@ -760,9 +727,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return $this->includeTime && $this->includeDate;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/input', [
@@ -772,9 +736,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/date/preview', [
@@ -878,9 +839,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         return parent::beforeSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $toggleBlocks = [];
@@ -965,9 +923,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -1140,9 +1095,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -1200,9 +1152,6 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -1223,17 +1172,11 @@ class Date extends FormField implements SubfieldInterface, PreviewableFieldInter
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlType(): array|Type
     {
         return DateTimeType::getType();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return [

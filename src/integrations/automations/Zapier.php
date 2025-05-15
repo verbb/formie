@@ -24,9 +24,6 @@ class Zapier extends Automation
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Zapier');
@@ -47,9 +44,6 @@ class Zapier extends Automation
         return Craft::t('formie', 'Send your form content to Zapier.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

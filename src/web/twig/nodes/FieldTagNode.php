@@ -8,9 +8,6 @@ use Twig\Node\Node;
 
 class FieldTagNode extends Node
 {
-    /**
-     * @inheritdoc
-     */
     public function compile(Compiler $compiler): void
     {
         $compiler->addDebugInfo($this);

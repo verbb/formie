@@ -10,9 +10,6 @@ use craft\helpers\Json;
 
 class m220530_000000_payments extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         if (!$this->db->tableExists('{{%formie_payments_plans}}')) {
@@ -110,9 +107,6 @@ class m220530_000000_payments extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m220530_000000_payments cannot be reverted.\n";

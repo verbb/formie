@@ -174,9 +174,6 @@ class SubmissionQuery extends ElementQuery
         return $this;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function anyStatus(): static
     {
         parent::status(null);
@@ -202,9 +199,6 @@ class SubmissionQuery extends ElementQuery
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function beforePrepare(): bool
     {
         if ($this->formId !== null && empty($this->formId)) {
@@ -311,9 +305,6 @@ class SubmissionQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function customFields(): array
     {
         // This method won't get called if $this->formId isn't set to a single int
@@ -331,9 +322,6 @@ class SubmissionQuery extends ElementQuery
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function statusCondition(string $status): mixed
     {
         // Could potentially use a join in the main sub-query to not have another query,

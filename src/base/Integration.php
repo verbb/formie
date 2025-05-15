@@ -234,9 +234,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function scenarios(): array
     {
         $scenarios = parent::scenarios();

@@ -25,9 +25,6 @@ class HubSpotLegacy extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'HubSpot (Legacy)');
@@ -54,9 +51,6 @@ class HubSpotLegacy extends Crm
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -84,9 +78,6 @@ class HubSpotLegacy extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

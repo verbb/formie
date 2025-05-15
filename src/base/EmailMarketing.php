@@ -49,9 +49,6 @@ abstract class EmailMarketing extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/emailmarketing/{$handle}.svg");
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();
@@ -73,9 +70,6 @@ abstract class EmailMarketing extends Integration
         return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

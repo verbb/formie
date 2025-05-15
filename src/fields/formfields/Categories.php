@@ -56,17 +56,11 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Categories');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/categories/icon.svg';
@@ -89,9 +83,6 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // The default Craft Categories field behaviour is pretty odd. It'll select all child categories in the same branch
@@ -107,9 +98,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
@@ -120,9 +108,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         $group = null;
@@ -150,9 +135,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/categories/preview', [
@@ -160,9 +142,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -177,9 +156,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -216,9 +192,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRootCategoryElement()
     {
         if ($this->rootCategory) {
@@ -333,9 +306,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();
@@ -417,9 +387,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -482,9 +449,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -541,9 +505,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -586,9 +547,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

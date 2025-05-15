@@ -78,9 +78,6 @@ class Notification extends Model
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -113,9 +110,6 @@ class Notification extends Model
         return (string)$this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

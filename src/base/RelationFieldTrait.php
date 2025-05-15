@@ -132,9 +132,6 @@ trait RelationFieldTrait
         ));
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         /** @var Element|null $element */
@@ -211,9 +208,6 @@ trait RelationFieldTrait
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeFieldConfig(): array
     {
         // Use all the same settings from this field, but remove any invalid ones
@@ -259,9 +253,6 @@ trait RelationFieldTrait
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();

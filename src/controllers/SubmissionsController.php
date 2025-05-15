@@ -60,9 +60,6 @@ class SubmissionsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();

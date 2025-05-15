@@ -6,9 +6,6 @@ use craft\helpers\MigrationHelper;
 
 class m221130_000000_sent_notifications extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         // Change values to allow null
@@ -22,9 +19,6 @@ class m221130_000000_sent_notifications extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m221130_000000_sent_notifications cannot be reverted.\n";

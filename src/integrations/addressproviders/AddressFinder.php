@@ -19,9 +19,6 @@ class AddressFinder extends AddressProvider
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Address Finder');
@@ -44,9 +41,6 @@ class AddressFinder extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest Australian and New Zealand addresses, for address fields.', ['link' => '[Address Finder](https://addressfinder.com.au/)']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -56,9 +50,6 @@ class AddressFinder extends AddressProvider
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {

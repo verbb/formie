@@ -8,9 +8,6 @@ use Throwable;
 
 class m231010_000000_security_key extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $configService = Craft::$app->getConfig();
@@ -25,9 +22,6 @@ class m231010_000000_security_key extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m231010_000000_security_key cannot be reverted.\n";

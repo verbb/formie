@@ -40,9 +40,6 @@ class Campaign extends EmailMarketing
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Campaign');

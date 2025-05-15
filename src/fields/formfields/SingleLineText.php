@@ -24,17 +24,11 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Single-line Text');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/single-line-text/icon.svg';
@@ -55,9 +49,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Migrate legacy settings - remove at the next breakpoint
@@ -78,9 +69,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         parent::__construct($config);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
@@ -92,9 +80,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         return parent::normalizeValue($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
@@ -106,9 +91,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -250,9 +232,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/input', [
@@ -262,9 +241,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/single-line-text/preview', [
@@ -284,9 +260,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -295,9 +268,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -316,9 +286,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -428,9 +395,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -441,9 +405,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -508,9 +469,6 @@ class SingleLineText extends FormField implements PreviewableFieldInterface, Sor
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

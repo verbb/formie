@@ -24,9 +24,6 @@ class Webhook extends Automation
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Webhook');
@@ -47,9 +44,6 @@ class Webhook extends Automation
         return Craft::t('formie', 'Send your form content to any URL you provide.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

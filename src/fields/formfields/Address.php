@@ -49,17 +49,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Address');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/address/icon.svg';
@@ -177,9 +171,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Config normalization
@@ -193,17 +184,11 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         return Schema::TYPE_TEXT;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
@@ -220,9 +205,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return new AddressModel();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof AddressModel) {
@@ -232,9 +214,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         return [
@@ -242,9 +221,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -301,9 +277,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -375,9 +348,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $countries;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndSubfields($context): array
     {
         $subFields = [];
@@ -631,9 +601,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $subFields;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSubfieldOptions(): array
     {
         $fields = [];
@@ -678,9 +645,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
@@ -691,9 +655,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
@@ -754,9 +715,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $toggleBlocks = [];
@@ -828,9 +786,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $fields;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $fields = [
@@ -908,9 +863,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         return $fields;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -922,9 +874,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -943,9 +892,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return AddressInputType::getType($this);
@@ -993,9 +939,6 @@ class Address extends FormField implements SubfieldInterface, PreviewableFieldIn
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

@@ -43,9 +43,6 @@ abstract class Messaging extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/messaging/{$handle}.svg");
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getClassHandle();

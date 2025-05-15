@@ -36,9 +36,6 @@ class Slack extends Messaging
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Slack');
@@ -104,9 +101,6 @@ class Slack extends Messaging
         return Craft::t('formie', 'Send your form content to Slack.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

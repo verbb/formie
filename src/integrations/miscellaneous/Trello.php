@@ -33,9 +33,6 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Trello');
@@ -97,9 +94,6 @@ class Trello extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Trello.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

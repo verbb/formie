@@ -33,9 +33,6 @@ class Form extends ActiveRecord
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function tableName(): string
     {
         return '{{%formie_forms}}';
@@ -60,9 +57,6 @@ class Form extends ActiveRecord
         return $this->hasOne(Element::class, ['id' => 'id']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterFind(): void
     {
         parent::afterFind();

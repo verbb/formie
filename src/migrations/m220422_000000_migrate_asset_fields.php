@@ -12,9 +12,6 @@ class m220422_000000_migrate_asset_fields extends Migration
 {
     private array $_volumesByFolderUids = [];
 
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->_volumesByFolderUids = (new Query())
@@ -48,9 +45,6 @@ class m220422_000000_migrate_asset_fields extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m220422_000000_migrate_asset_fields cannot be reverted.\n";

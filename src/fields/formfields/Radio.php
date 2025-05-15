@@ -17,25 +17,16 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Radio Buttons');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/radio/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function valueType(): string
     {
         return SingleOptionFieldData::class;
@@ -63,9 +54,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         return in_array($class, $disabled) ? false : parent::supportsLabelPosition($class);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -89,9 +77,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/input', [
@@ -101,9 +86,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/preview', [
@@ -119,9 +101,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -164,9 +143,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -186,9 +162,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -208,9 +181,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -304,9 +274,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Radio Button Options');

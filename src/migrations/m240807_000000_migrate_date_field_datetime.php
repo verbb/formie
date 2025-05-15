@@ -14,9 +14,6 @@ use craft\helpers\StringHelper;
 
 class m240807_000000_migrate_date_field_datetime extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $fields = (new Query())
@@ -60,9 +57,6 @@ class m240807_000000_migrate_date_field_datetime extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m240807_000000_migrate_date_field_datetime cannot be reverted.\n";

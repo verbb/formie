@@ -62,9 +62,6 @@ class Status extends Model
         return $this->name;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

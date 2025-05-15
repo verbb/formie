@@ -60,17 +60,11 @@ class Tags extends CraftTags implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Tags');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/tags/icon.svg';
@@ -91,9 +85,6 @@ class Tags extends CraftTags implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Config normalization
@@ -111,9 +102,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $tagGroup = $this->_getTagGroup();
@@ -174,9 +162,6 @@ class Tags extends CraftTags implements FormFieldInterface
             ->fixedOrder();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
@@ -187,9 +172,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         $tag = null;
@@ -215,9 +197,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
@@ -225,9 +204,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -236,9 +212,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();
@@ -278,9 +251,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->traitGetDisplayTypeValue();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -318,9 +288,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();
@@ -445,9 +412,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -510,9 +474,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -550,9 +511,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -583,9 +541,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

@@ -32,9 +32,6 @@ class PageSettings extends Model
     // Public Methods
     // =========================================================================
     
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         if (!$this->submitButtonLabel) {

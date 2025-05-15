@@ -29,9 +29,6 @@ class GoogleSheets extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Google Sheets');
@@ -125,9 +122,6 @@ class GoogleSheets extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Google Sheets.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

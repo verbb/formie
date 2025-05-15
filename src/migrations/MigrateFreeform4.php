@@ -67,9 +67,6 @@ class MigrateFreeform4 extends Migration
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->_reservedHandles = Formie::$plugin->getFields()->getReservedHandles();
@@ -84,9 +81,6 @@ class MigrateFreeform4 extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         return false;

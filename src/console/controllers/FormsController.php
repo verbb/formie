@@ -31,9 +31,6 @@ class FormsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID)
     {
         $options = parent::options($actionID);

@@ -19,9 +19,6 @@ class Google extends AddressProvider
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Google Places');
@@ -54,9 +51,6 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete)']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -66,9 +60,6 @@ class Google extends AddressProvider
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {

@@ -27,17 +27,11 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Multi-line Text');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/multi-line-text/icon.svg';
@@ -60,9 +54,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Migrate legacy settings - remove at the next breakpoint
@@ -83,17 +74,11 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         return Schema::TYPE_TEXT;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
@@ -105,9 +90,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         return parent::normalizeValue($value, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value !== null) {
@@ -119,9 +101,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         return parent::serializeValue($value, $element);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -263,9 +242,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         $form = null;
@@ -282,9 +258,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
@@ -335,9 +308,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         return $this->richTextButtons;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -381,9 +351,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -402,9 +369,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -514,9 +478,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -540,9 +501,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -612,9 +570,6 @@ class MultiLineText extends FormField implements PreviewableFieldInterface, Sort
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

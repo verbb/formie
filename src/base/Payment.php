@@ -55,41 +55,26 @@ abstract class Payment extends Integration
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function typeName(): string
     {
         return Craft::t('formie', 'Payments');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function supportsPayloadSending(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasFormSettings(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function supportsWebhooks(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function supportsCallbacks(): bool
     {
         return false;
@@ -143,9 +128,6 @@ abstract class Payment extends Integration
         return self::CATEGORY_PAYMENTS;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIconUrl(): string
     {
         $handle = $this->getIntegrationHandle();
@@ -153,9 +135,6 @@ abstract class Payment extends Integration
         return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/payments/{$handle}.svg");
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $handle = $this->getIntegrationHandle();
@@ -164,9 +143,6 @@ abstract class Payment extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
     {
         $handle = $this->getIntegrationHandle();
@@ -179,9 +155,6 @@ abstract class Payment extends Integration
         return Template::raw(Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_email", $inputOptions));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSubmissionSummaryHtml($submission): ?string
     {
         $handle = $this->getIntegrationHandle();
@@ -202,9 +175,6 @@ abstract class Payment extends Integration
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml($field, $renderOptions): string
     {
         $handle = $this->getIntegrationHandle();
@@ -221,17 +191,11 @@ abstract class Payment extends Integration
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): string
     {
         return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
     }
     
-    /**
-     * @inheritDoc
-     */
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
@@ -241,17 +205,11 @@ abstract class Payment extends Integration
         return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getGqlHandle(): string
     {
         return StringHelper::toCamelCase($this->handle . 'Payment');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAmount($submission): float
     {
         $amount = 0;
@@ -273,9 +231,6 @@ abstract class Payment extends Integration
         return (float)$amount;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCurrency($submission): ?string
     {
         $currencyType = $this->getFieldSetting('currencyType');
@@ -291,9 +246,6 @@ abstract class Payment extends Integration
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processWebhooks(): Response
     {
         $response = null;
@@ -334,9 +286,6 @@ abstract class Payment extends Integration
         return $response;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processCallbacks(): Response
     {
         $response = null;
@@ -377,25 +326,16 @@ abstract class Payment extends Integration
         return $response;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getField(): ?PaymentField
     {
         return $this->_field;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setField($value): void
     {
         $this->_field = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldSetting($setting, $default = null): mixed
     {
         if ($field = $this->getField()) {
@@ -416,17 +356,11 @@ abstract class Payment extends Integration
     // Protected Methods
     // =========================================================================
     
-    /**
-     * @inheritDoc
-     */
     protected function getIntegrationHandle(): string
     {
         return StringHelper::toKebabCase(static::className());
     }
     
-    /**
-     * @inheritDoc
-     */
     protected function getPaymentFieldValue(Submission $submission): array
     {
         if ($field = $this->getField()) {
@@ -457,9 +391,6 @@ abstract class Payment extends Integration
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function beforeProcessPayment(Submission $submission): bool
     {
         $event = new PaymentIntegrationProcessEvent([
@@ -475,9 +406,6 @@ abstract class Payment extends Integration
         return $event->isValid;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function afterProcessPayment(Submission $submission, bool $result): bool
     {
         $event = new PaymentIntegrationProcessEvent([

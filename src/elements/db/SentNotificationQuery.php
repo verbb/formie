@@ -86,9 +86,6 @@ class SentNotificationQuery extends ElementQuery
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function beforePrepare(): bool
     {
         $this->joinElementTable('formie_sentnotifications');
@@ -132,9 +129,6 @@ class SentNotificationQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function statusCondition(string $status): mixed
     {
         return match ($status) {

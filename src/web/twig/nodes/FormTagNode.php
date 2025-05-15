@@ -8,9 +8,6 @@ use Twig\Node\Node;
 
 class FormTagNode extends Node
 {
-    /**
-     * @inheritdoc
-     */
     public function compile(Compiler $compiler): void
     {
         $compiler->addDebugInfo($this);

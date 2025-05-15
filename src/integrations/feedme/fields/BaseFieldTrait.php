@@ -6,9 +6,6 @@ trait BaseFieldTrait
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function beforeParseField(): void
     {
         // Feed Me assumes all fields are available in the global scope, so we fix that here.
@@ -16,9 +13,6 @@ trait BaseFieldTrait
         $this->field = $this->element->getFieldLayout()->getFieldByHandle($this->fieldHandle);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function parseField(): mixed
     {
         $this->beforeParseField();

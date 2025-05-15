@@ -43,9 +43,6 @@ class PayWay extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Westpac PayWay');
@@ -68,17 +65,11 @@ class PayWay extends Payment
         return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml($field, $renderOptions): string
     {
         if (!$this->hasValidSettings()) {
@@ -93,9 +84,6 @@ class PayWay extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -119,9 +107,6 @@ class PayWay extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -131,9 +116,6 @@ class PayWay extends Payment
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $response = null;
@@ -250,9 +232,6 @@ class PayWay extends Payment
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -266,9 +245,6 @@ class PayWay extends Payment
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [

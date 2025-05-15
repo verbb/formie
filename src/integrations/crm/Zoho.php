@@ -27,9 +27,6 @@ class Zoho extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Zoho');
@@ -101,17 +98,11 @@ class Zoho extends Crm
         return App::parseEnv($this->dataCenter);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseDeveloper(): string
     {
         return App::parseBooleanEnv($this->useDeveloper);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -159,9 +150,6 @@ class Zoho extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

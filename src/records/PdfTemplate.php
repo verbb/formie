@@ -27,9 +27,6 @@ class PdfTemplate extends ActiveRecord
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function tableName(): string
     {
         return '{{%formie_pdftemplates}}';

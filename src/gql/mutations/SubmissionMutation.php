@@ -23,9 +23,6 @@ class SubmissionMutation extends Mutation
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function getMutations(): array
     {
         $mutationList = [];

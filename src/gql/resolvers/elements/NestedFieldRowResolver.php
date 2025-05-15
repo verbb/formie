@@ -14,9 +14,6 @@ class NestedFieldRowResolver extends ElementResolver
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function prepareQuery(mixed $source, array $arguments, ?string $fieldName = null): mixed
     {
         // If this is the beginning of a resolver chain, start fresh

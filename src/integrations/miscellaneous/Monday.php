@@ -27,9 +27,6 @@ class Monday extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Monday');
@@ -52,9 +49,6 @@ class Monday extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Monday.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

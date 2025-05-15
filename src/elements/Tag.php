@@ -9,9 +9,6 @@ class Tag extends CraftTag
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -22,9 +19,6 @@ class Tag extends CraftTag
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSortOptions(): array
     {
         return [

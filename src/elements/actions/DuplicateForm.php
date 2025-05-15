@@ -31,17 +31,11 @@ class DuplicateForm extends Duplicate
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerLabel(): string
     {
         return Craft::t('app', 'Duplicate');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function performAction(ElementQueryInterface $query): bool
     {
         $elements = $query->all();

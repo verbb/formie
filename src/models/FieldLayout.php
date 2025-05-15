@@ -23,9 +23,6 @@ class FieldLayout extends CraftFieldLayout
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getCustomFields(): array
     {
         if ($this->_fields !== null) {
@@ -129,18 +126,12 @@ class FieldLayout extends CraftFieldLayout
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getTabs(): array
     {
         // Override `getTabs()` to refer to pages for convenience.
         return $this->getPages();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setTabs($tabs): void
     {
         // Override `setPages()` to refer to pages for convenience.

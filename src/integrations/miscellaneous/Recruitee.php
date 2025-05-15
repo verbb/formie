@@ -22,9 +22,6 @@ class Recruitee extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Recruitee');
@@ -48,9 +45,6 @@ class Recruitee extends Miscellaneous
         return Craft::t('formie', 'Apply for Recruitee job offers.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

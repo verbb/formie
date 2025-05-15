@@ -43,17 +43,11 @@ class Table extends CraftTable implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Table');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/table/icon.svg';
@@ -100,17 +94,11 @@ class Table extends CraftTable implements FormFieldInterface
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         return Schema::TYPE_TEXT;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -118,9 +106,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -140,9 +125,6 @@ class Table extends CraftTable implements FormFieldInterface
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         /** @var Element $element */
@@ -199,9 +181,6 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
@@ -220,9 +199,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedSettings(): array
     {
         $settings = $this->getSettings();
@@ -254,9 +230,6 @@ class Table extends CraftTable implements FormFieldInterface
         return $settings;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         $settings = $this->getSettings();
@@ -323,9 +296,6 @@ class Table extends CraftTable implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -387,9 +357,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -425,9 +392,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -438,9 +402,6 @@ class Table extends CraftTable implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -649,9 +610,6 @@ class Table extends CraftTable implements FormFieldInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
