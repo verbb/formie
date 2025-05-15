@@ -398,7 +398,7 @@ class PayPal extends Payment
         $options = [];
 
         // Disable SSL verification for local dev (devMode enabled) to save some heartache.
-        if (Craft::$app->getConfig()->getGeneral()->devMode) {
+        if (App::devMode()) {
             $options['verify'] = false;
         }
 

@@ -59,11 +59,6 @@ class Opayo extends Payment
     {
         return Craft::t('formie', 'Opayo');
     }
-
-    public function supportsCallbacks(): bool
-    {
-        return true;
-    }
     
     public static function toOpayoAmount(float $amount, string $currency): float
     {
@@ -99,6 +94,11 @@ class Opayo extends Payment
     public function getDescription(): string
     {
         return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
+    }
+
+    public function supportsCallbacks(): bool
+    {
+        return true;
     }
 
     public function hasValidSettings(): bool
