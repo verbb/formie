@@ -201,6 +201,7 @@ class Integrations extends Component
         ];
 
         $automations = [
+            automations\Ifttt::class,
             automations\Webhook::class,
             automations\Zapier::class,
         ];

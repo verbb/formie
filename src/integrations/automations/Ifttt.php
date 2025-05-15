@@ -8,13 +8,14 @@ use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\helpers\App;
 use craft\helpers\Json;
 
 use GuzzleHttp\Client;
 
 use Throwable;
 
-class Webhook extends Automation
+class Ifttt extends Automation
 {
     // Static Methods
     // =========================================================================
@@ -24,37 +25,33 @@ class Webhook extends Automation
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Webhook');
+        return Craft::t('formie', 'IFTTT');
     }
     
 
     // Properties
     // =========================================================================
-
-    public ?string $webhook = null;
-
+    
+    public ?string $webhookKey = null;
+    public ?string $eventName = null;
+    
 
     // Public Methods
     // =========================================================================
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Send your form content to any URL you provide.');
+        return Craft::t('formie', 'Send your form content to IFTTT.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['webhookKey'], 'required'];
+        $rules[] = [['eventName'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
@@ -62,23 +59,22 @@ class Webhook extends Automation
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
-        $payload = [];
 
         try {
             $formId = Craft::$app->getRequest()->getParam('formId');
             $form = Formie::$plugin->getForms()->getFormById($formId);
 
-            // Generate and send a test payload to Zapier
+            // Generate and send a test payload
             $submission = new Submission();
             $submission->setForm($form);
 
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
 
-            // Ensure we're fetching the webhook from the form settings, or global integration settings
-            $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
+            $this->eventName = $form->settings->integrations[$this->handle]['eventName'] ?? $this->eventName;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($webhook, $submission), $payload);
+
+            $response = $this->deliverPayloadRequest($submission, $this->getUrl(), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -88,15 +84,6 @@ class Webhook extends Automation
                 'json' => $json,
             ];
         } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'payload' => Json::encode($payload),
-                'response' => $rawResponse ?? '',
-            ]));
-
             Integration::apiError($this, $e);
         }
 
@@ -105,27 +92,15 @@ class Webhook extends Automation
 
     public function sendPayload(Submission $submission): bool
     {
-        $payload = [];
-        $response = [];
-
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayloadRequest($submission, $this->getUrl(), $payload);
 
             if ($response === false) {
                 return true;
             }
         } catch (Throwable $e) {
-            // Save a different payload to logs
-            Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'payload' => Json::encode($payload),
-                'response' => Json::encode($response),
-            ]));
-
             Integration::apiError($this, $e);
 
             return false;
@@ -134,10 +109,11 @@ class Webhook extends Automation
         return true;
     }
 
-    public function allowedGqlSettings(): array
+    public function getUrl(): string
     {
-        return [
-            'webhook' => $this->webhook,
-        ];
+        $event = App::parseEnv($this->eventName);
+        $key = App::parseEnv($this->webhookKey);
+
+        return "https://maker.ifttt.com/trigger/$event/with/key/$key";
     }
 }
