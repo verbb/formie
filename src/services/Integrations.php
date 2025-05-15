@@ -187,6 +187,7 @@ class Integrations extends Component
 
         $messaging = [
             messaging\Discord::class,
+            messaging\Plivo::class,
             messaging\Slack::class,
             messaging\Telegram::class,
             messaging\Twilio::class,
