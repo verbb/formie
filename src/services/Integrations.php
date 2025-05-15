@@ -203,6 +203,7 @@ class Integrations extends Component
         $automations = [
             automations\Ifttt::class,
             automations\Make::class,
+            automations\N8n::class,
             automations\Webhook::class,
             automations\Zapier::class,
         ];
