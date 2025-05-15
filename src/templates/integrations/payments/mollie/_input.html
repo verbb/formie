@@ -1,0 +1,8 @@
+{% set form = renderOptions.form %}
+
+{# Include so that error messages are shown with `formie-theme.js` for server-side errors #}
+<input type="hidden" name="{{ field.getHtmlName() }}">
+
+{{ fieldtag('fieldInstructions', {
+    text: 'You will be redirected to [Mollie]({link}) to complete your secure payment.' | t('formie', { link: 'https://www.mollie.com/' }) | trim | md,
+}) }}

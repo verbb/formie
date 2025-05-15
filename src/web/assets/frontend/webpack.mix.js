@@ -52,6 +52,7 @@ mix.js('./src/js/payments/paypal.js', 'js/payments');
 mix.js('./src/js/payments/payway.js', 'js/payments');
 mix.js('./src/js/payments/opayo.js', 'js/payments');
 mix.js('./src/js/payments/eway.js', 'js/payments');
+mix.js('./src/js/payments/mollie.js', 'js/payments');
 
 // Copy some static files
 mix.copy('../../../../node_modules/intl-tel-input/build/img/**/*', 'dist/css/img');

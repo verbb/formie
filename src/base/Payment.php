@@ -13,6 +13,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
 use craft\helpers\App;
@@ -199,10 +200,17 @@ abstract class Payment extends Integration
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+            $url = UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        } else {
+            $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
         }
 
-        return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        // For local development, we should use a proxy to ensure it works
+        if (App::devMode()) {
+            return "https://proxy.verbb.io?return=$url";
+        }
+
+        return $url;
     }
 
     public function getGqlHandle(): string
@@ -324,6 +332,11 @@ abstract class Payment extends Integration
         }
 
         return $response;
+    }
+
+    public function getTransaction(PaymentModel $payment): void
+    {
+
     }
 
     public function getField(): ?PaymentField

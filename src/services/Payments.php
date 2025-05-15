@@ -141,12 +141,14 @@ class Payments extends Component
             $paymentRecord->reference = $payment->reference;
             $paymentRecord->code = $payment->code;
             $paymentRecord->message = $payment->message;
+            $paymentRecord->redirectUrl = $payment->redirectUrl;
             $paymentRecord->note = $payment->note;
             $paymentRecord->response = $payment->response;
 
             $paymentRecord->save(false);
 
             $payment->id = $paymentRecord->id;
+            $payment->uid = $paymentRecord->uid;
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -263,6 +265,7 @@ class Payments extends Component
                 'reference',
                 'code',
                 'message',
+                'redirectUrl',
                 'note',
                 'response',
                 'dateCreated',

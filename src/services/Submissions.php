@@ -78,10 +78,13 @@ class Submissions extends Component
      * @param string|null $siteId
      * @return Submission|null
      */
-    public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
+    public function getSubmissionById(int $id, ?string $siteId = '*', array $criteria = []): ?Submission
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
-        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
+        // Always included incomplete or spam submissions
+        $criteria['isIncomplete'] = null;
+        $criteria['isSpam'] = null;
+
+        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId, $criteria);
     }
 
     /**

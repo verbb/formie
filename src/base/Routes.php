@@ -11,25 +11,16 @@ trait Routes
     // Private Methods
     // =========================================================================
     
-    /**
-     * Site routes.
-     *
-     * @return void
-     */
     public function _registerSiteRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['formie/integrations/callback'] = 'formie/integrations/callback';
             $event->rules['formie/payment-webhooks/process-webhook'] = 'formie/payment-webhooks/process-webhook';
             $event->rules['formie/payment-webhooks/process-callback'] = 'formie/payment-webhooks/process-callback';
+            $event->rules['formie/payment-webhooks/status'] = 'formie/payment-webhooks/status';
         });
     }
     
-    /**
-     * Control Panel routes.
-     *
-     * @return void
-     */
     public function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
