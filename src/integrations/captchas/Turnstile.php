@@ -106,27 +106,24 @@ class Turnstile extends Captcha
      */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('cf-turnstile-response');
+        $responseToken = $this->getRequestParam('cf-turnstile-response');
 
-        if (!$response) {
+        if (!$responseToken) {
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
-
-        $response = $client->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+        $response = $this->request('POST', 'https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'json' => [
                 'secret' => App::parseEnv($this->secretKey),
-                'response' => $response,
+                'response' => $responseToken,
                 'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
 
-        $result = Json::decode((string)$response->getBody(), true);
-        $success = $result['success'] ?? false;
+        $success = $response['success'] ?? false;
 
         if (!$success) {
-            $this->spamReason = Json::encode($result);
+            $this->spamReason = Json::encode($response);
         }
 
         return $success;

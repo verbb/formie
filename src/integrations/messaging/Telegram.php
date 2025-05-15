@@ -119,15 +119,15 @@ class Telegram extends Messaging
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $botToken = App::parseEnv($this->botToken);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "https://api.telegram.org/bot{$botToken}/",
         ]);
     }

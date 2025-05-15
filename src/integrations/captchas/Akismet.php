@@ -47,7 +47,7 @@ class Akismet extends Captcha
         $apiKey = Craft::parseEnv($this->apiKey);
         $siteUrl = Craft::$app->getSites()->getCurrentSite()->getBaseUrl();
 
-        $client = Craft::createGuzzleClient();
+        $client = $this->getClient();
 
         $data = [
             'blog' => $siteUrl,
@@ -59,6 +59,7 @@ class Akismet extends Captcha
         ];
 
         try {
+            // Lack of JSON response
             $response = $client->post("https://$apiKey.rest.akismet.com/1.1/comment-check", [
                 'form_params' => $data,
                 'headers' => [

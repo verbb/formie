@@ -266,18 +266,6 @@ class PayWay extends Payment
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.payway.com.au/rest/v1/',
-            'auth' => [App::parseEnv($this->secretKey), ''],
-        ]);
-    }
-
     /**
      * @inheritDoc
      */
@@ -341,11 +329,16 @@ class PayWay extends Payment
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function getIntegrationHandle(): string
     {
         return 'payway';
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.payway.com.au/rest/v1/',
+            'auth' => [App::parseEnv($this->secretKey), ''],
+        ]);
     }
 }

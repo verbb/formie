@@ -491,23 +491,6 @@ class HubSpot extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $accessToken = App::parseEnv($this->accessToken);
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.hubapi.com/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-    }
-
     public function getFormsClient(): Client
     {
         if ($this->_formsClient) {
@@ -542,6 +525,23 @@ class HubSpot extends Crm
 
         // Allow us to save the tracking cookie at the time of submission, so grab later
         $this->context['hubspotutk'] = $_COOKIE['hubspotutk'] ?? null;
+    }
+
+    
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
+    {
+        $accessToken = App::parseEnv($this->accessToken);
+
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hubapi.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+        ]);
     }
 
 

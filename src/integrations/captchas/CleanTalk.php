@@ -57,16 +57,12 @@ class CleanTalk extends Captcha
         ];
 
         try {
-            $client = Craft::createGuzzleClient();
-
-            $response = $client->post('https://moderate.cleantalk.org/api2.0', [
+            $response = $this->request('POST', 'https://moderate.cleantalk.org/api2.0', [
                 'json' => $payload,
             ]);
 
-            $body = Json::decode((string)$response->getBody(), true);
-
-            if (!($body['allow'] ?? false)) {
-                $this->spamReason = $body['comment'] ?? 'CleanTalk flagged this submission as spam.';
+            if (!($response['allow'] ?? false)) {
+                $this->spamReason = $response['comment'] ?? 'CleanTalk flagged this submission as spam.';
 
                 return false;
             }

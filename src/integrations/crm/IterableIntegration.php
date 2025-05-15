@@ -135,19 +135,7 @@ class IterableIntegration extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.iterable.com/api/',
-            'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
+    
     // Protected Methods
     // =========================================================================
 
@@ -167,6 +155,14 @@ class IterableIntegration extends Crm
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.iterable.com/api/',
+            'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
+        ]);
     }
 
 

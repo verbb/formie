@@ -68,29 +68,25 @@ class CaptchaEu extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $token = $this->getRequestParam('captcha-eu-token');
+        $responseToken = $this->getRequestParam('captcha-eu-token');
 
-        if (!$token) {
+        if (!$responseToken) {
             $this->spamReason = 'Missing Captcha.eu token.';
 
             return false;
         }
 
         try {
-            $client = Craft::createGuzzleClient();
-
-            $response = $client->post('https://w19.captcha.at/validate', [
-                'body' => $token,
+            $response = $this->request('POST', 'https://w19.captcha.at/validate', [
+                'body' => $responseToken,
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Rest-Key' => App::parseEnv($this->restKey),
                 ],
             ]);
 
-            $body = Json::decode((string)$response->getBody(), true);
-
-            if (!($body['success'] ?? false)) {
-                $this->spamReason = 'Captcha.eu flagged this submission as spam. ' . ($body['detail'] ?? '');
+            if (!($response['success'] ?? false)) {
+                $this->spamReason = 'Captcha.eu flagged this submission as spam. ' . ($response['detail'] ?? '');
                 
                 return false;
             }

@@ -103,29 +103,26 @@ class FriendlyCaptcha extends Captcha
      */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('frc-captcha-solution');
+        $responseToken = $this->getRequestParam('frc-captcha-solution');
 
-        if (!$response) {
+        if (!$responseToken) {
             $this->spamReason = 'Missing Friendly Captcha token.';
 
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
-
-        $response = $client->post('https://api.friendlycaptcha.com/api/v1/siteverify', [
+        $response = $this->request('POST', 'https://api.friendlycaptcha.com/api/v1/siteverify', [
             'json' => [
                 'secret' => App::parseEnv($this->secretKey),
                 'sitekey' => App::parseEnv($this->siteKey),
-                'solution' => $response,
+                'solution' => $responseToken,
             ],
         ]);
 
-        $result = Json::decode((string)$response->getBody(), true);
-        $success = $result['success'] ?? false;
+        $success = $response['success'] ?? false;
 
         if (!$success) {
-            $this->spamReason = Json::encode($result);
+            $this->spamReason = Json::encode($response);
         }
 
         return $success;

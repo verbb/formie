@@ -102,16 +102,7 @@ class Discord extends Messaging
 
         return true;
     }
-
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient();
-    }
-
+    
 
     // Private Methods
     // =========================================================================

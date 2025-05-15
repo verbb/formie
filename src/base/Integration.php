@@ -342,6 +342,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_client = $value;
     }
 
+    public function getClient(): Client
+    {
+        if ($this->_client) {
+            return $this->_client;
+        }
+
+        return $this->_client = $this->defineClient();
+    }
+
     public function extraAttributes(): array
     {
         return [];
@@ -871,9 +880,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -895,6 +901,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        $options = [];
+
+        // Disable SSL verification for local dev (devMode enabled) to save some heartache.
+        if (Craft::$app->getConfig()->getGeneral()->devMode) {
+            $options['verify'] = false;
+        }
+
+        return Craft::createGuzzleClient($options);
+    }    
 
     protected function generateSubmissionPayloadValues(Submission $submission): array
     {

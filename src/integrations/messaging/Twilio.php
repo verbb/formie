@@ -120,16 +120,16 @@ class Twilio extends Messaging
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $accountSid = App::parseEnv($this->accountSid);
         $authToken = App::parseEnv($this->authToken);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.twilio.com/2010-04-01/',
             'auth' => [$accountSid, $authToken],
         ]);

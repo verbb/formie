@@ -159,16 +159,16 @@ class Salesmate extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $domain = parse_url(App::parseEnv($this->apiDomain))['host'];
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/apis/",
             'headers' => [
                 'accessToken' => App::parseEnv($this->apiKey),

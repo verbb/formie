@@ -392,18 +392,6 @@ class HubSpotLegacy extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.hubapi.com/',
-            'query' => ['hapikey' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
     public function getFormsClient(): Client
     {
         if ($this->_formsClient) {
@@ -412,6 +400,18 @@ class HubSpotLegacy extends Crm
 
         return $this->_formsClient = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hsforms.com/',
+        ]);
+    }
+
+    
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hubapi.com/',
+            'query' => ['hapikey' => App::parseEnv($this->apiKey)],
         ]);
     }
 

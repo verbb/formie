@@ -134,12 +134,12 @@ class Webhook extends Automation
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $options = [];
 
         // Disable SSL verification for local dev (devMode enabled) to save some heartache.
@@ -147,7 +147,7 @@ class Webhook extends Automation
             $options['verify'] = false;
         }
 
-        return $this->_client = Craft::createGuzzleClient($options);
+        return Craft::createGuzzleClient($options);
     }
 
     public function allowedGqlSettings(): array

@@ -194,17 +194,17 @@ class Zendesk extends HelpDesk
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = rtrim(App::parseEnv($this->domain), '/');
         $username = App::parseEnv($this->username);
         $apiKey = App::parseEnv($this->apiKey);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/api/v2/",
             'auth' => ["{$username}/token", $apiKey],
         ]);

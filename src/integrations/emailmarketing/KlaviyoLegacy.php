@@ -184,13 +184,13 @@ class KlaviyoLegacy extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://a.klaviyo.com/api/',
             'query' => [
                 'api_key' => App::parseEnv($this->privateApiKey),

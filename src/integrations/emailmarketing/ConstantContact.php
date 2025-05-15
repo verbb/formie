@@ -222,12 +222,12 @@ class ConstantContact extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
 
         if (!$token) {

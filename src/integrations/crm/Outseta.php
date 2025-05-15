@@ -174,15 +174,15 @@ class Outseta extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/api/v1/crm/",
             'headers' => ['Authorization' => 'Outseta ' . App::parseEnv($this->apiKey) . ':' . App::parseEnv($this->secretKey)],
         ]);

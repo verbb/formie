@@ -56,9 +56,7 @@ class OopSpam extends Captcha
         ];
 
         try {
-            $client = Craft::createGuzzleClient();
-
-            $response = $client->post('https://api.oopspam.com/v1/spamdetection', [
+            $response = $this->request('POST', 'https://api.oopspam.com/v1/spamdetection', [
                 'json' => $payload,
                 'headers' => [
                     'Authorization' => "Bearer $apiKey",
@@ -66,15 +64,13 @@ class OopSpam extends Captcha
                 ],
             ]);
 
-            $body = Json::decode((string)$response->getBody(), true);
-
-            if (!($body['success'] ?? false)) {
+            if (!($response['success'] ?? false)) {
                 $this->spamReason = 'OOPSpam validation failed.';
 
                 return false;
             }
 
-            if ($body['isSpam'] ?? false) {
+            if ($response['isSpam'] ?? false) {
                 $this->spamReason = 'OOPSpam flagged this submission as spam.';
 
                 return false;

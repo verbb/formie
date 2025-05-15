@@ -110,13 +110,4 @@ class Zapier extends Automation
 
         return true;
     }
-
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient();
-    }
 }

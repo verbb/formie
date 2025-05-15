@@ -499,20 +499,6 @@ class Freshdesk extends HelpDesk
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $url = rtrim(App::parseEnv($this->apiDomain), '/');
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => "$url/api/v2/",
-            'auth' => [App::parseEnv($this->apiKey), 'password'],
-        ]);
-    }
-
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [], bool $multipart = false)
     {
         // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
@@ -594,6 +580,21 @@ class Freshdesk extends HelpDesk
 
         return $event->fieldValues;
     }
+
+    
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
+    {
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
+
+        return Craft::createGuzzleClient([
+            'base_uri' => "$url/api/v2/",
+            'auth' => [App::parseEnv($this->apiKey), 'password'],
+        ]);
+    }
+    
 
     // Private Methods
     // =========================================================================

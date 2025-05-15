@@ -398,12 +398,12 @@ class MicrosoftDynamics365 extends Crm
         return parent::request($method, $uri, $options);
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
 
         if (!$token) {
@@ -446,10 +446,6 @@ class MicrosoftDynamics365 extends Crm
         return $this->_client;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected function convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -466,6 +462,10 @@ class MicrosoftDynamics365 extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
+
+    // Private Methods
+    // =========================================================================
+    
     private function _getEntityFields($entity): array
     {
         $metadataAttributesForSelect = [

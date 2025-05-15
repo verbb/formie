@@ -535,21 +535,6 @@ class Opayo extends Payment
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $useSandbox = App::parseBooleanEnv($this->useSandbox);
-        $url = $useSandbox ? 'https://pi-test.sagepay.com/' : 'https://pi-live.sagepay.com/';
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => $url . 'api/v1/',
-            'auth' => [App::parseEnv($this->integrationKey), App::parseEnv($this->integrationPassword)],
-        ]);
-    }
-
     /**
      * @inheritDoc
      */
@@ -763,6 +748,21 @@ class Opayo extends Payment
         Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
 
         return $event->rows;
+    }
+
+    
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
+    {
+        $useSandbox = App::parseBooleanEnv($this->useSandbox);
+        $url = $useSandbox ? 'https://pi-test.sagepay.com/' : 'https://pi-live.sagepay.com/';
+
+        return Craft::createGuzzleClient([
+            'base_uri' => $url . 'api/v1/',
+            'auth' => [App::parseEnv($this->integrationKey), App::parseEnv($this->integrationPassword)],
+        ]);
     }
 
 

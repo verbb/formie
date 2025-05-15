@@ -141,16 +141,16 @@ class Mailcoach extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $apiUrl = rtrim(App::parseEnv($this->apiUrl), '/') . '/';
         $apiKey = App::parseEnv($this->apiKey);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => $apiUrl,
             'headers' => ['Authorization' => "Bearer $apiKey"],
         ]);

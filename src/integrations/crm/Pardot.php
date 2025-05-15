@@ -500,12 +500,29 @@ class Pardot extends Crm
         return $value;
     }
 
-    public function getClient(): Client
+    public function populateContext(): void
     {
-        if ($this->_client) {
-            return $this->_client;
-        }
+        parent::populateContext();
 
+        // Allow us to save the tracking cookie at the time of submission, so grab later
+        $trackingData = [];
+        $pattern = '/^visitor_id[0-9]+(-hash)?$/';
+
+        foreach ($_COOKIE as $key => $value) {
+            if (preg_match($pattern, $key)) {
+                $trackingData[$key] = $value;
+            }
+        }
+        
+        $this->context['pardot_tracking'] = $trackingData;
+    }
+
+    
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
         $baseUrl = $this->getUseSandbox() ? 'https://pi.demo.pardot.com/api/' : 'https://pi.pardot.com/api/';
         $businessUnitId = App::parseEnv($this->businessUnitId);
@@ -554,27 +571,6 @@ class Pardot extends Crm
 
         return $this->_client;
     }
-
-    public function populateContext(): void
-    {
-        parent::populateContext();
-
-        // Allow us to save the tracking cookie at the time of submission, so grab later
-        $trackingData = [];
-        $pattern = '/^visitor_id[0-9]+(-hash)?$/';
-
-        foreach ($_COOKIE as $key => $value) {
-            if (preg_match($pattern, $key)) {
-                $trackingData[$key] = $value;
-            }
-        }
-        
-        $this->context['pardot_tracking'] = $trackingData;
-    }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function generatePayloadValues(Submission $submission): array
     {

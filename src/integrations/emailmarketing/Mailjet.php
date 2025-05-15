@@ -13,6 +13,10 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
+use GuzzleHttp\Client;
+
+use Throwable;
+
 class Mailjet extends EmailMarketing
 {
     // Properties
@@ -153,17 +157,14 @@ class Mailjet extends EmailMarketing
 
         return true;
     }
+    
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
     {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.mailjet.com/v3/REST/',
             'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
         ]);

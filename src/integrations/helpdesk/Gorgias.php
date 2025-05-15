@@ -199,17 +199,17 @@ class Gorgias extends HelpDesk
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = rtrim(App::parseEnv($this->apiUrl), '/');
         $username = App::parseEnv($this->username);
         $password = App::parseEnv($this->apiKey);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/",
             'auth' => [$username, $password],
         ]);
