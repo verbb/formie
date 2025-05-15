@@ -255,7 +255,12 @@ export class FormiePaymentProvider {
 
         // Resubmit the form, but skip payment handling, as we're done.
         // This ensures captchas and other validation runs again in case something changed.
-        this.submitHandler.processSubmit(['payment']);
+        if (this.submitHandler) {
+            this.submitHandler.processSubmit(['payment']);
+        } else if (this.form) {
+            // Just in case `submitHandler` is undefined here...
+            this.form.processSubmit(['payment']);
+        }
     }
 }
 
