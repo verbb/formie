@@ -98,7 +98,7 @@ export class FormiePaymentProvider {
 
         const $error = document.createElement('div');
         $error.textContent = message;
-        $success.setAttribute('data-fui-field-error-message', '');
+        $error.setAttribute('data-fui-field-error-message', '');
 
         if (this.errorMessageClass) {
             $error.className = this.errorMessageClass;
