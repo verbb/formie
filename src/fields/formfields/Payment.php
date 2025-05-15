@@ -21,6 +21,8 @@ use craft\helpers\Template;
 
 use Twig\Markup;
 
+use yii\db\Schema;
+
 class Payment extends FormField
 {
     // Static Methods
@@ -64,6 +66,11 @@ class Payment extends FormField
                 ];
             }
         }
+    }
+
+    public function getContentColumnType(): string
+    {
+        return Schema::TYPE_TEXT;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
