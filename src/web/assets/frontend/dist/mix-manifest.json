@@ -39,6 +39,7 @@
     "/js/payments/eway.js": "/js/payments/eway.js",
     "/js/payments/go-cardless.js": "/js/payments/go-cardless.js",
     "/js/payments/mollie.js": "/js/payments/mollie.js",
+    "/js/payments/moneris.js": "/js/payments/moneris.js",
     "/css/fields/phone-country.css": "/css/fields/phone-country.css",
     "/css/fields/tags.css": "/css/fields/tags.css",
     "/css/formie-theme.css": "/css/formie-theme.css",
