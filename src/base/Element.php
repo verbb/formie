@@ -78,6 +78,16 @@ abstract class Element extends Integration
                 }
             }
 
+            // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
+            // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
+            if ($event->field instanceof OptionsFieldInterface) {
+                $fieldClass = $event->integrationField->sourceType;
+
+                if (is_a($fieldClass, fields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, fields\BaseOptionsField::class, true)) {
+                    $event->value = $event->rawValue;
+                }
+            }
+
             // For Date fields as a destination, convert to UTC from system time
             if ($event->integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
                 if ($event->value instanceof DateTime) {
