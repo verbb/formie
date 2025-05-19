@@ -15,9 +15,11 @@ Formie integrates with the following providers:
 - Eway
 - Mollie
 - Moneris
-- PayPal (One-time)
-- Stripe (One-time and Subscription)
-- Westpac PayWay (One-time)
+- Paddle
+- PayPal
+- Square
+- Stripe
+- Westpac PayWay
 
 :::tip
 Is your provider not in the list above? [Contact us](https://verbb.io/contact) to submit your interest, or look at the [Custom Integration](docs:developers/custom-integration) docs to write your own provider support.
@@ -160,6 +162,62 @@ Follow the below steps to connect to the Paddle API.
 The Paddle payment integration supports only once-off payments.
 
 
+## PayPal
+Follow the below steps to connect to the PayPal API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Payments**.
+1. Click the **New Integration** button.
+1. Select **PayPal** as the **Integration Provider**.
+
+### Step 2. Connect to the PayPal API
+1. Go to your <a href="https://developer.paypal.com/developer/applications/" target="_blank">PayPal REST API</a> application settings.
+1. Select either **Sandbox** or **Live** and click the **Create App** button.
+1. Enter a **App Name** and select **Merchant** for the **App Type**.
+1. Copy the **Client ID** from PayPal and paste in the **Client ID** field in Formie.
+1. Copy the **Secret** from PayPal and paste in the **Client Secret** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Field Setting
+1. Go to the form you want to enable this integration on.
+1. Add a **Payment** field to your form.
+1. Select PayPal for the **Payment Provider**.
+
+The PayPal payment integration supports only once-off payments.
+
+
+## Square
+Follow the steps below to connect to the Square API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Payments**.
+1. Click the **New Integration** button.
+1. Select **Square** as the **Integration Provider**.
+
+### Step 2. Create API Credentials
+1. Go to the <a href="https://developer.squareup.com/apps" target="_blank">Square Developer Dashboard</a>.
+1. Create a new application or choose an existing one.
+1. Navigate to **Application** → **Credentials**.
+1. Copy the **Application ID** from Square and paste in the **Application ID** field in Formie.
+1. Copy the **Access Token** from Square and paste in the **Access tToken** field in Formie.
+1. Navigate to **Application** → **Locations**.
+1. Copy the **Location ID** from Square and paste in the **Location ID** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Field Setting
+1. Go to the form you want to enable this integration on.
+1. Add a **Payment** field to your form.
+1. Select Square for the **Payment Provider**.
+
+The Square payment integration supports only once-off payments.
+
+
 ## Stripe
 Follow the below steps to connect to the Stripe API.
 
@@ -210,34 +268,6 @@ Your form **must** use the Ajax (Client-side) submission method when using the S
 :::
 
 The Stripe payment integration supports both once-off payments and subscription-based payments.
-
-
-## PayPal
-Follow the below steps to connect to the PayPal API.
-
-### Step 1. Create the Integration
-1. Navigate to **Formie** → **Settings** → **Payments**.
-1. Click the **New Integration** button.
-1. Select **PayPal** as the **Integration Provider**.
-
-### Step 2. Connect to the PayPal API
-1. Go to your <a href="https://developer.paypal.com/developer/applications/" target="_blank">PayPal REST API</a> application settings.
-1. Select either **Sandbox** or **Live** and click the **Create App** button.
-1. Enter a **App Name** and select **Merchant** for the **App Type**.
-1. Copy the **Client ID** from PayPal and paste in the **Client ID** field in Formie.
-1. Copy the **Secret** from PayPal and paste in the **Client Secret** field in Formie.
-
-### Step 3. Test Connection
-1. Save this integration.
-1. Click on the **Refresh** button in the right-hand sidebar.
-
-### Step 4. Field Setting
-1. Go to the form you want to enable this integration on.
-1. Add a **Payment** field to your form.
-1. Select PayPal for the **Payment Provider**.
-
-The PayPal payment integration supports only once-off payments.
-
 
 
 ## Westpac PayWay

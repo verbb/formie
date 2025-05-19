@@ -202,6 +202,7 @@ class Integrations extends Component
             payments\Paddle::class,
             payments\PayPal::class,
             payments\PayWay::class,
+            payments\Square::class,
             payments\Stripe::class,
         ];
 
