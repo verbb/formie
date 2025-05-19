@@ -52,6 +52,7 @@ mix.js('./src/js/payments/paypal.js', 'js/payments');
 mix.js('./src/js/payments/payway.js', 'js/payments');
 mix.js('./src/js/payments/opayo.js', 'js/payments');
 mix.js('./src/js/payments/eway.js', 'js/payments');
+mix.js('./src/js/payments/go-cardless.js', 'js/payments');
 mix.js('./src/js/payments/mollie.js', 'js/payments');
 mix.js('./src/js/payments/moneris.js', 'js/payments');
 mix.js('./src/js/payments/paddle.js', 'js/payments');

@@ -339,6 +339,11 @@ abstract class Payment extends Integration
 
     }
 
+    public function getTransactionStatus(PaymentModel $payment): void
+    {
+
+    }
+
     public function getField(): ?PaymentField
     {
         return $this->_field;

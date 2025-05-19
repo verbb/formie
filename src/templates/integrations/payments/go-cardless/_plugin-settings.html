@@ -1,0 +1,29 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Access Token' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'accessToken',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.accessToken ?? '',
+    warning: macros.configWarning('accessToken', 'formie'),
+    errors: integration.getErrors('accessToken'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'booleanMenuField', {
+    label: 'Use Sandbox' | t('formie'),
+    instructions: 'Whether to use the {name} sandbox.' | t('formie'),
+    name: 'useSandbox',
+    includeEnvVars: true,
+    value: integration.settings.useSandbox ?? false,
+    warning: macros.configWarning('useSandbox', 'formie'),
+    errors: integration.getErrors('useSandbox'),
+}) }}
+
+{% endblock %}

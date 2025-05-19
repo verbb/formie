@@ -162,6 +162,14 @@ class PaymentWebhooksController extends Controller
             throw new NotFoundHttpException('Payment not found');
         }
 
+        if (!$integration = $payment->getIntegration()) {
+            throw new NotFoundHttpException('Integration not found');
+        }
+
+        // Some gateways (GoCardless) take over the status state handling
+        // Always poll the API in dev mode, or when explicitly requested. Webhooks likely won't be delivered locally.
+        $integration->getTransactionStatus($payment);
+
         return $this->renderTemplate('formie/integrations/payments/status', ['payment' => $payment], View::TEMPLATE_MODE_CP);
     }
 }
