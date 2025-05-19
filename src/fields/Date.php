@@ -575,15 +575,26 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 $locale = strtolower($locale);
             }
 
-            $minDate = $this->getMinDate();
-            $maxDate = $this->getMaxDate();
+            // When dealing with offsets, ensure that we calculate client-side for caching
+            $minDate = null;
+            $maxDate = null;
 
-            if ($minDate) {
-                $minDate = $minDate->format('Y-m-d H:i:s');
+            if ($this->minDateOption === 'today') {
+                $operator = $this->minDateOffset === 'add' ? '+' : '-';
+                $minDate = "{$operator}{$this->minDateOffsetNumber} {$this->minDateOffsetType}";
             }
 
-            if ($maxDate) {
-                $maxDate = $maxDate->format('Y-m-d H:i:s');
+            if ($this->minDateOption === 'date' && $this->minDate) {
+                $minDate = $this->minDate->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+            }
+
+            if ($this->maxDateOption === 'today') {
+                $operator = $this->maxDateOffset === 'add' ? '+' : '-';
+                $maxDate = "{$operator}{$this->maxDateOffsetNumber} {$this->maxDateOffsetType}";
+            }
+
+            if ($this->maxDateOption === 'date' && $this->maxDate) {
+                $maxDate = $this->maxDate->setTime(23, 59, 59)->format('Y-m-d H:i:s');
             }
 
             // Ensure date picker option values are parsed for JSON

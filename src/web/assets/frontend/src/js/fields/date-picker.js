@@ -65,8 +65,8 @@ export class FormieDatePicker {
             dateFormat: 'Y-m-d H:i:S',
             hourIncrement: 1,
             minuteIncrement: 1,
-            minDate: this.minDate,
-            maxDate: this.maxDate,
+            minDate: this.getMinDate(),
+            maxDate: this.getMaxDate(),
             disable: [this.getDisabledWeekdays.bind(this)],
             plugins: [new attributesPlugin({})],
             onReady: (dateObj, dateStr, instance) => {
@@ -183,6 +183,69 @@ export class FormieDatePicker {
         }
 
         return false;
+    }
+
+    getMinDate() {
+        return this._normalizeDate(this.minDate, 'min');
+    }
+
+    getMaxDate() {
+        return this._normalizeDate(this.maxDate, 'max');
+    }
+
+    _normalizeDate(input, type = 'min') {
+        if (!input) {
+            return null;
+        }
+
+        // Absolute ISO date string
+        if (!isNaN(Date.parse(input))) {
+            return new Date(input);
+        }
+
+        // Relative offset string
+        return this._parseOffsetString(input, type);
+    }
+
+    _parseOffsetString(offset, type) {
+        const match = offset.trim().match(/^([+-]?\d+)\s*(day|days|week|weeks|month|months|year|years)$/i);
+
+        if (!match) {
+            return null;
+        }
+
+        const [, amountStr, unitRaw] = match;
+        const amount = parseInt(amountStr, 10);
+        const unit = unitRaw.toLowerCase();
+        const date = new Date();
+
+        switch (unit) {
+            case 'day':
+            case 'days':
+                date.setDate(date.getDate() + amount);
+                break;
+            case 'week':
+            case 'weeks':
+                date.setDate(date.getDate() + (amount * 7));
+                break;
+            case 'month':
+            case 'months':
+                date.setMonth(date.getMonth() + amount);
+                break;
+            case 'year':
+            case 'years':
+                date.setFullYear(date.getFullYear() + amount);
+                break;
+        }
+
+        // Set time for boundaries
+        if (type === 'min') {
+            date.setHours(0, 0, 0, 0); // 00:00:00.000
+        } else if (type === 'max') {
+            date.setHours(23, 59, 59, 999); // 23:59:59.999
+        }
+
+        return date;
     }
 }
 

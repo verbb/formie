@@ -738,6 +738,22 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.48 - 2025-05-20
+
+### Added
+- Add support for Freeform 5 Group field in migration.
+- Add extra logging for reCaptcha failures.
+- Add more payload context for failed queue jobs.
+- Add `endpoint` and `method` to `payload` property for failed queue jobs for context.
+
+### Fixed
+- Fix an error with some Payment field providers when resubmitting the form after payment.
+- Fix an issue for Payment fields when a client-side error occured.
+- Fix Date field handling of min/max dates on statically caches sites when using offsets.
+- Fix an error validating minimum words limit for Multi-Line and Single-Line text fields.
+- Fix Freeform 5 migration and Hidden fields.
+- Fix an error with Freeform/Sprout Forms migrations and submission statuses.
+
 ## 2.1.47 - 2025-04-29
 
 ### Fixed

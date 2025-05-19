@@ -500,7 +500,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
+        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
             return false;
         }
 
@@ -520,7 +520,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function deliverPayloadRequest(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
+        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
             return false;
         }
 
@@ -627,11 +627,26 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method): bool
+    public function beforeSendPayload(Submission $submission, string &$endpoint, mixed &$payload, string &$method, string $contentType = 'json'): bool
     {
         // If in the context of a queue. save the payload for debugging
         if ($this->getQueueJob()) {
-            $this->getQueueJob()->payload = $payload;
+            $config = $this->getClient()->getConfig();
+
+            $this->getQueueJob()->payload = [
+                'client' => array_filter([
+                    'headers' => $config['headers'] ?? null,
+                    'verify' => $config['verify'] ?? null,
+                    'base_uri' => $config['base_uri'] ?? null,
+                    'auth' => $config['auth'] ?? null,
+                ]),
+                'request' => array_filter([
+                    'method' => $method,
+                    'endpoint' => ltrim((string)$endpoint, '/'),
+                    'type' => $contentType,
+                    'data' => $payload,
+                ]),
+            ];
         }
 
         $event = new SendIntegrationPayloadEvent([
