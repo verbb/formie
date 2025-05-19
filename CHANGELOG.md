@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.0.28 - 2025-05-20
+
+### Added
+- Add support for Freeform 5 Group field in migration.
+- Add extra logging for reCaptcha failures.
+- Add more payload context for failed queue jobs.
+- Add `endpoint` and `method` to `payload` property for failed queue jobs for context.
+- Add German translation for Signature Field.
+- Add `code` to `countryOptions` property for Phone fields in GraphQL.
+
+### Fixed
+- Fix an error with some Payment field providers when resubmitting the form after payment.
+- Fix an issue for Payment fields when a client-side error occured.
+- Fix Date field handling of min/max dates on statically caches sites when using offsets.
+- Fix an error validating minimum words limit for Multi-Line and Single-Line text fields.
+- Fix Freeform 5 migration and Hidden fields.
+- Fix an error with Freeform/Sprout Forms migrations and submission statuses.
+- Fix an error for Element integrations when mapping a Formie options field to a Craft options field.
+- Fix new installs not having the default plugin data set.
+- Fix Checkboxes field missing `limitOptions`, `min`, `max`, `toggleCheckbox` and `toggleCheckboxLabel` properties in GraphQL queries.
+- Fix Freeform 5 migration for HTML and Rich Text fields.
+- Fix incorrect handling of serializing failed queue jobs.
+- Fix Calculations field parsing Markdown content.
+- Fix an error parsing Calculations fields’ formula containing decimals.
+- Fix an error with Pipedrive, when only enabling Leads.
+
 ## 3.0.27 - 2025-04-29
 
 ### Changed
