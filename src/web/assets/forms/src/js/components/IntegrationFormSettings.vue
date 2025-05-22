@@ -15,6 +15,7 @@
 import { get, set, isEmpty } from 'lodash-es';
 
 import { toBoolean } from '@utils/bool';
+import { getErrorMessage } from '@utils/forms';
 
 export default {
     name: 'IntegrationFormSettings',
@@ -58,6 +59,10 @@ export default {
     computed: {
         form() {
             return this.$store.state.form;
+        },
+
+        mappingFields() {
+            return this.$store.state.integrationFieldSelectOptions;
         },
     },
 
@@ -147,15 +152,13 @@ export default {
                 ...payloadParams,
             };
 
-            // Look through the DOM for any lightswitch fields that have a `name` attribute starting with `mapTo`.
-            // It's not pretty, but the only real way to get the enabled data objects we want to fetch for without big rewrites.
-            const $switches = this.$el.parentNode.querySelectorAll('.lightswitch-field');
+            // Get the current values for this integrations settings to send that
+            const postData = Garnish.getPostData(this.$el.parentNode);
+            const postFields = Craft.expandPostArray(postData);
+            const { integrations } = postFields.settings;
+            const integrationKey = Object.keys(integrations)[0];
 
-            $switches.forEach(($switch) => {
-                if ($switch.getAttribute('data-attribute').startsWith('mapTo')) {
-                    data.settings[$switch.getAttribute('data-attribute')] = toBoolean($switch.querySelector('.lightswitch').getAttribute('aria-checked'));
-                }
-            });
+            data.settings = integrations[integrationKey];
 
             Craft.sendActionRequest('POST', 'formie/integrations/form-settings', { data }).then((response) => {
                 this.loading = false;
@@ -163,11 +166,8 @@ export default {
                 if (response.data.error) {
                     this.error = true;
 
-                    this.errorMessage = Craft.t('formie', 'An error occurred.');
-
-                    if (response.data.error) {
-                        this.errorMessage += `<br><code>${response.data.error}</code>`;
-                    }
+                    const info = getErrorMessage(response.data.error);
+                    this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
 
                     return;
                 }
@@ -178,11 +178,8 @@ export default {
                 this.loading = false;
                 this.error = true;
 
-                this.errorMessage = error;
-
-                if (error.response.data.error) {
-                    this.errorMessage += `<br><code>${error.response.data.error}</code>`;
-                }
+                const info = getErrorMessage(error);
+                this.errorMessage = `<strong>${info.heading}</strong><br><small>${info.text}<br>${info.trace}</small>`;
             });
         },
     },
