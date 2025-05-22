@@ -873,6 +873,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return [];
     }
 
+    public function beforeSaveForm(array $settings): void
+    {
+        
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -909,7 +914,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return Craft::createGuzzleClient($options);
-    }    
+    }
 
     protected function generateSubmissionPayloadValues(Submission $submission): array
     {
