@@ -72,7 +72,7 @@ class Make extends Automation
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -105,7 +105,7 @@ class Make extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
 
             if ($response === false) {
                 return true;

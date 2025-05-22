@@ -96,10 +96,18 @@ abstract class Automation extends Integration
         return $event->payload;
     }
 
-    protected function getWebhookUrl($url, Submission $submission): bool|string|null
+    protected function getEndpointUrl($url, Submission $submission): bool|string|null
     {
         $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
 
         return App::parseEnv($url);
+    }
+
+    protected function getWebhookUrl($url, Submission $submission): bool|string|null
+    {
+        // Alias for backward compatibility. Remove at the next breakpoint
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The `getWebhookUrl` method has been deprecated. Use the `getEndpointUrl` method instead.');
+
+        return $this->getEndpointUrl($url, $submission);
     }
 }

@@ -71,7 +71,7 @@ class Zapier extends Automation
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getWebhookUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
 
             $json = Json::decode((string)$response->getBody());
 
@@ -91,7 +91,7 @@ class Zapier extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayload($submission, $this->getWebhookUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
 
             if ($response === false) {
                 return true;
