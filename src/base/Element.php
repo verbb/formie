@@ -9,6 +9,9 @@ use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Table;
+use verbb\formie\fields\data\MultiOptionsFieldData;
+use verbb\formie\fields\data\OptionData;
+use verbb\formie\fields\data\SingleOptionFieldData;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -84,7 +87,16 @@ abstract class Element extends Integration
                 $fieldClass = $event->integrationField->sourceType;
 
                 if (is_a($fieldClass, fields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, fields\BaseOptionsField::class, true)) {
-                    $event->value = $event->rawValue;
+                    // Check for some cases where it's options data
+                    if ($event->rawValue instanceof SingleOptionFieldData) {
+                        $event->value = $event->rawValue->value;
+                    } else if ($event->rawValue instanceof MultiOptionsFieldData) {
+                        $event->value = array_map(function($item) {
+                            return $item->value;
+                        }, (array)$event->rawValue);
+                    } else {
+                        $event->value = $event->rawValue;
+                    }
                 }
             }
 
