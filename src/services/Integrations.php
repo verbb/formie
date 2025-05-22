@@ -211,7 +211,7 @@ class Integrations extends Component
             automations\Ifttt::class,
             automations\Make::class,
             automations\N8n::class,
-            automations\Webhook::class,
+            automations\WebRequest::class,
             automations\Zapier::class,
         ];
 

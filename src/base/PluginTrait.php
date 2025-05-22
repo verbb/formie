@@ -299,5 +299,6 @@ class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integr
 
 class_alias('verbb\formie\events\ModifyAutomationPayloadEvent', 'verbb\formie\events\ModifyWebhookPayloadEvent');
 class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
-class_alias('verbb\formie\integrations\automations\Webhook', 'verbb\formie\integrations\webhooks\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\webhooks\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\automations\Webhook');
 class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');
