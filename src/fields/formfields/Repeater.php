@@ -129,7 +129,7 @@ class Repeater extends FormField implements NestedFieldInterface, EagerLoadingFi
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
-        ]);;
+        ]);
 
         $footHtml = $view->clearJsBuffer();
 
