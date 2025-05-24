@@ -664,7 +664,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
         // Also, check for opt-in fields. This allows the above event to potentially alter things
         if (!$this->enforceOptInField($submission)) {
-            Integration::log($this, 'Sending payload cancelled by opt-in field.');
+            Integration::info($this, 'Sending payload cancelled by opt-in field.');
 
             return false;
         }

@@ -368,7 +368,7 @@ class Freshdesk extends Crm
                                         ]), false);
                                     } elseif ($statusCode === 404 && $updateResponse === null) {
                                         // 404 status code and empty response means user is an agent; log and continue
-                                        Integration::log($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
+                                        Integration::info($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
                                             'message' => $e->getMessage(),
                                             'response' => Json::encode($updateResponse),
                                             'payload' => Json::encode($contactPayload),
