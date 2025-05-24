@@ -328,10 +328,11 @@ class User extends Element
                 }
             }
         } catch (Throwable $e) {
-            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
+            $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
                 'submission' => $submission->id,
             ]);
 
