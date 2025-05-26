@@ -186,7 +186,13 @@ export const Bouncer = function(formElement, options) {
         }
 
         // Get the field value length
-        var { length } = field.value;
+        var value = field.value;
+
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
+
+        var { length } = value;
 
         // Handle radio buttons
         if (field.type === 'radio') {
@@ -208,14 +214,19 @@ export const Bouncer = function(formElement, options) {
      * @return {Boolean}         If true, there's a pattern mismatch
      */
     var patternMismatch = function(field, settings) {
+        var value = field.value;
+
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
 
         // Check if there's a pattern to match
         var pattern = field.getAttribute('pattern');
         pattern = pattern ? new RegExp('^(?:' + pattern + ')$') : settings.patterns[field.type];
-        if (!pattern || !field.value || field.value.length < 1) return false;
+        if (!pattern || !value || value.length < 1) return false;
 
         // Validate the pattern
-        return field.value.match(pattern) ? false : true;
+        return value.match(pattern) ? false : true;
 
     };
 
@@ -225,16 +236,21 @@ export const Bouncer = function(formElement, options) {
      * @return {String}           Returns 'over', 'under', or false
      */
     var outOfRange = function(field) {
+        var value = field.value;
+
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
 
         // Make sure field has value
-        if (!field.value || field.value.length < 1) return false;
+        if (!value || value.length < 1) return false;
 
         // Check for range
         var max = field.getAttribute('max');
         var min = field.getAttribute('min');
 
         // Check validity
-        var num = parseFloat(field.value);
+        var num = parseFloat(value);
         if (max && num > max) return 'over';
         if (min && num < min) return 'under';
         return false;
@@ -247,16 +263,21 @@ export const Bouncer = function(formElement, options) {
      * @return {String}           Returns 'over', 'under', or false
      */
     var wrongLength = function(field) {
+        var value = field.value;
+
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
 
         // Make sure field has value
-        if (!field.value || field.value.length < 1) return false;
+        if (!value || value.length < 1) return false;
 
         // Check for min/max length
         var max = field.getAttribute('maxlength');
         var min = field.getAttribute('minlength');
 
         // Check validity
-        var { length } = field.value;
+        var { length } = value;
         if (max && length > max) return 'over';
         if (min && length < min) return 'under';
         return false;
