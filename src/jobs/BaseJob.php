@@ -26,22 +26,7 @@ abstract class BaseJob extends CraftBaseJob
             // Ensure that the payload is simplified a little. For some instances `serialize()` can't handle Closures
             // and sometimes the payload is a Craft element, which contains them (potentially).
             if (property_exists($event->job, 'payload')) {
-                $payload = Json::decode(Json::encode($event->job->payload));
-
-                // Add in custom fields with a bit more context
-                if ($event->job->payload instanceof Element) {
-                    if ($fieldLayout = $event->job->payload->getFieldLayout()) {
-                        foreach ($fieldLayout->getCustomFields() as $field) {
-                            $payload['fields'][] = [
-                                'type' => get_class($field),
-                                'handle' => $field->handle,
-                                'value' => $event->job->payload->getFieldValue($field->handle),
-                            ];
-                        }
-                    }
-                }
-
-                $event->job->payload = $payload;
+                $event->job->payload = Json::decode(Json::encode($event->job->payload));
             }
 
             // For integrations, we need to serialize the entire class, but after initial push to the job

@@ -669,27 +669,34 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
+    public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
+    {
+        if (!$this->getQueueJob()) {
+            return;
+        }
+
+        $config = $this->getClient()->getConfig();
+
+        $this->getQueueJob()->payload = [
+            'client' => array_filter([
+                'headers' => $config['headers'] ?? null,
+                'verify' => $config['verify'] ?? null,
+                'base_uri' => $config['base_uri'] ?? null,
+                'auth' => $config['auth'] ?? null,
+            ]),
+            'request' => array_filter([
+                'method' => $method,
+                'endpoint' => ltrim((string)$endpoint, '/'),
+                'type' => $contentType,
+                'data' => $payload,
+            ]),
+        ];
+    }
+
     public function beforeSendPayload(Submission $submission, &$endpoint, &$payload, &$method, $contentType = 'json'): bool
     {
         // If in the context of a queue. save the payload for debugging
-        if ($this->getQueueJob()) {
-            $config = $this->getClient()->getConfig();
-
-            $this->getQueueJob()->payload = [
-                'client' => array_filter([
-                    'headers' => $config['headers'] ?? null,
-                    'verify' => $config['verify'] ?? null,
-                    'base_uri' => $config['base_uri'] ?? null,
-                    'auth' => $config['auth'] ?? null,
-                ]),
-                'request' => array_filter([
-                    'method' => $method,
-                    'endpoint' => ltrim((string)$endpoint, '/'),
-                    'type' => $contentType,
-                    'data' => $payload,
-                ]),
-            ];
-        }
+        $this->populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType);
 
         $event = new SendIntegrationPayloadEvent([
             'submission' => $submission,

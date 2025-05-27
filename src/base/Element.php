@@ -46,6 +46,19 @@ abstract class Element extends Integration
         return false;
     }
 
+    public static function convertValueForIntegration($value, $integrationField): mixed
+    {
+        // Won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
+        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
+            // Mostly for when mapping a Submission ID to a Formie Submission field. Probably needs a refactor?
+            if (!is_array($value)) {
+                return [$value];
+            }
+        }
+
+        return parent::convertValueForIntegration($value, $integrationField);
+    }
+
 
     // Properties
     // =========================================================================
@@ -139,17 +152,29 @@ abstract class Element extends Integration
         return $this->fetchFormSettings();
     }
 
-    public static function convertValueForIntegration($value, $integrationField): mixed
+    public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        // Won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            // Mostly for when mapping a Submission ID to a Formie Submission field. Probably needs a refactor?
-            if (!is_array($value)) {
-                return [$value];
+        if (!$this->getQueueJob()) {
+            return;
+        }
+
+        $fields = [];
+
+        // Add in custom fields with a bit more context
+        if ($fieldLayout = $payload->getFieldLayout()) {
+            foreach ($fieldLayout->getCustomFields() as $field) {
+                $fields[] = [
+                    'type' => get_class($field),
+                    'handle' => $field->handle,
+                    'value' => $payload->getFieldValue($field->handle),
+                ];
             }
         }
 
-        return parent::convertValueForIntegration($value, $integrationField);
+        $this->getQueueJob()->payload = [
+            'element' => $payload,
+            'fields' => $fields,
+        ];
     }
 
 
