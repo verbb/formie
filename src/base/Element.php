@@ -23,6 +23,7 @@ use craft\base\ElementInterface;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\fields;
 use craft\helpers\Html;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 
@@ -195,10 +196,11 @@ abstract class Element extends Integration
             }
         }
 
-        $this->getQueueJob()->payload = [
+        // Ensure that we JSON-serialize element/field content to not upset the queue.
+        $this->getQueueJob()->payload = Json::decode(Json::encode([
             'element' => $payload,
             'fields' => $fields,
-        ];
+        ]));
     }
 
 
