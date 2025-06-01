@@ -881,6 +881,20 @@ class Submission extends Element
         return null;
     }
 
+    public function beforeValidate(): bool
+    {
+        // Some captchas need to fire early as they act like a field to prevent submission
+        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this->getForm());
+
+        foreach ($captchas as $captcha) {
+            if ($captcha->hasStrictValidation()) {
+                $captcha->validateSubmission($this);
+            }
+        }
+
+        return parent::beforeValidate();
+    }
+
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */

@@ -589,6 +589,11 @@ class SubmissionsController extends Controller
             $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
 
             foreach ($captchas as $captcha) {
+                // Some captchas have already run their validation earlier with submission validation
+                if ($captcha->hasStrictValidation()) {
+                    continue;
+                }
+
                 $valid = $captcha->validateSubmission($submission);
 
                 if (!$valid) {
