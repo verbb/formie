@@ -97,6 +97,7 @@ class Integrations extends Component
             captchas\Honeypot::class,
             captchas\Javascript::class,
             captchas\OopSpam::class,
+            captchas\Question::class,
             captchas\Recaptcha::class,
             captchas\Snaptcha::class,
         ];
