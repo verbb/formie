@@ -19,4 +19,6 @@ class RegisterIntegrationsEvent extends Event
     public ?array $automations = [];
     public ?array $miscellaneous = [];
     
+    // Backward-compatibility until Formie 4
+    public ?array $webhooks = [];    
 }

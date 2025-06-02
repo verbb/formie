@@ -224,6 +224,9 @@ class Integrations extends Component
             miscellaneous\Trello::class,
         ];
 
+        // Backward-compatibility until Formie 4
+        $webhooks = [];
+
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
             'captchas' => $captchas,
@@ -235,6 +238,9 @@ class Integrations extends Component
             'payments' => $payments,
             'automations' => $automations,
             'miscellaneous' => $miscellaneous,
+
+            // Backward-compatibility until Formie 4
+            'webhooks' => $webhooks,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -248,7 +254,10 @@ class Integrations extends Component
             Integration::TYPE_HELP_DESK => $event->helpDesk,
             Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
-            Integration::TYPE_AUTOMATION => $event->automations,
+
+            // Backward-compatibility until Formie 4
+            Integration::TYPE_AUTOMATION => array_merge([$event->automations, $event->webhooks]),
+            
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
 
