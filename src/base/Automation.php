@@ -47,6 +47,11 @@ abstract class Automation extends Integration
         return self::CATEGORY_AUTOMATIONS;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/automations/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -68,11 +73,6 @@ abstract class Automation extends Integration
         $variables = $this->getFormSettingsHtmlVariables($form);
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/automations/{$handle}/_form-settings", $variables);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/automations/edit/' . $this->id);
     }
 
 

@@ -129,6 +129,11 @@ abstract class Payment extends Integration
         return self::CATEGORY_PAYMENTS;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getIntegrationHandle();
@@ -190,11 +195,6 @@ abstract class Payment extends Integration
             'field' => $field,
             'renderOptions' => $renderOptions,
         ]);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
     }
     
     public function getRedirectUri(): string

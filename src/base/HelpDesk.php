@@ -36,6 +36,11 @@ abstract class HelpDesk extends Integration
         return self::CATEGORY_HELP_DESK;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/help-desk/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -59,14 +64,6 @@ abstract class HelpDesk extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/help-desk/{$handle}/_form-settings", $variables);
     }
 
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/help-desk/edit/' . $this->id);
-    }
-
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;

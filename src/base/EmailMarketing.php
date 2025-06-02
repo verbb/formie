@@ -42,6 +42,11 @@ abstract class EmailMarketing extends Integration
         return self::CATEGORY_EMAIL_MARKETING;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -63,11 +68,6 @@ abstract class EmailMarketing extends Integration
         $variables = $this->getFormSettingsHtmlVariables($form);
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/email-marketing/{$handle}/_form-settings", $variables);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);
     }
 
     public function defineRules(): array

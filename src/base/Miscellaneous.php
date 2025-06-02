@@ -42,6 +42,11 @@ abstract class Miscellaneous extends Integration
         return self::CATEGORY_MISC;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/miscellaneous/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -65,14 +70,6 @@ abstract class Miscellaneous extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_form-settings", $variables);
     }
 
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/miscellaneous/edit/' . $this->id);
-    }
-
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;

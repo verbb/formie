@@ -36,6 +36,11 @@ abstract class Messaging extends Integration
         return self::CATEGORY_MESSAGING;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/messaging/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -59,14 +64,6 @@ abstract class Messaging extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/messaging/{$handle}/_form-settings", $variables);
     }
 
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/messaging/edit/' . $this->id);
-    }
-
-    /**
-     * Returns the front-end JS variables.
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         return null;

@@ -111,7 +111,7 @@ class Moneris extends Payment
     {
         $rules = parent::defineRules();
 
-        // $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['storeId', 'apiToken', 'profileId'], 'required'];
 
         return $rules;
     }

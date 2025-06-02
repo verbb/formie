@@ -112,6 +112,11 @@ abstract class Element extends Integration
         return self::CATEGORY_ELEMENTS;
     }
 
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -133,11 +138,6 @@ abstract class Element extends Integration
         $variables = $this->getFormSettingsHtmlVariables($form);
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", $variables);
-    }
-
-    public function getCpEditUrl(): string
-    {
-        return UrlHelper::cpUrl('formie/settings/elements/edit/' . $this->id);
     }
 
     public function getFormSettings($useCache = true): IntegrationFormSettings|bool
