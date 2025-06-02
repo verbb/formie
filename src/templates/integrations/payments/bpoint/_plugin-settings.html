@@ -1,0 +1,41 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Username' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'username',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.username ?? '',
+    warning: macros.configWarning('username', 'formie'),
+    errors: integration.getErrors('username'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Password' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'password',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.password ?? '',
+    warning: macros.configWarning('password', 'formie'),
+    errors: integration.getErrors('password'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Merchant Number' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'merchantNumber',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.merchantNumber ?? '',
+    warning: macros.configWarning('merchantNumber', 'formie'),
+    errors: integration.getErrors('merchantNumber'),
+}) }}
+
+{% endblock %}

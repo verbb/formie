@@ -12,6 +12,15 @@ use putyourlightson\snaptcha\Snaptcha as SnaptchaPlugin;
 
 class Snaptcha extends Captcha
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function getRequiredPlugins(): array
+    {
+        return ['snaptcha'];
+    }
+
+
     // Properties
     // =========================================================================
 

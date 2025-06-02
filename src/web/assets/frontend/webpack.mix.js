@@ -32,10 +32,13 @@ mix.js('./src/js/fields/signature.js', 'js/fields');
 mix.js('./src/js/fields/calculations.js', 'js/fields');
 
 // Integrations
+mix.js('./src/js/address-providers/address-provider.js', 'js/address-providers');
 mix.js('./src/js/address-providers/algolia-places.js', 'js/address-providers');
 mix.js('./src/js/address-providers/google-address.js', 'js/address-providers');
 mix.js('./src/js/address-providers/address-finder.js', 'js/address-providers');
 mix.js('./src/js/address-providers/loqate.js', 'js/address-providers');
+mix.js('./src/js/address-providers/place-kit.js', 'js/address-providers');
+mix.js('./src/js/captchas/captcha-provider.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-checkbox.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v2-invisible.js', 'js/captchas');
 mix.js('./src/js/captchas/recaptcha-v3.js', 'js/captchas');
@@ -45,10 +48,21 @@ mix.js('./src/js/captchas/duplicate.js', 'js/captchas');
 mix.js('./src/js/captchas/hcaptcha.js', 'js/captchas');
 mix.js('./src/js/captchas/friendly-captcha.js', 'js/captchas');
 mix.js('./src/js/captchas/turnstile.js', 'js/captchas');
+mix.js('./src/js/captchas/captcha-eu.js', 'js/captchas');
+mix.js('./src/js/payments/payment-provider.js', 'js/payments');
 mix.js('./src/js/payments/stripe.js', 'js/payments');
 mix.js('./src/js/payments/paypal.js', 'js/payments');
 mix.js('./src/js/payments/payway.js', 'js/payments');
 mix.js('./src/js/payments/opayo.js', 'js/payments');
+mix.js('./src/js/payments/eway.js', 'js/payments');
+mix.js('./src/js/payments/go-cardless.js', 'js/payments');
+mix.js('./src/js/payments/mollie.js', 'js/payments');
+mix.js('./src/js/payments/moneris.js', 'js/payments');
+mix.js('./src/js/payments/paddle.js', 'js/payments');
+mix.js('./src/js/payments/square.js', 'js/payments');
+
+// Copy some static files
+mix.copy('../../../../node_modules/intl-tel-input/build/img/**/*', 'dist/css/img');
 
 // Setup additional CSS-related options including Tailwind and any other PostCSS items
 mix.options({

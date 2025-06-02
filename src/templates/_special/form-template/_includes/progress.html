@@ -2,13 +2,25 @@
     {% set pageIndex = form.getCurrentPageIndex() + 1 %}
     {% set progress = (pageIndex / form.pages | length) * 100 | round %}
 
+    {% set progressHtml = formtag('progressValue', {
+        text: progress | round ~ '%',
+    }) %}
+
     {% formtag 'progressWrapper' %}
+        {% if form.settings.progressValuePosition == 'left' %}
+            {{ progressHtml | raw }}
+        {% endif %}
+
         {% formtag 'progress' %}
             {% formtag 'progressContainer' %}
-                {{ formtag('progressValue', {
-                    text: progress | round ~ '%',
-                }) }}
+                {% if form.settings.progressValuePosition != 'left' and form.settings.progressValuePosition != 'right' %}
+                    {{ progressHtml | raw }}
+                {% endif %}
             {% endformtag %}
         {% endformtag %}
+
+        {% if form.settings.progressValuePosition == 'right' %}
+            {{ progressHtml | raw }}
+        {% endif %}
     {% endformtag %}
 {% endif %}

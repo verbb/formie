@@ -327,16 +327,24 @@
     ></form-kit>
 </div>
 
-{{ forms.lightswitchField({
+{% set limitSubmissions = form.settings.limitSubmissions ?? false %}
+
+{{ forms.selectField({
     label: 'Limit Submissions' | t('formie'),
-    instructions: 'Whether submissions for this form should be limited to a number.' | t('formie'),
+    instructions: 'Select how to limit submissions.' | t('formie'),
     id: 'limitSubmissions',
     name: 'settings[limitSubmissions]',
-    toggle: '#limit-submissions',
-    on: form.settings.limitSubmissions ?? false,
+    options: [
+        { label: 'None' | t('formie'), value: '' },
+        { label: 'Number' | t('formie'), value: 'number' },
+        { label: 'IP Address' | t('formie'), value: 'ipAddress' }
+    ],
+    toggle: true,
+    targetPrefix: 'limit-submissions-',
+    value: limitSubmissions,
 }) }}
 
-<div id="limit-submissions" class="hidden">
+<div id="limit-submissions-number" class="{{ limitSubmissions != 'number' ? 'hidden' }}">
     {% set limitInput %}
         <div class="flex">
             <div>
@@ -389,6 +397,64 @@
         name="settings[limitSubmissionsMessage]"
         v-model="form.settings.limitSubmissionsMessage"
         v-bind="{{ getRichTextConfig('forms.limitSubmissionsMessage') | json_encode }}"
+    ></form-kit>
+</div>
+
+<div id="limit-submissions-ipAddress" class="{{ limitSubmissions != 'ipAddress' ? 'hidden' }}">
+    <p class="warning with-icon">{{ 'Ensure you have "Collect IP Addresses" enabled in Settings.' | t('formie') }}</p>
+
+    {% set limitInput %}
+        <div class="flex">
+            <div>
+                {{ forms.text({
+                    name: 'settings[limitSubmissionsIpAddressNumber]',
+                    value: form.settings.limitSubmissionsIpAddressNumber ?? null,
+                }) }}
+            </div>
+
+            <div class="flex-grow">
+                {{ forms.select({
+                    name: 'settings[limitSubmissionsIpAddressType]',
+                    options: [
+                        {
+                            label: 'total' | t('formie'),
+                            value: 'total',
+                        },
+                        {
+                            label: 'per day' | t('formie'),
+                            value: 'day',
+                        },
+                        {
+                            label: 'per week' | t('formie'),
+                            value: 'week',
+                        },
+                        {
+                            label: 'per month' | t('formie'),
+                            value: 'month',
+                        },
+                        {
+                            label: 'per year' | t('formie'),
+                            value: 'year',
+                        },
+                    ],
+                    value: form.settings.limitSubmissionsIpAddressType ?? null,
+                }) }}
+            </div>
+        </div>
+    {% endset %}
+
+    {{ forms.field({
+        label: 'Number of Submissions' | t('formie'),
+        instructions: 'The number of submissions to allow.' | t('formie'),
+    }, limitInput) }}
+
+    <form-kit
+        type="richText"
+        label="{{ 'Message' | t('formie') }}"
+        help="{{ 'The message displayed to once the limit has been reached.' | t('formie') }}"
+        name="settings[limitSubmissionsIpAddressMessage]"
+        v-model="form.settings.limitSubmissionsIpAddressMessage"
+        v-bind="{{ getRichTextConfig('forms.limitSubmissionsIpAddressMessage') | json_encode }}"
     ></form-kit>
 </div>
 

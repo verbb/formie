@@ -124,15 +124,14 @@
 // Forms - Progress
 // ==========================================================================
 
-.fui-progress {
+.fui-progress-container {
     display: flex;
-    height: var(--fui-progress-height);
-    overflow: hidden;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
     font-size: var(--fui-progress-font-size);
     font-weight: var(--fui-progress-font-weight);
-    color: var(--fui-progress-color);
-    border-radius: var(--fui-progress-border-radius, var(--fui-border-radius));
-    background-color: var(--fui-progress-bg-color, var(--fui-gray-200));
+    color: inherit;
 
     .fui-progress-start & {
         margin-bottom: 1rem;
@@ -143,11 +142,36 @@
     }
 }
 
+.fui-progress {
+    display: flex;
+    flex: 1;
+    height: var(--fui-progress-height);
+    color: var(--fui-progress-color);
+    overflow: hidden;
+    border-radius: var(--fui-progress-border-radius, var(--fui-border-radius));
+    background-color: var(--fui-progress-bg-color, var(--fui-gray-200));
+}
+
 .fui-progress-bar {
     display: flex;
     flex-direction: column;
     justify-content: center;
     text-align: center;
+    padding: 0 5px;
     background-color: var(--fui-progress-bar-bg-color, var(--fui-primary-color));
     transition: var(--fui-progress-bar-transition);
+
+    .fui-progress-value-left &,
+    .fui-progress-value-inside-left & {
+        text-align: left;
+    }
+
+    .fui-progress-value-right,
+    .fui-progress-value-inside-right & {
+        text-align: right;
+    }
+
+    .fui-progress-value-hidden & {
+        color: transparent;
+    }
 }

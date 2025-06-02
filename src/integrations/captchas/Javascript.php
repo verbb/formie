@@ -47,7 +47,7 @@ class Javascript extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, $page = null): string
+    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
 

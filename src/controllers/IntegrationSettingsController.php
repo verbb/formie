@@ -128,17 +128,43 @@ class IntegrationSettingsController extends Controller
         return $this->_editIntegration($integrationId, $integration, 'Payments', Integration::TYPE_PAYMENT);
     }
 
-    public function actionWebhookIndex(): Response
+    public function actionAutomationIndex(): Response
     {
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_WEBHOOK);
-        $typeName = 'Webhooks';
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_AUTOMATION);
+        $typeName = 'Automations';
 
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    public function actionEditWebhook(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditAutomation(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
-        return $this->_editIntegration($integrationId, $integration, 'Webhooks', Integration::TYPE_WEBHOOK);
+        return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_AUTOMATION);
+    }
+
+    public function actionMessagingIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_MESSAGING);
+        $typeName = 'Messaging';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    public function actionEditMessaging(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Messaging', Integration::TYPE_MESSAGING);
+    }
+
+    public function actionHelpDeskIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_HELP_DESK);
+        $typeName = 'Help Desk';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    public function actionEditHelpDesk(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Help Desk', Integration::TYPE_HELP_DESK);
     }
 
     public function actionMiscellaneousIndex(): Response

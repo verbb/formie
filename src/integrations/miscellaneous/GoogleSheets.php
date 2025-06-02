@@ -116,13 +116,19 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         $settings = [];
 
         try {
-            $spreadsheet = $this->request('GET', '');
+            $formId = Craft::$app->getRequest()->getParam('formId');
+            $form = Formie::$plugin->getForms()->getFormById($formId);
+
+            // Ensure we're fetching the spreadsheetId from the form settings, or global integration settings
+            $spreadsheetId = $form->settings->integrations[$this->handle]['spreadsheetId'] ?? $this->getSpreadSheetId();
+
+            $spreadsheet = $this->request('GET', $spreadsheetId);
             $allSheets = $spreadsheet['sheets'] ?? [];
             $sheets = [];
             $savedColumns = [];
 
             foreach ($allSheets as $sheet) {
-                $response = $this->request('GET', "values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
+                $response = $this->request('GET', "{$spreadsheetId}/values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
                     'query' => ['majorDimension' => 'ROWS'],
                 ]);
 
@@ -166,6 +172,8 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
+            $spreadsheetId = $this->spreadsheetId;
+
             // Fetch the columns from our private stash
             $columns = $this->getFormSettings()->collections['columns'][$this->sheetId] ?? [];
             $rowValues = [];
@@ -187,7 +195,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             // This does require column `A` to not be hidden, otherwise it won't append values.
             $range = "'{$this->sheetId}'!A1";
 
-            $response = $this->deliverPayload($submission, "values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
+            $response = $this->deliverPayload($submission, "{$spreadsheetId}/values/{$range}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS", $payload);
 
             if ($response === false) {
                 return true;
@@ -201,7 +209,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         return true;
     }
 
-
+    
     // Protected Methods
     // =========================================================================
 
@@ -209,7 +217,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['spreadsheetId'], 'required'];
+        $rules[] = [['clientId', 'clientSecret', 'spreadsheetId'], 'required'];
 
         // Validate the following when saving form settings
         $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];

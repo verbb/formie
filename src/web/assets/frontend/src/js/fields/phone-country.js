@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, getScriptUrl } from '../utils/utils';
 import intlTelInput from 'intl-tel-input/intlTelInputWithUtils';
 
 export class FormiePhoneCountry {

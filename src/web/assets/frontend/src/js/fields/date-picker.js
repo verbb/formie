@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, getScriptUrl } from '../utils/utils';
 
 import flatpickr from 'flatpickr';
 
@@ -135,7 +135,7 @@ export class FormieDatePicker {
 
         if (!this.locales.includes(this.locale)) {
             const $script = document.createElement('script');
-            $script.src = `https://npmcdn.com/flatpickr@4.6.9/dist/l10n/${this.locale}.js`;
+            $script.src = getScriptUrl(this.$form, `https://npmcdn.com/flatpickr@4.6.9/dist/l10n/${this.locale}.js`);
             $script.defer = false;
             $script.async = false;
             $script.onload = () => {

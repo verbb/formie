@@ -46,6 +46,11 @@ class Campaign extends EmailMarketing
         return Craft::t('formie', 'Campaign');
     }
 
+    public static function getRequiredPlugins(): array
+    {
+        return ['campaign'];
+    }
+
 
     // Public Methods
     // =========================================================================

@@ -459,15 +459,15 @@ class Agile extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/dev/api/",
             'auth' => [App::parseEnv($this->apiEmail), App::parseEnv($this->apiKey)],
             'headers' => [

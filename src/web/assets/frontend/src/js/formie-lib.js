@@ -302,7 +302,9 @@ export class Formie {
                     if ($csrfInput) {
                         $csrfInput.value = result.csrf.token;
 
-                        console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                        if (form.settings.outputConsoleMessages) {
+                            console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                        }
                     } else {
                         console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
                     }
@@ -319,7 +321,9 @@ export class Formie {
                             if (value.value) {
                                 $captchaInput.value = value.value;
 
-                                console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                if (form.settings.outputConsoleMessages) {
+                                    console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                }
                             }
                         });
 

@@ -295,3 +295,16 @@ class_alias('verbb\formie\fields\Table', 'verbb\formie\fields\formfields\Table')
 class_alias('verbb\formie\fields\Tags', 'verbb\formie\fields\formfields\Tags');
 class_alias('verbb\formie\fields\Users', 'verbb\formie\fields\formfields\Users');
 class_alias('verbb\formie\fields\Variants', 'verbb\formie\fields\formfields\Variants');
+
+class_alias('verbb\formie\integrations\helpdesk\Freshdesk', 'verbb\formie\integrations\crm\Freshdesk');
+class_alias('verbb\formie\integrations\helpdesk\Gorgias', 'verbb\formie\integrations\miscellaneous\Gorgias');
+class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrations\miscellaneous\Zendesk');
+
+class_alias('verbb\formie\integrations\messaging\Slack', 'verbb\formie\integrations\miscellaneous\Slack');
+class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integrations\miscellaneous\Telegram');
+
+class_alias('verbb\formie\events\ModifyAutomationPayloadEvent', 'verbb\formie\events\ModifyWebhookPayloadEvent');
+class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\webhooks\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\automations\Webhook');
+class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');

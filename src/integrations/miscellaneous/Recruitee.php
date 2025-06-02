@@ -164,15 +164,15 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $subdomain = App::parseEnv($this->subdomain);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "https://{$subdomain}.recruitee.com/api/",
         ]);
     }

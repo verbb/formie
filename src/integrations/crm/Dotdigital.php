@@ -323,15 +323,15 @@ class Dotdigital extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = rtrim(App::parseEnv($this->apiDomain), '/');
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => $url . '/v2/',
             'auth' => [
                 App::parseEnv($this->username), App::parseEnv($this->password),

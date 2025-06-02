@@ -28,6 +28,21 @@ abstract class Crm extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_CRM;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_CRM;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -66,10 +81,5 @@ abstract class Crm extends Integration
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         return null;
-    }
-
-    public function getCpEditUrl(): ?string
-    {
-        return UrlHelper::cpUrl('formie/settings/crm/edit/' . $this->id);
     }
 }

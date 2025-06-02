@@ -205,7 +205,7 @@ class Infusionsoft extends Crm implements OAuthProviderInterface
         return true;
     }
 
-
+    
     // Protected Methods
     // =========================================================================
 

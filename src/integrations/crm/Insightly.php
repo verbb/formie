@@ -292,13 +292,13 @@ class Insightly extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.insightly.com/v3.1/',
             'auth' => [App::parseEnv($this->apiKey), ''],
         ]);

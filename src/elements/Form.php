@@ -1178,6 +1178,7 @@ class Form extends Element
                     'fui-form',
                     'fui-labels-' . $defaultLabelPosition,
                     $this->settings->displayPageProgress ? "fui-progress-{$this->settings->progressPosition}" : false,
+                    $this->settings->displayPageProgress ? "fui-progress-value-{$this->settings->progressValuePosition}" : false,
                     $this->settings->validationOnFocus ? 'fui-validate-on-focus' : false,
                 ],
                 'method' => 'post',
@@ -1418,8 +1419,11 @@ class Form extends Element
         }
 
         if ($key === 'progressValue') {
+            $progress = $context['progress'] ?? null;
+
             return new HtmlTag('span', [
                 'class' => 'fui-progress-value',
+                'data-fui-progress-value' => $progress,
             ]);
         }
 
@@ -1519,6 +1523,7 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'outputConsoleMessages' => $pluginSettings->outputConsoleMessages,
             'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
 
             // Generate the refresh token here to make use of `UrlHelper` generation
@@ -1874,34 +1879,48 @@ class Form extends Element
         if ($this->settings->limitSubmissions) {
             $query = Submission::find()->formId($this->id);
 
-            if ($this->settings->limitSubmissionsType === 'total') {
-                $submissions = $query->count();
-            } else if ($this->settings->limitSubmissionsType === 'day') {
+            // Get the appropriate settings for the limit type
+            if ($this->settings->limitSubmissions === 'ipAddress') {
+                $limitSubmissionsType = $this->settings->limitSubmissionsIpAddressType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsIpAddressNumber;
+
+                // Ensure that we actually are storing IPs, otherwise nothing really to compare
+                if (!$this->settings->collectIp) {
+                    return true;
+                }
+
+                $query->ipAddress(Craft::$app->getRequest()->userIP);
+            } else {
+                $limitSubmissionsType = $this->settings->limitSubmissionsType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsNumber;
+            }
+
+            if ($limitSubmissionsType === 'day') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'week') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'month') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'year') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else {
-                $submissions = $query->count();
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
             }
 
-            if ($submissions >= $this->settings->limitSubmissionsNumber) {
+            $submissions = $query->count();
+
+            if ($submissions >= $limitSubmissionsNumber) {
                 return false;
             }
         }

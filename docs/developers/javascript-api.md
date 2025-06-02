@@ -486,6 +486,53 @@ $('#formie-form-1').on('onFormieSubmitError', function(e) {
 :::
 
 
+
+### The `modifyScriptUrl` event
+The event that is triggered when resolving the script for various third-party libraries. Notably, these are the Phone and Date fields, which use third-party libraries. These scripts resolve to a CDN, but you can alter this to - for example - resolve to local scripts.
+
+:::code
+```js JavaScript
+let $form = document.querySelector('#formie-form-1');
+$form.addEventListener('modifyScriptUrl', (e) => {
+    e.detail.url = '/resources/intl-tel-input.min.js';
+
+    // ...
+});
+```
+
+```js jQuery
+$('#formie-form-1').on('modifyScriptUrl', function(e) {
+    e.detail.url = '/resources/intl-tel-input.min.js';
+
+    // ...
+});
+```
+:::
+
+
+### The `modifyAjaxClient` event
+The event that is triggered when creating a [XMLHttpRequest](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) client, used for Ajax submission.
+
+:::code
+```js JavaScript
+let $form = document.querySelector('#formie-form-1');
+$form.addEventListener('modifyAjaxClient', (e) => {
+    e.detail.client.withCredentials = true;
+
+    // ...
+});
+```
+
+```js jQuery
+$('#formie-form-1').on('modifyAjaxClient', function(e) {
+    e.detail.client.withCredentials = true;
+
+    // ...
+});
+```
+:::
+
+
 ## Submit Handling
 You may notice the above event's use `e.detail.submitHandler`. This contains a reference to the `FormieBaseForm` JS class we use to house this functionality. Through this, you can call a number of methods on a form to trigger different actions.
 

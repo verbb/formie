@@ -413,12 +413,12 @@ class Mercury extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = 'https://apis.connective.com.au/mercury/v1';
         $apiToken = App::parseEnv($this->apiToken);
         $apiKey = App::parseEnv($this->apiKey);
@@ -429,7 +429,7 @@ class Mercury extends Crm
             $apiKey = App::parseEnv($this->uatKey);
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/$apiToken/",
             'headers' => [
                 'x-api-key' => $apiKey,

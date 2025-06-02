@@ -21,9 +21,6 @@ class KlaviyoLegacy extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Klaviyo (Legacy)');
@@ -43,18 +40,6 @@ class KlaviyoLegacy extends EmailMarketing
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
-
-        return $rules;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -184,13 +169,22 @@ class KlaviyoLegacy extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
+
+        return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://a.klaviyo.com/api/',
             'query' => [
                 'api_key' => App::parseEnv($this->privateApiKey),

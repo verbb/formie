@@ -38,7 +38,7 @@ class Duplicate extends Captcha
         return Craft::t('formie', 'Check for duplicate submissions, where bots might be submitting multiple times.');
     }
 
-    public function getFrontEndHtml(Form $form, $page = null): string
+    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'formie-duplicate-captcha-placeholder',
@@ -46,9 +46,6 @@ class Duplicate extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $sessionKey = $this->getSessionKey($form, $page);

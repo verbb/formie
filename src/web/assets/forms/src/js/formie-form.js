@@ -159,7 +159,7 @@ Craft.Formie.EditForm = Garnish.Base.extend({
                     const allFields = this.$store.getters['form/fields']();
 
                     const stripeFields = allFields.filter((field) => {
-                        return field.type === 'verbb\\formie\\fields\\Payment' && (field.settings.paymentIntegration === 'stripe' || field.settings.paymentIntegration === 'opayo');
+                        return field.type === 'verbb\\formie\\fields\\Payment' && (field.settings.paymentIntegration === 'stripe' || field.settings.paymentIntegration === 'opayo' || field.settings.paymentIntegration === 'mollie');
                     });
 
                     return stripeFields.length;

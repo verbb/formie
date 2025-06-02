@@ -27,6 +27,7 @@ class IntegrationField extends Model
     public ?string $type = null;
     public ?string $sourceType = null;
     public ?string $required = null;
+    public mixed $defaultValue = null;
     public array $options = [];
     public array $data = [];
 

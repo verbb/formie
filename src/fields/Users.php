@@ -245,6 +245,16 @@ class Users extends ElementField
                 'name' => 'multi',
                 'if' => '$get(displayType).value == dropdown',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),

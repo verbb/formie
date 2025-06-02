@@ -31,6 +31,20 @@ use Throwable;
 
 class CalendarEvent extends Element
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Calendar Event');
+    }
+
+    public static function getRequiredPlugins(): array
+    {
+        return ['calendar'];
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -51,11 +65,6 @@ class CalendarEvent extends Element
                 $event->value = new Carbon($event->value->format('Y-m-d H:i:s') ?? 'now', 'utc');
             }
         });
-    }
-
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Calendar Event');
     }
 
     public function getDescription(): string

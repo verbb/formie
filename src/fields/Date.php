@@ -102,6 +102,8 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     public string $maxDateOffset = 'add';
     public int $maxDateOffsetNumber = 0;
     public string $maxDateOffsetType = 'days';
+    public int $minYearRange = -100;
+    public int $maxYearRange = 100;
     public mixed $availableDaysOfWeek = '*';
 
 
@@ -854,16 +856,55 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 'columns' => [
                     [
                         'type' => 'label',
-                        'label' => Craft::t('formie', 'Option'),
+                        'label' => 'Option',
                         'class' => 'singleline-cell textual',
                     ],
                     [
                         'type' => 'value',
-                        'label' => Craft::t('formie', 'Value'),
-                        'class' => 'code singleline-cell textual',
+                        'label' => 'Value',
+                        'class' => 'singleline-cell textual',
                     ],
                 ],
             ]),
+            [
+                '$formkit' => 'fieldWrap',
+                'label' => Craft::t('formie', 'Year Range'),
+                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select. Use negative values for start to offset into the past from the current year.'),
+                'if' => '$get(displayType).value == dropdowns',
+                'children' => [
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'flex',
+                        ],
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'name' => 'minYearRange',
+                                'inputClass' => 'text flex-grow',
+                                'validation' => 'number',
+                                'sections-schema' => [
+                                    'prefix' => [
+                                        '$el' => 'span',
+                                        'attrs' => ['class' => 'fui-prefix-text'],
+                                        'children' => Craft::t('formie', 'Start'),
+                                    ],
+                                ],
+                            ]),
+                            SchemaHelper::numberField([
+                                'name' => 'maxYearRange',
+                                'inputClass' => 'text flex-grow',
+                                'sections-schema' => [
+                                    'prefix' => [
+                                        '$el' => 'span',
+                                        'attrs' => ['class' => 'fui-prefix-text'],
+                                        'children' => Craft::t('formie', 'End'),
+                                    ],
+                                ],
+                            ]),
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -1240,6 +1281,9 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         $format = preg_replace('/[.\-:\/ ]/', '', $format);
         $formattingMap = str_split($format);
 
+        $minYear = $this->_getYearOptions()[1]['value'];
+        $maxYear = $this->_getYearOptions()[count($this->_getYearOptions()) - 1]['value'];
+
         $fields[0]['fields'] = [
             [
                 'type' => subfields\DateYearDropdown::class,
@@ -1247,7 +1291,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
                 'handle' => 'year',
                 'enabled' => in_array('Y', $formattingMap),
                 'labelPosition' => $this->subFieldLabelPosition,
-                'options' => [],
+                'options' => $this->_getYearOptions(),
             ],
             [
                 'type' => subfields\DateMonthDropdown::class,
@@ -1470,6 +1514,22 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
 
         foreach (Craft::$app->getLocale()->getMonthNames() as $index => $monthName) {
             $options[] = ['value' => $index + 1, 'label' => $monthName];
+        }
+
+        return $options;
+    }
+
+    private function _getYearOptions(?string $placeholder = null): array
+    {
+        $defaultValue = $this->defaultValue ?: new DateTime();
+        $year = (int)$defaultValue->format('Y');
+        $minYear = $year + $this->minYearRange;
+        $maxYear = $year + $this->maxYearRange;
+
+        $options = [['value' => '', 'label' => $placeholder, 'disabled' => true]];
+
+        for ($y = $minYear; $y <= $maxYear; $y++) {
+            $options[] = ['value' => $y, 'label' => $y];
         }
 
         return $options;

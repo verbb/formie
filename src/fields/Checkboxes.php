@@ -7,7 +7,7 @@ use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\positions;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -353,7 +353,7 @@ class Checkboxes extends OptionsField
                 ],
                 'data' => [
                     'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
                 ],
             ]);
         }

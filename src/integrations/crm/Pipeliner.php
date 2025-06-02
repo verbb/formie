@@ -194,16 +194,16 @@ class Pipeliner extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $apiServiceUrl = App::parseEnv($this->apiServiceUrl);
         $apiSpaceId = App::parseEnv($this->apiSpaceId);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "{$apiServiceUrl}/api/v100/rest/spaces/{$apiSpaceId}/",
             'auth' => [App::parseEnv($this->apiToken), App::parseEnv($this->apiPassword)],
         ]);

@@ -1,0 +1,42 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Auth ID' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'authId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.authId ?? '',
+    warning: macros.configWarning('authId', 'formie'),
+    errors: integration.getErrors('authId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Auth Token' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'authToken',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.authToken ?? '',
+    warning: macros.configWarning('authToken', 'formie'),
+    errors: integration.getErrors('authToken'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'From Number' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'fromNumber',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.fromNumber ?? '',
+    warning: macros.configWarning('fromNumber', 'formie'),
+    errors: integration.getErrors('fromNumber'),
+}) }}
+
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% set form = renderOptions.form %}
+
+{{ fieldtag('fieldInput') }}
+
+{# Include so that error messages are shown with `formie-theme.js` for server-side errors #}
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('monerisTokenId') }}">
+
+{% set iframeParams = {
+    id: profileId,
+    pmmsg: true,
+    enable_exp: 1,
+    enable_exp_formatting: 1,
+    enable_cvd: 1,
+    enable_cc_formatting: 1,
+    display_labels: 1,
+
+    css_body: 'font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif; font-size:16px; color:#374151; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; margin:0; padding:0;',
+
+    css_textbox: 'padding:0.5rem 0.75rem; border:1px solid #D1D5DB; border-radius:0.25rem; width:100%;',
+    css_textbox_pan: 'margin-bottom: 1rem;',
+    css_textbox_exp: 'margin-bottom: 1rem;',
+    css_textbox_cvd: '',
+
+    css_input_label: 'display:block; font-weight:500; margin-bottom:0.25rem; font-size: 0.875rem; color:#374151;',
+    css_label_pan: '',
+    css_label_exp: '',
+    css_label_cvd: '',
+} %}
+
+<iframe
+    data-fui-moneris-frame
+    src="{{ url(endpointUrl, iframeParams) }}"
+    width="100%"
+    height="200"
+    frameborder="0"
+></iframe>

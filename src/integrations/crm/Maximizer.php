@@ -205,12 +205,12 @@ class Maximizer extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         // From the Web Access URL, get the API Base URL
         $webAccessUrl = App::parseEnv($this->webAccessUrl);
         $baseApiUrl = file_get_contents($webAccessUrl . '?request=api');
@@ -229,7 +229,7 @@ class Maximizer extends Crm
         $response = Json::decode((string)$request->getBody());
         $token = $response['Data']['Token'] ?? '';
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$baseApiUrl/Data.svc/json/",
             'headers' => [
                 'Content-Type' => 'application/json',

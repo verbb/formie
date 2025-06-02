@@ -1,78 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-<span class="warning with-icon">
-    {{ 'Ensure you have Azure administrator access or an Azure administrator is able to grant permissions to the application. This is required to approve the application in {name}.' | t('formie', { name: displayName }) }}<br><br>
-</span>
-
-{% set instructions %}
-
-### Step 1. Connect to the {name} API
-1. Go to <a href="https://aad.portal.azure.com/" target="_blank">Azure Active Directory Admin Center</a> and login to your account.
-1. Click on the **Azure Active Directory** in the left-hand sidebar, **App Registrations** then **New Registration**.
-    - Under **Supported account types** select **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**.
-    - In the **Redirect URI** field, enter the value from the **Redirect URI** field below.
-    - Click the **Register** button.
-1. Copy the **Application (client) ID** from {name} and paste in the **Client ID** field below.
-1. Click on the **Certificates & Secrets** in the left-hand sidebar.
-1. Click the **New client secret** button and provide a name and appropriate expiry.
-1. Copy the **Value** from {name} for the resulting secret and paste in the **Client Secret** field below.
-1. Click on the **API Permissions** in the left-hand sidebar.
-1. Click the **Add a Permission** button.
-1. Select **Microsoft Graph**, then the **Delegated permissions** option and select the following permissions:
-    - `email`
-    - `offline_access`
-    - `openid`
-    - `profile`
-1. Click **Add Permissions**.
-1. Navigate back to **All APIs** and select **Dynamics CRM** and select the following permissions:
-    - `user_impersonation`
-1. Click **Add Permissions**.
-1. Navigate back to **API Permissions** and click the **Grant Admin Consent** button, and agree to the prompt.
-
-### Step 2. Create an Application User
-1. Go to <a href="https://admin.powerplatform.microsoft.com/" target="_blank">Power Platform Admin Center</a> and login to your account as a System Administrator.
-1. Click **Environments** in the left-hand sidebar, and then select an environment from the list.
-1. Copy the **Environment URL** from Power Platform and paste in the **Domain** field below. Be sure to include the `https://` (e.g. `https://ffcor.crm6.dynamics.com`).
-1. Click the **Settings** button in the top navigation.
-1. Click **Users + Permissions**, and then click **Application Users**.
-1. Click the **+ New app user** button in the top navigation.
-1. Click **+ Add an app** to choose the registered Azure AD application that was created for the selected user, and then click the **Add** button.
-1. Select a business unit from the dropdown list for **Business Unit**.
-1. Click **Security roles** and add the following:
-    - `Basic User`
-1. Click the **Save** button, then the **Create** button.
-
-### Step 3. Test Connection
-1. Save this integration.
-1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
-
-### Optional: {name} Web API version
-
-The {name} Web API provides [different versions of the Web API](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/web-api-versions). This is to both maintain compatibility or implement new breaking changes. There are no major differences between v9.0, v9.1 or v9.2 currently. This setting allows you to specify a specific API version if required. When setting a specific value, all {name} Web API requests will use this API version in the request URI.
-
-For compatibility, the default setting is v9.0. This has been the value used in the {name} CRM integration prior to this being customisable.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
@@ -175,3 +106,5 @@ If you want to selectively control the created by user per form, use the "Create
     warning: macros.configWarning('impersonateUserId', 'formie'),
     errors: integration.getErrors('impersonateUserId')
 }) }}
+
+{% endblock %}

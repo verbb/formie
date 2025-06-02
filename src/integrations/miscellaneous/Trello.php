@@ -145,7 +145,7 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return true;
     }
 
-
+    
     // Protected Methods
     // =========================================================================
 

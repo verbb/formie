@@ -497,7 +497,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         $this->context['pardot_tracking'] = $trackingData;
     }
 
-
+    
     // Protected Methods
     // =========================================================================
 

@@ -57,11 +57,6 @@ class Opayo extends Payment
     {
         return Craft::t('formie', 'Opayo');
     }
-
-    public function supportsCallbacks(): bool
-    {
-        return true;
-    }
     
     public static function toOpayoAmount(float $amount, string $currency): float
     {
@@ -97,6 +92,11 @@ class Opayo extends Payment
     public function getDescription(): string
     {
         return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
+    }
+
+    public function supportsCallbacks(): bool
+    {
+        return true;
     }
 
     public function hasValidSettings(): bool
@@ -484,21 +484,6 @@ class Opayo extends Payment
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $useSandbox = App::parseBooleanEnv($this->useSandbox);
-        $url = $useSandbox ? 'https://pi-test.sagepay.com/' : 'https://pi-live.sagepay.com/';
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => $url . 'api/v1/',
-            'auth' => [App::parseEnv($this->integrationKey), App::parseEnv($this->integrationPassword)],
-        ]);
-    }
-
     public function defineGeneralSchema(): array
     {
         return [
@@ -712,6 +697,17 @@ class Opayo extends Payment
         $rules[] = [['vendorName', 'integrationKey', 'integrationPassword'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        $useSandbox = App::parseBooleanEnv($this->useSandbox);
+        $url = $useSandbox ? 'https://pi-test.sagepay.com/' : 'https://pi-live.sagepay.com/';
+
+        return Craft::createGuzzleClient([
+            'base_uri' => $url . 'api/v1/',
+            'auth' => [App::parseEnv($this->integrationKey), App::parseEnv($this->integrationPassword)],
+        ]);
     }
 
 
