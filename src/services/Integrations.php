@@ -256,7 +256,7 @@ class Integrations extends Component
             Integration::TYPE_PAYMENT => $event->payments,
 
             // Backward-compatibility until Formie 4
-            Integration::TYPE_AUTOMATION => array_values(array_filter(array_merge([$event->automations, $event->webhooks]))),
+            Integration::TYPE_AUTOMATION => array_merge(...[$event->automations, $event->webhooks]),
             
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
