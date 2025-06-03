@@ -251,7 +251,7 @@ class Recaptcha extends Captcha
 
             Formie::error(Craft::t('formie', '{token}:{spamReason}', [
                 'token' => $responseToken,
-                'spamReason' => Json::encode($result),
+                'spamReason' => $this->spamReason,
             ]));
         }
 
