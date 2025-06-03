@@ -242,15 +242,6 @@ class Recaptcha extends Captcha
             ]));
         }
 
-        if (!$this->spamReason) {
-            $this->spamReason = 'Captcha validation failed.';
-
-            Formie::error(Craft::t('formie', '{token}:{spamReason}', [
-                'token' => $responseToken,
-                'spamReason' => Json::encode($result),
-            ]));
-        }
-
         return $success;
     }
 
