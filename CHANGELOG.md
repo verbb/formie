@@ -2,7 +2,7 @@
 
 ## 2.1.49 - 2025-06-05
 
-### Added
+### Changed
 - Unlock `league/oauth2-client` from `2.7.0`.
 
 ### Fixed
