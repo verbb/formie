@@ -184,6 +184,8 @@ class Entry extends Element
 
     public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
+        $sectionsService = Craft::$app->getSections();
+        
         if (!$this->entryTypeSection || !str_contains($this->entryTypeSection, ':')) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
 
@@ -191,10 +193,22 @@ class Entry extends Element
         }
 
         try {
-            [$sectionUid, $entryTypeUid] = explode(':', $this->entryTypeSection);
+            [$sectionIdentifier, $entryTypeIdentifier] = explode(':', $this->entryTypeSection);
 
-            $entryType = Craft::$app->getEntries()->getEntryTypeByUid($entryTypeUid);
-            $section = Craft::$app->getEntries()->getSectionByUid($sectionUid);
+            // Detect UID format (has dashes, standard UID pattern)
+            if (str_contains($sectionIdentifier, '-')) {
+                $section = $sectionsService->getSectionByUid($sectionIdentifier);
+                $entryType = $sectionsService->getEntryTypeByUid($entryTypeIdentifier);
+            } else {
+                $section = $sectionsService->getSectionById((int)$sectionIdentifier);
+                $entryType = $sectionsService->getEntryTypeById((int)$entryTypeIdentifier);
+            }
+
+            if (!$section || !$entryType) {
+                Integration::error($this, Craft::t('formie', 'Unable to save element integration. Missing `section` or `entryType`.'), true);
+
+                return false;
+            }
 
             $entry = $this->getElementForPayload(EntryElement::class, $this->entryTypeSection, $submission, [
                 'typeId' => $entryType->id,
