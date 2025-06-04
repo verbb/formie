@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.29 - 2025-06-05
+
+### Added
+- Add trace logging to element integration failures.
+
+### Fixed
+- Fix “back” button in some instances where session data tracking the current page of a form isn’t handled correctly.
+- Fix Recaptcha success logging.
+- Fix an error when running element integrations via the queue.
+- Fix a client-side validation error for required values when including whitespace characters.
+- Fix legacy section/type for Entry element integration.
+- Fix `Integration::log()` deprecation error notice.
+- Fix an error for Element integrations when mapping a Formie options field to a Craft options field.
+
 ## 3.0.28 - 2025-05-20
 
 ### Added
