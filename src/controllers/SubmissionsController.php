@@ -461,6 +461,12 @@ class SubmissionsController extends Controller
             // Ensure that we don't set the next page to `null` which would mean form completion
             $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
 
+            // Allow `goToPageId` to override session behaviour.
+            // TODO: remove this when we sort out proper session/db layer
+            if (is_numeric($goToPageId)) {
+                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $nextPage;
+            }
+
             // Update the current page to reflect the next page
             $form->setCurrentPage($nextPage);
 

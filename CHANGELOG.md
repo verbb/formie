@@ -764,6 +764,17 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.1.49 - 2025-06-05
+
+### Changed
+- Unlock `league/oauth2-client` from `2.7.0`.
+
+### Fixed
+- Fix “back” button in some instances where session data tracking the current page of a form isn’t handled correctly.
+- Fix Recaptcha success logging.
+- Fix an error when running element integrations via the queue.
+- Fix a client-side validation error for required values when including whitespace characters.
+
 ## 2.1.48 - 2025-05-20
 
 ### Added
