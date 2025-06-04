@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.1.49 - 2025-06-05
+
+### Added
+- Unlock `league/oauth2-client` from `2.7.0`.
+
+### Fixed
+- Fix “back” button in some instances where session data tracking the current page of a form isn’t handled correctly.
+- Fix Recaptcha success logging.
+- Fix an error when running element integrations via the queue.
+- Fix a client-side validation error for required values when including whitespace characters.
+
 ## 2.1.48 - 2025-05-20
 
 ### Added
