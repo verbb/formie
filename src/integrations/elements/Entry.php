@@ -184,7 +184,7 @@ class Entry extends Element
 
     public function sendPayload(Submission $submission): IntegrationResponse|bool
     {
-        $sectionsService = Craft::$app->getSections();
+        $entriesService = Craft::$app->getEntries();
         
         if (!$this->entryTypeSection || !str_contains($this->entryTypeSection, ':')) {
             Integration::error($this, Craft::t('formie', 'Unable to save element integration. No `entryTypeId`.'), true);
@@ -197,11 +197,11 @@ class Entry extends Element
 
             // Detect UID format (has dashes, standard UID pattern)
             if (str_contains($sectionIdentifier, '-')) {
-                $section = $sectionsService->getSectionByUid($sectionIdentifier);
-                $entryType = $sectionsService->getEntryTypeByUid($entryTypeIdentifier);
+                $section = $entriesService->getSectionByUid($sectionIdentifier);
+                $entryType = $entriesService->getEntryTypeByUid($entryTypeIdentifier);
             } else {
-                $section = $sectionsService->getSectionById((int)$sectionIdentifier);
-                $entryType = $sectionsService->getEntryTypeById((int)$entryTypeIdentifier);
+                $section = $entriesService->getSectionById((int)$sectionIdentifier);
+                $entryType = $entriesService->getEntryTypeById((int)$entryTypeIdentifier);
             }
 
             if (!$section || !$entryType) {
