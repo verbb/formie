@@ -307,6 +307,26 @@ export class FormieConditions {
             fieldValue = new Date(fieldValue).valueOf();
         }
 
+        const isEmptyValue = (val) => {
+            if (val == null) {
+                return true;
+            }
+
+            if (typeof val === 'string' && val.trim() === '') {
+                return true;
+            }
+
+            if (Array.isArray(val) && val.length === 0) {
+                return true;
+            }
+
+            if (typeof val === 'object' && !Array.isArray(val) && Object.keys(val).length === 0) {
+                return true;
+            }
+
+            return false;
+        };
+
         if (logic === '=') {
             result = value === fieldValue;
         } else if (logic === '!=') {
@@ -316,12 +336,17 @@ export class FormieConditions {
         } else if (logic === '<') {
             result = parseFloat(fieldValue, 10) < parseFloat(value, 10);
         } else if (logic === 'contains') {
-            result = fieldValue.includes(value);
+            result = fieldValue?.includes?.(value);
         } else if (logic === 'startsWith') {
-            result = fieldValue.startsWith(value);
+            result = fieldValue?.startsWith?.(value);
         } else if (logic === 'endsWith') {
-            result = fieldValue.endsWith(value);
+            result = fieldValue?.endsWith?.(value);
+        } else if (logic === 'empty') {
+            result = isEmptyValue(fieldValue);
+        } else if (logic === 'notEmpty') {
+            result = !isEmptyValue(fieldValue);
         }
+
 
         return result;
     }
