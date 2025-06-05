@@ -10,7 +10,11 @@ class VariableNode extends Node
 
     public function matching()
     {
-        return $this->node->type === 'variableTag';
+        if (isset($this->node->type)) {
+            return $this->node->type === 'variableTag';
+        }
+
+        return false;
     }
 
     public function text()
