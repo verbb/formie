@@ -2,7 +2,7 @@
 {% import 'feed-me/_macros' as feedMeMacro %}
 
 {% if feed.elementGroup %}
-    {% set formId = feed.elementGroup[feed.elementType] %}
+    {% set formId = feed.elementGroup[feed.elementType] | integer %}
 
     {% set form = craft.formie.getPlugin().getForms().getFormById(formId) %}
 {% endif %}

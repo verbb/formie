@@ -1,3 +1,4 @@
-{% set form = craft.formie.getPlugin().getForms().getFormById(feed.elementGroup[elementType]) %}
+{% set formId = feed.elementGroup[elementType] | integer %}
+{% set form = craft.formie.getPlugin().getForms().getFormById(formId) %}
 
 {{ form.title ?? '' }}
