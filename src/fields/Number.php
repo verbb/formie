@@ -265,6 +265,10 @@ class Number extends Field implements PreviewableFieldInterface, SortableFieldIn
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
+            'limit' => [
+                'name' => 'limit',
+                'type' => Type::boolean(),
+            ],
             // We're forced to use a int-representation of the min/max values, due to the parent `min/max` definition
             // So cast it properly here as an int, but also provide `minValue/maxValue` as the proper type.
             'min' => [
@@ -294,6 +298,10 @@ class Number extends Field implements PreviewableFieldInterface, SortableFieldIn
                 'resolve' => function($field) {
                     return $field->max;
                 },
+            ],
+            'decimals' => [
+                'name' => 'decimals',
+                'type' => Type::int(),
             ],
         ]);
     }
