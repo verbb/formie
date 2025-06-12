@@ -2,6 +2,7 @@
     <table id="formie-audit" class="data fullwidth collapsible formie-table">
         <thead>
             <th>{{ 'Element' | t('formie') }}</th>
+            <th>{{ 'Site' | t('formie') }}</th>
             <th>{{ 'Type' | t('formie') }}</th>
             <th>{{ 'Status' | t('formie') }}</th>
             <th>{{ 'Field' | t('formie') }}</th>
@@ -16,6 +17,7 @@
                     </th>
 
                     <td>{{ row.element.displayName() }}</td>
+                    <td>{{ row.site.name }}</td>
 
                     {% if row.element.isRevision() %}
                         <td>{{ 'Revision' | t('app') }}</td>

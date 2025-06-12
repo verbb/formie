@@ -233,7 +233,12 @@ class Forms extends Component
         }
 
         $query = (new Query())
-            ->select(['elements.id', 'elements.type', 'relations.fieldId'])
+            ->select([
+                'elements.id',
+                'elements.type',
+                'relations.fieldId',
+                'relations.sourceSiteId AS siteId',
+            ])
             ->from(['relations' => Table::RELATIONS])
             ->innerJoin(['elements' => Table::ELEMENTS], '[[elements.id]] = [[relations.sourceId]]')
             ->where(['relations.targetId' => $form->id]);
@@ -248,13 +253,15 @@ class Forms extends Component
 
         foreach ($query->all() as $info) {
             // Use the combined element cache, keyed solely by element id.
+            $cacheKey = $info['id'] . '_' . $info['siteId'];
             $elementId = $info['id'];
+            $siteId = $info['siteId'];
             
-            if (isset($this->_cachedElements[$elementId])) {
-                $element = $this->_cachedElements[$elementId];
+            if (isset($this->_cachedElements[$cacheKey])) {
+                $element = $this->_cachedElements[$cacheKey];
             } else {
-                $element = Craft::$app->getElements()->getElementById($elementId, $info['type']);
-                $this->_cachedElements[$elementId] = $element;
+                $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
+                $this->_cachedElements[$cacheKey] = $element;
             }
 
             // Use the combined field cache.
@@ -271,7 +278,7 @@ class Forms extends Component
                 continue;
             }
 
-            if (isset($elements[$element->id])) {
+            if (isset($elements[$element->id . '_' . $element->siteId])) {
                 continue;
             }
 
@@ -285,7 +292,7 @@ class Forms extends Component
 
             foreach ($nestedElements as $i => $nestedElement) {
                 $nestedElement['level'] = $i;
-                $elements[$nestedElement['element']->id] = $nestedElement;
+                $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
             }
         }
 
@@ -301,20 +308,22 @@ class Forms extends Component
         try {
             $accumulator[] = [
                 'element' => $element,
+                'site' => $element->site,
                 'field' => $field,
                 'level' => $level,
             ];
 
             if ($element instanceof NestedElementInterface && $element->ownerId) {
                 try {
-                    // Retrieve (or cache) the owner element using its id.
+                    // Retrieve (or cache) the owner element using per-site cache key.
                     $ownerId = $element->ownerId;
+                    $ownerCacheKey = $ownerId . '_' . $element->siteId;
 
-                    if (isset($this->_cachedElements[$ownerId])) {
-                        $ownerElement = $this->_cachedElements[$ownerId];
+                    if (isset($this->_cachedElements[$ownerCacheKey])) {
+                        $ownerElement = $this->_cachedElements[$ownerCacheKey];
                     } else {
                         $ownerElement = Craft::$app->getElements()->getElementById($ownerId, null, $element->siteId);
-                        $this->_cachedElements[$ownerId] = $ownerElement;
+                        $this->_cachedElements[$ownerCacheKey] = $ownerElement;
                     }
 
                     // Retrieve (or cache) the owner field using its id.
