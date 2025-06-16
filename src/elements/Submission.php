@@ -387,6 +387,20 @@ class Submission extends CustomElement
         return true;
     }
 
+    public function getActionMenuItems(): array
+    {
+        $actions = parent::getActionMenuItems();
+
+        // Remove some actions Craft adds by default
+        foreach ($actions as $key => $action) {
+            if (str_starts_with($action['id'] ?? '', 'action-edit-')) {
+                unset($actions[$key]);
+            }
+        }
+
+        return array_values($actions);
+    }
+
     public function attributeLabels(): array
     {
         $labels = parent::attributeLabels();
@@ -422,117 +436,46 @@ class Submission extends CustomElement
             return;
         }
 
-        $elementsService = Craft::$app->getElements();
-        $user = Craft::$app->getUser()->getIdentity();
-        $editable = $user && $elementsService->canView($element, $user);
+        // Remove the quick-edit ability
+        $event->html = str_replace('data-editable', '', $event->html);
 
-        $id = sprintf('chip-%s', mt_rand());
-
-        $attributes = array_merge($element->getHtmlAttributes($event->context), [
-            'class' => ['element', 'chip', 'small'],
-            'title' => $element->getUiLabel(),
-            'id' => $id,
-            'data' => [
-                'type' => get_class($element),
-                'id' => $element->id,
-                'draft-id' => $element->draftId,
-                'revision-id' => $element->revisionId,
-                'site-id' => $element->siteId,
-                'status' => $element->getStatus(),
-                'label' => (string)$element,
-                'url' => $element->getUrl(),
-                'cp-url' => $editable ? $element->getCpEditUrl() : null,
-                'level' => $element->level,
-                'trashed' => $element->trashed,
-                'editable' => $editable,
-                'savable' => $editable && $elementsService->canSave($element),
-                'duplicatable' => $editable && $elementsService->canDuplicate($element),
-                'deletable' => $editable && $elementsService->canDelete($element),
-
-                'settings' => [
-                    'selectable' => false,
-                    'context' => $event->context,
-                    'id' => Craft::$app->getView()->namespaceInputId($id),
-                    'showDraftName' => true,
-                    'showLabel' => true,
-                    'showStatus' => true,
-                    'showThumb' => false,
-                    'size' => 'small',
-                    'ui' => 'chip',
-                ],
-            ],
-        ]);
-
-        $html = Html::beginTag('div', $attributes);
-        $html .= Html::beginTag('div', ['class' => 'chip-content']);
-
+        $icon = null;
+        $label = null;
+        
+        // Swap out the different icons for status/spam/etc
         if ($element->isIncomplete) {
-            $iconStyle = [
-                'width' => '10px',
-                'height' => '10px',
-                'margin-top' => '-12px',
-                'margin-left' => '0',
-                'font-size' => '12px',
-                'margin-right' => '3px !important',
-                'color' => 'color: #3f4d5a',
-            ];
-
-            $html .= Html::tag('span', '', [
-                'data' => ['icon' => 'draft'],
-                'class' => 'icon',
-                'role' => 'img',
-                'style' => $iconStyle,
-                'aria' => [
-                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), Craft::t('formie', 'Incomplete')),
-                ],
-            ]);
+            $icon = 'draft';
+            $label = Craft::t('formie', 'Incomplete');
         } else if ($element->isSpam) {
-            $iconStyle = [
-                'width' => '10px',
-                'height' => '10px',
-                'margin-top' => '-12px',
-                'margin-left' => '0',
-                'font-size' => '12px',
-                'margin-right' => '3px !important',
-                'color' => 'color: #3f4d5a',
-            ];
-
-            $html .= Html::tag('span', '', [
-                'data' => ['icon' => 'bug'],
-                'class' => 'icon',
-                'role' => 'img',
-                'style' => $iconStyle,
-                'aria' => [
-                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), Craft::t('formie', 'Spam')),
-                ],
-            ]);
-        } else {
-            $status = $element->getStatus();
-            $statusAttributes = $element::statuses()[$status] ?? null;
-
-            // Just to give the `statusIndicatorHtml` clean types
-            if (is_string($statusAttributes)) {
-                $statusAttributes = ['label' => $statusAttributes];
-            }
-
-            $html .= Html::tag('span', '', [
-                'class' => array_filter([
-                    'status',
-                    $status,
-                    $statusAttributes['color'] ?? null,
-                ]),
-                'role' => 'img',
-                'aria' => [
-                    'label' => sprintf('%s %s', Craft::t('app', 'Status:'), $statusAttributes['label'] ?? ucfirst($status)),
-                ],
-            ]);
+            $icon = 'bug';
+            $label = Craft::t('formie', 'Spam');
         }
 
-        $html .= Html::beginTag('div', ['class' => 'label', 'id' => $id . '-label']);
-        $html .= Html::tag('a', $element->getChipLabelHtml(), ['class' => 'label-link', 'href' => $element->getCpEditUrl()]);
-        $html .= Html::endTag('div') . Html::endTag('div') . Html::endTag('div');
+        if ($icon && $label) {
+            $iconStyle = [
+                'width' => '10px',
+                'height' => '10px',
+                'margin-top' => '-12px',
+                'margin-left' => '0',
+                'font-size' => '12px',
+                'margin-right' => '3px !important',
+                'color' => 'color: #3f4d5a',
+            ];
 
-        $event->html = $html;
+            $replacement = Html::tag('span', '', [
+                'data' => ['icon' => $icon],
+                'class' => 'icon',
+                'role' => 'img',
+                'style' => $iconStyle,
+                'aria' => ['label' => Craft::t('app', 'Status:') . ' ' . $label],
+            ]);
+
+            $event->html = preg_replace(
+                '#<span\b[^>]*\bclass\s*=\s*["\'][^"\']*\bstatus\b[^"\']*["\'][^>]*></span>#i',
+                $replacement,
+                $event->html
+            );
+        }
     }
 
     public function validate($attributeNames = null, $clearErrors = true): bool

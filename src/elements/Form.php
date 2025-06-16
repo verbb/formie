@@ -167,20 +167,6 @@ class Form extends Element
         return $actions;
     }
 
-    public static function actions(string $source): array
-    {
-        $actions = parent::actions($source);
-
-        // Remove some actions Craft adds by default
-        foreach ($actions as $key => $action) {
-            if (is_array($action) && isset($action['type']) && ($action['type'] === Edit::class || is_subclass_of($action['type'], Edit::class))) {
-                    unset($actions[$key]);
-            }
-        }
-
-        return array_values($actions);
-    }
-
     protected static function defineTableAttributes(): array
     {
         return [
@@ -359,6 +345,20 @@ class Form extends Element
     public function canDuplicate(User $user): bool
     {
         return true;
+    }
+
+    public function getActionMenuItems(): array
+    {
+        $actions = parent::getActionMenuItems();
+
+        // Remove some actions Craft adds by default
+        foreach ($actions as $key => $action) {
+            if (str_starts_with($action['id'] ?? '', 'action-edit-')) {
+                unset($actions[$key]);
+            }
+        }
+
+        return array_values($actions);
     }
 
     public function getConsolidatedErrors()
@@ -1944,6 +1944,18 @@ class Form extends Element
             'notifications' => $notifications,
             'settings' => $formSettings,
         ];
+    }
+
+    public static function defineElementChipHtml(\craft\events\DefineElementHtmlEvent $event): void
+    {
+        $element = $event->element;
+
+        if (!($element instanceof self)) {
+            return;
+        }
+
+        // Remove the quik-edit ability
+        $event->html = str_replace(['data-editable'], [''], $event->html);
     }
 
     public function beforeSave(bool $isNew): bool

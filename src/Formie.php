@@ -529,6 +529,8 @@ class Formie extends Plugin
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_TABLE_ATTRIBUTES, [$this->getSubmissions(), 'defineSourceTableAttributes']);
         Event::on(ElementSources::class, ElementSources::EVENT_DEFINE_SOURCE_SORT_OPTIONS, [$this->getSubmissions(), 'defineSourceSortOptions']);
 
+        // Custom handling of element chips to prevent CP slide-out editing which isn't supported
+        Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Form::class, 'defineElementChipHtml']);
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Submission::class, 'defineElementChipHtml']);
 
         // Add additional error information to queue jobs when there's an error
