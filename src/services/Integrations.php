@@ -182,6 +182,7 @@ class Integrations extends Component
             crm\SugarCrm::class,
             crm\SuiteCrm::class,
             crm\VCita::class,
+            crm\Xero::class,
             crm\Zoho::class,
         ];
 
