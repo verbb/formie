@@ -193,6 +193,7 @@ class Integrations extends Component
             helpdesk\Front::class,
             helpdesk\Gorgias::class,
             helpdesk\HelpScout::class,
+            helpdesk\Intercom::class,
             helpdesk\Zendesk::class,
         ];
 
