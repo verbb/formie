@@ -57,4 +57,32 @@ class StringHelper extends CraftStringHelper
 
         return 'base64:' . base64_encode('crypt:' . Craft::$app->getSecurity()->encryptByKey($str, $key));
     }
+
+    public static function getCharacterCount(string $value): int
+    {
+        $text = self::normalizeText($value);
+
+        // Trim whitespace and count characters accurately (emoji, accents, etc.)
+        return mb_strlen(trim($text), 'UTF-8');
+    }
+
+    public static function getWordCount(string $value): int
+    {
+        $text = self::normalizeText($value);
+
+        // Use str_word_count to count words
+        return str_word_count($text);
+    }
+
+    public static function normalizeText(string $value): string
+    {
+        // Strip all HTML tags (if any)
+        $text = strip_tags($value);
+
+        // Decode HTML entities (e.g. &#x1F389; → 🎉)
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Normalize whitespace (replace tabs/newlines/multiple spaces with single space)
+        return trim(preg_replace('/[\s\t\n\r]+/', ' ', $text));
+    }
 }

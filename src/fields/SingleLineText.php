@@ -119,11 +119,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
         }
 
         $value = (string)$element->getFieldValue($this->fieldKey);
-
-        // Replace newline and tab characters to compare
-        $string = preg_replace('/[\t\n\r\s]+/', ' ', $value);
-
-        $count = StringHelper::count($string);
+        $count = StringHelper::getCharacterCount($value);
 
         if ($count < $min) {
             $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} characters.', [
@@ -141,11 +137,7 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
         }
 
         $value = (string)$element->getFieldValue($this->fieldKey);
-
-        // Replace newline and tab characters to compare
-        $string = preg_replace('/[\t\n\r\s]+/', ' ', $value);
-
-        $count = StringHelper::count($string);
+        $count = StringHelper::getCharacterCount($value);
 
         if ($count > $max) {
             $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} characters.', [
@@ -162,8 +154,8 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
             return;
         }
 
-        $value = $element->getFieldValue($this->fieldKey);
-        $count = count(explode(' ', $value));
+        $value = (string)$element->getFieldValue($this->fieldKey);
+        $count = StringHelper::getWordCount($value);
 
         if ($count < $min) {
             $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
@@ -180,8 +172,8 @@ class SingleLineText extends Field implements PreviewableFieldInterface, Sortabl
             return;
         }
 
-        $value = $element->getFieldValue($this->fieldKey);
-        $count = count(explode(' ', $value));
+        $value = (string)$element->getFieldValue($this->fieldKey);
+        $count = StringHelper::getWordCount($value);
 
         if ($count > $max) {
             $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} words.', [
