@@ -122,6 +122,7 @@ class Integrations extends Component
             emailmarketing\Brevo::class,
             emailmarketing\Campaign::class,
             emailmarketing\CampaignMonitor::class,
+            emailmarketing\CleverReach::class,
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
             emailmarketing\CustomerIo::class,
