@@ -97,14 +97,6 @@ class Gorgias extends HelpDesk
         return new IntegrationFormSettings($settings);
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
-    {
-        // A quick shortcut to keep CRM's simple, just pass in a string to the namespace
-        $fields = $this->getFormSettingValue($fieldSettings);
-
-        return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
-    }
-
     public function sendPayload(Submission $submission): bool
     {
         try {

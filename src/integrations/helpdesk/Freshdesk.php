@@ -391,9 +391,8 @@ class Freshdesk extends HelpDesk
             if ($this->mapToTicket) {
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
 
-                $ticketValues = $this->getFieldMappingValues($submission, $this->ticketFieldMapping, 'ticket', $requiresMultipart);
-
                 if ($requiresMultipart) {
+                    $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
                     $ticketPayload = $ticketValues;
                     $contentType = 'multipart';
                 } else {
@@ -468,13 +467,8 @@ class Freshdesk extends HelpDesk
         return true;
     }
 
-    public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [], bool $multipart = false)
+    public function getFieldMappingMultipartValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
-        // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
-        if (!$multipart) {
-            return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
-        }
-
         // Manually get field settings since we're not using parent method
         $fieldSettings = $this->getFormSettingValue($fieldSettings);
         $fieldValues = [];
