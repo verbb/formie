@@ -280,6 +280,9 @@ export class FormieFormTheme {
             // Always disable the button
             this.$submitBtn.setAttribute('disabled', true);
 
+            // Update the attribute, to not be fully reliant on theme
+            this.$submitBtn.setAttribute('data-loading', true);
+
             if (this.settings.loadingIndicator === 'spinner') {
                 addClasses(this.$submitBtn, this.loadingClass);
             }
@@ -294,6 +297,9 @@ export class FormieFormTheme {
         if (this.$submitBtn) {
             // Always enable the button
             this.$submitBtn.removeAttribute('disabled');
+
+            // Update the attribute, to not be fully reliant on theme
+            this.$submitBtn.removeAttribute('data-loading');
 
             if (this.settings.loadingIndicator === 'spinner') {
                 removeClasses(this.$submitBtn, this.loadingClass);
