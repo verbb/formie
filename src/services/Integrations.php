@@ -180,6 +180,7 @@ class Integrations extends Component
             crm\Scoro::class,
             crm\SharpSpring::class,
             crm\SugarCrm::class,
+            crm\SuiteCrm::class,
             crm\VCita::class,
             crm\Zoho::class,
         ];
