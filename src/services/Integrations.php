@@ -163,6 +163,7 @@ class Integrations extends Component
             crm\IterableIntegration::class,
             crm\Klaviyo::class,
             crm\KlaviyoLegacy::class,
+            crm\Marketo::class,
             crm\Maximizer::class,
             crm\Mercury::class,
             crm\MicrosoftDynamics365::class,
