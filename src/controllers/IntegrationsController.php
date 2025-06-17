@@ -84,6 +84,8 @@ class IntegrationsController extends Controller
                 'integration' => $integration,
             ]);
 
+            Formie::error(Json::encode($integration->getErrors()));
+
             return null;
         }
 
