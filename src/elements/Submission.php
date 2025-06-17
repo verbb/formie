@@ -636,7 +636,7 @@ class Submission extends CustomElement
             $this->title = html_entity_decode($customTitle);
 
             // Rather than re-save, directly update the content record
-            Db::update(Table::ELEMENTS_SITES, ['title' => $customTitle], ['elementId' => $this->id, 'siteId' => $this->siteId]);
+            Db::update(Table::ELEMENTS_SITES, ['title' => $this->title], ['elementId' => $this->id, 'siteId' => $this->siteId]);
         }
     }
 
