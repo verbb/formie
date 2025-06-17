@@ -190,6 +190,7 @@ class Integrations extends Component
 
         $helpDesk = [
             helpdesk\Freshdesk::class,
+            helpdesk\Front::class,
             helpdesk\Gorgias::class,
             helpdesk\Zendesk::class,
         ];
