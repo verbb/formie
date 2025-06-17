@@ -11,6 +11,7 @@ use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\elements\db\ElementQuery;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\ElementHelper;
 
 use DateTime;
@@ -65,17 +66,17 @@ class SubmissionExport extends ElementExporter
             ];
 
             foreach ($query->each() as $element) {
-                // We want to grab some more values than just the attributes produced from `toArray`
-                $elementValues = array_merge($element->toArray(), [
-                    'formName' => $element->getForm()->title ?? '',
-                ]);
-
                 // Fetch the attributes for the element
                 $values = [];
 
                 foreach ($attributes as $attr => $label) {
-                    // Convert values to strings
-                    $values[] = (string)($elementValues[$attr] ?? null);
+                    $value = $element->$attr;
+                    
+                    if ($value instanceof DateTime) {
+                        $value = DateTimeHelper::toIso8601($value) ?: null;
+                    }
+
+                    $values[] = $value;
                 }
 
                 $row = array_combine(array_values($attributes), $values);
