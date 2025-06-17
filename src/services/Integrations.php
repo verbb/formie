@@ -194,6 +194,7 @@ class Integrations extends Component
             helpdesk\Gorgias::class,
             helpdesk\HelpScout::class,
             helpdesk\Intercom::class,
+            helpdesk\LiveChat::class,
             helpdesk\Zendesk::class,
         ];
 
