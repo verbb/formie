@@ -173,6 +173,7 @@ class Integrations extends Component
             crm\Pardot::class,
             crm\Pipedrive::class,
             crm\Pipeliner::class,
+            crm\Procurios::class,
             crm\Salesflare::class,
             crm\Salesforce::class,
             crm\Salesmate::class,
