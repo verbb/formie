@@ -25,7 +25,7 @@ Follow the below steps to connect to the Freshdesk API.
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Help Desk**.
 1. Click the **New Integration** button.
-1. Select Freshdesk as the **Integration Provider**.
+1. Select **Freshdesk** as the **Integration Provider**.
 
 ### Step 2. Connect to the Freshdesk API
 1. Go to <a href="https://www.freshdesk.com/" target="_blank">Freshdesk</a> and login to your account.
@@ -78,7 +78,7 @@ Follow the below steps to connect to the Gorgias API.
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Help Desk**.
 1. Click the **New Integration** button.
-1. Select Gorgias as the **Integration Provider**.
+1. Select **Gorgias** as the **Integration Provider**.
 
 ### Step 2. Connect to the Gorgias API
 1. Go to <a href="https://gorgias.com" target="_blank">Gorgias</a> and login to your account.
@@ -202,7 +202,7 @@ Follow the below steps to connect to the Zendesk API.
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Help Desk**.
 1. Click the **New Integration** button.
-1. Select Zendesk as the **Integration Provider**.
+1. Select **Zendesk** as the **Integration Provider**.
 
 ### Step 2. Connect to the Zendesk API
 1. Go to <a href="https://www.zendesk.com" target="_blank">Zendesk</a> and log in to your account.
