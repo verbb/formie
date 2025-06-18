@@ -333,7 +333,7 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::log(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
@@ -359,7 +359,7 @@ class SubmissionsController extends Controller
         if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
+            Formie::log(Craft::t('app', 'Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]));
 
             if ($request->getAcceptsJson()) {
                 return $this->asJson([
@@ -564,7 +564,7 @@ class SubmissionsController extends Controller
         if ($submission->hasErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::log(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             // If there are page field errors, set the current page to the page with the error for good UX.
             $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
@@ -639,7 +639,7 @@ class SubmissionsController extends Controller
         if (!$success || $submission->getErrors()) {
             $errors = $submission->getErrors();
 
-            Formie::error(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
+            Formie::log(Craft::t('app', 'Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]));
 
             // If there are page field errors, set the current page to the page with the error for good UX.
             $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
