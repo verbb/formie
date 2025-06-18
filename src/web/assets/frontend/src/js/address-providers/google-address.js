@@ -33,7 +33,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         // Prevent the script from loading multiple times (which throw warnings anyway)
         if (!document.getElementById(this.scriptId)) {
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&loading=async&libraries=places`;
             script.defer = true;
             script.async = true;
             script.id = this.scriptId;
@@ -69,26 +69,44 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     initAutocomplete() {
         const options = { types: ['geocode'], ...this.options };
 
-        const autocomplete = new google.maps.places.Autocomplete(this.$input, options);
+        // Init the autocomplete web componenent, which we have limited style control over...
+        const autocomplete = new google.maps.places.PlaceAutocompleteElement(options);
+        autocomplete.style.height = window.getComputedStyle(this.$input).height;
+        autocomplete.style.boxSizing = 'border-box';
 
-        autocomplete.setFields(['address_component']);
+        // Find or create a wrapper div around the input to mount the autocomplete to.
+        let wrapper = this.$input.parentElement;
 
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace();
+        if (!wrapper || !wrapper.classList.contains('fui-autocomplete-wrapper')) {
+            wrapper = document.createElement('div');
+            wrapper.classList.add('fui-autocomplete-wrapper');
 
-            if (!place.address_components) {
-                // Seem to be having some issues with `address_components` being empty for units...
-                return;
-            }
+            this.$input.parentNode.insertBefore(wrapper, this.$input);
+            wrapper.appendChild(this.$input);
+        }
 
-            this.setAddressValues(place.address_components);
+        // Replace the input with the Web Component
+        wrapper.replaceChild(autocomplete, this.$input);
 
-            // Allow events to modify behaviour
+        // Mirror selected value into the original input (needed to keep input compatible with Formie / server-side)
+        const hiddenInput = this.$input;
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = this.$input.name;
+        wrapper.appendChild(hiddenInput);
+
+        autocomplete.addEventListener('gmp-select', async({ placePrediction }) => {
+            const place = placePrediction.toPlace();
+            await place.fetchFields({ fields: ['addressComponents'] });
+
+            if (!place.addressComponents) { return; }
+
+            this.setAddressValues(place.addressComponents);
+
             const populateAddressEvent = new CustomEvent('populateAddress', {
                 bubbles: true,
                 detail: {
                     addressProvider: this,
-                    addressComponents: place.address_components,
+                    addressComponents: place.addressComponents,
                 },
             });
 
@@ -177,14 +195,14 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     componentMap() {
         /* eslint-disable camelcase */
         return {
-            subpremise: 'short_name',
-            street_number: 'short_name',
-            route: 'long_name',
-            postal_town: 'long_name',
-            locality: 'long_name',
-            administrative_area_level_1: 'short_name',
-            country: 'short_name',
-            postal_code: 'short_name',
+            subpremise: 'shortText',
+            street_number: 'shortText',
+            route: 'longText',
+            postal_town: 'longText',
+            locality: 'longText',
+            administrative_area_level_1: 'shortText',
+            country: 'shortText',
+            postal_code: 'shortText',
         };
         /* eslint-enable camelcase */
     }
