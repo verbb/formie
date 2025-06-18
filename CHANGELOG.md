@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.0.30 - 2025-06-18
+
+### Added
+- Add “is empty” and “is not empty” to field and notification conditions.
+- Add “Site Name” and “Site Handle” to conditions builders.
+- Add multi-site support for form usage.
+
+### Changed
+- Update Google Places Address Provider to remove deprecated `google.maps.places.Autocomplete` component.
+- Update submission logging to use `info` rather than `error` category, to prevent error handlers from picking up form validation errors.
+- Improve performance of exporting submissions.
+- Submit buttons on the front-end for forms now get a `data-loading` attribute set when clicked.
+- Improve scroll-to-error behaviour for some browsers/front-end setups.
+
+### Fixed
+- Fix an error when running integrations with no Guzzle client.
+- Fix an error for variable tag rich text nodes in some instances.
+- Fix an error for Entry Element integrations and `defaultAuthorId` when set from a Stencil.
+- Fix Calculations field parsing Markdown content.
+- Fix Single and Multi Line field character/word limits server-side logic to better handle HTML.
+- Fix submission titles and special characters.
+- Fix element chips and quick-edit handling for Submission and Form elements in the control panel.
+- Fix `limit` and `decimals` missing from Number field GraphQL queries.
+- Fix an error for Feed Me feeds.
+- Fix legacy section/type for Entry element integration.
+
 ## 3.0.29 - 2025-06-05
 
 ### Added
