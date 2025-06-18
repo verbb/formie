@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.50 - 2025-06-18
+
+### Added
+- Add “is empty” and “is not empty” to field and notification conditions.
+
+### Changed
+- Update Google Places Address Provider to remove deprecated `google.maps.places.Autocomplete` component.
+- Update submission logging to use `info` rather than `error` category, to prevent error handlers from picking up form validation errors.
+
+### Fixed
+- Fix an error when running integrations with no Guzzle client.
+- Fix an error for variable tag rich text nodes in some instances.
+- Fix an error for Entry Element integrations and `defaultAuthorId` when set from a Stencil.
+- Fix Calculations field parsing Markdown content.
+
 ## 2.1.49 - 2025-06-05
 
 ### Changed
