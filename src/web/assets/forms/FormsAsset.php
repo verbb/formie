@@ -231,6 +231,8 @@ class FormsAsset extends AssetBundle
                 'greater than',
                 'is not',
                 'is',
+                'is not empty',
+                'is empty',
                 'less than',
                 'more',
                 'of the following rules match.',

@@ -51,6 +51,32 @@ class ConditionsHelper
             return StringHelper::endsWith((string)$subject, $pattern);
         });
 
+        $expressionLanguage->register('empty', function() {
+        }, function($args, $subject) {
+            if (is_null($subject)) {
+                return true;
+            }
+
+            if (is_string($subject) && trim($subject) === '') {
+                return true;
+            }
+
+            if (is_array($subject) && empty($subject)) {
+                return true;
+            }
+
+            if (is_object($subject) && empty((array)$subject)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        $expressionLanguage->register('notEmpty', function() {
+        }, function($args, $subject) {
+            return !$args['empty']($args, $subject);
+        });
+
         return $expressionLanguage;
     }
 
@@ -72,7 +98,7 @@ class ConditionsHelper
 
         // For custom rules, we need a custom syntax. Symfony doesn't support custom operators, which would be nice
         // Instead of `field contains value` we need to do `contains(field, value)`.
-        if (in_array($operator, ['contains', 'notContains', 'startsWith', 'endsWith'])) {
+        if (in_array($operator, ['contains', 'notContains', 'startsWith', 'endsWith', 'empty', 'notEmpty'])) {
             return "{$operator}(field, value)";
         }
 

@@ -34,7 +34,7 @@ class Entry extends Element
     // =========================================================================
 
     public ?string $entryTypeSection = null;
-    public int|array|null $defaultAuthorId = null;
+    public mixed $defaultAuthorId = null;
     public ?bool $createDraft = null;
 
 
