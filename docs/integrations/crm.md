@@ -391,6 +391,7 @@ Follow the below steps to connect to the HubSpot API.
     - `crm.objects.contacts.write`
     - `crm.objects.deals.read`
     - `crm.objects.deals.write`
+    - `tickets`
     - `forms`
 1. Click the **Create App** button in the top right.
 1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
