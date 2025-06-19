@@ -206,13 +206,20 @@ export class FormieCalculations {
 
     formatVariables(variables) {
         if (this.formatting === 'number') {
-            Object.keys(variables).forEach((index) => {
-                if (Array.isArray(variables[index])) {
-                    variables[index].forEach((i, j) => {
-                        variables[index][j] = Number(variables[index][j]);
+            const isNumeric = (value) => {
+                // Check if the value is a string that can safely be converted to a number
+                return typeof value === 'string' && !isNaN(value) && value.trim() !== '';
+            };
+
+            Object.keys(variables).forEach((key) => {
+                const value = variables[key];
+
+                if (Array.isArray(value)) {
+                    variables[key] = value.map((item) => {
+                        return (isNumeric(item) ? Number(item) : item);
                     });
-                } else {
-                    variables[index] = Number(variables[index]);
+                } else if (isNumeric(value)) {
+                    variables[key] = Number(value);
                 }
             });
         }
