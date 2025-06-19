@@ -161,11 +161,22 @@ export default {
         },
 
         filteredExistingFields() {
+            const syncedFields = [];
+
             return this.existingFields.reduce((acc, form) => {
                 const pages = form.pages.reduce((acc, page) => {
                     const fields = page.fields.filter((field) => {
                         const inLabel = field.settings.label.toLowerCase().includes(this.search.toLowerCase());
                         const inHandle = field.settings.handle.toLowerCase().includes(this.search.toLowerCase());
+
+                        // When selecting all forms, ensure we filter out duplicate synced fields
+                        if (this.selectedKey === '*') {
+                            if (field.isSynced && !syncedFields.includes(field.handle)) {
+                                syncedFields.push(field.handle);
+
+                                return false;
+                            }
+                        }
 
                         return inLabel || inHandle;
                     });
