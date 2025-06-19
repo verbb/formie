@@ -40,6 +40,14 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
     // Public Methods
     // =========================================================================
 
+    public function attributeLabels(): array
+    {
+        $labels = parent::attributeLabels();
+        $labels['integrationHandle'] = Craft::t('formie', 'Auto-Complete Integration');
+
+        return $labels;
+    }
+
     public function defineGeneralSchema(): array
     {
         $fields = parent::defineGeneralSchema();
@@ -50,6 +58,7 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
             'label' => Craft::t('formie', 'Auto-Complete Integration'),
             'help' => Craft::t('formie', 'Select which address provider this field should use.'),
             'name' => 'integrationHandle',
+            'validation' => 'required',
             'required' => true,
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
@@ -65,6 +74,19 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
         ]);
 
         return $fields;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['integrationHandle'], 'required'];
+
+        return $rules;
     }
 
 
