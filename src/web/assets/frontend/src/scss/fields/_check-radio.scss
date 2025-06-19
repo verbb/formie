@@ -39,6 +39,16 @@
             border-color: var(--fui-check-border-color-checked, var(--fui-primary-color));
         }
 
+        &:disabled + label {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        &:disabled + label::before {
+            background-color: var(--fui-check-bg-color);
+            cursor: not-allowed;
+        }
+
         &:active + label::before {
             background-color: var(--fui-check-bg-color);
         }

@@ -334,6 +334,14 @@ class Checkboxes extends OptionsField
 
         $id = $this->getHtmlId($form);
 
+        if ($key === 'field') {
+            $tag = parent::defineHtmlTag($key, $context);
+            $tag->attributes['data']['min-options'] = ($this->limitOptions && $this->min) ? $this->min : null;
+            $tag->attributes['data']['max-options'] = ($this->limitOptions && $this->max) ? $this->max : null;
+
+            return $tag;
+        }
+
         if ($key === 'fieldContainer') {
             return new HtmlTag('fieldset', [
                 'class' => [
