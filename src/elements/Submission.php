@@ -416,7 +416,7 @@ class Submission extends Element
      */
     public function getStatus(): ?string
     {
-        return $this->getStatusModel(true)->handle ?? null;
+        return $this->getStatusModel()->handle ?? null;
     }
 
     /**
@@ -657,11 +657,34 @@ class Submission extends Element
             return $this->_status;
         }
 
+        // Get the default status from the form, if defined yet
         if ($form = $this->getForm()) {
-            return $this->_status = $form->getDefaultStatus();
+            if ($this->_status = $form->getDefaultStatus()) {
+                return $this->_status;
+            }
         }
 
-        return $this->_status = Formie::$plugin->getStatuses()->getDefaultStatus();
+        // Get the global default status
+        if ($this->_status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+            return $this->_status;
+        }
+
+        // Get _any_ status
+        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $status = reset($statuses) ?: null;
+
+        if ($status) {
+            return $this->_status = $status;
+        }
+
+        // Create a dummy status
+        return $this->_status = new Status([
+            'name' => 'New',
+            'handle' => 'new',
+            'color' => 'green',
+            'sortOrder' => 1,
+            'isDefault' => 1,
+        ]);;
     }
 
     /**
@@ -1227,7 +1250,7 @@ class Submission extends Element
                 $user = $this->getUser();
                 return $user ? Cp::elementHtml($user) : '';
             case 'status':
-                $status = $this->getStatusModel(true);
+                $status = $this->getStatusModel();
                 
                 return Html::tag('span', Html::tag('span', '', [
                         'class' => array_filter([
