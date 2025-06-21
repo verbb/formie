@@ -629,11 +629,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        if (!$this->getQueueJob() || !method_exists($this, 'getClient')) {
+        if (!$this->getQueueJob()) {
             return;
         }
 
-        $config = $this->getClient()->getConfig();
+        try {
+            $config = $this->getClient()->getConfig();
+        } catch (Throwable $e) {
+            $config = [];
+        }
 
         $this->getQueueJob()->payload = [
             'client' => array_filter([
