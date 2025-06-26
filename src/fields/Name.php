@@ -136,7 +136,7 @@ class Name extends SubField implements PreviewableFieldInterface
     {
         // Quit early if a non-multi Name field, it's just plain text
         if (!$this->useMultipleFields) {
-            return $value;
+            return Field::normalizeValue($value, $element);
         }
 
         $value = parent::normalizeValue($value, $element);
@@ -170,7 +170,7 @@ class Name extends SubField implements PreviewableFieldInterface
             return parent::serializeValue($value, $element);
         }
 
-        return $value;
+        return Field::serializeValue($value, $element);
     }
 
     public function getPreviewInputHtml(): string

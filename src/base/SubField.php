@@ -56,6 +56,26 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
         return $attributes;
     }
 
+    public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        foreach ($this->getFields() as $field) {
+            // Ensure that we enforce content encryption on sub-fields from the parent
+            $field->enableContentEncryption = $this->enableContentEncryption;
+        }
+
+        return parent::normalizeValue($value, $element);
+    }
+
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        foreach ($this->getFields() as $field) {
+            // Ensure that we enforce content encryption on sub-fields from the parent
+            $field->enableContentEncryption = $this->enableContentEncryption;
+        }
+
+        return parent::serializeValue($value, $element);
+    }
+
     public function getSubFields(): array
     {
         return $this->defineSubFields();

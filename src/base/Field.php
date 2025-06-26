@@ -37,6 +37,7 @@ use craft\base\ElementInterface;
 use craft\base\Field as CraftField;
 use craft\base\FieldInterface as CraftFieldInterface;
 use craft\base\SavableComponent;
+use craft\base\Serializable;
 use craft\db\Query;
 use craft\fieldlayoutelements\CustomField;
 use craft\fields\BaseRelationField;
@@ -55,16 +56,15 @@ use Faker\Generator as FakerFactory;
 
 use Twig\Markup;
 
-use Arrayable;
 use DateTime;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionUnionType;
-use Serializable;
 use Throwable;
 
+use yii\base\Arrayable;
 use yii\db\ExpressionInterface;
 use yii\db\Schema;
 

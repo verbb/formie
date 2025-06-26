@@ -199,6 +199,11 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
             $phone = new PhoneModel($value);
             $phone->hasCountryCode = isset($value['country']);
 
+            // Potentially look at refactoring this at the field level, or the model level
+            if ($this->enableContentEncryption && str_contains($phone->number, 'base64:')) {
+                $phone->number = StringHelper::decdec($phone->number);
+            }
+
             return $phone;
         }
 
@@ -206,7 +211,25 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         $phone->number = $value;
         $phone->hasCountryCode = false;
 
+        // Potentially look at refactoring this at the field level, or the model level
+        if ($this->enableContentEncryption && str_contains($phone->number, 'base64:')) {
+            $phone->number = StringHelper::decdec($phone->number);
+        }
+
         return $phone;
+    }
+
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
+    {
+        // Handle if we need to save field content as encrypted
+        if ($this->enableContentEncryption) {
+            // Potentially look at refactoring this at the field level, or the model level
+            if ($value instanceof PhoneModel) {
+                $value->number = StringHelper::encenc($value->number);
+            }
+        }
+
+        return parent::serializeValue($value, $element);
     }
 
     public function getFrontEndJsModules(): ?array
