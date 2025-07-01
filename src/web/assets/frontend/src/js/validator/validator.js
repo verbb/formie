@@ -128,9 +128,15 @@ class FormieValidator {
             errorMessages.remove();
         }
 
-        removeClasses(fieldContainer, this.config.fieldContainerErrorClass);
         removeClasses(input, this.config.inputErrorClass);
         input.removeAttribute(this.config.inputErrorIndicatorAttribute);
+
+        // Bubble up the tree to find all field containers (think sub-fields)
+        for (let el = input.parentElement; el; el = el.parentElement) {
+            if (el.hasAttribute('data-field-handle')) {
+                removeClasses(el, this.config.fieldContainerErrorClass);
+            }
+        }
 
         this.emitEvent(input, 'formieValidatorClearError');
     }
@@ -187,10 +193,16 @@ class FormieValidator {
             errorElement.setAttribute('aria-atomic', true);
         }
 
-        // Add error classes to field and field container
-        addClasses(fieldContainer, this.config.fieldContainerErrorClass);
+        // Add error classes to field
         addClasses(input, this.config.inputErrorClass);
         input.setAttribute(this.config.inputErrorIndicatorAttribute, true);
+
+        // Bubble up the tree to find all field containers (think sub-fields)
+        for (let el = input.parentElement; el; el = el.parentElement) {
+            if (el.hasAttribute('data-field-handle')) {
+                addClasses(el, this.config.fieldContainerErrorClass);
+            }
+        }
 
         this.emitEvent(input, 'formieValidatorShowError', {
             validatorName,
