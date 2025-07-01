@@ -295,4 +295,9 @@ trait FieldLegacy
     {
         return $this->serializeValue($value, $element);
     }
+
+    public function showStatus(): bool
+    {
+        return true;
+    }
 }
