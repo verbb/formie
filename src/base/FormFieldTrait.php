@@ -1518,6 +1518,15 @@ trait FormFieldTrait
         return $names;
     }
 
+    public function getSearchKeywords(mixed $value, ElementInterface $element): string
+    {
+        if ($this->enableContentEncryption) {
+            $value = null;
+        }
+
+        return parent::getSearchKeywords($value, $element);
+    }
+
 
     // Protected Methods
     // =========================================================================
