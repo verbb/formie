@@ -55,4 +55,30 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
             },
         ]));
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected static function getContentFields($context): array
+    {
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (GqlException $e) {
+            Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
+            Craft::$app->getErrorHandler()->logException($e);
+            return [];
+        }
+
+        $contentFieldGqlTypes = [];
+
+        // Handle form fields
+        foreach ($context->getFields() as $contentField) {
+            if ($contentField->includeInGqlSchema($schema)) {
+                $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+            }
+        }
+
+        return $contentFieldGqlTypes;
+    }
 }
