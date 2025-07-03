@@ -554,6 +554,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // Get the type of field we are mapping to (for the integration)
             $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
+            // TODO define static integrations better
+            if ($fieldKey === '{submission:dateCreated}') {
+                $integrationField->type = IntegrationField::TYPE_DATETIME;
+            }
+
             if (str_contains($fieldKey, '{')) {
                 // Get the value of the mapped field, from the submission.
                 $fieldValue = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
