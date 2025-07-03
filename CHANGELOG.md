@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.0.31 - 2025-07-03
+
+### Changed
+- Update front-end validation to show a error state of sub-fields correctly.
+
+### Fixed
+- Fix an error for Campaign integration when running via the queue.
+- Fix an error for the Calculations field, when formatting as a number and using non-numeric fields in the formula.
+- Fix an error when trying to determine a submissions status in some instances.
+- Fix some fields not working correctly with content encryption.
+- Fix an error for some fields that contained a `supportsNested` reference from Formie 2.
+- Fix GraphQL queries for submissions in Craft 5.8+.
+- Fix support for Craft 5.8.
+
 ## 3.0.30 - 2025-06-18
 
 ### Added
