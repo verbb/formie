@@ -425,7 +425,7 @@ class Submission extends CustomElement
 
     public function getStatus(): ?string
     {
-        return $this->getStatusModel(true)->handle ?? null;
+        return $this->getStatusModel()->handle ?? null;
     }
 
     public static function defineElementChipHtml(\craft\events\DefineElementHtmlEvent $event): void
@@ -755,16 +755,34 @@ class Submission extends CustomElement
             return $this->_status;
         }
 
+        // Get the default status from the form, if defined yet
         if ($form = $this->getForm()) {
-            return $this->_status = $form->getDefaultStatus();
+            if ($this->_status = $form->getDefaultStatus()) {
+                return $this->_status;
+            }
         }
 
-        if ($status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+        // Get the global default status
+        if ($this->_status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
+            return $this->_status;
+        }
+
+        // Get _any_ status
+        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $status = reset($statuses) ?: null;
+
+        if ($status) {
             return $this->_status = $status;
         }
 
-        // Just in case there's no default status set in settings, pick the first available
-        return $this->_status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
+        // Create a dummy status
+        return $this->_status = new Status([
+            'name' => 'New',
+            'handle' => 'new',
+            'color' => 'green',
+            'sortOrder' => 1,
+            'isDefault' => 1,
+        ]);;
     }
 
     public function setStatus(Status|string $status): void
@@ -1314,7 +1332,7 @@ class Submission extends CustomElement
         }
 
         if ($attribute == 'status') {
-            $status = $this->getStatusModel(true);
+            $status = $this->getStatusModel();
 
             return Html::tag('span', Html::tag('span', '', [
                     'class' => array_filter([
