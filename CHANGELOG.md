@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.51 - 2025-07-03
+
+### Fixed
+- Fix encrypted fields storing data in search indexes for submissions.
+- Fix an error for Campaign integration when running via the queue.
+- Fix an error for the Calculations field, when formatting as a number and using non-numeric fields in the formula.
+- Fix an error when trying to determine a submissions status in some instances.
+
 ## 2.1.50 - 2025-06-18
 
 ### Added
