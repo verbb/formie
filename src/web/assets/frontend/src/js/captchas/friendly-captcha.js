@@ -142,6 +142,9 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         // For a single-page form, reset the hCaptcha, in case we want to fill out the form again
         // `renderCaptcha` will deal with both cases
         setTimeout(() => {
+            // Clear the submit handler to present Start Mode Auto from automatically re-submitting the form
+            this.submitHandler = null;
+
             this.renderCaptcha();
         }, 300);
     }
