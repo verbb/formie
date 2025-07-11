@@ -504,7 +504,9 @@ class Salesforce extends Crm
 
                                 $taskPayload = [
                                     'Subject' => $this->duplicateLeadTaskSubject,
-                                    'WhoId' => $contactId,
+
+                                    // Try and use the lead, or use the contact
+                                    'WhoId' => $response[0]['duplicateResult']['matchResults'][0]['matchRecords'][0]['record']['Id'] ?? $contactId,
                                     'Description' => '',
                                 ];
 
