@@ -251,7 +251,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
 
-            // Get Campaign Memeber fields
+            // Get Campaign Member fields
             if ($this->mapToCampaignMember) {
                 $response = $this->request('GET', 'sobjects/CampaignMember/describe');
                 $fields = $response['fields'] ?? [];
