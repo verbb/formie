@@ -225,7 +225,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         if ($this->enableContentEncryption) {
             // Potentially look at refactoring this at the field level, or the model level
             if ($value instanceof PhoneModel) {
-                $value->number = StringHelper::encenc($value->number);
+                $value->number = StringHelper::encenc((string)$value->number);
             }
         }
 
