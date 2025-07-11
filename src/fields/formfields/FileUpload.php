@@ -382,6 +382,22 @@ class FileUpload extends CraftAssets implements FormFieldInterface
      */
     public function defineGeneralSchema(): array
     {
+        $conditions = [];
+
+        foreach ($this->getSourceOptions() as $option) {
+            try {
+                $parts = explode(':', $option['value']);
+
+                $volume = Craft::$app->getVolumes()->getVolumeByUid($parts[1]);
+
+                if ($volume->getFs()->hasUrls) {
+                    $conditions[] = '$get(uploadLocationSource).value == "' . $option['value'] . '"';
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        $publicCondition = implode(' || ', $conditions);
+
         return [
             SchemaHelper::labelField(),
             [
@@ -406,6 +422,15 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                                 'placeholder' => 'path/to/subfolder',
                             ]),
                         ],
+                    ],
+                    [
+                        '$el' => 'div',
+                        'attrs' => [
+                            'class' => 'warning with-icon',
+                            'style' => 'margin-top: 10px;',
+                        ],
+                        'if' => $publicCondition,
+                        'children' => [Craft::t('formie', 'Files uploaded to this volume will have public URLs.')],
                     ],
                 ],
             ],
