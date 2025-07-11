@@ -431,320 +431,341 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
 
     private function _getEntityFields($entity): array
     {
-        $metadataAttributesForSelect = [
-            'AttributeType',
-            'IsCustomAttribute',
-            'IsValidForCreate',
-            'IsValidForUpdate',
-            'CanBeSecuredForCreate',
-            'CanBeSecuredForUpdate',
-            'LogicalName',
-            'SchemaName',
-            'DisplayName',
-            'RequiredLevel',
-        ];
-
-        // Fetch all defined fields on the entity
-        // https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/contact?view=dynamics-ce-odata-9
-        // https://docs.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/entities/contact?view=op-9-1#BKMK_Address1_Telephone1
-        $metadata = $this->request('GET', $this->_getEntityDefinitionsUri($entity), [
-            'query' => [
-                '$select' => 'Attributes',
-                '$expand' => 'Attributes($select='. implode(',', $metadataAttributesForSelect) . ')',
-            ],
-        ]);
-
-        // We also need to query DateTime attribute data to check if any are DateOnly
-        $dateTimeAttributes = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'DateTime'), [
-            'query' => [
-                '$select' => 'SchemaName,LogicalName,DateTimeBehavior',
-            ],
-        ]);
-
-        $dateTimeBehaviourValues = ArrayHelper::map($dateTimeAttributes, 'MetadataId', 'DateTimeBehavior.Value');
-
         $fields = [];
-        $attributes = $metadata['Attributes'] ?? [];
 
-        // Default to SystemRequired and ApplicationRequired
-        $requiredLevels = [
-            'SystemRequired',
-            'ApplicationRequired',
-        ];
-
-        $event = new MicrosoftDynamics365RequiredLevelsEvent([
-            'requiredLevels' => $requiredLevels,
-        ]);
-
-        $this->trigger(self::EVENT_MODIFY_REQUIRED_LEVELS, $event);
-
-        foreach ($attributes as $field) {
-            $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
-            $logicalName = $field['LogicalName'] ?? '';
-            $handle = $this->_getFieldHandle($field);
-            $canCreate = $field['IsValidForCreate'] ?? false;
-            $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
-            $type = $field['AttributeType'] ?? '';
-            $odataType = $field['@odata.type'] ?? '';
-            $metadataId = $field['MetadataId'] ?? '';
-
-            $excludedTypes = [
-                'Customer',
-                'EntityName',
-                'State',
-                'Uniqueidentifier',
-                'Virtual',
+        try {
+            $metadataAttributesForSelect = [
+                'AttributeType',
+                'IsCustomAttribute',
+                'IsValidForCreate',
+                'IsValidForUpdate',
+                'CanBeSecuredForCreate',
+                'CanBeSecuredForUpdate',
+                'LogicalName',
+                'SchemaName',
+                'DisplayName',
+                'RequiredLevel',
             ];
 
-            if (!$logicalName || !$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
-                continue;
+            // Fetch all defined fields on the entity
+            // https://docs.microsoft.com/en-us/dynamics365/customer-engagement/web-api/contact?view=dynamics-ce-odata-9
+            // https://docs.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/entities/contact?view=op-9-1#BKMK_Address1_Telephone1
+            $metadata = $this->request('GET', $this->_getEntityDefinitionsUri($entity), [
+                'query' => [
+                    '$select' => 'Attributes',
+                    '$expand' => 'Attributes($select='. implode(',', $metadataAttributesForSelect) . ')',
+                ],
+            ]);
+
+            // We also need to query DateTime attribute data to check if any are DateOnly
+            $dateTimeAttributes = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'DateTime'), [
+                'query' => [
+                    '$select' => 'SchemaName,LogicalName,DateTimeBehavior',
+                ],
+            ]);
+
+            $dateTimeBehaviourValues = ArrayHelper::map($dateTimeAttributes, 'MetadataId', 'DateTimeBehavior.Value');
+
+            $attributes = $metadata['Attributes'] ?? [];
+
+            // Default to SystemRequired and ApplicationRequired
+            $requiredLevels = [
+                'SystemRequired',
+                'ApplicationRequired',
+            ];
+
+            $event = new MicrosoftDynamics365RequiredLevelsEvent([
+                'requiredLevels' => $requiredLevels,
+            ]);
+
+            $this->trigger(self::EVENT_MODIFY_REQUIRED_LEVELS, $event);
+
+            foreach ($attributes as $field) {
+                $label = $field['DisplayName']['UserLocalizedLabel']['Label'] ?? '';
+                $logicalName = $field['LogicalName'] ?? '';
+                $handle = $this->_getFieldHandle($field);
+                $canCreate = $field['IsValidForCreate'] ?? false;
+                $requiredLevel = $field['RequiredLevel']['Value'] ?? 'None';
+                $type = $field['AttributeType'] ?? '';
+                $odataType = $field['@odata.type'] ?? '';
+                $metadataId = $field['MetadataId'] ?? '';
+
+                $excludedTypes = [
+                    'Customer',
+                    'EntityName',
+                    'State',
+                    'Uniqueidentifier',
+                    'Virtual',
+                ];
+
+                if (!$logicalName || !$label || !$handle || !$canCreate || in_array($type, $excludedTypes, true)) {
+                    continue;
+                }
+
+                // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
+                // If a field DateTimeBehaviour is set to DateOnly, it will not accept DateTime values ever!
+                // https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/behavior-format-date-time-attribute
+                if ($type === 'DateTime') {
+                    $dateTimeBehavior = $dateTimeBehaviourValues[$metadataId] ?? null;
+
+                    if ($dateTimeBehavior === 'DateOnly') {
+                        $type = 'Date';
+                    }
+                }
+
+                // Index by `LogicalName` for easy lookup later with Picklist and Lookup fields
+                $fields[$logicalName] = new IntegrationField([
+                    'handle' => $handle,
+                    'name' => $label,
+                    'type' => $this->convertFieldType($type),
+                    'required' => in_array($requiredLevel, $event->requiredLevels, true),
+                ]);
             }
 
-            // DateTime attributes, just because the AttributeType is DateTime doesn't mean it actually accepts one!
-            // If a field DateTimeBehaviour is set to DateOnly, it will not accept DateTime values ever!
-            // https://learn.microsoft.com/en-us/dynamics365/customerengagement/on-premises/developer/behavior-format-date-time-attribute
-            if ($type === 'DateTime') {
-                $dateTimeBehavior = $dateTimeBehaviourValues[$metadataId] ?? null;
-
-                if ($dateTimeBehavior === 'DateOnly') {
-                    $type = 'Date';
+            // Add default true/false values for boolean fields
+            foreach ($fields as $field) {
+                if ($field->type === IntegrationField::TYPE_BOOLEAN) {
+                    $field->options = [
+                        'label' => Craft::t('formie', 'Default options'),
+                        'options' => [
+                            ['label' => Craft::t('formie', 'True'), 'value' => 'true'],
+                            ['label' => Craft::t('formie', 'False'), 'value' => 'false'],
+                        ]
+                    ];
                 }
             }
 
-            // Index by `LogicalName` for easy lookup later with Picklist and Lookup fields
-            $fields[$logicalName] = new IntegrationField([
-                'handle' => $handle,
-                'name' => $label,
-                'type' => $this->convertFieldType($type),
-                'required' => in_array($requiredLevel, $event->requiredLevels, true),
-            ]);
-        }
-
-        // Add default true/false values for boolean fields
-        foreach ($fields as $field) {
-            if ($field->type === IntegrationField::TYPE_BOOLEAN) {
-                $field->options = [
-                    'label' => Craft::t('formie', 'Default options'),
-                    'options' => [
-                        ['label' => Craft::t('formie', 'True'), 'value' => 'true'],
-                        ['label' => Craft::t('formie', 'False'), 'value' => 'false'],
+            // Do another call for PickList fields, to populate any set options to pick from
+            try {
+                $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
+                    'query' => [
+                        '$select' => 'LogicalName,SchemaName',
+                        '$expand' => 'GlobalOptionSet($select=Options),OptionSet($select=Options)',
                     ]
-                ];
+                ]);
+
+                $pickListFields = $response['value'] ?? [];
+
+                foreach ($pickListFields as $pickListField) {
+                    $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
+                    $options = [];
+
+                    $logicalName = $pickListField['LogicalName'] ?? '';
+
+                    // Get the field to add options to
+                    $field = $fields[$logicalName] ?? null;
+
+                    if (!$pickList || !$field) {
+                        continue;
+                    }
+
+                    foreach ($pickList as $pickListOption) {
+                        $options[] = [
+                            'label' => $pickListOption['Label']['UserLocalizedLabel']['Label'] ?? '',
+                            'value' => $pickListOption['Value'],
+                        ];
+                    }
+
+                    if ($options) {
+                        $field->options = [
+                            'label' => $field->name,
+                            'options' => $options,
+                        ];
+                    }
+                }
+            } catch (Throwable $e) {
+                Integration::apiError($this, $e, false);
             }
+
+            // Do the same thing for any fields with an Owner, we have to do multiple queries.
+            // This can be for multiple entities, so have some cache.
+            $this->_getEntityOwnerOptions($entity, $fields);
+
+            // Add a list of system users for "Created By"
+            $fields['createdby'] = new IntegrationField([
+                'handle' => 'createdby',
+                'name' => Craft::t('formie', 'Created By'),
+                'options' => [
+                    'label' => Craft::t('formie', 'Created By'),
+                    'options' => $this->_getSystemUsersOptions(),
+                ],
+            ]);
+
+            // Reset array keys
+            $fields = array_values($fields);
+
+            // Sort by required field and then name
+            ArrayHelper::multisort($fields, ['required', 'name'], [SORT_DESC, SORT_ASC]);
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e, false);
         }
-
-        // Do another call for PickList fields, to populate any set options to pick from
-        $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Picklist'), [
-            'query' => [
-                '$select' => 'LogicalName,SchemaName',
-                '$expand' => 'GlobalOptionSet($select=Options),OptionSet($select=Options)',
-            ]
-        ]);
-
-        $pickListFields = $response['value'] ?? [];
-
-        foreach ($pickListFields as $pickListField) {
-            $pickList = $pickListField['GlobalOptionSet']['Options'] ?? [];
-            $options = [];
-
-            $logicalName = $pickListField['LogicalName'] ?? '';
-
-            // Get the field to add options to
-            $field = $fields[$logicalName] ?? null;
-
-            if (!$pickList || !$field) {
-                continue;
-            }
-
-            foreach ($pickList as $pickListOption) {
-                $options[] = [
-                    'label' => $pickListOption['Label']['UserLocalizedLabel']['Label'] ?? '',
-                    'value' => $pickListOption['Value'],
-                ];
-            }
-
-            if ($options) {
-                $field->options = [
-                    'label' => $field->name,
-                    'options' => $options,
-                ];
-            }
-        }
-
-        // Do the same thing for any fields with an Owner, we have to do multiple queries.
-        // This can be for multiple entities, so have some cache.
-        $this->_getEntityOwnerOptions($entity, $fields);
-
-        // Add a list of system users for "Created By"
-        $fields['createdby'] = new IntegrationField([
-            'handle' => 'createdby',
-            'name' => Craft::t('formie', 'Created By'),
-            'options' => [
-                'label' => Craft::t('formie', 'Created By'),
-                'options' => $this->_getSystemUsersOptions(),
-            ],
-        ]);
-
-        // Reset array keys
-        $fields = array_values($fields);
-
-        // Sort by required field and then name
-        ArrayHelper::multisort($fields, ['required', 'name'], [SORT_DESC, SORT_ASC]);
 
         return $fields;
     }
 
     private function _getEntityOwnerOptions($entity, $fields): void
     {
-        // Get all the fields that are relational
-        $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
-            'query' => [
-                '$select' => 'LogicalName,SchemaName,Targets',
-            ],
-        ]);
-
-        $relationFields = $response['value'] ?? [];
-
-        // Create a unique list of entities we need to fetch things for.
-        $entities = [];
-
-        foreach ($relationFields as $relationField) {
-            $entities[] = $relationField['Targets'] ?? [];
-        }
-
-        // Get unique entities used (destructure for performance)
-        $entities = array_values(array_unique(array_merge(...$entities)));
-
-        // Filter out some core entities, which seem to require admin priviledges
-        $entities = array_values(array_filter($entities, function($entityName) {
-            return !str_starts_with($entityName, 'msdyn');
-        }));
-
-        // For each entity, define a schema so that we can query each entity according to the target (index)
-        // the endpoint to query (entity) and what attributes to use for the label/value to pick from
-        $targetSchemas = [];
-
-        // Build a filter string to read `(LogicalName eq 'account') or (LogicalName eq 'businessunit')`
-        // to fetch just the entities we have Lookup fields for.
-        $entityDefinitionFilter = array_map(function($entityName) {
-            return "(LogicalName eq '$entityName')";
-        }, $entities);
-
-        // Note there's a max filter limit of 25, so we need to chunk
-        $entityDefinitionFilterChunks = array_chunk($entityDefinitionFilter, 25);
-
-        // Get all entity definitions
-        foreach ($entityDefinitionFilterChunks as $entityDefinitionFilterChunk) {
-            $response = $this->request('GET', 'EntityDefinitions', [
+        try {
+            // Get all the fields that are relational
+            $response = $this->request('GET', $this->_getEntityDefinitionsUri($entity, 'Lookup'), [
                 'query' => [
-                    '$filter' => implode(' or ', $entityDefinitionFilterChunk),
-                    '$select' => 'DisplayName,LogicalName,SchemaName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName,EntitySetName',
+                    '$select' => 'LogicalName,SchemaName,Targets',
                 ],
             ]);
 
-            $entityDefinitions = $response['value'] ?? [];
+            $relationFields = $response['value'] ?? [];
 
-            foreach ($entityDefinitions as $entityDefinition) {
-                $entitySchema = [
-                    'entity' => $entityDefinition['EntitySetName'],
-                    'label' => $entityDefinition['PrimaryNameAttribute'],
-                    'value' => $entityDefinition['PrimaryIdAttribute'],
-                    'select' => [$entityDefinition['PrimaryNameAttribute'], $entityDefinition['PrimaryIdAttribute']],
+            // Create a unique list of entities we need to fetch things for.
+            $entities = [];
+
+            foreach ($relationFields as $relationField) {
+                $entities[] = $relationField['Targets'] ?? [];
+            }
+
+            // Get unique entities used (destructure for performance)
+            $entities = array_values(array_unique(array_merge(...$entities)));
+
+            // Filter out some core entities, which seem to require admin priviledges
+            $entities = array_values(array_filter($entities, function($entityName) {
+                return !str_starts_with($entityName, 'msdyn');
+            }));
+
+            // For each entity, define a schema so that we can query each entity according to the target (index)
+            // the endpoint to query (entity) and what attributes to use for the label/value to pick from
+            $targetSchemas = [];
+
+            // Build a filter string to read `(LogicalName eq 'account') or (LogicalName eq 'businessunit')`
+            // to fetch just the entities we have Lookup fields for.
+            $entityDefinitionFilter = array_map(function($entityName) {
+                return "(LogicalName eq '$entityName')";
+            }, $entities);
+
+            // Note there's a max filter limit of 25, so we need to chunk
+            $entityDefinitionFilterChunks = array_chunk($entityDefinitionFilter, 25);
+
+            // Get all entity definitions
+            foreach ($entityDefinitionFilterChunks as $entityDefinitionFilterChunk) {
+                try {
+                    $response = $this->request('GET', 'EntityDefinitions', [
+                        'query' => [
+                            '$filter' => implode(' or ', $entityDefinitionFilterChunk),
+                            '$select' => 'DisplayName,LogicalName,SchemaName,PrimaryIdAttribute,PrimaryNameAttribute,LogicalCollectionName,EntitySetName',
+                        ],
+                    ]);
+
+                    $entityDefinitions = $response['value'] ?? [];
+
+                    foreach ($entityDefinitions as $entityDefinition) {
+                        $entitySchema = [
+                            'entity' => $entityDefinition['EntitySetName'],
+                            'label' => $entityDefinition['PrimaryNameAttribute'],
+                            'value' => $entityDefinition['PrimaryIdAttribute'],
+                            'select' => [$entityDefinition['PrimaryNameAttribute'], $entityDefinition['PrimaryIdAttribute']],
+                        ];
+
+                        // Special handling for system users
+                        if ($entityDefinition['LogicalName'] === 'systemuser') {
+                            $entitySchema['select'][] = 'applicationid';
+                            $entitySchema['orderby'] = $entityDefinition['PrimaryNameAttribute'];
+
+                            // Exclude system accounts that are application default
+                            $entitySchema['filter'] = 'applicationid eq null and isdisabled eq false';
+                        }
+
+                        $targetSchemas[$entityDefinition['LogicalName']] = $entitySchema;
+                    }
+                } catch (Throwable $e) {
+                    Integration::apiError($this, $e, false);
+                }
+            }
+
+            $event = new MicrosoftDynamics365TargetSchemasEvent([
+                'targetSchemas' => $targetSchemas,
+            ]);
+
+            $this->trigger(self::EVENT_MODIFY_TARGET_SCHEMAS, $event);
+
+            $targetSchemas = ArrayHelper::merge($targetSchemas, $event->targetSchemas);
+
+            // Populate our cached entity options, cached across multiple calls because we only need to
+            // fetch the collection once, for each entity type. Subsequent fields can re-use the options.
+            foreach ($relationFields as $relationField) {
+                $targets = $relationField['Targets'] ?? [];
+
+                foreach ($targets as $target) {
+                    // Get the schema definition to do stuff
+                    $targetSchema = $targetSchemas[$target] ?? '';
+
+                    if (!$targetSchema) {
+                        continue;
+                    }
+
+                    // Provide a little cache, if we've already fetched items, no need to do again
+                    if (isset($this->_entityOptions[$target])) {
+                        continue;
+                    }
+
+                    // We don't really need that much from the entities
+                    $select = $targetSchema['select'] ?? [$targetSchema['label'], $targetSchema['value']];
+
+                    // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
+                    try {
+                        $response = $this->request('GET', $targetSchema['entity'], [
+                            'query' => [
+                                '$expand' => $targetSchema['expand'] ?? null,
+                                '$filter' => $targetSchema['filter'] ?? null,
+                                '$orderby' => $targetSchema['orderby'] ?? null,
+                                '$select' => implode(',', $select),
+                                '$top' => $targetSchema['limit'] ?? '100'
+                            ],
+                        ]);
+
+                        $entities = $response['value'] ?? [];
+
+                        foreach ($entities as $entity) {
+                            $label = $entity[$targetSchema['label']] ?? '';
+                            $value = $entity[$targetSchema['value']] ?? '';
+
+                            $this->_entityOptions[$target][] = [
+                                'label' => $label,
+                                'value' => $this->_formatLookupValue($targetSchema['entity'], $value),
+                            ];
+                        }
+                    } catch (Throwable $e) {
+                        Integration::apiError($this, $e, false);
+                    }
+                }
+            }
+
+            // With all possible options populated, add the options into the fields
+            foreach ($relationFields as $relationField) {
+                $targets = $relationField['Targets'] ?? [];
+                $options = [];
+
+                foreach ($targets as $target) {
+                    // Get the options for this field
+                    if (isset($this->_entityOptions[$target])) {
+                        $options = ArrayHelper::merge($options, $this->_entityOptions[$target]);
+                    }
+                }
+
+                $logicalName = $relationField['LogicalName'] ?? '';
+
+                // Get the field to add options to
+                $field = $fields[$logicalName] ?? null;
+
+                if (!$field || !$options) {
+                    continue;
+                }
+
+                // Add the options to the field
+                $field->options = [
+                    'label' => $field->name,
+                    'options' => $options,
                 ];
-
-                // Special handling for system users
-                if ($entityDefinition['LogicalName'] === 'systemuser') {
-                    $entitySchema['select'][] = 'applicationid';
-                    $entitySchema['orderby'] = $entityDefinition['PrimaryNameAttribute'];
-
-                    // Exclude system accounts that are application default
-                    $entitySchema['filter'] = 'applicationid eq null and isdisabled eq false';
-                }
-
-                $targetSchemas[$entityDefinition['LogicalName']] = $entitySchema;
             }
-        }
-
-        $event = new MicrosoftDynamics365TargetSchemasEvent([
-            'targetSchemas' => $targetSchemas,
-        ]);
-
-        $this->trigger(self::EVENT_MODIFY_TARGET_SCHEMAS, $event);
-
-        $targetSchemas = ArrayHelper::merge($targetSchemas, $event->targetSchemas);
-
-        // Populate our cached entity options, cached across multiple calls because we only need to
-        // fetch the collection once, for each entity type. Subsequent fields can re-use the options.
-        foreach ($relationFields as $relationField) {
-            $targets = $relationField['Targets'] ?? [];
-
-            foreach ($targets as $target) {
-                // Get the schema definition to do stuff
-                $targetSchema = $targetSchemas[$target] ?? '';
-
-                if (!$targetSchema) {
-                    continue;
-                }
-
-                // Provide a little cache, if we've already fetched items, no need to do again
-                if (isset($this->_entityOptions[$target])) {
-                    continue;
-                }
-
-                // We don't really need that much from the entities
-                $select = $targetSchema['select'] ?? [$targetSchema['label'], $targetSchema['value']];
-
-                // Fetch the entities and use the schema options to store. Be sure to limit and be performant.
-                $response = $this->request('GET', $targetSchema['entity'], [
-                    'query' => [
-                        '$expand' => $targetSchema['expand'] ?? null,
-                        '$filter' => $targetSchema['filter'] ?? null,
-                        '$orderby' => $targetSchema['orderby'] ?? null,
-                        '$select' => implode(',', $select),
-                        '$top' => $targetSchema['limit'] ?? '100'
-                    ],
-                ]);
-
-                $entities = $response['value'] ?? [];
-
-                foreach ($entities as $entity) {
-                    $label = $entity[$targetSchema['label']] ?? '';
-                    $value = $entity[$targetSchema['value']] ?? '';
-
-                    $this->_entityOptions[$target][] = [
-                        'label' => $label,
-                        'value' => $this->_formatLookupValue($targetSchema['entity'], $value),
-                    ];
-                }
-            }
-        }
-
-        // With all possible options populated, add the options into the fields
-        foreach ($relationFields as $relationField) {
-            $targets = $relationField['Targets'] ?? [];
-            $options = [];
-
-            foreach ($targets as $target) {
-                // Get the options for this field
-                if (isset($this->_entityOptions[$target])) {
-                    $options = ArrayHelper::merge($options, $this->_entityOptions[$target]);
-                }
-            }
-
-            $logicalName = $relationField['LogicalName'] ?? '';
-
-            // Get the field to add options to
-            $field = $fields[$logicalName] ?? null;
-
-            if (!$field || !$options) {
-                continue;
-            }
-
-            // Add the options to the field
-            $field->options = [
-                'label' => $field->name,
-                'options' => $options,
-            ];
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e, false);
         }
     }
 
@@ -787,17 +808,21 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
             return $this->_systemUsers;
         }
 
-        $response = $this->request('GET', 'systemusers', [
-            'query' => [
-                '$top' => '100',
-                '$select' => 'fullname,systemuserid,applicationid',
-                '$orderby' => 'fullname',
-                '$filter' => 'applicationid eq null and invitestatuscode eq 4 and isdisabled eq false',
-            ]
-        ]);
+        try {
+            $response = $this->request('GET', 'systemusers', [
+                'query' => [
+                    '$top' => '100',
+                    '$select' => 'fullname,systemuserid,applicationid',
+                    '$orderby' => 'fullname',
+                    '$filter' => 'applicationid eq null and invitestatuscode eq 4 and isdisabled eq false',
+                ]
+            ]);
 
-        foreach (($response['value'] ?? []) as $user) {
-            $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => 'systemusers(' . $user['systemuserid'] . ')'];
+            foreach (($response['value'] ?? []) as $user) {
+                $this->_systemUsers[] = ['label' => $user['fullname'], 'value' => 'systemusers(' . $user['systemuserid'] . ')'];
+            }
+        } catch (Throwable $e) {
+            Integration::apiError($this, $e, false);
         }
 
         return $this->_systemUsers;
