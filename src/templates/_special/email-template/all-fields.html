@@ -1,7 +1,5 @@
 {% for field in fields %}
     {% set value = submission.getFieldValue(field.fieldKey) %}
 
-    {% if not field.getIsCosmetic() %}
-        {{ formieInclude('field') }}
-    {% endif %}
+    {{ formieInclude('field') }}
 {% endfor %}
