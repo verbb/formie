@@ -1,5 +1,7 @@
 <p>
-    <strong>{{ field.label | t('formie') }}</strong><br>
+    {% if field.hasEmailLabel() %}
+        <strong>{{ field.label | t('formie') }}</strong><br>
+    {% endif %}
 
     {% if field.isValueEmpty(value, submission) and field.hasEmailPlaceholder() %}
         {{ notification.getPlaceholder() }}

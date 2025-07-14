@@ -330,6 +330,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return false;
     }
 
+    public function hasEmailLabel(): bool
+    {
+        return $this->hasLabel();
+    }
+
     public function hasEmailPlaceholder(): bool
     {
         return true;

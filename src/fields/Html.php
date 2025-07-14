@@ -67,6 +67,11 @@ class Html extends CosmeticField
         return true;
     }
 
+    public function hasEmailLabel(): bool
+    {
+        return false;
+    }
+
     public function getRenderedHtmlContent(): string
     {
         $variables = $this->getRenderOptions();
