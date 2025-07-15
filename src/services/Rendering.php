@@ -559,12 +559,14 @@ class Rendering extends Component
 
         $output = [];
 
+        $cssAttributes = $renderOptions['cssAttributes'] ?? [];
+
         if ($inline) {
-            $output[] = Html::cssFile($cssLayout);
-            $output[] = Html::cssFile($cssTheme);
+            $output[] = Html::cssFile($cssLayout, $cssAttributes);
+            $output[] = Html::cssFile($cssTheme, $cssAttributes);
         } else {
-            $view->registerCssFile($cssLayout);
-            $view->registerCssFile($cssTheme);
+            $view->registerCssFile($cssLayout, $cssAttributes);
+            $view->registerCssFile($cssTheme, $cssAttributes);
         }
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
