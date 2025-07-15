@@ -191,11 +191,6 @@ class Variables
                 Craft::$app->getSites()->setCurrentSite($site);
             }
 
-            $craftMailSettings = App::mailSettings();
-            $systemEmail = $craftMailSettings->fromEmail;
-            $systemReplyTo = $craftMailSettings->replyToEmail;
-            $systemName = $craftMailSettings->fromName;
-
             // Date Info
             $timeZone = Craft::$app->getTimeZone();
             $now = new DateTime('now', new DateTimeZone($timeZone));
@@ -212,9 +207,10 @@ class Variables
                 'submissionDate' => $dateCreated?->format('Y-m-d H:i:s'),
                 'submissionSite' => $submission?->siteId ?? null,
 
-                'systemEmail' => $systemEmail,
-                'systemReplyTo' => $systemReplyTo,
-                'systemName' => $systemName,
+                // Keep this blank to fall back to Craft defaults, which resolve site overrides
+                'systemEmail' => '',
+                'systemReplyTo' => '',
+                'systemName' => '',
                 'craft' => new CraftVariable(),
                 'currentSite' => $site,
                 'currentUser' => $currentUser,

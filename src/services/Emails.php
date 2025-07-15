@@ -66,7 +66,11 @@ class Emails extends Component
         $mailer = Craft::$app->getMailer();
 
         /** @var Message $newEmail */
-        $newEmail = Craft::createObject(['class' => $mailer->messageClass, 'mailer' => $mailer]);
+        $newEmail = Craft::createObject([
+            'class' => $mailer->messageClass, 
+            'mailer' => $mailer,
+            'siteId' => $submission->siteId,
+        ]);
 
         $event = new MailEvent([
             'email' => $newEmail,
@@ -78,10 +82,9 @@ class Emails extends Component
         // Update the email from the event
         $newEmail = $event->email;
 
-        $craftMailSettings = App::mailSettings();
-
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification) ?: $craftMailSettings->fromEmail;
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification) ?: $craftMailSettings->fromName;
+        // Don't fall back on Craft settings here, that'll be site-resolved in `Craft::$app->getMailer()->send()`
+        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification);
+        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification);
 
         $fromEmail = $this->_getFilteredString($fromEmail);
         $fromName = $this->_getFilteredString($fromName);
