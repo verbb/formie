@@ -1535,6 +1535,15 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return $handles;
     }
 
+    public function getSearchKeywords(mixed $value, ElementInterface $element): string
+    {
+        if ($this->enableContentEncryption) {
+            return '';
+        }
+
+        return $this->getValueAsString($value, $element);
+    }
+
 
     // Protected Methods
     // =========================================================================

@@ -2,6 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\base\SubFieldInterface;
@@ -38,6 +39,7 @@ use craft\elements\User;
 use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
+use craft\events\IndexKeywordsEvent;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -105,6 +107,17 @@ class Submissions extends Component
                     $event->sortOptions["field:{$field->handle}"] = $field->getSortOption();
                 }
             }
+        }
+    }
+
+    public function beforeIndexKeywords(IndexKeywordsEvent $event)
+    {
+        if (!($event->element instanceof Submission)) {
+            return;
+        }
+
+        if (!$event->element->hasSearchIndexAttribute($event->attribute)) {
+            $event->isValid = false;
         }
     }
 

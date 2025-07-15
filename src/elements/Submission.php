@@ -244,9 +244,23 @@ class Submission extends CustomElement
         return $attributes;
     }
 
-    protected static function defineSearchableAttributes(): array
+    protected static function defineSearchableElementAttributes(): array
     {
         return ['title'];
+    }
+
+    protected static function defineSearchableAttributes(): array
+    {
+        $fieldHandles = (new Query())
+            ->select(['handle'])
+            ->from(TABLE::FORMIE_FIELDS)
+            ->column();
+
+        $fieldHandles = array_values(array_unique($fieldHandles));
+
+        // Due to this being a static function, we don't have access to just _this_ submission's fields
+        // So collect them all system-wide here, and we filter later in `searchKeywords()`.
+        return array_merge(static::defineSearchableElementAttributes(), $fieldHandles);
     }
 
     protected static function defineSortOptions(): array
@@ -559,7 +573,7 @@ class Submission extends CustomElement
 
     public function getCustomFields(): array
     {
-        // For compatibility with essential element services like search
+        // Backward compatibility
         return $this->getFields();
     }
 
@@ -1101,6 +1115,16 @@ class Submission extends CustomElement
         return $this->_previousIsSpam !== $this->isSpam;
     }
 
+    public function hasSearchIndexAttribute(string $attribute): bool
+    {
+        if (in_array($attribute, static::defineSearchableElementAttributes(), true)) {
+            return true;
+        }
+
+        // Don't use `getFieldByHandle` due to attribute being lowercase
+        return (bool)$this->getFieldBySearchIndex($attribute);
+    }
+
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */
@@ -1386,6 +1410,22 @@ class Submission extends CustomElement
         }
 
         return UrlHelper::cpUrl($path, $params);
+    }
+
+    protected function searchKeywords(string $attribute): string
+    {
+        if (in_array($attribute, static::defineSearchableElementAttributes(), true)) {
+            return parent::searchKeywords($attribute);
+        }
+
+        // DO use `getFieldByHandle` due to attribute being lowercase
+        if ($field = $this->getFieldByHandle($attribute)) {
+            $fieldValue = $this->getFieldValue($field->handle);
+
+            return $field->getSearchKeywords($fieldValue, $this);
+        }
+
+        return '';
     }
 
 

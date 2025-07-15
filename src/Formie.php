@@ -70,6 +70,7 @@ use craft\services\Gc;
 use craft\services\Gql;
 use craft\services\Plugins;
 use craft\services\ProjectConfig;
+use craft\services\Search;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
 use craft\helpers\UrlHelper;
@@ -532,6 +533,9 @@ class Formie extends Plugin
         // Custom handling of element chips to prevent CP slide-out editing which isn't supported
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Form::class, 'defineElementChipHtml']);
         Event::on(Cp::class, Cp::EVENT_DEFINE_ELEMENT_CHIP_HTML, [Submission::class, 'defineElementChipHtml']);
+
+        // Fix lack of support for submission-specific fields to index
+        Event::on(Search::class, Search::EVENT_BEFORE_INDEX_KEYWORDS, [$this->getSubmissions(), 'beforeIndexKeywords']);
 
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
