@@ -3,6 +3,7 @@ namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
+use verbb\formie\base\CosmeticField;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FieldTrait;
@@ -251,12 +252,19 @@ class Submission extends CustomElement
 
     protected static function defineSearchableAttributes(): array
     {
-        $fieldHandles = (new Query())
-            ->select(['handle'])
+        $cosmeticFieldTypes = Formie::$plugin->getFields()->getFieldsByType(CosmeticField::class);
+
+        $fieldIds = (new Query())
+            ->select(['id'])
             ->from(TABLE::FORMIE_FIELDS)
+            ->where(['not in', 'type', $cosmeticFieldTypes])
             ->column();
 
-        $fieldHandles = array_values(array_unique($fieldHandles));
+        $fieldHandles = [];
+
+        foreach ($fieldIds as $fieldId) {
+            $fieldHandles[] = "field:$fieldId";
+        }
 
         // Due to this being a static function, we don't have access to just _this_ submission's fields
         // So collect them all system-wide here, and we filter later in `searchKeywords()`.
@@ -1121,7 +1129,6 @@ class Submission extends CustomElement
             return true;
         }
 
-        // Don't use `getFieldByHandle` due to attribute being lowercase
         return (bool)$this->getFieldBySearchIndex($attribute);
     }
 
@@ -1418,8 +1425,7 @@ class Submission extends CustomElement
             return parent::searchKeywords($attribute);
         }
 
-        // DO use `getFieldByHandle` due to attribute being lowercase
-        if ($field = $this->getFieldByHandle($attribute)) {
+        if ($field = $this->getFieldBySearchIndex($attribute)) {
             $fieldValue = $this->getFieldValue($field->handle);
 
             return $field->getSearchKeywords($fieldValue, $this);

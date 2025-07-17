@@ -91,22 +91,20 @@ class Fields extends Component
     private array $_fields = [];
     private array $_fieldsForForm = [];
     private array $_registeredFields = [];
+    private array $_registeredFieldTypes = [];
     private array $_existingFields = [];
 
 
     // Public Methods
     // =========================================================================
 
-    public function getRegisteredFields(bool $excludeDisabled = true): array
+    public function getRegisteredFieldTypes(bool $excludeDisabled = true): array
     {
-        if (count($this->_registeredFields)) {
-            return $this->_registeredFields;
+        if (count($this->_registeredFieldTypes)) {
+            return $this->_registeredFieldTypes;
         }
 
-        $settings = Formie::$plugin->getSettings();
-        $disabledFields = $settings->disabledFields;
-
-        $fields = [
+        $fieldTypes = [
             formiefields\Address::class,
             formiefields\Agree::class,
             formiefields\Calculations::class,
@@ -168,20 +166,34 @@ class Fields extends Component
         ];
 
         if (Craft::$app->getEdition() !== Craft::Solo) {
-            $fields = array_merge($fields, [
+            $fieldTypes = array_merge($fieldTypes, [
                 formiefields\Users::class,
             ]);
         }
 
         if (Plugin::isPluginInstalledAndEnabled('commerce')) {
-            $fields = array_merge($fields, [
+            $fieldTypes = array_merge($fieldTypes, [
                 formiefields\Products::class,
                 formiefields\Variants::class,
             ]);
         }
 
+        return $this->_registeredFieldTypes = $fieldTypes;
+    }
+
+    public function getRegisteredFields(bool $excludeDisabled = true): array
+    {
+        if (count($this->_registeredFields)) {
+            return $this->_registeredFields;
+        }
+
+        $settings = Formie::$plugin->getSettings();
+        $disabledFields = $settings->disabledFields;
+
+        $fieldTypes = $this->getRegisteredFieldTypes($excludeDisabled);
+
         $event = new RegisterFieldsEvent([
-            'fields' => $fields,
+            'fields' => $fieldTypes,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_FIELDS, $event);
@@ -200,6 +212,15 @@ class Fields extends Component
         }
 
         return $this->_registeredFields;
+    }
+
+    public function getFieldsByType(string $typeClass): array
+    {
+        $fields = $this->getRegisteredFieldTypes();
+
+        return array_values(array_filter($fields, function(string $fieldClass) use ($typeClass) {
+            return is_subclass_of($fieldClass, $typeClass);
+        }));
     }
 
     public function getFormBuilderFieldTypes(): array

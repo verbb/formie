@@ -9,6 +9,7 @@ use verbb\formie\base\SubFieldInterface;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\PruneSubmissionEvent;
 use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\events\SubmissionEvent;
@@ -40,6 +41,7 @@ use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\IndexKeywordsEvent;
+use craft\events\SearchEvent;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -118,6 +120,13 @@ class Submissions extends Component
 
         if (!$event->element->hasSearchIndexAttribute($event->attribute)) {
             $event->isValid = false;
+        }
+    }
+
+    public function beforeSearch(SearchEvent $event)
+    {
+        if (!($event->elementQuery instanceof SubmissionQuery)) {
+            return;
         }
     }
 
