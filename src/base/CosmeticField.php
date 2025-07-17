@@ -16,4 +16,14 @@ abstract class CosmeticField extends Field implements CosmeticFieldInterface
         return false;
     }
 
+    public function hasEmailLabel(): bool
+    {
+        return false;
+    }
+
+    public function hasEmailPlaceholder(): bool
+    {
+        return false;
+    }
+
 }

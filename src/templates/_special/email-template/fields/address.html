@@ -1,5 +1,15 @@
 {% for field in field.getFields(false) %}
     {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-    <strong>{{ field.label | t('formie') }}: </strong>{{ field.getValueAsString(value, submission) }}<br>
+    {% if field.hasEmailLabel() %}
+        <strong>{{ field.label | t('formie') }}:</strong>
+    {% endif %}
+
+    {% if field.isValueEmpty(value, submission) and field.hasEmailPlaceholder() %}
+        {{ notification.getPlaceholder() }}
+    {% else %}
+        {{ field.getEmailHtml(submission, notification, value) | raw }}
+    {% endif %}
+
+    <br>
 {% endfor %}

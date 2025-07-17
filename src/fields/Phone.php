@@ -179,8 +179,8 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        if ($value instanceof PhoneModel && !$value->number) {
-            return true;
+        if ($value instanceof PhoneModel) {
+            return $value->isEmpty();
         }
 
         return parent::isValueEmpty($value, $element);
@@ -188,48 +188,20 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
         if ($value instanceof PhoneModel) {
-            return $value;
-        }
-
-        if (is_array($value)) {
+            $phone = $value;
+        } else if (is_array($value)) {
             $phone = new PhoneModel($value);
             $phone->hasCountryCode = isset($value['country']);
-
-            // Potentially look at refactoring this at the field level, or the model level
-            if ($this->enableContentEncryption && str_contains($phone->number, 'base64:')) {
-                $phone->number = StringHelper::decdec($phone->number);
-            }
-
-            return $phone;
+        } else {
+            $phone = new PhoneModel();
+            $phone->number = $value;
+            $phone->hasCountryCode = false;
         }
 
-        $phone = new PhoneModel();
-        $phone->number = $value;
-        $phone->hasCountryCode = false;
-
-        // Potentially look at refactoring this at the field level, or the model level
-        if ($this->enableContentEncryption && str_contains($phone->number, 'base64:')) {
-            $phone->number = StringHelper::decdec($phone->number);
-        }
-
-        return $phone;
-    }
-
-    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
-    {
-        // Handle if we need to save field content as encrypted
-        if ($this->enableContentEncryption) {
-            // Potentially look at refactoring this at the field level, or the model level
-            if ($value instanceof PhoneModel) {
-                $value->number = StringHelper::encenc((string)$value->number);
-            }
-        }
-
-        return parent::serializeValue($value, $element);
+        return parent::normalizeValue($phone, $element);
     }
 
     public function getFrontEndJsModules(): ?array
