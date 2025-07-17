@@ -119,15 +119,20 @@ class Phone extends Model implements EncodableInterface
         return '';
     }
 
-    public function encode(mixed $value): mixed
+    public function encode(): mixed
     {
+        // Avoid modifying the original
+        $value = clone $this;
         $value->number = StringHelper::encenc((string)$value->number);
 
         return $value;
     }
 
-    public function decode(mixed $value): mixed
+    public function decode(): mixed
     {
+        // Avoid modifying the original
+        $value = clone $this;
+        
         if (str_contains($value->number, 'base64:')) {
             $value->number = StringHelper::decdec($value->number);
         } 

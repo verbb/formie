@@ -420,17 +420,17 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // Check if the string contains a previously encrypted version, or the field is enabled
         // This might occur if the field was set to encrypted, but changed later. We still need to
         // decrypt field content
-        if ($this->enableContentEncryption) {
-            if (is_string($value)) {
-                // Ensure that we sanitize content
-                $value = StringHelper::cleanString($value);
+        if (is_string($value)) {
+            // Ensure that we sanitize content
+            $value = StringHelper::cleanString($value);
 
-                if (str_contains($value, 'base64:')) {
-                    $value = StringHelper::decdec($value);
-                }
-            } else if ($value instanceof EncodableInterface) {
-                $value = $value->decode($value);
+            if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
+                $value = StringHelper::decdec($value);
             }
+        }
+
+        if ($value instanceof EncodableInterface) {
+            $value = $value->decode();
         }
 
         return $value;
@@ -438,9 +438,12 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        // Run this first for models that support encoding
         if ($this->enableContentEncryption && $value instanceof EncodableInterface) {
-            $value = $value->encode($value);
-        } else if ($value instanceof Serializable) {
+            $value = $value->encode();
+        }
+
+        if ($value instanceof Serializable) {
             // If the object explicitly defines its savable value, use that
             $value = $value->serialize();
         } else if ($value instanceof Arrayable) {
