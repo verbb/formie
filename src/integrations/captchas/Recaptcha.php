@@ -212,7 +212,7 @@ class Recaptcha extends Captcha
             return $isValid;
         }
 
-        $response = $client->post('https://www.google.com/recaptcha/api/siteverify', [
+        $response = $client->post('https://www.recaptcha.net/recaptcha/api/siteverify', [
             'form_params' => [
                 'secret' => $secretKey,
                 'response' => $responseToken,

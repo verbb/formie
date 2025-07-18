@@ -120,6 +120,7 @@ class Pipedrive extends Crm
                     new IntegrationField([
                         'handle' => 'owner_id',
                         'name' => Craft::t('formie', 'Owner ID'),
+                        'type' => IntegrationField::TYPE_NUMBER,
                     ]),
                     new IntegrationField([
                         'handle' => 'note',
