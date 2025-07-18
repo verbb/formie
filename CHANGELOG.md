@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.1.52 - 2025-07-18
+
+### Added
+- Add support for Salesforce integration for Leads, for task creation on duplicate, to use the Lead ID by default.
+- Add warning text for File Upload fields, when uploading to a filesystem with public URLs.
+
+### Changed
+- Update English translations.
+- Update Recaptcha server-side verification to use recaptcha.net for better availability.
+
+### Fixed
+- Fix typecast of Pipedrive “Owner ID” value.
+- Fix Signature field output in emails for multi-site installs.
+
 ## 2.1.51 - 2025-07-03
 
 ### Fixed
@@ -2858,7 +2872,6 @@ The fix was already present for Contacts.
 - Fixed element fields not showing correctly when previewing email notifications.
 - Fixed an error when previewing Group or Repeater fields in email notifications.
 
-
 ## 1.4.26 - 2021-11-23
 
 ### Added
@@ -2876,7 +2889,6 @@ The fix was already present for Contacts.
 - Fixed page condition typings for GraphQL.
 - Revert GraphQL changes made in 1.4.24 causing errors when querying page conditions.
 - Fixed "All Fields" in email notification content showing conditionally hidden fields.
-
 
 ## 1.4.25 - 2021-11-14
 
