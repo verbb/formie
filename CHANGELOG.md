@@ -1,5 +1,32 @@
 # Changelog
 
+## 3.0.32 - 2025-07-18
+
+### Added
+- Add the ability to set `cssAttributes` when rendering form CSS.
+- Add support for proper search index handling for submission fields.
+- Add support for Salesforce integration for Leads, for task creation on duplicate, to use the Lead ID by default.
+- Add warning text for File Upload fields, when uploading to a filesystem with public URLs.
+
+### Changed
+- Update English translations.
+- Improve error handling for Dynamics 365 with regards to entity permissions.
+- Update Recaptcha server-side verification to use recaptcha.net for better availability.
+
+### Fixed
+- Fix phone field value encryption.
+- Fix cosmetic fields in emails, improve Phone encrypted values in email, and improve sub-field email placeholder values.
+- Fix Submission search handling for cosmetic or long field handles.
+- Fix support for site-specific email settings for email notifications.
+- Fix cosmetic fields not showing in email notifications.
+- Fix typecast of Pipedrive “Owner ID” value.
+- Fix Form element fields using IDs for source settings.
+- Fix cosmetic fields not showing in email notifications.
+- Fix an error for empty encrypted Phone Number fields.
+- Fix an issue with Friendly Captcha for Ajax forms with Start Mode = Auto.
+- Fix Signature field output in emails for multi-site installs.
+- Fix incorrect type for “Submission Date” when mapping to integrations.
+
 ## 3.0.31 - 2025-07-03
 
 ### Changed
