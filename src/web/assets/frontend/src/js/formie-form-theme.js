@@ -1,4 +1,4 @@
-import { t } from './utils/utils';
+import { t, getAjaxClient } from './utils/utils';
 import { Bouncer } from './utils/bouncer';
 
 export class FormieFormTheme {
@@ -277,11 +277,7 @@ export class FormieFormTheme {
                 });
 
                 // Ensure we still update the current page server-side
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', e.target.getAttribute('href'), true);
-                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                const xhr = getAjaxClient(this.$form, 'GET', e.target.getAttribute('href'), true);
                 xhr.send();
             });
         });
@@ -520,11 +516,7 @@ export class FormieFormTheme {
         const method = this.$form.getAttribute('method');
         const action = this.$form.getAttribute('action');
 
-        const xhr = new XMLHttpRequest();
-        xhr.open(method ? method : 'POST', action ? action : window.location.href, true);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        const xhr = getAjaxClient(this.$form, method ? method : 'POST', action ? action : window.location.href, true);
         xhr.timeout = (this.settings.ajaxTimeout || 10) * 1000;
 
         this.beforeSubmit();
@@ -726,9 +718,7 @@ export class FormieFormTheme {
             }
 
             // Smooth-scroll to the top of the form.
-            if (this.settings.scrollToTop) {
-                this.scrollToForm();
-            }
+            this.scrollToForm();
         }
 
         // Reset values regardless, for the moment
@@ -819,6 +809,7 @@ export class FormieFormTheme {
 
         // Update tabs and progress bar if we're using them
         const $progress = this.$form.querySelector('[data-fui-progress-bar]');
+        const $progressValue = this.$form.querySelector('[data-fui-progress-value]');
 
         if ($progress && data.nextPageIndex >= 0) {
             const pageIndex = parseInt(data.nextPageIndex, 10) + 1;
@@ -826,7 +817,9 @@ export class FormieFormTheme {
 
             $progress.style.width = `${progress}%`;
             $progress.setAttribute('aria-valuenow', progress);
-            $progress.textContent = `${progress}%`;
+
+            $progressValue.setAttribute('data-fui-progress-value', progress);
+            $progressValue.textContent = `${progress}%`;
         }
 
         const $tabs = this.$form.querySelectorAll('[data-fui-page-tab]');
@@ -864,9 +857,7 @@ export class FormieFormTheme {
         }
 
         // Smooth-scroll to the top of the form.
-        if (this.settings.scrollToTop) {
-            this.scrollToForm();
-        }
+        this.scrollToForm();
     }
 
     setCurrentPage(pageId) {
@@ -895,14 +886,10 @@ export class FormieFormTheme {
     }
 
     scrollToForm() {
-        // Check for scroll-padding-top or `scroll-margin-top`
-        const extraPadding = parseInt(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-        const extraMargin = parseInt(getComputedStyle(document.documentElement).scrollMarginTop) || 0;
-
         // Because the form can be hidden, use the parent wrapper
-        window.scrollTo({
-            top: this.$form.parentNode.getBoundingClientRect().top + window.pageYOffset - 100 - extraPadding - extraMargin,
+        this.$form.parentNode.scrollIntoView({
             behavior: 'smooth',
+            block: 'start', // Align to the top of the viewport
         });
     }
 

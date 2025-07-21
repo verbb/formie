@@ -21,22 +21,18 @@ use craft\helpers\Template;
 
 use Twig\Markup;
 
+use yii\db\Schema;
+
 class Payment extends FormField
 {
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Payment');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/payment/icon.svg';
@@ -72,9 +68,11 @@ class Payment extends FormField
         }
     }
 
-    /**
-     * @inheritDoc
-     */
+    public function getContentColumnType(): string
+    {
+        return Schema::TYPE_TEXT;
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
@@ -90,9 +88,6 @@ class Payment extends FormField
         return $model;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/input', [
@@ -102,9 +97,6 @@ class Payment extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/preview', [
@@ -112,9 +104,6 @@ class Payment extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPaymentHtml(array $renderOptions = []): Markup
     {
         $integration = $this->getPaymentIntegration();
@@ -126,9 +115,6 @@ class Payment extends FormField
         return Template::raw($integration->getFrontEndHtml($this, $renderOptions));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsModules(): ?array
     {
         $integration = $this->getPaymentIntegration();
@@ -140,9 +126,6 @@ class Payment extends FormField
         return $integration->getFrontEndJsVariables($this);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndSubfields($context): array
     {
         $integration = $this->getPaymentIntegration();
@@ -154,9 +137,6 @@ class Payment extends FormField
         return $integration->getFrontEndSubfields($this, $context);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPaymentIntegration(): ?IntegrationInterface
     {
         if (!$this->paymentIntegration) {
@@ -166,9 +146,6 @@ class Payment extends FormField
         return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->paymentIntegration);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         if (!parent::beforeSave($isNew)) {
@@ -182,9 +159,6 @@ class Payment extends FormField
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -208,9 +182,6 @@ class Payment extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -234,9 +205,6 @@ class Payment extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -252,9 +220,6 @@ class Payment extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

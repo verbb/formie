@@ -20,9 +20,6 @@ class Loqate extends AddressProvider
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Loqate');
@@ -44,9 +41,6 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Loqate](https://www.loqate.com/)']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -56,9 +50,6 @@ class Loqate extends AddressProvider
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {

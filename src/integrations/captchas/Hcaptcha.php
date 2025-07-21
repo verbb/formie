@@ -39,9 +39,6 @@ class Hcaptcha extends Captcha
         return Craft::t('formie', 'hCaptcha is an anti-bot solution that protects user privacy and rewards websites. It is the most popular reCAPTCHA alternative. Find out more via [hCaptcha](https://www.hcaptcha.com/).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
@@ -57,9 +54,6 @@ class Hcaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_form-settings', $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
@@ -68,9 +62,6 @@ class Hcaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
@@ -93,9 +84,6 @@ class Hcaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getGqlVariables(Form $form, $page = null): array
     {
         return [
@@ -105,36 +93,30 @@ class Hcaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('h-captcha-response');
+        $responseToken = $this->getRequestParam('h-captcha-response');
 
-        if (!$response) {
+        if (!$responseToken) {
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
-
-        $response = $client->post('https://hcaptcha.com/siteverify', [
+        $response = $this->request('POST', 'https://hcaptcha.com/siteverify', [
             'form_params' => [
                 'secret' => App::parseEnv($this->secretKey),
-                'response' => $response,
+                'response' => $responseToken,
                 'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
 
-        $result = Json::decode((string)$response->getBody(), true);
-        $success = $result['success'] ?? false;
+        $success = $response['success'] ?? false;
 
         if (!$success) {
-            $this->spamReason = Json::encode($result);
+            $this->spamReason = Json::encode($response);
         }
 
-        if (isset($result['score'])) {
-            return ($result['score'] < $this->minScore);
+        if (isset($response['score'])) {
+            return ($response['score'] < $this->minScore);
         }
 
         return $success;

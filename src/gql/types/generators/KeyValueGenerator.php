@@ -12,9 +12,6 @@ class KeyValueGenerator implements GeneratorInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null, $contentFields = []): array
     {
         $typeName = self::getName();

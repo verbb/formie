@@ -30,6 +30,20 @@ use Carbon\Carbon;
 
 class CalendarEvent extends Element
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Calendar Event');
+    }
+
+    public static function getRequiredPlugins(): array
+    {
+        return ['calendar'];
+    }
+
+
     // Properties
     // =========================================================================
 
@@ -40,9 +54,6 @@ class CalendarEvent extends Element
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -55,25 +66,11 @@ class CalendarEvent extends Element
         });
     }
 
-    /**
-     * @inheritDoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Calendar Event');
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -90,9 +87,6 @@ class CalendarEvent extends Element
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchFormSettings()
     {
         $customFields = [];
@@ -115,9 +109,6 @@ class CalendarEvent extends Element
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getElementAttributes()
     {
         return [
@@ -201,9 +192,6 @@ class CalendarEvent extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUpdateAttributes()
     {
         $attributes = [];
@@ -249,9 +237,6 @@ class CalendarEvent extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission)
     {
         if (!$this->calendarId) {
@@ -347,9 +332,6 @@ class CalendarEvent extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAuthor($form)
     {
         $defaultAuthorId = $form->settings->integrations[$this->handle]['defaultAuthorId'] ?? '';
@@ -369,9 +351,6 @@ class CalendarEvent extends Element
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getCalendarSettings()
     {
         $calendars = $this->getFormSettingValue('elements');

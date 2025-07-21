@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ 'Confirming Your Payment' | t('formie') }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-gray-100 flex items-center justify-center px-4">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center space-y-6">
+        <h2 class="text-2xl font-semibold text-gray-800">{{ 'Confirming your payment...' | t('formie') }}</h2>
+        <p class="text-gray-600">{{ 'Please wait while we verify your transaction. This may take a few moments.' | t('formie') }}</p>
+
+        <div class="flex justify-center">
+            <svg class="animate-spin h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+
+        <div id="error" class="hidden text-red-500 text-sm mt-4"></div>
+        <button id="retry" class="hidden mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700" onclick="location.reload()">{{ 'Try Again' | t('formie') }}</button>
+    </div>
+
+    {% js %}
+
+    function showError(message) {
+        const error = document.getElementById('error');
+        const retry = document.getElementById('retry');
+
+        error.textContent = message;
+        error.classList.remove('hidden');
+        retry.classList.remove('hidden');
+    }
+
+    let pollInterval = 3000;
+    let pollCount = 0;
+    let maxPolls = 20; // e.g. 60 seconds
+    let checkGatewayEvery = 10000;
+
+    const interval = setInterval(async () => {
+        pollCount++;
+
+        const params = new URLSearchParams({
+            paymentUid: '{{ payment.uid }}',
+        });
+
+        // Only check gateway every 10s
+        if ((pollCount * pollInterval) % checkGatewayEvery === 0) {
+            params.append('checkGateway', '1');
+        }
+
+        try {
+            const res = await fetch(`/actions/formie/payment-webhooks/poll-status?${params.toString()}`);
+            const json = await res.json();
+
+            if (json.status === 'success') {
+                window.location.href = json.redirectUrl;
+                clearInterval(interval);
+            } else if (json.status === 'failed') {
+                showError(json.message || '{{ 'Payment failed. Please try again.' | t('formie') }}');
+                clearInterval(interval);
+            } else if (pollCount >= maxPolls) {
+                showError('{{ 'We could not confirm your payment in time. Please contact support.' | t('formie') }}');
+                clearInterval(interval);
+            }
+        } catch (e) {
+            showError('{{ 'Something went wrong while checking your payment. Please try again.' | t('formie') }}');
+            clearInterval(interval);
+        }
+    }, pollInterval);
+
+    {% endjs %}
+</body>
+</html>

@@ -23,11 +23,6 @@ class NestedFieldRow extends ActiveRecord
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     *
-     * @return string
-     */
     public static function tableName(): string
     {
         return '{{%formie_nestedfieldrows}}';

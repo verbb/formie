@@ -27,9 +27,6 @@ class SharpSpring extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'SharpSpring');
@@ -56,9 +53,6 @@ class SharpSpring extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -269,13 +263,13 @@ class SharpSpring extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.sharpspring.com/pubapi/v1.2/',
             'query' => [
                 'accountID' => App::parseEnv($this->accountId),
@@ -330,6 +324,12 @@ class SharpSpring extends Crm
 
         // Serialize the field values in a SharpSpring-specific fashion
         $serializedValues = $this->_serializeValuesForForm($submission);
+
+        // Establish tracking by retrieving cookie and setting the field if it's set
+        if (isset($_COOKIE['__ss_tk'])) {
+            $trackingid__sb = $_COOKIE['__ss_tk'];
+            $serializedValues = $serializedValues['trackingid__sb'] = $trackingid__sb;
+        }
 
         // Send the payload to SharpSpring to tell them what fields are available
         // Create a new client because this isn't the same API as the rest of the integration.

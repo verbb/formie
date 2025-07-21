@@ -19,9 +19,6 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function generateTypes(mixed $context = null): array
     {
         $forms = Formie::$plugin->getForms()->getAllForms();
@@ -41,9 +38,6 @@ class FormGenerator extends Generator implements GeneratorInterface, SingleGener
         return $gqlTypes;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function generateType(mixed $context): mixed
     {
         $typeName = Form::gqlTypeNameByContext($context);

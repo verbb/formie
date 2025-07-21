@@ -87,9 +87,6 @@ class NestedFieldRowQuery extends ElementQuery
         $this->_blocks = $blocks;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function all($db = null): array
     {
         if ($this->_blocks) {
@@ -100,9 +97,6 @@ class NestedFieldRowQuery extends ElementQuery
         return parent::all($db);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function one($db = null): Model|array|null
     {
         if ($this->_blocks) {
@@ -116,9 +110,6 @@ class NestedFieldRowQuery extends ElementQuery
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function beforePrepare(): bool
     {
         if ($this->fieldId !== null && empty($this->fieldId)) {
@@ -167,9 +158,6 @@ class NestedFieldRowQuery extends ElementQuery
         return parent::beforePrepare();
     }
 
-    /**
-     * @inheritdoc
-     */
     protected function customFields(): array
     {
         // This method won't get called if $this->fieldId isn't set to a single int

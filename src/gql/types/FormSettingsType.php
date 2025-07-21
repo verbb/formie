@@ -54,6 +54,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::string(),
                     'description' => 'The form’s progress bar position. Either `start` or `end`.',
                 ],
+                'progressValuePosition' => [
+                    'name' => 'progressValuePosition',
+                    'type' => Type::string(),
+                    'description' => 'The form’s progress bar value position. Either `left`, `right`, `inside-left`, `inside-center`, `inside-right` or `hidden`.',
+                ],
                 'defaultLabelPosition' => [
                     'name' => 'defaultLabelPosition',
                     'type' => Type::string(),

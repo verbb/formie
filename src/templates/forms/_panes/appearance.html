@@ -38,20 +38,29 @@
 
 <div id="progress-position" class="{{ not form.settings.displayPageProgress ? 'hidden' }}">
     {{ forms.selectField({
-        label: 'Page Progress Position' | t('formie'),
+        label: 'Progress Position' | t('formie'),
         instructions: 'Select the position of the page progress indicator in the form.' | t('formie'),
         name: 'settings[progressPosition]',
         options: [
-            {
-                label: 'Start of form' | t('formie'),
-                value: 'start',
-            },
-            {
-                label: 'End of form' | t('formie'),
-                value: 'end',
-            }
+            { label: 'Start of form' | t('formie'), value: 'start' },
+            { label: 'End of form' | t('formie'), value: 'end' },
         ],
         value: form.settings.progressPosition ?? 'end',
+    }) }}
+
+    {{ forms.selectField({
+        label: 'Progress Value Position' | t('formie'),
+        instructions: 'Select the position for the value of the page progress indicator.' | t('formie'),
+        name: 'settings[progressValuePosition]',
+        options: [
+            { label: 'Left of Indicator' | t('formie'), value: 'left' },
+            { label: 'Right of Indicator' | t('formie'), value: 'right' },
+            { label: 'Inside Left of Indicator' | t('formie'), value: 'inside-left' },
+            { label: 'Inside Center of Indicator' | t('formie'), value: 'inside-center' },
+            { label: 'Inside Right of Indicator' | t('formie'), value: 'inside-right' },
+            { label: 'Hidden' | t('formie'), value: 'hidden' },
+        ],
+        value: form.settings.progressValuePosition ?? 'end',
     }) }}
 </div>
 

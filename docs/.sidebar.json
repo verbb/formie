@@ -77,12 +77,14 @@
         "collapsable": false,
         "children": [
             "integrations/address-providers",
+            "integrations/automations",
             "integrations/captchas",
             "integrations/elements",
             "integrations/email-marketing",
             "integrations/crm",
+            "integrations/help-desk",
+            "integrations/messaging",
             "integrations/payments",
-            "integrations/webhooks",
             "integrations/miscellaneous"
         ]
     },

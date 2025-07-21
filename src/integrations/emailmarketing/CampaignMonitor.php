@@ -21,9 +21,6 @@ class CampaignMonitor extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Campaign Monitor');
@@ -45,9 +42,6 @@ class CampaignMonitor extends EmailMarketing
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -226,13 +220,13 @@ class CampaignMonitor extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.createsend.com/api/v3.2/',
             'auth' => [App::parseEnv($this->apiKey), 'formie'],
         ]);

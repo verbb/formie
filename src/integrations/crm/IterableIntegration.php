@@ -224,36 +224,7 @@ class IterableIntegration extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.iterable.com/api/',
-            'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
-    {
-        // When mapping to message types, the field settings will be an array of `IntegrationCollection` objects.
-        // So we need to select the type's settings that we're mapping to and return just the field.
-        if ($fieldSettings === 'messageTypes') {
-            $collections = $this->getFormSettingValue($fieldSettings);
-
-            foreach ($collections as $collection) {
-                if ($collection->id === $this->messageTypeId) {
-                    $fieldSettings = $collection->fields;
-                }
-            }
-        }
-
-        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
-    }
-
-
+    
     // Protected Methods
     // =========================================================================
 
@@ -273,6 +244,14 @@ class IterableIntegration extends Crm
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.iterable.com/api/',
+            'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
+        ]);
     }
 
 

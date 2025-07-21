@@ -60,9 +60,6 @@ class IntegrationSettingsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    /**
-     * @return Response
-     */
     public function actionAddressProviderIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
@@ -71,22 +68,11 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditAddressProvider(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Address Providers', Integration::TYPE_ADDRESS_PROVIDER);
     }
 
-    /**
-     * @return Response
-     */
     public function actionElementIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ELEMENT);
@@ -95,22 +81,11 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditElement(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Elements', Integration::TYPE_ELEMENT);
     }
 
-    /**
-     * @return Response
-     */
     public function actionEmailMarketingIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_EMAIL_MARKETING);
@@ -119,22 +94,11 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditEmailMarketing(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Email Marketing', Integration::TYPE_EMAIL_MARKETING);
     }
 
-    /**
-     * @return Response
-     */
     public function actionCrmIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_CRM);
@@ -143,22 +107,11 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditCrm(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'CRM', Integration::TYPE_CRM);
     }
 
-    /**
-     * @return Response
-     */
     public function actionPaymentIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
@@ -167,46 +120,50 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditPayment(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Payments', Integration::TYPE_PAYMENT);
     }
 
-    /**
-     * @return Response
-     */
-    public function actionWebhookIndex(): Response
+    public function actionAutomationIndex(): Response
     {
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_WEBHOOK);
-        $typeName = 'Webhooks';
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_AUTOMATION);
+        $typeName = 'Automations';
 
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
-    public function actionEditWebhook(int $integrationId = null, IntegrationInterface $integration = null): Response
+    public function actionEditAutomation(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
-        return $this->_editIntegration($integrationId, $integration, 'Webhooks', Integration::TYPE_WEBHOOK);
+        return $this->_editIntegration($integrationId, $integration, 'Automations', Integration::TYPE_AUTOMATION);
     }
 
-    /**
-     * @return Response
-     */
+    public function actionMessagingIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_MESSAGING);
+        $typeName = 'Messaging';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    public function actionEditMessaging(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Messaging', Integration::TYPE_MESSAGING);
+    }
+
+    public function actionHelpDeskIndex(): Response
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_HELP_DESK);
+        $typeName = 'Help Desk';
+
+        return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
+    }
+
+    public function actionEditHelpDesk(int $integrationId = null, IntegrationInterface $integration = null): Response
+    {
+        return $this->_editIntegration($integrationId, $integration, 'Help Desk', Integration::TYPE_HELP_DESK);
+    }
+
     public function actionMiscellaneousIndex(): Response
     {
         $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_MISC);
@@ -215,14 +172,6 @@ class IntegrationSettingsController extends Controller
         return $this->renderTemplate('formie/settings/integrations', compact('integrations', 'typeName'));
     }
 
-    /**
-     * Edit an integration.
-     *
-     * @param int|null $integrationId The integrations’ ID, if editing an existing integration.
-     * @param IntegrationInterface|null $integration The integration being edited, if there were any validation errors.
-     * @return Response
-     * @throws NotFoundHttpException if the requested integration cannot be found
-     */
     public function actionEditMiscellaneous(int $integrationId = null, IntegrationInterface $integration = null): Response
     {
         return $this->_editIntegration($integrationId, $integration, 'Miscellaneous', Integration::TYPE_MISC);

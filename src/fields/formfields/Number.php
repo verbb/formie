@@ -31,17 +31,11 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Number');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/number/icon.svg';
@@ -61,9 +55,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Normalize number settings
@@ -79,9 +70,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -97,18 +85,12 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         // Don't use integer columns, so we can handle large numbers as strings
         return Schema::TYPE_TEXT;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value === null) {
@@ -143,9 +125,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         // If decimals is 0 (or null, empty for whatever reason), don't run this
@@ -166,9 +145,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/number/preview', [
@@ -176,9 +152,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -196,9 +169,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -271,9 +241,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -284,9 +251,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -305,17 +269,11 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlType(): array|Type
     {
         return NumberType::getType();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentGqlMutationArgumentType(): array|Type
     {
         return [
@@ -397,9 +355,6 @@ class Number extends FormField implements PreviewableFieldInterface, SortableFie
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

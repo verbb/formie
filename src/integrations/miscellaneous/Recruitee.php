@@ -22,9 +22,6 @@ class Recruitee extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Recruitee');
@@ -48,9 +45,6 @@ class Recruitee extends Miscellaneous
         return Craft::t('formie', 'Apply for Recruitee job offers.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -188,15 +182,15 @@ class Recruitee extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $subdomain = App::parseEnv($this->subdomain);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "https://{$subdomain}.recruitee.com/api/",
         ]);
     }

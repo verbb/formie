@@ -27,6 +27,7 @@ abstract class Captcha extends Integration
         return false;
     }
 
+
     // Properties
     // =========================================================================
 
@@ -37,6 +38,21 @@ abstract class Captcha extends Integration
 
     // Public Methods
     // =========================================================================
+
+    public function getType(): string
+    {
+        return self::TYPE_CAPTCHA;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_CAPTCHAS;
+    }
+
+    public function hasStrictValidation(): bool
+    {
+        return false;
+    }
 
     public function getIconUrl(): string
     {

@@ -56,17 +56,11 @@ class Stripe extends Payment
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Stripe');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function supportsWebhooks(): bool
     {
         return true;
@@ -104,17 +98,11 @@ class Stripe extends Payment
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Provide payment capabilities for your forms with {name}.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {
@@ -141,17 +129,11 @@ class Stripe extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -161,18 +143,12 @@ class Stripe extends Payment
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAmount($submission): float
     {
         // Ensure the amount is converted to Stripe for zero-decimal currencies
         return self::toStripeAmount(parent::getAmount($submission), $this->getCurrency($submission));
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processPayment(Submission $submission): bool
     {
         $result = false;
@@ -198,9 +174,6 @@ class Stripe extends Payment
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processSubscriptionPayment(Submission $submission): bool
     {
         $response = [];
@@ -347,9 +320,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function processSinglePayment(Submission $submission): bool
     {
         $response = [];
@@ -530,9 +500,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function processWebhook(): Response
     {
         $rawData = Craft::$app->getRequest()->getRawBody();
@@ -598,9 +565,6 @@ class Stripe extends Payment
         return $response;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function cancelSubscription($reference, $params = [])
     {
         try {
@@ -632,9 +596,6 @@ class Stripe extends Payment
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -648,9 +609,6 @@ class Stripe extends Payment
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getStripe(): StripeClient
     {
         if ($this->_stripe) {
@@ -665,9 +623,6 @@ class Stripe extends Payment
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -801,9 +756,6 @@ class Stripe extends Payment
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -883,10 +835,6 @@ class Stripe extends Payment
         ];
     }
 
-
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -1117,9 +1065,6 @@ class Stripe extends Payment
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _getOrCreatePlan(Submission $submission): mixed
     {
         $field = $this->getField();
@@ -1163,9 +1108,6 @@ class Stripe extends Payment
         return $plan;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getPlan($planId)
     {
         try {
@@ -1198,9 +1140,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _createPlan($payload)
     {
         try {
@@ -1237,9 +1176,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getCustomer(Submission $submission)
     {
         // We always create a new customer. Maybe one day we'll figure out a way to handle this better
@@ -1302,9 +1238,6 @@ class Stripe extends Payment
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
         $field = $this->getField();

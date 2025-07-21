@@ -21,25 +21,33 @@ For each data object, Formie will also fetch all available fields, and any provi
 
 ## Supported Providers
 Formie integrates with the following providers:
+- 1CRM
 - ActiveCampaign
 - Agile CRM
+- Attio
 - Avochato
 - Capsule CRM
+- CiviCRM
 - Copper CRM
-- Freshdesk
+- Dotdigital
+- Flowlu
 - Freshsales
 - HubSpot
 - Infusionsoft
+- Iterable
 - Insightly
 - Klaviyo
 - Maximizer
 - Mercury
 - Microsoft Dynamics 365
+- NoCRM
+- Outseta
 - Pardot
 - Pipedrive
 - Pipeliner
 - Salesflare
 - Salesforce
+- Salesmate
 - Scoro
 - SharpSpring
 - SugarCRM
@@ -49,6 +57,37 @@ Formie integrates with the following providers:
 :::tip
 Is your provider not in the list above? [Contact us](https://verbb.io/contact) to submit your interest, or look at the [Custom Integration](docs:developers/custom-integration) docs to write your own provider support.
 :::
+
+## 1CRM
+Follow the below steps to connect to the 1CRM API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select 1CRM as the **Integration Provider**.
+
+### Step 2. Connect to the 1CRM API
+1. Go to <a href="https://1crm.com" target="_blank">1CRM</a> and login to your account.
+1. Click on the **Admin** dropdown on the top-right of the screen, and select **Administration**.
+1. Click the **API Clients** link.
+1. Click the **Create** button.
+1. Select **Authorization Code** for the **Enabled Grant Types**.
+1. Copy the **ID** from 1CRM and paste in the **Client ID** field in Formie.
+1. Click the **Change API Secret** button and enter a value.
+1. Copy the **Secret** from 1CRM and paste in the **Client Secret** field in Formie.
+1. In the **Redirect URL** field, enter the value from the **Redirect URI** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to 1CRM, where you must approve Formie to access your 1CRM account.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
 
 
 ## ActiveCampaign
@@ -93,6 +132,35 @@ Follow the below steps to connect to the Agile CRM API.
 1. Copy the **REST API** from Agile CRM and paste in the **API Key** field in Formie.
 1. Enter the email for your Agile CRM account in the **API Email** field in Formie.
 1. Enter the full domain (including `https://`) for your Agile CRM account in the **Domain** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Attio
+Follow the below steps to connect to the Attio API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Attio as the **Integration Provider**.
+
+### Step 2. Connect to the Attio API
+1. Go to <a href="https://www.avochato.com/" target="_blank">Attio</a> and login to your account.
+1. Click on your profile dropdown on the top-left of the screen, and select **Account Settings**.
+1. In the left-hand sidebar menu, click on **Developers**.
+1. Click the **Create Access Token** button.
+1. Provide **Read-Write** access to all permissions.
+1. Click the **Save Changes** button.
+1. Copy the **Access Token** from Attio and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
@@ -159,6 +227,37 @@ Follow the below steps to connect to the Capsule API.
 1. Click **Save** to save the form.
 
 
+## CiviCRM
+Follow the below steps to connect to the CiviCRM API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select CiviCRM as the **Integration Provider**.
+
+### Step 2. Connect to the CiviCRM API
+1. Go to your CiviCRM system and login to your account. This may be self-hosted or with a provider.
+1. Ensure that you have the **API Key Management** extension installed.
+1. In the top menu, navigate to **Administer** > **Users and Permissions** > **User Accounts**.
+1. For an administrator, click the **Linked Contact** column value.
+1. Click the **API Key** tab.
+1. Click the **Add API Key** button, and **Generate**.
+1. Copy the **API Key** from CiviCRM and paste in the **API Key** in Formie.
+1. Copy the **Site Key** from CiviCRM and paste in the **Site Key** in Formie.
+1. Enter the full domain (including `https://`) for your CiviCRM install in the **Domain** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## Copper
 Follow the below steps to connect to the Copper API.
 
@@ -187,18 +286,51 @@ Follow the below steps to connect to the Copper API.
 1. Click **Save** to save the form.
 
 
-## Freshdesk
-Follow the below steps to connect to the Freshdesk API.
+## Dotdigital
+Follow the below steps to connect to the Dotdigital API.
 
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **CRM**.
 1. Click the **New Integration** button.
-1. Select Freshdesk as the **Integration Provider**.
+1. Select Dotdigital as the **Integration Provider**.
 
-### Step 2. Connect to the Freshdesk API
-1. Go to <a href="https://www.freshdesk.com/" target="_blank">Freshdesk</a> and login to your account.
-1. Click on your profile dropdown on the top-right of the screen, and select **Profile Settings**.
-1. Copy the **API Key** from Freshdesk and paste in the **API Key** field in Formie.
+### Step 2. Connect to the Dotdigital API
+1. Go to <a href="https://dotdigital.com/" target="_blank">Dotdigital</a> and login to your account.
+1. Click the more-options (triple dots) in the bottom left corner and go to **Access** > **API users**.
+1. Click the **New user** button.
+1. Copy the **Email Address** from Dotdigital and paste in the **Username** field in Formie.
+1. Create a password and copy this from Dotdigital and paste in the **Password** field in Formie.
+1. Click the **Save** button.
+1. Copy the **API Endpoint** from Dotdigital and paste in the **API Endpoint** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Flowlu
+Follow the below steps to connect to the Flowlu API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Flowlu as the **Integration Provider**.
+
+### Step 2. Connect to the Flowlu API
+1. Go to <a href="https://flowlu.com/" target="_blank">Flowlu</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Portal Settings**.
+1. In the left-hand sidebar, click **API Settings**.
+1. Click the **Add** button.
+1. Select all applications and click the **Save** button.
+1. Copy the **API Key** from Flowlu and paste in the **API Key** field in Formie.
+1. Enter the full domain (including `https://`) for your Flowlu account in the **Domain** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
@@ -259,6 +391,7 @@ Follow the below steps to connect to the HubSpot API.
     - `crm.objects.contacts.write`
     - `crm.objects.deals.read`
     - `crm.objects.deals.write`
+    - `tickets`
     - `forms`
 1. Click the **Create App** button in the top right.
 1. In the dialog box, review the info about your app's access token, then click **Continue creating**.
@@ -324,6 +457,33 @@ Follow the below steps to connect to the Insightly API.
 1. Go to <a href="https://www.insightly.com/" target="_blank">Insightly</a> and login to your account.
 1. Click on your profile dropdown on the top-right of the screen, and select **User Settings**.
 1. Copy the **API Key** from Insightly and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Iterable
+Follow the below steps to connect to the Iterable API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Iterable as the **Integration Provider**.
+
+### Step 2. Connect to the Iterable API
+1. Go to <a href="https://app.iterable.com" target="_blank">Iterable</a> and login to your account.
+1. In the top menu, click **Integrations** and **API Keys**.
+1. Click on the **New API Key** button.
+1. Enter a **Name** and select **Server-side** for the **Type**.
+1. Copy the **API Key** from Iterable and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
@@ -508,6 +668,64 @@ If you want to selectively control the "Created" By value on records per form, u
 
 **Note:** The impersonate user feature is set via a HTTP header on POST requests which will override any Created By field mapping that is set.
 
+
+## NoCRM
+Follow the below steps to connect to the NoCRM API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select NoCRM as the **Integration Provider**.
+
+### Step 2. Connect to the NoCRM API
+1. Go to <a href="https://nocrm.io/" target="_blank">NoCRM</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Admin Panel**.
+1. Under **Integrations** click on the **API Keys** button.
+1. Click the **Create API Key** button.
+1. Copy the **API Key** from NoCRM and paste in the **API Key** field in Formie.
+1. Enter the full domain (including `https://`) for your NoCRM account in the **Domain** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Outseta
+Follow the below steps to connect to the Outseta API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Outseta as the **Integration Provider**.
+
+### Step 2. Connect to the Outseta API
+1. Go to <a href="https://outseta.com/" target="_blank">Outseta</a> and login to your account.
+1. In the left-hand sidebar, click on **Settings** → **Integrations**.
+1. Click the **API Keys** item.
+1. Click the **Add API Key** button.
+1. Copy the **Key** from Outseta and paste in the **API Key** field in Formie.
+1. Copy the **Secret** from Outseta and paste in the **Secret Key** field in Formie.
+1. Enter the full domain (including `https://`) for your Outseta account in the **Domain** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## Pardot
 Follow the below steps to connect to the Pardot API.
 
@@ -677,6 +895,32 @@ Follow the below steps to connect to the Salesforce API.
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to Salesforce, where you must approve Formie to access your Salesforce account.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Salesmate
+Follow the below steps to connect to the Salesmate API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **CRM**.
+1. Click the **New Integration** button.
+1. Select Salesmate as the **Integration Provider**.
+
+### Step 2. Connect to the Salesmate API
+1. Go to <a href="https://salesmate.io/" target="_blank">Salesmate</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **My Account**.
+1. In the left-hand sidebar, click on **Access Key**.
+1. Copy the **Session Key / Session Token** from Salesmate and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
 
 ### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.

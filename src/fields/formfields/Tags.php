@@ -60,17 +60,11 @@ class Tags extends CraftTags implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Tags');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/tags/icon.svg';
@@ -81,6 +75,7 @@ class Tags extends CraftTags implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public ?string $layout = null;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -90,9 +85,6 @@ class Tags extends CraftTags implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function __construct(array $config = [])
     {
         // Config normalization
@@ -110,9 +102,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $tagGroup = $this->_getTagGroup();
@@ -173,9 +162,6 @@ class Tags extends CraftTags implements FormFieldInterface
             ->fixedOrder();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
@@ -186,9 +172,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         $tag = null;
@@ -201,6 +184,7 @@ class Tags extends CraftTags implements FormFieldInterface
         return [
             'source' => $tag,
             'placeholder' => Craft::t('formie', 'Select a tag'),
+            'layout' => 'vertical',
         ];
     }
 
@@ -213,9 +197,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
@@ -223,9 +204,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -234,9 +212,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDisplayTypeField(): FormFieldInterface
     {
         $config = $this->getDisplayTypeFieldConfig();
@@ -276,9 +251,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return $this->traitGetDisplayTypeValue();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -316,9 +288,6 @@ class Tags extends CraftTags implements FormFieldInterface
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();
@@ -335,6 +304,10 @@ class Tags extends CraftTags implements FormFieldInterface
     {
         $query = Tag::find();
 
+        if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
+        }
+        
         if ($group = $this->_getTagGroup()) {
             $query->group($group);
         }
@@ -439,9 +412,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -457,14 +427,39 @@ class Tags extends CraftTags implements FormFieldInterface
                 'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source'),
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Sources'),
                 'help' => Craft::t('formie', 'Which source do you want to select tags from?'),
-                'name' => 'source',
+                'name' => 'sources',
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'element-class' => count($options) === 1 ? 'hidden' : false,
+                'if' => '$get(sourceType).value == groups',
+                'showAllOption' => true,
+                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select tags from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => FormieTag::class,
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -479,9 +474,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -519,9 +511,6 @@ class Tags extends CraftTags implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -536,15 +525,22 @@ class Tags extends CraftTags implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
+                ],
+            ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

@@ -96,7 +96,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '2.0.19';
+    public string $schemaVersion = '2.0.21';
     public string $minVersionRequired = '1.5.15';
 
 
@@ -321,6 +321,9 @@ class Formie extends Plugin
     private function _registerGarbageCollection(): void
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
+            // Delete NestedFieldRow elements (they aren't registered with `getAllElementTypes`)
+            $this->getSubmissions()->deleteNestedFieldRows();
+
             // Delete fields with no form.
             $this->getFields()->deleteOrphanedFields();
 

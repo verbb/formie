@@ -17,25 +17,16 @@ class Section extends FormField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Section');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/section/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasContentColumn(): bool
     {
         return false;
@@ -58,17 +49,11 @@ class Section extends FormField
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -78,9 +63,6 @@ class Section extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/input', [
@@ -90,9 +72,6 @@ class Section extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/preview', [
@@ -100,26 +79,17 @@ class Section extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return Html::tag('hr');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterCreateField(array $data): void
     {
         $this->name = StringHelper::appendUniqueIdentifier(Craft::t('formie', 'Section Label '));
         $this->handle = StringHelper::appendUniqueIdentifier('sectionHandle');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -159,9 +129,6 @@ class Section extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

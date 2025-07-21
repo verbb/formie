@@ -1,0 +1,8 @@
+{% set form = renderOptions.form %}
+
+{{ fieldtag('fieldInput') }}
+
+{# Include so that error messages are shown with `formie-theme.js` for server-side errors #}
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('paddleCheckoutInit') }}" value="true">
+<input type="hidden" name="{{ field.getHtmlName('paddleCheckoutData') }}">

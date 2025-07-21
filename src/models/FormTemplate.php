@@ -88,9 +88,6 @@ class FormTemplate extends BaseTemplate
         $this->_fieldLayout = $fieldLayout;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
@@ -133,9 +130,6 @@ class FormTemplate extends BaseTemplate
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function getRecordClass(): string
     {
         return FormTemplateRecord::class;

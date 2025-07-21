@@ -71,57 +71,36 @@ class Form extends Element
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Form');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function refHandle(): ?string
     {
         return 'form';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function trackChanges(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasTitles(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasContent(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function isLocalized(): bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function find(): FormQuery
     {
         return new FormQuery(static::class);
@@ -132,17 +111,11 @@ class Form extends Element
         return Craft::createObject(FormCondition::class, [static::class]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function gqlTypeNameByContext(mixed $context): string
     {
         return $context->handle . '_Form';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function defineSources(string $context = null): array
     {
         $sources = [
@@ -173,9 +146,6 @@ class Form extends Element
         return $sources;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineFieldLayouts(string $source): array
     {
         // In the context of the form element index, we don't want any field layouts shown. That's because forms don't
@@ -183,9 +153,6 @@ class Form extends Element
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineActions(string $source = null): array
     {
         $actions = [];
@@ -226,9 +193,6 @@ class Form extends Element
         return array_values($actions);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -243,9 +207,6 @@ class Form extends Element
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         $attributes = [];
@@ -258,17 +219,11 @@ class Form extends Element
         return $attributes;
     }
 
-    /**
-     * @inheritdoc
-     */
     protected static function defineSearchableAttributes(): array
     {
         return ['title', 'handle'];
     }
 
-    /**
-     * @inheritDoc
-     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -364,17 +319,11 @@ class Form extends Element
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function __toString(): string
     {
         return (string)$this->title;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function init(): void
     {
         parent::init();
@@ -384,9 +333,6 @@ class Form extends Element
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function behaviors(): array
     {
         $behaviors = parent::behaviors();
@@ -422,17 +368,11 @@ class Form extends Element
         return parent::getScenario();
     }
     
-    /**
-     * @inheritdoc
-     */
     public function canView(User $user): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function canDelete(User $user): bool
     {
         if (parent::canDelete($user)) {
@@ -442,17 +382,11 @@ class Form extends Element
         return $user->can('formie-deleteForms');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function canDuplicate(User $user): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getConsolidatedErrors()
     {
         $errors = [
@@ -516,9 +450,6 @@ class Form extends Element
         return "formie:{$this->uid}";
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getCpEditUrl(): ?string
     {
         $userSession = Craft::$app->getUser();
@@ -687,9 +618,6 @@ class Form extends Element
         $this->_formId = $value;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getDirtyAttributes(): array
     {
         // This is here to prompt Blitz that a change has been made on the form when it saves
@@ -1373,9 +1301,6 @@ class Form extends Element
         return $this->_submitActionEntry;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getGqlTypeName(): string
     {
         return static::gqlTypeNameByContext($this);
@@ -1500,6 +1425,7 @@ class Form extends Element
                     'fui-form',
                     'fui-labels-' . $defaultLabelPosition,
                     $this->settings->displayPageProgress ? "fui-progress-{$this->settings->progressPosition}" : false,
+                    $this->settings->displayPageProgress ? "fui-progress-value-{$this->settings->progressValuePosition}" : false,
                     $this->settings->validationOnFocus ? 'fui-validate-on-focus' : false,
                 ],
                 'method' => 'post',
@@ -1747,8 +1673,11 @@ class Form extends Element
         }
 
         if ($key === 'progressValue') {
+            $progress = $context['progress'] ?? null;
+
             return new HtmlTag('span', [
                 'class' => 'fui-progress-value',
+                'data-fui-progress-value' => $progress,
             ]);
         }
 
@@ -1842,6 +1771,7 @@ class Form extends Element
             'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
+            'outputConsoleMessages' => $pluginSettings->outputConsoleMessages,
             'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
 
             // Generate the refresh token here to make use of `UrlHelper` generation
@@ -2177,32 +2107,48 @@ class Form extends Element
         if ($this->settings->limitSubmissions) {
             $query = Submission::find()->formId($this->id);
 
-            if ($this->settings->limitSubmissionsType === 'total') {
-                $submissions = $query->count();
-            } else if ($this->settings->limitSubmissionsType === 'day') {
+            // Get the appropriate settings for the limit type
+            if ($this->settings->limitSubmissions === 'ipAddress') {
+                $limitSubmissionsType = $this->settings->limitSubmissionsIpAddressType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsIpAddressNumber;
+
+                // Ensure that we actually are storing IPs, otherwise nothing really to compare
+                if (!$this->settings->collectIp) {
+                    return true;
+                }
+
+                $query->ipAddress(Craft::$app->getRequest()->userIP);
+            } else {
+                $limitSubmissionsType = $this->settings->limitSubmissionsType;
+                $limitSubmissionsNumber = $this->settings->limitSubmissionsNumber;
+            }
+
+            if ($limitSubmissionsType === 'day') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'week') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'month') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
-            } else if ($this->settings->limitSubmissionsType === 'year') {
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+            } else if ($limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
-                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
             }
 
-            if ($submissions >= $this->settings->limitSubmissionsNumber) {
+            $submissions = $query->count();
+
+            if ($submissions >= $limitSubmissionsNumber) {
                 return false;
             }
         }
@@ -2210,9 +2156,6 @@ class Form extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
         // Run basic model validation first.
@@ -2243,9 +2186,6 @@ class Form extends Element
         return $validates;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasErrors($attribute = null): bool
     {
         $hasErrors = parent::hasErrors($attribute);
@@ -2271,9 +2211,6 @@ class Form extends Element
         return $hasErrors;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterSave(bool $isNew): void
     {
         // Get the node record
@@ -2307,9 +2244,6 @@ class Form extends Element
         parent::afterSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeDelete(): bool
     {
         if (parent::beforeDelete()) {
@@ -2319,9 +2253,6 @@ class Form extends Element
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterDelete(): void
     {
         // Delete any submissions made on this form.
@@ -2335,9 +2266,6 @@ class Form extends Element
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeRestore(): bool
     {
         if (!parent::beforeRestore()) {
@@ -2361,9 +2289,6 @@ class Form extends Element
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterRestore(): void
     {
         // Restore the field layout too
@@ -2406,9 +2331,6 @@ class Form extends Element
     // Protected methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

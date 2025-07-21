@@ -9,9 +9,6 @@ class Hidden extends Position
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Hidden');

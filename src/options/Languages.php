@@ -17,9 +17,6 @@ class Languages extends PredefinedOption
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Languages');

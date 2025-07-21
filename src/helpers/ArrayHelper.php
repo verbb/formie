@@ -154,9 +154,6 @@ class ArrayHelper extends CraftArrayHelper
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function filterNullValues($values)
     {
         foreach ($values as $key => $value) {
@@ -172,9 +169,6 @@ class ArrayHelper extends CraftArrayHelper
         return $values;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function filterEmptyValues($values)
     {
         foreach ($values as $key => $value) {

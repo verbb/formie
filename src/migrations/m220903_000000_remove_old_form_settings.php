@@ -8,9 +8,6 @@ use craft\db\Migration;
 
 class m220903_000000_remove_old_form_settings extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         if ($this->db->columnExists('{{%formie_forms}}', 'requireUser')) {
@@ -36,9 +33,6 @@ class m220903_000000_remove_old_form_settings extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m220903_000000_remove_old_form_settings cannot be reverted.\n";

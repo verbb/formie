@@ -144,25 +144,16 @@ trait FormFieldTrait
         parent::__construct($config);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsNew(): bool
     {
         return parent::getIsNew() || $this->getIsRef();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getIsRef(): bool
     {
         return $this->id && str_starts_with($this->id, 'sync:');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getValue(ElementInterface $element): mixed
     {
         return $element->getFieldValue($this->handle);
@@ -178,9 +169,6 @@ trait FormFieldTrait
         return parent::getContentColumnType();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::serializeValue($value, $element);
@@ -193,9 +181,6 @@ trait FormFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
@@ -346,9 +331,6 @@ trait FormFieldTrait
         return $value;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function settingsAttributes(): array
     {
         $class = new ReflectionClass($this);
@@ -401,9 +383,6 @@ trait FormFieldTrait
         return $names;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -598,9 +577,6 @@ trait FormFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasLabel(): bool
     {
         return true;
@@ -626,17 +602,21 @@ trait FormFieldTrait
         return $this->visibility === 'hidden';
     }
 
-    /**
-     * @inheritDoc
-     */
+    public function supportsLabelPosition(string $class): bool
+    {
+        return true;
+    }
+
+    public function supportsInstructionsPosition(string $class): bool
+    {
+        return true;
+    }
+
     public function getExtraBaseFieldConfig(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedSettings(): array
     {
         return $this->getSettings();
@@ -647,17 +627,11 @@ trait FormFieldTrait
         return $this->getAttributes(['id', 'name', 'handle', 'columnSuffix']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getAllFieldDefaults(): array
     {
         $defaults = [
@@ -763,9 +737,6 @@ trait FormFieldTrait
         return $event->value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldSchema(): array
     {
         $tabs = [];
@@ -990,9 +961,6 @@ trait FormFieldTrait
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getBaseFieldConfig(): array
     {
         $labelPositions = Formie::$plugin->getFields()->getLabelPositionsArray($this);
@@ -1023,9 +991,6 @@ trait FormFieldTrait
         return $config;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContainerAttributes(): array
     {
         if (!$this->containerAttributes) {
@@ -1035,9 +1000,6 @@ trait FormFieldTrait
         return ArrayHelper::map($this->containerAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputAttributes(): array
     {
         if (!$this->inputAttributes) {
@@ -1047,9 +1009,6 @@ trait FormFieldTrait
         return ArrayHelper::map($this->inputAttributes, 'label', 'value');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getNamespace(): string
     {
         return $this->_namespace;
@@ -1060,9 +1019,6 @@ trait FormFieldTrait
         $this->_namespace = $value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getParentField(): ?FormFieldInterface
     {
         return $this->_parentField;
@@ -1083,9 +1039,6 @@ trait FormFieldTrait
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup
     {
         if (!static::getFrontEndInputTemplatePath()) {
@@ -1098,9 +1051,6 @@ trait FormFieldTrait
         return Template::raw($html);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         // Check to see if we're overriding the field
@@ -1301,9 +1251,6 @@ trait FormFieldTrait
         return $isFieldHidden || $isPageHidden;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         $inputOptions = $this->getEmailOptions($submission, $notification, $value, $renderOptions);
@@ -1312,9 +1259,6 @@ trait FormFieldTrait
         return Template::raw($html);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailOptions(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): array
     {
         return [
@@ -1327,41 +1271,26 @@ trait FormFieldTrait
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterCreateField(array $data): void
     {
 
@@ -1531,9 +1460,6 @@ trait FormFieldTrait
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -1573,9 +1499,6 @@ trait FormFieldTrait
         return $rules;
     }
     
-    /**
-     * @inheritDoc
-     */
     protected function setPrePopulatedValue($value)
     {
         return $value;

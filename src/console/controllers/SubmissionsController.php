@@ -69,9 +69,6 @@ class SubmissionsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function options($actionID): array
     {
         $options = parent::options($actionID);

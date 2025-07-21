@@ -12,9 +12,6 @@ use craft\helpers\Json;
 
 class m221206_000000_fix_syncs extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $forms = Form::find()->status(null)->all();
@@ -89,9 +86,6 @@ class m221206_000000_fix_syncs extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m221206_000000_fix_syncs cannot be reverted.\n";

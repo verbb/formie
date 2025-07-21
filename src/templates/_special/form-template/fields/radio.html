@@ -13,7 +13,7 @@
             }) }}
 
             {% fieldtag 'fieldOptionLabel' %}
-                {{- option.label | t('formie') -}}
+                {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
             {% endfieldtag %}
         {% endfieldtag %}
     {% endfor %}

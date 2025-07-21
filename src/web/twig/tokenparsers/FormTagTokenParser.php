@@ -8,17 +8,11 @@ use Twig\TokenParser\AbstractTokenParser;
 
 class FormTagTokenParser extends AbstractTokenParser
 {
-    /**
-     * @inheritdoc
-     */
     public function getTag(): string
     {
         return 'formtag';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function parse(Token $token): FormTagNode
     {
         $lineno = $token->getLine();

@@ -33,9 +33,6 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Trello');
@@ -97,9 +94,6 @@ class Trello extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Trello.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -209,12 +203,12 @@ class Trello extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
 
         if (!$token) {
@@ -233,13 +227,11 @@ class Trello extends Miscellaneous
             'token_secret' => $token->secret,
         ]));
 
-        $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.trello.com/1/',
             'handler' => $stack,
             'auth' => 'oauth',
         ]);
-
-        return $this->_client;
     }
 
 

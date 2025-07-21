@@ -37,6 +37,7 @@ class Settings extends Model
     public int $ajaxTimeout = 10;
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
+    public bool $outputConsoleMessages = true;
 
     // General Fields
     public array $disabledFields = [];
@@ -177,9 +178,6 @@ class Settings extends Model
         return Craft::$app->getConfig()->getGeneral()->securityKey;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

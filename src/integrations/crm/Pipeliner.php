@@ -20,9 +20,6 @@ class Pipeliner extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Pipeliner');
@@ -48,9 +45,6 @@ class Pipeliner extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -218,16 +212,16 @@ class Pipeliner extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $apiServiceUrl = App::parseEnv($this->apiServiceUrl);
         $apiSpaceId = App::parseEnv($this->apiSpaceId);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "{$apiServiceUrl}/api/v100/rest/spaces/{$apiSpaceId}/",
             'auth' => [App::parseEnv($this->apiToken), App::parseEnv($this->apiPassword)],
         ]);

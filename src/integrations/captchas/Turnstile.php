@@ -38,9 +38,6 @@ class Turnstile extends Captcha
         return Craft::t('formie', 'Friendly Captcha employs a fundamentally new approach to securely defend your websites and online services from spam and bots. Find out more via [Cloudflare Turnstile](https://blog.cloudflare.com/turnstile-private-captcha-alternative/).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
@@ -55,9 +52,6 @@ class Turnstile extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_form-settings', $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
@@ -66,9 +60,6 @@ class Turnstile extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
@@ -89,9 +80,6 @@ class Turnstile extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getGqlVariables(Form $form, $page = null): array
     {
         return [
@@ -101,32 +89,26 @@ class Turnstile extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('cf-turnstile-response');
+        $responseToken = $this->getRequestParam('cf-turnstile-response');
 
-        if (!$response) {
+        if (!$responseToken) {
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
-
-        $response = $client->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+        $response = $this->request('POST', 'https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'json' => [
                 'secret' => App::parseEnv($this->secretKey),
-                'response' => $response,
+                'response' => $responseToken,
                 'remoteip' => Craft::$app->getRequest()->getRemoteIP(),
             ],
         ]);
 
-        $result = Json::decode((string)$response->getBody(), true);
-        $success = $result['success'] ?? false;
+        $success = $response['success'] ?? false;
 
         if (!$success) {
-            $this->spamReason = Json::encode($result);
+            $this->spamReason = Json::encode($response);
         }
 
         return $success;

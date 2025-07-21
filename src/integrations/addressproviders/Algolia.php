@@ -19,9 +19,6 @@ class Algolia extends AddressProvider
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Algolia Places');
@@ -49,9 +46,6 @@ class Algolia extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Algolia Places](https://community.algolia.com/places/)']);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -61,9 +55,6 @@ class Algolia extends AddressProvider
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables($field = null): ?array
     {
         if (!$this->hasValidSettings()) {

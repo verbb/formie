@@ -27,9 +27,6 @@ class Monday extends Miscellaneous
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Monday');
@@ -52,9 +49,6 @@ class Monday extends Miscellaneous
         return Craft::t('formie', 'Send your form content to Monday.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -195,13 +189,13 @@ class Monday extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.monday.com/v2/',
             'headers' => [
                 'Authorization' => App::parseEnv($this->apiKey),

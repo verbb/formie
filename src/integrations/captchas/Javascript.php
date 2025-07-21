@@ -39,9 +39,6 @@ class Javascript extends Captcha
         return Craft::t('formie', 'Check if the user has Javascript enabled, and flag as spam if they do not.');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
@@ -49,9 +46,6 @@ class Javascript extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/javascript/_plugin-settings', $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -67,9 +61,6 @@ class Javascript extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -98,9 +89,6 @@ class Javascript extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRefreshJsVariables(Form $form, $page = null): array
     {
         $sessionKey = $this->getSessionKey($form, $page);
@@ -122,9 +110,6 @@ class Javascript extends Captcha
         return $this->getRefreshJsVariables($form, $page);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
         $sessionKey = $this->getSessionKey($submission->form);

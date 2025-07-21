@@ -7,6 +7,7 @@
 {% set mapToContact = form.settings.integrations[handle].mapToContact ?? '' %}
 {% set mapToDeal = form.settings.integrations[handle].mapToDeal ?? '' %}
 {% set mapToCompany = form.settings.integrations[handle].mapToCompany ?? '' %}
+{% set mapToTicket = form.settings.integrations[handle].mapToTicket ?? '' %}
 {% set mapToForm = form.settings.integrations[handle].mapToForm ?? '' %}
 {% set formId = form.settings.integrations[handle].formId ?? '' %}
 
@@ -107,6 +108,33 @@
 
             <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping'))" class="errors" v-cloak>
                 <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.companyFieldMapping')" :key="index">
+                    ${ error }
+                </li>
+            </ul>
+        </div>
+
+        {{ forms.lightswitchField({
+            label: 'Map to Ticket' | t('formie'),
+            instructions: 'Whether to map form data to {name} {label}.' | t('formie', { name: displayName, label: 'Companies' }),
+            id: 'mapToTicket',
+            name: 'mapToTicket',
+            on: mapToTicket,
+            toggle: 'map-to-ticket',
+        }) }}
+
+        <div id="map-to-ticket" class="{{ not mapToTicket ? 'hidden' }}">
+            <integration-field-mapping
+                label="{{ 'Ticket Field Mapping' | t('formie') }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Ticket' }) }}"
+                name-label="{{ integration.displayName() }}"
+                id="ticket-field-mapping"
+                name="ticketFieldMapping"
+                :value="get(form, 'settings.integrations.{{ handle }}.ticketFieldMapping')"
+                :rows="get(settings, 'ticket')"
+            ></integration-field-mapping>
+
+            <ul v-if="!isEmpty(get(form, 'settings.integrations.{{ handle }}.errors.ticketFieldMapping'))" class="errors" v-cloak>
+                <li v-for="(error, index) in get(form, 'settings.integrations.{{ handle }}.errors.ticketFieldMapping')" :key="index">
                     ${ error }
                 </li>
             </ul>

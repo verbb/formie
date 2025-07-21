@@ -22,9 +22,6 @@ use craft\helpers\MigrationHelper;
  */
 class Install extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->createTables();
@@ -35,9 +32,6 @@ class Install extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         $this->dropProjectConfig();
@@ -227,6 +221,7 @@ class Install extends Migration
             'reference' => $this->string(),
             'code' => $this->string(),
             'message' => $this->text(),
+            'redirectUrl' => $this->text(),
             'note' => $this->mediumText(),
             'response' => $this->text(),
             'dateCreated' => $this->dateTime()->notNull(),

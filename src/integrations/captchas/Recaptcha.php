@@ -63,9 +63,6 @@ class Recaptcha extends Captcha
         return Craft::t('formie', 'reCAPTCHA is a free service that protects your forms from spam and abuse. Find out more via [Google reCAPTCHA](https://www.google.com/recaptcha).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
@@ -81,9 +78,6 @@ class Recaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
@@ -92,9 +86,6 @@ class Recaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
@@ -153,9 +144,6 @@ class Recaptcha extends Captcha
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getGqlVariables(Form $form, $page = null): array
     {
         return [
@@ -165,9 +153,6 @@ class Recaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
         $responseToken = $this->getRequestParam('g-recaptcha-response');

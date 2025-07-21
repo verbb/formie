@@ -22,9 +22,6 @@ class Maximizer extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Maximizer');
@@ -54,9 +51,6 @@ class Maximizer extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -235,12 +229,12 @@ class Maximizer extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         // From the Web Access URL, get the API Base URL
         $webAccessUrl = App::parseEnv($this->webAccessUrl);
         $baseApiUrl = file_get_contents($webAccessUrl . '?request=api');
@@ -259,7 +253,7 @@ class Maximizer extends Crm
         $response = Json::decode((string)$request->getBody());
         $token = $response['Data']['Token'] ?? '';
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$baseApiUrl/Data.svc/json/",
             'headers' => [
                 'Content-Type' => 'application/json',
@@ -287,9 +281,6 @@ class Maximizer extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    // /**
-    //  * @inheritDoc
-    //  */
     private function _getCustomFields($fields, $parentFieldKey = '', $parentField = []): array
     {
         $customFields = [];

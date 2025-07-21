@@ -22,9 +22,6 @@ trait SubfieldTrait
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
@@ -33,9 +30,6 @@ trait SubfieldTrait
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateRequiredFields(ElementInterface $element): void
     {
         $value = $element->getFieldValue($this->handle);

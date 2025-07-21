@@ -56,25 +56,16 @@ class Products extends CommerceProducts implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Products');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/products/icon.svg';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function getRequiredPlugins(): array
     {
         return [
@@ -87,6 +78,7 @@ class Products extends CommerceProducts implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public ?string $layout = null;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -102,9 +94,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         });
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSavedFieldConfig(): array
     {
         $settings = $this->traitGetSavedFieldConfig();
@@ -112,9 +101,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
@@ -125,14 +111,12 @@ class Products extends CommerceProducts implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
             'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a product'),
+            'layout' => 'vertical',
             'labelSource' => 'title',
             'orderBy' => 'title ASC',
         ];
@@ -147,9 +131,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/products/preview', [
@@ -157,9 +138,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -171,9 +149,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return back the correct, prepped query for emails. Just as we would be submissions.
@@ -192,33 +167,37 @@ class Products extends CommerceProducts implements FormFieldInterface
     {
         $query = Product::find();
 
-        if ($this->sources !== '*') {
-            $criteria = [];
+        if ($this->sourceType === 'groups') {
+            if ($this->sources !== '*') {
+                $criteria = [];
 
-            // Try to find the criteria we're restricting by - if any
-            foreach ($this->sources as $source) {
-                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
-                $criteria[] = $elementSource['criteria'] ?? [];
+                // Try to find the criteria we're restricting by - if any
+                foreach ($this->sources as $source) {
+                    $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
+                    $criteria[] = $elementSource['criteria'] ?? [];
 
-                // Handle conditions by parsing the rules and applying to query
-                $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+                    // Handle conditions by parsing the rules and applying to query
+                    $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
 
-                foreach ($conditionRules as $conditionRule) {
-                    $rule = Craft::createObject($conditionRule);
-                    $rule->modifyQuery($query);
+                    foreach ($conditionRules as $conditionRule) {
+                        $rule = Craft::createObject($conditionRule);
+                        $rule->modifyQuery($query);
+                    }
                 }
+
+                // For performance
+                $criteria = array_merge_recursive(...$criteria);
+
+                // Some criteria doesn't support array-syntax, which will happen with merging recursively
+                if (isset($criteria['editable'])) {
+                    $criteria['editable'] = $criteria['editable'][0] ?? false;
+                }
+
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
             }
-
-            // For performance
-            $criteria = array_merge_recursive(...$criteria);
-
-            // Some criteria doesn't support array-syntax, which will happen with merging recursively
-            if (isset($criteria['editable'])) {
-                $criteria['editable'] = $criteria['editable'][0] ?? false;
-            }
-
-            // Apply the criteria on our query
-            Craft::configure($query, $criteria);
+        } else if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
         // Restrict elements to be on the current site, for multi-sites
@@ -332,9 +311,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -349,16 +325,40 @@ class Products extends CommerceProducts implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(displayType).value == dropdown',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
-                'help' => Craft::t('formie', 'Which sources do you want to select products from?'),
+                'help' => Craft::t('formie', 'Which source do you want to select products from?'),
                 'name' => 'sources',
-                'showAllOption' => true,
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
+                'if' => '$get(sourceType).value == groups',
+                'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select products from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -373,9 +373,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -419,9 +416,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -436,6 +430,16 @@ class Products extends CommerceProducts implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
                 ],
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
+                ],
+            ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
                 'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
@@ -448,9 +452,6 @@ class Products extends CommerceProducts implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -477,7 +478,10 @@ class Products extends CommerceProducts implements FormFieldInterface
         if (in_array($this->displayType, ['checkboxes', 'radio'])) {
             if ($key === 'fieldContainer') {
                 return new HtmlTag('fieldset', [
-                    'class' => 'fui-fieldset',
+                    'class' => [
+                        'fui-fieldset',
+                        'fui-layout-' . $this->layout ?? 'vertical',
+                    ],
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
                 ]);
             }

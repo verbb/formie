@@ -56,17 +56,11 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Categories');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/categories/icon.svg';
@@ -77,6 +71,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     // =========================================================================
 
     public bool $searchable = true;
+    public ?string $layout = null;
     public ?array $rootCategory = null;
     public bool $showStructure = false;
 
@@ -88,9 +83,6 @@ class Categories extends CraftCategories implements FormFieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         // The default Craft Categories field behaviour is pretty odd. It'll select all child categories in the same branch
@@ -106,9 +98,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $this->modifyFieldSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         $options = $this->getSourceOptions();
@@ -119,9 +108,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         $group = null;
@@ -134,6 +120,7 @@ class Categories extends CraftCategories implements FormFieldInterface
         return [
             'source' => $group,
             'placeholder' => Craft::t('formie', 'Select a category'),
+            'layout' => 'vertical',
             'labelSource' => 'title',
             'orderBy' => 'title ASC',
         ];
@@ -148,9 +135,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $this->getDefaultValueQuery();
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/categories/preview', [
@@ -158,9 +142,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = $this->traitGetFrontendInputOptions($form, $value, $renderOptions);
@@ -175,9 +156,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $inputOptions;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         // Ensure we return the correct, prepped query for emails. Just as we would be submissions.
@@ -214,9 +192,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRootCategoryElement()
     {
         if ($this->rootCategory) {
@@ -240,21 +215,25 @@ class Categories extends CraftCategories implements FormFieldInterface
     {
         $query = Category::find();
 
-        if ($this->source !== '*') {
-            // Try to find the criteria we're restricting by - if any
-            $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
-            $criteria = $elementSource['criteria'] ?? [];
+        if ($this->sourceType === 'groups') {
+            if ($this->sources !== '*') {
+                // Try to find the criteria we're restricting by - if any
+                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
+                $criteria = $elementSource['criteria'] ?? [];
 
-            // Apply the criteria on our query
-            Craft::configure($query, $criteria);
+                // Apply the criteria on our query
+                Craft::configure($query, $criteria);
 
-            // Handle conditions by parsing the rules and applying to query
-            $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+                // Handle conditions by parsing the rules and applying to query
+                $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
 
-            foreach ($conditionRules as $conditionRule) {
-                $rule = Craft::createObject($conditionRule);
-                $rule->modifyQuery($query);
+                foreach ($conditionRules as $conditionRule) {
+                    $rule = Craft::createObject($conditionRule);
+                    $rule->modifyQuery($query);
+                }
             }
+        } else if ($this->sourceType === 'elements') {
+            $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
         // Restrict elements to be on the current site, for multi-sites
@@ -327,9 +306,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSourceOptions(): array
     {
         $options = parent::getSourceOptions();
@@ -411,9 +387,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
@@ -429,14 +402,39 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'if' => '$get(displayType).value == dropdown',
             ]),
             SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source'),
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Sources'),
                 'help' => Craft::t('formie', 'Which source do you want to select categories from?'),
-                'name' => 'source',
+                'name' => 'sources',
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'element-class' => count($options) === 1 ? 'hidden' : false,
+                'if' => '$get(sourceType).value == groups',
+                'showAllOption' => true,
+                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select categories from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => self::defaultSelectionLabel(),
+                'config' => [
+                    'jsClass' => $this->inputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -451,9 +449,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
@@ -510,9 +505,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -525,6 +517,16 @@ class Categories extends CraftCategories implements FormFieldInterface
                     ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
                     ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
+                ],
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
                 ],
             ]),
             SchemaHelper::lightswitchField([
@@ -545,9 +547,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -574,7 +573,10 @@ class Categories extends CraftCategories implements FormFieldInterface
         if (in_array($this->displayType, ['checkboxes', 'radio'])) {
             if ($key === 'fieldContainer') {
                 return new HtmlTag('fieldset', [
-                    'class' => 'fui-fieldset',
+                    'class' => [
+                        'fui-fieldset',
+                        'fui-layout-' . $this->layout ?? 'vertical',
+                    ],
                     'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
                 ]);
             }

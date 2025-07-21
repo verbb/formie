@@ -21,9 +21,6 @@ class IContact extends EmailMarketing
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'iContact');
@@ -47,9 +44,6 @@ class IContact extends EmailMarketing
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -227,16 +221,16 @@ class IContact extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $accountId = App::parseEnv($this->accountId);
         $clientFolderId = App::parseEnv($this->clientFolderId);
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "https://app.icontact.com/icp/a/{$accountId}/c/{$clientFolderId}/",
             'headers' => [
                 'Accept' => 'application/json',

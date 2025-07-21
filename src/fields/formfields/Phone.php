@@ -34,17 +34,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Phone Number');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/phone/icon.svg';
@@ -74,9 +68,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getContentColumnType(): string
     {
         if ($this->countryEnabled) {
@@ -104,9 +95,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         $value = parent::normalizeValue($value, $element);
@@ -130,9 +118,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return $phone;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof PhoneModel) {
@@ -165,9 +150,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         return null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -179,17 +161,11 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndSubfields($context): array
     {
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSubfieldOptions(): array
     {
         return [
@@ -212,9 +188,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateRequiredFields(ElementInterface $element): void
     {
         if ($this->required) {
@@ -230,9 +203,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getExtraBaseFieldConfig(): array
     {
         return [
@@ -240,9 +210,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
@@ -252,9 +219,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
@@ -287,9 +251,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -333,9 +294,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -355,9 +313,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -368,9 +323,6 @@ class Phone extends FormField implements SubfieldInterface, PreviewableFieldInte
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\controllers\SubmissionsController;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\NestedFieldRow;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\NestedFieldRowQuery;
 use verbb\formie\events\PruneSubmissionEvent;
@@ -13,6 +14,7 @@ use verbb\formie\events\SubmissionEvent;
 use verbb\formie\events\SubmissionSpamCheckEvent;
 use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\formfields;
+use verbb\formie\helpers\SpamHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
 use verbb\formie\jobs\SendNotification;
@@ -27,6 +29,7 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\db\Query;
+use craft\db\Table;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
@@ -75,10 +78,13 @@ class Submissions extends Component
      * @param string|null $siteId
      * @return Submission|null
      */
-    public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
+    public function getSubmissionById(int $id, ?string $siteId = '*', array $criteria = []): ?Submission
     {
-        /* @noinspection PhpIncompatibleReturnTypeInspection */
-        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
+        // Always included incomplete or spam submissions
+        $criteria['isIncomplete'] = null;
+        $criteria['isSpam'] = null;
+
+        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId, $criteria);
     }
 
     /**
@@ -493,6 +499,15 @@ class Submissions extends Component
         }
     }
 
+    public function deleteNestedFieldRows(): void
+    {
+        Db::delete(Table::ELEMENTS, [
+            'and',
+            ['not', ['dateDeleted' => null]],
+            ['type' => NestedFieldRow::class],
+        ]);
+    }
+
     /**
      * Deletes any submissions related to a user.
      */
@@ -576,41 +591,19 @@ class Submissions extends Component
 
         // Is it already spam?
         if (!$submission->isSpam) {
-            $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
-            $extraExcludes = [];
-
-            // Handle any Twig used in the field
-            foreach ($excludes as $key => $exclude) {
-                if (str_contains($exclude, '{')) {
-                    unset($excludes[$key]);
-
-                    $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
-                    $extraExcludes[] = $parsedString;
-                }
-            }
-
-            // For performance
-            $excludes = array_merge($excludes, ...$extraExcludes);
-
-            // Build a string based on field content - much easier to find values
-            // in a single string than iterate through multiple arrays
+            // Start evaluating keyword rules
             $fieldValues = $this->_getContentAsString($submission);
+            $spamEvaluation = SpamHelper::checkContent($fieldValues);
 
-            foreach ($excludes as $exclude) {
-                // Check if string contains
-                if (strtolower($exclude) && str_contains(strtolower($fieldValues), strtolower($exclude))) {
+            if ($spamEvaluation) {
+                if ($spamEvaluation['type'] === 'text') {
                     $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
-
-                    break;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $spamEvaluation['value']]);
                 }
 
-                // Check for IPs
-                if ($submission->ipAddress && $submission->ipAddress === $exclude) {
+                if ($spamEvaluation['type'] === 'ip') {
                     $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $exclude]);
-
-                    break;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $spamEvaluation['value']]);
                 }
             }
         }
@@ -849,23 +842,6 @@ class Submissions extends Component
         }
 
         return $submissions;
-    }
-
-    /**
-     * Converts a multiline string to an array.
-     *
-     * @param $string
-     * @return array
-     */
-    private function _getArrayFromMultiline($string): array
-    {
-        $array = [];
-
-        if ($string) {
-            $array = array_map('trim', explode(PHP_EOL, $string));
-        }
-
-        return array_filter($array);
     }
 
     /**

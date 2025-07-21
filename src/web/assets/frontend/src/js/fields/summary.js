@@ -1,4 +1,4 @@
-import { t, eventKey } from '../utils/utils';
+import { t, eventKey, getAjaxClient } from '../utils/utils';
 
 export class FormieSummary {
     constructor(settings = {}) {
@@ -56,11 +56,7 @@ export class FormieSummary {
                 $container.classList.add(this.loadingClass);
             }
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', window.location.href, true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            const xhr = getAjaxClient(this.$form, 'POST', window.location.href, true);
 
             xhr.onload = () => {
                 if (this.loadingClass) {

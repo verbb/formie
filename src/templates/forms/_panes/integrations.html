@@ -100,6 +100,9 @@ $(document).on('click', '[data-vui-tabs] a', function(e) {
 
         $pane.removeClass('hidden');
     }
+
+    // Fire an event when changing tabs for some JS actions to happen
+    $(document).trigger('formie:integration-tab-' + $(this).data('integration'));
 });
 
 $('[data-target="integration-enabled"]').each(function(index, element) {

@@ -22,83 +22,51 @@ class NestedFieldRow extends Element implements BlockElementInterface
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Nested Field Row');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function lowerDisplayName(): string
     {
         return Craft::t('formie', 'Nested field row');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function pluralDisplayName(): string
     {
         return Craft::t('formie', 'Nested Field Rows');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function pluralLowerDisplayName(): string
     {
         return Craft::t('formie', 'Nested field rows');
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function refHandle(): ?string
     {
         return 'nestedfieldrow';
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function hasContent(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function isLocalized(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function hasStatuses(): bool
     {
         return true;
     }
 
-    /**
-     * @inheritdoc
-     *
-     * @return NestedFieldRowQuery
-     */
     public static function find(): NestedFieldRowQuery
     {
         return new NestedFieldRowQuery(static::class);
     }
 
-    /**
-     * @inheritdoc
-     */
     public static function eagerLoadingMap(array $sourceElements, string $handle): array|null|false
     {
         /* @var ElementInterface $nestedField */
@@ -134,9 +102,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function attributes(): array
     {
         $names = parent::attributes();
@@ -144,9 +109,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return $names;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function extraFields(): array
     {
         $names = parent::extraFields();
@@ -155,9 +117,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return $names;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSupportedSites(): array
     {
         // Only support the site the submission is being made on
@@ -166,9 +125,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return [$siteId];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFieldLayout(): ?FieldLayout
     {
         return $this->getField()->getFieldLayout();
@@ -180,9 +136,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return Craft::$app->getFields()->getFieldById($this->fieldId);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getOwner(): ?ElementInterface
     {
         if ($this->_owner === null) {
@@ -203,25 +156,16 @@ class NestedFieldRow extends Element implements BlockElementInterface
         $this->_owner = $owner;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getContentTable(): string
     {
         return $this->getField()->contentTable;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFieldColumnPrefix(): string
     {
         return 'field_';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getFieldContext(): string
     {
         return $this->getField()->getFormFieldContext();
@@ -266,9 +210,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
@@ -293,9 +234,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
         parent::afterSave($isNew);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function beforeDelete(): bool
     {
         if (!parent::beforeDelete()) {
@@ -346,9 +284,6 @@ class NestedFieldRow extends Element implements BlockElementInterface
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         $rules = parent::defineRules();

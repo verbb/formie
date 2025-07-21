@@ -202,6 +202,7 @@ class Forms extends Component
             $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
 
             foreach ($integrations as $integration) {
+                $integration->beforeSaveForm($form->settings->integrations[$integration->handle] ?? []);
                 $integration->setScenario(Integration::SCENARIO_FORM);
 
                 // Only validate integrations for non-new forms

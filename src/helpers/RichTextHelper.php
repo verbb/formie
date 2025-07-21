@@ -107,6 +107,10 @@ class RichTextHelper
                     'buttons' => ['bold', 'italic'],
                     'rows' => 3,
                 ],
+                'limitSubmissionsIpAddressMessage' => [
+                    'buttons' => ['bold', 'italic'],
+                    'rows' => 3,
+                ],
             ],
             'fields' => [
                 'agree' => [

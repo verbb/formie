@@ -32,9 +32,6 @@ class Name extends Field implements FieldInterface
     // Templates
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/name';
@@ -44,9 +41,6 @@ class Name extends Field implements FieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function parseField(): mixed
     {
         $this->beforeParseField();

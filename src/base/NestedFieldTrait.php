@@ -28,9 +28,6 @@ trait NestedFieldTrait
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public static function valueType(): string
     {
         return NestedFieldRowQuery::class;
@@ -54,9 +51,6 @@ trait NestedFieldTrait
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setAttributes($values, $safeOnly = true): void
     {
         parent::setAttributes($values, $safeOnly);
@@ -73,9 +67,6 @@ trait NestedFieldTrait
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getValue(ElementInterface $element): mixed
     {
         $fields = $this->getCustomFields();
@@ -96,9 +87,6 @@ trait NestedFieldTrait
         return $rows;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
         if (!parent::validate($attributeNames, $clearErrors)) {
@@ -155,9 +143,6 @@ trait NestedFieldTrait
         return $validates;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function hasErrors($attribute = null): bool
     {
         if (parent::hasErrors($attribute)) {
@@ -173,9 +158,6 @@ trait NestedFieldTrait
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getRows(): array
     {
         if (($fieldLayout = $this->getFieldLayout())) {
@@ -191,9 +173,6 @@ trait NestedFieldTrait
         return [];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setRows(array $rows, bool $duplicate = false): void
     {
         $fieldLayout = Formie::$plugin->getForms()->buildFieldLayout([
@@ -256,9 +235,6 @@ trait NestedFieldTrait
         return ArrayHelper::firstWhere($this->getCustomFields(), 'id', $id);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldLayout(): ?FieldLayout
     {
         if ($this->_fieldLayout) {
@@ -268,17 +244,11 @@ trait NestedFieldTrait
         return $this->_fieldLayout = Formie::$plugin->getNestedFields()->getFieldLayout($this);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setFieldLayout(FieldLayout $fieldLayout): void
     {
         $this->_fieldLayout = $fieldLayout;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFormFieldContext(): string
     {
         return "formieField:{$this->uid}";
@@ -303,9 +273,6 @@ trait NestedFieldTrait
         return array_merge(...$modules);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         if (!parent::beforeSave($isNew)) {
@@ -336,9 +303,6 @@ trait NestedFieldTrait
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterSave(bool $isNew): void
     {
         Formie::$plugin->getNestedFields()->saveField($this);
@@ -346,9 +310,6 @@ trait NestedFieldTrait
         parent::afterSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function afterElementSave(ElementInterface $element, bool $isNew): void
     {
         /** @var Element $element */
@@ -366,9 +327,6 @@ trait NestedFieldTrait
         parent::afterElementSave($element, $isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeApplyDelete(): void
     {
         Formie::$plugin->getNestedFields()->deleteNestedField($this);
@@ -376,9 +334,6 @@ trait NestedFieldTrait
         parent::beforeApplyDelete();
     }
 
-    /**
-     * @inheritdoc
-     */
     public function beforeElementDelete(ElementInterface $element): bool
     {
         if (!parent::beforeElementDelete($element)) {
@@ -406,9 +361,6 @@ trait NestedFieldTrait
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function afterElementRestore(ElementInterface $element): void
     {
         // Also restore any nested field rows for this element
@@ -431,9 +383,6 @@ trait NestedFieldTrait
         parent::afterElementRestore($element);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         if ($value instanceof ElementQueryInterface) {
@@ -470,9 +419,6 @@ trait NestedFieldTrait
         return $query;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
         /** @var NestedFieldRowQuery $value */
@@ -490,9 +436,6 @@ trait NestedFieldTrait
         return $serialized;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function modifyElementsQuery(ElementQueryInterface $query, $value): void
     {
         /** @var ElementQuery $query */
@@ -511,9 +454,6 @@ trait NestedFieldTrait
         }
     }
 
-    /**
-     * @inheritdoc
-     */
     public function isValueEmpty($value, ElementInterface $element): bool
     {
         /** @var NestedFieldRowQuery $value */
@@ -549,9 +489,6 @@ trait NestedFieldTrait
         }
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getSearchKeywords($value, ElementInterface $element): string
     {
         /** @var NestedFieldRowQuery $value */
@@ -584,9 +521,6 @@ trait NestedFieldTrait
         return parent::getSearchKeywords($keywords, $element);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getEagerLoadingMap(array $sourceElements): array|false|null
     {
         // Get the source element IDs

@@ -24,9 +24,6 @@ class FieldsController extends Controller
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function beforeAction($action): bool
     {
         if ($action->id === 'get-summary-html') {

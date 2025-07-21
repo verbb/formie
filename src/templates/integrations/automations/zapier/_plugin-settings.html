@@ -1,0 +1,18 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Webhook URL' | t('formie'),
+    instructions: 'Enter the {name} webhook URL that will be triggered when a submission is made.' | t('formie'),
+    name: 'webhook',
+    suggestEnvVars: true,
+    value: integration.settings.webhook ?? '',
+    warning: macros.configWarning('webhook', 'formie'),
+    errors: integration.getErrors('webhook'),
+}) }}
+
+{% endblock %}

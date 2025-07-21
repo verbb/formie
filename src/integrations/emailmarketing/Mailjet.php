@@ -13,6 +13,10 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\StringHelper;
 
+use GuzzleHttp\Client;
+
+use Throwable;
+
 class Mailjet extends EmailMarketing
 {
     // Properties
@@ -25,25 +29,16 @@ class Mailjet extends EmailMarketing
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Mailjet');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getDescription(): string
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -53,9 +48,6 @@ class Mailjet extends EmailMarketing
         return $rules;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchFormSettings()
     {
         $settings = [];
@@ -98,9 +90,6 @@ class Mailjet extends EmailMarketing
         return new IntegrationFormSettings($settings);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -132,9 +121,6 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function fetchConnection(): bool
     {
         try {
@@ -153,17 +139,14 @@ class Mailjet extends EmailMarketing
 
         return true;
     }
+    
 
-    /**
-     * @inheritDoc
-     */
-    public function getClient()
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClient(): Client
     {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.mailjet.com/v3/REST/',
             'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
         ]);
@@ -173,9 +156,6 @@ class Mailjet extends EmailMarketing
     // Private Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     private function _convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -189,9 +169,6 @@ class Mailjet extends EmailMarketing
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
-    /**
-     * @inheritDoc
-     */
     private function _getCustomFields($fields, $excludeNames = [])
     {
         $customFields = [];

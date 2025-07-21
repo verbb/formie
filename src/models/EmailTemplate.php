@@ -18,9 +18,6 @@ class EmailTemplate extends BaseTemplate
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();

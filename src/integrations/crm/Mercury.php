@@ -19,9 +19,6 @@ class Mercury extends Crm
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Mercury');
@@ -50,17 +47,11 @@ class Mercury extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseUat(): string
     {
         return App::parseBooleanEnv($this->useUat);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -452,12 +443,12 @@ class Mercury extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $url = 'https://apis.connective.com.au/mercury/v1';
         $apiToken = App::parseEnv($this->apiToken);
         $apiKey = App::parseEnv($this->apiKey);
@@ -468,7 +459,7 @@ class Mercury extends Crm
             $apiKey = App::parseEnv($this->uatKey);
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => "$url/$apiToken/",
             'headers' => [
                 'x-api-key' => $apiKey,

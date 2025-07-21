@@ -23,17 +23,11 @@ class SetSubmissionStatus extends SetStatus
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerLabel(): string
     {
         return Craft::t('app', 'Set Status');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/_components/actions/set-status/trigger', [
@@ -41,9 +35,6 @@ class SetSubmissionStatus extends SetStatus
         ]);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function performAction(ElementQueryInterface $query): bool
     {
         $elementsService = Craft::$app->getElements();
@@ -97,9 +88,6 @@ class SetSubmissionStatus extends SetStatus
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function defineRules(): array
     {
         // Don't include the parent rules from `SetStatus`

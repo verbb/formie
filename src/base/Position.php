@@ -21,17 +21,11 @@ abstract class Position extends Component implements PositionInterface
     // Static Method
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function supports(FormFieldInterface $field = null): bool
     {
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function fallback(FormFieldInterface $field = null): ?string
     {
         return null;
@@ -49,9 +43,6 @@ abstract class Position extends Component implements PositionInterface
         return StringHelper::toKebabCase($end);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function shouldDisplay(string $position): bool
     {
         return $position === $this::$position;

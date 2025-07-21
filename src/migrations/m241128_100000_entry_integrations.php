@@ -16,9 +16,6 @@ use craft\helpers\StringHelper;
 
 class m241128_100000_entry_integrations extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $entryIntegrations = (new Query())
@@ -59,9 +56,6 @@ class m241128_100000_entry_integrations extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m241128_100000_entry_integrations cannot be reverted.\n";

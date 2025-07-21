@@ -30,25 +30,16 @@ class Html extends FormField
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'HTML');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/html/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function hasContentColumn(): bool
     {
         return false;
@@ -99,9 +90,6 @@ class Html extends FormField
         return $htmlContent;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFieldDefaults(): array
     {
         return [
@@ -109,9 +97,6 @@ class Html extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function beforeSave(bool $isNew): bool
     {
         // Add emoji support to HTML content
@@ -120,9 +105,6 @@ class Html extends FormField
         return parent::beforeSave($isNew);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
@@ -132,9 +114,6 @@ class Html extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/preview', [
@@ -142,17 +121,11 @@ class Html extends FormField
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -167,9 +140,6 @@ class Html extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -180,9 +150,6 @@ class Html extends FormField
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [

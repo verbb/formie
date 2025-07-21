@@ -34,9 +34,6 @@ class Salesforce extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Salesforce');
@@ -115,25 +112,16 @@ class Salesforce extends Crm
         return App::parseEnv($this->clientSecret);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseSandbox(): string
     {
         return App::parseBooleanEnv($this->useSandbox);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getUseCredentials(): string
     {
         return App::parseBooleanEnv($this->useCredentials);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getOauthScope(): array
     {
         return [
@@ -151,9 +139,6 @@ class Salesforce extends Crm
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function oauthCallback(): ?array
     {
         // In some instances (service users) we might want to use the insecure password grant
@@ -201,9 +186,6 @@ class Salesforce extends Crm
         return ['apiDomain'];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -655,12 +637,12 @@ class Salesforce extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
 
         if (!$token) {

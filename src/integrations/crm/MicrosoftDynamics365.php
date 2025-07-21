@@ -40,9 +40,6 @@ class MicrosoftDynamics365 extends Crm
         return true;
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Microsoft Dynamics 365');
@@ -121,9 +118,6 @@ class MicrosoftDynamics365 extends Crm
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -398,12 +392,12 @@ class MicrosoftDynamics365 extends Crm
         return parent::request($method, $uri, $options);
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         $token = $this->getToken();
 
         if (!$token) {
@@ -446,10 +440,6 @@ class MicrosoftDynamics365 extends Crm
         return $this->_client;
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
     protected function convertFieldType($fieldType)
     {
         $fieldTypes = [
@@ -466,6 +456,10 @@ class MicrosoftDynamics365 extends Crm
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
     }
 
+
+    // Private Methods
+    // =========================================================================
+    
     private function _getEntityFields($entity): array
     {
         $metadataAttributesForSelect = [

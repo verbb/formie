@@ -288,3 +288,17 @@ trait PluginTrait
         BaseHelper::setFileLogging('formie');
     }
 }
+
+// Handle deprecated classes via an alias, until Formie 4
+class_alias('verbb\formie\integrations\helpdesk\Freshdesk', 'verbb\formie\integrations\crm\Freshdesk');
+class_alias('verbb\formie\integrations\helpdesk\Gorgias', 'verbb\formie\integrations\miscellaneous\Gorgias');
+class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrations\miscellaneous\Zendesk');
+
+class_alias('verbb\formie\integrations\messaging\Slack', 'verbb\formie\integrations\miscellaneous\Slack');
+class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integrations\miscellaneous\Telegram');
+
+class_alias('verbb\formie\events\ModifyAutomationPayloadEvent', 'verbb\formie\events\ModifyWebhookPayloadEvent');
+class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\webhooks\Webhook');
+class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\automations\Webhook');
+class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');

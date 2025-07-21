@@ -1,0 +1,19 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Webhook Key' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'webhookKey',
+    suggestEnvVars: true,
+    required: true,
+    value: integration.settings.webhookKey ?? '',
+    warning: macros.configWarning('webhookKey', 'formie'),
+    errors: integration.getErrors('webhookKey'),
+}) }}
+
+{% endblock %}

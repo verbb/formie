@@ -26,9 +26,6 @@ class Repeater extends Field implements FieldInterface
     // Templates
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function getMappingTemplate(): string
     {
         return 'formie/integrations/feedme/fields/repeater';
@@ -38,9 +35,6 @@ class Repeater extends Field implements FieldInterface
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public function parseField(): mixed
     {
         $this->beforeParseField();

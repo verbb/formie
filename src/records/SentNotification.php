@@ -18,9 +18,6 @@ class SentNotification extends ActiveRecord
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function tableName(): string
     {
         return '{{%formie_sentnotifications}}';

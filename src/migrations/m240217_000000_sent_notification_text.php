@@ -5,9 +5,6 @@ use craft\db\Migration;
 
 class m240217_000000_sent_notification_text extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $this->alterColumn('{{%formie_sentnotifications}}', 'subject', $this->text());
@@ -23,9 +20,6 @@ class m240217_000000_sent_notification_text extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m240217_000000_sent_notification_text cannot be reverted.\n";

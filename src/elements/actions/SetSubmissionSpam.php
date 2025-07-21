@@ -20,25 +20,16 @@ class SetSubmissionSpam extends ElementAction
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerLabel(): string
     {
         return Craft::t('app', 'Set spam');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function getTriggerHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate('formie/_components/actions/mark-spam/trigger');
     }
 
-    /**
-     * @inheritdoc
-     */
     public function performAction(ElementQueryInterface $query): bool
     {
         $elementsService = Craft::$app->getElements();

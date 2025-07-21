@@ -1,0 +1,6 @@
+{% set form = renderOptions.form %}
+
+{{ fieldtag('fieldInput') }}
+
+<input type="hidden" name="{{ field.getHtmlName() }}">
+<input type="hidden" name="{{ field.getHtmlName('goCardlessRedirect') }}" value="true">

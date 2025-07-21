@@ -5,9 +5,6 @@ use craft\db\Migration;
 
 class m220904_000000_add_siteid_entry_redirect extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         if (!$this->db->columnExists('{{%formie_forms}}', 'submitActionEntrySiteId')) {
@@ -21,9 +18,6 @@ class m220904_000000_add_siteid_entry_redirect extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m220904_000000_add_siteid_entry_redirect cannot be reverted.\n";

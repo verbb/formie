@@ -19,9 +19,6 @@ class IntegrationFormSettings extends Model
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     public function __construct($collections = [])
     {
         parent::__construct();

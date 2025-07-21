@@ -153,25 +153,31 @@ Add users who fill out your forms directly to your mailing lists.
 
 - ActiveCampaign
 - Adestra
-- Autopilot
 - AWeber
 - Benchmark
+- Brevo (Sendinblue)
 - [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
 - Constant Contact
 - ConvertKit
+- Customer.io
 - Drip
+- Ecomail
 - EmailOctopus
 - GetResponse
 - iContact
+- Iterable
 - Klaviyo
 - Mailchimp
+- Mailcoach
 - MailerLite
+- Mailjet
 - Moosend
 - Omnisend
 - Ontraport
+- Ortto (Autopilot)
 - Sender
-- Sendinblue
+- Vero
 
 #### CRM
 Build your customer relationship data with ease, mapping form fields to contacts, leads and more.

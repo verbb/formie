@@ -35,6 +35,7 @@ Variable | Description
 `submission` | A [Submission](docs:developers/submission) object, for what the email is notifying about.
 `form` | A [Form](docs:developers/form) object, for what the email is notifying about.
 `contentHtml` | The HTML generated from the **Email Content** field for the email notification.
+`body` | Alias for `contentHtml` to make templates compatible with [Craft HTML Templates](https://craftcms.com/docs/4.x/system/mail.html#html-template).
 
 Let's cover the `contentHtml` variable next.
 

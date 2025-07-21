@@ -7,6 +7,8 @@ Elements have settings at the plugin level, as well as per-form, allowing you to
 Formie integrates with the following elements:
 - Entries
 - Users
+- Solspace Calendar Events
+- Commerce Products (Single Variant)
 
 ## Entry
 For a form, you can configure entries to be created for submissions. You'll need to configure:

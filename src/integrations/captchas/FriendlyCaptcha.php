@@ -36,9 +36,6 @@ class FriendlyCaptcha extends Captcha
         return Craft::t('formie', 'Friendly Captcha employs a fundamentally new approach to securely defend your websites and online services from spam and bots. Find out more via [Friendly Captcha](https://friendlycaptcha.com/).');
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getSettingsHtml(): ?string
     {
         $variables = $this->getSettingsHtmlVariables();
@@ -54,9 +51,6 @@ class FriendlyCaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_form-settings', $variables);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
@@ -65,9 +59,6 @@ class FriendlyCaptcha extends Captcha
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFrontEndJsVariables(Form $form, $page = null): ?array
     {
         $settings = [
@@ -86,9 +77,6 @@ class FriendlyCaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getGqlVariables(Form $form, $page = null): array
     {
         return [
@@ -98,32 +86,28 @@ class FriendlyCaptcha extends Captcha
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function validateSubmission(Submission $submission): bool
     {
-        $response = $this->getRequestParam('frc-captcha-solution');
+        $responseToken = $this->getRequestParam('frc-captcha-solution');
 
-        if (!$response) {
+        if (!$responseToken) {
+            $this->spamReason = 'Missing Friendly Captcha token.';
+
             return false;
         }
 
-        $client = Craft::createGuzzleClient();
-
-        $response = $client->post('https://api.friendlycaptcha.com/api/v1/siteverify', [
+        $response = $this->request('POST', 'https://api.friendlycaptcha.com/api/v1/siteverify', [
             'json' => [
                 'secret' => App::parseEnv($this->secretKey),
                 'sitekey' => App::parseEnv($this->siteKey),
-                'solution' => $response,
+                'solution' => $responseToken,
             ],
         ]);
 
-        $result = Json::decode((string)$response->getBody(), true);
-        $success = $result['success'] ?? false;
+        $success = $response['success'] ?? false;
 
         if (!$success) {
-            $this->spamReason = Json::encode($result);
+            $this->spamReason = Json::encode($response);
         }
 
         return $success;

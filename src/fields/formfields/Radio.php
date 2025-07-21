@@ -4,7 +4,7 @@ namespace verbb\formie\fields\formfields;
 use verbb\formie\base\FormFieldInterface;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\HtmlTag;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\positions;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -17,25 +17,16 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
     // Static Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
     public static function displayName(): string
     {
         return Craft::t('formie', 'Radio Buttons');
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/radio/icon.svg';
     }
 
-    /**
-     * @inheritDoc
-     */
     public static function valueType(): string
     {
         return SingleOptionFieldData::class;
@@ -51,9 +42,18 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
     // Public Methods
     // =========================================================================
 
-    /**
-     * @inheritDoc
-     */
+    public function supportsLabelPosition(string $class): bool
+    {
+        // Restricted due to use of `<legend>`
+        $disabled = [
+            positions\BelowInput::class,
+            positions\LeftInput::class,
+            positions\RightInput::class,
+        ];
+
+        return in_array($class, $disabled) ? false : parent::supportsLabelPosition($class);
+    }
+
     public function getFieldDefaults(): array
     {
         return [
@@ -77,9 +77,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         return $options;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/input', [
@@ -89,9 +86,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ]);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPreviewInputHtml(): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/radio/preview', [
@@ -107,9 +101,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineGeneralSchema(): array
     {
         return [
@@ -152,9 +143,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineSettingsSchema(): array
     {
         return [
@@ -174,9 +162,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAppearanceSchema(): array
     {
         return [
@@ -196,9 +181,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
         ];
     }
 
-    /**
-     * @inheritDoc
-     */
     public function defineAdvancedSchema(): array
     {
         return [
@@ -243,7 +225,7 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
                     'fui-legend',
                 ],
                 'data' => [
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
                 ],
             ]);
         }
@@ -292,9 +274,6 @@ class Radio extends BaseOptionsField implements FormFieldInterface, SortableFiel
     // Protected Methods
     // =========================================================================
 
-    /**
-     * @inheritdoc
-     */
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Radio Button Options');
