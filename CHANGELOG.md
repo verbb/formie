@@ -1,5 +1,110 @@
 # Changelog
 
+## 3.1.0 - 2025-07-22
+
+### Added
+- Add Automation, Help Desk and Messaging integration types.
+- Add PlaceKit Address Provider integration.
+- Add n8n Automation integration.
+- Add Make Automation integration.
+- Add IFTTT Automation integration.
+- Add Akismet Captcha integration.
+- Add Captcha.eu Captcha integration.
+- Add CleanTalk Captcha integration.
+- Add OOPSpam Captcha integration.
+- Add Question Captcha integration.
+- Add Attio CRM integration.
+- Add CiviCRM integration.
+- Add Flowlu CRM integration.
+- Add Marketo CRM Integration.
+- Add NoCRM integration.
+- Add Outseta CRM integration.
+- Add Procurios CRM Integration.
+- Add Salesmate CRM integration.
+- Add SuiteCRM CRM Integration.
+- Add Xero CRM Integration.
+- Add Events Element Integration.
+- Add Beehiiv Email Marketing integration.
+- Add CleverReach Email Marketing Integration.
+- Add Customer.io Email Marketing integration.
+- Add Ecomail Email Marketing integration.
+- Add Mailcoach Email Marketing integration.
+- Add Ortto Email Marketing integration.
+- Add Vero Email Marketing integration.
+- Add Front Help Desk Integration.
+- Add Gorgias Help Desk integration.
+- Add Help Scout Help Desk Integration.
+- Add Intercom Help Desk Integration.
+- Add LiveChat Help Desk Integration.
+- Add Zendesk Help Desk integration.
+- Add BPOINT Payment integration.
+- Add Eway Payment integration.
+- Add GoCardless Payment integration.
+- Add Mollie Payment integration.
+- Add Moneris Payment integration.
+- Add Paddle Payment integration.
+- Add Square Payment integration.
+- Add Discord Messaging integration.
+- Add Plivo Messaging integration.
+- Add Telegram Messaging integration.
+- Add Twilio Messaging integration.
+- Add ClickUp Miscellaneous integration.
+- Add Commerce Product Element integration (for single-variant products).
+- Add Ticket object support to HubSpot CRM integration.
+- Add `Integration::beforeSaveForm()` and `Integration::defineClient()`.
+- Add spam reason for Friendly Captcha when missing client-side token.
+- Add integration front-end JS provider classes as separate exports to include in your own code.
+- Add “is visible” and “is hidden” field conditions.
+- Add parent field information to form builder for conditions.
+- Add the ability to map to “Dependant Fields” for HubSpot integrations.
+- Add the ability to set Address values for User element integrations.
+- Add SharpSpring tracking data when mapping to a native form.
+- Add the ability for Elements fields to set specific elements as available to be picked from.
+- Add support for Date fields to set their Year Range start setting to a negative value to offset from the current year.
+- Add “Progress Value Position” form setting to control where the percentage value for page process sits.
+- Add the ability to mark an incomplete submission as complete in the control panel.
+- Add `body` variable as alias to `contentHtml` for email notifications, to be compatible with Craft email templates.
+- Add support for “Layout” setting for Element fields, when displayed as Checkboxes or Radio Buttons.
+- Add `outputConsoleMessages` plugin setting to prevent CSRF token refresh console.log messages.
+- Add support for form submissions to be limited by IP address.
+- Add JS event `modifyAjaxClient` to modify the XHR client used for Ajax requests.
+- Add JS event `modifyScriptUrl` to modify the CDN scripts for Phone and Date Picker libraries.
+
+### Changed
+- Re-organise form builder field categories.
+- Rename Webhook integration to Web Request, and add more options for request settings.
+- Move Slack and Telegram to Messaging integrations.
+- Move Freshdesk, Gorgias and Zendesk to Help Desk integrations.
+- Webhook integrations are now Automation integrations.
+- Captcha integrations now no longer pre-select the first available type when editing.
+- Re-order Captcha integrations alphabetically.
+- Integrations can now control any required plugins.
+- Captchas can now opt to validate earlier in the submission process, and prevent submission saving (like a field would).
+- Form integration settings now no longer need to be saved when fetching new data/refreshing data.
+- Improve integration success/fail feedback in the form builder.
+- Integration settings pages have been re-worked with multiple tabs and an external docs link to instructions.
+- Update spam keywords rules to new definition syntax.
+- Update Phone field, no longer using CDN for utils and flag icons, updated look and feel.
+- Update the `intl-tel-input` package for Phone field validation and handling.
+- Change scroll-to-top behaviour to handle non-top level forms (in modal).
+- Allow Radio Buttons and Checkboxes field option labels to include HTML (safe) or Markdown.
+- Update Checkboxes and Radio Buttons fields to not show invalid label positions to select.
+- Hidden or Disabled fields now have a visual indicator in the form builder.
+- Google Sheets integration can now have their Spreadsheet ID set per-form.
+
+### Fixed
+- Fix `NestedFieldRow` elements not being garbage collected properly for deleted submissions.
+- Fix Date field Year Range offsets not using the current year.
+- Fix Phone field flag in the form builder.
+- Fix Address field’s Autocomplete integration setting not validating correctly.
+
+### Deprecated
+- Deprecated `Automation::getWebhookUrl()`. Use `Automation::getEndpointUrl()` instead.
+
+### Removed
+- Removed “Webhook URL” plugin setting from Webhook integration (still available per-form).
+- Integration docs are no longer provided within Formie, instead visit the [docs](https://verbb.io/craft-plugins/formie/docs).
+
 ## 3.0.32 - 2025-07-18
 
 ### Added
