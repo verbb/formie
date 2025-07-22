@@ -339,7 +339,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         $this->_client = $value;
     }
 
-    public function getClient(): Client
+    public function getClient()
     {
         if ($this->_client) {
             return $this->_client;
