@@ -224,21 +224,10 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->after, '>='));
         }
 
+        // As we roll our own field layout, ensure field querying is handled
+        $this->_applyCustomFieldParams();
+
         return parent::beforePrepare();
-    }
-
-    protected function afterPrepare(): bool
-    {
-        // Add our own handling for custom fields, as the base `ElementQuery` class assumes the traditional approach
-        // using the CustomFieldBehavior that Formie doesn't use.
-        // Craft 5.6+ also changed behaviour, so things are working correctly in earlier versions. 
-        // See https://github.com/craftcms/cms/commit/1459e6d4b7cfd5d5cb439b33acddef810b622e2c
-        // and https://github.com/verbb/formie/issues/2263
-        if (version_compare(Craft::$app->getInfo()->version, '5.6.0', '>=')) {
-            $this->_applyCustomFieldParams();
-        }
-
-        return parent::afterPrepare();
     }
 
     protected function statusCondition(string $status): mixed
@@ -261,16 +250,6 @@ class SubmissionQuery extends ElementQuery
 
     protected function customFields(): array
     {
-        if (!$this->withCustomFields) {
-            return [];
-        }
-
-        // Craft will try and load custom fields when dealing with provisional drafts, which is rough for performance
-        // As submissions don't make use of provisional draft, we can discard this.
-        if ($this->withProvisionalDrafts || $this->provisionalDrafts) {
-            return [];
-        }
-
         // If restricting to a form, only load the fields we need for performance.
         if ($formIds = $this->_resolveFormIds()) {
             $fields = [];
@@ -291,45 +270,43 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyCustomFieldParams(): void
     {
-        if (is_array($this->customFields)) {
-            $fieldAttributes = $this->getBehavior('customFields');
+        $fieldAttributes = $this->getBehavior('customFields');
 
-            // Group the fields by handle and field UUID
-            $fieldsByHandle = [];
+        // Group the fields by handle and field UUID
+        $fieldsByHandle = [];
 
-            foreach ($this->customFields as $field) {
-                $fieldsByHandle[$field->handle][$field->uid][] = $field;
+        foreach ($this->customFields() as $field) {
+            $fieldsByHandle[$field->handle][$field->uid][] = $field;
+        }
+
+        foreach ($fieldsByHandle as $handle => $instancesByUid) {
+            // $fieldAttributes->$handle will return true even if it's set to null, so can't use isset() here
+            if ($handle === 'owner' || ($fieldAttributes->$handle ?? null) === null) {
+                continue;
             }
 
-            foreach ($fieldsByHandle as $handle => $instancesByUid) {
-                // $fieldAttributes->$handle will return true even if it's set to null, so can't use isset() here
-                if ($handle === 'owner' || ($fieldAttributes->$handle ?? null) === null) {
-                    continue;
+            $conditions = [];
+            $params = [];
+
+            foreach ($instancesByUid as $instances) {
+                $firstInstance = $instances[0];
+                $condition = $firstInstance::queryCondition($instances, $fieldAttributes->$handle, $params);
+
+                // aborting?
+                if ($condition === false) {
+                    throw new QueryAbortedException();
                 }
 
-                $conditions = [];
-                $params = [];
-
-                foreach ($instancesByUid as $instances) {
-                    $firstInstance = $instances[0];
-                    $condition = $firstInstance::queryCondition($instances, $fieldAttributes->$handle, $params);
-
-                    // aborting?
-                    if ($condition === false) {
-                        throw new QueryAbortedException();
-                    }
-
-                    if ($condition !== null) {
-                        $conditions[] = $condition;
-                    }
+                if ($condition !== null) {
+                    $conditions[] = $condition;
                 }
+            }
 
-                if (!empty($conditions)) {
-                    if (count($conditions) === 1) {
-                        $this->subQuery->andWhere(reset($conditions), $params);
-                    } else {
-                        $this->subQuery->andWhere(['or', ...$conditions], $params);
-                    }
+            if (!empty($conditions)) {
+                if (count($conditions) === 1) {
+                    $this->subQuery->andWhere(reset($conditions), $params);
+                } else {
+                    $this->subQuery->andWhere(['or', ...$conditions], $params);
                 }
             }
         }
