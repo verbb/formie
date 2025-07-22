@@ -174,8 +174,8 @@ Old | What to do instead
 | `Field::getBaseFieldConfig()` | `Field::getFieldTypeConfig()`
 | `Field::getExtraBaseFieldConfig()` | `Field::getFieldTypeConfigData()`
 | `Field::getSavedFieldConfig()` | `Field::getFormBuilderConfig()`
-| `Field::getFieldDefaults()` | `Field::getFieldTypeConfigDefaults()`
-| `Field::getAllFieldDefaults()` | `Field::getFieldTypeConfigDefaults()`
+| `Field::getFieldDefaults()` | Set default value on class property, or set in `init()`.
+| `Field::getAllFieldDefaults()` | Set default value on class property, or set in `init()`.
 | `Field::getFieldValue()` | `$element->getFieldValue($field->handle)`
 | `Field::getContentGqlMutationArgument()` | `Field::getContentGqlMutationArgumentType()`
 
