@@ -125,39 +125,41 @@ class User extends Element
 
         // Only include address fields if that native field has been added
         if ($fieldLayout = Craft::$app->getFields()->getLayoutByType(UserElement::class)) {
-            if ($addressField = $fieldLayout->getField('addresses')) {
-                $fields = [];
+            if ($fieldLayout->isFieldIncluded('addresses')) {
+                if ($addressField = $fieldLayout->getField('addresses')) {
+                    $fields = [];
 
-                foreach (Craft::$app->getFields()->getLayoutByType(AddressElement::class)->getTabs() as $tab) {
-                    foreach ($tab->getElements() as $layoutElement) {
-                        if ($layoutElement instanceof BaseNativeField) {
-                            if (!$layoutElement->label()) {
-                                continue;
+                    foreach (Craft::$app->getFields()->getLayoutByType(AddressElement::class)->getTabs() as $tab) {
+                        foreach ($tab->getElements() as $layoutElement) {
+                            if ($layoutElement instanceof BaseNativeField) {
+                                if (!$layoutElement->label()) {
+                                    continue;
+                                }
+
+                                $attributes[] = new IntegrationField([
+                                    'handle' => $addressField->attribute . '__' . $layoutElement->attribute,
+                                    'name' => Craft::t('formie', '{addressLabel}: {label}', [
+                                        'addressLabel' => $addressField->label(), 
+                                        'label' => $layoutElement->label(),
+                                    ]),
+                                    'type' => $this->getFieldTypeForField(get_class($layoutElement)),
+                                    'sourceType' => get_class($layoutElement),
+                                    'required' => $layoutElement->required,
+                                ]);
+                            } else if ($layoutElement instanceof CustomField) {
+                                $field = $layoutElement->getField();
+
+                                $attributes[] = new IntegrationField([
+                                    'handle' => $addressField->attribute . '__' . $field->handle,
+                                    'name' => Craft::t('formie', '{addressLabel}: {label}', [
+                                        'addressLabel' => $addressField->label(),
+                                        'label' => $field->name,
+                                    ]),
+                                    'type' => $this->getFieldTypeForField(get_class($field)),
+                                    'sourceType' => get_class($field),
+                                    'required' => $layoutElement->required,
+                                ]);
                             }
-
-                            $attributes[] = new IntegrationField([
-                                'handle' => $addressField->attribute . '__' . $layoutElement->attribute,
-                                'name' => Craft::t('formie', '{addressLabel}: {label}', [
-                                    'addressLabel' => $addressField->label(), 
-                                    'label' => $layoutElement->label(),
-                                ]),
-                                'type' => $this->getFieldTypeForField(get_class($layoutElement)),
-                                'sourceType' => get_class($layoutElement),
-                                'required' => $layoutElement->required,
-                            ]);
-                        } else if ($layoutElement instanceof CustomField) {
-                            $field = $layoutElement->getField();
-
-                            $attributes[] = new IntegrationField([
-                                'handle' => $addressField->attribute . '__' . $field->handle,
-                                'name' => Craft::t('formie', '{addressLabel}: {label}', [
-                                    'addressLabel' => $addressField->label(),
-                                    'label' => $field->name,
-                                ]),
-                                'type' => $this->getFieldTypeForField(get_class($field)),
-                                'sourceType' => get_class($field),
-                                'required' => $layoutElement->required,
-                            ]);
                         }
                     }
                 }
