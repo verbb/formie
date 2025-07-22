@@ -45,13 +45,6 @@ class Turnstile extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_plugin-settings', $variables);
     }
 
-    public function getFormSettingsHtml($form): string
-    {
-        $variables = $this->getFormSettingsHtmlVariables($form);
-        
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_form-settings', $variables);
-    }
-
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [

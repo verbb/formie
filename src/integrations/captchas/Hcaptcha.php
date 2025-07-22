@@ -47,13 +47,6 @@ class Hcaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_plugin-settings', $variables);
     }
 
-    public function getFormSettingsHtml($form): string
-    {
-        $variables = $this->getFormSettingsHtmlVariables($form);
-        
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_form-settings', $variables);
-    }
-
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [

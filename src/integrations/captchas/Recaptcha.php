@@ -71,13 +71,6 @@ class Recaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', $variables);
     }
 
-    public function getFormSettingsHtml($form): string
-    {
-        $variables = $this->getFormSettingsHtmlVariables($form);
-        
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_form-settings', $variables);
-    }
-
     public function getFrontEndHtml(Form $form, $page = null): string
     {
         return Html::tag('div', null, [
