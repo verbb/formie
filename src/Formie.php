@@ -226,6 +226,7 @@ class Formie extends Plugin
             $event->rules['formie/integrations/callback'] = 'formie/integrations/callback';
             $event->rules['formie/payment-webhooks/process-webhook'] = 'formie/payment-webhooks/process-webhook';
             $event->rules['formie/payment-webhooks/process-callback'] = 'formie/payment-webhooks/process-callback';
+            $event->rules['formie/payment-webhooks/status'] = 'formie/payment-webhooks/status';
         });
     }
     
@@ -236,6 +237,7 @@ class Formie extends Plugin
 
             $event->rules['formie/forms'] = 'formie/forms/index';
             $event->rules['formie/forms/new'] = 'formie/forms/new';
+            $event->rules['formie/forms/new/<siteHandle:{handle}>'] = 'formie/forms/new';
             $event->rules['formie/forms/edit/<formId:\d+>'] = 'formie/forms/edit';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';
@@ -284,12 +286,18 @@ class Formie extends Plugin
             $event->rules['formie/settings/crm'] = 'formie/integration-settings/crm-index';
             $event->rules['formie/settings/crm/new'] = 'formie/integration-settings/edit-crm';
             $event->rules['formie/settings/crm/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-crm';
+            $event->rules['formie/settings/help-desk'] = 'formie/integration-settings/help-desk-index';
+            $event->rules['formie/settings/help-desk/new'] = 'formie/integration-settings/edit-help-desk';
+            $event->rules['formie/settings/help-desk/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-help-desk';
+            $event->rules['formie/settings/messaging'] = 'formie/integration-settings/messaging-index';
+            $event->rules['formie/settings/messaging/new'] = 'formie/integration-settings/edit-messaging';
+            $event->rules['formie/settings/messaging/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-messaging';
             $event->rules['formie/settings/payments'] = 'formie/integration-settings/payment-index';
             $event->rules['formie/settings/payments/new'] = 'formie/integration-settings/edit-payment';
             $event->rules['formie/settings/payments/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-payment';
-            $event->rules['formie/settings/webhooks'] = 'formie/integration-settings/webhook-index';
-            $event->rules['formie/settings/webhooks/new'] = 'formie/integration-settings/edit-webhook';
-            $event->rules['formie/settings/webhooks/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-webhook';
+            $event->rules['formie/settings/automations'] = 'formie/integration-settings/automation-index';
+            $event->rules['formie/settings/automations/new'] = 'formie/integration-settings/edit-automation';
+            $event->rules['formie/settings/automations/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-automation';
             $event->rules['formie/settings/miscellaneous'] = 'formie/integration-settings/miscellaneous-index';
             $event->rules['formie/settings/miscellaneous/new'] = 'formie/integration-settings/edit-miscellaneous';
             $event->rules['formie/settings/miscellaneous/edit/<integrationId:\d+>'] = 'formie/integration-settings/edit-miscellaneous';

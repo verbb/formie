@@ -40,6 +40,7 @@ class Settings extends Model
     public bool $filterIntegrationMapping = true;
     public bool $includeDraftElementUsage = false;
     public bool $includeRevisionElementUsage = false;
+    public bool $outputConsoleMessages = true;
 
     // General Fields
     public array $disabledFields = [];

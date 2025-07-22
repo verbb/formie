@@ -484,23 +484,6 @@ class HubSpot extends Crm
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $accessToken = App::parseEnv($this->accessToken);
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.hubapi.com/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-    }
-
     public function getFormsClient(): Client
     {
         if ($this->_formsClient) {
@@ -564,6 +547,19 @@ class HubSpot extends Crm
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        $accessToken = App::parseEnv($this->accessToken);
+
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hubapi.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+        ]);
     }
 
 
@@ -686,6 +682,17 @@ class HubSpot extends Crm
 
             foreach ($formFields as $formField) {
                 $fields[] = $formField;
+
+                // Check for "dependentField" (conditional fields) to include
+                $dependentFieldFilters = $formField['dependentFieldFilters'] ?? [];
+
+                foreach ($dependentFieldFilters as $dependentFieldFilter) {
+                    $dependentFormField = $dependentFieldFilter['dependentFormField'] ?? null;
+
+                    if ($dependentFormField) {
+                        $fields[] = $dependentFormField;
+                    }
+                }
             }
         }
 

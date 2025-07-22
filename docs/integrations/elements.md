@@ -5,7 +5,10 @@ Elements have settings at the plugin level, as well as per-form, allowing you to
 
 ## Supported Elements
 Formie integrates with the following elements:
+- [Commerce](https://plugins.craftcms.com/commerce?craft5) Products (Single Variant)
+- [Events](https://plugins.craftcms.com/events?craft5) Events
 - Entries
+- [Solspace Calendar](https://plugins.craftcms.com/calendar?craft5) Events
 - Users
 
 ## Entry

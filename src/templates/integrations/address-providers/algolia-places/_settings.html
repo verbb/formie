@@ -1,19 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Connect to the {name} API
-1. Login to your <a href="https://www.algolia.com/apps" target="_blank">Algolia</a> account.
-1. In the left-hand sidebar, click **API Keys**.
-1. Copy the **Application ID** and enter this in the **App ID** field below.
-1. Copy the **Search-Only API Key** and enter this in the **API Key** field below.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'App ID' | t('formie'),
@@ -59,3 +49,5 @@
     allowDelete: true,
     allowReorder: true,
 }) }}
+
+{% endblock %}

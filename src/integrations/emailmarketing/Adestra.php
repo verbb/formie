@@ -136,13 +136,13 @@ class Adestra extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://app.adestra.com/api/rest/1/',
             'headers' => [
                 'Authorization' => 'TOKEN ' . App::parseEnv($this->apiKey),

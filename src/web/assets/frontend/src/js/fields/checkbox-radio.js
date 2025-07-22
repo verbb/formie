@@ -15,25 +15,39 @@ export class FormieCheckboxRadio {
 
     initInputs() {
         const $inputs = this.$field.querySelectorAll('[type=checkbox], [type=radio]');
+        const isMaxGroup = this.$field.hasAttribute('data-max-options');
 
         $inputs.forEach(($input) => {
             this.form.addEventListener($input, eventKey('click'), (e) => {
+                const isCheckbox = e.target.type === 'checkbox';
+
+                // Handle radio logic
+                if (e.target.checked && e.target.type === 'radio') {
+                    const inputName = e.target.getAttribute('name');
+                    const $radioButtons = this.$field.querySelectorAll(`[name="${inputName}"]`);
+                    $radioButtons.forEach(($radioButton) => {
+                        $radioButton.removeAttribute('checked');
+                    });
+                }
+
+                // Toggle `checked` attribute manually
                 if (e.target.checked) {
-                    if (e.target.getAttribute('type') === 'radio') {
-                        const inputName = e.target.getAttribute('name');
-                        const $radioButtons = this.$field.querySelectorAll(`[name="${inputName}"] `);
-
-                        $radioButtons.forEach(($radioButton) => {
-                            $radioButton.removeAttribute('checked');
-                        });
-                    }
-
                     e.target.setAttribute('checked', '');
                 } else {
                     e.target.removeAttribute('checked');
                 }
+
+                // If max option group, handle disabling
+                if (isCheckbox && isMaxGroup) {
+                    this.enforceMaxOptions();
+                }
             }, false);
         });
+
+        // Trigger once on load in case of pre-filled values
+        if (isMaxGroup) {
+            this.enforceMaxOptions();
+        }
     }
 
     initRequiredCheckboxes() {
@@ -87,6 +101,22 @@ export class FormieCheckboxRadio {
             } else {
                 $checkboxInput.setAttribute('required', true);
                 $checkboxInput.setAttribute('aria-required', true);
+            }
+        });
+    }
+
+    enforceMaxOptions() {
+        const $checkboxes = this.$field.querySelectorAll('[type="checkbox"]:not([data-checkbox-toggle])');
+        const max = parseInt(this.$field.getAttribute('data-max-options'), 10);
+        const checked = Array.from($checkboxes).filter(($cb) => { return $cb.checked; });
+
+        const disableRest = checked.length >= max;
+
+        $checkboxes.forEach(($cb) => {
+            if (!$cb.checked) {
+                $cb.disabled = disableRest;
+            } else {
+                $cb.disabled = false; // always keep checked ones enabled
             }
         });
     }

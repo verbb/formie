@@ -17,6 +17,8 @@ export default {
                 { label: Craft.t('formie', 'ends with'), value: 'endsWith' },
                 { label: Craft.t('formie', 'is empty'), value: 'empty' },
                 { label: Craft.t('formie', 'is not empty'), value: 'notEmpty' },
+                { label: Craft.t('formie', 'is visible'), value: 'visible' },
+                { label: Craft.t('formie', 'is hidden'), value: 'hidden' },
             ],
             settings: {},
             defaultSettings: {

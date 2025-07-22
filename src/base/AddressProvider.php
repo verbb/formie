@@ -40,6 +40,21 @@ abstract class AddressProvider extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_ADDRESS_PROVIDER;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_ADDRESS_PROVIDERS;
+    }
+
+    public function getCpEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
+    }
+
     public function getIconUrl(): string
     {
         $handle = $this->getClassHandle();
@@ -63,10 +78,5 @@ abstract class AddressProvider extends Integration
     public function getFrontEndJsVariables(FieldInterface $field = null): ?array
     {
         return null;
-    }
-
-    public function getCpEditUrl(): ?string
-    {
-        return UrlHelper::cpUrl('formie/settings/address-providers/edit/' . $this->id);
     }
 }

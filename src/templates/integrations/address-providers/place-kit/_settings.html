@@ -1,0 +1,43 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'API Key' | t('formie'),
+    name: 'apiKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiKey ?? '',
+    warning: macros.configWarning('apiKey', 'formie'),
+    errors: integration.getErrors('apiKey'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'editableTableField', {
+    label: 'Options' | t('formie'),
+    instructions: 'Provide any additional options, as per the {link}.' | t('formie', { link: '[PlaceKit docs](https://github.com/placekit/autocomplete-js?tab=readme-ov-file#pkaoptions)' }),
+    id: 'options',
+    name: 'options',
+    cols: [
+        {
+            type: 'singleline',
+            heading: 'Option' | t('formie'),
+            width: '25%',
+        },
+        {
+            type: 'singleline',
+            heading: 'Value' | t('formie'),
+        },
+    ],
+    rows: integration.settings.options ?? [],
+    addRowLabel: 'Add an option' | t('formie'),
+    warning: macros.configWarning('options', 'formie'),
+    errors: integration.getErrors('options'),
+    allowAdd: true,
+    allowDelete: true,
+    allowReorder: true,
+}) }}
+
+{% endblock %}

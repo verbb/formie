@@ -1,0 +1,41 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% block content %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'clientSecret',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Domain' | t('formie'),
+    instructions: 'Enter your {name} {label} here. e.g. `{link}`' | t('formie', { link: 'https://example.marketo.com' }),
+    name: 'apiDomain',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.apiDomain ?? '',
+    warning: macros.configWarning('apiDomain', 'formie'),
+    errors: integration.getErrors('apiDomain'),
+}) }}
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% if not craft.app.config.general.allowAdminChanges %}
+    <p class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </p>
+{% endif %}
+
+{% set category = integration.getCategory() | kebab %}
+
+<div class="fui-settings-block">
+    {{ 'To connect to {name}, follow our <a href="{link}" target="_blank" rel="noopener">{name} integration guide</a>.' | t('formie', { name: integration.displayName(), link: 'https://verbb.io/craft-plugins/formie/docs/integrations/' ~ category ~ '#' ~ (integration.handle | kebab) }) | md }}
+</div>
+
+{% if integration.supportsOauthConnection() %}
+    {{ macros.proxyField(fieldVariables, 'textField', {
+        readonly: true,
+        label: 'Redirect URI' | t('formie'),
+        instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
+        value: integration.getRedirectUri(),
+    }) }}
+{% endif %}
+
+{% block content %}
+
+{% endblock %}

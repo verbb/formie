@@ -1,32 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Connect to the {name} API
-1. Go to the <a href="https://trello.com/app-key" target="_blank">Trello API Key</a> page.
-1. Under the **Developer API Keys** heading, copy the **Key** value into the **Client ID** field below.
-1. Under the **Allowed Origins** heading, enter the value from the **Redirect URI** field below into the text field under **New Allowed Origin** and hit **Submit**.
-1. Under the **OAuth** heading, copy the **Secret** value into the **Client Secret** field below.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
@@ -49,3 +26,5 @@
     warning: macros.configWarning('clientSecret', 'formie'),
     errors: integration.getErrors('clientSecret'),
 }) }}
+
+{% endblock %}

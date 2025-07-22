@@ -62,9 +62,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const TYPE_ELEMENT = 'element';
     public const TYPE_EMAIL_MARKETING = 'emailMarketing';
     public const TYPE_CRM = 'crm';
+    public const TYPE_HELP_DESK = 'helpDesk';
+    public const TYPE_MESSAGING = 'messaging';
     public const TYPE_PAYMENT = 'payment';
-    public const TYPE_WEBHOOK = 'webhook';
+    public const TYPE_AUTOMATION = 'automation';
     public const TYPE_MISC = 'miscellaneous';
+    public const TYPE_CUSTOM = 'custom';
+    
+    public const CATEGORY_ADDRESS_PROVIDERS = 'addressProviders';
+    public const CATEGORY_CAPTCHAS = 'captchas';
+    public const CATEGORY_ELEMENTS = 'elements';
+    public const CATEGORY_EMAIL_MARKETING = 'emailMarketing';
+    public const CATEGORY_CRM = 'crm';
+    public const CATEGORY_HELP_DESK = 'helpDesk';
+    public const CATEGORY_MESSAGING = 'messaging';
+    public const CATEGORY_PAYMENTS = 'payments';
+    public const CATEGORY_AUTOMATIONS = 'automations';
+    public const CATEGORY_MISC = 'miscellaneous';
+    public const CATEGORY_CUSTOM = 'custom';
 
     public const SCENARIO_FORM = 'form';
 
@@ -112,6 +127,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public static function hasFormSettings(): bool
     {
         return true;
+    }
+
+    public static function getRequiredPlugins(): array
+    {
+        return [];
     }
 
     public static function info(IntegrationInterface $integration, string $message, bool $throwError = false): void
@@ -266,7 +286,12 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $this->handle ?? '';
     }
 
-    public function getClassHandle(): string
+    public function getType(): string
+    {
+        return self::TYPE_CUSTOM;
+    }
+
+    public function getClassHandle()
     {
         $classNameParts = explode('\\', static::class);
         $end = array_pop($classNameParts);
@@ -344,6 +369,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public function setClient(mixed $value): void
     {
         $this->_client = $value;
+    }
+
+    public function getClient(): Client
+    {
+        if ($this->_client) {
+            return $this->_client;
+        }
+
+        return $this->_client = $this->defineClient();
     }
 
     public function extraAttributes(): array
@@ -821,6 +855,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return [];
     }
 
+    public function beforeSaveForm(array $settings): void
+    {
+        
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -854,6 +893,18 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        $options = [];
+
+        // Disable SSL verification for local dev (devMode enabled) to save some heartache.
+        if (App::devMode()) {
+            $options['verify'] = false;
+        }
+
+        return Craft::createGuzzleClient($options);
     }
 
     protected function generateSubmissionPayloadValues(Submission $submission): array

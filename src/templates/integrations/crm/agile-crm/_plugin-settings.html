@@ -1,31 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Step 1. Connect to the {name} API
-1. Go to <a href="https://www.agilecrm.com/" target="_blank">{name}</a> and login to your account.
-1. Click on your profile dropdown on the top-right of the screen, and select **Admin Settings**.
-1. Click on the **Developers & API** menu in the left-hand sidebar.
-1. Copy the **REST API** from {name} and paste in the **API Key** field below.
-1. Enter the email for your {name} account in the **API Email** field below.
-1. Enter the full domain (including `https://`) for your {name} account in the **Domain** field below.
-
-### Step 2. Test Connection
-1. Save this integration.
-1. Click on the **Refresh** button in the right-hand sidebar.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'API Key' | t('formie'),
@@ -59,3 +37,5 @@
     warning: macros.configWarning('apiDomain', 'formie'),
     errors: integration.getErrors('apiDomain'),
 }) }}
+
+{% endblock %}

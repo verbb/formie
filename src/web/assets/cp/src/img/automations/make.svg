@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Vrstva_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 194.6 137.9">
+  <!-- Generator: Adobe Illustrator 29.5.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 137)  -->
+  <defs>
+    <clipPath id="clippath">
+      <rect x="151.4" y="1.7" width="43.2" height="134.4" rx="4.7" ry="4.7" style="fill: none;"/>
+    </clipPath>
+    <linearGradient id="linear-gradient" x1="-205.8" y1="-138.9" x2="-204.8" y2="-138.9" gradientTransform="translate(20159.5 13606.2) scale(97.4)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b02de9"/>
+      <stop offset="0" stop-color="#b02de9"/>
+      <stop offset=".8" stop-color="#6d00cc"/>
+      <stop offset="1" stop-color="#6d00cc"/>
+    </linearGradient>
+    <clipPath id="clippath-1">
+      <path d="M56.7,3.4L.5,115.1c-1.2,2.3-.2,5.1,2.1,6.3l30.3,15.2c2.3,1.2,5.1.2,6.3-2.1L95.3,22.8c1.2-2.3.2-5.1-2.1-6.3L62.9,1.3c-.7-.3-1.4-.5-2.1-.5-1.7,0-3.4.9-4.2,2.6Z" style="fill: none;"/>
+    </clipPath>
+    <linearGradient id="linear-gradient1" x1="-205.9" y1="-139.1" x2="-204.9" y2="-139.1" gradientTransform="translate(22071.4 14965.9) scale(107.1)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f0f"/>
+      <stop offset="0" stop-color="#f0f"/>
+      <stop offset=".2" stop-color="#e90cf9"/>
+      <stop offset=".5" stop-color="#c023ed"/>
+      <stop offset=".7" stop-color="#b02de9"/>
+      <stop offset="1" stop-color="#b02de9"/>
+    </linearGradient>
+    <clipPath id="clippath-2">
+      <path d="M103.9,3.8l-24,121.8c-.5,2.5,1.1,5,3.7,5.5l33.2,6.7c2.5.5,5-1.1,5.5-3.7l24-121.8c.5-2.5-1.1-5-3.7-5.5L109.4,0c-.3,0-.6,0-.9,0-2.2,0-4.2,1.5-4.6,3.8Z" style="fill: none;"/>
+    </clipPath>
+    <linearGradient id="linear-gradient2" x1="-205.6" y1="-140" x2="-204.6" y2="-140" gradientTransform="translate(44147.9 30127.5) scale(214.7)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f0f"/>
+      <stop offset="0" stop-color="#f0f"/>
+      <stop offset="0" stop-color="#e90cf9"/>
+      <stop offset=".2" stop-color="#c023ed"/>
+      <stop offset=".3" stop-color="#b02de9"/>
+      <stop offset=".4" stop-color="#a42be3"/>
+      <stop offset=".6" stop-color="#8626d5"/>
+      <stop offset=".8" stop-color="#6021c3"/>
+      <stop offset="1" stop-color="#6021c3"/>
+    </linearGradient>
+  </defs>
+  <g style="clip-path: url(#clippath);">
+    <rect x="129.5" y="-1.6" width="87.1" height="141.1" transform="translate(-13.2 64.1) rotate(-20.2)" style="fill: url(#linear-gradient);"/>
+  </g>
+  <g style="clip-path: url(#clippath-1);">
+    <rect x="-23.9" y="-12.8" width="143.5" height="164.3" transform="translate(-23.6 24.7) rotate(-23.4)" style="fill: url(#linear-gradient1);"/>
+  </g>
+  <g style="clip-path: url(#clippath-2);">
+    <rect x="57.6" y="-7.4" width="111" height="153.1" transform="translate(-16.9 43.3) rotate(-20.2)" style="fill: url(#linear-gradient2);"/>
+  </g>
+</svg>

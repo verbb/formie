@@ -1,3 +1,4 @@
+import { getAjaxClient } from '../utils/utils';
 import { FormieAddressProvider } from './address-provider';
 
 export class FormieGoogleAddress extends FormieAddressProvider {
@@ -146,11 +147,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     onCurrentLocation(position) {
         const { latitude, longitude } = position.coords;
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', window.location.href, true);
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('Cache-Control', 'no-cache');
+        const xhr = getAjaxClient(this.$form, 'POST', window.location.href, true);
         xhr.timeout = 10 * 1000;
 
         xhr.ontimeout = () => {

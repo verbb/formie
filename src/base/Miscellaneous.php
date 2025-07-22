@@ -34,6 +34,16 @@ abstract class Miscellaneous extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_MISC;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_MISC;
+    }
+
     public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/settings/miscellaneous/edit/' . $this->id);

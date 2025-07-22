@@ -1,25 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Step 1. Connect to the {name} API
-1. Go to your <a href="https://www.opayo.com/" target="_blank">MyOpayo Administrator account</a>.
-1. Click on the **Administrator** tab in the **Password** details section, and check the disclaimer box.
-1. Click the **Create API credentials** button.
-1. Copy the **Vendor Name** from {name} and paste in the **Vendor Name** field below.
-1. Copy the **Integration Key** from {name} and paste in the **Integration Key** field below.
-1. Copy the **Integration Password** from {name} and paste in the **Integration Password** field below.
-
-### Step 2. Test Connection
-1. Save this integration.
-1. Click on the **Refresh** button in the right-hand sidebar.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Vendor Name' | t('formie'),
@@ -63,3 +47,5 @@
     warning: macros.configWarning('useSandbox', 'formie'),
     errors: integration.getErrors('useSandbox'),
 }) }}
+
+{% endblock %}

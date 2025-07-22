@@ -224,6 +224,10 @@ class SubmissionsController extends Controller
         $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
         $submission->setScenario(Element::SCENARIO_LIVE);
 
+        if ($request->getBodyParam('markAsComplete')) {
+            $submission->isIncomplete = false;
+        }
+
         // Save the submission
         if ($request->getBodyParam('saveAction') === 'draft') {
             $submission->setScenario(Element::SCENARIO_ESSENTIALS);
@@ -579,6 +583,11 @@ class SubmissionsController extends Controller
             $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
 
             foreach ($captchas as $captcha) {
+                // Some captchas have already run their validation earlier with submission validation
+                if ($captcha->hasStrictValidation()) {
+                    continue;
+                }
+
                 $valid = $captcha->validateSubmission($submission);
 
                 if (!$valid) {

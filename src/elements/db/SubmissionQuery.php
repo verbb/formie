@@ -33,6 +33,7 @@ class SubmissionQuery extends ElementQuery
     public mixed $formId = null;
     public mixed $statusId = null;
     public mixed $userId = null;
+    public mixed $ipAddress = null;
     public ?bool $isIncomplete = false;
     public ?bool $isSpam = false;
     public mixed $before = null;
@@ -127,6 +128,12 @@ class SubmissionQuery extends ElementQuery
 
         return $this;
     }
+    
+    public function ipAddress($value): static
+    {
+        $this->ipAddress = $value;
+        return $this;
+    }
 
     public function isIncomplete(?bool $value): static
     {
@@ -203,6 +210,10 @@ class SubmissionQuery extends ElementQuery
 
         if ($this->isSpam !== null) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.isSpam', $this->isSpam));
+        }
+
+        if ($this->ipAddress) {
+            $this->subQuery->andWhere(Db::parseParam('formie_submissions.ipAddress', $this->ipAddress));
         }
 
         if ($this->before) {

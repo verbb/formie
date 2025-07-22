@@ -15,6 +15,7 @@ use verbb\formie\helpers\Variables;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
 use craft\helpers\App;
@@ -113,6 +114,16 @@ abstract class Payment extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_PAYMENT;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_PAYMENTS;
+    }
+
     public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/settings/payments/edit/' . $this->id);
@@ -168,6 +179,7 @@ abstract class Payment extends Integration
     public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
     {
         $handle = $this->getIntegrationHandle();
+        $variables = $this->getFrontEndHtmlVariables();
         
         if (!$this->hasValidSettings()) {
             return '';
@@ -175,19 +187,31 @@ abstract class Payment extends Integration
 
         $this->setField($field);
 
-        return $field->getForm()->renderTemplate("integrations/payments/{$handle}/field", [
-            'field' => $field,
-            'renderOptions' => $renderOptions,
-        ]);
+        $variables['field'] = $field;
+        $variables['renderOptions'] = $renderOptions;
+
+        return $field->getForm()->renderTemplate("integrations/payments/{$handle}/field", $variables);
+    }
+
+    public function getFrontEndHtmlVariables(): array
+    {
+        return [];
     }
     
     public function getRedirectUri(): string
     {
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
-            return UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+            $url = UrlHelper::actionUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        } else {
+            $url = UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
         }
 
-        return UrlHelper::siteUrl('formie/payment-webhooks/process-webhook', ['handle' => $this->handle]);
+        // For local development, we should use a proxy to ensure it works
+        if (App::devMode()) {
+            return "https://proxy.verbb.io?return=$url";
+        }
+
+        return $url;
     }
 
     public function getGqlHandle(): string
@@ -311,6 +335,16 @@ abstract class Payment extends Integration
         return $response;
     }
 
+    public function getTransaction(PaymentModel $payment): void
+    {
+
+    }
+
+    public function getTransactionStatus(PaymentModel $payment): void
+    {
+
+    }
+
     public function getField(): ?PaymentField
     {
         return $this->_field;
@@ -351,9 +385,6 @@ abstract class Payment extends Integration
         return StringHelper::toKebabCase(static::className());
     }
     
-    /**
-     * @inheritDoc
-     */
     protected function getPaymentFieldValue(Submission $submission): array
     {
         if ($field = $this->getField()) {

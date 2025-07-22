@@ -7,7 +7,7 @@
                 </div>
 
                 <div class="fui-existing-item-type">
-                    {{ fieldtype.label }}
+                    {{ settings.handle }}
                 </div>
             </div>
 
@@ -17,7 +17,7 @@
                     {{ t('formie', 'Synced') }}
                 </span>
 
-                <div class="fui-existing-item-icon" v-html="icon"></div>
+                <div class="fui-existing-item-icon" v-html="fieldtype.icon"></div>
             </div>
         </div>
     </div>

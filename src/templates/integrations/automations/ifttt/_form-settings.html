@@ -1,0 +1,45 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set eventName = form.settings.integrations[handle].eventName ?? null %}
+
+<field-select
+    label="{{ 'Opt-In Field' | t('formie') }}"
+    instructions="{{ 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.' | t('formie', { name: displayName }) }}"
+    id="opt-in-field"
+    name="optInField"
+    :value="get(form, 'settings.integrations.{{ handle }}.optInField')"
+></field-select>
+
+<hr>
+
+{{ forms.textField({
+    label: 'Event Name' | t('formie'),
+    instructions: 'Enter the {name} event name.' | t('formie', { name: displayName }),
+    name: 'eventName',
+    required: true,
+    value: eventName,
+    errors: integration.getErrors('eventName'),
+}) }}
+
+<integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}">
+    <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, success, getSourceFields }">
+        <div class="field">
+            <button class="btn" :class="{ 'fui-loading fui-loading-sm': loading }" data-icon="refresh" @click.prevent="refresh">{{ 'Send Test Payload' | t('formie') }}</button>
+        </div>
+
+        <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
+            <span data-icon="alert"></span>
+            <span v-html="errorMessage"></span>
+        </div>
+
+        <div v-if="success" class="success" style="margin-top: 10px;" v-cloak>
+            {{ 'Success!' | t('formie') }}<br>
+            <pre><code v-if="get(settings, 'json')">${ get(settings, 'json') }</code><code v-else="get(settings, 'response')"><br>${ get(settings, 'response') }</code></pre>
+        </div>
+    </template>
+</integration-form-settings>
+

@@ -211,8 +211,10 @@ class Formie
                 'elements' => ['title' => Craft::t('formie', 'Elements')],
                 'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
                 'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'help-desk' => ['title' => Craft::t('formie', 'Help Desk')],
+                'messaging' => ['title' => Craft::t('formie', 'Messaging')],
                 'payments' => ['title' => Craft::t('formie', 'Payments')],
-                'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
+                'automations' => ['title' => Craft::t('formie', 'Automations')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
         } else {
@@ -224,8 +226,10 @@ class Formie
                 'elements' => ['title' => Craft::t('formie', 'Elements')],
                 'email-marketing' => ['title' => Craft::t('formie', 'Email Marketing')],
                 'crm' => ['title' => Craft::t('formie', 'CRM')],
+                'help-desk' => ['title' => Craft::t('formie', 'Help Desk')],
+                'messaging' => ['title' => Craft::t('formie', 'Messaging')],
                 'payments' => ['title' => Craft::t('formie', 'Payments')],
-                'webhooks' => ['title' => Craft::t('formie', 'Webhooks')],
+                'automations' => ['title' => Craft::t('formie', 'Automations')],
                 'miscellaneous' => ['title' => Craft::t('formie', 'Miscellaneous')],
             ];
         }

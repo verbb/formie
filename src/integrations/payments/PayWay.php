@@ -297,6 +297,11 @@ class PayWay extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function getIntegrationHandle(): string
+    {
+        return 'payway';
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -306,8 +311,11 @@ class PayWay extends Payment
         return $rules;
     }
 
-    protected function getIntegrationHandle(): string
+    protected function defineClient(): Client
     {
-        return 'payway';
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.payway.com.au/rest/v1/',
+            'auth' => [App::parseEnv($this->secretKey), ''],
+        ]);
     }
 }

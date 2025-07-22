@@ -987,7 +987,6 @@ class Stripe extends Payment
         ];
     }
 
-
     public function defineAppearanceSchema(): array
     {
         return [

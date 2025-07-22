@@ -247,17 +247,17 @@ class Mailchimp extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineClient(): Client
+    {
         if (!$dataCenter = $this->_getDataCenter()) {
             Integration::error($this, 'Could not find data center for Mailchimp', true);
         }
 
-        return $this->_client = Craft::createGuzzleClient([
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://' . $dataCenter . '.api.mailchimp.com/3.0/',
             'auth' => ['apikey', App::parseEnv($this->apiKey)],
         ]);

@@ -7,7 +7,7 @@ use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\HtmlTag;
-use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\positions;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -334,6 +334,14 @@ class Checkboxes extends OptionsField
 
         $id = $this->getHtmlId($form);
 
+        if ($key === 'field') {
+            $tag = parent::defineHtmlTag($key, $context);
+            $tag->attributes['data']['min-options'] = ($this->limitOptions && $this->min) ? $this->min : null;
+            $tag->attributes['data']['max-options'] = ($this->limitOptions && $this->max) ? $this->max : null;
+
+            return $tag;
+        }
+
         if ($key === 'fieldContainer') {
             return new HtmlTag('fieldset', [
                 'class' => [
@@ -353,7 +361,7 @@ class Checkboxes extends OptionsField
                 ],
                 'data' => [
                     'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
                 ],
             ]);
         }

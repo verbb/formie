@@ -5,6 +5,7 @@
 {% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set sheetId = form.settings.integrations[handle].sheetId ?? '' %}
+{% set spreadsheetId = form.settings.integrations[handle].spreadsheetId ?? null %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -15,6 +16,15 @@
 ></field-select>
 
 <hr>
+
+{{ forms.textField({
+    label: 'Spreadsheet ID' | t('formie'),
+    instructions: 'Enter the {name} Spreadsheet ID will be triggered when a submission is made.' | t('formie', { name: displayName }),
+    name: 'spreadsheetId',
+    required: true,
+    value: spreadsheetId ?? integration.settings.spreadsheetId ?? '',
+    errors: integration.getErrors('spreadsheetId'),
+}) }}
 
 <integration-form-settings handle="{{ handle }}" :form-settings="{{ formSettings | json_encode }}" source="{{ sheetId }}">
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields }">

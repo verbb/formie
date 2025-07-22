@@ -1,0 +1,30 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% include 'formie/integrations/captchas/_form-settings' %}
+
+{% set handle = integration.handle %}
+{% set displayName = integration.displayName() %}
+{% set formSettings = integration.getFormSettings().getSettings() %}
+{% set questions = form.settings.integrations[handle].questions ?? [] %}
+
+{{ forms.editableTableField({
+    label: 'Security Questions' | t('formie'),
+    instructions: 'Define one or more questions to show randomly. Each question must include at least one accepted answer.' | t('formie'),
+    name: 'questions',
+    cols: {
+        question: {
+            type: 'singleline',
+            heading: 'Question' | t('formie'),
+        },
+        answers: {
+            type: 'singleline',
+            heading: 'Answers (comma-separated)' | t('formie'),
+        },
+    },
+    rows: questions,
+    addRowLabel: 'Add a question' | t('formie'),
+    allowAdd: true,
+    allowDelete: true,
+    allowReorder: false,
+}) }}

@@ -27,10 +27,9 @@
 
                             {% for integration in integrations %}
                                 {% set handle = integration.getHandle() %}
-                                {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
 
                                 <li>
-                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab {% if selectedItem %}sel{% endif %}" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
+                                    <a id="tab-{{ loop.index }}" href="#tab-{{ handle }}" class="tab" :class="{ 'error': !isEmpty(get(form, 'settings.integrations.{{ handle }}.errors')) }">
                                         {% if integration.iconUrl %}
                                             <img class="formie-integration-icon" src="{{ integration.iconUrl }}">
                                         {% else %}
@@ -59,10 +58,9 @@
             <div class="fui-form-integrations-inner-wrapper">
                 {% for name, integrations in groupedIntegrations %}
                     {% for integration in integrations %}
-                        {% set selectedItem = loop.first and loop.parent.loop.first ? true : false %}
                         {% set handle = integration.getHandle() %}
 
-                        <div id="tab-{{ handle }}" {% if not selectedItem %}class="hidden"{% endif %}>
+                        <div id="tab-{{ handle }}" class="hidden">
                             <div class="fui-integrations-header">
                                 <h2>{{ integration.getName() }} {{ 'Settings' | t('formie') }}</h2>
                             </div>

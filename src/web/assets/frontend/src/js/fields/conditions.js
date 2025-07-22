@@ -79,12 +79,25 @@ export class FormieConditions {
                 // Get the right event for the field
                 const eventType = this.getEventType($target);
 
-                // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
-                // We need to do this because target fields can be targetted by multiple conditions, and source
-                // fields can have multiple conditions - we need to check them all for all/any logic.
-                this.form.addEventListener($target, eventKey(eventType), () => {
-                    return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this } }));
-                });
+                // Visibility changes should use IntersectionObserver
+                if (condition.condition === 'visible' || condition.condition === 'hidden') {
+                    const observer = new IntersectionObserver((entries) => {
+                        const isVisible = entries[0].intersectionRatio == 0 ? false : true;
+
+                        $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this, isVisible } }));
+                    }, { root: this.$form });
+
+                    observer.observe($target);
+                } else {
+
+                    // Watch for changes on the target field. When one occurs, fire off a custom event on the source field
+                    // We need to do this because target fields can be targetted by multiple conditions, and source
+                    // fields can have multiple conditions - we need to check them all for all/any logic.
+                    this.form.addEventListener($target, eventKey(eventType), () => {
+                        return $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this } }));
+                    });
+                }
+
             });
         });
 
@@ -165,8 +178,13 @@ export class FormieConditions {
                 // Ensure that the value is cast as a string, numbers compared with strings don't work so well.
                 const conditionValue = value == null ? '' : String(value);
 
-                // Handle agree fields, which are a single checkbox, checked/unchecked
+                // If we've passed in a visibility value from IntersectObserver, override the field value
+                if (typeof e.detail.isVisible !== 'undefined') {
+                    testOptions.visibility = e.detail.isVisible;
+                }
+
                 if ($target.getAttribute('data-fui-input-type') === 'agree') {
+                    // Handle agree fields, which are a single checkbox, checked/unchecked
                     // Ignore the empty, hidden checkbox
                     if (inputType === 'hidden') {
                         return;
@@ -345,8 +363,11 @@ export class FormieConditions {
             result = isEmptyValue(fieldValue);
         } else if (logic === 'notEmpty') {
             result = !isEmptyValue(fieldValue);
+        } else if (logic === 'visible') {
+            result = testOptions.visibility === true;
+        } else if (logic === 'hidden') {
+            result = testOptions.visibility === false;
         }
-
 
         return result;
     }

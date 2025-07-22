@@ -31,6 +31,7 @@ class FormSettings extends Model
     public bool $displayPageProgress = false;
     public bool $scrollToTop = true;
     public string $progressPosition = 'end';
+    public string $progressValuePosition = 'inside-center';
     public ?string $defaultLabelPosition = null;
     public ?string $defaultInstructionsPosition = null;
     public string $requiredIndicator = 'asterisk';
@@ -61,10 +62,13 @@ class FormSettings extends Model
     public ?DateTime $scheduleFormEnd = null;
     public mixed $scheduleFormPendingMessage = null;
     public mixed $scheduleFormExpiredMessage = null;
-    public bool $limitSubmissions = false;
+    public ?string $limitSubmissions = null;
     public ?int $limitSubmissionsNumber = null;
     public ?string $limitSubmissionsType = null;
     public mixed $limitSubmissionsMessage = null;
+    public ?int $limitSubmissionsIpAddressNumber = null;
+    public ?string $limitSubmissionsIpAddressType = null;
+    public mixed $limitSubmissionsIpAddressMessage = null;
 
     // Integrations
     public array $integrations = [];
@@ -255,13 +259,21 @@ class FormSettings extends Model
 
     public function getLimitSubmissionsMessage(): string
     {
-        $message = ($this->_getHtmlContent($this->limitSubmissionsMessage) ?: $this->limitSubmissionsMessage);
+        if ($this->limitSubmissions === 'ipAddress') {
+            $message = ($this->_getHtmlContent($this->limitSubmissionsIpAddressMessage) ?: $this->limitSubmissionsIpAddressMessage);
+        } else {
+            $message = ($this->_getHtmlContent($this->limitSubmissionsMessage) ?: $this->limitSubmissionsMessage);
+        }
 
         return Craft::t('formie', $message);
     }
 
     public function getLimitSubmissionsMessageHtml(): string
     {
+        if ($this->limitSubmissions === 'ipAddress') {
+            return $this->_getHtmlContent($this->limitSubmissionsIpAddressMessage);
+        }
+
         return $this->_getHtmlContent($this->limitSubmissionsMessage);
     }
 

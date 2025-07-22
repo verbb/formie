@@ -34,6 +34,16 @@ abstract class EmailMarketing extends Integration
     // Public Methods
     // =========================================================================
 
+    public function getType(): string
+    {
+        return self::TYPE_EMAIL_MARKETING;
+    }
+
+    public function getCategory(): string
+    {
+        return self::CATEGORY_EMAIL_MARKETING;
+    }
+
     public function getCpEditUrl(): ?string
     {
         return UrlHelper::cpUrl('formie/settings/email-marketing/edit/' . $this->id);

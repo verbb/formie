@@ -190,35 +190,6 @@ class PayPal extends Payment
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        $options = [];
-
-        // Disable SSL verification for local dev (devMode enabled) to save some heartache.
-        if (Craft::$app->getConfig()->getGeneral()->devMode) {
-            $options['verify'] = false;
-        }
-
-        $useSandbox = App::parseBooleanEnv($this->useSandbox);
-        $clientId = App::parseEnv($this->clientId);
-        $clientSecret = App::parseEnv($this->clientSecret);
-        $token = base64_encode($clientId . ':' . $clientSecret);
-        $url = $useSandbox ? 'https://api.sandbox.paypal.com/' : 'https://api.paypal.com/';
-
-        return $this->_client = Craft::createGuzzleClient(array_merge([
-            'base_uri' => $url,
-            'headers' => [
-                'Authorization' => 'Basic ' . $token,
-                // 'Content-Type'  => 'application/x-www-form-urlencoded',
-                'Content-Type' => 'application/json',
-            ],
-        ], $options));
-    }
-
     public function defineGeneralSchema(): array
     {
         return [
@@ -397,6 +368,11 @@ class PayPal extends Payment
     // Protected Methods
     // =========================================================================
 
+    protected function getIntegrationHandle(): string
+    {
+        return 'paypal';
+    }
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -406,8 +382,28 @@ class PayPal extends Payment
         return $rules;
     }
 
-    protected function getIntegrationHandle(): string
+    protected function defineClient(): Client
     {
-        return 'paypal';
+        $options = [];
+
+        // Disable SSL verification for local dev (devMode enabled) to save some heartache.
+        if (App::devMode()) {
+            $options['verify'] = false;
+        }
+
+        $useSandbox = App::parseBooleanEnv($this->useSandbox);
+        $clientId = App::parseEnv($this->clientId);
+        $clientSecret = App::parseEnv($this->clientSecret);
+        $token = base64_encode($clientId . ':' . $clientSecret);
+        $url = $useSandbox ? 'https://api.sandbox.paypal.com/' : 'https://api.paypal.com/';
+
+        return Craft::createGuzzleClient(array_merge([
+            'base_uri' => $url,
+            'headers' => [
+                'Authorization' => 'Basic ' . $token,
+                // 'Content-Type'  => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/json',
+            ],
+        ], $options));
     }
 }

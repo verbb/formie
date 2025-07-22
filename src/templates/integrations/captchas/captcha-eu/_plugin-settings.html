@@ -1,0 +1,29 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Public Key' | t('formie'),
+    name: 'publicKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.publicKey ?? '',
+    warning: macros.configWarning('publicKey', 'formie'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Rest Key' | t('formie'),
+    name: 'restKey',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.restKey ?? '',
+    warning: macros.configWarning('restKey', 'formie'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Endpoint' | t('formie'),
+    name: 'endPoint',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.endPoint ?? 'https://www.captcha.eu',
+    warning: macros.configWarning('endPoint', 'formie'),
+}) }}

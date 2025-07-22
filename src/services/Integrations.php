@@ -19,9 +19,11 @@ use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
 use verbb\formie\integrations\elements;
 use verbb\formie\integrations\emailmarketing;
+use verbb\formie\integrations\helpdesk;
 use verbb\formie\integrations\miscellaneous;
+use verbb\formie\integrations\messaging;
 use verbb\formie\integrations\payments;
-use verbb\formie\integrations\webhooks;
+use verbb\formie\integrations\automations;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
@@ -65,6 +67,7 @@ class Integrations extends Component
     // =========================================================================
 
     private ?MemoizableArray $_integrations = null;
+    private array $_groupedIntegrationTypes = [];
     private ?array $_integrationsByType = null;
 
 
@@ -73,47 +76,58 @@ class Integrations extends Component
 
     public function getAllIntegrationTypes(): array
     {
+        if ($this->_groupedIntegrationTypes) {
+            return $this->_groupedIntegrationTypes;
+        }
+
         $addressProviders = [
             addressproviders\Google::class,
             addressproviders\Algolia::class,
             addressproviders\AddressFinder::class,
             addressproviders\Loqate::class,
+            addressproviders\PlaceKit::class,
         ];
 
         $captchas = [
-            captchas\Recaptcha::class,
-            captchas\Hcaptcha::class,
-            captchas\FriendlyCaptcha::class,
+            captchas\Akismet::class,
+            captchas\CaptchaEu::class,
+            captchas\CleanTalk::class,
             captchas\Turnstile::class,
             captchas\Duplicate::class,
+            captchas\FriendlyCaptcha::class,
+            captchas\Hcaptcha::class,
             captchas\Honeypot::class,
             captchas\Javascript::class,
+            captchas\OopSpam::class,
+            captchas\Question::class,
+            captchas\Recaptcha::class,
+            captchas\Snaptcha::class,
         ];
-
-        if (Plugin::isPluginInstalledAndEnabled('snaptcha')) {
-            $captchas[] = captchas\Snaptcha::class;
-        }
 
         $elements = [
+            elements\CalendarEvent::class,
             elements\Entry::class,
+            elements\EventsEvent::class,
+            elements\Product::class,
             elements\User::class,
         ];
-
-        if (Plugin::isPluginInstalledAndEnabled('calendar')) {
-            $elements[] = elements\CalendarEvent::class;
-        }
 
         $emailMarketing = [
             emailmarketing\ActiveCampaign::class,
             emailmarketing\Adestra::class,
             emailmarketing\Autopilot::class,
             emailmarketing\AWeber::class,
+            emailmarketing\Beehiiv::class,
             emailmarketing\Benchmark::class,
             emailmarketing\Brevo::class,
+            emailmarketing\Campaign::class,
             emailmarketing\CampaignMonitor::class,
+            emailmarketing\CleverReach::class,
             emailmarketing\ConstantContact::class,
             emailmarketing\ConvertKit::class,
+            emailmarketing\CustomerIo::class,
             emailmarketing\Drip::class,
+            emailmarketing\Ecomail::class,
             emailmarketing\EmailOctopus::class,
             emailmarketing\GetResponse::class,
             emailmarketing\IContact::class,
@@ -121,69 +135,109 @@ class Integrations extends Component
             emailmarketing\Klaviyo::class,
             emailmarketing\KlaviyoLegacy::class,
             emailmarketing\Mailchimp::class,
+            emailmarketing\Mailcoach::class,
             emailmarketing\Mailjet::class,
             emailmarketing\MailerLite::class,
             emailmarketing\Moosend::class,
             emailmarketing\Omnisend::class,
             emailmarketing\Ontraport::class,
+            emailmarketing\Ortto::class,
             emailmarketing\Sender::class,
             emailmarketing\Sendinblue::class,
+            emailmarketing\Vero::class,
         ];
-
-        if (Plugin::isPluginInstalledAndEnabled('campaign')) {
-            $emailMarketing[] = emailmarketing\Campaign::class;
-        }
 
         $crm = [
             crm\ActiveCampaign::class,
             crm\Agile::class,
+            crm\Attio::class,
             crm\Avochato::class,
             crm\Capsule::class,
+            crm\CiviCrm::class,
             crm\Copper::class,
             crm\Dotdigital::class,
-            crm\Freshdesk::class,
+            crm\Flowlu::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
+            crm\HubSpotLegacy::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
             crm\IterableIntegration::class,
             crm\Klaviyo::class,
             crm\KlaviyoLegacy::class,
+            crm\Marketo::class,
             crm\Maximizer::class,
             crm\Mercury::class,
             crm\MicrosoftDynamics365::class,
+            crm\NoCrm::class,
             crm\OneCrm::class,
+            crm\Outseta::class,
             crm\Pardot::class,
             crm\Pipedrive::class,
             crm\Pipeliner::class,
+            crm\Procurios::class,
             crm\Salesflare::class,
             crm\Salesforce::class,
+            crm\Salesmate::class,
             crm\Scoro::class,
             crm\SharpSpring::class,
             crm\SugarCrm::class,
+            crm\SuiteCrm::class,
             crm\VCita::class,
+            crm\Xero::class,
             crm\Zoho::class,
         ];
 
+        $helpDesk = [
+            helpdesk\Freshdesk::class,
+            helpdesk\Front::class,
+            helpdesk\Gorgias::class,
+            helpdesk\HelpScout::class,
+            helpdesk\Intercom::class,
+            helpdesk\LiveChat::class,
+            helpdesk\Zendesk::class,
+        ];
+
+        $messaging = [
+            messaging\Discord::class,
+            messaging\Plivo::class,
+            messaging\Slack::class,
+            messaging\Telegram::class,
+            messaging\Twilio::class,
+        ];
+
         $payments = [
+            payments\Bpoint::class,
+            payments\Eway::class,
+            payments\GoCardless::class,
+            payments\Mollie::class,
+            payments\Moneris::class,
             payments\Opayo::class,
+            payments\Paddle::class,
             payments\PayPal::class,
             payments\PayWay::class,
+            payments\Square::class,
             payments\Stripe::class,
         ];
 
-        $webhooks = [
-            webhooks\Webhook::class,
-            webhooks\Zapier::class,
+        $automations = [
+            automations\Ifttt::class,
+            automations\Make::class,
+            automations\N8n::class,
+            automations\WebRequest::class,
+            automations\Zapier::class,
         ];
 
         $miscellaneous = [
+            miscellaneous\ClickUp::class,
             miscellaneous\GoogleSheets::class,
             miscellaneous\Monday::class,
             miscellaneous\Recruitee::class,
-            miscellaneous\Slack::class,
             miscellaneous\Trello::class,
         ];
+
+        // Backward-compatibility until Formie 4
+        $webhooks = [];
 
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
@@ -191,23 +245,62 @@ class Integrations extends Component
             'elements' => $elements,
             'emailMarketing' => $emailMarketing,
             'crm' => $crm,
+            'helpDesk' => $helpDesk,
+            'messaging' => $messaging,
             'payments' => $payments,
-            'webhooks' => $webhooks,
+            'automations' => $automations,
             'miscellaneous' => $miscellaneous,
+
+            // Backward-compatibility until Formie 4
+            'webhooks' => $webhooks,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
 
-        return [
+        $groupedTypes = [
             Integration::TYPE_ADDRESS_PROVIDER => $event->addressProviders,
             Integration::TYPE_CAPTCHA => $event->captchas,
             Integration::TYPE_ELEMENT => $event->elements,
             Integration::TYPE_EMAIL_MARKETING => $event->emailMarketing,
             Integration::TYPE_CRM => $event->crm,
+            Integration::TYPE_HELP_DESK => $event->helpDesk,
+            Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
-            Integration::TYPE_WEBHOOK => $event->webhooks,
+
+            // Backward-compatibility until Formie 4
+            Integration::TYPE_AUTOMATION => array_merge(...[$event->automations, $event->webhooks]),
+            
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
+
+        // Fetch all for performance
+        $plugins = Craft::$app->getPlugins()->getAllPlugins();
+
+        $groupedTypes = array_filter(array_map(function(array $integrations) use ($plugins) {
+            return array_values(array_filter($integrations, function(string $integrationClass) use ($plugins) {
+                foreach ((array)$integrationClass::getRequiredPlugins() as $pluginInfo) {
+                    $handle = $pluginInfo;
+                    $version = 0;
+
+                    if (is_array($pluginInfo)) {
+                        $handle = $pluginInfo['handle'] ?? '';
+                        $version = $pluginInfo['version'] ?? 0;
+                    }
+
+                    if (
+                        !Plugin::isPluginInstalledAndEnabled($handle) ||
+                        !isset($plugins[$handle]) ||
+                        version_compare($plugins[$handle]->getVersion(), $version, '<')
+                    ) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
+        }, $groupedTypes));
+
+        return $this->_groupedIntegrationTypes = $groupedTypes;
     }
 
     public function getIntegrationTypes($type)

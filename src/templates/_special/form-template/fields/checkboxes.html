@@ -7,7 +7,7 @@
         }) }}
 
         {% fieldtag 'fieldOptionLabel' %}
-            {{- field.toggleCheckboxLabel | t('formie') -}}
+            {{- field.toggleCheckboxLabel | t('formie') | purify | md(inlineOnly=true) | raw -}}
         {% endfieldtag %}
     {% endfieldtag %}
 {% endset %}
@@ -33,7 +33,7 @@
             }) }}
 
             {% fieldtag 'fieldOptionLabel' %}
-                {{- option.label | t('formie') -}}
+                {{- option.label | t('formie') | purify | md(inlineOnly=true) | raw -}}
             {% endfieldtag %}
         {% endfieldtag %}
     {% endfor %}

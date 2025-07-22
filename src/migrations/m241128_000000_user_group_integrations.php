@@ -16,9 +16,6 @@ use craft\helpers\StringHelper;
 
 class m241128_000000_user_group_integrations extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function safeUp(): bool
     {
         $userIntegrations = (new Query())
@@ -63,9 +60,6 @@ class m241128_000000_user_group_integrations extends Migration
         return true;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function safeDown(): bool
     {
         echo "m241128_000000_user_group_integrations cannot be reverted.\n";

@@ -1,62 +1,33 @@
-@import '~intl-tel-input/build/css/intlTelInput.css';
+@import 'intl-tel-input/build/css/intlTelInput.css';
 
 // Target both for front-end and CP
-.field[data-type="verbb\\\\formie\\\\fields\\\\Phone"],
-.fui-type-phone {
+.fui-field[data-field-type="phone"] {
     .iti {
+        // --iti-path-flags-1x: url('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/build/img/flags.webp');
+        // --iti-path-flags-2x: url('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/build/img/flags@2x.webp');
+        // --iti-path-globe-1x: url('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/build/img/globe.webp');
+        // --iti-path-globe-2x: url('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/build/img/globe@2x.webp');
+
+        // Update to be full-width
         display: block;
+
+        // Inherit font styles from Formie inputs
+        font-size: var(--fui-input-font-size);
+        line-height: var(--fui-input-line-height);
     }
 
-    .iti__arrow {
-        border-left: 3px solid transparent;
-        border-right: 3px solid transparent;
-        border-top: 4px solid #555;
+    // Missing padding for search container
+    .iti__search-input {
+        padding: 5px 7px;
     }
 
-    .iti__arrow--up {
-        border-top: none;
-        border-bottom: 4px solid #555;
+    // Higher max-height for more options
+    .iti--inline-dropdown .iti__country-list {
+        max-height: 18rem;
     }
 
-    .iti__divider {
-        border-bottom: 1px solid #CCC;
-    }
-
-    .iti__country-list {
-        border: 1px solid #CCC;
-    }
-
-    .iti__selected-dial-code {
-        font-size: 14px;
-    }
-
-    .iti__selected-country-primary {
-        background-color: rgba(0, 0, 0, .05);
-    }
-
-    .iti__selected-country-primary :first-child:not(.iti__flag):not(.iti__arrow) {
-        width: 20px;
-        height: 15px;
-        background-color: #dbdbdb;
-    }
-}
-
-// Load the flag sprites even when removing classes. We also need this non-scoped
-// in order to not have the original path throw a 404 error. A little bit annoying...
-.iti__flag {
-    background-image: url("https://cdn.jsdelivr.net/npm/intl-tel-input@25.2.1/build/img/flags.webp");
-
-    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-        background-image: url("https://cdn.jsdelivr.net/npm/intl-tel-input@25.2.1/build/img/flags@2x.webp");
-    }
-}
-
-.no-webp {
-    .iti__flag {
-        background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/img/flags.png");
-
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-            background-image: url("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.2.1/img/flags@2x.png");
-        }
+    // Tighter vertical height for items
+    .iti__country {
+        padding: 5px var(--iti-spacer-horizontal);
     }
 }

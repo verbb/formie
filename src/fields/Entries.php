@@ -188,6 +188,15 @@ class Entries extends ElementField
                 'required' => true,
                 'if' => '$get(displayType).value == dropdown',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Source Type'),
+                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
+                'name' => 'sourceType',
+                'options' => [
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
+                ],
+            ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
                 'help' => Craft::t('formie', 'Which sources do you want to select entries from?'),
@@ -195,9 +204,24 @@ class Entries extends ElementField
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
+                'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
+            ]),
+            SchemaHelper::elementSelectField([
+                'label' => Craft::t('formie', 'Sources'),
+                'help' => Craft::t('formie', 'Which sources do you want to select entries from?'),
+                'name' => 'sourceElements',
+                'validation' => 'required',
+                'required' => true,
+                'if' => '$get(sourceType).value == elements',
+                'selectionLabel' => Craft::t('formie', 'Choose'),
+                'config' => [
+                    'jsClass' => $this->cpInputJsClass,
+                    'elementType' => static::elementType(),
+                    'limit' => 999,
+                ],
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
@@ -271,6 +295,16 @@ class Entries extends ElementField
                 'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
                 'name' => 'multi',
                 'if' => '$get(displayType).value == dropdown',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Layout'),
+                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'name' => 'layout',
+                'if' => '$get(displayType).value != dropdown',
+                'options' => [
+                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
+                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
+                ],
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),

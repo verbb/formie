@@ -171,13 +171,13 @@ class Monday extends Miscellaneous
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://api.monday.com/v2/',
             'headers' => [
                 'Authorization' => App::parseEnv($this->apiKey),

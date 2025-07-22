@@ -37,6 +37,7 @@ class Payment extends Model
     public ?string $reference = null;
     public ?string $code = null;
     public ?string $message = null;
+    public ?string $redirectUrl = null;
     public string $note = '';
     public ?array $response = null;
     public ?DateTime $dateCreated = null;

@@ -131,18 +131,6 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://api.mailjet.com/v3/REST/',
-            'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
-        ]);
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -154,6 +142,14 @@ class Mailjet extends EmailMarketing
         $rules[] = [['apiKey', 'secretKey'], 'required'];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.mailjet.com/v3/REST/',
+            'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
+        ]);
     }
 
 

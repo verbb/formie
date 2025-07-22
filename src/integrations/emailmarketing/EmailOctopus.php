@@ -143,17 +143,6 @@ class EmailOctopus extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
-
-        return $this->_client = Craft::createGuzzleClient([
-            'base_uri' => 'https://emailoctopus.com/api/1.5/',
-        ]);
-    }
-
 
     // Protected Methods
     // =========================================================================
@@ -165,6 +154,13 @@ class EmailOctopus extends EmailMarketing
         $rules[] = [['apiKey'], 'required'];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://emailoctopus.com/api/1.5/',
+        ]);
     }
 
 

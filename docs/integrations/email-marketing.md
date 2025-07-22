@@ -26,25 +26,33 @@ Along with lists, Formie will also fetch any custom fields, or provider-specific
 Formie integrates with the following providers:
 - ActiveCampaign
 - Adestra
-- Autopilot
 - AWeber
+- Beehiiv
 - Benchmark
 - Brevo (Sendinblue)
-- Campaign Monitor
 - [Campaign Plugin](https://plugins.craftcms.com/campaign)
+- Campaign Monitor
+- CleverReach
 - Constant Contact
 - ConvertKit
+- Customer.io
 - Drip
+- Ecomail
 - EmailOctopus
 - GetResponse
 - iContact
+- Iterable
 - Klaviyo
 - Mailchimp
+- Mailcoach
 - MailerLite
+- Mailjet
 - Moosend
 - Omnisend
 - Ontraport
+- Ortto (Autopilot)
 - Sender
+- Vero
 
 :::tip
 Is your provider not in the list above? [Contact us](https://verbb.io/contact) to submit your interest, or look at the [Custom Integration](docs:developers/custom-integration) docs to write your own provider support.
@@ -102,32 +110,6 @@ Follow the below steps to connect to the Adestra API.
 1. Click **Save** to save the form.
 
 
-## Autopilot
-Follow the below steps to connect to the Autopilot API.
-
-### Step 1. Create the Integration
-1. Navigate to **Formie** → **Settings** → **Email Marketing**.
-1. Click the **New Integration** button.
-1. Select Autopilot as the **Integration Provider**.
-
-### Step 2. Connect to the Autopilot API
-1. Go to <a href="https://www.autopilothq.com/" target="_blank">Autopilot</a> and login to your account.
-1. In the left-hand sidebar menu, click on **Settings**.
-1. In the left-hand sidebar sub-menu, click on **Autopilot API**.
-1. Copy the **API Key** from Autopilot and paste in the **API Key** field in Formie.
-
-### Step 3. Test Connection
-1. Save this integration.
-1. Click on the **Refresh** button in the right-hand sidebar.
-
-### Step 4. Form Setting
-1. Go to the form you want to enable this integration on.
-1. Click the **Integrations** tab.
-1. In the left-hand sidebar, select the name you gave the integration.
-1. Enable the integration and fill out all required fields.
-1. Click **Save** to save the form.
-
-
 ## AWeber
 Follow the below steps to connect to the AWeber API.
 
@@ -150,6 +132,34 @@ Follow the below steps to connect to the AWeber API.
 1. Save this integration.
 1. Click on the **Connect** button in the right-hand sidebar.
 1. You‘ll be redirected to AWeber, where you must approve Formie to access your AWeber account.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Beehiiv
+Follow the below steps to connect to the Beehiiv API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Beehiiv as the **Integration Provider**.
+
+### Step 2. Connect to the Beehiiv API
+1. Go to <a href="https://app.beehiiv.com/" target="_blank">Beehiiv</a> and login to your account.
+1. In the left-hand sidebar menu, click on **Settings**.
+1. In the left-hand sidebar menu, click on **API**.
+1. Complete the steps for Stripe ID verification if required.
+1. Click the **Create New API Key** button.
+1. Copy the **API Key** from Beehiiv and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
 
 ### Step 4. Form Setting
 1. Go to the form you want to enable this integration on.
@@ -255,6 +265,36 @@ The [Campaign Plugin](https://plugins.craftcms.com/campaign) requires no setup o
 1. Click **Save** to save the form.
 
 
+## CleverReach
+Follow the below steps to connect to the CleverReach API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select CleverReach as the **Integration Provider**.
+
+### Step 2. Connect to the CleverReach API
+1. Go to <a href="https://cleverreach.com/" target="_blank">CleverReach</a>, and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **My Account**.
+1. Click **Interfaces** → **REST API**.
+1. Click the **Create OAuth2 App** button.
+1. In the **Redirect URL** field, enter the value from the **Redirect URI** field in Formie.
+1. Copy the **Client ID** from CleverReach and paste in the **Client ID** field in Formie.
+1. Copy the **Client Secret** from CleverReach and paste in the **Client Secret** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Connect** button in the right-hand sidebar.
+1. You‘ll be redirected to CleverReach, where you must approve Formie to access your CleverReach account.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## Constant Contact
 Follow the below steps to connect to the Constant Contact API.
 
@@ -311,6 +351,33 @@ Follow the below steps to connect to the ConvertKit API.
 1. Click **Save** to save the form.
 
 
+## Customer.io
+Follow the below steps to connect to the Customer.io API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Customer.io as the **Integration Provider**.
+
+### Step 2. Connect to the Customer.io API
+1. Go to <a href="https://fly.customer.io/" target="_blank">Customer.io</a> and login to your account.
+1. In the left-hand sidebar menu, click on **Date & Integrations**.
+1. Click on the **Custom.io API** button.
+1. Copy the **Site ID** from Customer.io and paste in the **Site ID** field in Formie.
+1. Copy the **API Key** from Customer.io and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## Drip
 Follow the below steps to connect to the Drip API.
 
@@ -339,6 +406,33 @@ Follow the below steps to connect to the Drip API.
 1. In the left-hand sidebar, select the name you gave the integration.
 1. Enable the integration and fill out all required fields.
 1. Click **Save** to save the form.
+
+
+## Ecomail
+Follow the below steps to connect to the Ecomail API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Ecomail as the **Integration Provider**.
+
+### Step 2. Connect to the Ecomail API
+1. Go to <a href="https://ecomail.app/" target="_blank">Ecomail</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **Manage your account**.
+1. Find the **For Developers** pane, and click on the **Edit** button.
+1. Copy the **API Key** from Ecomail and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
 
 
 ## EmailOctopus
@@ -486,6 +580,33 @@ Follow the below steps to connect to the Mailchimp API.
 - Supports [GDPR Fields](https://mailchimp.com/help/collect-consent-with-gdpr-forms/).
 
 
+## Mailcoach
+Follow the below steps to connect to the Mailcoach API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Mailcoach as the **Integration Provider**.
+
+### Step 2. Connect to the Mailcoach API
+1. Go to <a href="https://mailcoach.app" target="_blank">Mailcoach</a> and login to your account.
+1. Click on your profile dropdown on the top-right of the screen, and select **API Tokens**.
+1. Enter a **Token Name** and click the **Create** button.
+1. Copy the **API Key** from Mailcoach and paste in the **API Key** field in Formie.
+1. Copy the **API URL** from Mailcoach and paste in the **API URL** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## MailerLite
 Follow the below steps to connect to the MailerLite API.
 
@@ -594,6 +715,34 @@ Follow the below steps to connect to the Ontraport API.
 1. Click **Save** to save the form.
 
 
+## Ortto
+Follow the below steps to connect to the Ortto API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Ortto as the **Integration Provider**.
+
+### Step 2. Connect to the Ortto API
+1. Go to <a href="https://ortto.app" target="_blank">Ortto</a> and login to your account.
+1. In the left-hand sidebar menu, click on **CDP** then **Data sources**.
+1. Click the **New data source** button.
+1. Click the **Custom API (advanced)** button.
+1. Enter a **API Name**
+1. Copy the **Private API Key** from Ortto and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
 ## Sender
 Follow the below steps to connect to the Sender API.
 
@@ -607,6 +756,34 @@ Follow the below steps to connect to the Sender API.
 1. In the left-hand menu, click **My Account** → **API**.
 1. Click the **Generate** button.
 1. Copy the **API Key** from Sender and paste in the **API Key** field in Formie.
+
+### Step 3. Test Connection
+1. Save this integration.
+1. Click on the **Refresh** button in the right-hand sidebar.
+
+### Step 4. Form Setting
+1. Go to the form you want to enable this integration on.
+1. Click the **Integrations** tab.
+1. In the left-hand sidebar, select the name you gave the integration.
+1. Enable the integration and fill out all required fields.
+1. Click **Save** to save the form.
+
+
+## Vero
+Follow the below steps to connect to the Vero API.
+
+### Step 1. Create the Integration
+1. Navigate to **Formie** → **Settings** → **Email Marketing**.
+1. Click the **New Integration** button.
+1. Select Vero as the **Integration Provider**.
+
+### Step 2. Connect to the Vero API
+1. Go to <a href="https://app.getvero.com" target="_blank">Vero</a> and login to your account.
+1. In the left-hand sidebar menu, click on **Settings**.
+1. In the top sub-menu, click on **Project Details**.
+1. Copy the **API Key** from Vero and paste in the **API Key** field in Formie.
+1. Copy the **API Secret** from Vero and paste in the **API Secret** field in Formie.
+1. Copy the **Auth Token** from Vero and paste in the **Auth Token** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.

@@ -18,6 +18,7 @@ use verbb\formie\events\TriggerIntegrationEvent;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SpamHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
@@ -77,9 +78,13 @@ class Submissions extends Component
     // Public Methods
     // =========================================================================
 
-    public function getSubmissionById(int $id, ?string $siteId = '*'): ?Submission
+    public function getSubmissionById(int $id, ?string $siteId = '*', array $criteria = []): ?Submission
     {
-        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId);
+        // Always included incomplete or spam submissions
+        $criteria['isIncomplete'] = null;
+        $criteria['isSpam'] = null;
+
+        return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId, $criteria);
     }
 
     public function defineSourceTableAttributes(DefineSourceTableAttributesEvent $event): void
@@ -559,41 +564,19 @@ class Submissions extends Component
 
         // Is it already spam?
         if (!$submission->isSpam) {
-            $excludes = $this->_getArrayFromMultiline($settings->spamKeywords);
-            $extraExcludes = [];
-
-            // Handle any Twig used in the field
-            foreach ($excludes as $key => $exclude) {
-                if (str_contains($exclude, '{')) {
-                    unset($excludes[$key]);
-
-                    $parsedString = $this->_getArrayFromMultiline(Variables::getParsedValue($exclude));
-                    $extraExcludes[] = $parsedString;
-                }
-            }
-
-            // For performance
-            $excludes = array_merge($excludes, ...$extraExcludes);
-
-            // Build a string based on field content - much easier to find values
-            // in a single string than iterate through multiple arrays
+            // Start evaluating keyword rules
             $fieldValues = implode(' ', $submission->getValuesAsString());
+            $spamEvaluation = SpamHelper::checkContent($fieldValues);
 
-            foreach ($excludes as $exclude) {
-                // Check if string contains
-                if (strtolower($exclude) && str_contains(strtolower($fieldValues), strtolower($exclude))) {
+            if ($spamEvaluation) {
+                if ($spamEvaluation['type'] === 'text') {
                     $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $exclude]);
-
-                    break;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $spamEvaluation['value']]);
                 }
 
-                // Check for IPs
-                if ($submission->ipAddress && $submission->ipAddress === $exclude) {
+                if ($spamEvaluation['type'] === 'ip') {
                     $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $exclude]);
-
-                    break;
+                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $spamEvaluation['value']]);
                 }
             }
         }

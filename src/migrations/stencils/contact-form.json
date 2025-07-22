@@ -166,6 +166,7 @@
         "errorMessagePosition":"top-form",
         "loadingIndicator":"spinner",
         "progressPosition":"end",
+        "progressValuePosition":"inside-center",
         "submissionTitleFormat":"{timestamp}",
         "submitAction":"message",
         "submitActionMessage":"[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Thank you for contacting us! Our team will get in touch shortly to follow up on your message.\"}]}]",

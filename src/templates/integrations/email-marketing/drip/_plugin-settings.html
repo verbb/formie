@@ -1,40 +1,9 @@
+{% extends 'formie/_layouts/integrations/plugin-settings' %}
+
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% set displayName = integration.displayName() %}
-
-{% set instructions %}
-### Step 1. Connect to the {name} API
-1. Go to <a href="https://www.getdrip.com/user/applications" target="_blank">{name}</a> and login to your account.
-1. Click on **OAuth Applications**.
-1. Enter a name for your application, and click the **Create Application** button.
-1. In the **Callback URL** field, enter the value from the **Redirect URI** field below.
-1. Copy the **Client ID** from {name} and paste in the **Client ID** field below.
-1. Copy the **Client Secret** from {name} and paste in the **Client Secret** field below.
-1. Click the **Activate** button.
-
-### Step 2. Test Connection
-1. Save this integration.
-1. Click on the **Connect** button in the right-hand sidebar.
-1. You‘ll be redirected to {name}, where you must approve Formie to access your {name} account.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{{ macros.proxyField(fieldVariables, 'textField', {
-    readonly: true,
-    label: 'Redirect URI' | t('formie'),
-    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
-    value: integration.getRedirectUri(),
-}) }}
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
+{% block content %}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Client ID' | t('formie'),
@@ -57,3 +26,5 @@
     warning: macros.configWarning('clientSecret', 'formie'),
     errors: integration.getErrors('clientSecret'),
 }) }}
+
+{% endblock %}

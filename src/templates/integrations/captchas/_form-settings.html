@@ -9,3 +9,12 @@
     name: 'showAllPages',
     on: form.settings.integrations[integration.handle].showAllPages ?? false,
 }) }}
+
+{% if not integration.hasValidSettings() %}
+    <p class="warning with-icon">
+        {{ '{name} captcha requires valid settings in order to work. See [{name} Settings]({link}).' | t('formie', { 
+            name: displayName,
+            link: cpUrl('formie/settings/captchas#tab-' ~ integration.handle),
+        }) | md | striptags('<a>') | raw }}
+    </p>
+{% endif %}

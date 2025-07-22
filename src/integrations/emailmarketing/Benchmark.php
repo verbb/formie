@@ -174,13 +174,13 @@ class Benchmark extends EmailMarketing
         return true;
     }
 
-    public function getClient(): Client
-    {
-        if ($this->_client) {
-            return $this->_client;
-        }
+    
+    // Protected Methods
+    // =========================================================================
 
-        return $this->_client = Craft::createGuzzleClient([
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
             'base_uri' => 'https://clientapi.benchmarkemail.com/',
             'headers' => ['AuthToken' => App::parseEnv($this->apiKey)],
         ]);

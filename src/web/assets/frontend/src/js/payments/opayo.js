@@ -1,4 +1,4 @@
-import { t } from '../utils/utils';
+import { t, eventKey, getAjaxClient } from '../utils/utils';
 import { FormiePaymentProvider } from './payment-provider';
 import { dialog } from '@rynpsc/dialog';
 import Payment from 'payment';
@@ -96,12 +96,7 @@ export class FormieOpayo extends FormiePaymentProvider {
         try {
             // Fetch/generate the merchant ID first via an Ajax request
             const action = this.$form.getAttribute('action');
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', action ? action : window.location.href, true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('Cache-Control', 'no-cache');
+            const xhr = getAjaxClient(this.$form, 'POST', action ? action : window.location.href, true);
 
             xhr.ontimeout = () => {
                 self.addError(t('The request timed out.'));

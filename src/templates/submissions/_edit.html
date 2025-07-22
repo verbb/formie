@@ -255,6 +255,23 @@
     </div>
 {% endif %}
 
+{% if not isNew and submission.isIncomplete %}
+    <div id="meta-details" class="meta">
+        <div class="field">
+            <div class="heading" style="flex: 0 0 160px;">
+                <label class="">{{ 'Mark as Complete' | t('formie') }}</label>
+            </div>
+
+            <div>
+                {{ forms.lightswitchField({
+                    id: 'markAsComplete',
+                    name: 'markAsComplete',
+                }) }}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% set integrations = [] %}
 
 {% for integration in craft.formie.plugin.integrations.getAllEnabledIntegrationsForForm(form) %}
