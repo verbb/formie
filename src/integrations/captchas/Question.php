@@ -9,6 +9,7 @@ use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\FieldLayoutRow;
 
 use Craft;
 
@@ -57,13 +58,14 @@ class Question extends Captcha
         $field->name = $question;
         $field->label = $question;
         $field->required = true;
-        $field->form = $form;
+
+        $row = new FieldLayoutRow();
 
         // Render the field using the standard renderer
         $html = Formie::$plugin->getRendering()->renderField($form, $field);
 
         // Wrap the field in a row, if we're setup to render rows
-        if ($htmlTag = $form->renderHtmlTag('row')) {
+        if ($htmlTag = $form->renderHtmlTag('row', ['row' => $row])) {
             return Html::tag($htmlTag->tag, $html, $htmlTag->attributes);
         }
 
