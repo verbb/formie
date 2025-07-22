@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.1 - 2025-07-22
+
+### Added
+- Add support for element fields’ querying with `:notempty:` or `:empty:`.
+
+### Fixed
+- Fix incorrect handling of system settings for email notifications on non multi-site installs.
+- Fix some payment integrations being unable to select fields for dynamic amount.
+- Fix extra-small lightswitch visual bug.
+- Fix an error when loading some captcha settings for a form (Friendly Captcha, hCpatcha, reCaptcha, Turnstile).
+- Fix submission querying for Craft 5.8+.
+
 ## 3.1.0 - 2025-07-22
 
 ### Added
