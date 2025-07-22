@@ -208,9 +208,9 @@ class Variables
                 'submissionSite' => $submission?->siteId ?? null,
 
                 // Keep this blank to fall back to Craft defaults, which resolve site overrides
-                'systemEmail' => '',
-                'systemReplyTo' => '',
-                'systemName' => '',
+                'systemEmail' => self::_getSystemEmailSetting('fromEmail'),
+                'systemReplyTo' => self::_getSystemEmailSetting('replyToEmail'),
+                'systemName' => self::_getSystemEmailSetting('fromName'),
                 'craft' => new CraftVariable(),
                 'currentSite' => $site,
                 'currentUser' => $currentUser,
@@ -414,5 +414,19 @@ class Variables
 
         // If all else fails, the primary site.
         return Craft::$app->getSites()->getPrimarySite();
+    }
+
+    private static function _getSystemEmailSetting(string $setting): mixed
+    {
+        $mail = App::mailSettings();
+        $currentSite = Craft::$app->getSites()->getCurrentSite();
+
+        $overrides = $mail->siteOverrides[$currentSite->uid] ?? [];
+
+        if (isset($overrides[$setting])) {
+            return App::parseEnv($overrides[$setting]);
+        }
+
+        return $mail->$setting;
     }
 }
