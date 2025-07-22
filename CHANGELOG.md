@@ -845,6 +845,100 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.0 - 2025-07-22
+
+### Added
+- Add Automation, Help Desk and Messaging integration types.
+- Add PlaceKit Address Provider integration.
+- Add n8n Automation integration.
+- Add Make Automation integration.
+- Add IFTTT Automation integration.
+- Add Akismet Captcha integration.
+- Add Captcha.eu Captcha integration.
+- Add CleanTalk Captcha integration.
+- Add OOPSpam Captcha integration.
+- Add Question Captcha integration.
+- Add Attio CRM integration.
+- Add CiviCRM integration.
+- Add Flowlu CRM integration.
+- Add NoCRM integration.
+- Add Outseta CRM integration.
+- Add Salesmate CRM integration.
+- Add Beehiiv Email Marketing integration.
+- Add Customer.io Email Marketing integration.
+- Add Ecomail Email Marketing integration.
+- Add Mailcoach Email Marketing integration.
+- Add Ortto Email Marketing integration.
+- Add Vero Email Marketing integration.
+- Add Gorgias Help Desk integration.
+- Add Zendesk Help Desk integration.
+- Add BPOINT Payment integration.
+- Add Eway Payment integration.
+- Add GoCardless Payment integration.
+- Add Mollie Payment integration.
+- Add Moneris Payment integration.
+- Add Paddle Payment integration.
+- Add Square Payment integration.
+- Add Discord Messaging integration.
+- Add Plivo Messaging integration.
+- Add Telegram Messaging integration.
+- Add Twilio Messaging integration.
+- Add ClickUp Miscellaneous integration.
+- Add Commerce Product Element integration (for single-variant products).
+- Add Ticket object support to HubSpot CRM integration.
+- Add `Integration::beforeSaveForm()` and `Integration::defineClient()`.
+- Add spam reason for Friendly Captcha when missing client-side token.
+- Add integration front-end JS provider classes as separate exports to include in your own code.
+- Add “is visible” and “is hidden” field conditions.
+- Add parent field information to form builder for conditions.
+- Add the ability to map to “Dependant Fields” for HubSpot integrations.
+- Add the ability to set Address values for User element integrations.
+- Add SharpSpring tracking data when mapping to a native form.
+- Add the ability for Elements fields to set specific elements as available to be picked from.
+- Add support for Date fields to set their Year Range start setting to a negative value to offset from the current year.
+- Add “Progress Value Position” form setting to control where the percentage value for page process sits.
+- Add the ability to mark an incomplete submission as complete in the control panel.
+- Add `body` variable as alias to `contentHtml` for email notifications, to be compatible with Craft email templates.
+- Add support for “Layout” setting for Element fields, when displayed as Checkboxes or Radio Buttons.
+- Add `outputConsoleMessages` plugin setting to prevent CSRF token refresh console.log messages.
+- Add support for form submissions to be limited by IP address.
+- Add JS event `modifyAjaxClient` to modify the XHR client used for Ajax requests.
+- Add JS event `modifyScriptUrl` to modify the CDN scripts for Phone and Date Picker libraries.
+
+### Changed
+- Re-organise form builder field categories.
+- Rename Webhook integration to Web Request, and add more options for request settings.
+- Move Slack and Telegram to Messaging integrations.
+- Move Freshdesk, Gorgias and Zendesk to Help Desk integrations.
+- Webhook integrations are now Automation integrations.
+- Captcha integrations now no longer pre-select the first available type when editing.
+- Re-order Captcha integrations alphabetically.
+- Integrations can now control any required plugins.
+- Captchas can now opt to validate earlier in the submission process, and prevent submission saving (like a field would).
+- Form integration settings now no longer need to be saved when fetching new data/refreshing data.
+- Improve integration success/fail feedback in the form builder.
+- Integration settings pages have been re-worked with multiple tabs and an external docs link to instructions.
+- Update spam keywords rules to new definition syntax.
+- Update Phone field, no longer using CDN for utils and flag icons, updated look and feel.
+- Update the `intl-tel-input` package for Phone field validation and handling.
+- Change scroll-to-top behaviour to handle non-top level forms (in modal).
+- Allow Radio Buttons and Checkboxes field option labels to include HTML (safe) or Markdown.
+- Update Checkboxes and Radio Buttons fields to not show invalid label positions to select.
+- Hidden or Disabled fields now have a visual indicator in the form builder.
+- Google Sheets integration can now have their Spreadsheet ID set per-form.
+
+### Fixed
+- Fix `NestedFieldRow` elements not being garbage collected properly for deleted submissions.
+- Fix Date field Year Range offsets not using the current year.
+- Fix Phone field flag in the form builder.
+
+### Deprecated
+- Deprecated `Automation::getWebhookUrl()`. Use `Automation::getEndpointUrl()` instead.
+
+### Removed
+- Removed “Webhook URL” plugin setting from Webhook integration (still available per-form).
+- Integration docs are no longer provided within Formie, instead visit the [docs](https://verbb.io/craft-plugins/formie/docs).
+
 ## 2.1.52 - 2025-07-18
 
 ### Added
@@ -2155,7 +2249,6 @@
 - Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
 
 ## 2.0.21 - 2023-01-30
-
 > {warning} If you are using Twig in hidden fields' default value, refer to breaking changes.
 
 ### Added
@@ -2209,7 +2302,6 @@
 - Hidden field "Default Value" now no longer supports full Twig syntax (anything that requires double `{{` brackets). Shorthand (`{`) Twig is still supported.
 
 ## 2.0.20 - 2022-12-15
-
 > {warning} Webhook integrations have their payload altered. They now no longer group submission/form data in a `json` key, they are instead "flat" values. Your Zapier and custom Webhook endpoints will need to factor in this change.
 
 ### Added
@@ -2643,7 +2735,6 @@
 - Fixed an error when exporting submissions where a Craft field had the same handle as a Formie field.
 
 ## 2.0.0 - 2022-07-11
-
 > {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](https://verbb.io/craft-plugins/formie/docs/get-started/upgrading-from-v1#templates) guide.
 
 ### Added
@@ -2946,7 +3037,6 @@
 - Fixed an error with most mailers sending large attachments (over 15mb) to email notifications.
 
 ## 1.6.22 - 2023-01-30
-
 > {warning} If you are using Twig in hidden fields' default value, refer to breaking changes.
 
 ### Added
@@ -3270,7 +3360,6 @@ The fix was already present for Contacts.
 - Fixed an error when applying project config updates with stencils.
 
 ## 1.5.15 - 2022-04-23
-
 > {warning} If you are using custom templates, or template overrides, please read through the breaking changes.
 
 ### Added
@@ -4003,7 +4092,6 @@ The fix was already present for Contacts.
 - Removed `columnWidth` from GraphQL queries (it did nothing).
 
 ## 1.4.13 - 2021-08-09
-
 > {warning} Please read through the Breaking Changes before updating.
 
 ### Added
@@ -4294,7 +4382,6 @@ The fix was already present for Contacts.
 - Fixed fatal errors when installing from a fresh install.
 
 ## 1.4.0 - 2021-04-20
-
 > {warning} Please read through the Breaking Changes before updating.
 
 ### Added
@@ -4471,7 +4558,6 @@ The fix was already present for Contacts.
 - Fixed email parsing error for email notifications in rare circumstances (where an env variable contained spaces).
 
 ## 1.3.21 - 2021-03-01
-
 - Removed `craft.formie.getVisibleFields()`.
 
 ### Fixed
@@ -4827,7 +4913,6 @@ The fix was already present for Contacts.
 - Fixed HTML field errors when the vendor folder didn’t have write permissions (such as Servd).
 
 ## 1.3.3 - 2020-12-06
-
 > {warning} If you are overriding templates for `field.html`, you **must** update your template to include `data-field-config="{{ field.getConfigJson(form) | json_encode | raw }}"`. This is the new and improved method for fields to define their config settings, picked up by JavaScript classes. Without making this change, field JS will not work. Refer to [this commit change](https://github.com/verbb/formie/commit/c5d5eda10b39063e1cf782b38f84bebe0da6fdf9#diff-ba26d5dbf9dcd3281c9b0b3c16f822eff1d2943c2134518d4ecea26d10907be4R90-R92).
 
 ### Added

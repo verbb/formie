@@ -224,24 +224,7 @@ class IterableIntegration extends Crm
         return true;
     }
 
-    public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])
-    {
-        // When mapping to message types, the field settings will be an array of `IntegrationCollection` objects.
-        // So we need to select the type's settings that we're mapping to and return just the field.
-        if ($fieldSettings === 'messageTypes') {
-            $collections = $this->getFormSettingValue($fieldSettings);
-
-            foreach ($collections as $collection) {
-                if ($collection->id === $this->messageTypeId) {
-                    $fieldSettings = $collection->fields;
-                }
-            }
-        }
-
-        return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
-    }
-
-
+    
     // Protected Methods
     // =========================================================================
 
