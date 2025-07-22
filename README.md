@@ -182,6 +182,7 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - Insightly
 - Iterable
 - Klaviyo
+- Marketo
 - Maximizer
 - Mercury
 - Microsoft Dynamics 365
@@ -190,19 +191,23 @@ Build your customer relationship data with ease, mapping form fields to contacts
 - Pardot
 - Pipedrive
 - Pipeliner
+- Procurios
 - Salesflare
 - Salesforce
 - Salesmate
 - Scoro
 - SharpSpring
+- SuiteCRM
 - SugarCRM
 - vCita
+- Xero
 - Zoho
 
 #### Elements
 Create elements from form submission data.
 
 - Commerce Products
+- [Events Plugin](https://plugins.craftcms.com/events)
 - [Solspace Calendar Events](https://plugins.craftcms.com/calendar)
 - Entries
 - Users
@@ -218,6 +223,7 @@ Add users who fill out your forms directly to your mailing lists.
 - Brevo (Sendinblue)
 - [Campaign Plugin](https://plugins.craftcms.com/campaign)
 - Campaign Monitor
+- CleverReach
 - Constant Contact
 - ConvertKit
 - Customer.io
@@ -243,7 +249,11 @@ Add users who fill out your forms directly to your mailing lists.
 Turn form submissions into support tickets and streamline your customer service.
 
 - Freshdesk
+- Front Help
 - Gorgias
+- Help Scout
+- Intercom
+- LiveChat
 - Zendesk
 
 #### Messaging
