@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.1 - 2025-07-22
+
+### Fixed
+- Fix an error when loading some captcha settings for a form (Friendly Captcha, hCpatcha, reCaptcha, Turnstile).
+
 ## 2.2.0 - 2025-07-22
 
 ### Added
