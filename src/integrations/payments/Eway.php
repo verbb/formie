@@ -11,8 +11,7 @@ use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields\formfields;
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -270,12 +269,12 @@ class Eway extends Payment
                             SchemaHelper::fieldSelectField([
                                 'name' => 'amountVariable',
                                 'fieldTypes' => [
-                                    formfields\Calculations::class,
-                                    formfields\Dropdown::class,
-                                    formfields\Hidden::class,
-                                    formfields\Number::class,
-                                    formfields\Radio::class,
-                                    formfields\SingleLineText::class,
+                                    fields\Calculations::class,
+                                    fields\Dropdown::class,
+                                    fields\Hidden::class,
+                                    fields\Number::class,
+                                    fields\Radio::class,
+                                    fields\SingleLineText::class,
                                 ],
                                 'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
                             ]),
@@ -293,7 +292,7 @@ class Eway extends Payment
         $rowConfigs = [
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => fields\SingleLineText::class,
                     'name' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
@@ -315,7 +314,7 @@ class Eway extends Payment
             ],
             [
                 [
-                    'type' => SingleLineText::class,
+                    'type' => fields\SingleLineText::class,
                     'name' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
@@ -336,7 +335,7 @@ class Eway extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => fields\SingleLineText::class,
                     'name' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
@@ -357,7 +356,7 @@ class Eway extends Payment
                     ],
                 ],
                 [
-                    'type' => SingleLineText::class,
+                    'type' => fields\SingleLineText::class,
                     'name' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,

@@ -8,7 +8,7 @@ use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
-use verbb\formie\fields\formfields;
+use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
@@ -344,12 +344,12 @@ class Mollie extends Payment
                             SchemaHelper::fieldSelectField([
                                 'name' => 'amountVariable',
                                 'fieldTypes' => [
-                                    formfields\Calculations::class,
-                                    formfields\Dropdown::class,
-                                    formfields\Hidden::class,
-                                    formfields\Number::class,
-                                    formfields\Radio::class,
-                                    formfields\SingleLineText::class,
+                                    fields\Calculations::class,
+                                    fields\Dropdown::class,
+                                    fields\Hidden::class,
+                                    fields\Number::class,
+                                    fields\Radio::class,
+                                    fields\SingleLineText::class,
                                 ],
                                 'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
                             ]),
