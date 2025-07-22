@@ -79,28 +79,55 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
     public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
     {
+        // Get the base JSON SQL column expression for the field
+        $valueSql = static::valueSql($instances);
+
+        if ($valueSql === null) {
+            return false;
+        }
+
+        // Determine if we're using PostgreSQL
+        $isPgsql = Craft::$app->getDb()->getIsPgsql();
+
+        // Handle :empty: and :notempty:
+        if (in_array($value, [':empty:', 'not :notempty:'], true)) {
+            if ($isPgsql) {
+                // Check if array is empty or field is null in Postgres
+                return new Expression("jsonb_array_length($valueSql) = 0 OR $valueSql IS NULL");
+            }
+
+            // MySQL / MariaDB
+            return new Expression("JSON_LENGTH($valueSql) = 0 OR $valueSql IS NULL");
+        }
+
+        if (in_array($value, [':notempty:', 'not :empty:'], true)) {
+            if ($isPgsql) {
+                // Check if array is non-empty in Postgres
+                return new Expression("jsonb_array_length($valueSql) > 0");
+            }
+
+            // MySQL / MariaDB
+            return new Expression("JSON_LENGTH($valueSql) > 0");
+        }
+
+        // Handle regular element ID matching
         $values = [];
 
         if (is_array($value)) {
             foreach ($value as $element) {
                 if ($element instanceof ElementInterface) {
                     $values[] = $element->id;
-                }
-
-                if (is_int($element)) {
+                } elseif (is_int($element)) {
                     $values[] = $element;
                 }
             }
-        }
-
-        if ($value instanceof ElementInterface) {
+        } elseif ($value instanceof ElementInterface) {
             $values[] = $value->id;
-        }
-
-        if (is_int($value)) {
+        } elseif (is_int($value)) {
             $values[] = $value;
         }
 
+        // Pass to parent implementation for actual matching
         return parent::queryCondition($instances, Json::encode($values), $params);
     }
 
