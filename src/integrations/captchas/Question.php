@@ -5,7 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\formfields\SingleLineText;
+use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\models\FieldLayoutPage;
