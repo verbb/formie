@@ -35,7 +35,7 @@ class Turnstile extends Captcha
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'Friendly Captcha employs a fundamentally new approach to securely defend your websites and online services from spam and bots. Find out more via [Cloudflare Turnstile](https://blog.cloudflare.com/turnstile-private-captcha-alternative/).');
+        return Craft::t('formie', 'Cloudflare Turnstile is a free, privacy-first CAPTCHA alternative that protects your forms from spam and abuse. Find out more via [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/).');
     }
 
     public function getSettingsHtml(): ?string
