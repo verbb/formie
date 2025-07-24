@@ -45,7 +45,7 @@
     name: 'useCredentials',
     value: useCredentials,
     includeEnvVars: true,
-    warning: macros.configWarning('useCredentials', 'formie'),
+    warning: 'Only use this if your Salesforce account requires it.' | t('formie'),
     errors: integration.getErrors('useCredentials'),
     toggle: 'credentials',
 }) }}
