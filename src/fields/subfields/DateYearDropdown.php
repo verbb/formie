@@ -46,7 +46,7 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
     {
         $options = [['value' => '', 'label' => null, 'disabled' => true]];
 
-        $date = $this->parentField->defaultValue ?: new DateTime();
+        $date = $this->parentField?->defaultValue ?: new DateTime();
         $year = (int)$date->format('Y');
         $minYear = $year - $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
