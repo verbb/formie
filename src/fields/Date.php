@@ -58,7 +58,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
     public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
 
-
     // Static Methods
     // =========================================================================
 
@@ -83,7 +82,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         return Schema::TYPE_DATETIME;
     }
 
-
     // Properties
     // =========================================================================
 
@@ -105,7 +103,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     public int $minYearRange = -100;
     public int $maxYearRange = 100;
     public mixed $availableDaysOfWeek = '*';
-
 
     // Public Methods
     // =========================================================================
@@ -271,7 +268,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         $html = '';
-        
         // Ensure that the timezone we use is UTC, as the dates are set in that. We don't want them converted
         $timeZone = Craft::$app->getFormatter()->timeZone;
         Craft::$app->getFormatter()->timeZone = 'UTC';
@@ -542,7 +538,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         if ($this->defaultValue instanceof DateTime) {
             return $this->defaultValue->format('Y-m-d\TH:i:s');
         }
-        
         return $this->defaultValue;
     }
 
@@ -1098,7 +1093,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         return parent::defineHtmlTag($key, $context);
     }
 
-
     // Protected Methods
     // =========================================================================
 
@@ -1493,7 +1487,6 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
         return $values;
     }
 
-
     // Private Methods
     // =========================================================================
 
@@ -1521,7 +1514,18 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
 
     private function _getYearOptions(?string $placeholder = null): array
     {
-        $defaultValue = $this->defaultValue ?: new DateTime();
+        // Handle case when defaultValue is a string or null
+        $defaultValue = $this->defaultValue;
+        if (is_string($defaultValue)) {
+            try {
+                $defaultValue = new DateTime($defaultValue);
+            } catch (Exception $e) {
+                $defaultValue = new DateTime();
+            }
+        } elseif (!$defaultValue instanceof DateTime) {
+            $defaultValue = new DateTime();
+        }
+
         $year = (int)$defaultValue->format('Y');
         $minYear = $year + $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
