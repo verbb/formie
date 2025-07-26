@@ -1,5 +1,5 @@
 <p>
-    {% if field.hasEmailLabel() %}
+    {% if field.hasEmailLabel() and not (renderOptions.hideName ?? false) %}
         <strong>{{ field.label | t('formie') }}</strong><br>
     {% endif %}
 
