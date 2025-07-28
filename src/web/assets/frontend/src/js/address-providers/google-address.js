@@ -70,12 +70,13 @@ export class FormieGoogleAddress extends FormieAddressProvider {
     initAutocomplete() {
         const options = { types: ['geocode'], ...this.options };
 
-        // Init the autocomplete web componenent, which we have limited style control over...
         const autocomplete = new google.maps.places.PlaceAutocompleteElement(options);
-        autocomplete.style.height = window.getComputedStyle(this.$input).height;
+        const inputHeight = window.getComputedStyle(this.$input).height;
+
+        autocomplete.style.height = inputHeight;
         autocomplete.style.boxSizing = 'border-box';
 
-        // Find or create a wrapper div around the input to mount the autocomplete to.
+        // Find or create a wrapper div around the input
         let wrapper = this.$input.parentElement;
 
         if (!wrapper || !wrapper.classList.contains('fui-autocomplete-wrapper')) {
@@ -86,27 +87,64 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             wrapper.appendChild(this.$input);
         }
 
-        // Replace the input with the Web Component
-        wrapper.replaceChild(autocomplete, this.$input);
-
-        // Mirror selected value into the original input (needed to keep input compatible with Formie / server-side)
+        // Create and insert the fake placeholder overlay
         const hiddenInput = this.$input;
+        const savedValue = hiddenInput.value;
+
+        if (savedValue) {
+            const overlay = document.createElement('div');
+            overlay.classList.add('fui-autocomplete-placeholder');
+            overlay.innerText = savedValue;
+
+            wrapper.style.position = 'relative';
+            overlay.style.position = 'absolute';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.height = inputHeight;
+            overlay.style.lineHeight = inputHeight;
+            overlay.style.width = '100%';
+            overlay.style.padding = '0 2.5rem';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.color = '#6B7280';
+            overlay.style.fontSize = '14px';
+            overlay.style.zIndex = '1';
+
+            wrapper.appendChild(overlay);
+
+            // Toggle overlay on focus/blur
+            autocomplete.addEventListener('focusin', () => {
+                overlay.style.display = 'none';
+            });
+
+            autocomplete.addEventListener('focusout', () => {
+                if (hiddenInput.value) {
+                    overlay.style.display = '';
+                }
+            });
+        }
+
+        // Replace input with autocomplete element
+        wrapper.replaceChild(autocomplete, hiddenInput);
+
+        // Reinsert hidden input for actual form value
         hiddenInput.type = 'hidden';
         hiddenInput.name = this.$input.name;
         wrapper.appendChild(hiddenInput);
 
         autocomplete.addEventListener('gmp-select', async({ placePrediction }) => {
             const place = placePrediction.toPlace();
-            await place.fetchFields({ fields: ['addressComponents'] });
+            await place.fetchFields({ fields: ['addressComponents', 'formattedAddress'] });
 
             if (!place.addressComponents) { return; }
 
-            this.setAddressValues(place.addressComponents);
+            this.setAddressValues(place.addressComponents, place.formattedAddress);
 
             const populateAddressEvent = new CustomEvent('populateAddress', {
                 bubbles: true,
                 detail: {
                     addressProvider: this,
+                    place,
+                    formattedAddress: place.formattedAddress,
                     addressComponents: place.addressComponents,
                 },
             });
@@ -115,7 +153,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
         });
     }
 
-    setAddressValues(address) {
+    setAddressValues(address, formattedAddress) {
         const formData = {};
         const componentMap = this.componentMap();
 
@@ -138,6 +176,7 @@ export class FormieGoogleAddress extends FormieAddressProvider {
             this.setFieldValue('[data-address1]', street);
         }
 
+        this.setFieldValue('[data-autocomplete]', formattedAddress);
         this.setFieldValue('[data-city]', formData.locality, formData.postal_town);
         this.setFieldValue('[data-zip]', formData.postal_code);
         this.setFieldValue('[data-state]', formData.administrative_area_level_1);
