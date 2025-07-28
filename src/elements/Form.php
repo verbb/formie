@@ -128,7 +128,13 @@ class Form extends Element
         }
 
         foreach ($templates as $template) {
-            $key = "template:{$template->id}";
+            // TODO Change at the next breakpoint
+            // https://github.com/verbb/formie/discussions/1696
+            if ($context === 'modal') {
+                $key = "template:{$template->uid}";
+            } else {
+                $key = "template:{$template->id}";
+            }
 
             $sources[] = [
                 'key' => $key,
