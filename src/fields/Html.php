@@ -54,14 +54,6 @@ class Html extends CosmeticField
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
-    {
-        // Setup defaults for some values which can't in in the property definition
-        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
-
-        parent::__construct($config);
-    }
-
     public function hasLabel(): bool
     {
         return true;
@@ -75,6 +67,15 @@ class Html extends CosmeticField
     public function hasEmailPlaceholder(): bool
     {
         return false;
+    }
+
+    public function getFieldTypeDefaults(): array
+    {
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['labelPosition'] = HiddenPosition::class;
+
+        return $settings;
     }
 
     public function getRenderedHtmlContent(): string

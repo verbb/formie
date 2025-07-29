@@ -59,12 +59,13 @@ class Users extends ElementField
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
+    public function getFieldTypeDefaults(): array
     {
-        // Setup defaults for some values which can't in in the property definition
-        $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a user');
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['placeholder'] = Craft::t('formie', 'Select a user');
 
-        parent::__construct($config);
+        return $settings;
     }
 
     public function getFieldTypeConfigData(): array

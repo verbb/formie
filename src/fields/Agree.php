@@ -57,17 +57,6 @@ class Agree extends Field implements PreviewableFieldInterface, SortableFieldInt
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
-    {
-        // Setup defaults for some values which can't in in the property definition
-        $config['defaultValue'] = $config['defaultValue'] ?? false;
-        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
-        $config['checkedValue'] = $config['checkedValue'] ?? Craft::t('app', 'Yes');
-        $config['uncheckedValue'] = $config['uncheckedValue'] ?? Craft::t('app', 'No');
-
-        parent::__construct($config);
-    }
-
     public function attributes(): array
     {
         $names = parent::attributes();
@@ -85,6 +74,18 @@ class Agree extends Field implements PreviewableFieldInterface, SortableFieldInt
     public function hasEmailPlaceholder(): bool
     {
         return false;
+    }
+
+    public function getFieldTypeDefaults(): array
+    {
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['defaultValue'] = false;
+        $settings['labelPosition'] = HiddenPosition::class;
+        $settings['checkedValue'] = Craft::t('app', 'Yes');
+        $settings['uncheckedValue'] = Craft::t('app', 'No');
+
+        return $settings;
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool

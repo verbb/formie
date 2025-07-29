@@ -781,13 +781,28 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'fieldSelectOptions' => static::getFieldSelectOptions(),
 
             // Load in the regular field data, but for a new field
-            'newField' => $this->getFormBuilderConfig(),
+            'newField' => $this->getNewFieldTypeConfig(),
 
             // Add in any extra data the field settings require
             'data' => $this->getFieldTypeConfigData(),
         ];
 
         return $config;
+    }
+
+    public function getNewFieldTypeConfig(): array
+    {
+        $config = $this->getFormBuilderConfig();
+
+        // Merge in any field defaults (just settings)
+        $config['settings'] = array_merge($config['settings'], $this->getFieldTypeDefaults());
+
+        return $config;
+    }
+
+    public function getFieldTypeDefaults(): array
+    {
+        return [];
     }
 
     public function getFieldTypeConfigData(): array

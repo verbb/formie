@@ -62,12 +62,13 @@ class Repeater extends MultiNestedField
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
+    public function getFieldTypeDefaults(): array
     {
-        // Setup defaults for some values which can't in in the property definition
-        $config['addLabel'] = $config['addLabel'] ?? Craft::t('formie', 'Add another row');
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['addLabel'] = Craft::t('formie', 'Add another row');
 
-        parent::__construct($config);
+        return $settings;
     }
 
     public function getPreviewInputHtml(): string

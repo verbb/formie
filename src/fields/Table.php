@@ -100,7 +100,7 @@ class Table extends Field
             unset($config['tableDropdownOptions']);
         }
 
-        // Setup defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't be set in the property definition
         $config['addRowLabel'] = $config['addRowLabel'] ?? Craft::t('formie', 'Add a row');
 
         // Config normalization

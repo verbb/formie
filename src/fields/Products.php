@@ -68,14 +68,6 @@ class Products extends ElementField
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
-    {
-        // Setup defaults for some values which can't in in the property definition
-        $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a product');
-
-        parent::__construct($config);
-    }
-
     public function init(): void
     {
         // Enforce any required plugin before creating the field, but not before Craft is ready
@@ -84,6 +76,15 @@ class Products extends ElementField
         });
 
         parent::init();
+    }
+
+    public function getFieldTypeDefaults(): array
+    {
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['placeholder'] = Craft::t('formie', 'Select a product');
+
+        return $settings;
     }
 
     public function getFieldTypeConfigData(): array

@@ -67,12 +67,13 @@ class Tags extends ElementField
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
+    public function getFieldTypeDefaults(): array
     {
-        // Setup defaults for some values which can't in in the property definition
-        $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a tag');
+        // Setup defaults for some values which can't be set in the property definition
+        $settings = parent::getFieldTypeDefaults();
+        $settings['placeholder'] = Craft::t('formie', 'Select a tag');
 
-        parent::__construct($config);
+        return $settings;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
