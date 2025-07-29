@@ -1841,6 +1841,17 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             // Address
             'enableAutocomplete',
 
+            // Phone
+            'countryLabel',
+            'countryPlaceholder',
+            'numberCollapsed',
+            'numberDefaultValue',
+            'numberLabel',
+            'numberPlaceholder',
+            'showCountryCode',
+            'validate',
+            'validateType',
+
             // Misc
             'rowUid',
             'formId',
@@ -1849,6 +1860,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'translationKeyFormat',
             'rowsConfig',
             'supportsNested',
+            'subfieldOptions',
+            'hasSubfields',
         ];
 
         foreach ($removedProperties as $removedProperty) {
