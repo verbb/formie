@@ -61,7 +61,7 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't in in the property definition
         $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
 
         parent::__construct($config);

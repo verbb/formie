@@ -56,7 +56,7 @@ class Hidden extends Field implements PreviewableFieldInterface, SortableFieldIn
         // Remove unused settings
         unset($config['columnType']);
 
-        // Setuo defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't in in the property definition
         $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
 
         parent::__construct($config);

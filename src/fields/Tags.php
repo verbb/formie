@@ -69,7 +69,7 @@ class Tags extends ElementField
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't in in the property definition
         $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a tag');
 
         parent::__construct($config);

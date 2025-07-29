@@ -64,7 +64,7 @@ class Repeater extends MultiNestedField
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't in in the property definition
         $config['addLabel'] = $config['addLabel'] ?? Craft::t('formie', 'Add another row');
 
         parent::__construct($config);

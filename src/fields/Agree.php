@@ -59,7 +59,7 @@ class Agree extends Field implements PreviewableFieldInterface, SortableFieldInt
 
     public function __construct(array $config = [])
     {
-        // Setuo defaults for some values which can't in in the property definition
+        // Setup defaults for some values which can't in in the property definition
         $config['defaultValue'] = $config['defaultValue'] ?? false;
         $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
         $config['checkedValue'] = $config['checkedValue'] ?? Craft::t('app', 'Yes');
