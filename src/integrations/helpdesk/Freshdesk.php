@@ -495,13 +495,13 @@ class Freshdesk extends HelpDesk
 
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [], bool $multipart = false)
     {
-        // If multipart isn't required, just use verbb\formie\base\Crm::getFieldMappingValues
+        $fieldSettings = $this->getFormSettingValue($fieldSettings);
+
+        // If multipart isn't required, just use verbb\formie\base\Integration::getFieldMappingValues()
         if (!$multipart) {
             return parent::getFieldMappingValues($submission, $fieldMapping, $fieldSettings);
         }
 
-        // Manually get field settings since we're not using parent method
-        $fieldSettings = $this->getFormSettingValue($fieldSettings);
         $fieldValues = [];
 
         if (!is_array($fieldMapping)) {
