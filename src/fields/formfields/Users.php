@@ -85,8 +85,6 @@ class Users extends CraftUsers implements FormFieldInterface
         self::normalizeConfig($config);
 
         parent::__construct($config);
-
-        $this->labelSource = 'fullName';
     }
 
     public function getSavedFieldConfig(): array
