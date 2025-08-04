@@ -84,7 +84,8 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['integrationHandle'], 'required'];
+        // Add back when we can figure out how to enforce it with enabled state better
+        // $rules[] = [['integrationHandle'], 'required'];
 
         return $rules;
     }
