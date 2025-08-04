@@ -81,6 +81,11 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $options;
     }
 
+    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    {
+        return $this->_getValueLabel($value);
+    }
+
     public function defineGeneralSchema(): array
     {
         return [
