@@ -91,8 +91,6 @@ class Tags extends CraftTags implements FormFieldInterface
         self::normalizeConfig($config);
 
         parent::__construct($config);
-
-        $this->labelSource = 'title';
     }
 
     public function getSavedFieldConfig(): array
