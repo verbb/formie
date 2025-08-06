@@ -1445,6 +1445,12 @@ class Form extends Element
             ]);
         }
 
+        if ($key === 'captcha') {
+            return new HtmlTag('div', [
+                'class' => 'fui-captcha',
+            ]);
+        }
+
         return null;
     }
 
