@@ -792,6 +792,11 @@ class HubSpot extends Crm
             $formFields = $formFieldGroup['fields'] ?? [];
 
             foreach ($formFields as $formField) {
+                // Ensure that we prefix items with their correct object group
+                if ($formField['propertyObjectType'] !== 'CONTACT') {
+                    $formField['name'] = $formField['propertyObjectType'] . '.' . $formField['name'];
+                }
+
                 $fields[] = $formField;
 
                 // Check for "dependentField" (conditional fields) to include
