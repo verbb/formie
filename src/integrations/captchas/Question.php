@@ -59,17 +59,15 @@ class Question extends Captcha
         $field->label = $question;
         $field->required = true;
 
-        $row = new FieldLayoutRow();
-
         // Render the field using the standard renderer
-        $html = Formie::$plugin->getRendering()->renderField($form, $field);
+        // return Formie::$plugin->getRendering()->renderField($form, $field);
 
-        // Wrap the field in a row, if we're setup to render rows
-        if ($htmlTag = $form->renderHtmlTag('row', ['row' => $row])) {
-            return Html::tag($htmlTag->tag, $html, $htmlTag->attributes);
-        }
+        $variables = [];
+        $variables['form'] = $form;
+        $variables['field'] = $field;
+        $variables['renderOptions'] = [];
 
-        return $html;
+        return $form->renderTemplate('integrations/captchas/question/field', $variables);
     }
 
     public function getRefreshJsVariables(Form $form, $page = null): array
