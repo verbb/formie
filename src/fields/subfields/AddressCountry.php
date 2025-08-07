@@ -3,6 +3,7 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\ModifyAddressCountryOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
@@ -13,8 +14,16 @@ use craft\base\ElementInterface;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 
+use yii\base\Event;
+
 class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_COUNTRY_OPTIONS = 'modifyCountryOptions';
+
+
     // Static Methods
     // =========================================================================
 
@@ -39,13 +48,19 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 
         $repo = new CountryRepository($locale);
 
-        $countries = [];
+        $options = [];
         
         foreach ($repo->getList() as $value => $label) {
-            $countries[] = compact('value', 'label');
+            $options[] = compact('value', 'label');
         }
 
-        return $countries;
+        $event = new ModifyAddressCountryOptionsEvent([
+            'options' => $options,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_COUNTRY_OPTIONS, $event);
+
+        return $event->options;
     }
 
 
