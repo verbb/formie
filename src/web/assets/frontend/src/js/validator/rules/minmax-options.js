@@ -1,6 +1,8 @@
 export const rule = ({ field }) => {
+    // Just in case we're trying to check against a non-Formie input in the form
+    // because we want to check on the type of Formie field for checkboxes
     if (!field) {
-        return false;
+        return true;
     }
 
     if (field.getAttribute('data-field-type') !== 'checkboxes') {
