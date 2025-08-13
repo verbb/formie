@@ -1,5 +1,36 @@
 # Changelog
 
+## 3.1.2 - 2025-08-12
+
+### Added
+- Add clarification to Salesforce “Use Credentials” setting.
+- Add `AddressCountry::EVENT_MODIFY_COUNTRY_OPTIONS` event.
+- Add `captcha` Theme Config key.
+- Add support for multiple authors for Entry element integration.
+
+### Changed
+- Update import/export description for forms.
+- Update Summary field for Ajax forms to refresh whenever they are visibly shown.
+- Allow Question captcha HTML to be modified via template overrides.
+- Allow email templates to make use of `renderOptions.hideName` for field labels in email content.
+
+### Fixed
+- Fix HubSpot Form Field Mapping for Ticket fields.
+- Fix an error for User integrations and the address field check.
+- Fix Google Address autocomplete handling of saved/existing values.
+- Fix description for Cloudflare Turnstile captcha integration.
+- Fix migration issue from Formie 2 for integration opt-in field settings.
+- Fix Address Country sub-field not displaying correctly in email notifications.
+- Fix an error when saving an Address field with no auto-complete integration set.
+- Fix handling of some legacy field settings for older Formie installs or outdated stencils.
+- Fix new fields when added to the form builder not having their defaults set correctly.
+- Fix Forms field not working correctly for UIDs.
+- Fix an error for Date fields for display type Dropdowns.
+- Fix type mismatch when processing `defaultValue` for Date/Time fields.
+- Fix Question captcha rendering issues.
+- Fix an issue with Question captcha form settings and the “Security Question” setting.
+- Fix the Cloudflare Turnstile captcha description.
+
 ## 3.1.1 - 2025-07-22
 
 ### Added
