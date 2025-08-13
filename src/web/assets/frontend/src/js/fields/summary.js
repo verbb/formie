@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import { t, eventKey, getAjaxClient, addClasses, removeClasses } from '../utils/utils';
 
 export class FormieSummary {
@@ -9,77 +8,96 @@ export class FormieSummary {
         this.fieldId = settings.fieldId;
         this.loadingClass = this.form.getClasses('loading');
 
-        // For ajax forms, we want to refresh the field when the page is toggled
+        this.submissionId = null;
+        this.debouncedFetch = this.debounce(this.fetchSummary.bind(this), 300);
+
+        // For ajax forms, we want to refresh the field when this field is visible
         if (this.form.settings.submitMethod === 'ajax') {
-            this.form.addEventListener(this.$form, 'onFormiePageToggle', this.onPageToggle.bind(this));
+            this.initVisibilityObserver();
         }
     }
 
-    onPageToggle(e) {
-        // Wait a little for the page to update in the DOM
-        setTimeout(() => {
-            this.submissionId = null;
-
-            const $submission = this.$form.querySelector('[name="submissionId"]');
-
-            if ($submission) {
-                this.submissionId = $submission.value;
+    initVisibilityObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].intersectionRatio > 0) {
+                this.onFieldVisible();
             }
+        }, {
+            root: this.$form,
 
-            if (!this.submissionId) {
-                console.error('Summary field: Unable to find `submissionId`');
+            // Include a large margin to cater for when other elements might cover the placeholder
+            // as `IntersectionObserver` won't deem the placeholder in view if under something else
+            rootMargin: '50px',
+        });
 
-                return;
-            }
+        observer.observe(this.$field);
+    }
 
-            // Does this page contain a summary field? No need to fetch if we aren't seeing the field
-            let $summaryField = null;
+    onFieldVisible() {
+        const $submission = this.$form.querySelector('[name="submissionId"]');
 
-            if (this.form.formTheme && this.form.formTheme.$currentPage) {
-                $summaryField = this.form.formTheme.$currentPage.querySelector('[data-field-type="summary"]');
-            }
+        if ($submission) {
+            this.submissionId = $submission.value;
+        }
 
-            if (!$summaryField) {
-                console.log('Summary field: Unable to find `summaryField`');
+        if (!this.submissionId) {
+            console.error('Summary field: Unable to find `submissionId`');
+            return;
+        }
 
-                return;
-            }
+        this.debouncedFetch();
+    }
 
-            const $container = $summaryField.querySelector('[data-summary-blocks]');
+    fetchSummary() {
+        const $container = this.$field.querySelector('[data-summary-blocks]');
 
-            if (!$container) {
-                console.error('Summary field: Unable to find `container`');
+        if (!$container) {
+            console.error('Summary field: Unable to find `container`');
+            return;
+        }
 
-                return;
-            }
-
+        if (this.loadingClass) {
             addClasses($container, this.loadingClass);
+        }
 
-            const xhr = getAjaxClient(this.$form, 'POST', window.location.href, true);
+        const xhr = getAjaxClient(this.$form, 'POST', window.location.href, true);
 
-            xhr.onload = () => {
+        xhr.onload = () => {
+            if (this.loadingClass) {
                 removeClasses($container, this.loadingClass);
-
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    // Replace the HTML for the field
-                    $container.parentNode.innerHTML = xhr.responseText;
-                }
-            };
-
-            const params = {
-                action: 'formie/fields/get-summary-html',
-                submissionId: this.submissionId,
-                fieldId: this.fieldId,
-            };
-
-            const formData = new FormData();
-
-            for (const key in params) {
-                formData.append(key, params[key]);
             }
 
-            xhr.send(formData);
-        }, 50);
+            if (xhr.status >= 200 && xhr.status < 300) {
+                $container.parentNode.innerHTML = xhr.responseText;
+            }
+        };
+
+        const params = {
+            action: 'formie/fields/get-summary-html',
+            submissionId: this.submissionId,
+            fieldId: this.fieldId,
+        };
+
+        const formData = new FormData();
+        for (const key in params) {
+            formData.append(key, params[key]);
+        }
+
+        xhr.send(formData);
+    }
+
+    debounce(func, delay) {
+        let timeoutId;
+
+        return (...args) => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+
+            timeoutId = setTimeout(() => {
+                func.apply(this, args);
+            }, delay);
+        };
     }
 }
 

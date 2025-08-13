@@ -76,6 +76,7 @@
 
 // Import fields used on the front-end, but also in submissions
 @import '../../../frontend/src/scss/variables';
+@import '../../../frontend/src/scss/fields/address';
 @import '../../../frontend/src/scss/fields/rich-text';
 @import '../../../frontend/src/scss/fields/repeater';
 @import 'craftcms-sass/mixins';

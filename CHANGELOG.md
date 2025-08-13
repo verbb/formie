@@ -962,6 +962,23 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.2 - 2025-08-12
+
+### Added
+- Add clarification to Salesforce “Use Credentials” setting.
+
+### Changed
+- Update import/export description for forms.
+- Update Summary field for Ajax forms to refresh whenever they are visibly shown.
+
+### Fixed
+- Fix HubSpot Form Field Mapping for Ticket fields.
+- Fix an error for Tags fields, being unable to change the “Label Source” setting.
+- Fix an error for Users fields, being unable to change the “Label Source” setting.
+- Fix an error for User integrations and the address field check.
+- Fix Google Address autocomplete handling of saved/existing values.
+- Fix description for Cloudflare Turnstile captcha integration.
+
 ## 2.2.1 - 2025-07-22
 
 ### Fixed

@@ -104,6 +104,7 @@ You can also provide [Options](https://developers.google.com/maps/documentation/
 Option | Value
 --- | ---
 `componentRestrictions` | `{ "country": "au" }`
+`requestedRegion` | `"au"`
 
 
 ## Loqate

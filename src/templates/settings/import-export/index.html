@@ -5,8 +5,8 @@
 
 {% block content %}
 
-<h2>{{ 'Import' | t('formie') }}</h2>
-<p>{{ 'Select a JSON file you‘ve exported from Formie to import. You‘ll be able to configure your import at the next step.' | t('formie') }}</p>
+<h2>{{ 'Import Form' | t('formie') }}</h2>
+<p>{{ 'Select a Formie-exported JSON file for the form to import. You‘ll be able to configure your import at the next step.' | t('formie') }}</p>
 
 {% if importError %}
     <p class="error">
@@ -32,7 +32,7 @@
 
 <hr>
 
-<h2>{{ 'Export' | t('formie') }}</h2>
+<h2>{{ 'Export Form' | t('formie') }}</h2>
 <p>{{ 'Select a form to export as a JSON file. This will include all pages, settings, notifications and fields. You‘ll be able to import this file later on the same, or a different environment.' | t('formie') }}</p>
 
 {% if exportError %}
