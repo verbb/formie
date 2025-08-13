@@ -1,4 +1,6 @@
-import { t, eventKey, getAjaxClient, addClasses, removeClasses } from '../utils/utils';
+import {
+    t, eventKey, getAjaxClient, addClasses, removeClasses,
+} from '../utils/utils';
 
 export class FormieSummary {
     constructor(settings = {}) {
