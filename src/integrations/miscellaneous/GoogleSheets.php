@@ -67,9 +67,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public function getBaseApiUrl(?Token $token): ?string
     {
-        $spreadsheetId = $this->getSpreadsheetId();
-
-        return "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/";
+        return "https://sheets.googleapis.com/v4/spreadsheets/";
     }
 
     public function getOAuthProviderConfig(): array
@@ -120,7 +118,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $form = Formie::$plugin->getForms()->getFormById($formId);
 
             // Ensure we're fetching the spreadsheetId from the form settings, or global integration settings
-            $spreadsheetId = $form->settings->integrations[$this->handle]['spreadsheetId'] ?? $this->getSpreadSheetId();
+            $spreadsheetId = $form->settings->integrations[$this->handle]['spreadsheetId'] ? App::parseEnv($form->settings->integrations[$this->handle]['spreadsheetId']) : $this->getSpreadSheetId();
 
             $spreadsheet = $this->request('GET', $spreadsheetId);
             $allSheets = $spreadsheet['sheets'] ?? [];
@@ -172,7 +170,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
-            $spreadsheetId = $this->spreadsheetId;
+            $spreadsheetId = $this->getSpreadsheetId();
 
             // Fetch the columns from our private stash
             $columns = $this->getFormSettings()->collections['columns'][$this->sheetId] ?? [];
