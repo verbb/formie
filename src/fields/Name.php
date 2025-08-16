@@ -449,9 +449,15 @@ class Name extends SubField implements PreviewableFieldInterface
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         if ($this->useMultipleFields) {
+            $prefixValues = [];
+
+            if ($prefixField = $this->getFieldByHandle('prefix')) {
+                $prefixValues = $faker->randomElement($prefixField->options)['value'] ?? '';
+            }
+
             return new NameModel([
                 'isMultiple' => true,
-                'prefix' => strtolower(str_replace(['.', ','], '', $faker->title)),
+                'prefix' => $prefixValues,
                 'firstName' => $faker->firstName,
                 'middleName' => $faker->firstName,
                 'lastName' => $faker->lastName,
