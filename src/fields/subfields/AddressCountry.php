@@ -21,6 +21,7 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
     // Constants
     // =========================================================================
 
+    // Deprecated - remove at next breakpoint
     public const EVENT_MODIFY_COUNTRY_OPTIONS = 'modifyCountryOptions';
 
 
