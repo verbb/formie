@@ -3,6 +3,7 @@ namespace verbb\formie\base;
 
 use verbb\formie\Formie;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
+use verbb\formie\services\Countries;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
 use verbb\formie\services\Fields;
@@ -12,7 +13,6 @@ use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
-use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
 use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Relations;
@@ -71,6 +71,7 @@ trait PluginTrait
 
         return [
             'components' => [
+                'countries' => Countries::class,
                 'emails' => Emails::class,
                 'emailTemplates' => EmailTemplates::class,
                 'fields' => Fields::class,
@@ -80,7 +81,6 @@ trait PluginTrait
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
                 'pdfTemplates' => PdfTemplates::class,
-                'phone' => Phone::class,
                 'plans' => Plans::class,
                 'predefinedOptions' => PredefinedOptions::class,
                 'relations' => Relations::class,
@@ -138,6 +138,11 @@ trait PluginTrait
         return parent::__construct($id, $parent , $config);
     }
 
+    public function getCountries(): Countries
+    {
+        return $this->get('countries');
+    }
+
     public function getEmails(): Emails
     {
         return $this->get('emails');
@@ -181,11 +186,6 @@ trait PluginTrait
     public function getPdfTemplates(): PdfTemplates
     {
         return $this->get('pdfTemplates');
-    }
-
-    public function getPhone(): Phone
-    {
-        return $this->get('phone');
     }
 
     public function getPlans(): Plans
@@ -308,3 +308,5 @@ class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
 class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\webhooks\Webhook');
 class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\automations\Webhook');
 class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');
+
+class_alias('verbb\formie\services\Countries', 'verbb\formie\services\Phone');

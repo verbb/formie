@@ -9,7 +9,7 @@ use craft\base\Component;
 use libphonenumber\PhoneNumberUtil;
 use CommerceGuys\Addressing\Country\CountryRepository;
 
-class Phone extends Component
+class Countries extends Component
 {
     // Constants
     // =========================================================================
