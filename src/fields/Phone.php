@@ -45,11 +45,6 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         return 'formie/_formfields/phone/icon.svg';
     }
 
-    public static function getCountryOptions(): array
-    {
-        return Formie::$plugin->getPhone()->getCountries();
-    }
-
     public static function getCountryLanguageOptions(): array
     {
         // See support https://github.com/jackocnr/intl-tel-input/tree/master/build/js/i18n
@@ -228,6 +223,11 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
         ]);
     }
 
+    public function getCountryOptions(): array
+    {
+        return Formie::$plugin->getCountries()->getPhoneCountries($this);
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -278,7 +278,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                 'name' => 'countryAllowed',
                 'if' => '$get(countryEnabled).value',
                 'placeholder' => Craft::t('formie', 'Select an option'),
-                'options' => static::getCountryOptions(),
+                'options' => $this->getCountryOptions(),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Country Default Value'),
@@ -287,7 +287,7 @@ class Phone extends Field implements PreviewableFieldInterface, SortableFieldInt
                 'if' => '$get(countryEnabled).value',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    static::getCountryOptions()
+                    $this->getCountryOptions()
                 ),
             ]),
             // TODO: https://github.com/verbb/formie/issues/2042
