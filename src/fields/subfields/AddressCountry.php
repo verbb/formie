@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyAddressCountryOptionsEvent;
@@ -11,10 +12,6 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
-
-use CommerceGuys\Addressing\Country\CountryRepository;
-
-use yii\base\Event;
 
 class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 {
@@ -43,27 +40,6 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return 'fields/dropdown';
     }
 
-    public static function getCountryOptions(): array
-    {
-        $locale = Craft::$app->getLocale()->getLanguageID();
-
-        $repo = new CountryRepository($locale);
-
-        $options = [];
-        
-        foreach ($repo->getList() as $value => $label) {
-            $options[] = compact('value', 'label');
-        }
-
-        $event = new ModifyAddressCountryOptionsEvent([
-            'options' => $options,
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_COUNTRY_OPTIONS, $event);
-
-        return $event->options;
-    }
-
 
     // Properties
     // =========================================================================
@@ -85,9 +61,14 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $settings;
     }
 
+    public function getCountryOptions(): array
+    {
+        return Formie::$plugin->getCountries()->getAddressCountries($this);
+    }
+
     public function options(): array
     {
-        foreach (static::getCountryOptions() as $country) {
+        foreach ($this->getCountryOptions() as $country) {
             $label = ($this->optionLabel === 'short') ? $country['value'] : $country['label'];
             $value = ($this->optionValue === 'short') ? $country['value'] : $country['label'];
 
@@ -112,7 +93,7 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
                 'name' => 'defaultValue',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    static::getCountryOptions()
+                    $this->getCountryOptions()
                 ),
             ]),
             SchemaHelper::selectField([
