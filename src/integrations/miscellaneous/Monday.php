@@ -5,7 +5,7 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields\Address;
+use verbb\formie\fields\subfields\AddressCountry;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -282,11 +282,13 @@ class Monday extends Miscellaneous
                     'countryShortName' => '',
                 ];
             } else if ($type === 'country') {
-                $country = ArrayHelper::firstWhere(Address::getCountryOptions(), 'value', $value);
+                // Check if we supply either the value or label for a country
+                $countryValue = ArrayHelper::firstWhere(AddressCountry::getCountryOptions(), 'value', $value);
+                $countryLabel = ArrayHelper::firstWhere(AddressCountry::getCountryOptions(), 'label', $value);
 
                 $newColumns[$handle] = [
-                    'countryCode' => $country['value'] ?? '',
-                    'countryName' => $country['label'] ?? '',
+                    'countryCode' => $countryValue['value'] ?? $countryLabel['value'] ?? '',
+                    'countryName' => $countryValue['label'] ?? $countryLabel['label'] ?? '',
                 ];
             } else if ($type === 'color') {
                 $newColumns[$handle] = [
