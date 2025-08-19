@@ -168,6 +168,17 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             $config['useDatePicker'],
         );
 
+        // Prevent a required state set at the top-level field
+        $config['required'] = false;
+
+        parent::__construct($config);
+    }
+
+    public function getFieldTypeDefaults(): array
+    {
+        // Setup defaults for some values which can't be set in the property definition
+        $config = parent::getFieldTypeDefaults();
+
         // Setup defaults from the plugin-level
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
@@ -184,10 +195,7 @@ class Date extends SubField implements PreviewableFieldInterface, SortableFieldI
             $config['defaultValue'] = $settings->getDefaultDateTimeValue();
         }
 
-        // Prevent a required state set at the top-level field
-        $config['required'] = false;
-
-        parent::__construct($config);
+        return $config;
     }
 
     public function getIsRequired(): ?bool
