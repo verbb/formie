@@ -5,11 +5,11 @@ use verbb\formie\base\FieldInterface;
 
 use yii\base\Event;
 
-class ModifyPhoneCountriesEvent extends Event
+class ModifyAddressCountriesEvent extends Event
 {
     // Properties
     // =========================================================================
-
+    
     public ?FieldInterface $field = null;
     public array $countries = [];
     
