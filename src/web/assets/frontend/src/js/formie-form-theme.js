@@ -513,6 +513,15 @@ export class FormieFormTheme {
                 }
             }
 
+            // Handle Date fields, which probably need better handling. Only for Ajax-based forms though.
+            if (!$field) {
+                $field = this.$form.querySelector(`[name="fields[${selector}][date]"]`);
+
+                if (!$field) {
+                    $field = this.$form.querySelector(`[name="fields[${selector}][time]"]`);
+                }
+            }
+
             if ($field) {
                 if (error) {
                     this.validator?.showError($field, 'server', error);
