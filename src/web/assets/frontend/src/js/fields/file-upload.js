@@ -83,6 +83,10 @@ export class FormieFileUpload {
 
         if ($fileInput && !$fileInput.getAttribute('name').includes('[rows]')) {
             $fileInput.value = null;
+
+            // Remove any required state after upload to prevent client-side validation triggering. Until we properly handle
+            // returning uploaded asset IDs from the server.
+            $fileInput.removeAttribute('required');
         }
     }
 }
