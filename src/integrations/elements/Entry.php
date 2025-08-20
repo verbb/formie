@@ -232,6 +232,8 @@ class Entry extends Element
 
             foreach ($attributeValues as $entryFieldHandle => $fieldValue) {
                 if ($entryFieldHandle === 'author') {
+                    $fieldValue = $this->_normalizeIds($fieldValue);
+
                     $entry->setAuthorIds($fieldValue);
                 } else {
                     $entry->{$entryFieldHandle} = $fieldValue;
@@ -391,6 +393,52 @@ class Entry extends Element
             if ($collection = ArrayHelper::firstWhere($entryType, 'id', $this->entryTypeSection)) {
                 return $collection;
             }
+        }
+
+        return [];
+    }
+
+    private function _normalizeIds($content): array
+    {
+        if ($content === null || $content === '') {
+            return [];
+        }
+
+        // If it's already an array, recurse
+        if (is_array($content)) {
+            $ids = [];
+
+            foreach ($content as $value) {
+                $ids = array_merge($ids, $this->_normalizeIds($value));
+            }
+
+            return array_values(array_unique($ids));
+        }
+
+        // If it's a string, try JSON decode first
+        if (is_string($content)) {
+            if (Json::isJsonObject($content) || str_starts_with(trim($content), '[')) {
+                $decoded = Json::decodeIfJson($content);
+
+                if ($decoded !== null) {
+                    return $this->_normalizeIds($decoded);
+                }
+            }
+
+            // Fallback: comma-separated values in a string
+            if (preg_match('/^\[(.*)\]$/', trim($content), $matches)) {
+                return array_values(array_unique(
+                    array_map('intval', array_map('trim', explode(',', $matches[1])))
+                ));
+            }
+
+            // Otherwise single value
+            return [(int)$content];
+        }
+
+        // Numeric scalars
+        if (is_numeric($content)) {
+            return [(int)$content];
         }
 
         return [];
