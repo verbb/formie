@@ -296,7 +296,7 @@ class Monday extends Miscellaneous
                 $newColumns[$handle] = [
                     'index' => (int)$value,
                 ];
-            } else if ($type === 'boolean') {
+            } else if ($type === 'boolean' || $type === 'checkbox') {
                 $newColumns[$handle] = [
                     'checked' => StringHelper::toBoolean($value) ? 'true' : 'false',
                 ];
