@@ -213,7 +213,27 @@ class Pipedrive extends Crm
                     $personPayload['org_id'] = $organizationId;
                 }
 
-                $response = $this->deliverPayload($submission, 'persons', $personPayload);
+                $existingPersonEmail = $personPayload['email'] ?? '';
+
+                // Try and find the person first, doesn't handle adding existing ones well
+                $response = $this->request('GET', 'persons/search', [
+                    'query' => [
+                        'api_token' => App::parseEnv($this->apiKey),
+                        'term' => $existingPersonEmail,
+                        'exact_match' => true,
+                        'limit' => 1,
+                        'fields' => 'email',
+                    ],
+                ]);
+
+                $existingPersonId = $response['data']['items'][0]['item']['id'] ?? null;
+
+                // Update or create
+                if ($existingPersonId) {
+                    $response = $this->deliverPayload($submission, "persons/{$existingPersonId}", $personPayload, 'PUT');
+                } else {
+                    $response = $this->deliverPayload($submission, 'persons', $personPayload);
+                }
 
                 if ($response === false) {
                     return true;
