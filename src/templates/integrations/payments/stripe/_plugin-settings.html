@@ -5,6 +5,13 @@
 
 {% block content %}
 
+{{ macros.proxyField(fieldVariables, 'textField', {
+    readonly: true,
+    label: 'Redirect URI' | t('formie'),
+    instructions: 'Use this URI when setting up your {name} app.' | t('formie'),
+    value: integration.getRedirectUri(),
+}) }}
+
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Publishable Key' | t('formie'),
     instructions: 'Enter your {name} {label} here.' | t('formie'),
