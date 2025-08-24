@@ -448,7 +448,8 @@ class Variables
         $settings = Formie::$plugin->getSettings();
 
         // For pretty much all cases, we want to use the value represented as a string
-        $values["{$prefix}{$field->handle}"] = $field->getValueAsString($submissionValue, $submission);
+        // Use `htmlspecialchars` to ensure that values are encoded. Removed in Formie 3, which uses Twig rendering.
+        $values["{$prefix}{$field->handle}"] = htmlspecialchars($field->getValueAsString($submissionValue, $submission));
 
         $notification = $notification ?? new Notification();
 
@@ -487,7 +488,8 @@ class Variables
                 $values[$handle] = $submissionValue[$subfield['handle']] ?? '';
 
                 // Escape any HTML in field content for good measure
-                $values[$handle] = StringHelper::cleanString((string)$values[$handle]);
+                // Use `htmlspecialchars` to ensure that values are encoded. Removed in Formie 3, which uses Twig rendering.
+                $values[$handle] = htmlspecialchars(StringHelper::cleanString((string)$values[$handle]));
 
                 // Special handling for Prefix for a Name field. This can be removed in Formie 2
                 if ($field instanceof formfields\Name && $subfield['handle'] === 'prefix') {
@@ -512,7 +514,8 @@ class Variables
                 }
             }
         } else if ($field instanceof formfields\MultiLineText && !$field->useRichText) {
-            $values["{$prefix}{$field->handle}"] = nl2br($field->getValueAsString($submissionValue, $submission));
+            // Use `htmlspecialchars` to ensure that values are encoded. Removed in Formie 3, which uses Twig rendering.
+            $values["{$prefix}{$field->handle}"] = htmlspecialchars(nl2br($field->getValueAsString($submissionValue, $submission)));
 
             // TODO: Remove in Formie 3.
             if ($settings->useEmailTemplateForFieldVariables) {
