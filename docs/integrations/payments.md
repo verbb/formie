@@ -267,7 +267,7 @@ Follow the below steps to connect to the Stripe API.
 1. In Stripe, on the left-hand sidebar menu, click **Developers**.
 1. On the top sub-menu, click **Webhooks**.
 1. Click the **Create an event destination** button.
-1. Copy the **Redirect URI** from below and paste in the **Endpoint URL** in Stripe.
+1. Copy the **Redirect URI** from the Formie integration settings and paste in the **Endpoint URL** in Stripe.
 1. Click the **Select Events** button under the "Select events to listen to" heading.
 1. We recommend emitting all possible events, but the required events are:
     - `customer.subscription.created`
