@@ -12,6 +12,7 @@ use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -53,11 +54,21 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     public string $displayType = 'hidden';
     public array $options = [];
-    public ?bool $multiple = null;
+    public bool $multi = false;
 
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        // Normalize the options
+        if (array_key_exists('multiple', $config)) {
+            $config['multi'] = ArrayHelper::remove($config, 'multiple');
+        }
+
+        parent::__construct($config);
+    }
 
     public function getFieldTypeDefaults(): array
     {
@@ -380,6 +391,13 @@ class Recipients extends Field implements PreviewableFieldInterface
             ],
             'multiple' => [
                 'name' => 'multiple',
+                'type' => Type::boolean(),
+                'resolve' => function($field) {
+                    return $field->multi;
+                },
+            ],
+            'multi' => [
+                'name' => 'multi',
                 'type' => Type::boolean(),
             ],
             'options' => [
