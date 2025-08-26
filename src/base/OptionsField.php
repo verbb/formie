@@ -49,6 +49,7 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public array $options = [];
     public bool $optgroups = false;
     public bool $hasMultiNamespace = false;
+    public ?string $emailValue = 'label';
 
 
     // Public Methods
