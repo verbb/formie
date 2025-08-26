@@ -22,6 +22,7 @@ use verbb\formie\models\Notification;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\db\QueryParam;
 use craft\helpers\Json;
 
 use yii\db\Schema;
@@ -38,6 +39,38 @@ abstract class OptionsField extends Field implements OptionsFieldInterface, Prev
     public static function dbType(): string
     {
         return Schema::TYPE_STRING;
+    }
+
+    public static function queryCondition(array $instances, mixed $value, array &$params): ?array
+    {
+        $field = $instances[0] ?? null;
+
+        if ($field && $field->multi) {
+            $param = QueryParam::parse($value);
+
+            if (empty($param->values)) {
+                return null;
+            }
+
+            if ($param->operator === QueryParam::NOT) {
+                $param->operator = QueryParam::OR;
+                $negate = true;
+            } else {
+                $negate = false;
+            }
+
+            $condition = [$param->operator];
+            $qb = Craft::$app->getDb()->getQueryBuilder();
+            $valueSql = static::valueSql($instances);
+
+            foreach ($param->values as $value) {
+                $condition[] = $qb->jsonContains($valueSql, $value);
+            }
+
+            return $negate ? ['not', $condition] : $condition;
+        }
+
+        return parent::queryCondition($instances, $value, $params);
     }
 
 
