@@ -493,59 +493,87 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         foreach (($layoutConfig['pages'] ?? []) as $pageKey => $page) {
             foreach (($page['rows'] ?? []) as $rowKey => $row) {
                 foreach (($row['fields'] ?? []) as $fieldKey => $field) {
-                    $updatedConfig = false;
-                    $type = $field['type'] ?? null;
+                    $processed = $this->_processLayoutSubFieldsField($field);
 
-                    if (!$type) {
-                        continue;
-                    }
-
-                    if ($field['type'] === 'verbb\formie\fields\formfields\Address') {
-                        $field['rows'] = $this->_getAddressConfig($field);
-
-                        $updatedConfig = true;
-                    }
-
-                    if ($field['type'] === 'verbb\formie\fields\formfields\Date') {
-                        $displayType = $field['displayType'] ?? 'calendar';
-
-                        if ($displayType == 'calendar' || $displayType == 'datePicker') {
-                            $field['rows'] = $this->_getDateCalendarConfig($field);
-
-                            $updatedConfig = true;
-                        }
-
-                        if ($displayType == 'dropdowns') {
-                            $field['rows'] = $this->_getDateDropdownsConfig($field);
-
-                            $updatedConfig = true;
-                        }
-
-                        if ($displayType == 'inputs') {
-                            $field['rows'] = $this->_getDateInputsConfig($field);
-
-                            $updatedConfig = true;
-                        }
-                    }
-
-                    if ($field['type'] === 'verbb\formie\fields\formfields\Name') {
-                        $useMultipleFields = $field['useMultipleFields'] ?? false;
-
-                        if ($useMultipleFields) {
-                            $field['rows'] = $this->_getNameConfig($field);
-
-                            $updatedConfig = true;
-                        }
-                    }
-
-                    if ($updatedConfig) {
-                        $layoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][$fieldKey] = $field;
-                    }
+                    $layoutConfig['pages'][$pageKey]['rows'][$rowKey]['fields'][$fieldKey] = $processed;
                 }
             }
         }
 
         return $layoutConfig;
+    }
+
+    private function _processLayoutSubFieldsField(array $field): array
+    {
+        $type = $field['type'] ?? null;
+
+        if (!$type) {
+            return $field;
+        }
+
+        if ($rows = $this->_processLayoutSubFieldsRows($field)) {
+            $field['rows'] = $rows;
+        }
+
+        if ($field['type'] === 'verbb\formie\fields\formfields\Group') {
+            $field['rows'] = $this->_processLayoutSubFieldsFieldRows($field['rows'] ?? []);
+        }
+
+        if ($field['type'] === 'verbb\formie\fields\formfields\Repeater') {
+            $field['rows'] = $this->_processLayoutSubFieldsFieldRows($field['rows'] ?? []);
+        }
+
+        return $field;
+    }
+
+    private function _processLayoutSubFieldsFieldRows(array $rows): array
+    {
+        foreach ($rows as $rowKey => $row) {
+            foreach (($row['fields'] ?? []) as $fieldKey => $nestedField) {
+                $rows[$rowKey]['fields'][$fieldKey] = $this->_processLayoutSubFieldsField($nestedField);
+            }
+        }
+
+        return $rows;
+    }
+
+    private function _processLayoutSubFieldsRows(array $field): ?array
+    {
+        $type = $field['type'] ?? null;
+
+        if (!$type) {
+            return null;
+        }
+
+        if ($field['type'] === 'verbb\formie\fields\formfields\Address') {
+            return $this->_getAddressConfig($field);
+        }
+
+        if ($field['type'] === 'verbb\formie\fields\formfields\Date') {
+            $displayType = $field['displayType'] ?? 'calendar';
+
+            if ($displayType == 'calendar' || $displayType == 'datePicker') {
+                return $this->_getDateCalendarConfig($field);
+            }
+
+            if ($displayType == 'dropdowns') {
+                return $this->_getDateDropdownsConfig($field);
+            }
+
+            if ($displayType == 'inputs') {
+                return $this->_getDateInputsConfig($field);
+            }
+        }
+
+        if ($field['type'] === 'verbb\formie\fields\formfields\Name') {
+            $useMultipleFields = $field['useMultipleFields'] ?? false;
+
+            if ($useMultipleFields) {
+                return $this->_getNameConfig($field);
+            }
+        }
+
+        return null;
     }
 
     private function _processLayoutFields(array $layoutConfig): array
