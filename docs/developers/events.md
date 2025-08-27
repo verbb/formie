@@ -1554,12 +1554,14 @@ use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas[] = ExampleCaptcha::class;
     $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->automations[] = ExampleAutomation::class;
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->crm[] = ExampleCrm::class;
     $event->elements[] = ExampleElement::class;
     $event->emailMarketing[] = ExampleEmailMarketing::class;
-    $event->crm[] = ExampleCrm::class;
-    $event->webhooks[] = ExampleWebhook::class;
+    $event->helpDesk[] = ExampleHelpDesk::class;
+    $event->messaging[] = ExampleMessaging::class;
     $event->miscellaneous[] = ExampleMiscellaneous::class;
     $event->payments[] = ExamplePayment::class;
     // ...
@@ -2046,17 +2048,17 @@ Event::on(MicrosoftDynamics365::class, MicrosoftDynamics365::EVENT_MODIFY_TARGET
 });
 ```
 
-## Webhook Integration Events
+## Automations Integration Events
 
-### The `modifyWebhookPayload` event
-The event that is triggered to allow modification of the payload sent to your defined webhook URL.
+### The `modifyAutomationPayload` event
+The event that is triggered to allow modification of the payload sent to your defined automation URL.
 
 ```php
-use verbb\formie\events\ModifyWebhookPayloadEvent;
-use verbb\formie\integrations\webhooks\Zapier;
+use verbb\formie\events\ModifyAutomationPayloadEvent;
+use verbb\formie\integrations\automations\Zapier;
 use yii\base\Event;
 
-Event::on(Zapier::class, Zapier::EVENT_MODIFY_WEBHOOK_PAYLOAD, function(ModifyWebhookPayloadEvent $event) {
+Event::on(Zapier::class, Zapier::EVENT_MODIFY_AUTOMATION_PAYLOAD, function(ModifyAutomationPayloadEvent $event) {
     $payload = $event->payload;
     $submission = $event->submission;
     // ...

@@ -5,24 +5,28 @@ You can add your own custom integrations to be compatible with Formie by using t
 namespace modules\sitemodule;
 
 use modules\sitemodule\ExampleAddressProvider;
+use modules\sitemodule\ExampleAutomation;
 use modules\sitemodule\ExampleCaptcha;
 use modules\sitemodule\ExampleCrm;
 use modules\sitemodule\ExampleElement;
 use modules\sitemodule\ExampleEmailMarketing;
+use modules\sitemodule\ExampleHelpDesk;
+use modules\sitemodule\ExampleMessaging;
 use modules\sitemodule\ExampleMiscellaneous;
 use modules\sitemodule\ExamplePayment;
-use modules\sitemodule\ExampleWebhook;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
 
 Event::on(Integrations::class, Integrations::EVENT_REGISTER_INTEGRATIONS, function(RegisterIntegrationsEvent $event) {
-    $event->captchas[] = ExampleCaptcha::class;
     $event->addressProviders[] = ExampleAddressProvider::class;
+    $event->automations[] = ExampleAutomation::class;
+    $event->captchas[] = ExampleCaptcha::class;
+    $event->crm[] = ExampleCrm::class;
     $event->elements[] = ExampleElement::class;
     $event->emailMarketing[] = ExampleEmailMarketing::class;
-    $event->crm[] = ExampleCrm::class;
-    $event->webhooks[] = ExampleWebhook::class;
+    $event->helpDesk[] = ExampleHelpDesk::class;
+    $event->messaging[] = ExampleMessaging::class;
     $event->miscellaneous[] = ExampleMiscellaneous::class;
     $event->payments[] = ExamplePayment::class;
     // ...
@@ -585,9 +589,9 @@ class ExampleCrm extends Crm
 ```
 
 
-## Webhook
+## Automation
 
-For a Webhook integration, you should extend from the `Webhook` class, which in turn implements the `IntegrationInterface`.
+For an Automation integration, you should extend from the `Automation` class, which in turn implements the `IntegrationInterface`.
 
 ### Methods
 
@@ -607,7 +611,7 @@ Method | Description
 <?php
 namespace modules\sitemodule;
 
-use verbb\formie\base\Webhook;
+use verbb\formie\base\Automation;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
@@ -615,13 +619,13 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 
-class ExampleWebhook extends Webhook
+class ExampleAutomation extends Automation
 {
-    public $webhook;
+    public $url;
 
     public static function displayName(): string
     {
-        return Craft::t('formie', 'Example CRM');
+        return Craft::t('formie', 'Example Automation');
     }
 
     public function getIconUrl(): string
@@ -631,7 +635,7 @@ class ExampleWebhook extends Webhook
 
     public function getDescription(): string
     {
-        return Craft::t('formie', 'This is an example email marketing integration.');
+        return Craft::t('formie', 'This is an example Automation integration.');
     }
 
     public function getSettingsHtml(): string
@@ -663,7 +667,7 @@ class ExampleWebhook extends Webhook
 
         // Use Formie's function to generate a payload to send
         $payload = $this->generatePayloadValues($submission);
-        $response = $this->getClient()->request('POST', $this->webhook, $payload);
+        $response = $this->getClient()->request('POST', $this->url, $payload);
 
         $json = Json::decode((string)$response->getBody());
 
@@ -675,11 +679,11 @@ class ExampleWebhook extends Webhook
 
     public function sendPayload(Submission $submission): bool
     {
-        // Generate a payload of values to send to the webhook
+        // Generate a payload of values to send to the url
         $payload = $this->generatePayloadValues($submission);
 
-        // Send the content to the webhook URL
-        $response = $this->getClient()->request('POST', $this->webhook, $payload);
+        // Send the content to the URL
+        $response = $this->getClient()->request('POST', $this->url, $payload);
 
         return true;
     }
