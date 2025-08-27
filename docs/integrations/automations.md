@@ -1,14 +1,14 @@
 # Automations
 Automations are one of the provided integrations with Formie, and are used to forward on a payload of data to a specified URL. This can be useful to send to submission data to third-parties when a form is submitted. The third-party can then perform any number of actions.
 
-The URL can be set at the plugin-settings level, or customised per-form. When editing a form, you can trigger a test payload to be sent, with random-generated data to test your connections to your Webhook URL.
+The URL can be set at the plugin-settings level, or customised per-form. When editing a form, you can trigger a test payload to be sent, with random-generated data to test your connections to your endpoint URL.
 
 ## Supported Providers
 Formie integrates with the following providers:
 - IFTTT
 - Make
 - n8n
-- Webhook
+- Web Request
 - Zapier
 
 
@@ -93,18 +93,16 @@ Follow the below steps to connect to the n8n API.
 1. Click on the **Send Test Payload** button to send dummy content to the URL.
 
 
-## Webhook
-A general-purpose webhook can be used to send any URL you provide with the payload of content. This can be used to POST-forward content to a URL you choose.
+## Web Request
+A general-purpose web request that can be used to send any URL you provide with the payload of content. This can be used to POST-forward content to a URL you choose.
 
 ### Step 1. Create the Integration
 1. Navigate to **Formie** → **Settings** → **Automations**.
 1. Click the **New Integration** button.
-1. Select **Webhook** as the **Integration Provider**.
+1. Select **Web Request** as the **Integration Provider**.
+1. Save the integration.
 
-### Step 2. Add your Webhook URL
-1. Add your URL to the **Webhook URL** field in Formie.
-
-### Step 3. Form Setting & Test Payload
+### Step 2. Form Setting & Test Payload
 1. Go to the form you want to enable this integration on.
 1. Click the **Integrations** tab.
 1. In the left-hand sidebar, select the name you gave the integration.
