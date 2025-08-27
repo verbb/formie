@@ -324,6 +324,11 @@ class FileUpload extends ElementField
         return $volumes;
     }
 
+    public function getInputSources(?ElementInterface $element = null): array|string|null
+    {
+        return [$this->uploadLocationSource];
+    }
+
     public function getFileKindOptions(): array
     {
         $fileKindOptions = [];
