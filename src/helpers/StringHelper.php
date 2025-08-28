@@ -70,8 +70,8 @@ class StringHelper extends CraftStringHelper
     {
         $text = self::normalizeText($value);
 
-        // Use str_word_count to count words
-        return str_word_count($text);
+        // Use `toWords` to handle inner punctuation and special characters
+        return count(StringHelper::toWords($text));
     }
 
     public static function normalizeText(string $value): string
