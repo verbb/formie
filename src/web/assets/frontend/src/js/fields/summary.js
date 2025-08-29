@@ -45,6 +45,14 @@ export class FormieSummary {
             return;
         }
 
+        // Emit an "onFieldVisible" event
+        this.$field.dispatchEvent(new CustomEvent('onFieldVisible', {
+            bubbles: true,
+            detail: {
+                summary: this,
+            },
+        }));
+
         this.debouncedFetch();
     }
 
@@ -70,6 +78,15 @@ export class FormieSummary {
             if (xhr.status >= 200 && xhr.status < 300) {
                 $container.parentNode.innerHTML = xhr.responseText;
             }
+
+            // Emit an "onFetchSummary" event
+            this.$field.dispatchEvent(new CustomEvent('onFetchSummary', {
+                bubbles: true,
+                detail: {
+                    summary: this,
+                    data: xhr,
+                },
+            }));
         };
 
         const params = {
