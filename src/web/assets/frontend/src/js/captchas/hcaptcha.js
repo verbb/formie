@@ -1,4 +1,3 @@
-import { hcaptcha } from './inc/hcaptcha';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey, ensureVariable } from '../utils/utils';
 
@@ -12,131 +11,95 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         this.size = settings.size;
         this.language = settings.language;
         this.loadingMethod = settings.loadingMethod;
-        this.hCaptchaScriptId = 'FORMIE_HCAPTCHA_SCRIPT';
-
-        // We can start listening for the field to become visible to initialize it
-        this.initialized = true;
+        this.scriptId = 'FORMIE_HCAPTCHA_SCRIPT';
+        this.providerName = 'Hcaptcha';
+        this.widgetIds = new Map();
     }
 
     getPlaceholders() {
-        // We can have multiple captchas per form, so store them and render only when we need
-        return this.$placeholders = this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
+        return this.$form.querySelectorAll('[data-hcaptcha-placeholder]');
     }
 
-    onShow() {
-        // Initialize the captcha only when it's visible
-        this.initCaptcha();
+    onShow($placeholder) {
+        super.onShow($placeholder);
+
+        this.initCaptcha($placeholder);
     }
 
-    onHide() {
-        // Captcha is hidden, so reset everything
-        this.onAfterSubmit();
+    onHide($placeholder) {
+        super.onHide($placeholder);
 
-        // Remove unique event listeners
-        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', 'Hcaptcha'));
-        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'Hcaptcha'));
+        this.destroyCaptcha($placeholder);
     }
 
-    initCaptcha() {
+    initCaptcha($placeholder) {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
-        if (!document.getElementById(this.hCaptchaScriptId)) {
+        if (!document.getElementById(this.scriptId)) {
             const $script = document.createElement('script');
-            $script.id = this.hCaptchaScriptId;
-            $script.src = `https://js.hcaptcha.com/1/api.js?onload=formieHcaptchaOnLoadCallback&recaptchacompat=off&render=explicit&hl=${this.language}`;
+            $script.id = this.scriptId;
+            $script.src = `https://js.hcaptcha.com/1/api.js?recaptchacompat=off&render=explicit&hl=${this.language}`;
 
-            if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
+            if (this.loadingMethod.includes('async')) {
                 $script.async = true;
             }
 
-            if (this.loadingMethod === 'defer' || this.loadingMethod === 'asyncDefer') {
+            if (this.loadingMethod.includes('defer')) {
                 $script.defer = true;
             }
 
-            // Wait until captcha has loaded, then initialize
+            // Wait until hcaptcha.js has loaded, then initialize
             $script.onload = () => {
-                this.renderCaptcha();
+                ensureVariable('hcaptcha', 5000).then(() => {
+                    this.renderCaptcha($placeholder);
+                });
             };
 
             document.body.appendChild($script);
         } else {
-            // Ensure that captcha has been loaded and ready to use
+            // Ensure that hcaptcha has been loaded and ready to use
             ensureVariable('hcaptcha').then(() => {
-                this.renderCaptcha();
+                this.renderCaptcha($placeholder);
             });
         }
-
-        if (!this.$placeholders.length) {
-            console.error('Unable to find any hCaptcha placeholders for [data-hcaptcha-placeholder]');
-
-            return;
-        }
-
-        // Attach a custom event listener on the form
-        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Hcaptcha'), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'Hcaptcha'), this.onAfterSubmit.bind(this));
     }
 
-    renderCaptcha() {
+    destroyCaptcha($placeholder) {
+        // Reset the DOM for the placeholder, if it's been rendered
+        this.destroyContainer($placeholder);
+
+        // Remove all events
+        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', this.providerName));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', this.providerName));
+    }
+
+    renderCaptcha($placeholder) {
         // Reset certain things about the captcha, if we're re-running this on the same page without refresh
         this.token = null;
         this.submitHandler = null;
+        this.$activePlaceholder = $placeholder;
 
-        this.$placeholder = null;
+        // Prepare an inner element to render the captcha
+        const $container = this.createContainer($placeholder);
 
-        // Get the active page
-        let $currentPage = null;
+        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', this.providerName), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
 
-        // Find the current page, from Formie's JS
-        if (this.$form.form.formTheme) {
-            // eslint-disable-next-line
-            $currentPage = this.$form.form.formTheme.$currentPage;
+        try {
+            const widgetId = hcaptcha.render($container, {
+                sitekey: this.siteKey,
+                size: this.size,
+                callback: this.onVerify.bind(this),
+                'expired-callback': this.onExpired.bind(this),
+                'chalexpired-callback': this.onChallengeExpired.bind(this),
+                'error-callback': this.onError.bind(this),
+                'close-callback': this.onClose.bind(this),
+            });
+
+            this.widgetIds.set($placeholder, widgetId);
+        } catch (e) {
+            console.error('Failed to render Hcaptcha:', e);
         }
-
-        const { hasMultiplePages } = this.$form.form.settings;
-
-        // Get the current page's captcha - find the first placeholder that's non-invisible
-        this.$placeholders.forEach(($placeholder) => {
-            if ($currentPage && $currentPage.contains($placeholder)) {
-                this.$placeholder = $placeholder;
-            }
-        });
-
-        // If a single-page form, get the first placeholder
-        if (!hasMultiplePages && this.$placeholder === null) {
-            // eslint-disable-next-line
-            this.$placeholder = this.$placeholders[0];
-        }
-
-        if (this.$placeholder === null) {
-            // This is okay in some instances - notably for multi-page forms where the captcha
-            // should only be shown on the last step. But its nice to log this anyway.
-            if ($currentPage === null) {
-                console.log('Unable to find hCaptcha placeholder for [data-hcaptcha-placeholder]');
-            }
-
-            return;
-        }
-
-        // Remove any existing token input
-        const $token = this.$form.querySelector('[name="h-captcha-response"]');
-
-        if ($token) {
-            $token.remove();
-        }
-
-        // Render the captcha inside the placeholder
-        hcaptcha.render(this.createInput(), {
-            sitekey: this.siteKey,
-            size: this.size,
-            callback: this.onVerify.bind(this),
-            'expired-callback': this.onExpired.bind(this),
-            'chalexpired-callback': this.onChallengeExpired.bind(this),
-            'error-callback': this.onError.bind(this),
-            'close-callback': this.onClose.bind(this),
-        }, (id) => {
-            this.hcaptchaId = id;
-        });
     }
 
     onValidate(e) {
@@ -150,7 +113,7 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         }
 
         // Don't validate if we're not submitting (going back, saving)
-        if (this.form.submitAction !== 'submit' || this.$placeholder === null) {
+        if (this.form.submitAction !== 'submit') {
             return;
         }
 
@@ -164,12 +127,25 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         // Save for later to trigger real submit
         this.submitHandler = e.detail.submitHandler;
 
+        // Find the visible placeholder
+        if (!this.$activePlaceholder) {
+            console.warn('No visible captcha placeholder found to execute.');
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (typeof widgetId === 'undefined') {
+            console.warn('No widget ID found for the visible captcha placeholder.');
+            return;
+        }
+
         // Check if the captcha has already been solved (someone clicking on the tick), otherwise the captcha triggeres twice
         if (this.token) {
             this.onVerify(this.token);
         } else {
             // Trigger hCaptcha - or check
-            hcaptcha.execute(this.hcaptchaId);
+            hcaptcha.execute(widgetId);
         }
     }
 
@@ -189,26 +165,48 @@ export class FormieHcaptcha extends FormieCaptchaProvider {
         }
     }
 
-    onAfterSubmit(e) {
-        // For a multi-page form, we need to remove the current captcha, then render the next pages.
-        // For a single-page form, reset the hCaptcha, in case we want to fill out the form again
-        // `renderCaptcha` will deal with both cases
-        setTimeout(() => {
-            this.renderCaptcha();
-        }, 300);
+    onAfterSubmit() {
+        const { hasMultiplePages } = this.form.settings;
+
+        // If a single-captcha form, re-render. Multi-captchas will handle themselves via onShow/onHide
+        if (!hasMultiplePages && this.$activePlaceholder) {
+            setTimeout(() => {
+                this.destroyCaptcha(this.$activePlaceholder);
+
+                this.renderCaptcha(this.$activePlaceholder);
+            }, 300);
+        }
     }
 
     onExpired() {
         console.log('hCaptcha has expired - reloading.');
 
-        hcaptcha.reset(this.hcaptchaId);
+        if (!this.$activePlaceholder) {
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (widgetId !== undefined) {
+            hcaptcha.reset(widgetId);
+        }
+
         this.token = null;
     }
 
     onChallengeExpired() {
         console.log('hCaptcha has expired challenge - reloading.');
 
-        hcaptcha.reset(this.hcaptchaId);
+        if (!this.$activePlaceholder) {
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (widgetId !== undefined) {
+            hcaptcha.reset(widgetId);
+        }
+
         this.token = null;
     }
 

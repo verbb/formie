@@ -50,7 +50,7 @@ class Turnstile extends Captcha
     public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'formie-turnstile-placeholder',
+            'class' => 'fui-captcha formie-turnstile-placeholder',
             'data-turnstile-placeholder' => true,
         ]);
     }

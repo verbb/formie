@@ -46,7 +46,7 @@ class CaptchaEu extends Captcha
     public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'formie-captcha-eu-placeholder',
+            'class' => 'fui-captcha formie-captcha-eu-placeholder',
             'data-captcha-eu-placeholder' => true,
         ]);
     }

@@ -49,7 +49,7 @@ class FriendlyCaptcha extends Captcha
     public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'formie-friendly-captcha-placeholder',
+            'class' => 'fui-captcha formie-friendly-captcha-placeholder',
             'data-friendly-captcha-placeholder' => true,
         ]);
     }

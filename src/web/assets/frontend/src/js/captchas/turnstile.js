@@ -1,4 +1,3 @@
-import { turnstile } from './inc/turnstile';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { t, eventKey, ensureVariable } from '../utils/utils';
 
@@ -9,138 +8,103 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         this.$form = settings.$form;
         this.form = this.$form.form;
         this.siteKey = settings.siteKey;
-        this.loadingMethod = settings.loadingMethod;
         this.theme = settings.theme;
         this.size = settings.size;
         this.appearance = settings.appearance;
-        this.turnstileScriptId = 'FORMIE_TURNSTILE_SCRIPT';
-
-        // We can start listening for the field to become visible to initialize it
-        this.initialized = true;
+        this.loadingMethod = settings.loadingMethod;
+        this.scriptId = 'FORMIE_TURNSTILE_SCRIPT';
+        this.providerName = 'Turnstile';
+        this.widgetIds = new Map();
     }
 
     getPlaceholders() {
-        // We can have multiple captchas per form, so store them and render only when we need
-        return this.$placeholders = this.$form.querySelectorAll('[data-turnstile-placeholder]');
+        return this.$form.querySelectorAll('[data-turnstile-placeholder]');
     }
 
-    onShow() {
-        // Initialize the captcha only when it's visible
-        this.initCaptcha();
+    onShow($placeholder) {
+        super.onShow($placeholder);
+
+        this.initCaptcha($placeholder);
     }
 
-    onHide() {
-        // Captcha is hidden, so reset everything
-        this.onAfterSubmit();
+    onHide($placeholder) {
+        super.onHide($placeholder);
 
-        // Remove unique event listeners
-        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', 'Turnstile'));
-        this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'Turnstile'));
+        this.destroyCaptcha($placeholder);
     }
 
-    initCaptcha() {
+    initCaptcha($placeholder) {
         // Fetch and attach the script only once - this is in case there are multiple forms on the page.
         // They all go to a single callback which resolves its loaded state
-        if (!document.getElementById(this.turnstileScriptId)) {
+        if (!document.getElementById(this.scriptId)) {
             const $script = document.createElement('script');
-            $script.id = this.turnstileScriptId;
-            $script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=formieTurnstileOnLoadCallback&render=explicit';
+            $script.id = this.scriptId;
+            $script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
-            if (this.loadingMethod === 'async' || this.loadingMethod === 'asyncDefer') {
+            if (this.loadingMethod.includes('async')) {
                 $script.async = true;
             }
 
-            if (this.loadingMethod === 'defer' || this.loadingMethod === 'asyncDefer') {
+            if (this.loadingMethod.includes('defer')) {
                 $script.defer = true;
             }
 
-            // Wait until Recaptcha.js has loaded, then initialize
+            // Wait until turnstile.js has loaded, then initialize
             $script.onload = () => {
-                this.renderCaptcha();
+                ensureVariable('turnstile', 5000).then(() => {
+                    this.renderCaptcha($placeholder);
+                });
             };
 
             document.body.appendChild($script);
         } else {
-            // Ensure that Recaptcha has been loaded and ready to use
+            // Ensure that turnstile has been loaded and ready to use
             ensureVariable('turnstile').then(() => {
-                this.renderCaptcha();
+                this.renderCaptcha($placeholder);
             });
         }
-
-        if (!this.$placeholders.length) {
-            console.error('Unable to find any Turnstile placeholders for [data-turnstile-placeholder]');
-
-            return;
-        }
-
-        // Attach a custom event listener on the form
-        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', 'Turnstile'), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', 'Turnstile'), this.onAfterSubmit.bind(this));
     }
 
-    renderCaptcha() {
-        this.$placeholder = null;
+    destroyCaptcha($placeholder) {
+        // Reset the DOM for the placeholder, if it's been rendered
+        this.destroyContainer($placeholder);
 
-        // Get the active page
-        let $currentPage = null;
+        // Remove all events
+        this.form.removeEventListener(eventKey('onFormieCaptchaValidate', this.providerName));
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', this.providerName));
+    }
 
-        // Find the current page, from Formie's JS
-        if (this.$form.form.formTheme) {
-            // eslint-disable-next-line
-            $currentPage = this.$form.form.formTheme.$currentPage;
-        }
-
-        const { hasMultiplePages } = this.$form.form.settings;
-
-        // Get the current page's captcha - find the first placeholder that's non-invisible
-        this.$placeholders.forEach(($placeholder) => {
-            if ($currentPage && $currentPage.contains($placeholder)) {
-                this.$placeholder = $placeholder;
-            }
-        });
-
-        // If a single-page form, get the first placeholder
-        if (!hasMultiplePages && this.$placeholder === null) {
-            // eslint-disable-next-line
-            this.$placeholder = this.$placeholders[0];
-        }
-
-        if (this.$placeholder === null) {
-            // This is okay in some instances - notably for multi-page forms where the captcha
-            // should only be shown on the last step. But its nice to log this anyway.
-            if ($currentPage === null) {
-                console.log('Unable to find turnstile placeholder for [data-turnstile-placeholder]');
-            }
-
-            return;
-        }
-
-        // Remove any existing token input
-        const $token = this.$form.querySelector('[name="cf-turnstile-response"]');
-
-        if ($token) {
-            $token.remove();
-        }
-
+    renderCaptcha($placeholder) {
         // Clear the submit handler (as this has been re-rendered after a successful Ajax submission)
         // as Turnstile will verify on-render and will auto-submit the form again. Because in `onVerify`
         // we have a submit handler, the form will try and submit itself, which we don't want.
         this.submitHandler = null;
 
-        // Render the turnstile
-        turnstile.render(this.createInput(), {
-            sitekey: this.siteKey,
-            callback: this.onVerify.bind(this),
-            'expired-callback': this.onExpired.bind(this),
-            'timeout-callback': this.onTimeout.bind(this),
-            'error-callback': this.onError.bind(this),
-            'close-callback': this.onClose.bind(this),
-            theme: this.theme,
-            size: this.size,
-            appearance: this.appearance,
-        }, (id) => {
-            this.turnstileId = id;
-        });
+        this.$activePlaceholder = $placeholder;
+
+        // Prepare an inner element to render the captcha
+        const $container = this.createContainer($placeholder);
+
+        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', this.providerName), this.onValidate.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
+
+        try {
+            const widgetId = turnstile.render($container, {
+                sitekey: this.siteKey,
+                callback: this.onVerify.bind(this),
+                'expired-callback': this.onExpired.bind(this),
+                'timeout-callback': this.onTimeout.bind(this),
+                'error-callback': this.onError.bind(this),
+                'close-callback': this.onClose.bind(this),
+                theme: this.theme,
+                size: this.size,
+                appearance: this.appearance,
+            });
+
+            this.widgetIds.set($placeholder, widgetId);
+        } catch (e) {
+            console.error('Failed to render Turnstile:', e);
+        }
     }
 
     onValidate(e) {
@@ -154,7 +118,7 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         }
 
         // Don't validate if we're not submitting (going back, saving)
-        if (this.form.submitAction !== 'submit' || this.$placeholder === null) {
+        if (this.form.submitAction !== 'submit') {
             return;
         }
 
@@ -168,8 +132,20 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         // Save for later to trigger real submit
         this.submitHandler = e.detail.submitHandler;
 
-        // Trigger turnstile
-        turnstile.execute(this.turnstileId);
+        // Find the visible placeholder
+        if (!this.$activePlaceholder) {
+            console.warn('No visible captcha placeholder found to execute.');
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (typeof widgetId === 'undefined') {
+            console.warn('No widget ID found for the visible captcha placeholder.');
+            return;
+        }
+
+        turnstile.execute(widgetId);
     }
 
     onVerify(token) {
@@ -184,25 +160,45 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         }
     }
 
-    onAfterSubmit(e) {
-        // For a multi-page form, we need to remove the current captcha, then render the next pages.
-        // For a single-page form, reset the Turnstile, in case we want to fill out the form again
-        // `renderCaptcha` will deal with both cases
-        setTimeout(() => {
-            this.renderCaptcha();
-        }, 300);
+    onAfterSubmit() {
+        const { hasMultiplePages } = this.form.settings;
+
+        // If a single-captcha form, re-render. Multi-captchas will handle themselves via onShow/onHide
+        if (!hasMultiplePages && this.$activePlaceholder) {
+            setTimeout(() => {
+                this.destroyCaptcha(this.$activePlaceholder);
+
+                this.renderCaptcha(this.$activePlaceholder);
+            }, 300);
+        }
     }
 
     onExpired() {
         console.log('Turnstile has expired - reloading.');
 
-        turnstile.reset(this.turnstileId);
+        if (!this.$activePlaceholder) {
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (widgetId !== undefined) {
+            turnstile.reset(widgetId);
+        }
     }
 
     onTimeout() {
         console.log('Turnstile has expired challenge - reloading.');
 
-        turnstile.reset(this.turnstileId);
+        if (!this.$activePlaceholder) {
+            return;
+        }
+
+        const widgetId = this.widgetIds.get(this.$activePlaceholder);
+
+        if (widgetId !== undefined) {
+            turnstile.reset(widgetId);
+        }
     }
 
     onError(error) {
