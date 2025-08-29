@@ -270,17 +270,25 @@ export class FormieFormTheme {
                 const pageIndex = e.target.getAttribute('data-fui-page-index');
                 const pageId = e.target.getAttribute('data-fui-page-id');
 
-                this.togglePage({
-                    nextPageIndex: pageIndex,
-                    nextPageId: pageId,
-                    totalPages: this.settings.pages.length,
+                this.setPage({
+                    pageIndex,
+                    pageId,
+                    action: e.target.getAttribute('href'),
                 });
-
-                // Ensure we still update the current page server-side
-                const xhr = getAjaxClient(this.$form, 'GET', e.target.getAttribute('href'), true);
-                xhr.send();
             });
         });
+    }
+
+    setPage(options) {
+        this.togglePage({
+            nextPageIndex: options.pageIndex,
+            nextPageId: options.pageId,
+            totalPages: this.settings.pages.length,
+        });
+
+        // Ensure we still update the current page server-side
+        const xhr = getAjaxClient(this.$form, 'GET', options.action, true);
+        xhr.send();
     }
 
     hashForm() {
