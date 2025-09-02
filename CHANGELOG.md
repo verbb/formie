@@ -993,6 +993,17 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.3 - 2025-09-02
+
+### Added
+- Add `onFieldVisible` and `onFetchSummary` JS events for the Summary field.
+- Add `setPage` to the Formie theme JS to set the page of a form client and server side.
+
+### Fixed
+- Fix an encoding issue for some fields when used in email notifications.
+- Fix Stripe integration setting missing Redirect URI.
+- Fix Google Sheets integration.
+
 ## 2.2.2 - 2025-08-12
 
 ### Added
