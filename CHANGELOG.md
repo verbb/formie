@@ -1,5 +1,40 @@
 # Changelog
 
+## 3.1.3 - 2025-09-02
+
+### Added
+- Add `onFieldVisible` and `onFetchSummary` JS events for the Summary field.
+- Add `setPage` to the Formie theme JS to set the page of a form client and server side.
+- Add `Countries::EVENT_MODIFY_ADDRESS_COUNTRIES`.
+
+### Changed
+- Update captcha front-end JS to better handle multi-page and multi-capture scenarios.
+- Update Monday integration to use new Contries service.
+- Changed the Address Country field `getCountryOptions()` function to no longer be static.
+- Changed the Phone field `getCountryOptions()` function to no longer be static.
+- Deprecated `AddressCountry::EVENT_MODIFY_COUNTRY_OPTIONS` event.
+- Renamed `verbb\formie\services\Phone` to `verbb\formie\services\Countries`.
+
+### Fixed
+- Fix handling of word-count function to better handle special characters in words.
+- Fix File Upload field not working correctly when editing a submission in the control panel.
+- Fix Formie 2.x to 3.x migration for Sub Fields within a Group or Repeater fields not migrating correctly.
+- Fix an issue when trying to filter Checkboxes fields by their submission value or via GraphQL.
+- Fix options fields not having their “Email Notification Value” set correctly.
+- Fix Recipients field throwing an error when used in email notifications for Dropdown display type.
+- Fix an encoding issue for some fields when used in email notifications.
+- Fix Stripe integration setting missing Redirect URI.
+- Fix an error with File Upload and Repeater field combinations, when using min/max row validation.
+- Fix Pipedrive integration not handling updating person records via email correctly.
+- Fix an error for the Monday integration when mapping to Checkbox fields.
+- Fix Entry element integration not working correctly for multiple authors.
+- Fix File Upload fields not working correctly for multi-page Ajax forms.
+- Fix support for Date field validation for Ajax based forms.
+- Fix incorrect handling of default values for Date fields.
+- Fix an error for Monday integration when mapping to a Country field.
+- Fix Name Prefix values in email previews, when customising options.
+- Fix Google Sheets integration.
+
 ## 3.1.2 - 2025-08-12
 
 ### Added
