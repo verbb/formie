@@ -386,7 +386,6 @@ class Entries extends CraftEntries implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
-                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No sections available. View [section settings]({link}).', ['link' => UrlHelper::cpUrl('settings/sections')]) : false,
             ]),
             SchemaHelper::elementSelectField([

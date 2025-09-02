@@ -349,7 +349,6 @@ class Variants extends CommerceVariants implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
-                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
             ]),
             SchemaHelper::elementSelectField([

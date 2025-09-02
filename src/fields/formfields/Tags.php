@@ -442,7 +442,6 @@ class Tags extends CraftTags implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
-                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No tag groups available. View [tag settings]({link}).', ['link' => UrlHelper::cpUrl('settings/tags')]) : false,
             ]),
             SchemaHelper::elementSelectField([

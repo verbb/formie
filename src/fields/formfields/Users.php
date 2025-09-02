@@ -319,7 +319,6 @@ class Users extends CraftUsers implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
-                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No user groups available. View [user group settings]({link}).', ['link' => UrlHelper::cpUrl('settings/users')]) : false,
             ]),
             SchemaHelper::elementSelectField([

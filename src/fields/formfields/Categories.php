@@ -412,7 +412,6 @@ class Categories extends CraftCategories implements FormFieldInterface
                 'required' => true,
                 'if' => '$get(sourceType).value == groups',
                 'showAllOption' => true,
-                'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) === 1 ? Craft::t('formie', 'No category groups available. View [category settings]({link}).', ['link' => UrlHelper::cpUrl('settings/categories')]) : false,
             ]),
             SchemaHelper::elementSelectField([
