@@ -58,7 +58,6 @@ class Categories extends ElementField
 
     public ?array $rootCategory = null;
     public bool $showStructure = false;
-    public bool $allowMultipleSources = false;
 
 
     // Public Methods
@@ -149,13 +148,6 @@ class Categories extends ElementField
         }
 
         return $query;
-    }
-
-    public function getSourceOptions(): array
-    {
-        $options = parent::getSourceOptions();
-
-        return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
     public function defineLabelSourceOptions(): array
