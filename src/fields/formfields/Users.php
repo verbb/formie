@@ -306,7 +306,7 @@ class Users extends CraftUsers implements FormFieldInterface
                 'help' => Craft::t('formie', 'Select what source type to use for this field.'),
                 'name' => 'sourceType',
                 'options' => [
-                    ['value' => 'groups', 'label' => Craft::t('formie', 'Sections')],
+                    ['value' => 'groups', 'label' => Craft::t('formie', 'Groups')],
                     ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
                 ],
             ]),
