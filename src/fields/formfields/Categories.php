@@ -110,15 +110,8 @@ class Categories extends CraftCategories implements FormFieldInterface
 
     public function getFieldDefaults(): array
     {
-        $group = null;
-        $groups = Craft::$app->getCategories()->getAllGroups();
-
-        if (!empty($groups)) {
-            $group = 'group:' . $groups[0]->uid;
-        }
-
         return [
-            'source' => $group,
+            'sources' => '*',
             'placeholder' => Craft::t('formie', 'Select a category'),
             'layout' => 'vertical',
             'labelSource' => 'title',
