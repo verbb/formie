@@ -76,6 +76,7 @@ class Tags extends CraftTags implements FormFieldInterface
 
     public bool $searchable = true;
     public ?string $layout = null;
+    public bool $allowMultipleSources = false;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 

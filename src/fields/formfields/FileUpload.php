@@ -81,6 +81,7 @@ class FileUpload extends CraftAssets implements FormFieldInterface
     public ?string $uploadLocationSubpath = null;
     public bool $restrictLocation = true;
     public mixed $filenameFormat = null;
+    public bool $allowMultipleSources = false;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
