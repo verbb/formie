@@ -91,6 +91,10 @@ export default {
         } else {
             this.proxyValues = this.clone(this.context._value);
         }
+
+        if (this.proxyValues === undefined) {
+            this.proxyValues = [];
+        }
     },
 
     methods: {
