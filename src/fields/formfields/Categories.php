@@ -74,6 +74,7 @@ class Categories extends CraftCategories implements FormFieldInterface
     public ?string $layout = null;
     public ?array $rootCategory = null;
     public bool $showStructure = false;
+    public bool $allowMultipleSources = true;
 
     protected string $inputTemplate = 'formie/_includes/element-select-input';
 
@@ -297,13 +298,6 @@ class Categories extends CraftCategories implements FormFieldInterface
         // return $query->hasDescendants()->exists();
 
         return false;
-    }
-
-    public function getSourceOptions(): array
-    {
-        $options = parent::getSourceOptions();
-
-        return array_merge([['label' => Craft::t('formie', 'Select an option'), 'value' => '']], $options);
     }
 
     public function defineLabelSourceOptions(): array

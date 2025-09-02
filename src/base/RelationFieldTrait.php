@@ -347,10 +347,30 @@ trait RelationFieldTrait
     protected function availableSources(): array
     {
         // Include disabled sources, for the moment. We might tighten this up to checking if "All entries" is disabled.
-        return ArrayHelper::where(
+        $sources = ArrayHelper::where(
             Craft::$app->getElementSources()->getSources(static::elementType(), 'modal', true),
             fn($s) => $s['type'] !== ElementSources::TYPE_HEADING
         );
+
+        // Ensure that we always include a "All" option, even if people are removing it from sources in events
+        if ($this->allowMultipleSources) {
+            $hasAllSource = false;
+
+            foreach ($sources as $key => $source) {
+                if (isset($source['key']) && $source['key'] === '*') {
+                    $hasAllSource = true;
+                }
+            }
+
+            if (!$hasAllSource) {
+                array_unshift($sources, [
+                    'key' => '*',
+                    'label' => Craft::t('formie', 'All'),
+                ]);
+            }
+        }
+
+        return $sources;
     }
 
     protected function defineValueAsString($value, ElementInterface $element = null): string
