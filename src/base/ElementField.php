@@ -421,7 +421,7 @@ abstract class ElementField extends Field implements ElementFieldInterface
 
             // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
             $settings['sourceElementsOptions'] = array_map(function($input) {
-                return ['label' => $this->_getElementLabel($input), 'value' => $input->id];
+                return ['label' => $this->getElementLabel($input), 'value' => $input->id];
             }, $elements);
 
             // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
