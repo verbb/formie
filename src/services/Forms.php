@@ -252,47 +252,51 @@ class Forms extends Component
         }
 
         foreach ($query->all() as $info) {
-            // Use the combined element cache, keyed solely by element id.
-            $cacheKey = $info['id'] . '_' . $info['siteId'];
-            $elementId = $info['id'];
-            $siteId = $info['siteId'];
-            
-            if (isset($this->_cachedElements[$cacheKey])) {
-                $element = $this->_cachedElements[$cacheKey];
-            } else {
-                $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
-                $this->_cachedElements[$cacheKey] = $element;
-            }
+            try {
+                // Use the combined element cache, keyed solely by element id.
+                $cacheKey = $info['id'] . '_' . $info['siteId'];
+                $elementId = $info['id'];
+                $siteId = $info['siteId'];
+                
+                if (isset($this->_cachedElements[$cacheKey])) {
+                    $element = $this->_cachedElements[$cacheKey];
+                } else {
+                    $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
+                    $this->_cachedElements[$cacheKey] = $element;
+                }
 
-            // Use the combined field cache.
-            $fieldId = $info['fieldId'];
-            
-            if (isset($this->_cachedFields[$fieldId])) {
-                $field = $this->_cachedFields[$fieldId];
-            } else {
-                $field = Craft::$app->getFields()->getFieldById($fieldId);
-                $this->_cachedFields[$fieldId] = $field;
-            }
+                // Use the combined field cache.
+                $fieldId = $info['fieldId'];
+                
+                if (isset($this->_cachedFields[$fieldId])) {
+                    $field = $this->_cachedFields[$fieldId];
+                } else {
+                    $field = Craft::$app->getFields()->getFieldById($fieldId);
+                    $this->_cachedFields[$fieldId] = $field;
+                }
 
-            if (!$element) {
-                continue;
-            }
+                if (!$element) {
+                    continue;
+                }
 
-            if (isset($elements[$element->id . '_' . $element->siteId])) {
-                continue;
-            }
+                if (isset($elements[$element->id . '_' . $element->siteId])) {
+                    continue;
+                }
 
-            $nestedElements = [];
-            $this->_handleNestedElement($element, $field, 0, $nestedElements);
+                $nestedElements = [];
+                $this->_handleNestedElement($element, $field, 0, $nestedElements);
 
-            // Sort descending by level and reassign levels.
-            usort($nestedElements, function ($a, $b) {
-                return $b['level'] <=> $a['level'];
-            });
+                // Sort descending by level and reassign levels.
+                usort($nestedElements, function ($a, $b) {
+                    return $b['level'] <=> $a['level'];
+                });
 
-            foreach ($nestedElements as $i => $nestedElement) {
-                $nestedElement['level'] = $i;
-                $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
+                foreach ($nestedElements as $i => $nestedElement) {
+                    $nestedElement['level'] = $i;
+                    $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
+                }
+            } catch (Throwable $e) {
+                // Just ignore any errors
             }
         }
 
