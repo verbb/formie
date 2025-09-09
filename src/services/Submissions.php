@@ -368,24 +368,24 @@ class Submissions extends Component
                 ->offset($settings->spamLimit)
                 ->isSpam(true)
                 ->orderBy(['dateCreated' => SORT_DESC])
-                ->all();
+                ->ids();
 
             if ($submissions && $consoleInstance) {
                 $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
             }
 
-            foreach ($submissions as $submission) {
+            foreach ($submissions as $id) {
                 try {
-                    Craft::$app->getElements()->deleteElement($submission, true);
+                    Craft::$app->getElements()->deleteElementById($id);
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                        $consoleInstance->stdout("Pruned spam submission with ID: #{$id}." . PHP_EOL, Console::FG_GREEN);
                     }
                 } catch (Throwable $e) {
-                    Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
+                    Formie::error("Failed to prune spam submission with ID: #{$id}." . $e->getMessage());
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
+                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
                     }
                 }
             }
