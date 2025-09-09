@@ -519,7 +519,7 @@ class MicrosoftDynamics365 extends Crm
 
             // Pick the correct field handle, depending on custom fields
             if ($customField) {
-                $handle = $field['SchemaName'] ?? '';
+                $handle = $field['SchemaName'] ?? $field['LogicalName'] ?? '';
             } else {
                 $handle = $field['LogicalName'] ?? '';
             }
@@ -592,7 +592,7 @@ class MicrosoftDynamics365 extends Crm
 
             // Pick the correct field handle, depending on custom fields
             if ($customField) {
-                $handle = $pickListField['SchemaName'] ?? '';
+                $handle = $pickListField['SchemaName'] ?? $pickListField['LogicalName'] ?? '';
             } else {
                 $handle = $pickListField['LogicalName'] ?? '';
             }
@@ -778,7 +778,7 @@ class MicrosoftDynamics365 extends Crm
 
             // Pick the correct field handle, depending on custom fields
             if ($customField) {
-                $handle = $relationField['SchemaName'] ?? '';
+                $handle = $relationField['SchemaName'] ?? $relationField['LogicalName'] ?? '';
             } else {
                 $handle = $relationField['LogicalName'] ?? '';
             }
