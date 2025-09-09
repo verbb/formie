@@ -1949,14 +1949,20 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getName(): string
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
+        // Don't show when upgrading Formie/Craft
+        if (!Craft::$app->getIsInMaintenanceMode()) {
+            Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
+        }
 
         return (string)$this->label;
     }
 
     public function setName(mixed $name): void
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
+        // Don't show when upgrading Formie/Craft
+        if (!Craft::$app->getIsInMaintenanceMode()) {
+            Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
+        }
     }
 
 }
