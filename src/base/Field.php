@@ -1950,7 +1950,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function getName(): string
     {
         // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getIsInMaintenanceMode()) {
+        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
             Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
         }
 
@@ -1960,7 +1960,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function setName(mixed $name): void
     {
         // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getIsInMaintenanceMode()) {
+        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
             Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
         }
     }
