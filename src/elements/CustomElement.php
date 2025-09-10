@@ -147,7 +147,7 @@ class CustomElement extends Element
         $field = $this->getFieldByHandle($fieldHandle);
 
         if (!$field) {
-            throw new InvalidFieldException($fieldHandle);
+            return;
         }
 
         $value = $field->normalizeValueFromRequest($value, $this);
@@ -215,7 +215,7 @@ class CustomElement extends Element
         $field = $this->getFieldByHandle($fieldHandle);
 
         if (!$field) {
-            throw new InvalidFieldException($fieldHandle);
+            return;
         }
 
         $value = $this->_fieldValues[$fieldHandle] ?? null;
