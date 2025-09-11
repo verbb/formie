@@ -316,35 +316,6 @@ class FormsController extends Controller
 
     public function actionRefreshTokens(): Response
     {
-        // Add CORS headers
-        $headers = $this->response->getHeaders();
-        $headers->setDefault('Access-Control-Allow-Credentials', 'true');
-        $headers->setDefault('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Craft-Token, Cache-Control, X-Requested-With');
-
-        $generalConfig = Craft::$app->getConfig()->getGeneral();
-
-        if (is_array($generalConfig->allowedGraphqlOrigins)) {
-            if (($origins = $this->request->getOrigin()) !== null) {
-                $origins = ArrayHelper::filterEmptyStringsFromArray(array_map('trim', explode(',', $origins)));
-
-                foreach ($origins as $origin) {
-                    if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
-                        $headers->setDefault('Access-Control-Allow-Origin', $origin);
-                        break;
-                    }
-                }
-            }
-        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
-            $headers->setDefault('Access-Control-Allow-Origin', '*');
-        }
-
-        // This is just a preflight request, no need to run the actual query yet
-        if ($this->request->getIsOptions()) {
-            $this->response->format = Response::FORMAT_RAW;
-            $this->response->data = '';
-            return $this->response;
-        }
-
         // Ensure that the session has started, just in case
         Craft::$app->getSession()->open();
 
