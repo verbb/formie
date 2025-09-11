@@ -19,6 +19,7 @@ use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\UrlHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
@@ -45,7 +46,6 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Session;
-use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
 use craft\web\View;
@@ -1536,10 +1536,10 @@ class Form extends Element
             'enableBackSubmission' => $pluginSettings->enableBackSubmission,
             'ajaxTimeout' => $pluginSettings->ajaxTimeout,
             'outputConsoleMessages' => $pluginSettings->outputConsoleMessages,
-            'baseActionUrl' => rtrim(UrlHelper::actionUrl(''), '/'),
+            'baseActionUrl' => rtrim(UrlHelper::siteActionUrl(''), '/'),
 
             // Generate the refresh token here to make use of `UrlHelper` generation
-            'refreshTokenUrl' => UrlHelper::actionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
+            'refreshTokenUrl' => UrlHelper::siteActionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
         ];
 
         // Render options could contain settings for script tag attributes (CSP)
