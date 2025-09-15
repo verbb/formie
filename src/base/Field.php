@@ -1234,6 +1234,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         return Template::raw($field);
     }
 
+    public function getInlineInputHtml(mixed $value, ?ElementInterface $element): string
+    {
+        return $this->cpInputHtml($value, $element, true);
+    }
+
     public function getFrontEndInputHtml(Form $form, mixed $value, array $renderOptions = []): Markup
     {
         if (!static::getFrontEndInputTemplatePath()) {

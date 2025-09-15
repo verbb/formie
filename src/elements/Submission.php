@@ -31,6 +31,7 @@ use Craft;
 use craft\base\Component;
 use craft\base\Element;
 use craft\base\FieldInterface as CraftFieldInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\Model;
 use craft\db\Query;
 use craft\elements\User;
@@ -1446,6 +1447,36 @@ class Submission extends CustomElement
         }
 
         return '';
+    }
+
+    protected function inlineAttributeInputHtml(string $attribute): string
+    {
+        $field = null;
+
+        if (preg_match('/^field:(.+)/', $attribute, $matches)) {
+            try {
+                $fieldHandle = $matches[1];
+                $field = $this->getFieldByHandle($fieldHandle);
+            } catch (Throwable $e) {
+                // Ignore any fields that don't belong to this element
+            }
+        }
+
+        if ($field !== null) {
+            if ($field instanceof InlineEditableFieldInterface) {
+                try {
+                    $value = $this->getFieldValue($field->handle);
+                } catch (Throwable $e) {
+                    return '';
+                }
+
+                return $field->getInlineInputHtml($value, $this);
+            }
+
+            return $this->getAttributeHtml($attribute);
+        }
+
+        return $this->attributeHtml($attribute);
     }
 
 

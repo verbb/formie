@@ -20,6 +20,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
 use Craft;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\ElementInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\db\QueryParam;
@@ -31,7 +32,7 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-abstract class OptionsField extends Field implements OptionsFieldInterface, PreviewableFieldInterface
+abstract class OptionsField extends Field implements InlineEditableFieldInterface, OptionsFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

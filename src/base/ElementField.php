@@ -70,7 +70,7 @@ use yii\db\Expression;
 use yii\db\ExpressionInterface;
 use yii\validators\NumberValidator;
 
-abstract class ElementField extends Field implements ElementFieldInterface
+abstract class ElementField extends Field implements ElementFieldInterface, InlineEditableFieldInterface
 {
     // Static Methods
     // =========================================================================

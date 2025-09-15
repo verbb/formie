@@ -12,6 +12,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\helpers\Template;
@@ -22,7 +23,7 @@ use GraphQL\Type\Definition\Type;
 
 use Twig\Markup;
 
-class Agree extends Field implements PreviewableFieldInterface, SortableFieldInterface
+class Agree extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================

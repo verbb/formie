@@ -11,6 +11,7 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 
@@ -20,7 +21,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
-class MultiLineText extends Field implements PreviewableFieldInterface, SortableFieldInterface
+class MultiLineText extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

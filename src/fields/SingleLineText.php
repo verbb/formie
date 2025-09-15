@@ -10,13 +10,14 @@ use verbb\formie\models\HtmlTag;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\errors\InvalidFieldException;
 
 use GraphQL\Type\Definition\Type;
 
-class SingleLineText extends Field implements PreviewableFieldInterface, SortableFieldInterface
+class SingleLineText extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================

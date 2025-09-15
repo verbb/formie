@@ -25,6 +25,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\helpers\Component;
 use craft\helpers\Html;
@@ -37,7 +38,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Name extends SubField implements PreviewableFieldInterface
+class Name extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================

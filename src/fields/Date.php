@@ -27,6 +27,7 @@ use verbb\formie\positions\Hidden as HiddenPosition;
 use Craft;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
@@ -48,7 +49,7 @@ use yii\validators\Validator;
 use DateTime;
 use DateTimeZone;
 
-class Date extends SubField implements PreviewableFieldInterface, SortableFieldInterface
+class Date extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Constants
     // =========================================================================
