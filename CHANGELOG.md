@@ -1047,6 +1047,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.5 - 2025-09-16
+
+### Fixed
+- Fix Categories field sources not showing correctly.
+
 ## 2.2.4 - 2025-09-16
 
 ### Changed
