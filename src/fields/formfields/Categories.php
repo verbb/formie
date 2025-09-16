@@ -211,20 +211,32 @@ class Categories extends CraftCategories implements FormFieldInterface
 
         if ($this->sourceType === 'groups') {
             if ($this->sources !== '*') {
+                $criteria = [];
+
                 // Try to find the criteria we're restricting by - if any
-                $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $this->source);
-                $criteria = $elementSource['criteria'] ?? [];
+                foreach ($this->sources as $source) {
+                    $elementSource = ArrayHelper::firstWhere($this->availableSources(), 'key', $source);
+                    $criteria[] = $elementSource['criteria'] ?? [];
+
+                    // Handle conditions by parsing the rules and applying to query
+                    $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
+
+                    foreach ($conditionRules as $conditionRule) {
+                        $rule = Craft::createObject($conditionRule);
+                        $rule->modifyQuery($query);
+                    }
+                }
+
+                // For performance
+                $criteria = array_merge_recursive(...$criteria);
+
+                // Some criteria doesn't support array-syntax, which will happen with merging recursively
+                if (isset($criteria['editable'])) {
+                    $criteria['editable'] = $criteria['editable'][0] ?? false;
+                }
 
                 // Apply the criteria on our query
                 Craft::configure($query, $criteria);
-
-                // Handle conditions by parsing the rules and applying to query
-                $conditionRules = $elementSource['condition']['conditionRules'] ?? [];
-
-                foreach ($conditionRules as $conditionRule) {
-                    $rule = Craft::createObject($conditionRule);
-                    $rule->modifyQuery($query);
-                }
             }
         } else if ($this->sourceType === 'elements') {
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
