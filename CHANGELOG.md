@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.1.4 - 2025-09-16
+
+### Added
+- Add the ability to bulk-edit submission content from the Submissions element index view.
+- Add handling for multi-site refresh-token front-end requests.
+- Add handling for deprecated field warnings when upgrading Formie with `HARD_MODE` enabled.
+
+### Changed
+- Update migration-mode check.
+- Update Element field’s visibility in the form builder when 1-2 sources are available.
+
+### Fixed
+- Fix Question captcha not working correctly.
+- Fix support for some Dynamics 365 fields (Memo) not appearing in mapping.
+- Fix an issue for redirect URLs when containing special (valid) characters.
+- Fix handling for Form Usage when linked elements contain fatal errors.
+- Fix an error when saving Element fields with specific elements picked.
+- Fix Categories field not showing sources correctly.
+
 ## 3.1.3 - 2025-09-02
 
 ### Added
