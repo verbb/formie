@@ -228,6 +228,7 @@ For a full list of available tags, refer to the below:
 
 ### Multi-Line Text Field
 - `fieldLimit`
+- `fieldRichText`
 
 ### Name Field
 - `subFieldRows`
