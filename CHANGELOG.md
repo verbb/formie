@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.4 - 2025-09-16
+
+### Changed
+- Update Element field’s visibility in the form builder when 1-2 sources are available.
+
+### Fixed
+- Fix support for some Dynamics 365 fields (Memo) not appearing in mapping.
+- Fix an issue for redirect URLs when containing special (valid) characters.
+- Fix Categories field not showing sources correctly.
+
 ## 2.2.3 - 2025-09-02
 
 ### Added
