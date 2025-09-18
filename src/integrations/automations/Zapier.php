@@ -64,7 +64,8 @@ class Zapier extends Automation
             $payload = $this->generatePayloadValues($submission);
             $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
 
-            $json = Json::decode($response);
+            $rawResponse = (string)$response->getBody();
+            $json = Json::decodeIfJson($rawResponse);
 
             $settings = [
                 'response' => $response,
