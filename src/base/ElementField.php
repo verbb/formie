@@ -956,8 +956,8 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
     private function _elementToArray(ElementInterface $element)
     {
-        // Get all public properties
-        $array = get_object_vars($element);
+        // Get all attributes, exclude custom fields which can cause recursion
+        $array = $element->getAttributes();
 
         // Add in some useful extras
         $array['url'] = $element->getUrl();
@@ -971,7 +971,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         $array['status'] = $element->getStatus();
 
         // Get the custom fields
-        $array = array_merge($array, $element->serializedFieldValues);
+        $array = array_merge($array, $element->getSerializedFieldValues());
 
         ksort($array);
 
