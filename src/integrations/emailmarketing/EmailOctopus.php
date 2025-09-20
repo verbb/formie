@@ -47,11 +47,7 @@ class EmailOctopus extends EmailMarketing
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'lists', [
-                'query' => [
-                    'api_key' => App::parseEnv($this->apiKey),
-                ],
-            ]);
+            $response = $this->request('GET', 'lists');
 
             $lists = $response['data'] ?? [];
 
@@ -84,7 +80,7 @@ class EmailOctopus extends EmailMarketing
             $payload = [
                 'api_key' => App::parseEnv($this->apiKey),
                 'email_address' => $email,
-                'status' => 'SUBSCRIBED',
+                'status' => 'subscribed',
                 'fields' => $fieldValues,
             ];
 
@@ -129,11 +125,7 @@ class EmailOctopus extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->request('GET', 'lists', [
-                'query' => [
-                    'api_key' => App::parseEnv($this->apiKey),
-                ],
-            ]);
+            $response = $this->request('GET', 'lists');
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -141,6 +133,20 @@ class EmailOctopus extends EmailMarketing
         }
 
         return true;
+    }
+
+    public function getClient(): Client
+    {
+        if ($this->_client) {
+            return $this->_client;
+        }
+
+        return $this->_client = Craft::createGuzzleClient([
+            'base_uri' => 'https://api.emailoctopus.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' .  App::parseEnv($this->apiKey),
+            ],
+        ]);
     }
 
 
@@ -154,13 +160,6 @@ class EmailOctopus extends EmailMarketing
         $rules[] = [['apiKey'], 'required'];
 
         return $rules;
-    }
-
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://emailoctopus.com/api/1.5/',
-        ]);
     }
 
 
