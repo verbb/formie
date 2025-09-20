@@ -83,8 +83,8 @@ class Emails extends Component
         $newEmail = $event->email;
 
         // Don't fall back on Craft settings here, that'll be site-resolved in `Craft::$app->getMailer()->send()`
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification);
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification);
+        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true);
+        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true);
 
         $fromEmail = $this->_getFilteredString($fromEmail);
         $fromName = $this->_getFilteredString($fromName);
@@ -99,7 +99,7 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue($notification->getToEmail($submission), $submission, $form, $notification);
+            $to = Variables::getParsedValue($notification->getToEmail($submission), $submission, $form, $notification, false, true);
             $to = $this->_getParsedEmails($to);
 
             if ($to) {
@@ -127,7 +127,7 @@ class Emails extends Component
         // Sender: 
         if ($notification->sender) {
             try {
-                $sender = Variables::getParsedValue((string)$notification->sender, $submission, $form, $notification);
+                $sender = Variables::getParsedValue((string)$notification->sender, $submission, $form, $notification, false, true);
                 $sender = $this->_getParsedEmails($sender)[0] ?? null;
 
                 if ($sender) {
@@ -150,7 +150,7 @@ class Emails extends Component
         // BCC:
         if ($notification->bcc) {
             try {
-                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form, $notification);
+                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form, $notification, false, true);
                 $bcc = $this->_getParsedEmails($bcc);
 
                 if ($bcc) {
@@ -173,7 +173,7 @@ class Emails extends Component
         // CC:
         if ($notification->cc) {
             try {
-                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form, $notification);
+                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form, $notification, false, true);
                 $cc = $this->_getParsedEmails($cc);
 
                 if ($cc) {
@@ -196,10 +196,10 @@ class Emails extends Component
         // Reply To:
         if ($notification->replyTo) {
             try {
-                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification);
+                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification, false, true);
                 $replyTo = $this->_getParsedEmails($replyTo);
 
-                $replyToName = Variables::getParsedValue((string)$notification->replyToName, $submission, $form, $notification);
+                $replyToName = Variables::getParsedValue((string)$notification->replyToName, $submission, $form, $notification, false, true);
 
                 if ($replyTo) {
                     if ($replyToName) {
@@ -224,7 +224,7 @@ class Emails extends Component
 
         // Subject:
         try {
-            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification);
+            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification, false, true);
             $subject = $this->_getFilteredString($subject);
 
             $newEmail->setSubject($subject);

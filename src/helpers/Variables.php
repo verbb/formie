@@ -124,7 +124,7 @@ class Variables
         return $event->variables;
     }
 
-    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false): ?string
+    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false, bool $rawValue = false): ?string
     {
         $originalValue = $value;
 
@@ -243,7 +243,7 @@ class Variables
             Formie::$plugin->getRenderCache()->setGlobalVariables($cacheKey, $variables);
         }
 
-        $fieldVariables[] = self::getParsedFieldValues($form, $submission, $notification);
+        $fieldVariables[] = self::getParsedFieldValues($form, $submission, $notification, $rawValue);
 
         if ($includeSummary) {
             // Populate a collection of fields for "all", "visible" and "with-content"
@@ -341,7 +341,7 @@ class Variables
         return $data;
     }
 
-    public static function getParsedFieldValues(?Form $form, ?Submission $submission, ?Notification $notification): array
+    public static function getParsedFieldValues(?Form $form, ?Submission $submission, ?Notification $notification, bool $rawValue = false): array
     {
         $values = [];
 
@@ -356,7 +356,7 @@ class Variables
         foreach ($submission->getFields() as $field) {
             $value = $submission->getFieldValue($field->fieldKey);
 
-            if ($fieldValue = self::getParsedFieldValue($field, $value, $submission, $notification)) {
+            if ($fieldValue = self::getParsedFieldValue($field, $value, $submission, $notification, $rawValue)) {
                 $values['field.' . $field->fieldKey] = $fieldValue;
             }
         }
@@ -364,10 +364,15 @@ class Variables
         return ArrayHelper::expand($values);
     }
 
-    public static function getParsedFieldValue(FieldInterface $field, mixed $value, Submission $submission, Notification $notification): mixed
+    public static function getParsedFieldValue(FieldInterface $field, mixed $value, Submission $submission, Notification $notification, bool $rawValue = false): mixed
     {
         if ($field->getIsCosmetic()) {
             return [];
+        }
+
+        // TODO: handle this at the field level better in Formie 4
+        if ($rawValue) {
+            return $field->getValueForVariableRaw($value, $submission, $notification);
         }
 
         return $field->getValueForVariable($value, $submission, $notification);

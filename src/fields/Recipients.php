@@ -649,6 +649,12 @@ class Recipients extends Field implements PreviewableFieldInterface
         return parent::defineValueForVariable($value, $submission, $notification);
     }
 
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        // TODO: add handling to be able to determine if this is raw or formatted values
+        return $this->getValueAsString($value, $submission, $notification);
+    }
+
     protected function setPrePopulatedValue(mixed $value): mixed
     {
         // Allow populating via label to keep things private

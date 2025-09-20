@@ -93,6 +93,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public const EVENT_MODIFY_VALUE_FOR_EMAIL = 'modifyValueForEmail';
     public const EVENT_MODIFY_VALUE_FOR_EMAIL_PREVIEW = 'modifyValueForEmailPreview';
     public const EVENT_MODIFY_VALUE_FOR_VARIABLE = 'modifyValueForVariable';
+    public const EVENT_MODIFY_VALUE_FOR_VARIABLE_RAW = 'modifyValueForVariableRaw';
     public const EVENT_MODIFY_UNIQUE_QUERY = 'modifyUniqueQuery';
 
     public const TRANSLATION_METHOD_NONE = 'none';
@@ -623,6 +624,22 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         ]);
 
         $this->trigger(static::EVENT_MODIFY_VALUE_FOR_VARIABLE, $event);
+
+        return $event->value;
+    }
+
+    public function getValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        $value = $this->defineValueForVariableRaw($value, $submission, $notification);
+
+        $event = new ModifyFieldEmailValueEvent([
+            'value' => $value,
+            'field' => $this,
+            'submission' => $submission,
+            'notification' => $notification,
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_VALUE_FOR_VARIABLE_RAW, $event);
 
         return $event->value;
     }
@@ -1704,6 +1721,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     }
 
     protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return (string)$this->getEmailHtml($submission, $notification, $value);
+    }
+
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
     {
         return (string)$this->getEmailHtml($submission, $notification, $value);
     }
