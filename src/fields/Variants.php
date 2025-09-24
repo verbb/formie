@@ -63,7 +63,7 @@ class Variants extends ElementField
     public static function getRequiredPlugins(): array
     {
         return [
-            ['handle' => 'commerce', 'version' => '4.0.0'],
+            ['handle' => 'commerce'],
         ];
     }
 
