@@ -14,7 +14,7 @@ use Craft;
 use craft\base\Component;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\Db;
 use craft\models\FieldLayout;
 

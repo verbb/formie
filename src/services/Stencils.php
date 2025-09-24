@@ -14,7 +14,7 @@ use verbb\formie\records\Stencil as StencilRecord;
 
 use Craft;
 use craft\db\Query;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\Db;
 use craft\helpers\DateTimeHelper;
 
@@ -155,7 +155,7 @@ class Stencils extends Component
         return true;
     }
 
-    public function handleChangedStencil(ConfigEvent $event): void
+    public function handleChangedStencil($event): void
     {
         $stencilUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -263,7 +263,7 @@ class Stencils extends Component
         return true;
     }
 
-    public function handleDeletedStencil(ConfigEvent $event): void
+    public function handleDeletedStencil($event): void
     {
         $stencilUid = $event->tokenMatches[0];
 

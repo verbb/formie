@@ -44,7 +44,7 @@ use craft\console\controllers\ResaveController;
 use craft\elements\User as UserElement;
 use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
-use craft\enums\CmsEdition;
+use CraftCms\Cms\Edition as CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
 use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;

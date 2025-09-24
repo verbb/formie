@@ -14,7 +14,7 @@ use verbb\formie\models\StencilData;
 
 use Craft;
 use craft\db\Query;
-use craft\enums\CmsEdition;
+use CraftCms\Cms\Edition as CmsEdition;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\Session;

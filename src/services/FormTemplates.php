@@ -14,7 +14,7 @@ use Craft;
 use craft\base\Component;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\Db;
 use craft\models\FieldLayout;
 
@@ -129,7 +129,7 @@ class FormTemplates extends Component
         return true;
     }
 
-    public function handleChangedTemplate(ConfigEvent $event): void
+    public function handleChangedTemplate($event): void
     {
         $templateUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -220,7 +220,7 @@ class FormTemplates extends Component
         return true;
     }
 
-    public function handleDeletedTemplate(ConfigEvent $event): void
+    public function handleDeletedTemplate($event): void
     {
         $uid = $event->tokenMatches[0];
         $templateRecord = $this->_getTemplateRecord($uid);

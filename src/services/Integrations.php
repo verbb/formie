@@ -33,7 +33,7 @@ use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\errors\MissingComponentException;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -402,7 +402,7 @@ class Integrations extends Component
         return true;
     }
 
-    public function handleChangedIntegration(ConfigEvent $event): void
+    public function handleChangedIntegration($event): void
     {
         $integrationUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -536,7 +536,7 @@ class Integrations extends Component
         return true;
     }
 
-    public function handleDeletedIntegration(ConfigEvent $event): void
+    public function handleDeletedIntegration($event): void
     {
         $uid = $event->tokenMatches[0];
         $integrationRecord = $this->_getIntegrationRecord($uid);

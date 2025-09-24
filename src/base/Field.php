@@ -49,6 +49,7 @@ use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\UniqueValidator;
+use CraftCms\Cms\Updates\Updates;
 
 use GraphQL\Type\Definition\Type;
 
@@ -57,6 +58,7 @@ use Faker\Generator as FakerFactory;
 use Twig\Markup;
 
 use DateTime;
+use DateTimeInterface;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionNamedType;
@@ -220,8 +222,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public ?string $label = null;
     public ?string $handle = null;
     public ?int $sortOrder = null;
-    public ?DateTime $dateCreated = null;
-    public ?DateTime $dateUpdated = null;
+    public ?DateTimeInterface $dateCreated = null;
+    public ?DateTimeInterface $dateUpdated = null;
     public ?string $uid = null;
 
     public ?string $instructions = null;
@@ -1950,7 +1952,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function getName(): string
     {
         // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
+        if (!app(Updates::class)->areMigrationsPending()) {
             Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
         }
 
@@ -1960,7 +1962,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function setName(mixed $name): void
     {
         // Don't show when upgrading Formie/Craft
-        if (!Craft::$app->getUpdates()->getAreMigrationsPending()) {
+        if (!app(Updates::class)->areMigrationsPending()) {
             Craft::$app->getDeprecator()->log(__METHOD__, 'Formie fields’ `name` attribute has been deprecated. Use `label` instead.');
         }
     }

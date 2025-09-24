@@ -12,7 +12,7 @@ use verbb\formie\records\Status as StatusRecord;
 use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\events\ConfigEvent;
+use CraftCms\Cms\ProjectConfig\Events\ItemAdded;
 use craft\helpers\Db;
 
 use yii\base\Component;
@@ -174,7 +174,7 @@ class Statuses extends Component
         return true;
     }
 
-    public function handleChangedStatus(ConfigEvent $event): void
+    public function handleChangedStatus($event): void
     {
         $statusUid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -246,7 +246,7 @@ class Statuses extends Component
         return true;
     }
 
-    public function handleDeletedStatus(ConfigEvent $event): void
+    public function handleDeletedStatus($event): void
     {
         $uid = $event->tokenMatches[0];
         $statusRecord = $this->_getStatusRecord($uid);
