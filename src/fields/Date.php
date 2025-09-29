@@ -870,45 +870,6 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                     ],
                 ],
             ]),
-            [
-                '$formkit' => 'fieldWrap',
-                'label' => Craft::t('formie', 'Year Range'),
-                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select. Use negative values for start to offset into the past from the current year.'),
-                'if' => '$get(displayType).value == dropdowns',
-                'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
-                        ],
-                        'children' => [
-                            SchemaHelper::numberField([
-                                'name' => 'minYearRange',
-                                'inputClass' => 'text flex-grow',
-                                'validation' => 'number',
-                                'sections-schema' => [
-                                    'prefix' => [
-                                        '$el' => 'span',
-                                        'attrs' => ['class' => 'fui-prefix-text'],
-                                        'children' => Craft::t('formie', 'Start'),
-                                    ],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'maxYearRange',
-                                'inputClass' => 'text flex-grow',
-                                'sections-schema' => [
-                                    'prefix' => [
-                                        '$el' => 'span',
-                                        'attrs' => ['class' => 'fui-prefix-text'],
-                                        'children' => Craft::t('formie', 'End'),
-                                    ],
-                                ],
-                            ]),
-                        ],
-                    ],
-                ],
-            ],
         ];
     }
 

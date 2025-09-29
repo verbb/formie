@@ -48,10 +48,10 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
 
         $date = $this->parentField?->defaultValue ?: new DateTime();
         $year = (int)$date->format('Y');
-        $minYear = $year - $this->minYearRange;
+        $minYear = $year + $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
 
-        for ($y = $minYear; $y < $maxYear; $y++) {
+        for ($y = $minYear; $y <= $maxYear; $y++) {
             $options[] = ['value' => $y, 'label' => $y];
         }
 
@@ -70,7 +70,7 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
             [
                 '$formkit' => 'fieldWrap',
                 'label' => Craft::t('formie', 'Year Range'),
-                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select.'),
+                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select. Use negative values for start to offset into the past from the current year.'),
                 'if' => '$get(displayType).value == dropdowns',
                 'children' => [
                     [
@@ -82,6 +82,7 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
                             SchemaHelper::numberField([
                                 'name' => 'minYearRange',
                                 'inputClass' => 'text flex-grow',
+                                'validation' => 'number',
                                 'sections-schema' => [
                                     'prefix' => [
                                         '$el' => 'span',
@@ -93,6 +94,7 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
                             SchemaHelper::numberField([
                                 'name' => 'maxYearRange',
                                 'inputClass' => 'text flex-grow',
+                                'validation' => 'number',
                                 'sections-schema' => [
                                     'prefix' => [
                                         '$el' => 'span',
