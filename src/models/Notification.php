@@ -155,6 +155,13 @@ class Notification extends Model
             if ($conditionSettings) {
                 $toRecipients = $conditionSettings['toRecipients'] ?? [];
 
+                // Normalize conditions for emails (just the emails, not the matching string)
+                if ($toRecipients && is_array($toRecipients)) {
+                    foreach ($toRecipients as $key => $toRecipient) {
+                        $toRecipients[$key]['email'] = strtolower($toRecipient['email']);
+                    }
+                }
+
                 $results = ConditionsHelper::evaluateConditions($toRecipients, $submission, function($result, $condition) {
                     if ($result) {
                         return $condition['email'];
