@@ -14,7 +14,7 @@
 
                 {# Cast the value properly to remove and zero padding #}
                 {% if field.handle != 'ampm' and dateValue %}
-                    {% set dateValue = dateValue * 1 %}
+                    {% set dateValue = dateValue | integer %}
                 {% endif %}
 
                 {# Be sure to normalize it for the sub-field #}
