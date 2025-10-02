@@ -22,7 +22,7 @@ class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
         foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 // Cast the option value to a string in case it is an integer
-                $range[] = (string)$option['value'];
+                $range[] = strtolower((string)$option['value']);
             }
         }
 

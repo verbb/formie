@@ -12,11 +12,6 @@
                 {% set char = dateField.getFormattingChar(field.handle) %}
                 {% set dateValue = value ? (value | date(char, false)) : null %}
 
-                {# Cast the value properly to remove and zero padding #}
-                {% if field.handle != 'ampm' and dateValue %}
-                    {% set dateValue = dateValue | integer %}
-                {% endif %}
-
                 {# Be sure to normalize it for the sub-field #}
                 {% set dateValue = field.normalizeValue(dateValue, null) %}
 
