@@ -207,7 +207,7 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
 
-        if (!$submission->canSave($currentUser)) {
+        if ($currentUser && !$submission->canSave($currentUser)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
 
