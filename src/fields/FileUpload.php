@@ -674,7 +674,7 @@ class FileUpload extends ElementField
         $variables['showFolders'] = true;
         $variables['defaultFieldLayoutId'] = $uploadVolume->fieldLayoutId ?? null;
         $variables['limit'] = $this->limitFiles;
-        $variables['showSourcePath'] = false;
+        $variables['showSourcePath'] = true;
 
         // The outer "Upload" button only supports a true Assets field. Uploads within the element select are fine.
         $variables['canUpload'] = false;
