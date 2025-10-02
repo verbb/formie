@@ -55,7 +55,6 @@ class Question extends Captcha
         // Create a pseudo SingleLine field
         $field = new SingleLineText();
         $field->handle = "formieCaptchaQuestion[$questionIndex]";
-        $field->name = $question;
         $field->label = $question;
         $field->required = true;
 
