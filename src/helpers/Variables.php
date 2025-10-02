@@ -162,7 +162,7 @@ class Variables
      * @return string|null
      * @throws Exception
      */
-    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false): ?string
+    public static function getParsedValue(mixed $value, Submission $submission = null, Form $form = null, Notification $notification = null, bool $includeSummary = false, bool $rawValue = false): ?string
     {
         $originalValue = $value;
 
@@ -287,7 +287,7 @@ class Variables
         }
 
         // Properly parse field values. There's seemingly performance benefits to doing this separate to the above
-        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification));
+        $fieldVariables = array_merge($fieldVariables, self::_getParsedFieldValues($form, $submission, $notification, $rawValue));
 
         // Don't save anything unless we have values
         $fieldVariables = array_filter($fieldVariables);
@@ -412,7 +412,7 @@ class Variables
         return Craft::$app->getSites()->getPrimarySite();
     }
 
-    private static function _getParsedFieldValues($form, $submission, $notification): array
+    private static function _getParsedFieldValues($form, $submission, $notification, $rawValue = false): array
     {
         $values = [];
 
@@ -424,7 +424,7 @@ class Variables
             foreach ($submission->getFieldLayout()->getCustomFields() as $field) {
                 $submissionValue = $submission->getFieldValue($field->handle);
 
-                $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification);
+                $values[] = self::_getParsedFieldValue($field, $submissionValue, $submission, $notification, $rawValue);
             }
         }
 
@@ -434,7 +434,7 @@ class Variables
         return self::_expandArray($values);
     }
 
-    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification): array
+    private static function _getParsedFieldValue($field, $submissionValue, $submission, $notification, $rawValue = false): array
     {
         $values = [];
 
@@ -503,7 +503,7 @@ class Variables
                 if ($fieldLayout = $row->getFieldLayout()) {
                     foreach ($row->getFieldLayout()->getCustomFields() as $nestedField) {
                         $submissionValue = $row->getFieldValue($nestedField->handle);
-                        $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification);
+                        $fieldValues = self::_getParsedFieldValue($nestedField, $submissionValue, $submission, $notification, $rawValue);
 
                         foreach ($fieldValues as $key => $fieldValue) {
                             $handle = "{$prefix}{$field->handle}." . str_replace($prefix, '', $key);
@@ -518,7 +518,7 @@ class Variables
             $values["{$prefix}{$field->handle}"] = htmlspecialchars(nl2br($field->getValueAsString($submissionValue, $submission)));
 
             // TODO: Remove in Formie 3.
-            if ($settings->useEmailTemplateForFieldVariables) {
+            if ($settings->useEmailTemplateForFieldVariables || !$rawValue) {
                 $values["{$prefix}{$field->handle}"] = (string)$field->getEmailHtml($submission, $notification, $submissionValue, ['hideName' => true]);
             }
         }
