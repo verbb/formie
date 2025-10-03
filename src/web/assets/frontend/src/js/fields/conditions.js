@@ -138,7 +138,7 @@ export class FormieConditions {
 
         // Check if this condition is nested in a Group/Repeater field. Only proceed if the parent field
         // conditional evaluation has passed. But we don't want this to run on page load, as that'll setup initial state
-        if (isNested && !isInit) {
+        if (isNested) {
             const $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
 
             if ($parentField) {
@@ -266,7 +266,7 @@ export class FormieConditions {
 
         // When triggering Group/Repeater conditions, ensure that we trigger any child conditions, now that the
         // Group/Repeater field has had its conditions evaluated. This is because inner fields aren't evaluated when
-        // their outer parent is conditionally hidden, but when that parent field is shown, the fields inside should be evaludated.
+        // their outer parent is conditionally hidden, but when that parent field is shown, the fields inside should be evaluated.
         if (nestedFieldConditions && !isInit) {
             nestedFieldConditions.forEach(($nestedField) => {
                 this.evaluateConditions({
