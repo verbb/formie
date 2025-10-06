@@ -296,24 +296,17 @@ export class FormieConditions {
         const tagName = $input.tagName.toLowerCase();
         const inputType = $input.getAttribute('type') ? $input.getAttribute('type').toLowerCase() : '';
 
-        if (tagName === 'select' || inputType === 'date') {
+        if (
+            inputType === 'file' ||
+            inputType === 'radio' ||
+            inputType === 'checkbox' ||
+            tagName === 'select' ||
+            inputType === 'date'
+        ) {
             return 'change';
         }
 
-        if (inputType === 'number') {
-            return 'input';
-        }
-
-        if (inputType === 'checkbox' || inputType === 'radio') {
-            return 'click';
-        }
-
-        // If sourcing a value from another calculations, this'll be a `input` event
-        if (fieldType && fieldType === 'calculations') {
-            return 'input';
-        }
-
-        return 'keyup';
+        return 'input';
     }
 
     testCondition(logic, value, fieldValue, testOptions = {}) {
