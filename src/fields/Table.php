@@ -248,6 +248,14 @@ class Table extends Field
             }
         }
 
+        // Normalize defaults, which might cause reactivity issues
+        // https://github.com/verbb/formie/issues/2584
+        if (isset($settings['defaults']) && is_array($settings['defaults'])) {
+            foreach ($settings['defaults'] as $key => $column) {
+                unset($settings['defaults'][$key]['id']);
+            }
+        }
+
         return $settings;
     }
 
