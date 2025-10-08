@@ -77,7 +77,7 @@ class Stripe extends Payment
     {
         return true;
     }
-    
+
     public static function toStripeAmount(float $amount, string $currency): float
     {
         if (in_array(strtoupper($currency), self::ZERO_DECIMAL_CURRENCIES)) {
@@ -449,7 +449,7 @@ class Stripe extends Payment
 
             // Create a Payment Intent for the transaction, which we'll confirm in JS. This will either capture it immediately, challenge with
             // 3DS verification, or redirect to an off-site payment method.
-            $response = $this->getStripe()->paymentIntents->create($payload);
+            $response = $this->getStripe()->paymentIntents->create($event->payload);
 
             // Save a pending payment before we head back to the front-end
             $payment = new PaymentModel();
@@ -589,7 +589,7 @@ class Stripe extends Payment
                 throw new Exception('Payment Intent ' . $paymentIntentId . ' ' . $paymentIntent->status);
             }
 
-            // Complete the submission and lodge the payment 
+            // Complete the submission and lodge the payment
             $payment->status = PaymentModel::STATUS_SUCCESS;
             $payment->reference = $paymentIntentId;
 
@@ -1282,7 +1282,7 @@ class Stripe extends Payment
         }
     }
 
-    
+
     private function _createPlan($payload): ?Plan
     {
         try {
