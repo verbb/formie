@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyElementMatchEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\Date;
 use verbb\formie\fields\MultiLineText;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Table;
@@ -88,6 +89,8 @@ abstract class Element extends Integration
         parent::init();
 
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            $fieldClass = $event->integrationField->sourceType;
+
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
                 if (is_string($event->value)) {
@@ -98,8 +101,6 @@ abstract class Element extends Integration
             // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
             // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
             if ($event->field instanceof OptionsFieldInterface) {
-                $fieldClass = $event->integrationField->sourceType;
-
                 if (is_a($fieldClass, fields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, fields\BaseOptionsField::class, true)) {
                     // Check for some cases where it's options data
                     if ($event->rawValue instanceof SingleOptionFieldData) {
@@ -120,6 +121,15 @@ abstract class Element extends Integration
                     $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
                     $event->value = DateTime::createFromFormat('Y-m-d H:i:s', $event->value->format('Y-m-d H:i:s'), $timezone);
+                }
+            }
+
+            // If mapping from Formie Date/Time to Craft Time
+            if (is_a($fieldClass, fields\Time::class, true) && $event->field instanceof Date) {
+                if (!($event->value instanceof DateTime)) {
+                    $timezone = new DateTimeZone(Craft::$app->getTimeZone());
+
+                    $event->value = new DateTime($event->value, $timezone);
                 }
             }
 
