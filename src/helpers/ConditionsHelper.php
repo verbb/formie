@@ -74,7 +74,23 @@ class ConditionsHelper
 
         $expressionLanguage->register('notEmpty', function() {
         }, function($args, $subject) {
-            return !$args['empty']($args, $subject);
+            if (is_null($subject)) {
+                return false;
+            }
+
+            if (is_string($subject) && trim($subject) === '') {
+                return false;
+            }
+
+            if (is_array($subject) && empty($subject)) {
+                return false;
+            }
+
+            if (is_object($subject) && empty((array)$subject)) {
+                return false;
+            }
+
+            return true;
         });
 
         return $expressionLanguage;
