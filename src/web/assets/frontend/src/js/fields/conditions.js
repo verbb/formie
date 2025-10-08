@@ -182,7 +182,7 @@ export class FormieConditions {
                 }
 
                 // If we've passed in a visibility value from IntersectObserver, override the field value
-                if (typeof e.detail.isVisible !== 'undefined') {
+                if (e.detail && typeof e.detail.isVisible !== 'undefined') {
                     testOptions.visibility = e.detail.isVisible;
                 }
 
