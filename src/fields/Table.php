@@ -251,8 +251,15 @@ class Table extends Field
         // Normalize defaults, which might cause reactivity issues
         // https://github.com/verbb/formie/issues/2584
         if (isset($settings['defaults']) && is_array($settings['defaults'])) {
-            foreach ($settings['defaults'] as $key => $column) {
+            foreach ($settings['defaults'] as $key => $row) {
                 unset($settings['defaults'][$key]['id']);
+
+                // If the default row is empty, ensure we cast it as an object for proper
+                // reactivity with Vue. Otherwise empty rows are cast to arrays.
+                // i.e. { "defaults": [[], [], []] } becomes { "defaults": [{}, {}, {}] }
+                if (!$row) {
+                    $settings['defaults'][$key] = new \stdClass();
+                }
             }
         }
 
