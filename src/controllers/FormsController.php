@@ -384,6 +384,7 @@ class FormsController extends Controller
         // Add captchas into the payload
         $formHandle = $this->request->getRequiredParam('form');
         $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+        
         // Force fetch captchas because we're dealing with potential ajax forms
         // Normally, this function returns only if the `showAllPages` property is set.
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true);

@@ -321,7 +321,7 @@ export class Formie {
         return CSRF.initPromise;
     }
 
-    refreshFormTokens(form, callback) {
+    refreshFormTokens(form, callback, updateForm = true) {
         const { formHashId, formHandle } = form.config;
         const url = form.settings.refreshTokenUrl.replace('FORM_PLACEHOLDER', formHandle);
 
@@ -348,50 +348,52 @@ export class Formie {
                 // Fetch the form we want to deal with
                 const { $form } = form;
 
-                // Update the CSRF input
-                if (result.csrf && result.csrf.param) {
-                    const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
+                if (updateForm) {
+                    // Update the CSRF input
+                    if (result.csrf && result.csrf.param) {
+                        const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
 
-                    if ($csrfInput) {
-                        $csrfInput.value = result.csrf.token;
+                        if ($csrfInput) {
+                            $csrfInput.value = result.csrf.token;
 
-                        if (form.settings.outputConsoleMessages) {
-                            console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                            if (form.settings.outputConsoleMessages) {
+                                console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                            }
+                        } else {
+                            console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
                         }
                     } else {
-                        console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
+                        console.error(`${formHashId}: Missing CSRF token information in cache-refresh response.`);
                     }
-                } else {
-                    console.error(`${formHashId}: Missing CSRF token information in cache-refresh response.`);
-                }
 
-                // Update any captchas
-                if (result.captchas) {
-                    Object.entries(result.captchas).forEach(([key, value]) => {
-                        // In some cases, the captcha input might not have loaded yet, as some are dynamically created
-                        // (see Duplicate and JS captchas). So wait for the element to exist first
-                        waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
-                            if (value.value) {
-                                $captchaInput.value = value.value;
+                    // Update any captchas
+                    if (result.captchas) {
+                        Object.entries(result.captchas).forEach(([key, value]) => {
+                            // In some cases, the captcha input might not have loaded yet, as some are dynamically created
+                            // (see Duplicate and JS captchas). So wait for the element to exist first
+                            waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
+                                if (value.value) {
+                                    $captchaInput.value = value.value;
 
-                                if (form.settings.outputConsoleMessages) {
-                                    console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                    if (form.settings.outputConsoleMessages) {
+                                        console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                    }
                                 }
-                            }
+                            });
+
+                            // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
+                            setTimeout(() => {
+                                if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
+                                    console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
+                                }
+                            }, 10000);
                         });
+                    }
 
-                        // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
-                        setTimeout(() => {
-                            if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
-                                console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
-                            }
-                        }, 10000);
-                    });
-                }
-
-                // Update the form's hash (if using Formie's themed JS)
-                if (form.formTheme) {
-                    form.formTheme.updateFormHash();
+                    // Update the form's hash (if using Formie's themed JS)
+                    if (form.formTheme) {
+                        form.formTheme.updateFormHash();
+                    }
                 }
 
                 // Fire a callback for users to do other bits
