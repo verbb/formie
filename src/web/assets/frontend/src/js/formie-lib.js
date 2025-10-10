@@ -2,6 +2,18 @@ import { t, isEmpty, waitForElement } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
+// Maintain a window-global factory for CSRF handling
+const CSRF = {
+    get initPromise() { return window.__formieCsrfInitPromise__ || null; },
+    set initPromise(p) { window.__formieCsrfInitPromise__ = p; },
+
+    get initialized() { return !!window.__formieCsrfInitialized__; },
+    set initialized(v) { window.__formieCsrfInitialized__ = !!v; },
+
+    // Additional delay for testing
+    settleDelayMs: 0,
+};
+
 export class Formie {
     constructor() {
         this.forms = [];
@@ -260,18 +272,84 @@ export class Formie {
         this.refreshFormTokens(form, callback);
     }
 
+    ensureCsrfInitialized(url) {
+        // Already done? Fast-path.
+        if (CSRF.initialized) {
+            return Promise.resolve();
+        }
+
+        // Someone else already kicked it off? Await theirs.
+        if (CSRF.initPromise) {
+            return CSRF.initPromise;
+        }
+
+        CSRF.initPromise = fetch(url, {
+            method: 'GET',
+            credentials: 'include', // Allow cookies to be set/read
+            headers: { Accept: 'application/json' },
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`CSRF init failed (${res.status})`);
+                }
+
+                // We only need the cookie side-effect.
+                CSRF.initialized = true;
+            })
+            .then(async() => {
+                // Tiny grace period to let cookie/state fully settle
+                if (CSRF.settleDelayMs > 0) {
+                    await new Promise((r) => {
+                        return setTimeout(r, CSRF.settleDelayMs);
+                    });
+                }
+            })
+            .catch((err) => {
+                // Clear so a later attempt can try again
+                CSRF.initPromise = null;
+                CSRF.initialized = false;
+
+                throw err;
+            })
+            .finally(() => {
+                // Drop the promise once done (we keep the initialized flag)
+                if (CSRF.initialized) {
+                    CSRF.initPromise = null;
+                }
+            });
+
+        return CSRF.initPromise;
+    }
+
     refreshFormTokens(form, callback) {
         const { formHashId, formHandle } = form.config;
         const url = form.settings.refreshTokenUrl.replace('FORM_PLACEHOLDER', formHandle);
 
-        fetch(url)
-            .then((result) => { return result.json(); })
+        // We need to provide a "barrier" to establish a cookie session with Craft. If we fire off multiple calls
+        // at the same time, on a new session, then multiple CSRF tokens are generated, each overwriting one another.
+        // So instead, ensure that at least the first call is finished, before subsequent ones.
+        return this.ensureCsrfInitialized(url)
+            .then(() => {
+                // After init, all refreshes run in parallel safely.
+                return fetch(url, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { Accept: 'application/json' },
+                });
+            })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`GET ${url} failed (${res.status})`);
+                }
+
+                return res.json();
+            })
             .then((result) => {
                 // Fetch the form we want to deal with
                 const { $form } = form;
 
                 // Update the CSRF input
-                if (result.csrf.param) {
+                if (result.csrf && result.csrf.param) {
                     const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
 
                     if ($csrfInput) {
@@ -320,6 +398,12 @@ export class Formie {
                 if (callback) {
                     callback(result);
                 }
+
+                return result; // allow callers to await
+            })
+            .catch((err) => {
+                console.error(`${formHashId}: Token refresh failed.`, err);
+                throw err;
             });
     }
 }
