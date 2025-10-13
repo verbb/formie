@@ -336,6 +336,41 @@ These tags are the `camelCase` string for the field type class.
 - `products`
 - `variants`
 
+### Sub-Field Types
+Some fields (sub-fields) also expose their inner fields, which can have their own handling.
+
+- `address1`
+- `address2`
+- `address3`
+- `addressAutoComplete`
+- `addressCity`
+- `addressCountry`
+- `addressState`
+- `addressZip`
+- `dateDate`
+- `dateTime`
+- `dateAmPmDropdown`
+- `dateAmPmNumber`
+- `dateDayDropdown`
+- `dateDayNumber`
+- `dateDropdown`
+- `dateHourDropdown`
+- `dateHourNumber`
+- `dateMinuteDropdown`
+- `dateMinuteNumber`
+- `dateMonthDropdown`
+- `dateMonthNumber`
+- `dateNumber`
+- `dateSecondDropdown`
+- `dateSecondNumber`
+- `dateYearDropdown`
+- `dateYearNumber`
+- `nameFirst`
+- `nameLast`
+- `nameMiddle`
+- `namePrefix`
+
+
 ## Examples
 Below are some common examples to better understand what you can do with theme config. 
 
