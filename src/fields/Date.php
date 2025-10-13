@@ -568,6 +568,12 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
     public function getFrontEndJsModules(): ?array
     {
         if ($this->displayType === 'datePicker') {
+            // Don't load the date picker in the CP for a few reasons
+            // https://github.com/verbb/formie/issues/2595
+            if (Craft::$app->getRequest()->getIsCpRequest()) {
+                return null;
+            }
+
             $locale = Craft::$app->getLocale()->id;
 
             // Handle language variants
