@@ -149,7 +149,8 @@
         {% set statusField %}
             <div>
                 <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
-                    <span class="status {{ submission.getStatusModel().color }}"></span>{{ submission.getStatusModel().name }}
+                    <span class="status {{ submission.getStatusModel().color }}"></span>
+                    <span class="menu-btn-text">{{ submission.getStatusModel().name }}</span>
                 </a>
 
                 <div class="menu" id="status-menu-select">
@@ -367,6 +368,16 @@
     overflow: hidden;
     max-width: 100%;
     justify-content: flex-start;
+}
+
+#status-menu-btn {
+    max-width: 100%;
+}
+
+#status-menu-btn .menu-btn-text {
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 {% endcss %}
