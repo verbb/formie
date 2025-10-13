@@ -1094,7 +1094,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         $fields = [];
 
         $fields[0]['fields'][] = [
-            'type' => SingleLineText::class,
+            'type' => subfields\DateDate::class,
             'label' => Craft::t('formie', 'Date'),
             'handle' => 'date',
             'required' => $this->required,
@@ -1115,7 +1115,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         ];
 
         $fields[0]['fields'][] = [
-            'type' => SingleLineText::class,
+            'type' => subfields\DateTime::class,
             'label' => Craft::t('formie', 'Time'),
             'handle' => 'time',
             'required' => $this->required,

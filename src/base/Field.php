@@ -1765,6 +1765,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             fields\subfields\AddressZip::class,
             fields\subfields\AddressState::class,
             fields\subfields\AddressCountry::class,
+            fields\subfields\DateDate::class,
+            fields\subfields\DateTime::class,
             fields\subfields\DateYearDropdown::class,
             fields\subfields\DateMonthDropdown::class,
             fields\subfields\DateDayDropdown::class,

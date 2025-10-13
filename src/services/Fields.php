@@ -145,6 +145,8 @@ class Fields extends Component
             formiefields\subfields\AddressZip::class,
             formiefields\subfields\AddressState::class,
             formiefields\subfields\AddressCountry::class,
+            formiefields\subfields\DateDate::class,
+            formiefields\subfields\DateTime::class,
             formiefields\subfields\DateYearDropdown::class,
             formiefields\subfields\DateMonthDropdown::class,
             formiefields\subfields\DateDayDropdown::class,

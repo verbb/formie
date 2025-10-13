@@ -316,7 +316,7 @@ class m240313_000000_subfields extends Migration
             [
                 'fields' => [
                     [
-                        'type' => fields\SingleLineText::class,
+                        'type' => subfields\DateDate::class,
                         'label' => $settings['dateLabel'] ?? Craft::t('formie', 'Date'),
                         'handle' => 'date',
                         'enabled' => $settings['includeDate'] ?? true,
@@ -337,7 +337,7 @@ class m240313_000000_subfields extends Migration
                         ],
                     ],
                     [
-                        'type' => fields\SingleLineText::class,
+                        'type' => subfields\DateTime::class,
                         'label' => $settings['timeLabel'] ?? Craft::t('formie', 'Time'),
                         'handle' => 'time',
                         'enabled' => $settings['includeTime'] ?? true,

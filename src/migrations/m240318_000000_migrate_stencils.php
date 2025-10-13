@@ -340,7 +340,7 @@ class m240318_000000_migrate_stencils extends Migration
             [
                 'fields' => [
                     [
-                        'type' => SingleLineText::class,
+                        'type' => subfields\DateDate::class,
                         'label' => $settings['dateLabel'] ?? Craft::t('formie', 'Date'),
                         'handle' => 'date',
                         'enabled' => $settings['includeDate'] ?? true,
@@ -361,7 +361,7 @@ class m240318_000000_migrate_stencils extends Migration
                         ],
                     ],
                     [
-                        'type' => SingleLineText::class,
+                        'type' => subfields\DateTime::class,
                         'label' => $settings['timeLabel'] ?? Craft::t('formie', 'Time'),
                         'handle' => 'time',
                         'enabled' => $settings['includeTime'] ?? true,

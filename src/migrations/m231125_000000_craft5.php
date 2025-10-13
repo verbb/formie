@@ -1074,7 +1074,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
             [
                 'fields' => [
                     [
-                        'type' => fields\SingleLineText::class,
+                        'type' => subfields\DateDate::class,
                         'label' => trim($settings['dateLabel'] ?? '') ?: Craft::t('formie', 'Date'),
                         'handle' => 'date',
                         'enabled' => $settings['includeDate'] ?? true,
@@ -1095,7 +1095,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                         ],
                     ],
                     [
-                        'type' => fields\SingleLineText::class,
+                        'type' => subfields\DateTime::class,
                         'label' => trim($settings['timeLabel'] ?? '') ?: Craft::t('formie', 'Time'),
                         'handle' => 'time',
                         'enabled' => $settings['includeTime'] ?? true,
