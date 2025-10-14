@@ -356,6 +356,7 @@ class FileUpload extends ElementField
                 'label' => Craft::t('formie', 'Upload Location'),
                 'help' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
                 '$formkit' => 'fieldWrap',
+                'required' => true,
                 'children' => [
                     [
                         '$el' => 'div',
