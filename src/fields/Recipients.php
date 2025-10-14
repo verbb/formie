@@ -53,6 +53,7 @@ class Recipients extends Field implements PreviewableFieldInterface
     // =========================================================================
 
     public string $displayType = 'hidden';
+    public ?string $emailValue = 'label';
     public array $options = [];
     public bool $multi = false;
 
