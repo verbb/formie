@@ -16,6 +16,7 @@
                 {% set dateValue = field.normalizeValue(dateValue, null) %}
 
                 {{ craft.formie.renderField(form, field, {
+                    ...renderOptions ?? {},
                     value: dateValue ?? null,
                 }) }}
             {% endfor %}
