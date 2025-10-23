@@ -49,6 +49,7 @@ class Html extends CosmeticField
 
     public ?string $htmlContent = null;
     public bool $purifyContent = true;
+    public bool $includeInEmail = false;
 
 
     // Public Methods
@@ -107,7 +108,7 @@ class Html extends CosmeticField
     {
         // Force purify for email content
         $this->purifyContent = true;
-        
+
         return $this->getRenderedHtmlContent();
     }
 
