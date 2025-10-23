@@ -40,6 +40,16 @@ class HubSpot extends Crm
             return $value;
         }
 
+        // Handle static values being set for dates, which should be a timestamp (submission `dateCreated`)
+        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+            // HubSpot needs this as a timestamp value.
+            if ($value instanceof DateTime) {
+                $date = clone $value;
+
+                return (string)($date->getTimestamp() * 1000);
+            }
+        }
+
         return parent::convertValueForIntegration($value, $integrationField);
     }
 
@@ -101,6 +111,19 @@ class HubSpot extends Crm
                 if ($event->rawValue instanceof DateTime) {
                     $date = clone $event->rawValue;
                     $date->setTime(0, 0, 0);
+
+                    $event->value = (string)($date->getTimestamp() * 1000);
+                } else {
+                    // Always return the raw value for all other instances. We might be passing in the timestamp
+                    $event->value = $event->rawValue;
+                }
+            }
+
+            // Special handling for dates for HubSpot
+            if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
+                // HubSpot needs this as a timestamp value.
+                if ($event->rawValue instanceof DateTime) {
+                    $date = clone $event->rawValue;
 
                     $event->value = (string)($date->getTimestamp() * 1000);
                 } else {
