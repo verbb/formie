@@ -2,6 +2,18 @@ import { t, isEmpty, waitForElement } from './utils/utils';
 
 import { FormieFormBase } from './formie-form-base';
 
+// Maintain a window-global factory for CSRF handling
+const CSRF = {
+    get initPromise() { return window.__formieCsrfInitPromise__ || null; },
+    set initPromise(p) { window.__formieCsrfInitPromise__ = p; },
+
+    get initialized() { return !!window.__formieCsrfInitialized__; },
+    set initialized(v) { window.__formieCsrfInitialized__ = !!v; },
+
+    // Additional delay for testing
+    settleDelayMs: 0,
+};
+
 export class Formie {
     constructor() {
         this.forms = [];
@@ -285,66 +297,140 @@ export class Formie {
         this.refreshFormTokens(form, callback);
     }
 
-    refreshFormTokens(form, callback) {
+    ensureCsrfInitialized(url) {
+        // Already done? Fast-path.
+        if (CSRF.initialized) {
+            return Promise.resolve();
+        }
+
+        // Someone else already kicked it off? Await theirs.
+        if (CSRF.initPromise) {
+            return CSRF.initPromise;
+        }
+
+        CSRF.initPromise = fetch(url, {
+            method: 'GET',
+            credentials: 'include', // Allow cookies to be set/read
+            headers: { Accept: 'application/json' },
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`CSRF init failed (${res.status})`);
+                }
+
+                // We only need the cookie side-effect.
+                CSRF.initialized = true;
+            })
+            .then(async() => {
+                // Tiny grace period to let cookie/state fully settle
+                if (CSRF.settleDelayMs > 0) {
+                    await new Promise((r) => {
+                        return setTimeout(r, CSRF.settleDelayMs);
+                    });
+                }
+            })
+            .catch((err) => {
+                // Clear so a later attempt can try again
+                CSRF.initPromise = null;
+                CSRF.initialized = false;
+
+                throw err;
+            })
+            .finally(() => {
+                // Drop the promise once done (we keep the initialized flag)
+                if (CSRF.initialized) {
+                    CSRF.initPromise = null;
+                }
+            });
+
+        return CSRF.initPromise;
+    }
+
+    refreshFormTokens(form, callback, updateForm = true) {
         const { formHashId, formHandle } = form.config;
         const url = form.settings.refreshTokenUrl.replace('FORM_PLACEHOLDER', formHandle);
 
-        fetch(url)
-            .then((result) => { return result.json(); })
+        // We need to provide a "barrier" to establish a cookie session with Craft. If we fire off multiple calls
+        // at the same time, on a new session, then multiple CSRF tokens are generated, each overwriting one another.
+        // So instead, ensure that at least the first call is finished, before subsequent ones.
+        return this.ensureCsrfInitialized(url)
+            .then(() => {
+                // After init, all refreshes run in parallel safely.
+                return fetch(url, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: { Accept: 'application/json' },
+                });
+            })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error(`GET ${url} failed (${res.status})`);
+                }
+
+                return res.json();
+            })
             .then((result) => {
                 // Fetch the form we want to deal with
                 const { $form } = form;
 
-                // Update the CSRF input
-                if (result.csrf.param) {
-                    const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
+                if (updateForm) {
+                    // Update the CSRF input
+                    if (result.csrf && result.csrf.param) {
+                        const $csrfInput = $form.querySelector(`input[name="${result.csrf.param}"]`);
 
-                    if ($csrfInput) {
-                        $csrfInput.value = result.csrf.token;
+                        if ($csrfInput) {
+                            $csrfInput.value = result.csrf.token;
 
-                        if (form.settings.outputConsoleMessages) {
-                            console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                            if (form.settings.outputConsoleMessages) {
+                                console.log(`${formHashId}: Refreshed CSRF input %o.`, result.csrf);
+                            }
+                        } else {
+                            console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
                         }
                     } else {
-                        console.error(`${formHashId}: Unable to locate CSRF input for "${result.csrf.param}".`);
+                        console.error(`${formHashId}: Missing CSRF token information in cache-refresh response.`);
                     }
-                } else {
-                    console.error(`${formHashId}: Missing CSRF token information in cache-refresh response.`);
-                }
 
-                // Update any captchas
-                if (result.captchas) {
-                    Object.entries(result.captchas).forEach(([key, value]) => {
-                        // In some cases, the captcha input might not have loaded yet, as some are dynamically created
-                        // (see Duplicate and JS captchas). So wait for the element to exist first
-                        waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
-                            if (value.value) {
-                                $captchaInput.value = value.value;
+                    // Update any captchas
+                    if (result.captchas) {
+                        Object.entries(result.captchas).forEach(([key, value]) => {
+                            // In some cases, the captcha input might not have loaded yet, as some are dynamically created
+                            // (see Duplicate and JS captchas). So wait for the element to exist first
+                            waitForElement(`input[name="${value.sessionKey}"]`, $form).then(($captchaInput) => {
+                                if (value.value) {
+                                    $captchaInput.value = value.value;
 
-                                if (form.settings.outputConsoleMessages) {
-                                    console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                    if (form.settings.outputConsoleMessages) {
+                                        console.log(`${formHashId}: Refreshed "${key}" captcha input %o.`, value);
+                                    }
                                 }
-                            }
+                            });
+
+                            // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
+                            setTimeout(() => {
+                                if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
+                                    console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
+                                }
+                            }, 10000);
                         });
+                    }
 
-                        // Add a timeout purely for logging, in case the element doesn't resolve in a reasonable time
-                        setTimeout(() => {
-                            if (!$form.querySelector(`input[name="${value.sessionKey}"]`)) {
-                                console.error(`${formHashId}: Unable to locate captcha input for "${key}".`);
-                            }
-                        }, 10000);
-                    });
-                }
-
-                // Update the form's hash (if using Formie's themed JS)
-                if (form.formTheme) {
-                    form.formTheme.updateFormHash();
+                    // Update the form's hash (if using Formie's themed JS)
+                    if (form.formTheme) {
+                        form.formTheme.updateFormHash();
+                    }
                 }
 
                 // Fire a callback for users to do other bits
                 if (callback) {
                     callback(result);
                 }
+
+                return result; // allow callers to await
+            })
+            .catch((err) => {
+                console.error(`${formHashId}: Token refresh failed.`, err);
+                throw err;
             });
     }
 }

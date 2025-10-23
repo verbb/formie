@@ -6,6 +6,7 @@ use verbb\formie\elements\Form;
 use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
+use craft\helpers\Html;
 
 use putyourlightson\snaptcha\models\SnaptchaModel;
 use putyourlightson\snaptcha\Snaptcha as SnaptchaPlugin;
@@ -42,14 +43,34 @@ class Snaptcha extends Captcha
 
     public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
     {
+        return Html::tag('div', null, [
+            'class' => 'formie-snaptcha-captcha-placeholder',
+            'data-snaptcha-captcha-placeholder' => true,
+        ]);
+    }
+
+    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    {
         $model = new SnaptchaModel();
         $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
         $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
 
-        return '<input type="hidden" name="' . $fieldName . '" value="' . $fieldValue . '">';
+        $settings = [
+            'formId' => $form->getFormId(),
+            'sessionKey' => $fieldName,
+            'value' => $fieldValue,
+        ];
+
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/snaptcha.js');
+
+        return [
+            'src' => $src,
+            'module' => 'FormieSnaptchaCaptcha',
+            'settings' => $settings,
+        ];
     }
 
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
     {
         $model = new SnaptchaModel();
         $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
@@ -60,6 +81,11 @@ class Snaptcha extends Captcha
             'sessionKey' => $fieldName,
             'value' => $fieldValue,
         ];
+    }
+    
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+    {
+        return $this->getRefreshJsVariables($form, $page);
     }
 
 }

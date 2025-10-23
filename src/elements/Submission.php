@@ -19,6 +19,7 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\FieldLayout as FormLayout;
@@ -226,6 +227,7 @@ class Submission extends CustomElement
             'userId' => ['label' => Craft::t('app', 'User')],
             'sendNotification' => ['label' => Craft::t('formie', 'Send Notification')],
             'status' => ['label' => Craft::t('formie', 'Status')],
+            'paymentStatus' => ['label' => Craft::t('formie', 'Payment Status')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
         ];
@@ -1392,7 +1394,30 @@ class Submission extends CustomElement
                     'align-items' => 'center',
                 ],
             ]);
-        } 
+        }
+
+        if ($attribute == 'paymentStatus') {
+            if ($payments = $this->getPayments()) {
+                $lastPayment = end($payments);
+
+                $color = $lastPayment->status;
+
+                if ($color === 'success') {
+                    $color = 'live';
+                }
+
+                return Html::tag('span', Html::tag('span', '', [
+                        'class' => ['status', $color],
+                    ]) . StringHelper::toTitleCase($lastPayment->status), [
+                    'style' => [
+                        'display' => 'flex',
+                        'align-items' => 'center',
+                    ],
+                ]);
+            }
+
+            return '';
+        }
 
         if ($attribute == 'sendNotification') {
             if (($form = $this->getForm()) && $form->getNotifications()) {

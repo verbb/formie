@@ -132,7 +132,7 @@ export class FormieConditions {
 
         // Check if this condition is nested in a Group/Repeater field. Only proceed if the parent field
         // conditional evaluation has passed. But we don't want this to run on page load, as that'll setup initial state
-        if (isNested && !isInit) {
+        if (isNested) {
             const $parentField = $field.closest('[data-field-type="group"], [data-field-type="repeater"]');
 
             if ($parentField) {
@@ -266,7 +266,7 @@ export class FormieConditions {
 
         // When triggering Group/Repeater conditions, ensure that we trigger any child conditions, now that the
         // Group/Repeater field has had its conditions evaluated. This is because inner fields aren't evaluated when
-        // their outer parent is conditionally hidden, but when that parent field is shown, the fields inside should be evaludated.
+        // their outer parent is conditionally hidden, but when that parent field is shown, the fields inside should be evaluated.
         if (nestedFieldConditions && !isInit) {
             nestedFieldConditions.forEach(($nestedField) => {
                 this.evaluateConditions({
@@ -296,24 +296,17 @@ export class FormieConditions {
         const tagName = $input.tagName.toLowerCase();
         const inputType = $input.getAttribute('type') ? $input.getAttribute('type').toLowerCase() : '';
 
-        if (tagName === 'select' || inputType === 'date') {
+        if (
+            inputType === 'file' ||
+            inputType === 'radio' ||
+            inputType === 'checkbox' ||
+            tagName === 'select' ||
+            inputType === 'date'
+        ) {
             return 'change';
         }
 
-        if (inputType === 'number') {
-            return 'input';
-        }
-
-        if (inputType === 'checkbox' || inputType === 'radio') {
-            return 'click';
-        }
-
-        // If sourcing a value from another calculations, this'll be a `input` event
-        if (fieldType && fieldType === 'calculations') {
-            return 'input';
-        }
-
-        return 'keyup';
+        return 'input';
     }
 
     testCondition(logic, value, fieldValue, testOptions = {}) {

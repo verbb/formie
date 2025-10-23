@@ -49,6 +49,7 @@ mix.js('./src/js/captchas/hcaptcha.js', 'js/captchas');
 mix.js('./src/js/captchas/friendly-captcha.js', 'js/captchas');
 mix.js('./src/js/captchas/turnstile.js', 'js/captchas');
 mix.js('./src/js/captchas/captcha-eu.js', 'js/captchas');
+mix.js('./src/js/captchas/snaptcha.js', 'js/captchas');
 mix.js('./src/js/payments/payment-provider.js', 'js/payments');
 mix.js('./src/js/payments/stripe.js', 'js/payments');
 mix.js('./src/js/payments/paypal.js', 'js/payments');
