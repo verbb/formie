@@ -80,8 +80,10 @@ export class FormieFileUpload {
         // But only if they're not in nested fields, which need the data. Otherwise for Ajax forms, we'd need to load up the saved
         // nestedRow IDs into HTML, and we don't do that.
         const $fileInput = this.$field.querySelector('[type="file"]');
+        const $parentGroup = this.$field.closest('[data-field-type="group"');
+        const $parentRepeater = this.$field.closest('[data-field-type="repeater"');
 
-        if ($fileInput && !$fileInput.getAttribute('name').includes('[rows]')) {
+        if ($fileInput && !($parentGroup || $parentRepeater)) {
             $fileInput.value = null;
 
             // Remove any required state after upload to prevent client-side validation triggering. Until we properly handle
