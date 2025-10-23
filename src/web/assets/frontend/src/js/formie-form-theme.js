@@ -530,6 +530,13 @@ export class FormieFormTheme {
                 }
             }
 
+            // Handle Question Captcha
+            if (!$field && selector.includes('formieCaptchaQuestion')) {
+                selector = selector.replace('formieCaptchaQuestion', '[formieCaptchaQuestion]');
+
+                $field = this.$form.querySelector(`[name="fields${selector}"]`);
+            }
+
             if ($field) {
                 if (error) {
                     this.validator?.showError($field, 'server', error);
