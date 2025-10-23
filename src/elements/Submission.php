@@ -628,7 +628,7 @@ class Submission extends CustomElement
                 $value = $this->getFieldValue($field->handle);
 
                 foreach ($value as $rowKey => $row) {
-                    foreach ($this->getFields() as $nestedField) {
+                    foreach ($field->getFields() as $nestedField) {
                         if ($nestedField instanceof $type) {
                             $fieldKey = "$field->handle.$rowKey.$nestedField->handle";
 
