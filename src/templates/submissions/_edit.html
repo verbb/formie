@@ -212,31 +212,31 @@
     {% endif %}
 
     <div class="meta">
-    {{ forms.lightswitchField({
-        label: 'Mark as Spam' | t('formie'),
-        id: 'isSpam',
-        name: 'isSpam',
-        on: submission.isSpam,
-        reverseToggle: '.send-notifications',
-    }) }}
-
-    {% if submission.isSpam %}
         {{ forms.lightswitchField({
-            label: 'Send Notifications' | t('formie'),
-            instructions: 'Whether any Email Notifications should be sent.' | t('formie'),
-            id: 'sendNotifications',
-            name: 'sendNotifications',
-            fieldClass: 'send-notifications',
+            label: 'Mark as Spam' | t('formie'),
+            id: 'isSpam',
+            name: 'isSpam',
+            on: submission.isSpam,
+            reverseToggle: '.send-notifications',
         }) }}
 
-        {{ forms.lightswitchField({
-            label: 'Trigger Integrations' | t('formie'),
-            instructions: 'Whether any Integrations should be triggered.' | t('formie'),
-            id: 'triggerIntegrations',
-            name: 'triggerIntegrations',
-            fieldClass: 'send-notifications',
-        }) }}
-    {% endif %}
+        {% if submission.isSpam %}
+            {{ forms.lightswitchField({
+                label: 'Send Notifications' | t('formie'),
+                instructions: 'Whether any Email Notifications should be sent.' | t('formie'),
+                id: 'sendNotifications',
+                name: 'sendNotifications',
+                fieldClass: 'send-notifications',
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Trigger Integrations' | t('formie'),
+                instructions: 'Whether any Integrations should be triggered.' | t('formie'),
+                id: 'triggerIntegrations',
+                name: 'triggerIntegrations',
+                fieldClass: 'send-notifications',
+            }) }}
+        {% endif %}
     </div>
 </div>
 
@@ -258,18 +258,11 @@
 
 {% if not isNew and submission.isIncomplete %}
     <div id="meta-details" class="meta">
-        <div class="field">
-            <div class="heading" style="flex: 0 0 160px;">
-                <label class="">{{ 'Mark as Complete' | t('formie') }}</label>
-            </div>
-
-            <div>
-                {{ forms.lightswitchField({
-                    id: 'markAsComplete',
-                    name: 'markAsComplete',
-                }) }}
-            </div>
-        </div>
+        {{ forms.lightswitchField({
+            label: 'Mark as Complete' | t('formie'),
+            id: 'markAsComplete',
+            name: 'markAsComplete',
+        }) }}
     </div>
 {% endif %}
 
