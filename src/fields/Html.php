@@ -105,7 +105,10 @@ class Html extends CosmeticField
 
     public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
-        return false;
+        // Force purify for email content
+        $this->purifyContent = true;
+        
+        return $this->getRenderedHtmlContent();
     }
 
     public function getSettingGqlTypes(): array
