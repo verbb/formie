@@ -113,7 +113,7 @@ class FormieValidator {
     }
 
     removeError(input) {
-        input.removeAttribute('aria-describedby');
+        input.removeAttribute('aria-errormessage');
         input.removeAttribute('aria-invalid');
 
         const fieldContainer = input.closest('[data-field-handle]');
@@ -184,7 +184,7 @@ class FormieValidator {
             const errorId = this.errorIds[errorKey];
 
             // Add aria attributes to the input, referencing the error element
-            input.setAttribute('aria-describedby', errorId);
+            input.setAttribute('aria-errormessage', errorId);
             input.setAttribute('aria-invalid', true);
 
             // Set an ID for the error element for accessibility
