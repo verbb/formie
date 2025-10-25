@@ -242,7 +242,7 @@ class Opayo extends Payment
                 ];
 
                 // Store the data we need for 3DS against the form, which is added is the Ajax response
-                $submission->getForm()->addFrontEndJsEvents([
+                $submission->getForm()->addSubmitData([
                     'event' => 'FormiePaymentOpayo3DS',
                     'data' => [
                         'acsUrl' => $acsUrl,

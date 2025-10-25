@@ -327,7 +327,7 @@ class Stripe extends Payment
 
             // Tell the front-end to stop the submission and to confirm the Payment Intent.
             if ($response->pending_setup_intent !== null) {
-                $submission->getForm()->addFrontEndJsEvents([
+                $submission->getForm()->addSubmitData([
                     'event' => 'FormiePaymentStripeConfirm',
                     'data' => [
                         'type' => 'setup',
@@ -337,7 +337,7 @@ class Stripe extends Payment
                     ],
                 ]);
             } else {
-                $submission->getForm()->addFrontEndJsEvents([
+                $submission->getForm()->addSubmitData([
                     'event' => 'FormiePaymentStripeConfirm',
                     'data' => [
                         'type' => 'payment',
@@ -465,7 +465,7 @@ class Stripe extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             // Tell the front-end to stop the submission and to confirm the Payment Intent.
-            $submission->getForm()->addFrontEndJsEvents([
+            $submission->getForm()->addSubmitData([
                 'event' => 'FormiePaymentStripeConfirm',
                 'data' => [
                     'clientSecret' => $response->client_secret,

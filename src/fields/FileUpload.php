@@ -799,6 +799,14 @@ class FileUpload extends ElementField
                 if ($paramName = $this->requestParamName($element)) {
                     unset($this->_uploadedDataFiles[$paramName]);
                 }
+
+                // Save against the submission, so we can populate on the front-end.
+                $element->getForm()->addSubmitData([
+                    'event' => 'FormieFileUpload',
+                    'data' => [
+                        $this->fieldKey => $assetIds,
+                    ],
+                ]);
             }
         }
 

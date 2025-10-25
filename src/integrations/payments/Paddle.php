@@ -158,7 +158,7 @@ class Paddle extends Payment
             ]);
             $this->trigger(self::EVENT_MODIFY_PAYLOAD, $event);
 
-            $submission->getForm()->addFrontEndJsEvents([
+            $submission->getForm()->addSubmitData([
                 'event' => 'FormiePaymentPaddleCheckout',
                 'data' => $event->payload,
             ]);

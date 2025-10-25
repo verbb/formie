@@ -1042,7 +1042,7 @@ class SubmissionsController extends Controller
             'isFinalPage' => $nextPage ? false : true,
             'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
             'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
-            'events' => $form->getFrontEndJsEvents(),
+            'submitData' => $form->getSubmitData(),
         ], $extras);
 
         return $this->asJson($params);

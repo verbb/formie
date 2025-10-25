@@ -160,7 +160,7 @@ class GoCardless extends Payment
             $response = $this->request('POST', 'redirect_flows', ['json' => ['redirect_flows' => $event->payload]]);
             $flow = $response['redirect_flows'] ?? [];
 
-            $submission->getForm()->addFrontEndJsEvents([
+            $submission->getForm()->addSubmitData([
                 'event' => 'FormiePaymentGoCardlessRedirect',
                 'data' => [
                     'redirectUrl' => $flow['redirect_url'] ?? '',

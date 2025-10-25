@@ -265,7 +265,7 @@ class Form extends Element
     private bool $_appliedFormSettings = false;
     private array $_relations = [];
     private array $_populatedFieldValues = [];
-    private array $_frontEndJsEvents = [];
+    private array $_submitData = [];
     private ?string $_redirectUrl = null;
     private ?string $_actionUrl = null;
     private string $_storageBehaviour = 'session';
@@ -1602,14 +1602,30 @@ class Form extends Element
         ];
     }
 
+    public function getSubmitData(): ?array
+    {
+        return $this->_submitData;
+    }
+
+    public function addSubmitData(array $value): void
+    {
+        $this->_submitData[] = $value;
+    }
+
     public function getFrontEndJsEvents(): ?array
     {
-        return $this->_frontEndJsEvents;
+        // Deprecated, use `getSubmitData`
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The `getFrontEndJsEvents` method has been deprecated. Use the `getSubmitData` method instead.');
+
+        return $this->getSubmitData();
     }
 
     public function addFrontEndJsEvents(array $value): void
     {
-        $this->_frontEndJsEvents[] = $value;
+        // Deprecated, use `addSubmitData`
+        Craft::$app->getDeprecator()->log(__METHOD__, 'The `addFrontEndJsEvents` method has been deprecated. Use the `addSubmitData` method instead.');
+        
+        $this->addSubmitData($value);
     }
 
     public function getThemeConfigAttributes()

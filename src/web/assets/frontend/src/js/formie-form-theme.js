@@ -463,19 +463,26 @@ export class FormieFormTheme {
 
         this.updateSubmissionInput(data);
 
-        // Check if there's any events in the response back, and fire them
-        if (data.events && Array.isArray(data.events) && data.events.length) {
-            // An error message may be shown in some cases (for 3D secure) so remove the form-global level error notice.
-            this.removeFormAlert();
-
-            data.events.forEach((eventData) => {
-                this.$form.dispatchEvent(new CustomEvent(eventData.event, {
-                    bubbles: true,
-                    detail: {
-                        data: eventData.data,
-                    },
-                }));
+        // Check if there's any events in the `submitData` response back, and fire them
+        if (data.submitData && Array.isArray(data.submitData) && data.submitData.length) {
+            // Get just event data from the submitData
+            const events = data.submitData.filter((item) => {
+                return 'event' in item;
             });
+
+            if (events.length) {
+                // An error message may be shown in some cases (for 3D secure) so remove the form-global level error notice.
+                this.removeFormAlert();
+
+                events.forEach((eventData) => {
+                    this.$form.dispatchEvent(new CustomEvent(eventData.event, {
+                        bubbles: true,
+                        detail: {
+                            data: eventData.data,
+                        },
+                    }));
+                });
+            }
         }
     }
 

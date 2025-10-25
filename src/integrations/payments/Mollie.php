@@ -172,7 +172,7 @@ class Mollie extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             // Redirect via the front-end for a nicer UX than just a sudden redirect away.
-            $submission->getForm()->addFrontEndJsEvents([
+            $submission->getForm()->addSubmitData([
                 'event' => 'FormiePaymentMollieRedirect',
                 'data' => [
                     'checkoutUrl' => $checkoutUrl,

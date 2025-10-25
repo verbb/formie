@@ -7,7 +7,7 @@ export class FormieFileUpload {
         this.$field = settings.$field;
 
         this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit'), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('FormieFileUpload'), this.onUploadedAsset.bind(this));
     }
 
     registerValidation(e) {
@@ -75,20 +75,40 @@ export class FormieFileUpload {
         });
     }
 
-    onAfterSubmit() {
-        // For multi-page Ajax forms, we don't want to submit the file uploads multiple times, so clear the content after success
-        // But only if they're not in nested fields, which need the data. Otherwise for Ajax forms, we'd need to load up the saved
-        // nestedRow IDs into HTML, and we don't do that.
+    onUploadedAsset(e) {
+        const { data } = e.detail;
+
         const $fileInput = this.$field.querySelector('[type="file"]');
-        const $parentGroup = this.$field.closest('[data-field-type="group"');
-        const $parentRepeater = this.$field.closest('[data-field-type="repeater"');
+        const fieldKey = this.$field.getAttribute('data-field-handle');
 
-        if ($fileInput && !($parentGroup || $parentRepeater)) {
-            $fileInput.value = null;
+        if (data && data[fieldKey]) {
+            const assetIds = data[fieldKey];
 
-            // Remove any required state after upload to prevent client-side validation triggering. Until we properly handle
-            // returning uploaded asset IDs from the server.
-            $fileInput.removeAttribute('required');
+            // Find the base input for the field as an anchor for new inputs
+            let $anchor = this.$field.querySelector('input[type="hidden"][value=""]');
+            const anchorName = `${$anchor.getAttribute('name')}[]`;
+
+            // Remove all existing hidden ID inputs (but not the file input).
+            this.$field.querySelectorAll('input[type="hidden"]').forEach((el) => {
+                if (el.value) {
+                    return el.remove();
+                }
+            });
+
+            // Insert new hidden inputs directly after the blank input, preserving order.
+            assetIds.forEach((id) => {
+                const $assetInput = document.createElement('input');
+                $assetInput.type = 'hidden';
+                $assetInput.name = anchorName;
+                $assetInput.value = id;
+                $anchor.insertAdjacentElement('afterend', $assetInput);
+                $anchor = $assetInput; // next one goes after this one
+            });
+
+            // Reset the attribute to prevent re-uploading
+            if ($fileInput) {
+                $fileInput.value = null;
+            }
         }
     }
 }
