@@ -58,6 +58,11 @@ class Fields extends Component
 
     public static function getFieldHandles(): array
     {
+        // Just in case this fires too early in another plugin migration
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
+            return [];
+        }
+
         // Maintain a cache of all Formie field handles, because we can't rely on Craft's customFields behaviour.
         return Craft::$app->getCache()->getOrSet('formie:fieldHandles', function() {
             return (new Query())->select(['handle', 'uid'])->from(Table::FORMIE_FIELDS)->indexBy('uid')->column();
