@@ -270,6 +270,11 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyCustomFieldParams(): void
     {
+        // Just in case this fires too early in another plugin migration
+        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
+            return;
+        }
+
         $fieldAttributes = $this->getBehavior('customFields');
 
         // Group the fields by handle and field UUID
