@@ -325,11 +325,6 @@ class FormieValidator {
             return;
         }
 
-        // Only run on fields with errors
-        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
-            return;
-        }
-
         // // Don't trigger click event handling for checkbox/radio. We should use the change.
         if (e.target.type === 'checkbox' || e.target.type === 'radio') {
             return;
@@ -343,11 +338,6 @@ class FormieValidator {
         // Formie will have it's own events, so ignore those
         // Only run if the field is in a form to be validated
         if (e instanceof CustomEvent || !e.target.form || !e.target.form.isSameNode(this.form)) {
-            return;
-        }
-
-        // Only run on fields with errors
-        if (!e.target.getAttribute(this.config.inputErrorIndicatorAttribute)) {
             return;
         }
 
