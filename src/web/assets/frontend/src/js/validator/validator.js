@@ -102,7 +102,7 @@ class FormieValidator {
         // Even if set to non-live, add event listeners to make the form have live validation, so that errors
         // are updated in real-time after the user hits submit. This is just good UX.
         if (!this.config.live) {
-            this.addEventListeners();
+            this.addEventListeners(true);
         }
     }
 
@@ -350,12 +350,17 @@ class FormieValidator {
         this.validate(e.target);
     }
 
-    addEventListeners() {
+    addEventListeners(afterSubmit = false) {
         if (!this.boundListeners) {
-            this.form.addEventListener('blur', this.blurHandler.bind(this), true);
+            // Only add these listeners when using live mode, and not live mode after submit
+            // we just want `change` and `input` in that instance
+            if (!afterSubmit) {
+                this.form.addEventListener('blur', this.blurHandler.bind(this), true);
+                this.form.addEventListener('click', this.clickHandler.bind(this), false);
+            }
+
             this.form.addEventListener('change', this.changeHandler.bind(this), false);
             this.form.addEventListener('input', this.inputHandler.bind(this), false);
-            this.form.addEventListener('click', this.clickHandler.bind(this), false);
 
             this.boundListeners = true;
         }
