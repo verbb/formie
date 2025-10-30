@@ -187,10 +187,13 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
-
-            // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
-            'formie_submissions.content as fieldContent',
         ]);
+
+        // Just in case this fires too early in another plugin migration
+        if (Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
+            // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
+            $this->query->addSelect('formie_submissions.content as fieldContent');
+        }
 
         if ($this->formId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.formId', $this->formId));
