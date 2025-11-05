@@ -27,6 +27,7 @@ use Craft;
 use craft\base\ElementInterface;
 use craft\base\InlineEditableFieldInterface;
 use craft\base\PreviewableFieldInterface;
+use craft\base\SortableFieldInterface;
 use craft\helpers\Component;
 use craft\helpers\Html;
 use craft\helpers\Json;
@@ -38,7 +39,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Name extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface
+class Name extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
 {
     // Static Methods
     // =========================================================================
