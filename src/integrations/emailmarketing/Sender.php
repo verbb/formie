@@ -10,7 +10,11 @@ use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
+
+use GuzzleHttp\Client;
 
 use Throwable;
 
@@ -43,15 +47,15 @@ class Sender extends EmailMarketing
         $settings = [];
 
         try {
-            $lists = $this->_request([
-                'method' => 'listGetAllLists',
-                'params' => [
-                    'api_key' => App::parseEnv($this->apiKey),
-                ],
-            ]);
+            $response = $this->request('GET', 'groups');
+            $lists = $response['data'] ?? [];
 
             foreach ($lists as $list) {
-                $listFields = [
+                // While we're at it, fetch the fields for the list
+                $response = $this->request('GET', 'fields');
+                $fields = $response['data'] ?? [];
+
+                $listFields = array_merge([
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email'),
@@ -65,7 +69,11 @@ class Sender extends EmailMarketing
                         'handle' => 'lastname',
                         'name' => Craft::t('formie', 'Last Name'),
                     ]),
-                ];
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone Number'),
+                    ]),
+                ], $this->_getCustomFields($fields, ['email', 'firstname', 'lastname', 'phone']));
 
                 $settings['lists'][] = new IntegrationCollection([
                     'id' => (string)$list['id'],
@@ -85,36 +93,19 @@ class Sender extends EmailMarketing
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
 
-            $payload = [
-                'method' => 'listSubscribe',
-                'params' => [
-                    'api_key' => App::parseEnv($this->apiKey),
-                    'list_id' => $this->listId,
-                    'emails' => $fieldValues,
-                ],
-            ];
+            $payload = $this->_prepCustomFields($fieldValues);
+            $payload['groups'] = [$this->listId];
 
-            // Because we pass via reference, we need variables
-            $endpoint = 'listSubscribe';
-            $method = 'POST';
+            $response = $this->deliverPayload($submission, 'subscribers', $payload);
 
-            // Allow events to cancel sending
-            if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method)) {
+            if ($response === false) {
                 return true;
             }
 
-            // Add or update
-            $response = $this->_request($payload);
-
-            // Allow events to say the response is invalid
-            if (!$this->afterSendPayload($submission, 'listSubscribe', $payload, 'POST', $response)) {
-                return true;
-            }
-
-            $contactId = $response['success'] ?? '';
+            $contactId = $response['data']['id'] ?? '';
 
             if (!$contactId) {
-                Integration::error($this, Craft::t('formie', 'API error: “{response}”. Sent payload {payload}', [
+                Integration::error($this, Craft::t('formie', 'Missing return “contactId” {response}. Sent payload {payload}', [
                     'response' => Json::encode($response),
                     'payload' => Json::encode($payload),
                 ]), true);
@@ -133,19 +124,9 @@ class Sender extends EmailMarketing
     public function fetchConnection(): bool
     {
         try {
-            $response = $this->_request([
-                'method' => 'listGetAllLists',
-                'params' => [
-                    'api_key' => App::parseEnv($this->apiKey),
-                ],
+            $response = $this->request('GET', 'groups', [
+                'limit' => 1,
             ]);
-
-            $accountId = $response[0]['id'] ?? '';
-
-            if (!$accountId) {
-                Integration::error($this, 'Unable to find “{id}” in response.', true);
-                return false;
-            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -168,23 +149,71 @@ class Sender extends EmailMarketing
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.sender.net/v2/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+        ]);
+    }
+
 
     // Private Methods
     // =========================================================================
 
-    private function _request($data)
+    private function _convertFieldType($fieldType)
     {
-        $options = [
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: application/x-www-form-urlencoded',
-                'content' => http_build_query(['data' => Json::encode($data)]),
-            ],
+        $fieldTypes = [
+            'list' => IntegrationField::TYPE_ARRAY,
+            'integer' => IntegrationField::TYPE_NUMBER,
+            'boolean' => IntegrationField::TYPE_BOOLEAN,
+            'date' => IntegrationField::TYPE_DATETIME,
+            'datetime' => IntegrationField::TYPE_DATETIME,
         ];
 
-        $context = stream_context_create($options);
-        $result = file_get_contents('https://app.sender.net/api', false, $context);
+        return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
 
-        return Json::decode($result);
+    private function _getCustomFields(array $fields, array $excludeNames = []): array
+    {
+        $customFields = [];
+
+        foreach ($fields as $field) {
+            $fieldName = str_replace(['{{', '}}'], ['', ''], $field['name']);
+
+            if (in_array($fieldName, $excludeNames)) {
+                continue;
+            }
+
+            $customFields[] = new IntegrationField([
+                'handle' => 'custom:' . $fieldName,
+                'name' => $field['title'],
+                'type' => $this->_convertFieldType($field['type']),
+                'sourceType' => $field['type'],
+            ]);
+        }
+
+        return $customFields;
+    }
+
+    private function _prepCustomFields(array $fields): array
+    {
+        $payload = $fields;
+
+        foreach ($payload as $key => $value) {
+            if (StringHelper::startsWith($key, 'custom:')) {
+                ArrayHelper::remove($payload, $key);
+
+                $newKey = '{$' . str_replace('custom:', '', $key) . '}';
+
+                $payload['fields'][$newKey] = $value;
+            }
+        }
+
+        return $payload;
     }
 }

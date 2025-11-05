@@ -753,9 +753,9 @@ Follow the below steps to connect to the Sender API.
 
 ### Step 2. Connect to the Sender API
 1. Go to <a href="https://www.sender.net/" target="_blank">Sender</a> and login to your account.
-1. In the left-hand menu, click **My Account** → **API**.
-1. Click the **Generate** button.
-1. Copy the **API Key** from Sender and paste in the **API Key** field in Formie.
+1. In the left-hand menu, click **Account Settings** → **API access tokens**.
+1. Click the **Create API Token** button.
+1. Copy the **Token** from Sender and paste in the **API Key** field in Formie.
 
 ### Step 3. Test Connection
 1. Save this integration.
