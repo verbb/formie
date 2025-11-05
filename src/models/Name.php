@@ -58,7 +58,7 @@ class Name extends Model
 
     public function getName(): string
     {
-        if (!$this->isMultiple) {
+        if (!$this->isMultiple && $this->name) {
             return $this->name;
         }
 
@@ -72,7 +72,7 @@ class Name extends Model
 
     public function getFullName(): string
     {
-        if (!$this->isMultiple) {
+        if (!$this->isMultiple && $this->name) {
             return $this->name;
         }
 

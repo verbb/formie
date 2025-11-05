@@ -34,7 +34,11 @@ use craft\helpers\Json;
 
 use Faker\Generator as FakerFactory;
 
+use TheIconic\NameParser\Parser as NameParser;
+
 use GraphQL\Type\Definition\Type;
+
+use Throwable;
 
 use yii\base\Event;
 use yii\db\Schema;
@@ -136,6 +140,36 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        // Handle converting the value if we've changed the field settings to use single or multi fields
+        if ($this->useMultipleFields) {
+            if (is_string($value) && !Json::isJsonObject($value)) {
+                try {
+                    $parser = new NameParser();
+                    $parsedName = $parser->parse($value);
+
+                    $value = [
+                        'isMultiple' => true,
+                        'prefix' => $parsedName->getSalutation(),
+                        'firstName' => $parsedName->getFirstname(),
+                        'middleName' => $parsedName->getMiddlename(),
+                        'lastName' => $parsedName->getLastname(),
+                    ];
+                } catch (Throwable $e) {
+                    // Do nothing
+                }
+            }
+        } else {
+            if (is_array($value)) {
+                try {
+                    $value = parent::normalizeValue($value, $element);
+                    $name = new NameModel($value);
+                    $value = $name->getFullName();
+                } catch (Throwable $e) {
+                    // Do nothing
+                }
+            }
+        }
+
         // Quit early if a non-multi Name field, it's just plain text
         if (!$this->useMultipleFields) {
             return Field::normalizeValue($value, $element);
