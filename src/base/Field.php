@@ -1727,7 +1727,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
     {
-        return (string)$this->getEmailHtml($submission, $notification, $value);
+        return $this->defineValueForVariable($value, $submission, $notification);
     }
 
     protected static function normalizeConfig(array &$config = []): void
