@@ -1,5 +1,62 @@
 # Changelog
 
+## 3.1.5 - 2025-11-06
+
+### Added
+- Add support for Name field values to be normalized properly when switching between single or multiple fields.
+- Add handling for multi-site refresh-token front-end requests.
+- Add support for File Upload fields to have uploaded asset IDs returned in submission data for Ajax, and improve handling for Ajax forms.
+- Add `dateDate` and `dateTime` sub-field options to Theme Config for Date/Time field calendar display types.
+- Add “Payment Status” column to Submissions element index.
+
+### Changed
+- Improve support for Submissions and querying/ordering via custom fields.
+- Allow Name fields to be sortable for Submissions in the control panel.
+- Update Sender Email Marketing integration to latest API.
+- Client side validation is now in true “live” mode after an initial submit.
+- HTML fields now default to not showing their content in email notifications.
+- Date/Time fields with Flatpickr now use Craft’s default date/time picker when editing a submission in the control panel.
+- Improve CSRF token refreshing for multiple forms, particularly for new cookie sessions.
+- Update conditional logic evaluation in JS to default to `input` events when handling evaluation for most controls.
+- Update Date field templates to use proper Twig coercion.
+- Update EmailOctopus integration for V2 API.
+
+### Fixed
+- Fix an error when querying/ordering Name fields by their submission value.
+- Fix an error when using raw variables in email notifications for some fields.
+- Fix a Formie 3 and Events plugin 3 migration incompatibility.
+- Fix “is not empty” server-side conditional logic.
+- Fix client-side validation using `aria-describedby` and not `aria-errormessage` for accessible error messages.
+- Fix Question captcha not working correctly for invalid submissions for Ajax forms.
+- Fix Hubspot integration handling when dealing with “Submission Date” value mapped to Date fields in Hubspot.
+- Fix HTML field not showing content in email notifications.
+- Fix an error for File Upload fields contained within a Group or Repeater for Ajax forms.
+- Fix UI for “Mark as Complete” setting when editing a submission in the control panel.
+- Fix an error when trying to find nested field content for submissions.
+- Fix an issue for nested fields or sub-fields not passing parent field render options.
+- Fix “Upload Location” setting for File Upload field not being required.
+- Fix an issue with new Recipient fields and the “Email Value” setting.
+- Fix visual overflow issue for submission status dropdown in the control panel when editing a submission with a long status name.
+- Fix Snaptcha Captcha support for Ajax forms.
+- Fix a reactivity issue with Table field Default row values.
+- Fix an issue for element integrations, when mapping from Formie Date/Time field to Craft Time field.
+- Fix “is not empty” server-side conditional logic.
+- Fix an error with JS conditional logic for some fields.
+- Fix an issue with Table fields when setting their Default Values.
+- Fix an error when handling conditionally-hidden fields within Group fields, which also contained conditions.
+- Fix some email notification values not receiving raw values correctly.
+- Fix an error when saving submissions from the front-end anonymously.
+- Fix deprecation notice for Question captcha.
+- Fix lack of navigation for File Upload fields when editing submissions via the control panel.
+- Fix AM/PM handling for Date fields (Dropdown and Inputs).
+- Fix CSRF handling for multi-site installs with sub-directory setups.
+- Fix email notification conditional emails not being case-insensitive for matched emails.
+- Fix Date/Time field and Year dropdown offset negative values.
+- Fix Recipients field values not working correctly for some variables when needing raw values.
+- Fix Zapier integration response handling.
+- Fix serialization of element fields for integrations causing an infinite loop.
+- Fix Categories field sources not showing correctly.
+
 ## 3.1.4 - 2025-09-16
 
 ### Added
