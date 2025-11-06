@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.2.6 - 2025-11-06
+
+### Added
+- Add handling for multi-site refresh-token front-end requests.
+- Add “Payment Status” column to Submissions element index.
+
+### Changed
+- Improve CSRF token refreshing for multiple forms, particularly for new cookie sessions.
+- Update conditional logic evaluation in JS to default to `input` events when handling evaluation for most controls.
+- Update EmailOctopus integration for V2 API.
+
+### Fixed
+- Fix Snaptcha Captcha support for Ajax forms.
+- Fix “is not empty” server-side conditional logic.
+- Fix an error with JS conditional logic for some fields.
+- Fix an error when handling conditionally-hidden fields within Group fields, which also contained conditions.
+- Fix some email notification values not receiving raw values correctly.
+- Fix email notification conditional emails not being case-insensitive for matched emails.
+
 ## 2.2.5 - 2025-09-16
 
 ### Fixed
