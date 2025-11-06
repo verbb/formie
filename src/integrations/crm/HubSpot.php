@@ -558,8 +558,17 @@ class HubSpot extends Crm
                         continue;
                     }
 
+                    // Get the object type, use `CONTACT` or `COMPANY` for legacy, and default to `CONTACT`
+                    if (!str_contains($key, '.')) {
+                        $key = "CONTACT.$key";
+                    }
+
+                    $handleParts = explode('.', $key);
+                    $objectTypeId = str_replace(['CONTACT', 'COMPANY'], ['0-1', '0-2'], ($handleParts[0] ?? 'CONTACT'));
+
                     $formPayload['fields'][] = [
-                        'name' => $key,
+                        'objectTypeId' => $objectTypeId,
+                        'name' => $handleParts[1] ?? '',
                         'value' => $value,
                     ];
                 }
@@ -815,7 +824,16 @@ class HubSpot extends Crm
             $formFields = $formFieldGroup['fields'] ?? [];
 
             foreach ($formFields as $formField) {
+                // Include the group name in the label for clarity to match HubSpot UI.
+                $formField['label'] = Craft::t('formie', '{label} ({group} property)', [
+                    'label' => $formField['label'],
+                    'group' => StringHelper::toTitleCase($formField['propertyObjectType']),
+                ]);
+                
                 // Ensure that we prefix items with their correct object group
+                // While we don't need this conditional technically, removing it means all form mappings would be gone
+                // due to HubSpot treating every field as a CONTACT field by default, but we haven't included that in mapping.
+                // TODO: run a migration for all form mappings to update the `CONTACT.name` prefix.
                 if ($formField['propertyObjectType'] !== 'CONTACT') {
                     $formField['name'] = $formField['propertyObjectType'] . '.' . $formField['name'];
                 }
