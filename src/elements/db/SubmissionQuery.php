@@ -7,6 +7,7 @@ use verbb\formie\behaviors\CustomFieldBehavior;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
+use verbb\formie\models\QueryFieldLayout;
 use verbb\formie\models\Status;
 use verbb\formie\services\Fields;
 
@@ -251,20 +252,30 @@ class SubmissionQuery extends ElementQuery
         return parent::statusCondition($status);
     }
 
-    protected function customFields(): array
+    protected function fieldLayouts(): array
     {
-        // If restricting to a form, only load the fields we need for performance.
+        $layouts = [];
+        $layoutFields = [];
+
+        // If restricting to a form, only load the layouts we need for performance. As we're rolling our own field
+        // and field layouts, we need to handle this in a special way
         if ($formIds = $this->_resolveFormIds()) {
-            $fields = [];
-
             foreach ($formIds as $formId) {
-                $fields[] = Formie::$plugin->getFields()->getAllFieldsForForm($formId);
+                $layoutFields[] = Formie::$plugin->getFields()->getAllFieldsForForm($formId);
             }
-
-            return array_filter(array_merge(...$fields));
+        } else {
+            $layoutFields[] = Formie::$plugin->getFields()->getAllFields();
         }
 
-        return Formie::$plugin->getFields()->getAllFields();
+        foreach ($layoutFields as $fields) {
+            // Construct a custom field layout just for our query, for static fields
+            $layout = new QueryFieldLayout();
+            $layout->setCustomFields($fields);
+
+            $layouts[] = $layout;
+        }
+
+        return $layouts;
     }
 
 
