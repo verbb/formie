@@ -88,7 +88,7 @@ class Hcaptcha extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $responseToken = $this->getRequestParam('h-captcha-response');
+        $responseToken = $this->getCaptchaValue($submission, 'h-captcha-response');
 
         if (!$responseToken) {
             return false;

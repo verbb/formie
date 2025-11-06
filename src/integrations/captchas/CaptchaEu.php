@@ -68,7 +68,7 @@ class CaptchaEu extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $responseToken = $this->getRequestParam('captcha-eu-token');
+        $responseToken = $this->getCaptchaValue($submission, 'captcha-eu-token');
 
         if (!$responseToken) {
             $this->spamReason = 'Missing Captcha.eu token.';

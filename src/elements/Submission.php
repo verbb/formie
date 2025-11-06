@@ -327,6 +327,7 @@ class Submission extends Element
     private ?string $_contentTable = null;
     private ?array $_pagesForField = null;
     private ?array $_assetsToDelete = [];
+    private array $_captchaData = [];
 
 
     // Public Methods
@@ -443,6 +444,16 @@ class Submission extends Element
         }
 
         return UrlHelper::cpUrl($path, $params);
+    }
+
+    public function setCaptchaData(string $key, mixed $value): void
+    {
+        $this->_captchaData[$key] = $value;
+    }
+
+    public function getCaptchaData(string $key): mixed
+    {
+        return $this->_captchaData[$key] ?? null;
     }
 
     public function updateTitle($form): void

@@ -81,7 +81,7 @@ class FriendlyCaptcha extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
-        $responseToken = $this->getRequestParam('frc-captcha-solution');
+        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-solution');
 
         if (!$responseToken) {
             $this->spamReason = 'Missing Friendly Captcha token.';

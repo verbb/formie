@@ -87,7 +87,7 @@ class Question extends Captcha
     public function validateSubmission(Submission $submission): bool
     {
         // Grab all answers as an array
-        $answers = $this->getRequestParam('fields[formieCaptchaQuestion]');
+        $answers = $this->getCaptchaValue($submission, 'fields[formieCaptchaQuestion]');
 
         // It should now be an array like [1 => 'answer']
         if (!is_array($answers) || empty($answers)) {
