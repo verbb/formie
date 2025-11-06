@@ -63,6 +63,18 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
         return Schema::TYPE_JSON;
     }
 
+    public static function queryCondition(array $instances, mixed $value, array &$params): ?array
+    {
+        $firstInstance = $instances[0];
+
+        if ($firstInstance && $firstInstance->useMultipleFields) {
+            return parent::queryCondition($instances, $value, $params);
+        }
+
+        // For single fields, bubble up to the root field class, to treat it like plain text
+        return Field::queryCondition($instances, $value, $params);
+    }
+
 
     // Properties
     // =========================================================================
