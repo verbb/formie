@@ -25,7 +25,7 @@ class FieldsController extends Controller
 
     public function beforeAction($action): bool
     {
-        if ($action->id === 'get-summary-html') {
+        if ($action->id === 'get-summary-html' || $action->id === 'get-signature-image') {
             $this->enableCsrfValidation = false;
         }
 
