@@ -958,6 +958,26 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 'name' => 'displayType',
                 'type' => Type::string(),
             ],
+            'dateFormat' => [
+                'name' => 'dateFormat',
+                'type' => Type::string(),
+            ],
+            'timeFormat' => [
+                'name' => 'timeFormat',
+                'type' => Type::string(),
+            ],
+            'isDate' => [
+                'name' => 'isDate',
+                'type' => Type::boolean(),
+            ],
+            'isTime' => [
+                'name' => 'isTime',
+                'type' => Type::boolean(),
+            ],
+            'isDateTime' => [
+                'name' => 'isDateTime',
+                'type' => Type::boolean(),
+            ],
             'defaultDate' => [
                 'name' => 'defaultDate',
                 'type' => DateTimeType::getType(),

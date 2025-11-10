@@ -364,6 +364,9 @@ Once using the necessary [Inline Fragments](https://graphql.org/learn/queries/#i
 | `displayType` | `String` | The display layout for this field. Either `calendar`, `dropdowns` or `inputs`.
 | `dateFormat` | `String` | The chosen format for the date.
 | `timeFormat` | `String` | The chosen format for the time.
+| `isDate` | `Boolean` | Whether this field has a Date sub-field only.
+| `isTime` | `Boolean` | Whether this field has a Time sub-field only.
+| `isDateTime` | `Boolean` | Whether this field has a Date and Time sub-field.
 | `useDatePicker` | `Boolean` | Whether this field should use the Flatpickr datepicker.
 | `datePickerOptions` | `Boolean` | A collection of options for the Flatpickr datepicker.
 | `minDate` | `DateTime` | The minimum allowed date.
