@@ -86,6 +86,11 @@ class Question extends Captcha
 
     public function validateSubmission(Submission $submission): bool
     {
+        // If there are no questions, just disable the captcha, it's not setup right.
+        if (empty($this->questions)) {
+            return true;
+        }
+
         // Grab all answers as an array
         $answers = $this->getCaptchaValue($submission, 'fields[formieCaptchaQuestion]');
 
