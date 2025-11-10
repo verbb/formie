@@ -1332,6 +1332,10 @@ class Stripe extends Payment
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
         $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
 
+        // Just in case we're picking the string version of the Address field value (due to Vue restrictions)
+        // ensure that we refer to the actual Address field model value as we need the "bits".
+        $billingAddress = str_replace('.__toString', '', $billingAddress);
+
         if ($billingName) {
             $payload['name'] = $this->getMappedFieldValue($billingName, $submission, new IntegrationField());
         }
