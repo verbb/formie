@@ -1234,7 +1234,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     public function getCpInputHtml(mixed $value, ?ElementInterface $element): Markup
     {
         $input = $this->cpInputHtml($value, $element, false);
-        $errors = $element ? $element->getErrors($this->handle) : '';
+        $errors = $element ? $element->getErrors($this->fieldKey) : '';
 
         $field = Cp::fieldHtml($input, [
             'label' => $this->hasLabel() ? Craft::t('site', $this->label) : null,
