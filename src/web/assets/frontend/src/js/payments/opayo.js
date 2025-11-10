@@ -39,6 +39,13 @@ export class FormieOpayo extends FormiePaymentProvider {
         this.form.removeEventListener(this.eventKey('onFormiePaymentValidate', 'opayo'));
         this.form.removeEventListener(this.eventKey('onAfterFormieSubmit', 'opayo'));
         this.form.removeEventListener(this.eventKey('FormiePaymentOpayo3DS', 'opayo'));
+
+        // Cleanup iframe listener
+        if (this.messageHandler) {
+            window.removeEventListener('message', this.messageHandler, false);
+
+            this.messageHandler = null;
+        }
     }
 
     initField() {
@@ -71,7 +78,13 @@ export class FormieOpayo extends FormiePaymentProvider {
         }
 
         // Listen to events sent from the iframe to complete 3DS challenge
-        window.addEventListener('message', this.onMessage.bind(this), false);
+        // But also ensure we don't stack listeners if already set
+        if (this.messageHandler) {
+            window.removeEventListener('message', this.messageHandler, false);
+        }
+
+        this.messageHandler = this.onMessage.bind(this);
+        window.addEventListener('message', this.messageHandler, false);
 
         // Add input masking and validation for some fields
         Payment.formatCardNumber(this.$field.querySelector('[data-opayo-card="card-number"]'));
@@ -182,6 +195,13 @@ export class FormieOpayo extends FormiePaymentProvider {
             return;
         }
 
+        // Add global lock to prevent multiple calls
+        if (window.__opayo3DSProcessing) {
+            return;
+        }
+
+        window.__opayo3DSProcessing = true;
+
         if (this.dialog) {
             this.dialog.close();
         }
@@ -199,6 +219,11 @@ export class FormieOpayo extends FormiePaymentProvider {
 
         // Handle resubmitting the form properly
         this.processResubmit();
+
+        // Remove the lock after a bit
+        setTimeout(() => {
+            window.__opayo3DSProcessing = false;
+        }, 1000);
     }
 
     onValidate3DS(e) {

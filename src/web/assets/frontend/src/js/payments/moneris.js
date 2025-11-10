@@ -30,11 +30,24 @@ export class FormieMoneris extends FormiePaymentProvider {
         // Remove unique event listeners
         this.form.removeEventListener(eventKey('onFormiePaymentValidate', 'moneris'));
         this.form.removeEventListener(eventKey('onAfterFormieSubmit', 'moneris'));
+
+        // Cleanup iframe listener
+        if (this.messageHandler) {
+            window.removeEventListener('message', this.messageHandler, false);
+
+            this.messageHandler = null;
+        }
     }
 
     initField() {
         // Listen to events sent from the iframe that generates the token
-        window.addEventListener('message', this.onMessage.bind(this), false);
+        // But also ensure we don't stack listeners if already set
+        if (this.messageHandler) {
+            window.removeEventListener('message', this.messageHandler, false);
+        }
+
+        this.messageHandler = this.onMessage.bind(this);
+        window.addEventListener('message', this.messageHandler, false);
 
         // Attach custom event listeners on the form
         // Prevent binding multiple times. This can cause multiple payments!
@@ -52,6 +65,13 @@ export class FormieMoneris extends FormiePaymentProvider {
             return;
         }
 
+        // Add global lock to prevent multiple calls
+        if (window.__moneris3DSProcessing) {
+            return;
+        }
+
+        window.__moneris3DSProcessing = true;
+
         // After tokenization, grab the data and update inputs
         this.updateInputs('monerisTokenId', e.data);
 
@@ -59,6 +79,11 @@ export class FormieMoneris extends FormiePaymentProvider {
         if (this.submitHandler) {
             this.processResubmit();
         }
+
+        // Remove the lock after a bit
+        setTimeout(() => {
+            window.__moneris3DSProcessing = false;
+        }, 1000);
     }
 
     onValidate(e) {
