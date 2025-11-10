@@ -183,6 +183,10 @@ class Recaptcha extends Captcha
 
             $result = Json::decode((string)$response->getBody(), true);
 
+            Formie::log('ReCAPTCHA result {result}', [
+                'result' => Json::encode($result),
+            ]);
+
             $isValid = $result['tokenProperties']['valid'] ?? false;
             $reason = $result['tokenProperties']['invalidReason'] ?? false;
 
@@ -215,6 +219,10 @@ class Recaptcha extends Captcha
 
         $result = Json::decode((string)$response->getBody(), true);
         $success = $result['success'] ?? false;
+
+        Formie::log('ReCAPTCHA result {result}', [
+            'result' => Json::encode($result),
+        ]);
 
         if ($success && isset($result['score'])) {
             $scoreRating = ($result['score'] >= $this->minScore);
