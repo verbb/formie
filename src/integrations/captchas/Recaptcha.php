@@ -188,19 +188,24 @@ class Recaptcha extends Captcha
             ]);
 
             $isValid = $result['tokenProperties']['valid'] ?? false;
-            $reason = $result['tokenProperties']['invalidReason'] ?? false;
+            $reason = $result['tokenProperties']['invalidReason'] ?? 'UNKNOWN_INVALID_REASON';
 
-            if (!$isValid && $reason) {
-                $this->spamReason = $reason;
+            if (!$isValid) {
+                $this->spamReason = 'Invalid token (' . $reason . ').';
+
+                return false;
             }
 
             $score = $result['riskAnalysis']['score'] ?? $result['score'] ?? null;
+            $reasons = $risk['riskAnalysis']['reasons'] ?? $result['reasons'] ?? [];
 
-            if ($score) {
+            if ($score !== null) {
                 $scoreRating = ($score >= $this->minScore);
 
                 if (!$scoreRating) {
-                    $this->spamReason = 'Score ' . $score . ' is below threshold ' . $this->minScore . '.';
+                    $reasonsString = $reasons ? (' Reasons: ' . implode(', ', $reasons) . '.') : '';
+
+                    $this->spamReason = 'Score ' . $score . ' is below threshold ' . $this->minScore . $reasonsString . '.';
                 }
 
                 return $scoreRating;
