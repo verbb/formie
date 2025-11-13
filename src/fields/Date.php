@@ -330,7 +330,9 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             if (is_array($value)) {
                 // We need some extra handling for datePickers which use sub-fields to configure the fields, but only render a single field
                 // and the value is always provide a "datetime" not a "date" or "time" as the field renders and captures content with.
-                $value['datetime'] = ArrayHelper::remove($value, 'date') ?? ArrayHelper::remove($value, 'time');
+                if ($datetime = self::toDateTime($value)) {
+                    $value['datetime'] = DateTimeHelper::isIso8601($datetime);
+                }
             }
         }
 
