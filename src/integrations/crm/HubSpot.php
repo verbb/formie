@@ -131,6 +131,19 @@ class HubSpot extends Crm
                     $event->value = $event->rawValue;
                 }
             }
+
+            if ($event->integrationField->sourceType === 'file' && $event->integration->mapToForm) {
+                // For HubSpot File fields, we need to handle content differently
+                if (is_string($event->value)) {
+                    $event->value = array_map('trim', explode(',', $event->value));
+                }
+
+                // Let our form-field processing handling know about it needs to be treated differently
+                // Prevent changing multiple times, as this event is called
+                if (is_array($event->value) && !isset($event->value['FILE_UPLOAD_DATA'])) {
+                    $event->value = ['FILE_UPLOAD_DATA' => $event->value];
+                }
+            }
         });
     }
 
@@ -566,11 +579,22 @@ class HubSpot extends Crm
                     $handleParts = explode('.', $key);
                     $objectTypeId = str_replace(['CONTACT', 'COMPANY'], ['0-1', '0-2'], ($handleParts[0] ?? 'CONTACT'));
 
-                    $formPayload['fields'][] = [
-                        'objectTypeId' => $objectTypeId,
-                        'name' => $handleParts[1] ?? '',
-                        'value' => $value,
-                    ];
+                    // Special-handling for some fields.
+                    if (is_array($value) && isset($value['FILE_UPLOAD_DATA'])) {
+                        foreach ($value['FILE_UPLOAD_DATA'] as $subValue) {
+                            $formPayload['fields'][] = [
+                                'objectTypeId' => $objectTypeId,
+                                'name' => $handleParts[1] ?? '',
+                                'value' => $subValue,
+                            ];
+                        }
+                    } else {
+                        $formPayload['fields'][] = [
+                            'objectTypeId' => $objectTypeId,
+                            'name' => $handleParts[1] ?? '',
+                            'value' => $value,
+                        ];
+                    }
                 }
 
                 // Setup Hubspot's context, if we're mapping it, or if it's automatically saved in context
