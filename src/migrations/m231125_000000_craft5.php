@@ -2,6 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\Formie;
+use verbb\formie\events\ModifyMigrationAddressConfigEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
@@ -26,6 +27,11 @@ use Throwable;
 
 class m231125_000000_craft5 extends BaseContentRefactorMigration
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_MIGRATION_ADDRESS_CONFIG = 'modifyMigrationAddressConfig';
+
     // Properties
     // =========================================================================
 
@@ -895,7 +901,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
     private function _getAddressConfig(array $settings): array
     {
-        return [
+
+        $addressConfig = [
             [
                 'fields' => [
                     [
@@ -1066,6 +1073,15 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
                 ],
             ],
         ];
+
+        // Fire a 'ModifyMigrationAddressConfig' event
+        $event = new ModifyMigrationAddressConfigEvent([
+            'addressConfig' => $addressConfig,
+            'settings' => $settings,
+        ]);
+        $this->trigger(self::EVENT_MODIFY_MIGRATION_ADDRESS_CONFIG, $event);
+
+        return $event->addressConfig;
     }
 
     private function _getDateCalendarConfig(array $settings): array
