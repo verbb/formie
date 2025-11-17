@@ -585,7 +585,7 @@ class HubSpot extends Crm
                             $formPayload['fields'][] = [
                                 'objectTypeId' => $objectTypeId,
                                 'name' => $handleParts[1] ?? '',
-                                'value' => $subValue,
+                                'value' => strtok($subValue, '?'),
                             ];
                         }
                     } else {
