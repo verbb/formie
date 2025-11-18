@@ -63,7 +63,7 @@ class Ortto extends EmailMarketing
         try {
             $lists = $this->request('POST', 'audiences/get', [
                 'json' => [
-                    'search_term' => 'subscribers',
+                    'offset' => 0,
                 ],
             ]);
 
