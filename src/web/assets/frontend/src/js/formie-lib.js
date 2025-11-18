@@ -252,35 +252,22 @@ export class Formie {
         }
 
         const index = this.forms.indexOf(form);
-
         if (index === -1) {
             return;
         }
-
-        // Mark the form as being destroyed, so no more events get added while we try and remove them
-        form.destroyed = true;
 
         // Delete any additional scripts for the form - if any
         if (form.$registeredJs && form.$registeredJs.parentNode) {
             form.$registeredJs.parentNode.removeChild(form.$registeredJs);
         }
 
-        // Trigger an event (before events are removed)
-        form.formDestroy({
-            form,
-        });
-
-        // Remove all event listeners attached to this form
-        if (!isEmpty(form.listeners)) {
-            Object.keys(form.listeners).forEach((eventKey) => {
-                form.removeEventListener(eventKey);
-            });
-        }
-
-        // Destroy Bouncer events
+        // Destroy Bouncer / theme-specific validators
         if (form.formTheme && form.formTheme.validator) {
             form.formTheme.validator.destroy();
         }
+
+        // Let the form clean up its own listeners and bus
+        form.destroy();
 
         // Delete it from the factory
         this.forms.splice(index, 1);

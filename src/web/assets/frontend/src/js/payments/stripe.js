@@ -306,7 +306,7 @@ export class FormieStripe extends FormiePaymentProvider {
         }
 
         // Listen to (debounced) whenever something in the form changes and matches our mapped-to fields
-        this.$form.addEventListener('input', debounce((event) => {
+        this.form.addEventListener(this.$form, this.eventKey('input', 'stripe'), debounce((event) => {
             const fieldName = event.target.name;
 
             const amount = this.initialPaymentInformation?.amount ?? null;

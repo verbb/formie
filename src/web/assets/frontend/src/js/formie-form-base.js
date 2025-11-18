@@ -2,54 +2,137 @@ import { t } from './utils/utils';
 
 import { FormieFormTheme } from './formie-form-theme';
 
-// Create an event dispatcher for registering and triggering events, no matter the `dispatchEvent` or `addEventListener` order.
-// This is useful for registering validation rules, where fields that are lazy-loaded might register validators, but are
-// triggered after the Form Theme's `dispatchEvent`.
-class EventDispatcher {
+// We use two event layers:
+
+// 1. EventManager (DOM Events)
+// - Manages all real DOM event listeners (submit, input, focus, blur, onFormieValidate, etc.)
+// - Prevents double-binding by using the event string as a unique key.
+// - Automatically removes all listeners when the form is destroyed.
+// - Use when the event originates from the browser or a DOM node.
+
+// 2. EventBus (Logical / Internal Events)
+// - Internal pub/sub system with replay ("sticky") behaviour.
+// - triggerEvent(name, payload) stores the last payload.
+// - registerEvent(name, callback) immediately replays the last payload if fired earlier.
+// - Perfect for lazy-loaded modules (validators, captchas, payment setup).
+// - Use for form lifecycle events that are NOT DOM events.
+
+// Rule of thumb:
+// DOM = "something happened in the browser"
+// Bus = "something happened in the application"
+
+// This separation ensures clean re-initialisation, predictable ordering,
+// lazy-loaded compatibility, and zero memory leaks.
+
+class EventManager {
     constructor() {
-        this.listeners = new Map();
-        this.dispatchedEvents = new Map();
+        this._listeners = new Set(); // { element, type, handler, options, key }
     }
 
-    addEventListener(eventName, callback) {
-        if (!this.listeners.has(eventName)) {
-            this.listeners.set(eventName, []);
+    on(element, type, handler, { key, options } = {}) {
+        if (!element) { return; }
+
+        // If a key is provided, ensure only a single listener per key.
+        if (key) {
+            this.offByKey(key);
         }
 
-        this.listeners.get(eventName).push(callback);
+        const record = {
+            element, type, handler, options, key,
+        };
 
-        // If there are pending events, execute the callbacks for those events
-        if (this.dispatchedEvents.has(eventName)) {
-            const eventDetail = this.dispatchedEvents.get(eventName);
+        element.addEventListener(type, handler, options);
+        this._listeners.add(record);
 
-            callback(eventDetail);
+        // Return unsubscribe function
+        return () => { return this.off(element, type, handler, options); };
+    }
+
+    off(element, type, handler, options) {
+        for (const record of this._listeners) {
+            if (
+                record.element === element &&
+                record.type === type &&
+                record.handler === handler &&
+                record.options === options
+            ) {
+                record.element.removeEventListener(record.type, record.handler, record.options);
+                this._listeners.delete(record);
+            }
         }
     }
 
-    removeEventListener(eventName, callback) {
-        if (!this.listeners.has(eventName)) {
-            return;
-        }
+    offByKey(key) {
+        if (!key) { return; }
 
-        const index = this.listeners.get(eventName).indexOf(callback);
-
-        if (index !== -1) {
-            this.listeners.get(eventName).splice(index, 1);
+        for (const record of this._listeners) {
+            if (record.key === key) {
+                record.element.removeEventListener(record.type, record.handler, record.options);
+                this._listeners.delete(record);
+            }
         }
     }
 
-    dispatchEvent(eventName, eventDetail) {
-        if (!this.listeners.has(eventName)) {
-            // If there are no listeners, store the event for future listeners
-            this.dispatchedEvents.set(eventName, eventDetail);
-            return;
+    offAll() {
+        for (const record of this._listeners) {
+            record.element.removeEventListener(record.type, record.handler, record.options);
+        }
+        this._listeners.clear();
+    }
+}
+
+class EventBus {
+    constructor() {
+        this._listeners = new Map(); // eventName -> Set<fn>
+        this._lastPayload = new Map(); // eventName -> payload
+    }
+
+    on(eventName, callback, { replay = true } = {}) {
+        if (!this._listeners.has(eventName)) {
+            this._listeners.set(eventName, new Set());
         }
 
-        const callbacks = this.listeners.get(eventName);
+        this._listeners.get(eventName).add(callback);
 
-        callbacks.forEach((callback) => {
-            callback(eventDetail);
-        });
+        // If this event already happened and the listener wants replay, call immediately.
+        if (replay && this._lastPayload.has(eventName)) {
+            callback(this._lastPayload.get(eventName));
+        }
+
+        // Return unsubscribe function for convenience (optional, but nice to have)
+        return () => {
+            this.off(eventName, callback);
+        };
+    }
+
+    off(eventName, callback) {
+        const set = this._listeners.get(eventName);
+        if (!set) { return; }
+
+        set.delete(callback);
+
+        if (!set.size) {
+            this._listeners.delete(eventName);
+            this._lastPayload.delete(eventName);
+        }
+    }
+
+    emit(eventName, payload, { sticky = true } = {}) {
+        if (sticky) {
+            this._lastPayload.set(eventName, payload);
+        }
+
+        const set = this._listeners.get(eventName);
+        if (!set) { return; }
+
+        for (const fn of set) {
+            fn(payload);
+        }
+    }
+
+    clear() {
+        this._listeners.clear();
+        this._lastPayload.clear();
     }
 }
 
@@ -58,8 +141,10 @@ export class FormieFormBase {
         this.$form = $form;
         this.config = config;
         this.settings = config.settings;
-        this.listeners = {};
-        this.eventDispatcher = new EventDispatcher();
+
+        this.eventManager = new EventManager();
+        this.eventBus = new EventBus();
+        this.destroyed = false;
 
         if (!this.$form) {
             return;
@@ -87,7 +172,7 @@ export class FormieFormBase {
             e.preventDefault();
 
             this.initSubmit();
-        }, false);
+        });
     }
 
     initSubmit() {
@@ -100,6 +185,33 @@ export class FormieFormBase {
         }
 
         this.processSubmit();
+    }
+
+    destroy() {
+        if (this.destroyed) {
+            return;
+        }
+
+        this.destroyed = true;
+
+        // Notify external listeners (keeping your existing public API)
+        this.formDestroy({
+            form: this,
+        });
+
+        // Clean up all DOM listeners managed by this form
+        if (this.eventManager) {
+            this.eventManager.offAll();
+        }
+
+        if (this.eventBus) {
+            this.eventBus.clear();
+        }
+
+        // Clear reference from DOM node if you want
+        if (this.$form && this.$form.form === this) {
+            delete this.$form.form;
+        }
     }
 
     processSubmit(skip = []) {
@@ -266,26 +378,23 @@ export class FormieFormBase {
         });
     }
 
-    addEventListener(element, event, func) {
-        // If the form is marked as destroyed, don't add any more event listeners.
-        // This can often happen with captchas or payment integrations which are done as they appear on page.
-        if (!this.destroyed) {
-            this.listeners[event] = { element, func };
-            const eventName = event.split('.')[0];
-
-            element.addEventListener(eventName, this.listeners[event].func);
+    addEventListener(element, event, func, options) {
+        if (this.destroyed) {
+            return;
         }
+
+        if (!element || !event || !func) {
+            return;
+        }
+
+        const type = event.split('.')[0];
+        const key = event;
+
+        this.eventManager.on(element, type, func, { key, options });
     }
 
     removeEventListener(event) {
-        const eventInfo = this.listeners[event] || {};
-
-        if (eventInfo && eventInfo.element && eventInfo.func) {
-            const eventName = event.split('.')[0];
-
-            eventInfo.element.removeEventListener(eventName, eventInfo.func);
-            delete this.listeners[event];
-        }
+        this.eventManager.offByKey(event);
     }
 
     eventObject(name, detail) {
@@ -335,11 +444,11 @@ export class FormieFormBase {
         }
     }
 
-    registerEvent(eventName, callback) {
-        this.eventDispatcher.addEventListener(eventName, callback);
+    registerEvent(eventName, callback, options) {
+        return this.eventBus.on(eventName, callback, options);
     }
 
-    triggerEvent(eventName, options) {
-        this.eventDispatcher.dispatchEvent(eventName, options);
+    triggerEvent(eventName, payload, options) {
+        this.eventBus.emit(eventName, payload, options);
     }
 }
