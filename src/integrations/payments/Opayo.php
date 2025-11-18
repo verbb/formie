@@ -790,11 +790,11 @@ class Opayo extends Payment
         // $payload['billingAddress']['address1'] = '88';
         // $payload['billingAddress']['postalCode'] = '412';
 
-        $payload['billingAddress']['address1'] = ArrayHelper::remove($address, 'address1');
-        $payload['billingAddress']['city'] = ArrayHelper::remove($address, 'city');
-        $payload['billingAddress']['postalCode'] = ArrayHelper::remove($address, 'zip');
-        $payload['billingAddress']['state'] = ArrayHelper::remove($address, 'state');
-        $payload['billingAddress']['country'] = ArrayHelper::remove($address, 'country');
+        $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
+        $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
+        $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
+        $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
+        $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
 
         // All values need to be handled a little bit...
         $payload['billingAddress']['address1'] = substr($payload['billingAddress']['address1'], 0, 20);
