@@ -80,6 +80,9 @@ class SubmissionResolver extends ElementMutationResolver
 
         $submission = $this->populateElementWithData($submission, $arguments, $resolveInfo);
 
+        // Set whether this is a new submission or not. Unlike traditional submit endpoint, we have one mutation for submit and save
+        $submission->isNewSubmission = $arguments['isNewSubmission'] ?? true;
+
         // Handle any captchas
         $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
 
