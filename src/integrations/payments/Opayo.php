@@ -797,9 +797,9 @@ class Opayo extends Payment
         $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
 
         // All values need to be handled a little bit...
-        $payload['billingAddress']['address1'] = substr($payload['billingAddress']['address1'], 0, 20);
-        $payload['billingAddress']['city'] = substr($payload['billingAddress']['city'], 0, 20);
-        $payload['billingAddress']['postalCode'] = substr($payload['billingAddress']['postalCode'], 0, 8);
+        $payload['billingAddress']['address1'] = trim(substr($payload['billingAddress']['address1'], 0, 20));
+        $payload['billingAddress']['city'] = trim(substr($payload['billingAddress']['city'], 0, 20));
+        $payload['billingAddress']['postalCode'] = trim(substr($payload['billingAddress']['postalCode'], 0, 8));
 
         // If mapping the country, we need to convert from full-text to abbreviation
         if ($payload['billingAddress']['country'] && strlen($payload['billingAddress']['country']) > 3) {
