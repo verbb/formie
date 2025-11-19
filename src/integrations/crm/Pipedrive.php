@@ -116,11 +116,58 @@ class Pipedrive extends Crm
 
             // Get Lead fields - uses the same custom fields as deals
             if ($this->mapToLead) {
-                $settings['lead'] = array_merge($this->_getCustomFields($dealLeadFields, ['currency', 'probability', 'stage_id', 'label', 'status']), [
+                $leadFields = $this->_getCustomFields($dealLeadFields, ['currency', 'probability', 'stage_id', 'label', 'status']);
+
+                $response = $this->request('GET', 'leadLabels');
+                $leadLabels = $response['data'] ?? [];
+
+                $response = $this->request('GET', 'users');
+                $users = $response['data'] ?? [];
+
+                $response = $this->request('GET', 'currencies');
+                $currencies = $response['data'] ?? [];
+
+                $settings['lead'] = array_merge($leadFields, [
+                    new IntegrationField([
+                        'handle' => 'currency',
+                        'name' => Craft::t('formie', 'Currency'),
+                        'options' => [
+                            'label' => Craft::t('formie', 'Currency'),
+                            'options' => array_map(function($currency) {
+                                return [
+                                    'label' => $currency['name'],
+                                    'value' => (string)$currency['code'],
+                                ];
+                            }, $currencies),
+                        ],
+                    ]),
                     new IntegrationField([
                         'handle' => 'owner_id',
-                        'name' => Craft::t('formie', 'Owner ID'),
+                        'name' => Craft::t('formie', 'Owner'),
                         'type' => IntegrationField::TYPE_NUMBER,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Owner'),
+                            'options' => array_map(function($user) {
+                                return [
+                                    'label' => $user['name'],
+                                    'value' => (string)$user['id'],
+                                ];
+                            }, $users),
+                        ],
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'label_ids',
+                        'name' => Craft::t('formie', 'Labels'),
+                        'type' => IntegrationField::TYPE_ARRAY,
+                        'options' => [
+                            'label' => Craft::t('formie', 'Labels'),
+                            'options' => array_map(function($leadLabel) {
+                                return [
+                                    'label' => $leadLabel['name'],
+                                    'value' => (string)$leadLabel['id'],
+                                ];
+                            }, $leadLabels),
+                        ],
                     ]),
                     new IntegrationField([
                         'handle' => 'note',
@@ -321,6 +368,15 @@ class Pipedrive extends Crm
 
                 if ($personId) {
                     $leadPayload['person_id'] = $personId;
+                }
+
+                // Extract value and currency to build
+                $value = ArrayHelper::remove($leadPayload, 'value');
+                $currency = ArrayHelper::remove($leadPayload, 'currency') ?? 'USD';
+
+                // Value needs to be formatted correctly
+                if ($value) {
+                    $leadPayload['value'] = ['amount' => (float)$value, 'currency' => $currency];
                 }
 
                 $response = $this->deliverPayload($submission, 'leads', $leadPayload);

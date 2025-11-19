@@ -97,7 +97,7 @@
         <div id="map-to-lead" class="{{ not mapToLead ? 'hidden' }}">
             <integration-field-mapping
                 label="{{ 'Lead Field Mapping' | t('formie') }}"
-                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields.' | t('formie', { name: displayName, label: 'Lead' }) }}"
+                instructions="{{ 'Choose how your form fields should map to your {name} {label} fields. You must also map a Person or Organization.' | t('formie', { name: displayName, label: 'Lead' }) }}"
                 name-label="{{ integration.displayName() }}"
                 id="lead-field-mapping"
                 name="leadFieldMapping"
