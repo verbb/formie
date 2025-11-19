@@ -65,7 +65,7 @@ class Ortto extends EmailMarketing
                 'json' => [
                     'offset' => 0,
                 ],
-            ]);
+            ]) ?? [];
 
             // While we're at it, fetch the fields for the list
             $response = $this->request('POST', 'person/custom-field/get');
