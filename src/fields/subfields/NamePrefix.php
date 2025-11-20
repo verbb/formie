@@ -71,6 +71,20 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $event->options;
     }
 
+    public function options(): array
+    {
+        $options = parent::options();
+        
+        foreach ($options as $key => $value) {
+            // Ensure that labels are translated at runtime, as we only translate them in `getDefaultOptions()`
+            $value['label'] = Craft::t('formie', $value['label']);
+
+            $options[$key] = $value;
+        }
+
+        return $options;
+    }
+
     public function defineGeneralSchema(): array
     {
         return [
