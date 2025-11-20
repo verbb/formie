@@ -33,6 +33,11 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::boolean(),
                 'description' => 'The submission’s incomplete state.',
             ],
+            'isNewSubmission' => [
+                'name' => 'isNewSubmission',
+                'type' => Type::boolean(),
+                'description' => 'The submission’s "new" state. Useful to toggle when editing existing and submissions.',
+            ],
         ]);
     }
 }
