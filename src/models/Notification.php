@@ -98,7 +98,10 @@ class Notification extends Model
                 // Normalize conditions for emails (just the emails, not the matching string)
                 if ($toRecipients && is_array($toRecipients)) {
                     foreach ($toRecipients as $key => $toRecipient) {
-                        $toRecipients[$key]['email'] = strtolower($toRecipient['email']);
+                        // Only normalize if a static email (.env variables and field refs should stay)
+                        if (str_contains($toRecipient['email'], '@')) {
+                            $toRecipients[$key]['email'] = strtolower($toRecipient['email']);
+                        }
                     }
                 }
 
