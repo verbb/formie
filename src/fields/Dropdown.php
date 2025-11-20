@@ -345,7 +345,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        $values = $faker->randomElement($this->options)['value'] ?? '';
+        $values = $faker->randomElement($this->options())['value'] ?? '';
 
         if ($this->multi) {
             $values = [$values];

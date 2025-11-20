@@ -148,6 +148,18 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
+    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    {
+        // If the value is a string, ensure we properly return the value as the Dropdown email template would expect (an option)
+        if ($value && is_string($value)) {
+            if ($prefixOption = ArrayHelper::firstWhere($this->options(), 'value', $value)) {
+                return $prefixOption;
+            }
+        }
+
+        return '';
+    }
+
     protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
     {
         return $this->_getValueLabel($value);
