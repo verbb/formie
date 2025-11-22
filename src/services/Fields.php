@@ -994,6 +994,9 @@ class Fields extends Component
                     ...$field->getSettings(),
                 ];
 
+                // Remove some attributes that shouldn't be synced
+                unset($settings['required']);
+
                 $syncedField->setAttributes($settings, false);
 
                 // Saved the synced field, but be careful not to case a loop
