@@ -251,6 +251,13 @@ export class FormieFormBase {
         return this.$form.dispatchEvent(validateEvent);
     }
 
+    validateError(data = {}) {
+        this.$form.dispatchEvent(new CustomEvent('onFormieValidateError', {
+            bubbles: true,
+            detail: data,
+        }));
+    }
+
     afterValidate() {
         // Create an event for after validation. This is mostly for third-parties.
         const afterValidateEvent = this.eventObject('onAfterFormieValidate', {

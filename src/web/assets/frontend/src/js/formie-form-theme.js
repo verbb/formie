@@ -266,6 +266,13 @@ export class FormieFormTheme {
             this.removeFormAlert();
         }
 
+        // Raise a client-side event for failed errors. Set a tiny delay to ensure the event fires correctly-timed
+        if (errors.length) {
+            setTimeout(() => {
+                this.form.validateError({ errors });
+            }, 10);
+        }
+
         return !errors.length;
     }
 
