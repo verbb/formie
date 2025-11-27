@@ -863,6 +863,11 @@ class Submission extends Element
             $value = $this->getFieldValue($field->handle);
             $html = $field->getValueForSummary($value, $this);
 
+            // Just in case some fields want to opt-out
+            if ($html === false || $html === null) {
+                continue;
+            }
+
             $items[] = [
                 'field' => $field,
                 'value' => $value,

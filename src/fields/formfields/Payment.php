@@ -259,6 +259,11 @@ class Payment extends FormField
         return (string)$value;
     }
 
+    public function getValueForSummary(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return false;
+    }
+
 
     // Private Methods
     // =========================================================================
