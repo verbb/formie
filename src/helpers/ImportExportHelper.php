@@ -238,7 +238,9 @@ class ImportExportHelper
                 $emailTemplate = ArrayHelper::remove($notificationData, 'emailTemplate');
                 $pdfTemplate = ArrayHelper::remove($notificationData, 'pdfTemplate');
 
-                $notification = new Notification();
+                // Find or create the notification, based on the form and notification handle
+                $notification = Formie::$plugin->getNotifications()->getFormNotificationByHandle($form, $notificationData['handle']) ?? new Notification();
+
                 $notification->setAttributes($notificationData, false);
 
                 if ($emailTemplate) {
