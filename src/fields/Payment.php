@@ -278,6 +278,11 @@ class Payment extends Field
         return (string)$value;
     }
 
+    public function getValueForSummary(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return false;
+    }
+
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         // Payment fields can't really be previewed without real payment data
