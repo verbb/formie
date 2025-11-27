@@ -386,6 +386,7 @@ export class FormieFormBase {
     }
 
     addEventListener(element, event, func, options) {
+        // If the form is marked as destroyed, don't add any more event listeners.
         if (this.destroyed) {
             return;
         }
@@ -394,8 +395,12 @@ export class FormieFormBase {
             return;
         }
 
-        const type = event.split('.')[0];
-        const key = event;
+        const type = event.split('.')[0]; // DOM event name: "click", "onFormiePaymentValidate", etc.
+        const hasNamespace = event.includes('.');
+
+        // Only dedupe when we have a namespace.
+        // Plain "click"/"input"/"blur" can have multiple listeners.
+        const key = hasNamespace ? event : undefined;
 
         this.eventManager.on(element, type, func, { key, options });
     }
