@@ -59,6 +59,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
     public const EVENT_REGISTER_DATE_FORMAT_OPTIONS = 'registerDateFormatOptions';
     public const EVENT_REGISTER_TIME_FORMAT_OPTIONS = 'registerTimeFormatOptions';
 
+
     // Static Methods
     // =========================================================================
 
@@ -83,6 +84,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         return Schema::TYPE_DATETIME;
     }
 
+
     // Properties
     // =========================================================================
 
@@ -104,6 +106,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
     public int $minYearRange = -100;
     public int $maxYearRange = 100;
     public mixed $availableDaysOfWeek = '*';
+
 
     // Public Methods
     // =========================================================================
@@ -328,10 +331,18 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             }
         } else if ($this->displayType === 'datePicker') {
             if (is_array($value)) {
-                // We need some extra handling for datePickers which use sub-fields to configure the fields, but only render a single field
-                // and the value is always provide a "datetime" not a "date" or "time" as the field renders and captures content with.
-                if ($datetime = self::toDateTime($value)) {
-                    $value['datetime'] = DateTimeHelper::isIso8601($datetime);
+                // Promote "date" or "time" to datetime if they contain a full datetime.
+                foreach (['date', 'time'] as $k) {
+                    if (isset($value[$k]) && $this->_isDateTimeString($value[$k])) {
+                        $value['datetime'] = $value[$k];
+                        unset($value[$k]);
+                    }
+                }
+
+                // If we already have a datetime, leave it alone.
+                // But if toDateTime normalises it further, update it.
+                if ($dt = self::toDateTime($value)) {
+                    $value['datetime'] = DateTimeHelper::toIso8601($dt);
                 }
             }
         }
@@ -1577,5 +1588,18 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         $this->trigger(self::EVENT_REGISTER_TIME_FORMAT_OPTIONS, $event);
 
         return $event->options;
+    }
+
+    private function _isDateTimeString(mixed $value): bool
+    {
+        if (!is_string($value) || $value === '') {
+            return false;
+        }
+
+        // Very simple "YYYY-MM-DD HH:MM[:SS]" or "YYYY-MM-DDTHH:MM[:SS]" check
+        return (bool)preg_match(
+            '/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?$/',
+            $value
+        );
     }
 }
