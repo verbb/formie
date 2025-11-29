@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.2.7 - 2025-11-29
+
+### Added
+- Add debug logging for reCAPTCHA responses.
+
+### Changed
+- Webhook-based payment integrations (Mollie, GoCardless) now properly fire integrations and notifications.
+- Question captcha protects against validation when no questions are set.
+- Captchas for GraphQL mutations now don’t require a mandatory variables parameter to be named the same as their input type.
+
+### Fixed
+- Fix Payment fields displaying in Summary field content by default.
+- Fix Date/Time fields not using min/max values for native date input for non-Flatpickr.
+- Fix an issue with Date fields, where the `availableDaysOfWeek` may not be typed correctly in some instances.
+- Fix an issue with ReCAPTCHA Enterprise validation.
+- Fix fetching an email signature controller action using CSRF verification when it doesn’t need to.
+
 ## 2.2.6 - 2025-11-06
 
 ### Added
