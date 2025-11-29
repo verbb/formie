@@ -947,11 +947,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $this->cache = [];
         }
 
+        // Shallow-merge the top-level items
+        $this->cache = array_merge($this->cache, $values);
+
         // Merge stored and new settings (so they work across forms)
         $oldSettings = $this->cache['settings'] ?? [];
         $newSettings = $values['settings'] ?? [];
 
-        $this->cache = ['settings' => array_merge($oldSettings, $newSettings)];
+        $this->cache['settings'] = array_merge($oldSettings, $newSettings);
 
         // Add support for emoji in cached content
         $data = Json::encode($this->cache);
