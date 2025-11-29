@@ -1,5 +1,46 @@
 # Changelog
 
+## 3.1.6 - 2025-11-29
+
+### Added
+- Add `onFormieValidateError` JS event for client-side error handling.
+- Add `isNewSubmission` argument to GraphQL mutation for submissions.
+- Add debug logging for reCAPTCHA responses.
+
+### Changed
+- Webhook-based payment integrations (Mollie, GoCardless) now properly fire integrations and notifications.
+- Improve front-end JS event management, to better deal with accidental multiple initialization of Formie’s JS in some setups.
+- Question captcha protects against validation when no questions are set.
+- Captchas for GraphQL mutations now don’t require a mandatory variables parameter to be named the same as their input type.
+
+### Fixed
+- Fix handling of integration settings when connecting.
+- Fix Date (Time-only) fields and validation handling.
+- Fix an issue with event-binding for front-end JS.
+- Fix an import form issue when updating an existing form, where notifications weren’t being treated correctly.
+- Fix Payment fields displaying in Summary field content by default.
+- Fix Date/Time fields not using min/max values for native date input for non-Flatpickr.
+- Fix synced fields overriding the required attribute.
+- Fix Name Prefix field not showing its value correctly in email notifications.
+- Fix Name Prefix field values not getting properly translated.
+- Fix an error for integrations used across multiple forms, where different forms enabled different data objects, and mapping lost.
+- Fix email notifications containing .env variables as conditions not working correctly.
+- Fix `isNewSubmission` flag for GraphQL mutations for submissions, causing multiple notifications to be sent when conditions exist and were met.
+- Fix mapping issues for Pipedrive Leads.
+- Fix an error with Ortto and fetching lists.
+- Fix HubSpot CRM integration handling of multi File Upload field values.
+- Fix HubSpot field mapping for form company fields.
+- Fix an error with handling Date field values (for date-picker fields) when in the control panel.
+- Fix Formie 2 email notification migration for fields used in conditions.
+- Fix an issue with Date fields, where the `availableDaysOfWeek` may not be typed correctly in some instances.
+- Fix an issue with ReCAPTCHA Enterprise validation.
+- Fix a 3DS processing issue for Moneris and Opayo in some setups.
+- Fix an error when programatically changing the available countries to a Countries field.
+- Fix Opayo, Stripe and Paddle Payment integrations incorrectly setting the Billing Address value for payments.
+- Fix some missing properties for Date fields when querying via GQL.
+- Fix some complex fields not having their error messages set when editing a submission in the control panel.
+- Fix fetching an email signature controller action using CSRF verification when it doesn’t need to.
+
 ## 3.1.5 - 2025-11-06
 
 ### Added
