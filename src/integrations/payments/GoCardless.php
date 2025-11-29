@@ -294,6 +294,10 @@ class GoCardless extends Payment
         $submission->isIncomplete = false;
         Craft::$app->getElements()->saveElement($submission, false);
 
+        // Fire any notifications/integrations
+        Formie::$plugin->getSubmissions()->sendNotifications($submission);
+        Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+
         $form = $submission->getForm();
 
         Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);

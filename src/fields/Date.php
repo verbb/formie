@@ -629,6 +629,11 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $datePickerOptions[$key]['value'] = Json::decodeIfJson($option['value']);
             }
 
+            // Ensure available days are integers if set
+            if (is_array($this->availableDaysOfWeek)) {
+                $this->availableDaysOfWeek = array_map('intval', $this->availableDaysOfWeek);
+            }
+
             return [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/date-picker.js'),
                 'module' => 'FormieDatePicker',
