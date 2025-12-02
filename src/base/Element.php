@@ -1,15 +1,14 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldsEvent;
 use verbb\formie\events\ModifyElementMatchEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
-use verbb\formie\fields\Date;
-use verbb\formie\fields\MultiLineText;
-use verbb\formie\fields\SingleLineText;
-use verbb\formie\fields\Table;
+use verbb\formie\fields as FormieFields;
+use verbb\formie\fields\subfields as FormieSubFields;
 use verbb\formie\fields\data\MultiOptionsFieldData;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\fields\data\SingleOptionFieldData;
@@ -22,7 +21,7 @@ use verbb\formie\models\Stencil;
 use Craft;
 use craft\base\ElementInterface;
 use craft\base\FieldInterface as CraftFieldInterface;
-use craft\fields;
+use craft\fields as CraftFields;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -33,6 +32,9 @@ use yii\helpers\Markdown;
 
 use DateTime;
 use DateTimeZone;
+
+use CommerceGuys\Addressing\Country\CountryRepository;
+use CommerceGuys\Addressing\Subdivision\SubdivisionRepository;
 
 abstract class Element extends Integration
 {
@@ -92,7 +94,7 @@ abstract class Element extends Integration
             $fieldClass = $event->integrationField->sourceType;
 
             // For rich-text enabled fields, retain the HTML (safely)
-            if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
+            if ($event->field instanceof FormieFields\MultiLineText || $event->field instanceof FormieFields\SingleLineText) {
                 if (is_string($event->value)) {
                     $event->value = StringHelper::htmlDecode($event->value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401);
                 }
@@ -101,7 +103,7 @@ abstract class Element extends Integration
             // For options-based fields, we might be using the label, which is valid for mapping to text fields or other values
             // but if mapping to a Craft options field with the same label/value pair - it needs to be the value.
             if ($event->field instanceof OptionsFieldInterface) {
-                if (is_a($fieldClass, fields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, fields\BaseOptionsField::class, true)) {
+                if (is_a($fieldClass, CraftFields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseOptionsField::class, true)) {
                     // Check for some cases where it's options data
                     if ($event->rawValue instanceof SingleOptionFieldData) {
                         $event->value = $event->rawValue->value;
@@ -125,7 +127,7 @@ abstract class Element extends Integration
             }
 
             // If mapping from Formie Date/Time to Craft Time
-            if (is_a($fieldClass, fields\Time::class, true) && $event->field instanceof Date) {
+            if (is_a($fieldClass, CraftFields\Time::class, true) && $event->field instanceof FormieFields\Date) {
                 if (!($event->value instanceof DateTime)) {
                     $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
@@ -139,13 +141,27 @@ abstract class Element extends Integration
             }
 
             // For Table fields with Date/Time destination columns, convert to UTC from system time
-            if ($event->field instanceof Table) {
+            if ($event->field instanceof FormieFields\Table) {
                 $timezone = new DateTimeZone(Craft::$app->getTimeZone());
 
                 foreach ($event->value as $rowKey => $row) {
                     foreach ($row as $colKey => $column) {
                         if (is_array($column) && isset($column['date'])) {
                             $event->value[$rowKey][$colKey] = (new DateTime($column['date'], $timezone));
+                        }
+                    }
+                }
+            }
+
+            // Check for Formie Address Country to Craft Country fields
+            if (is_a($fieldClass, CraftFields\Country::class, true) && $event->field instanceof FormieSubFields\AddressCountry) {
+                // Field requires prefix as a value, so override
+                if (is_string($event->value) && strlen($event->value) > 3) {
+                    $countryRepository = new CountryRepository();
+
+                    foreach ($countryRepository->getAll() as $country) {
+                        if ($country->getName() === $event->value) {
+                            $event->value = $country->getCountryCode();
                         }
                     }
                 }
@@ -231,20 +247,20 @@ abstract class Element extends Integration
     {
         // Provide a map of all native Craft fields to the data we expect
         $fieldTypeMap = [
-            fields\Assets::class => IntegrationField::TYPE_ARRAY,
-            fields\Categories::class => IntegrationField::TYPE_ARRAY,
-            fields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
-            fields\Date::class => IntegrationField::TYPE_DATECLASS,
-            fields\Entries::class => IntegrationField::TYPE_ARRAY,
-            fields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
-            fields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
-            fields\Number::class => IntegrationField::TYPE_FLOAT,
-            fields\Table::class => IntegrationField::TYPE_ARRAY,
-            fields\Tags::class => IntegrationField::TYPE_ARRAY,
-            fields\Users::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Assets::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Categories::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Checkboxes::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Date::class => IntegrationField::TYPE_DATECLASS,
+            CraftFields\Entries::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Lightswitch::class => IntegrationField::TYPE_BOOLEAN,
+            CraftFields\MultiSelect::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Number::class => IntegrationField::TYPE_FLOAT,
+            CraftFields\Table::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Tags::class => IntegrationField::TYPE_ARRAY,
+            CraftFields\Users::class => IntegrationField::TYPE_ARRAY,
         ];
 
-        if (is_a($fieldClass, fields\BaseRelationField::class, true) || is_subclass_of($fieldClass, fields\BaseRelationField::class, true)) {
+        if (is_a($fieldClass, CraftFields\BaseRelationField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseRelationField::class, true)) {
             return IntegrationField::TYPE_ARRAY;
         }
 
@@ -256,17 +272,17 @@ abstract class Element extends Integration
         $type = $field::class;
 
         $supportedFields = [
-            fields\Checkboxes::class,
-            fields\Color::class,
-            fields\Date::class,
-            fields\Dropdown::class,
-            fields\Email::class,
-            fields\Lightswitch::class,
-            fields\MultiSelect::class,
-            fields\Number::class,
-            fields\PlainText::class,
-            fields\RadioButtons::class,
-            fields\Url::class,
+            CraftFields\Checkboxes::class,
+            CraftFields\Color::class,
+            CraftFields\Date::class,
+            CraftFields\Dropdown::class,
+            CraftFields\Email::class,
+            CraftFields\Lightswitch::class,
+            CraftFields\MultiSelect::class,
+            CraftFields\Number::class,
+            CraftFields\PlainText::class,
+            CraftFields\RadioButtons::class,
+            CraftFields\Url::class,
         ];
 
         if (in_array($type, $supportedFields, true)) {
