@@ -382,9 +382,8 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ]);
         $this->trigger(self::EVENT_AFTER_CHECK_CONNECTION, $event);
 
-        if ($event->success) {
-            $this->setCache(['connection' => self::CONNECT_SUCCESS]);
-        }
+        // Update the cache
+        $this->setCache(['connection' => $event->success]);
 
         return $event->success;
     }
