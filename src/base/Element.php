@@ -80,6 +80,8 @@ abstract class Element extends Integration
         parent::init();
 
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
+            $fieldClass = $event->integrationField->sourceType;
+
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof MultiLineText || $event->field instanceof SingleLineText) {
                 if (is_string($event->value)) {
@@ -99,6 +101,14 @@ abstract class Element extends Integration
             // Element fields should map 1-for-1
             if ($event->field instanceof fields\BaseRelationField) {
                 $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
+            }
+
+            // Check if we're mapping to a Craft relations field
+            if (is_a($fieldClass, fields\BaseRelationField::class, true) || is_subclass_of($fieldClass, fields\BaseRelationField::class, true)) {
+
+                if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
+                    $event->value = Json::decode($event->rawValue);
+                }
             }
 
             // For Table fields with Date/Time destination columns, convert to UTC from system time
