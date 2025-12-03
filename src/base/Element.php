@@ -140,6 +140,14 @@ abstract class Element extends Integration
                 $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
             }
 
+            // Check if we're mapping to a Craft relations field
+            if (is_a($fieldClass, fields\BaseRelationField::class, true) || is_subclass_of($fieldClass, fields\BaseRelationField::class, true)) {
+
+                if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
+                    $event->value = Json::decode($event->rawValue);
+                }
+            }
+
             // For Table fields with Date/Time destination columns, convert to UTC from system time
             if ($event->field instanceof FormieFields\Table) {
                 $timezone = new DateTimeZone(Craft::$app->getTimeZone());
