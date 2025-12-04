@@ -82,7 +82,7 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         $url = parent::getBaseApiUrl($token);
 
-        return "$url/crm/v2";
+        return "$url/crm/v2/";
     }
 
     public function getOAuthProviderConfig(): array
