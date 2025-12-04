@@ -90,7 +90,6 @@ class Pardot extends Crm implements OAuthProviderInterface
         $options = parent::getAuthorizationUrlOptions();
 
         $options['scope'] = [
-            'api',
             'pardot_api',
             'refresh_token',
         ];
