@@ -80,6 +80,19 @@ class Pardot extends Crm implements OAuthProviderInterface
         return "https://{$prefix}.pardot.com/api";
     }
 
+    public function getBaseApiUrl(?Token $token): ?string
+    {
+        return rtrim($this->getApiDomain(), '/') . '/';
+    }
+
+    public function getOAuthProviderConfig(): array
+    {
+        $config = parent::getOAuthProviderConfig();
+        $config['baseApiUrl'] = fn(?Token $token) => $this->getBaseApiUrl($token);
+
+        return $config;
+    }
+
     public function getDescription(): string
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
