@@ -183,7 +183,7 @@ class Recaptcha extends Captcha
 
             $result = Json::decode((string)$response->getBody(), true);
 
-            Formie::log('ReCAPTCHA result {result}', [
+            Formie::info('ReCAPTCHA result {result}', [
                 'result' => Json::encode($result),
             ]);
 
