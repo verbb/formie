@@ -113,6 +113,7 @@ class Pardot extends Crm implements OAuthProviderInterface
     public function request(string $method, string $uri, array $options = []): mixed
     {
         $options['headers']['Pardot-Business-Unit-Id'] = $this->getBusinessUnitId();
+        $options['query']['format'] = 'json';
 
         return parent::request($method, $uri, $options);
     }
