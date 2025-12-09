@@ -344,7 +344,7 @@
             {% if form.settings.collectIp %}
                 <div class="data">
                     <dt class="heading">{{ 'IP Address' | t('app') }}</dt>
-                    <dd class="value">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</dd>
+                    <dd class="value" style="word-break: break-all;">{{ submission.ipAddress ?: 'None provided' | t('formie') }}</dd>
                 </div>
             {% endif %}
         {% endblock %}
