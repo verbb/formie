@@ -730,6 +730,17 @@ class Opayo extends Payment
             'description' => $submission->id,
             'apply3DSecure' => 'UseMSPSetting',
             'strongCustomerAuthentication' => $this->_getRequestDetail(),
+
+            // Set defaults, required by API
+            'customerEMail' => 'customer@example.com',
+            'customerFirstName' => 'Customer',
+            'customerLastName' => 'Name',
+            'billingAddress' => [
+                'address1' => '407 St. John Street',
+                'city' => 'London',
+                'postalCode' => 'EC1V 4AB',
+                'country' => 'GB',
+            ],
         ];
 
         $billingName = $this->getFieldSetting('billingDetails.billingName');
@@ -738,6 +749,7 @@ class Opayo extends Payment
 
         // Just in case we're picking the string version of the Address field value (due to Vue restrictions)
         // ensure that we refer to the actual Address field model value as we need the "bits".
+        $billingName = str_replace('.__toString', '', $billingName);
         $billingAddress = str_replace('.__toString', '', $billingAddress);
 
         if ($billingEmail) {
@@ -749,13 +761,7 @@ class Opayo extends Payment
             // Only set if we have a valid email
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $payload['customerEMail'] = $email;
-            } else {
-                // Provide a default valid email if none provided
-                $payload['customerEMail'] = 'customer@example.com';
             }
-        } else {
-            // Provide a default valid email if none provided
-            $payload['customerEMail'] = 'customer@example.com';
         }
 
         if ($billingName) {
@@ -763,38 +769,36 @@ class Opayo extends Payment
             $integrationField->type = IntegrationField::TYPE_ARRAY;
 
             $fullName = $this->getMappedFieldValue($billingName, $submission, $integrationField);
-        } else {
-            // Values required by API
-            $fullName = ['firstName' => 'Customer', 'lastName' => 'Name'];
-        }
 
-        $payload['customerFirstName'] = ArrayHelper::remove($fullName, 'firstName');
-        $payload['customerLastName'] = ArrayHelper::remove($fullName, 'lastName');
+            if ($fullName && is_array($fullName)) {
+                if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
+                    $payload['customerFirstName'] = $firstName;
+                }
+
+                if ($lastName = ArrayHelper::remove($fullName, 'lastName')) {
+                    $payload['customerLastName'] = $lastName;
+                }
+            }
+        }
 
         if ($billingAddress) {
             $integrationField = new IntegrationField();
             $integrationField->type = IntegrationField::TYPE_ARRAY;
 
             $address = $this->getMappedFieldValue($billingAddress, $submission, $integrationField);
-        } else {
-            // Values required by API
-            $address = [
-                'address1' => '407 St. John Street',
-                'city' => 'London',
-                'zip' => 'EC1V 4AB',
-                'country' => 'GB',
-            ];
+
+            if ($address && is_array($address)) {
+                $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
+                $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
+                $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
+                $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
+                $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
+            }
         }
 
         // Testing only
         // $payload['billingAddress']['address1'] = '88';
         // $payload['billingAddress']['postalCode'] = '412';
-
-        $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
-        $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
-        $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
-        $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
-        $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
 
         // All values need to be handled a little bit...
         $payload['billingAddress']['address1'] = trim(substr($payload['billingAddress']['address1'], 0, 20));
