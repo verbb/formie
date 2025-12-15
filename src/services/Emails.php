@@ -86,7 +86,7 @@ class Emails extends Component
         $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true);
         $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true);
 
-        $fromEmail = $this->_getFilteredString($fromEmail);
+        $fromEmail = $this->_getParsedEmails($this->_getFilteredString($fromEmail));
         $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
