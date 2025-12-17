@@ -599,7 +599,12 @@ class Submission extends CustomElement
 
         if ($fieldKey) {
             if (is_array($fieldValue) || $fieldValue instanceof Model) {
-                return ArrayHelper::getValue($fieldValue, $fieldKey);
+                try {
+                    return ArrayHelper::getValue($fieldValue, $fieldKey);
+                } catch (Throwable $e) {
+                    // Just in case there's an issue with getting that value
+                    // (So far, only an issue with Date Dropdown + Repeater due to DateTime limitation handling)
+                }
             }
         }
 

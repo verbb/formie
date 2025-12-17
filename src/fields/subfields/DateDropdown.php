@@ -8,6 +8,8 @@ use verbb\formie\helpers\SchemaHelper;
 use Craft;
 use craft\base\ElementInterface;
 
+use DateTime;
+
 class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
 {
     // Public Methods
@@ -15,7 +17,14 @@ class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
 
     public function validateDateRange(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->fieldKey);
+        // Ensure that we're always dealing with the parent value (DateTime object)
+        // and not trying to use dot-notation to get `DateTime.year` for example.
+        // At least until we implement proper `DateTimeModel` support.
+        $fieldKey = explode('.', $this->fieldKey);
+        $handle = array_pop($fieldKey);
+        $fieldKey = implode('.', $fieldKey);
+
+        $value = $element->getFieldValue($fieldKey);
 
         $range = [];
 
@@ -26,7 +35,7 @@ class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
             }
         }
 
-        if (!in_array($value->format($this->validationFormatParam), $range)) {
+        if ($value instanceof DateTime && !in_array($value->format($this->validationFormatParam), $range)) {
             $element->addError($this->fieldKey, Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
         }
     }
@@ -38,7 +47,7 @@ class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
         
         // Remove any parent rules
         $rules = [];
-        $rules[] = [$this->handle, 'validateDateRange'];
+        $rules[] = ['validateDateRange'];
 
         return $rules;
     }
