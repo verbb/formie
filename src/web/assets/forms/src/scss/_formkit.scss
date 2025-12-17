@@ -45,7 +45,9 @@
 //
 
 .field[data-type="number"] {
-    -moz-appearance: textfield;
+    input {
+        -moz-appearance: textfield;
+    }
 
     input::-webkit-inner-spin-button, 
     input::-webkit-outer-spin-button {
