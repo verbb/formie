@@ -67,6 +67,16 @@ export class FormieConditions {
                 $targets = $multiFields;
             }
 
+            // Special handling for Repeater/Groups that have `__ROW__` in their name for conditions placeholders.
+            if ((!$targets || !$targets.length) && condition.field.includes('__ROW__')) {
+                // Get tricky with Regex. Find the element that matches everything except `[__ROW__]` for `[0]`.
+                // Escape special characters `[]` in the string, and swap `[__ROW__]` with `[\d+]`.
+                const regexString = condition.field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/__ROW__/g, '\\d+');
+
+                // Find all targets via Regex.
+                $targets = this.querySelectorAllRegex(new RegExp(regexString), 'name');
+            }
+
             if (!$targets || !$targets.length) {
                 return;
             }
@@ -365,10 +375,10 @@ export class FormieConditions {
         return result;
     }
 
-    querySelectorAllRegex($container, regex, attributeToSearch) {
+    querySelectorAllRegex(regex, attributeToSearch) {
         const output = [];
 
-        for (const element of $container.querySelectorAll(`[${attributeToSearch}]`)) {
+        for (const element of this.$form.querySelectorAll(`[${attributeToSearch}]`)) {
             if (regex.test(element.getAttribute(attributeToSearch))) {
                 output.push(element);
             }
