@@ -86,7 +86,7 @@ class Emails extends Component
         $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true);
         $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true);
 
-        $fromEmail = $this->_getParsedEmails($this->_getFilteredString($fromEmail));
+        $fromEmail = $this->_getParsedEmails($fromEmail);
         $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
@@ -574,6 +574,9 @@ class Emails extends Component
 
             // Also check for control characters, which aren't included above
             $email = preg_replace('/[^\PC\s]/u', '', $email);
+
+            // Strip out any emoji's
+            $email = trim(StringHelper::replaceMb4($email, ''));
 
             // Handle .env variables
             $email = App::parseEnv(trim($email));
