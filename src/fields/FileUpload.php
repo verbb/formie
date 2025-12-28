@@ -340,6 +340,11 @@ class FileUpload extends ElementField
         return $fileKindOptions;
     }
 
+    public function resolveDynamicPathToFolderId(?ElementInterface $element = null): int
+    {
+        return $this->_uploadFolder($element)->id;
+    }
+
     public function getFrontEndJsModules(): ?array
     {
         return [
