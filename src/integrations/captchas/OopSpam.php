@@ -4,6 +4,7 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\helpers\Html;
