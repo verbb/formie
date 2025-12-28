@@ -1858,6 +1858,11 @@ class Form extends Element
 
     public function isAvailable(): bool
     {
+        // Disable for CP-based submissions
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return true;
+        }
+
         if ($this->settings->requireUser) {
             if (!Craft::$app->getUser()->getIdentity()) {
                 return false;
@@ -1881,11 +1886,21 @@ class Form extends Element
 
     public function isScheduleActive(): bool
     {
+        // Disable for CP-based submissions
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return false;
+        }
+
         return !$this->isBeforeSchedule() && !$this->isAfterSchedule();
     }
 
     public function isBeforeSchedule(): bool
     {
+        // Disable for CP-based submissions
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return true;
+        }
+
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
@@ -1895,6 +1910,11 @@ class Form extends Element
 
     public function isAfterSchedule(): bool
     {
+        // Disable for CP-based submissions
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return true;
+        }
+
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
@@ -1904,6 +1924,11 @@ class Form extends Element
 
     public function isWithinSubmissionsLimit(): bool
     {
+        // Disable for CP-based submissions
+        if (Craft::$app->getRequest()->getIsCpRequest()) {
+            return true;
+        }
+
         if ($this->settings->limitSubmissions) {
             $query = Submission::find()->formId($this->id);
 
