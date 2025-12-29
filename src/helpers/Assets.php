@@ -12,6 +12,20 @@ class Assets extends CraftAssets
     // Static Methods
     // =========================================================================
 
+    public static function getTempPath(string $filename): string
+    {
+        // Use `tempAssetUploadFs` if set for Servd/Cloud support
+        $fs = Craft::$app->getAssets()->getTempAssetUploadFs();
+
+        if ($fs instanceof LocalFsInterface) {
+            $path = sprintf('%s/%s', rtrim($fs->getRootPath(), '/'), $filename);
+            
+            return FileHelper::normalizePath($path);
+        }
+
+        return sprintf('%s/%s', rtrim(Craft::$app->getPath()->getTempPath(), '/'), $filename);
+    }
+
     public static function getFullAssetFilePath(Asset $asset): string
     {
         $volume = $asset->getVolume();

@@ -2,6 +2,7 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ImportExportHelper;
 use verbb\formie\helpers\StringHelper;
@@ -51,7 +52,7 @@ class ImportExportController extends Controller
         }
 
         $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
-        $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
+        $fileLocation = Assets::getTempPath($filename);
 
         move_uploaded_file($uploadedFile->tempName, $fileLocation);
 
@@ -65,7 +66,7 @@ class ImportExportController extends Controller
     {
         $request = $this->request;
 
-        $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
+        $fileLocation = Assets::getTempPath($filename);
 
         if (!file_exists($fileLocation)) {
             throw new HttpException(404);
@@ -148,7 +149,7 @@ class ImportExportController extends Controller
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
 
-        $fileLocation = Craft::$app->getPath()->getTempPath() . DIRECTORY_SEPARATOR . $filename;
+        $fileLocation = Assets::getTempPath($filename);
 
         if (!file_exists($fileLocation)) {
             throw new HttpException(404);
