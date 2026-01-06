@@ -117,6 +117,16 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => JsonType::getType(),
                 'description' => 'The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.',
             ],
+            'enableJsEvents' => [
+                'name' => 'enableJsEvents',
+                'type' => Type::boolean(),
+                'description' => 'Whether the page’s button has JS events enabled.',
+            ],
+            'jsGtmEventOptions' => [
+                'name' => 'jsGtmEventOptions',
+                'type' => JsonType::getType(),
+                'description' => 'The page’s JS event options (GTM) as a JSON string.',
+            ],
         ];
 
         return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());

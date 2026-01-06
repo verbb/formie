@@ -268,6 +268,8 @@ This is the interface implemented by all pages.
 | `pageConditions`| `String` | The page’s conditions as a JSON string.
 | `enableNextButtonConditions`| `Boolean` | Whether the page’s next button has conditions enabled, for multi-page forms.
 | `nextButtonConditions`| `String` | The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.
+| `enableJsEvents`| `Boolean` | Whether the page’s button has JS events enabled.
+| `jsGtmEventOptions`| `String` | The page’s JS event options (GTM) as a JSON string.
 
 ### The `RowInterface` interface
 This is the interface implemented by all rows.
