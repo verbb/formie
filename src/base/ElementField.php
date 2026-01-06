@@ -398,6 +398,15 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         ];
     }
 
+    public function getPreviewHtml(mixed $value, ElementInterface $element): string
+    {
+        if ($value instanceof ElementQueryInterface) {
+            return Cp::elementPreviewHtml($value->all());
+        }
+
+        return '';
+    }
+
     public function modifyFieldSettings(array $settings): array
     {
         $defaultValue = $this->defaultValue ?? [];
