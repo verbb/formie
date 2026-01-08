@@ -300,4 +300,9 @@ trait FieldLegacy
     {
         return true;
     }
+
+    public function propagateValue(ElementInterface $from, ElementInterface $to): void
+    {
+        $to->setFieldValue($this->handle, $from->getFieldValue($this->handle));
+    }
 }
