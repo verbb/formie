@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\fields\data;
 
+use verbb\formie\base\FieldValueInterface;
+
 use craft\base\Serializable;
 
 use yii\base\BaseObject;
 
-class ColorData extends BaseObject implements Serializable
+class ColorData extends BaseObject implements FieldValueInterface, Serializable
 {
     // Properties
     // =========================================================================

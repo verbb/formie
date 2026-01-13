@@ -1,9 +1,11 @@
 <?php
 namespace verbb\formie\fields\data;
 
+use verbb\formie\base\FieldValueInterface;
+
 use craft\base\Serializable;
 
-class OptionData implements Serializable
+class OptionData implements FieldValueInterface, Serializable
 {
     // Properties
     // =========================================================================

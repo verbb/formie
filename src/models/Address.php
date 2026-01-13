@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\FieldValueInterface;
 use verbb\formie\fields\data\OptionData;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -10,7 +11,7 @@ use craft\base\Model;
 
 use CommerceGuys\Addressing\Country\CountryRepository;
 
-class Address extends Model
+class Address extends Model implements FieldValueInterface
 {
     // Static Methods
     // =========================================================================

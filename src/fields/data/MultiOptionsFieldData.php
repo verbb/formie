@@ -1,9 +1,11 @@
 <?php
 namespace verbb\formie\fields\data;
 
+use verbb\formie\base\FieldValueInterface;
+
 use ArrayObject;
 
-class MultiOptionsFieldData extends ArrayObject
+class MultiOptionsFieldData extends ArrayObject implements FieldValueInterface
 {
     // Properties
     // =========================================================================

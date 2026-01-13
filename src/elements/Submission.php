@@ -7,6 +7,7 @@ use verbb\formie\base\CosmeticField;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FieldTrait;
+use verbb\formie\base\FieldValueInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\SingleNestedFieldInterface;
@@ -598,7 +599,7 @@ class Submission extends CustomElement
         $fieldValue = parent::getFieldValue($handle);
 
         if ($fieldKey) {
-            if (is_array($fieldValue) || $fieldValue instanceof Model) {
+            if (is_array($fieldValue) || $fieldValue instanceof Model || $fieldValue instanceof FieldValueInterface) {
                 try {
                     return ArrayHelper::getValue($fieldValue, $fieldKey);
                 } catch (Throwable $e) {

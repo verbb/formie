@@ -2,6 +2,7 @@
 namespace verbb\formie\models;
 
 use verbb\formie\base\EncodableInterface;
+use verbb\formie\base\FieldValueInterface;
 use verbb\formie\helpers\StringHelper;
 
 use Craft;
@@ -12,7 +13,7 @@ use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use Throwable;
 
-class Phone extends Model implements EncodableInterface
+class Phone extends Model implements FieldValueInterface, EncodableInterface
 {
     // Static Methods
     // =========================================================================
