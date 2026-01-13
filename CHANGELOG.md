@@ -1,5 +1,39 @@
 # Changelog
 
+## 3.1.7 - 2026-01-13
+
+### Added
+- Add `FieldValueInterface` for model classes that represent the value of a field.
+- Add `enableJsEvents` and `jsGtmEventOptions` to `PageSettingsInterface` for GraphQL.
+- Add support for Formie Address Country to Craft Country field for Element integrations.
+
+### Changed
+- Update form import/export to be compatible with `tempAssetUploadFs`.
+- Change submission behaviour when editing in the control panel when form settings like scheduling is enabled.
+- Element integrations now handle array-like values for relation fields.
+
+### Fixed
+- Fix Date/Time fields for Dropdowns or Inputs not having their values treated consistently.
+- Fix compatibility with Craft 5.9+.
+- Fix element fields not showing their correct values in the submissions index in the control panel.
+- Fix an error with File Upload fields with Feed Me.
+- Fix unload warning for Snaptcha.
+- Fix an error where “From” email notification values weren’t always properly parsed.
+- Fix conditional logic handling for Repeater fields.
+- Fix an error with Date fields in Repeater fields failing Year restriction validation.
+- Fix number input fields in the form builder for Firefox.
+- Fix an error where “From” email notification values weren’t always properly parsed.
+- Fix Opayo and Moneris iframe event handling registration.
+- Fix an error for Opayo billing name mapping.
+- Fix overflow for IP Address values (particularly v6) when editing a submission in the control panel.
+- Fix Pardot integration JSON/XML responses.
+- Fix Pardot CRM base API URL.
+- Fix Zoho CRM base API URL.
+- Fix Pardot API scope.
+- Fix cache-handling for integration connections.
+- Fix deprecation error for `log()` calls.
+- Fix an error using OopSpam.
+
 ## 3.1.6 - 2025-11-29
 
 ### Added
