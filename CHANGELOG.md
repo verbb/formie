@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.8 - 2026-01-13
+
+### Changed
+- Element integrations now handle array-like values for relation fields.
+
+### Fixed
+- Fix cache-handling for integration connections.
+
 ## 2.2.7 - 2025-11-29
 
 ### Added
