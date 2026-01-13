@@ -1276,7 +1276,7 @@ class Form extends Element
         }
 
         // Handle any special characters defined in the URL and encode them properly
-        $url = htmlspecialchars($url);
+        $url = str_replace("&amp;", "&", htmlspecialchars($url));
 
         return $url;
     }
