@@ -8,16 +8,10 @@
                 {# Update the namespace for the field #}
                 {% do field.setParentField(dateField) %}
 
-                {# Format the DateTime according to what this field needs #}
-                {% set char = dateField.getFormattingChar(field.handle) %}
-                {% set dateValue = value ? (value | date(char, false)) : null %}
-
-                {# Be sure to normalize it for the sub-field #}
-                {% set dateValue = field.normalizeValue(dateValue, null) %}
-
+                {# Pass in the raw value from this parent field #}
                 {{ craft.formie.renderField(form, field, {
                     ...renderOptions ?? {},
-                    value: dateValue ?? null,
+                    value: value[field.handle] ?? null,
                 }) }}
             {% endfor %}
         {% endfieldtag %}

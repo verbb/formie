@@ -15,8 +15,10 @@ use verbb\formie\events\ModifyFrontEndSubFieldsEvent;
 use verbb\formie\fields\subfields\DateYear;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\DateTimeHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\DateTime;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\HtmlTag;
 use verbb\formie\models\IntegrationField;
@@ -32,7 +34,6 @@ use craft\base\PreviewableFieldInterface;
 use craft\base\SortableFieldInterface;
 use craft\gql\types\DateTime as DateTimeType;
 use craft\helpers\Component;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\i18n\Locale;
@@ -46,7 +47,6 @@ use yii\db\Schema;
 use yii\validators\RequiredValidator;
 use yii\validators\Validator;
 
-use DateTime;
 use DateTimeZone;
 
 class Date extends SubField implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
@@ -561,21 +561,6 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             return $this->defaultValue->format('Y-m-d\TH:i:s');
         }
         return $this->defaultValue;
-    }
-
-    public function getFormattingChar(string $name): ?string
-    {
-        $formattingMap = [
-            'year' => 'Y',
-            'month' => 'm',
-            'day' => 'd',
-            'hour' => 'H',
-            'minute' => 'i',
-            'second' => 's',
-            'ampm' => 'A',
-        ];
-
-        return $formattingMap[$name] ?? null;
     }
 
     public function getFrontEndJsModules(): ?array
