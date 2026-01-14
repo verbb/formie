@@ -80,7 +80,7 @@ class Emails extends Component
         $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true) ?: $craftMailSettings->fromEmail;
         $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true) ?: $craftMailSettings->fromName;
 
-        $fromEmail = $this->_getFilteredString($fromEmail);
+        $fromEmail = $this->_getParsedEmails($fromEmail)[0] ?? null;
         $fromName = $this->_getFilteredString($fromName);
 
         if ($fromEmail) {
