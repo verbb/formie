@@ -1179,6 +1179,12 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.9 - 2026-01-15
+
+### Fixed
+- Fix an error handling email notification “from” values when also setting a “from name”.
+- Fix Make the url encoding keep the ampersand unencoded.
+
 ## 2.2.8 - 2026-01-13
 
 ### Changed
