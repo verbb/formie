@@ -354,7 +354,15 @@ class Submissions extends Component
 
         foreach ($submissions as $submission) {
             try {
-                Craft::$app->getElements()->deleteElement($submission, true);
+                $success = Craft::$app->getElements()->deleteElement($submission, true);
+
+                if ($consoleInstance) {
+                    if ($success) {
+                        $consoleInstance->stdout("Pruned incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                    } else {
+                        $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                    }
+                }
             } catch (Throwable $e) {
                 Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
             }
@@ -379,10 +387,14 @@ class Submissions extends Component
 
             foreach ($submissions as $id) {
                 try {
-                    Craft::$app->getElements()->deleteElementById($id);
+                    $success = Craft::$app->getElements()->deleteElementById($id);
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Pruned spam submission with ID: #{$id}." . PHP_EOL, Console::FG_GREEN);
+                        if ($success) {
+                            $consoleInstance->stdout("Pruned spam submission with ID: #{$id}." . PHP_EOL, Console::FG_GREEN);
+                        } else {
+                            $consoleInstance->stdout("Failed to prune spam submission with ID: #{$id}." . PHP_EOL, Console::FG_RED);
+                        }
                     }
                 } catch (Throwable $e) {
                     Formie::error("Failed to prune spam submission with ID: #{$id}." . $e->getMessage());
@@ -463,7 +475,7 @@ class Submissions extends Component
 
             foreach ($submissions as $submission) {
                 try {
-                    Craft::$app->getElements()->deleteElement($submission, true);
+                    $success = Craft::$app->getElements()->deleteElement($submission, true);
 
                     $event = new PruneSubmissionEvent([
                         'submission' => $submission,
@@ -471,7 +483,11 @@ class Submissions extends Component
                     $this->trigger(self::EVENT_AFTER_PRUNE_SUBMISSION, $event);
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                        if ($success) {
+                            $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
+                        } else {
+                            $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                        }
                     }
                 } catch (Throwable $e) {
                     Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
@@ -530,7 +546,7 @@ class Submissions extends Component
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {
                 try {
-                    Craft::$app->getElements()->deleteElement($submission);
+                    $success = Craft::$app->getElements()->deleteElement($submission);
                 } catch (Throwable $e) {
                     Formie::error("Failed to delete user submission with ID: #{$submission->id}." . $e->getMessage());
                 }
