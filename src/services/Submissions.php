@@ -387,7 +387,7 @@ class Submissions extends Component
 
             foreach ($submissions as $submission) {
                 try {
-                    $success = Craft::$app->getElements()->deleteElement($submission);
+                    $success = Craft::$app->getElements()->deleteElement($submission, true);
 
                     if ($consoleInstance) {
                         if ($success) {
