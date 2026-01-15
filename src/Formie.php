@@ -60,6 +60,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\fields\Link;
+use craft\helpers\Console;
 use craft\helpers\Cp;
 use craft\queue\Queue;
 use craft\services\Dashboard;
@@ -442,13 +443,31 @@ class Formie extends Plugin
     {
         Event::on(Gc::class, Gc::EVENT_RUN, function() {
             // Delete incomplete submissions older than the configured interval.
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout('    > purging incomplete Formie submissions ... ');
+            }
+
             $this->getSubmissions()->pruneIncompleteSubmissions();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+                Console::stdout('    > purging Formie submissions based on data retention ... ');
+            }
 
             // Deletes submissions if they are past the form data retention settings.
             $this->getSubmissions()->pruneDataRetentionSubmissions();
 
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+                Console::stdout('    > purging Formie sent notifications ... ');
+            }
+
             // Delete sent notifications older than the configured interval.
             $this->getSentNotifications()->pruneSentNotifications();
+
+            if (Craft::$app instanceof ConsoleApplication) {
+                Console::stdout("done\n", Console::FG_GREEN);
+            }
         });
     }
 
