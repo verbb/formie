@@ -379,28 +379,28 @@ class Submissions extends Component
                 ->offset($settings->spamLimit)
                 ->isSpam(true)
                 ->orderBy(['dateCreated' => SORT_DESC])
-                ->ids();
+                ->all();
 
             if ($submissions && $consoleInstance) {
                 $consoleInstance->stdout('Preparing to prune ' . count($submissions) . ' submissions.' . PHP_EOL, Console::FG_YELLOW);
             }
 
-            foreach ($submissions as $id) {
+            foreach ($submissions as $submission) {
                 try {
-                    $success = Craft::$app->getElements()->deleteElementById($id);
+                    $success = Craft::$app->getElements()->deleteElement($submission);
 
                     if ($consoleInstance) {
                         if ($success) {
-                            $consoleInstance->stdout("Pruned spam submission with ID: #{$id}." . PHP_EOL, Console::FG_GREEN);
+                            $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                         } else {
-                            $consoleInstance->stdout("Failed to prune spam submission with ID: #{$id}." . PHP_EOL, Console::FG_RED);
+                            $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}." . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
                         }
                     }
                 } catch (Throwable $e) {
-                    Formie::error("Failed to prune spam submission with ID: #{$id}." . $e->getMessage());
+                    Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
 
                     if ($consoleInstance) {
-                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
+                        $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
                     }
                 }
             }
