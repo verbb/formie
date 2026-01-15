@@ -360,7 +360,7 @@ class Submissions extends Component
                     if ($success) {
                         $consoleInstance->stdout("Pruned incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     } else {
-                        $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                        $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}. " . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
                     }
                 }
             } catch (Throwable $e) {
@@ -486,7 +486,7 @@ class Submissions extends Component
                         if ($success) {
                             $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                         } else {
-                            $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_RED);
+                            $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
                         }
                     }
                 } catch (Throwable $e) {
