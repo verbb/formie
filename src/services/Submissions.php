@@ -360,11 +360,15 @@ class Submissions extends Component
                     if ($success) {
                         $consoleInstance->stdout("Pruned incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     } else {
-                        $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}. " . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
+                        throw new Exception(Json::encode($submission->getErrors()));
                     }
                 }
             } catch (Throwable $e) {
-                Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
+                Formie::error("Failed to prune incomplete submission with ID: #{$submission->id}." . $e->getMessage());
+
+                if ($consoleInstance) {
+                    $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
+                }
             }
         }
 
@@ -393,7 +397,7 @@ class Submissions extends Component
                         if ($success) {
                             $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                         } else {
-                            $consoleInstance->stdout("Failed to prune spam submission with ID: #{$submission->id}." . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
+                            throw new Exception(Json::encode($submission->getErrors()));
                         }
                     }
                 } catch (Throwable $e) {
@@ -486,7 +490,7 @@ class Submissions extends Component
                         if ($success) {
                             $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                         } else {
-                            $consoleInstance->stdout("Failed to prune submission with ID: #{$submission->id}." . Json::encode($submission->getErrors()) . PHP_EOL, Console::FG_RED);
+                            throw new Exception(Json::encode($submission->getErrors()));
                         }
                     }
                 } catch (Throwable $e) {
