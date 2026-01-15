@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.8 - 2026-01-15
+
+### Fixed
+- Fix memory limits for garbage collection tasks.
+- Fix lack of console output for garbage collection tasks.
+- Fix an error when using Date/Time fields and populating or setting default values for calendar displays.
+- Fix an error handling email notification “from” values when also setting a “from name”.
+- Fix Make the url encoding keep the ampersand unencoded.
+
 ## 3.1.7 - 2026-01-13
 
 ### Added
