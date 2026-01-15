@@ -43,6 +43,7 @@ use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\IndexKeywordsEvent;
 use craft\events\SearchEvent;
+use craft\helpers\App;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
@@ -332,6 +333,8 @@ class Submissions extends Component
 
     public function pruneIncompleteSubmissions($consoleInstance = null): void
     {
+        App::maxPowerCaptain();
+
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
@@ -394,6 +397,8 @@ class Submissions extends Component
 
     public function pruneDataRetentionSubmissions($consoleInstance = null): void
     {
+        App::maxPowerCaptain();
+
         // Find all the forms with data retention settings
         $forms = (new Query())
             ->select(['id', 'handle', 'dataRetention', 'dataRetentionValue'])
@@ -481,6 +486,8 @@ class Submissions extends Component
 
     public function defineUserSubmissions(DefineUserContentSummaryEvent $event): void
     {
+        App::maxPowerCaptain();
+
         $userIds = Craft::$app->getRequest()->getRequiredBodyParam('userId');
 
         $submissionCount = Submission::find()
@@ -497,6 +504,8 @@ class Submissions extends Component
 
     public function deleteUserSubmissions(Event $event): void
     {
+        App::maxPowerCaptain();
+
         /** @var User $user */
         $user = $event->sender;
 
@@ -531,6 +540,8 @@ class Submissions extends Component
 
     public function restoreUserSubmissions(Event $event): void
     {
+        App::maxPowerCaptain();
+        
         /** @var User $user */
         $user = $event->sender;
 

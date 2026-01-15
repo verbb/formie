@@ -145,6 +145,8 @@ class SentNotifications extends Component
 
     public function pruneSentNotifications(): void
     {
+        App::maxPowerCaptain();
+        
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
