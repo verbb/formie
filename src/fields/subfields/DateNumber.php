@@ -38,12 +38,9 @@ class DateNumber extends Number implements SubFieldInnerFieldInterface
 
     public function getElementValidationRules(): array
     {
-        // Hacky way to handle Date/Time fields, until we refactor with a new `DateTimeModel`. The value used for
-        // dropdown/input fields are a full DateTime, which won't work with `submission->getFieldValue()`
-        
         // Remove any parent rules
         $rules = [];
-        $rules[] = [$this->handle, 'validateDateNumber'];
+        $rules[] = ['validateDateNumber'];
 
         return $rules;
     }
