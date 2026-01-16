@@ -609,6 +609,17 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     public function getValueForCondition(mixed $value, Submission $submission): mixed
     {
+        // Ensure that if content encrypting, use real values
+        if ($this->enableContentEncryption) {
+            // Still rely on serialize, but just toggle the `enableContentEncryption` param
+            // to prevent code duplication from what would be in `serializeValue`.
+            $this->enableContentEncryption = false;
+            $value = $this->serializeValue($value, $submission);
+            $this->enableContentEncryption = true;
+
+            return $value;
+        }
+
         return $this->serializeValue($value, $submission);
     }
 
