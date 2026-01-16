@@ -16,9 +16,7 @@ class DateNumber extends Number implements SubFieldInnerFieldInterface
 
     public function validateDateNumber(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->fieldKey);
-
-        $dateValue = (int)$value->format($this->validationFormatParam);
+        $dateValue = $element->getFieldValue($this->fieldKey);
 
         if ($this->_isNotNumber($dateValue)) {
             $element->addError($this->fieldKey, Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
