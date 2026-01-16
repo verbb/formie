@@ -84,6 +84,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const SCENARIO_FORM = 'form';
 
     public const CONNECT_SUCCESS = 'success';
+    public const CONNECT_FAIL = 'fail';
 
 
     // Traits
@@ -405,7 +406,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             return false;
         }
 
-        $success = $this->fetchConnection();
+        $success = $this->fetchConnection() ? self::CONNECT_SUCCESS : self::CONNECT_FAIL;
 
         // Fire a 'afterCheckConnection' event
         $event = new IntegrationConnectionEvent([
