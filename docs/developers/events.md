@@ -811,6 +811,20 @@ Event::on(Address::class, Address::EVENT_MODIFY_NESTED_FIELD_LAYOUT, function(Mo
 });
 ```
 
+### The `modifyAddressCountries` event
+The event that is triggered to modify the available countries the address field has access to.
+
+```php
+use verbb\formie\events\ModifyAddressCountriesEvent;
+use verbb\formie\services\Countries;
+use yii\base\Event;
+
+Event::on(Countries::class, Countries::EVENT_MODIFY_ADDRESS_COUNTRIES, function(ModifyAddressCountriesEvent $event) {
+    $countries = $event->countries;
+    // ...
+});
+```
+
 
 
 ## Date Field Events
@@ -991,10 +1005,10 @@ The event that is triggered to modify the available countries the phone field ha
 
 ```php
 use verbb\formie\events\ModifyPhoneCountriesEvent;
-use verbb\formie\services\Phone;
+use verbb\formie\services\Countries;
 use yii\base\Event;
 
-Event::on(Phone::class, Phone::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhoneCountriesEvent $event) {
+Event::on(Countries::class, Countries::EVENT_MODIFY_PHONE_COUNTRIES, function(ModifyPhoneCountriesEvent $event) {
     $countries = $event->countries;
     // ...
 });
