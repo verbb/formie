@@ -3,7 +3,7 @@
         <div v-if="field.settings.displayType === 'calendar'" class="fui-row">
             <div v-for="subField in calendarFields" :key="subField.__id" class="fui-col-auto">
                 <div class="fui-field-preview">
-                    <label v-if="subField.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
+                    <label v-if="subField.settings.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
 
                     <input type="text" class="fui-field-input" :placeholder="subField.placeholder" :value="subField.value !== null ? subField.value : subField.placeholder">
 
@@ -17,7 +17,7 @@
         <div v-if="field.settings.displayType === 'datePicker'" class="fui-row">
             <div v-for="subField in calendarFields" :key="subField.__id" class="fui-col-auto">
                 <div class="fui-field-preview">
-                    <label v-if="subField.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
+                    <label v-if="subField.settings.labelPosition != 'verbb\\formie\\positions\\Hidden'" class="fui-field-label">{{ subField.label }}</label>
 
                     <input type="text" class="fui-field-input" :placeholder="subField.placeholder" :value="subField.value !== null ? subField.value : subField.placeholder">
 
@@ -61,6 +61,7 @@
 <script>
 
 import { parseDate } from '@utils/string';
+import { formatPhpDate } from '@utils/date';
 
 export default {
     name: 'DatePreview',
@@ -73,55 +74,42 @@ export default {
     },
 
     computed: {
-        date() {
-            let { defaultValue } = this.field.settings;
-            defaultValue = new Date(parseDate(defaultValue));
-
-            if (!(defaultValue instanceof Date) || isNaN(defaultValue)) {
-                return null;
-            }
-
-            let day = defaultValue.getDate();
-            let month = defaultValue.getMonth() + 1;
-            const year = defaultValue.getFullYear();
-
-            month = (month < 10 ? '0' : '') + month;
-            day = (day < 10 ? '0' : '') + day;
-
-            return `${year}-${month}-${day}`;
-        },
-
-        time() {
-            let { defaultValue } = this.field.settings;
-            defaultValue = new Date(parseDate(defaultValue));
-
-            if (!(defaultValue instanceof Date) || isNaN(defaultValue)) {
-                return null;
-            }
-
-            let hour = defaultValue.getHours();
-            let min = defaultValue.getMinutes();
-            let sec = defaultValue.getSeconds();
-
-            hour = (hour < 10 ? '0' : '') + hour;
-            min = (min < 10 ? '0' : '') + min;
-            sec = (sec < 10 ? '0' : '') + sec;
-
-            return `${hour}:${min}:${sec}`;
-        },
-
         calendarFields() {
             const fields = [];
+
+            let defaultValue = null;
+
+            if (this.field.settings.defaultValue && this.field.settings.defaultValue.length) {
+                defaultValue = new Date(parseDate(this.field.settings.defaultValue));
+            }
 
             const dateField = this.getSubFieldByHandle('date');
             const timeField = this.getSubFieldByHandle('time');
 
             if (dateField && dateField.settings.enabled) {
-                fields.push(dateField.settings);
+                let value = null;
+
+                if (defaultValue) {
+                    value = formatPhpDate(defaultValue, this.field.settings.dateFormat);
+                }
+
+                fields.push({
+                    value,
+                    settings: dateField.settings,
+                });
             }
 
             if (timeField && timeField.settings.enabled) {
-                fields.push(timeField.settings);
+                let value = null;
+
+                if (defaultValue) {
+                    value = formatPhpDate(defaultValue, this.field.settings.timeFormat);
+                }
+
+                fields.push({
+                    value,
+                    settings: timeField.settings,
+                });
             }
 
             return fields;
@@ -143,7 +131,7 @@ export default {
 
             const dateFields = [];
 
-            let defaultValue = new Date();
+            let defaultValue = null;
 
             if (this.field.settings.defaultValue && this.field.settings.defaultValue.length) {
                 defaultValue = new Date(parseDate(this.field.settings.defaultValue));
