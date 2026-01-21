@@ -543,7 +543,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         return $rows;
     }
 
-    private function _processLayoutSubFieldsRows(array $field): ?array
+    private function _processLayoutSubFieldsRows(array &$field): ?array
     {
         $type = $field['type'] ?? null;
 
@@ -557,6 +557,9 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         if ($field['type'] === 'verbb\formie\fields\formfields\Date') {
             $displayType = $field['displayType'] ?? 'calendar';
+
+            // Remove the old date picker flag, as we now determine type with `displayType`
+            unset($field['useDatePicker']);
 
             if ($displayType == 'calendar' || $displayType == 'datePicker') {
                 return $this->_getDateCalendarConfig($field);
