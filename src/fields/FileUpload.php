@@ -669,6 +669,27 @@ class FileUpload extends ElementField
     // Protected Methods
     // =========================================================================
 
+    protected function availableSources(): array
+    {
+        // Index by key so it'll be easier to potentially remove
+        $sources = ArrayHelper::index(parent::availableSources(), 'key');
+
+        $settings = Formie::$plugin->getSettings();
+
+        // Ensure that only return volumes that are allowed
+        if (!$settings->allowPublicVolumes) {
+            $volumesByKey = [];
+
+            foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
+                if ($volume->fs->hasUrls) {
+                    unset($sources["volume:{$volume->uid}"]);
+                }
+            }
+        }
+
+        return array_values($sources);
+    }
+
     protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
     {
         $variables = parent::cpInputTemplateVariables($value, $element);
