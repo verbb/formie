@@ -144,6 +144,7 @@ export default {
             const dateFields = [];
 
             let defaultValue = new Date();
+
             if (this.field.settings.defaultValue && this.field.settings.defaultValue.length) {
                 defaultValue = new Date(parseDate(this.field.settings.defaultValue));
             }
@@ -183,13 +184,15 @@ export default {
                 const handle = chars[char];
                 const subField = this.getSubFieldByHandle(handle);
 
-                dateFields.push({
-                    char,
-                    value,
-                    label: subField?.settings.label ?? '',
-                    placeholder: subField?.settings.placeholder ?? '',
-                    settings: subField?.settings ?? {},
-                });
+                if (subField.settings.enabled) {
+                    dateFields.push({
+                        char,
+                        value,
+                        label: subField?.settings.label ?? '',
+                        placeholder: subField?.settings.placeholder ?? '',
+                        settings: subField?.settings ?? {},
+                    });
+                }
             }
 
             return dateFields;
