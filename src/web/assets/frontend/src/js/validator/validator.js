@@ -334,29 +334,12 @@ class FormieValidator {
         this.validate(e.target);
     }
 
-    clickHandler(e) {
-        // Formie will have it's own events, so ignore those
-        // Only run if the field is in a form to be validated
-        if (e instanceof CustomEvent || !e.target.form || !e.target.form.isSameNode(this.form)) {
-            return;
-        }
-
-        // Don't trigger click event handling for checkbox/radio. We should use the change.
-        if (e.target.type === 'checkbox' || e.target.type === 'radio') {
-            return;
-        }
-
-        // Validate the field
-        this.validate(e.target);
-    }
-
     addEventListeners(afterSubmit = false) {
         if (!this.boundListeners) {
             // Only add these listeners when using live mode, and not live mode after submit
             // we just want `change` and `input` in that instance
             if (!afterSubmit) {
                 this.form.addEventListener('blur', this.blurHandler.bind(this), true);
-                this.form.addEventListener('click', this.clickHandler.bind(this), false);
             }
 
             this.form.addEventListener('change', this.changeHandler.bind(this), false);
@@ -370,7 +353,6 @@ class FormieValidator {
         this.form.removeEventListener('blur', this.blurHandler, true);
         this.form.removeEventListener('change', this.changeHandler, false);
         this.form.removeEventListener('input', this.inputHandler, false);
-        this.form.removeEventListener('click', this.clickHandler, false);
     }
 
     emitEvent(el, type, details) {
