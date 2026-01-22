@@ -156,10 +156,25 @@ abstract class NestedField extends Field implements NestedFieldInterface
             $rows[$key] = (!($row instanceof FieldLayoutRow)) ? new FieldLayoutRow($row) : $row;
         }
 
-        // Set the rows for the field layout. There's only ever one page for nested fields, and there's always one page for a layout
-        if ($pages = $this->getFieldLayout()->getPages()) {
-            $pages[0]->setRows($rows);
+        $pages = $this->getFieldLayout()->getPages();
+
+        // Just in case there's no pages, make one.
+        if (!$pages) {
+            $this->getFieldLayout()->setPages([
+                [
+                    'label' => Craft::t('formie', 'Page 1'),
+                    'layoutId' => $this->getFieldLayout()->id,
+                    'settings' => [],
+                    'rows' => [],
+                ],
+            ]);
         }
+
+        // Fetch pages again in case we've added one.
+        $pages = $this->getFieldLayout()->getPages();
+
+        // Set the rows for the field layout.
+        $pages[0]->setRows($rows);
     }
 
     public function getFields(bool $includeDisabled = true): array

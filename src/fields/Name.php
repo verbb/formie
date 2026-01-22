@@ -243,6 +243,20 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
         return $this->useMultipleFields ? NameType::getType() : Type::string();
     }
 
+    public function beforeSave(bool $isNew): bool
+    {
+        if (!parent::beforeSave($isNew)) {
+            return false;
+        }
+
+        // If switching back to a single field, cleanup the field layout
+        if (!$this->useMultipleFields) {
+            Formie::$plugin->getFields()->clearLayout($this->getFieldLayout());
+        }
+        
+        return true;
+    }
+
     public function defineGeneralSchema(): array
     {
         return [

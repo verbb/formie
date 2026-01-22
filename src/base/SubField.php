@@ -26,8 +26,6 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
 
     public ?string $subFieldLabelPosition = null;
 
-    private ?FieldLayout $_fieldLayout = null;
-
 
     // Public Methods
     // =========================================================================
@@ -84,7 +82,20 @@ abstract class SubField extends SingleNestedField implements SubFieldInterface
     public function getDefaultFieldLayout(): FieldLayout
     {
         $fieldLayout = new FieldLayout();
+        $fieldLayout->id = $this->nestedLayoutId;
         $fieldLayout->setPages([['rows' => $this->getSubFields()]]);
+
+        foreach ($fieldLayout->getPages() as $page) {
+            $page->layoutId = $this->nestedLayoutId;
+
+            foreach ($page->getRows() as $row) {
+                $row->layoutId = $this->nestedLayoutId;
+
+                foreach ($row->getFields() as $field) {
+                    $field->layoutId = $this->nestedLayoutId;
+                }
+            }
+        }
 
         // Allow plugins to modify the field layout
         $event = new ModifyNestedFieldLayoutEvent([
