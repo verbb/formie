@@ -119,6 +119,14 @@ export default {
             const generatedHandle = generateHandle(this.proxySourceValue);
             let handles = this.$store.getters['form/fieldHandlesExcluding'](this.proxyFieldId, parentFieldId);
 
+            // Include any client-side deleted fields as reserved handles, until they're deleted server-side.
+            // This is mostly a limitation of our Yii unique field record validator.
+            const deletedFieldHandles = this.$store.getters['form/deletedFields'].map((field) => {
+                return field.settings.handle;
+            });
+
+            handles = handles.concat(deletedFieldHandles);
+
             if (this.editingNotification) {
                 handles = this.$store.getters['notifications/notificationHandlesExcluding'](this.proxyFieldId);
             }

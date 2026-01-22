@@ -908,6 +908,10 @@ const getters = {
             return fieldHandles;
         };
     },
+
+    deletedFields: (state, getters, rootState, rootGetters) => {
+        return state.deleted.fields;
+    },
 };
 
 export default {
