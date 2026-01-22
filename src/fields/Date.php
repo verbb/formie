@@ -666,6 +666,37 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
             $this->maxDate = Db::prepareDateForDb($this->maxDate);
         }
 
+        // If we've switched display types, we should cleanup field layouts. 
+        // Do this before `parent::beforeSave` which will save the layout.
+        if ($this->id) {
+            if ($savedField = Formie::$plugin->getFields()->getFieldById($this->id)) {
+                $displayChanged = $this->displayType !== $savedField->displayType;
+
+                // Calendar and Date Picker layout are the same, no need to delete and remove
+                $sameLayoutFamily = in_array($this->displayType, ['calendar', 'datePicker'], true) && in_array($savedField->displayType, ['calendar', 'datePicker'], true);
+
+                if ($displayChanged && !$sameLayoutFamily) {
+                    // Delete the saved layout
+                    Formie::$plugin->getFields()->deleteLayout($savedField->getFieldLayout());
+
+                    // Create a new field layout, based on the about-to-be-saved layout. This will be stripping
+                    // off ID's from the layout and page, but it's the cleanest way to start fresh.
+                    $fieldLayout = new FieldLayout();
+                    $fieldLayout->setPages([
+                        [
+                            'label' => Craft::t('formie', 'Page 1'),
+                            'settings' => [],
+                            'rows' => $this->getFieldLayout()->getRows(),
+                        ],
+                    ]);
+
+                    $this->setFieldLayout($fieldLayout);
+
+                    $this->nestedLayoutId = null;
+                }
+            }
+        }
+        
         return parent::beforeSave($isNew);
     }
 
@@ -711,6 +742,8 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                             'context' => '$node.context',
                             'type' => static::class,
                             'layoutKey' => 'layouts.dropdowns',
+                            'sourceKey' => 'displayType=dropdowns',
+                            'sourceValue' => 'displayType',
                         ],
                     ],
                     [
@@ -720,6 +753,8 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                             'context' => '$node.context',
                             'type' => static::class,
                             'layoutKey' => 'layouts.inputs',
+                            'sourceKey' => 'displayType=inputs',
+                            'sourceValue' => 'displayType',
                         ],
                     ],
                     [
@@ -729,6 +764,8 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                             'context' => '$node.context',
                             'type' => static::class,
                             'layoutKey' => 'layouts.calendar',
+                            'sourceKey' => 'displayType=calendar||displayType=datePicker',
+                            'sourceValue' => 'displayType',
                         ],
                     ],
                 ],

@@ -10,6 +10,7 @@
 import { get } from 'lodash-es';
 
 import { newId } from '@utils/string';
+import { parse } from '@utils/conditionals';
 
 import SubFieldRow from '@formkit-components/SubFieldRow.vue';
 
@@ -27,6 +28,16 @@ export default {
         },
 
         type: {
+            type: String,
+            default: '',
+        },
+
+        sourceKey: {
+            type: String,
+            default: '',
+        },
+
+        sourceValue: {
             type: String,
             default: '',
         },
@@ -55,6 +66,10 @@ export default {
 
             return this.field.rows;
         },
+
+        proxySourceValue() {
+            return get(this.field, this.sourceValue);
+        },
     },
 
     watch: {
@@ -63,6 +78,13 @@ export default {
             handler(newValue) {
                 this.context.node.input(newValue);
             },
+        },
+        proxySourceValue(newValue) {
+            if (this.sourceKey) {
+                if (parse(this.sourceKey, this.field)) {
+                    this.context.node.input(this.rows);
+                }
+            }
         },
     },
 

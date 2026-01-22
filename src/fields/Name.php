@@ -245,16 +245,19 @@ class Name extends SubField implements InlineEditableFieldInterface, Previewable
 
     public function beforeSave(bool $isNew): bool
     {
-        if (!parent::beforeSave($isNew)) {
-            return false;
-        }
-
         // If switching back to a single field, cleanup the field layout
+        // Do this before `parent::beforeSave` which will save the layout.
         if (!$this->useMultipleFields) {
-            Formie::$plugin->getFields()->clearLayout($this->getFieldLayout());
+            // Delete the field layout, which is no longer in use
+            Formie::$plugin->getFields()->deleteLayout($this->getFieldLayout());
+
+            // Remove any field layouts that would be saved
+            $this->setFieldLayout(new FieldLayout());
+
+            $this->nestedLayoutId = null;
         }
         
-        return true;
+        return parent::beforeSave($isNew);
     }
 
     public function defineGeneralSchema(): array

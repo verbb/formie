@@ -738,26 +738,6 @@ class Fields extends Component
 
         return true;
     }
-    
-    public function clearLayout(FieldLayout $layout): bool
-    {
-        foreach ($layout->getPages() as $page) {
-            foreach ($page->getRows() as $row) {
-                foreach ($row->getFields() as $field) {
-                    $this->deleteField($field);
-                }
-
-                $this->deleteRow($row);
-            }
-
-            $this->deletePage($page);
-        }
-
-        // Reset the internal cache
-        $layout->setPages([]);
-
-        return true;
-    }
 
     public function savePage(FieldLayoutPage $page): bool
     {

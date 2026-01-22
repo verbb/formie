@@ -172,13 +172,13 @@ export default {
                 const handle = chars[char];
                 const subField = this.getSubFieldByHandle(handle);
 
-                if (subField.settings.enabled) {
+                if (subField && subField.settings.enabled) {
                     dateFields.push({
                         char,
                         value,
-                        label: subField?.settings.label ?? '',
-                        placeholder: subField?.settings.placeholder ?? '',
-                        settings: subField?.settings ?? {},
+                        label: subField.settings.label ?? '',
+                        placeholder: subField.settings.placeholder ?? '',
+                        settings: subField.settings ?? {},
                     });
                 }
             }
