@@ -135,8 +135,6 @@ class Front extends HelpDesk implements OAuthProviderInterface
 
                 $response = $this->deliverPayload($submission, "channels/{$channelId}/incoming_messages", $payload);
 
-                Craft::dd($response);
-
                 if ($response === false) {
                     return true;
                 }
