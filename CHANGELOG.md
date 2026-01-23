@@ -1,5 +1,33 @@
 # Changelog
 
+## 3.1.9 - 2026-01-23
+
+### Added
+- Add `allowPublicVolumes` plugin setting to allow only showing private (non-public URL) asset volumes for File Upload fields.
+- Add extra log output when failing garbage collection jobs for submissions.
+
+### Changed
+- Improve client-side validation when using “live” validation mode (as the user types).
+- Improve Date field sub-field cleanup when toggling between display types.
+- Improve Name field sub-field cleanup when toggling between multi-name and single-name displays.
+- When pruning spam submissions in garbage collection, submissions are now hard-deleted.
+
+### Fixed
+- Fix form usage site/element table order.
+- Fix client-side validation using click events to evaluate.
+- Fix field handles not generating correctly when deleting and adding fields at the same time with the same handle.
+- Fix Date fields with default values not showing correctly in the form builder for various displayTypes.
+- Fix Formie 2 migation for Date fields for display type Dropdowns and Inputs not respecting their previously enabled sub-fields for date/time.
+- Fix Date field Dropdowns and Inputs display types not showing enabled sub-fields correctly in the form builder.
+- Fix Formie 2 migration for Date fields not working correctly for Inputs or Dropdowns.
+- Fix an error for integrations used across multiple forms, where different forms enabled different data objects, and mapping lost.
+- Fix Date/Time Dropdown Year validation.
+- Fix Date with Text Inputs submission after 3.1.7.
+- Fix field conditions not working correctly for content encrypted fields.
+- Fix incorrect handling of integration connected state.
+- Fix pruning spam submissions not working correctly.
+- Fix lack of success checks for garbage collection console commands.
+
 ## 3.1.8 - 2026-01-15
 
 ### Fixed
