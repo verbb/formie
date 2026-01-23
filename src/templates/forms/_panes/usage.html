@@ -16,8 +16,8 @@
                         </a>
                     </th>
 
-                    <td>{{ row.element.displayName() }}</td>
                     <td>{{ row.site.name }}</td>
+                    <td>{{ row.element.displayName() }}</td>
 
                     {% if row.element.isRevision() %}
                         <td>{{ 'Revision' | t('app') }}</td>
