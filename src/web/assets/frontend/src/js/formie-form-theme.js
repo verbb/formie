@@ -253,9 +253,7 @@ export class FormieFormTheme {
         }
 
         // Validate just the current page (if there is one) or the entire form
-        this.validator.validate($fieldset);
-
-        const errors = this.validator.getErrors();
+        const errors = this.validator.submit($fieldset);
 
         // // If there are errors, focus on the first one
         if (errors.length > 0 && focus) {

@@ -8,6 +8,13 @@ class FormieValidator {
         this.errorIds = {};
         this.validators = {};
         this.boundListeners = false;
+        this.activated = new WeakSet();
+        this.submitted = false;
+        this.initialValues = new WeakMap();
+
+        this.onBlur = this.blurHandler.bind(this);
+        this.onChange = this.changeHandler.bind(this);
+        this.onInput = this.inputHandler.bind(this);
 
         this.config = {
             live: false,
@@ -43,6 +50,11 @@ class FormieValidator {
     init() {
         this.form.setAttribute('novalidate', true);
 
+        // snapshot initial values
+        this.inputs().forEach((input) => {
+            this.initialValues.set(input, this.getInputValue(input));
+        });
+
         if (this.config.live) {
             this.addEventListeners();
         }
@@ -68,6 +80,31 @@ class FormieValidator {
         return inputOrSelector.querySelectorAll(this.config.fieldsSelector);
     }
 
+    getInputValue(input) {
+        if (input.type === 'checkbox' || input.type === 'radio') {
+            return input.checked;
+        }
+
+        if (input.type === 'file') {
+            return input.files?.length ? Array.from(input.files).map((f) => { return f.name; }).join('|') : '';
+        }
+
+        return input.value ?? '';
+    }
+
+    isDirty(input) {
+        if (!this.initialValues.has(input)) {
+            this.initialValues.set(input, this.getInputValue(input));
+            return false;
+        }
+
+        return this.getInputValue(input) !== this.initialValues.get(input);
+    }
+
+    shouldShowError(input) {
+        return this.submitted || this.activated.has(input);
+    }
+
     validate(inputOrSelector = null) {
         this.errors = [];
 
@@ -78,18 +115,25 @@ class FormieValidator {
                 return;
             }
 
-            this.removeError(input);
+            // Always clear existing error if we’re going to revalidate this field
+            // (so errors can disappear as the user fixes)
+            if (this.shouldShowError(input)) {
+                this.removeError(input);
+            }
+
+            const opts = this.getValidatorCallbackOptions(input);
 
             Object.entries(this.validators).forEach(([validatorName, validatorConfig]) => {
-                const opts = this.getValidatorCallbackOptions(input);
                 const isValid = validatorConfig.validate(opts);
 
                 if (!isValid) {
-                    // Don't show multiple errors, but record them
-                    if (!errorShown) {
-                        const errorMessage = this.getErrorMessage(input, validatorName, validatorConfig);
+                    if (this.shouldShowError(input)) {
+                        // Don't show multiple errors, but record them
+                        if (!errorShown) {
+                            const errorMessage = this.getErrorMessage(input, validatorName, validatorConfig, opts);
 
-                        this.showError(input, validatorName, errorMessage);
+                            this.showError(input, validatorName, errorMessage);
+                        }
                     }
 
                     this.errors.push({ input, validator: validatorName, result: isValid });
@@ -97,13 +141,14 @@ class FormieValidator {
                     errorShown = true;
                 }
             });
+
+            // If invalid but we’re not allowed to show yet, don’t leave stale errors around
+            if (!errorShown && this.shouldShowError(input)) {
+                this.removeError(input);
+            }
         });
 
-        // Even if set to non-live, add event listeners to make the form have live validation, so that errors
-        // are updated in real-time after the user hits submit. This is just good UX.
-        if (!this.config.live) {
-            this.addEventListeners(true);
-        }
+        return this.errors;
     }
 
     removeAllErrors() {
@@ -160,10 +205,10 @@ class FormieValidator {
         }
 
         // Find or create error element
-        const errorElement = fieldContainer.querySelector(`[data-field-error-message-${validatorName}]`);
+        let errorElement = fieldContainer.querySelector(`[data-field-error-message-${validatorName}]`);
 
         if (!errorElement) {
-            const errorElement = document.createElement('div');
+            errorElement = document.createElement('div');
             errorElement.setAttribute('data-field-error-message', '');
             errorElement.setAttribute(`data-field-error-message-${validatorName}`, '');
 
@@ -228,9 +273,7 @@ class FormieValidator {
         };
     }
 
-    getErrorMessage(input, validatorName, validator) {
-        const opts = this.getValidatorCallbackOptions(input);
-
+    getErrorMessage(input, validatorName, validator, opts) {
         const errorMessage = typeof validator.errorMessage === 'function' ? validator.errorMessage(opts) : validator.errorMessage;
 
         return errorMessage ?? t('{attribute} is invalid.', { attribute: opts.label });
@@ -298,8 +341,14 @@ class FormieValidator {
             return;
         }
 
-        // Validate the field
-        this.validate(e.target);
+        // Only activate if they actually changed the value
+        if (this.isDirty(e.target)) {
+            this.activated.add(e.target);
+        }
+
+        if (this.shouldShowError(e.target)) {
+            this.validate(e.target);
+        }
     }
 
     changeHandler(e) {
@@ -314,7 +363,8 @@ class FormieValidator {
             return;
         }
 
-        // Validate the field
+        // For discrete-choice fields, a change is inherently “dirty”
+        this.activated.add(e.target);
         this.validate(e.target);
     }
 
@@ -330,29 +380,40 @@ class FormieValidator {
             return;
         }
 
-        // Validate the field
-        this.validate(e.target);
+        // Only show errors while typing after first blur (or submit)
+        if (this.shouldShowError(e.target)) {
+            this.validate(e.target);
+        }
     }
 
-    addEventListeners(afterSubmit = false) {
-        if (!this.boundListeners) {
-            // Only add these listeners when using live mode, and not live mode after submit
-            // we just want `change` and `input` in that instance
-            if (!afterSubmit) {
-                this.form.addEventListener('blur', this.blurHandler.bind(this), true);
-            }
+    submit(inputOrSelector = null) {
+        this.submitted = true;
 
-            this.form.addEventListener('change', this.changeHandler.bind(this), false);
-            this.form.addEventListener('input', this.inputHandler.bind(this), false);
+        // After first submit attempt, become “live” for fixing errors
+        // In non-live mode, we bind listeners only now.
+        if (!this.config.live) {
+            this.addEventListeners();
+        }
+
+        return this.validate(inputOrSelector);
+    }
+
+    addEventListeners() {
+        if (!this.boundListeners) {
+            this.form.addEventListener('blur', this.onBlur, true);
+            this.form.addEventListener('change', this.onChange, false);
+            this.form.addEventListener('input', this.onInput, false);
 
             this.boundListeners = true;
         }
     }
 
     removeEventListeners() {
-        this.form.removeEventListener('blur', this.blurHandler, true);
-        this.form.removeEventListener('change', this.changeHandler, false);
-        this.form.removeEventListener('input', this.inputHandler, false);
+        this.form.removeEventListener('blur', this.onBlur, true);
+        this.form.removeEventListener('change', this.onChange, false);
+        this.form.removeEventListener('input', this.onInput, false);
+
+        this.boundListeners = false;
     }
 
     emitEvent(el, type, details) {
