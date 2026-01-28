@@ -198,15 +198,16 @@ class Variables
         // Just saves a good bunch of calculating values like looping through fields
         if (!Formie::$plugin->getRenderCache()->getGlobalVariables($cacheKey)) {
             // Get the user making the submission. Some checks to do to get it right.
-            $currentUser = self::_getCurrentUser($submission);
+            $submissionUser = $submission?->getUser();
+            $currentUser = Craft::$app->getUser()->getIdentity();
 
-            // User Info
-            $userId = $currentUser->id ?? '';
-            $userEmail = $currentUser->email ?? '';
-            $username = $currentUser->username ?? '';
-            $userFullName = $currentUser->fullName ?? '';
-            $userFirstName = $currentUser->firstName ?? '';
-            $userLastName = $currentUser->lastName ?? '';
+            // User Info - always user the submission user, don't rely on currently logged-in
+            $userId = $submissionUser?->id ?? '';
+            $userEmail = $submissionUser?->email ?? '';
+            $username = $submissionUser?->username ?? '';
+            $userFullName = $submissionUser?->fullName ?? '';
+            $userFirstName = $submissionUser?->firstName ?? '';
+            $userLastName = $submissionUser?->lastName ?? '';
             $userIp = $submission->ipAddress ?? '';
 
             // Site Info
@@ -247,6 +248,7 @@ class Variables
                 'craft' => new CraftVariable(),
                 'currentSite' => $site,
                 'currentUser' => $currentUser,
+                'submissionUser' => $submissionUser,
                 'siteUrl' => $site->getBaseUrl(),
 
                 'timestamp' => $now->format('Y-m-d H:i:s'),
@@ -562,24 +564,6 @@ class Variables
 
         // For performance
         return array_merge_recursive(...$result);
-    }
-
-    private static function _getCurrentUser($submission = null): bool|User|IdentityInterface|null
-    {
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        // If this is a front-end request, check the current user. This only really applies
-        // if `useQueueForNotifications = false`.
-        if ($currentUser && Craft::$app->getRequest()->getIsSiteRequest()) {
-            return $currentUser;
-        }
-
-        // Is the "Collect User" enabled on the form?
-        if ($submission && $submission->getUser()) {
-            return $submission->getUser();
-        }
-
-        return null;
     }
 
 
