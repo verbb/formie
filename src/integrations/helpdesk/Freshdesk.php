@@ -389,10 +389,11 @@ class Freshdesk extends HelpDesk
 
             // Send Ticket payload
             if ($this->mapToTicket) {
+                $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
+                
                 $requiresMultipart = $this->_requiresMultipart($this->ticketFieldMapping, $submission);
 
                 if ($requiresMultipart) {
-                    $ticketValues = $this->getFieldMappingMultipartValues($submission, $this->ticketFieldMapping, 'ticket');
                     $ticketPayload = $ticketValues;
                     $contentType = 'multipart';
                 } else {
