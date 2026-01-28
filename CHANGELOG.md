@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.10 - 2026-01-28
+
+### Fixed
+- Fix a Twig error introduced in Craft 5.9+ for some fields.
+- Fix an error for Freshdesk tickets.
+
 ## 3.1.9 - 2026-01-23
 
 ### Added
