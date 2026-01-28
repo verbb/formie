@@ -16,7 +16,7 @@
 
                 {# Pass in the raw value from this parent field #}
                 {{ craft.formie.renderField(form, field, {
-                    ...renderOptions ?? {},
+                    ...(renderOptions ?? {}),
                     value: value[field.handle] ?? null,
                     labelExtraContent: labelExtraContent,
                 }) }}

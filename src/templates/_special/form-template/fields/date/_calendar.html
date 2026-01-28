@@ -17,7 +17,7 @@
                 {% endif %}
 
                 {{ craft.formie.renderField(form, field, {
-                    ...renderOptions ?? {},
+                    ...(renderOptions ?? {}),
                     value: dateValue ?? null,
                 }) }}
             {% endfor %}
