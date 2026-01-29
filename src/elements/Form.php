@@ -1192,6 +1192,7 @@ class Form extends Element
                 'accept-charset' => 'utf-8',
                 'data' => [
                     'fui-form' => $this->getConfigJson(),
+                    'form-handle' => $this->handle,
                     'form-submit-method' => $this->settings->submitMethod ?: false,
                     'form-submit-action' => $this->settings->submitAction ?: false,
                     'loading-indicator' => $this->settings->loadingIndicator ?: false,
