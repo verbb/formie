@@ -71,6 +71,17 @@ export class FormiePhoneCountry {
             this.$field.validator.destroy();
         }
 
+        // Emit an "beforeInit" event. This can directly modify the `options` param
+        const beforeInitEvent = new CustomEvent('beforeInit', {
+            bubbles: true,
+            detail: {
+                phoneCountry: this,
+                options,
+            },
+        });
+
+        this.$field.dispatchEvent(beforeInitEvent);
+
         this.validator = intlTelInput(this.$field, options);
 
         // Attach the validator to the field so we can access later

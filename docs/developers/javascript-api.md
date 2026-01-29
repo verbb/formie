@@ -800,8 +800,27 @@ $fields.forEach($field => {
 
 ### Phone Fields
 
-#### The `init` event
+#### The `beforeInit` event
 The event that is triggered before the phone number library is initialized.
+
+```js
+// Fetch all Phone fields - specifically the input. Events are bound on the input element
+let $fields = document.querySelectorAll('[data-field-type="phone"] input');
+
+// For each field, bind on the `beforeInit` event
+$fields.forEach($field => {
+    $field.addEventListener('beforeInit', (e) => {
+        let phoneCountryField = e.detail.phoneCountry;
+        let options = e.detail.options;
+
+        // Modify any options
+        e.detail.options.useFullscreenPopup = false;
+    });
+});
+```
+
+#### The `init` event
+The event that is triggered after the phone number library is initialized.
 
 ```js
 // Fetch all Phone fields - specifically the input. Events are bound on the input element
