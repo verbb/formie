@@ -40,8 +40,7 @@
         "symfony/expression-language": "^5.3.0",
         "theiconic/name-parser": "^1.0",
         "verbb/auth": "^2.0.20",
-        "verbb/base": "^3.0.8",
-        "voku/anti-xss": "^4.1"
+        "verbb/base": "^3.0.8"
     },
     "autoload": {
         "psr-4": {
