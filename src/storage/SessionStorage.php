@@ -14,7 +14,7 @@ class SessionStorage implements StorageInterface
 
     public function getCurrentPageId(Form $form): ?int
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
+        if (!$this->_canUseSession()) {
             return null;
         }
 
@@ -23,7 +23,7 @@ class SessionStorage implements StorageInterface
 
     public function setCurrentPageId(Form $form, int $pageId): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
+        if (!$this->_canUseSession()) {
             return;
         }
 
@@ -32,7 +32,7 @@ class SessionStorage implements StorageInterface
 
     public function resetCurrentPageId(Form $form): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
+        if (!$this->_canUseSession()) {
             return;
         }
 
@@ -42,6 +42,20 @@ class SessionStorage implements StorageInterface
 
     // Private Methods
     // =========================================================================
+
+    private function _canUseSession(): bool
+    {
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return false;
+        }
+
+        // Running the queue from a web request (and other late-phase code) may already have flushed headers.
+        if (headers_sent()) {
+            return false;
+        }
+
+        return Session::exists();
+    }
 
     private function _getSessionKey(Form $form): string
     {
