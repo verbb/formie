@@ -164,6 +164,28 @@ class Table extends Field
         }
     }
 
+    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
+    {
+        $isEmpty = false;
+
+        if (is_array($value)) {
+            foreach ($value as &$row) {
+                foreach ($this->columns as $colId => $col) {
+                    if (is_string($row[$colId])) {
+                        // Trim the value before validating
+                        $row[$colId] = trim($row[$colId]);
+                    }
+
+                    if ($row[$colId] === null || $row[$colId] === '') {
+                        $isEmpty = true;
+                    }
+                }
+            }
+        }
+
+        return $isEmpty;
+    }
+
     public function validateColumns(): void
     {
         foreach ($this->columns as &$col) {
@@ -630,6 +652,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'checkbox',
                 'class' => 'fui-input fui-checkbox-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -637,6 +660,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'color',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -644,6 +668,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'date',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -651,18 +676,21 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'email',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
         if ($key === 'tableHeadingInput') {
             return new HtmlTag('input', [
                 'type' => 'hidden',
+                'required' => $this->required,
             ]);
         }
 
         if ($key === 'tableMultilineInput') {
             return new HtmlTag('textarea', [
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -670,12 +698,14 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'number',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
         if ($key === 'tableSelectInput') {
             return new HtmlTag('select', [
                 'class' => 'fui-select',
+                'required' => $this->required,
             ]);
         }
 
@@ -683,6 +713,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'text',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -690,6 +721,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'time',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
@@ -697,6 +729,7 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'url',
                 'class' => 'fui-input',
+                'required' => $this->required,
             ]);
         }
 
