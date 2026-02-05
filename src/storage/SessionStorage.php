@@ -59,7 +59,7 @@ class SessionStorage implements StorageInterface
 
     private function _getSessionKey(Form $form): string
     {
-        $keys = ['formie', 'pageId', $form->id];
+        $keys = ['formie', 'pageId', $form->id, $form->getSessionKey()];
 
         return implode(':', array_filter($keys));
     }
