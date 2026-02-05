@@ -211,6 +211,7 @@ export class FormieFormTheme {
             'g-recaptcha-response',
             'h-captcha-response',
             'CRAFT_CSRF_TOKEN',
+            'CSRF_TOKEN',
             '__JSCHK',
             '__DUP',
             'beesknees',
