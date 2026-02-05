@@ -208,7 +208,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
                 'module' => 'FormiePhoneCountry',
                 'settings' => [
                     'countryDefaultValue' => $this->countryDefaultValue,
-                    'countryAllowed' => $this->countryAllowed,
+                    'countryAllowed' => $this->getAllowedCountries(),
                     'language' => $this->_getMatchedLanguageId() ?? 'en',
                 ],
             ];
@@ -226,6 +226,17 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
 
     public function getCountryOptions(): array
     {
+        return Formie::$plugin->getCountries()->getPhoneCountries($this);
+    }
+
+    public function getAllowedCountries(): array
+    {
+        // Allow the field to override what countries
+        if ($this->countryAllowed) {
+            return $this->countryAllowed;
+        }
+
+        // Otherwise, fall back to server, in case events have modified available countries.
         return Formie::$plugin->getCountries()->getPhoneCountries($this);
     }
 
@@ -248,7 +259,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
                 'name' => 'countryAllowed',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    return Json::encode($field->countryAllowed);
+                    return Json::encode($field->getAllowedCountries());
                 },
             ],
         ]);
