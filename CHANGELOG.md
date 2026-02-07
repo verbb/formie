@@ -1222,6 +1222,17 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.10 - 2026-02-07
+
+### Added
+- Add `data-form-handle` to `<form>` tag.
+
+### Changed
+- Change user-related variables to always use the Submission’s “collected user” rather than the currently logged-in user.
+
+### Fixed
+- Fix Web Request integrations not setting the correct URL when migrated from previous Formie Webhook integration.
+
 ## 2.2.9 - 2026-01-15
 
 ### Fixed
