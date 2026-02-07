@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.1.11 - 2026-02-07
+
+### Added
+- Add `CSRF_TOKEN` to unload exception for front-end forms.
+- Add `data-form-handle` to `<form>` tag.
+- Add `beforeInit` for Phone field’s `intl-tel-input` JS library.
+
+### Changed
+- Bump `verbb/auth`.
+- Remove `voku/anti-xss` dependancy, and switch to HTMLPurifier.
+- Change user-related variables to always use the Submission’s “collected user” rather than the currently logged-in user.
+
+### Fixed
+- Fix session-based page management for the front-end not respecting the `sessionKey` render option.
+- Fix Phone field front-end not respecting countries set via `Countries::EVENT_MODIFY_PHONE_COUNTRIES`.
+- Fix Table field not acting correctly when set to “required”.
+- Fix Web Request integrations not setting the correct URL when migrated from previous Formie Webhook integration.
+- Fix session storage checks for web-driven Queue jobs.
+
 ## 3.1.10 - 2026-01-28
 
 ### Fixed
