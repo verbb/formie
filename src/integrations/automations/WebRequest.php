@@ -58,7 +58,9 @@ class WebRequest extends Automation
     public function setAttributes($values, $safeOnly = true): void
     {
         // Handle legacy webhook from the form settings, which won't be via `__construct`
-        $values['url'] = ArrayHelper::remove($values, 'webhook');
+        if (array_key_exists('webhook', $values)) {
+            $values['url'] = ArrayHelper::remove($values, 'webhook');
+        }
 
         parent::setAttributes($values, $safeOnly);
     }
