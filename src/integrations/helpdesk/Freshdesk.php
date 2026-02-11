@@ -77,7 +77,7 @@ class Freshdesk extends HelpDesk
                     new IntegrationField([
                         'handle' => 'phone',
                         'name' => Craft::t('formie', 'Phone'),
-                        'type' => IntegrationField::TYPE_STRING,
+                        'type' => IntegrationField::TYPE_PHONE,
                     ]),
                     new IntegrationField([
                         'handle' => 'mobile',
