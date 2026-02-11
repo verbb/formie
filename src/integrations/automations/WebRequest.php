@@ -103,7 +103,9 @@ class WebRequest extends Automation
             Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
+            $url = $form->settings->integrations[$this->handle]['url'] ?? $this->url;
+
+            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($url, $submission), $payload, $this->method, $this->requestType);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
