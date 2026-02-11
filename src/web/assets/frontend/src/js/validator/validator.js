@@ -386,13 +386,14 @@ class FormieValidator {
         }
     }
 
-    submit(inputOrSelector = null) {
-        this.submitted = true;
+    submit(inputOrSelector = null, { final = false } = {}) {
+        // Check if we're on the last page of a form, to then become “live” for fixing errors
+        if (final) {
+            this.submitted = true;
 
-        // After first submit attempt, become “live” for fixing errors
-        // In non-live mode, we bind listeners only now.
-        if (!this.config.live) {
-            this.addEventListeners();
+            if (!this.config.live) {
+                this.addEventListeners();
+            }
         }
 
         return this.validate(inputOrSelector);

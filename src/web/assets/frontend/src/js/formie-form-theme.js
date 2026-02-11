@@ -254,7 +254,7 @@ export class FormieFormTheme {
         }
 
         // Validate just the current page (if there is one) or the entire form
-        const errors = this.validator.submit($fieldset);
+        const errors = this.validator.submit($fieldset, { final: this.isLastPage() });
 
         // // If there are errors, focus on the first one
         if (errors.length > 0 && focus) {
@@ -829,6 +829,10 @@ export class FormieFormTheme {
 
     getPageId(pageId) {
         return `${this.config.formHashId}-p-${pageId}`;
+    }
+
+    isLastPage() {
+        return this.getCurrentPageIndex() === this.settings.pages.length - 1;
     }
 
     scrollToForm() {
