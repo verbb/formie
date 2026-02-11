@@ -26,7 +26,7 @@ class Phone extends Model implements FieldValueInterface, EncodableInterface
             // Try and parse the number. Will fail if not provided in international format.
             $phoneUtil = PhoneNumberUtil::getInstance();
             $numberProto = $phoneUtil->parse($value);
-            $number = $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
+            $number = $phoneUtil->format($numberProto, PhoneNumberFormat::E164);
         } catch (Throwable $e) {
             // Do nothing, an invalid number
         }
