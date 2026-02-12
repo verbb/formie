@@ -1,5 +1,5 @@
 # Email Notifications
-Email notifications are an important part of any form, to both notify the user their submission has been received, and to notify admins of their submission, so they can action.
+Email notifications are an important part of any form system, from notifying a user their submission has been received, to notifying admins someone has filled out a form.
 
 <img src="https://assets.verbb.io/plugins/formie/formie-email-notification.png" />
 
