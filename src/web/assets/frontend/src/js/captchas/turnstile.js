@@ -176,6 +176,10 @@ export class FormieTurnstile extends FormieCaptchaProvider {
     onExpired() {
         console.log('Turnstile has expired - reloading.');
 
+        // Clear submitHandler so that when Turnstile calls the callback after reset (auto-refresh),
+        // we don't accidentally re-submit the form. See: https://github.com/verbb/formie/issues/2734
+        this.submitHandler = null;
+
         if (!this.$activePlaceholder) {
             return;
         }
@@ -189,6 +193,10 @@ export class FormieTurnstile extends FormieCaptchaProvider {
 
     onTimeout() {
         console.log('Turnstile has expired challenge - reloading.');
+
+        // Clear submitHandler so that when Turnstile calls the callback after reset,
+        // we don't accidentally re-submit the form. See: https://github.com/verbb/formie/issues/2734
+        this.submitHandler = null;
 
         if (!this.$activePlaceholder) {
             return;
