@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.11 - 2026-02-13
+
+### Changed
+- Update Phone number values sent to integrations to use `E164` format over `International`.
+- Update Freshdesk “Phone” values to use international formatting.
+
+### Fixed
+- Fix an error when saving Web Request integrations.
+
 ## 2.2.10 - 2026-02-07
 
 ### Added
