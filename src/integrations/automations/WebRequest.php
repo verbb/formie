@@ -48,9 +48,7 @@ class WebRequest extends Automation
     public function __construct($config = [])
     {
         // Config normalization
-        if (array_key_exists('webhook', $config)) {
-            $config['url'] = ArrayHelper::remove($config, 'webhook');
-        }
+        $config = $this->_normalizeConfig($config);
 
         parent::__construct($config);
     }
@@ -58,9 +56,7 @@ class WebRequest extends Automation
     public function setAttributes($values, $safeOnly = true): void
     {
         // Handle legacy webhook from the form settings, which won't be via `__construct`
-        if (array_key_exists('webhook', $values)) {
-            $values['url'] = ArrayHelper::remove($values, 'webhook');
-        }
+        $values = $this->_normalizeConfig($values);
 
         parent::setAttributes($values, $safeOnly);
     }
@@ -208,5 +204,23 @@ class WebRequest extends Automation
         }
 
         return Craft::createGuzzleClient($config);
-    }    
+    } 
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _normalizeConfig(array $config): array
+    {
+        // Remove the legacy `webhook` key, and use the `url` key instead
+        $legacyUrl = ArrayHelper::remove($config, 'webhook');
+        $url = $config['url'] ?? null;
+
+        if ($legacyUrl && !$url) {
+            $config['url'] = $legacyUrl;
+        }
+        
+        return $config;
+    }
+
 }
