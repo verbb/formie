@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.1.12 - 2026-02-13
+
+### Changed
+- Bump `verbb/auth`.
+- Update Phone number values sent to integrations to use `E164` format over `International`.
+- Update Freshdesk “Phone” values to use international formatting.
+
+### Fixed
+- Fix Turnstile timeout issues with validation and submission state.
+- Fix an error when saving Web Request integrations.
+- Fix client-side validation for multi-page forms where validation become “live” before the final page submit.
+
 ## 3.1.11 - 2026-02-07
 
 ### Added
