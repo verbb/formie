@@ -105,6 +105,13 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                 if ($paramName = $this->requestParamName($event->element)) {
                     $event->files = $this->_uploadedDataFiles[$paramName] ?? $event->files ?? [];
                 }
+                // Sanitize filenames to prevent path traversal - user-provided filenames must never
+                // be used directly as they can contain ../../../ or other path injection (SEC-001)
+                foreach ($event->files as &$file) {
+                    if (!empty($file['filename'])) {
+                        $file['filename'] = Assets::prepareAssetName($file['filename'], true, true);
+                    }
+                }
             }
         });
     }
@@ -578,9 +585,11 @@ class FileUpload extends CraftAssets implements FormFieldInterface
                     }
                 }
 
-                $filename = $filenameFormat . $suffix;
-                $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
-                $asset->title = Assets::filename2Title($filename);
+                // Strip any path components - filenameFormat can contain user input via tokens (SEC-001)
+                $baseFilename = basename($filenameFormat . $suffix);
+                $filename = $baseFilename . '.' . $asset->getExtension();
+                $asset->newFilename = Assets::prepareAssetName($filename);
+                $asset->title = Assets::filename2Title($baseFilename);
 
                 $elementService->saveElement($asset);
             }
