@@ -552,9 +552,11 @@ class FileUpload extends ElementField
                     //     }
                     // }
 
-                    $filename = $filenameFormat . $suffix;
-                    $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
-                    $asset->title = Assets::filename2Title($filename);
+                    // Strip any path components - filenameFormat can contain user input via tokens (SEC-001)
+                    $baseFilename = basename($filenameFormat . $suffix);
+                    $filename = $baseFilename . '.' . $asset->getExtension();
+                    $asset->newFilename = Assets::prepareAssetName($filename);
+                    $asset->title = Assets::filename2Title($baseFilename);
 
                     $elementService->saveElement($asset);
                 }
@@ -794,10 +796,14 @@ class FileUpload extends ElementField
                         break;
                 }
 
+                // Sanitize filename to prevent path traversal - user-provided filenames must never
+                // be used directly as they can contain ../../../ or other path injection (SEC-001)
+                $filename = Assets::prepareAssetName($file['filename'], true, true);
+
                 $uploadFolder = $assetsService->getFolderById($uploadFolderId);
                 $asset = new Asset();
                 $asset->tempFilePath = $tempPath;
-                $asset->setFilename($file['filename']);
+                $asset->setFilename($filename);
                 $asset->newFolderId = $uploadFolderId;
                 $asset->setVolumeId($uploadFolder->volumeId);
                 $asset->uploaderId = Craft::$app->getUser()->getId();
@@ -998,9 +1004,9 @@ class FileUpload extends ElementField
                 throw new InvalidSubpathException($subpath);
             }
 
-            // Sanitize the subpath
+            // Sanitize the subpath - filter out path traversal attempts (SEC-001)
             $segments = array_filter(explode('/', $renderedSubpath), function(string $segment): bool {
-                return $segment !== ':ignore:';
+                return $segment !== ':ignore:' && $segment !== '.' && $segment !== '..';
             });
 
             $generalConfig = Craft::$app->getConfig()->getGeneral();
