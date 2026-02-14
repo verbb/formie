@@ -1006,7 +1006,7 @@ class FileUpload extends ElementField
 
             // Sanitize the subpath - filter out path traversal attempts (SEC-001)
             $segments = array_filter(explode('/', $renderedSubpath), function(string $segment): bool {
-                return $segment !== ':ignore:' && $segment !== '.' && $segment !== '..';
+                return $segment !== ':ignore:' && $segment !== '.' && $segment !== '..' && $segment !== '';
             });
 
             $generalConfig = Craft::$app->getConfig()->getGeneral();
