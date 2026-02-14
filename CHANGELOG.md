@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.13 - 2026-02-14 [CRITICAL]
+
+### Fixed
+- Fix lack of sanitization of File Upload files, where the Upload Location subpath contained variables.
+
 ## 3.1.12 - 2026-02-13
 
 ### Changed
