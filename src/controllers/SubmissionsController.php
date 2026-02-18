@@ -1038,6 +1038,7 @@ class SubmissionsController extends Controller
         $params = array_merge([
             'success' => $success,
             'submissionId' => $submission->id,
+            'submissionUid' => $submission->uid,
             'currentPageId' => $form->getCurrentPage()->id,
             'nextPageId' => $nextPage->id ?? null,
             'nextPageIndex' => $form->getPageIndex($nextPage) ?? 0,

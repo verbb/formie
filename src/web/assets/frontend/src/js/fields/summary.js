@@ -8,7 +8,7 @@ export class FormieSummary {
         this.fieldId = settings.fieldId;
         this.loadingClass = this.form.getClasses('loading');
 
-        this.submissionId = null;
+        this.submissionUid = null;
         this.debouncedFetch = this.debounce(this.fetchSummary.bind(this), 300);
 
         // For ajax forms, we want to refresh the field when this field is visible
@@ -34,14 +34,14 @@ export class FormieSummary {
     }
 
     onFieldVisible() {
-        const $submission = this.$form.querySelector('[name="submissionId"]');
+        const $submission = this.$form.querySelector('[name="submissionUid"]');
 
         if ($submission) {
-            this.submissionId = $submission.value;
+            this.submissionUid = $submission.value;
         }
 
-        if (!this.submissionId) {
-            console.error('Summary field: Unable to find `submissionId`');
+        if (!this.submissionUid) {
+            console.error('Summary field: Unable to find `submissionUid`');
             return;
         }
 
@@ -91,7 +91,7 @@ export class FormieSummary {
 
         const params = {
             action: 'formie/fields/get-summary-html',
-            submissionId: this.submissionId,
+            submissionUid: this.submissionUid,
             fieldId: this.fieldId,
         };
 

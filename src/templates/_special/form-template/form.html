@@ -61,6 +61,7 @@
 
                 {% if submission and submission.id %}
                     {{ hiddenInput('submissionId', submission.id) }}
+                    {{ hiddenInput('submissionUid', submission.uid) }}
                 {% endif %}
 
                 {% if form.isEditingSubmission() %}
