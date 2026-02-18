@@ -1263,6 +1263,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.14 - 2026-02-18
+
+### Changed
+- Updated Summary field AJAX requests to use escape values.
+
 ## 2.2.13 - 2026-02-18 [CRITICAL]
 
 ### Changed
