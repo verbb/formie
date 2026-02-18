@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.14 - 2026-02-18 [CRITICAL]
+
+### Changed
+- Updated Summary field AJAX requests to use submission UIDs.
+
 ## 3.1.13 - 2026-02-14 [CRITICAL]
 
 ### Fixed
