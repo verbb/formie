@@ -6,6 +6,7 @@ use verbb\formie\elements\Submission;
 use verbb\formie\fields\Signature;
 
 use Craft;
+use craft\helpers\Db;
 use craft\web\Controller;
 
 use yii\web\Response;
@@ -78,6 +79,9 @@ class FieldsController extends Controller
         $fieldId = (int)$this->request->getParam('fieldId');
         $submissionUid = $this->request->getParam('submissionUid');
 
+        // Ensure things are properly escaped
+        $submissionUid = Db::escapeParam($submissionUid);
+        
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {
             $submission = Submission::find()->uid($submissionUid)->isIncomplete(null)->one();
@@ -98,6 +102,9 @@ class FieldsController extends Controller
     {
         $fieldId = (int)$this->request->getParam('fieldId');
         $submissionUid = $this->request->getParam('submissionUid');
+        
+        // Ensure things are properly escaped
+        $submissionUid = Db::escapeParam($submissionUid);
 
         // Use UID to prevent easy-guessing of submission to scrape data
         if ($submissionUid && $fieldId) {
