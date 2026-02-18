@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.15 - 2026-02-18
+
+### Changed
+- Updated Summary field AJAX requests to use escape values.
+- Bump `verbb/auth`.
+
 ## 3.1.14 - 2026-02-18 [CRITICAL]
 
 ### Changed
