@@ -76,10 +76,11 @@ class FieldsController extends Controller
     public function actionGetSummaryHtml(): string
     {
         $fieldId = (int)$this->request->getParam('fieldId');
-        $submissionId = (int)$this->request->getParam('submissionId');
+        $submissionUid = $this->request->getParam('submissionUid');
 
-        if ($submissionId && $fieldId) {
-            $submission = Submission::find()->id($submissionId)->isIncomplete(null)->one();
+        // Use UID to prevent easy-guessing of submission to scrape data
+        if ($submissionUid && $fieldId) {
+            $submission = Submission::find()->uid($submissionUid)->isIncomplete(null)->one();
 
             if ($submission && $form = $submission->getForm()) {
                 if ($field = $form->getFieldById($fieldId)) {

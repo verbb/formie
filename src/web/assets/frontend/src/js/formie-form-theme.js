@@ -667,6 +667,7 @@ export class FormieFormTheme {
 
         // Remove the submission ID input in case we want to go again
         this.removeHiddenInput('submissionId');
+        this.removeHiddenInput('submissionUid');
 
         // Reset the form hash, as all has been saved
         this.updateFormHash();
@@ -687,12 +688,19 @@ export class FormieFormTheme {
     }
 
     updateSubmissionInput(data) {
-        if (!data.submissionId || !data.nextPageId) {
+        if (!data.nextPageId) {
             return;
         }
 
         // Add the hidden submission input, if it doesn't exist
-        this.updateOrCreateHiddenInput('submissionId', data.submissionId);
+        if (data.submissionId) {
+            this.updateOrCreateHiddenInput('submissionId', data.submissionId);
+        }
+
+        // Add the hidden submission input, if it doesn't exist
+        if (data.submissionUid) {
+            this.updateOrCreateHiddenInput('submissionUid', data.submissionUid);
+        }
     }
 
     updateOrCreateHiddenInput(name, value) {
