@@ -723,7 +723,7 @@ class Opayo extends Payment
     protected function defineClient(): Client
     {
         $useSandbox = App::parseBooleanEnv($this->useSandbox);
-        $url = $useSandbox ? 'https://pi-test.sagepay.com/' : 'https://pi-live.sagepay.com/';
+        $url = $useSandbox ? 'https://sandbox.opayo.eu.elavon.com/' : 'https://live.opayo.eu.elavon.com/';
 
         return Craft::createGuzzleClient([
             'base_uri' => $url . 'api/v1/',
