@@ -386,7 +386,7 @@ class FormsController extends Controller
         /** @var Form $form */
         $form = $variables['form'];
 
-        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
+        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema($form);
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
         $variables['formUsage'] = Formie::$plugin->getForms()->getFormUsage($form);
 

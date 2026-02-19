@@ -390,9 +390,10 @@ class Notifications extends Component
         return true;
     }
 
-    public function getNotificationsSchema(): array
+    public function getNotificationsSchema(Form|Stencil $form): array
     {
         $user = Craft::$app->getUser();
+        $suffix = ':' . $form->uid;
 
         $tabs = [];
         $fields = [];
@@ -402,11 +403,11 @@ class Notifications extends Component
             'Content',
         ];
 
-        if ($user->checkPermission('formie-showNotificationsAdvanced')) {
+        if ($user->checkPermission('formie-showNotificationsAdvanced') || $user->checkPermission("formie-showNotificationsAdvanced{$suffix}")) {
             $definedTabs[] = 'Advanced';
         }
 
-        if ($user->checkPermission('formie-showNotificationsTemplates')) {
+        if ($user->checkPermission('formie-showNotificationsTemplates') || $user->checkPermission("formie-showNotificationsTemplates{$suffix}")) {
             $definedTabs[] = 'Templates';
         }
         

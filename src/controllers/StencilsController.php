@@ -208,7 +208,7 @@ class StencilsController extends Controller
         /** @var Stencil $stencil */
         $stencil = $variables['stencil'];
 
-        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema();
+        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema($stencil);
         $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
         $variables['formUsage'] = [];
 
