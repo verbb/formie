@@ -217,6 +217,7 @@ export class FormieFormTheme {
             'beesknees',
             'cf-turnstile-response',
             'frc-captcha-solution',
+            'frc-captcha-response',
             'snaptcha',
             'submitAction',
         ];

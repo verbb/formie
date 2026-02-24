@@ -1,7 +1,7 @@
-import { WidgetInstance } from 'friendly-challenge';
+import { FriendlyCaptchaSDK } from '@friendlycaptcha/sdk';
 
 import { FormieCaptchaProvider } from './captcha-provider';
-import { t, eventKey } from '../utils/utils';
+import { eventKey } from '../utils/utils';
 
 export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
@@ -14,6 +14,7 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.startMode = settings.startMode;
         this.providerName = 'FriendlyCaptcha';
         this.widgets = new Map();
+        this.sdk = new FriendlyCaptchaSDK();
     }
 
     getPlaceholders() {
@@ -37,6 +38,15 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
     }
 
     destroyCaptcha($placeholder) {
+        const widget = this.widgets.get($placeholder);
+
+        if (widget) {
+            widget.destroy();
+            this.widgets.delete($placeholder);
+        }
+
+        this.token = null;
+
         // Reset the DOM for the placeholder, if it's been rendered
         this.destroyContainer($placeholder);
 
@@ -58,12 +68,23 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
 
         try {
-            const widget = new WidgetInstance($container, {
+            const widget = this.sdk.createWidget({
+                element: $container,
                 sitekey: this.siteKey,
                 startMode: this.startMode,
                 language: this.language,
-                doneCallback: this.onVerify.bind(this),
-                errorCallback: this.onError.bind(this),
+            });
+
+            widget.addEventListener('frc:widget.complete', (event) => {
+                this.onVerify(event.detail.response);
+            });
+
+            widget.addEventListener('frc:widget.error', (event) => {
+                this.onError(event.detail.error);
+            });
+
+            widget.addEventListener('frc:widget.expire', () => {
+                this.token = null;
             });
 
             this.widgets.set($placeholder, widget);

@@ -21,6 +21,7 @@ class FriendlyCaptcha extends Captcha
     public ?string $handle = 'friendlyCaptcha';
     public ?string $secretKey = null;
     public ?string $siteKey = null;
+    public string $apiVersion = 'v1';
     public string $language = 'en';
     public string $startMode = 'none';
 
@@ -61,9 +62,11 @@ class FriendlyCaptcha extends Captcha
             'formId' => $form->getFormId(),
             'language' => $this->_getMatchedLanguageId() ?? 'en',
             'startMode' => $this->startMode ?? 'none',
+            'apiVersion' => $this->apiVersion,
         ];
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/friendly-captcha.js');
+        $scriptName = $this->apiVersion === 'v2' ? 'friendly-captcha-v2.js' : 'friendly-captcha-v1.js';
+        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/' . $scriptName);
 
         return [
             'src' => $src,
@@ -82,6 +85,15 @@ class FriendlyCaptcha extends Captcha
     }
 
     public function validateSubmission(Submission $submission): bool
+    {
+        if ($this->apiVersion === 'v2') {
+            return $this->_validateV2($submission);
+        }
+
+        return $this->_validateV1($submission);
+    }
+
+    private function _validateV1(Submission $submission): bool
     {
         $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-solution');
 
@@ -108,6 +120,37 @@ class FriendlyCaptcha extends Captcha
         return $success;
     }
 
+    private function _validateV2(Submission $submission): bool
+    {
+        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-response');
+
+        if (!$responseToken) {
+            $this->spamReason = 'Missing Friendly Captcha response.';
+
+            return false;
+        }
+
+        $response = $this->request('POST', 'https://global.frcapi.com/api/v2/captcha/siteverify', [
+            'headers' => [
+                'X-API-Key' => App::parseEnv($this->secretKey),
+            ],
+            'json' => [
+                'sitekey' => App::parseEnv($this->siteKey),
+                'response' => $responseToken,
+            ],
+        ]);
+
+        $success = $response['success'] ?? false;
+
+        if (!$success) {
+            $errorDetail = $response['error']['detail'] ?? null;
+            $errorCode = $response['error']['error_code'] ?? null;
+            $this->spamReason = $errorDetail ?? $errorCode ?? Json::encode($response);
+        }
+
+        return $success;
+    }
+
     public function hasValidSettings(): bool
     {
         return $this->siteKey && $this->secretKey;
@@ -115,10 +158,16 @@ class FriendlyCaptcha extends Captcha
 
     public function allowedGqlSettings(): array
     {
-        return [
+        $settings = [
             'siteKey' => $this->siteKey,
             'language' => $this->language,
         ];
+
+        if ($this->apiVersion === 'v2') {
+            $settings['apiVersion'] = $this->apiVersion;
+        }
+
+        return $settings;
     }
 
 

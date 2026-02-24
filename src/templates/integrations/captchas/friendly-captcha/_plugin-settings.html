@@ -2,6 +2,20 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {% set displayName = integration.displayName() %}
+{% set apiVersion = integration.settings.apiVersion ?? 'v1' %}
+{% set isV2 = apiVersion == 'v2' %}
+
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'API Version' | t('formie'),
+    instructions: 'Use v1 with your existing Site Key and Secret Key. Use v2 after enabling v2 in your Friendly Captcha dashboard and generating new keys (Site Key and API Key).' | t('formie'),
+    name: 'apiVersion',
+    value: apiVersion,
+    options: [
+        { label: 'v1 (legacy)' | t('formie'), value: 'v1' },
+        { label: 'v2' | t('formie'), value: 'v2' },
+    ],
+    warning: macros.configWarning('apiVersion', 'formie'),
+}) }}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'Site Key' | t('formie'),
@@ -13,7 +27,7 @@
 }) }}
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Secret Key' | t('formie'),
+    label: (isV2 ? 'API Key' : 'Secret Key') | t('formie'),
     name: 'secretKey',
     required: true,
     suggestEnvVars: true,
@@ -32,7 +46,7 @@
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Start Mode' | t('formie'),
-    instructions: 'Specify when the captcha should start solving a puzzle. Refer to {link}.' | t('formie', { link: '[docs](https://docs.friendlycaptcha.com/#/widget_api?id=data-start-attribute)' }),
+    instructions: 'Specify when the captcha should start solving a puzzle. Refer to {link}.' | t('formie', { link: '[docs](https://developer.friendlycaptcha.com/docs/v2/sdk/reference/sdk.createwidgetoptions.startmode)' }),
     name: 'startMode',
     value: integration.settings.startMode ?? 'auto',
     options: [

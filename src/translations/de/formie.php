@@ -1099,6 +1099,7 @@ return [
     'Card Name' => 'Kartenname',
     'Card Description' => 'Kartenbeschreibung',
     'Please provide the site and secret keys for ReCAPTCHA in [Settings]({link}).' => 'Bitte gib die Website- und Geheimschlüssel für ReCAPTCHA in den [Einstellungen]({link}) an.',
+    'Please provide the site and secret keys for Friendly Captcha in [Settings]({link}).' => 'Bitte gib die Website- und API-Schlüssel für Friendly Captcha in den [Einstellungen]({link}) an.',
     'reCAPTCHA Type' => 'ReCAPTCHA-Typ',
     'Select the type of reCAPTCHA to use.' => 'Wähle den zu verwendenden ReCAPTCHA-Typ.',
     'reCAPTCHA V3' => 'ReCAPTCHA V3',
