@@ -1523,6 +1523,43 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         return $values;
     }
 
+    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        $props = [
+            'year' => 'Y',
+            'month' => 'm',
+            'day' => 'd',
+            'hour' => 'H',
+            'minute' => 'i',
+            'second' => 's',
+            'ampm' => 'a',
+        ];
+
+        $values = [];
+
+        if ($value) {
+            if ($this->displayType === 'inputs' || $this->displayType === 'dropdowns') {
+                foreach ($props as $k => $format) {
+                    $formattedValue = '';
+
+                    if ($value && $value instanceof DateTime) {
+                        $formattedValue = $value->format($format);
+                    }
+
+                    $values[$k] = $formattedValue;
+                }
+            } else {
+                $values = [
+                    '__toString' => $this->defineValueAsString($value),
+                    'date' => $value->format($this->getDateFormat()),
+                    'time' => $value->format($this->getTimeFormat()),
+                ];
+            }
+        }
+
+        return $values;
+    }
+
     // Private Methods
     // =========================================================================
 
