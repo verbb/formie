@@ -28,7 +28,9 @@ class MigrationsController extends Controller
         App::maxPowerCaptain();
 
         // Backup!
-        Craft::$app->getDb()->backup();
+        try {
+            Craft::$app->getDb()->backup();
+        } catch (Throwable) {}
 
         $formIds = $this->request->getParam('formIds');
         $forms = SproutFormsForm::find()->id($formIds)->all();
@@ -67,7 +69,9 @@ class MigrationsController extends Controller
         App::maxPowerCaptain();
 
         // Backup!
-        Craft::$app->getDb()->backup();
+        try {
+            Craft::$app->getDb()->backup();
+        } catch (Throwable) {}
 
         $formIds = $this->request->getParam('formIds');
 
@@ -112,7 +116,9 @@ class MigrationsController extends Controller
         App::maxPowerCaptain();
 
         // Backup!
-        Craft::$app->getDb()->backup();
+        try {
+            Craft::$app->getDb()->backup();
+        } catch (Throwable) {}
 
         $formIds = $this->request->getParam('formIds');
 
