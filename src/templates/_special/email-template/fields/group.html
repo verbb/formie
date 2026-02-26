@@ -6,25 +6,27 @@
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             <tbody>
                 {% for field in field.getFields() %}
-                    {# Update the namespace for the field #}
-                    {% do field.setParentField(groupField) %}
+                    {% if not field.isConditionallyHidden(submission) %}
+                        {# Update the namespace for the field #}
+                        {% do field.setParentField(groupField) %}
 
-                    {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
+                        {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
-                    {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
+                        {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
 
-                    {% if html %}
-                        <tr>
-                            <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
-                                {% if field.hasLabel %}
-                                    {{ field.label | t('formie') }}
-                                {% endif %}
-                            </th>
+                        {% if html %}
+                            <tr>
+                                <th style="text-align: left; font-size: inherit; width: 30%; padding: 4px; border: 1px solid; background-color: rgba(0, 0, 0, 0.05);">
+                                    {% if field.hasLabel %}
+                                        {{ field.label | t('formie') }}
+                                    {% endif %}
+                                </th>
 
-                            <td style="padding: 4px; border: 1px solid;">
-                                {{ html | raw }}
-                            </td>
-                        </tr>
+                                <td style="padding: 4px; border: 1px solid;">
+                                    {{ html | raw }}
+                                </td>
+                            </tr>
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
             </tbody>
