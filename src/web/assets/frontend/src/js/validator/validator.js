@@ -387,13 +387,12 @@ class FormieValidator {
     }
 
     submit(inputOrSelector = null, { final = false } = {}) {
-        // Check if we're on the last page of a form, to then become “live” for fixing errors
-        if (final) {
-            this.submitted = true;
+        // Mark as submitted so inline errors are shown for the current page/fieldset
+        this.submitted = true;
 
-            if (!this.config.live) {
-                this.addEventListeners();
-            }
+        // Only enable live validation (blur/input) when on the last page
+        if (final && !this.config.live) {
+            this.addEventListeners();
         }
 
         return this.validate(inputOrSelector);
