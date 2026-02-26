@@ -391,6 +391,7 @@ class FileUpload extends ElementField
         $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
         $phpLimit = (max((int)ini_get('post_max_size'), (int)ini_get('upload_max_filesize'))) * 1048576;
         $maxUpload = $this->_humanFilesize(max($phpLimit, $configLimit));
+        $allowPublicVolumes = Formie::$plugin->getSettings()->allowPublicVolumes;
 
         return [
             SchemaHelper::lightswitchField([
@@ -405,7 +406,12 @@ class FileUpload extends ElementField
                 'if' => '$get(required).value',
             ]),
             SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue(),
+            SchemaHelper::emailNotificationValue([
+                'options' => array_values(array_filter([
+                    $allowPublicVolumes ? ['label' => Craft::t('formie', 'Public URL'), 'value' => 'publicUrl'] : null,
+                    ['label' => Craft::t('formie', 'Control Panel URL'), 'value' => 'cpUrl'],
+                ])),
+            ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
                 'help' => Craft::t('formie', 'Limit the number of files a user can upload.'),
