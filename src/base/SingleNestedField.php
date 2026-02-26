@@ -140,7 +140,7 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
             // Ensure that the inner fields know about this specific block, to handle getting values properly
             $field->setParentField($this);
 
-            $values[$field->handle] = $field->serializeValue($fieldValue, $submission);
+            $values[$field->handle] = $field->getValueForCondition($fieldValue, $submission);
         }
 
         return $values;
