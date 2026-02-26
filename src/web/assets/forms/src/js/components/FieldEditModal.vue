@@ -1,10 +1,10 @@
 <template>
-    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-field-modal" @update:model-value="showModal = $event" @click-outside="onCancelModal">
+    <modal ref="modal" :model-value="showModal" modal-class="fui-edit-field-modal" :disable-focus-trap="true" @update:model-value="showModal = $event" @click-outside="onCancelModal">
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Field') }}</h3>
             <div v-if="showFieldType" class="fui-modal-fieldtype">{{ fieldtype.label }}</div>
 
-            <button class="fui-dialog-close" @click.prevent="onCancelModal"></button>
+            <button type="button" class="fui-dialog-close" tabindex="-1" aria-label="Close" @click.prevent="onCancelModal"></button>
         </template>
 
         <template #body>

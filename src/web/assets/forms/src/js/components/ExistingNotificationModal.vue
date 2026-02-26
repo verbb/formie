@@ -5,7 +5,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Notification') }}</h3>
 
-            <button class="fui-dialog-close" @click.prevent="closeModal"></button>
+            <button type="button" class="fui-dialog-close" tabindex="-1" aria-label="Close" @click.prevent="closeModal"></button>
         </template>
 
         <template #body>

@@ -9,7 +9,7 @@
         overlay-class="fui-modal-overlay"
         content-transition="vfm-fade"
         overlay-transition="vfm-fade"
-        :focus-trap="focusTrapOptions"
+        :focus-trap="effectiveFocusTrap"
     >
         <header v-if="showHeader" id="modalTitle" class="fui-modal-header">
             <slot name="header"></slot>
@@ -52,16 +52,34 @@ export default {
             type: Boolean,
             default: true,
         },
+
+        /**
+         * When true, the focus trap is disabled so that nested Craft/Garnish modals
+         * (e.g. element selector for Entries field Sources/Default Value) can receive
+         * focus and input. Use for modals that contain element selects or other
+         * controls that open Craft's own modals.
+         */
+        disableFocusTrap: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     data() {
         return {
             id: this.$id('modal'),
-
-            focusTrapOptions: {
-                allowOutsideClick: true,
-            },
         };
+    },
+
+    computed: {
+        effectiveFocusTrap() {
+            if (this.disableFocusTrap) {
+                return false;
+            }
+            return {
+                allowOutsideClick: true,
+            };
+        },
     },
 
     methods: {
@@ -127,6 +145,8 @@ export default {
 }
 
 .fui-modal-header {
+    position: relative;
+    z-index: 0;
     width: 100%;
     background-color: #f3f7fc;
     box-shadow: inset 0 -1px 0 rgba(51, 64, 77, 0.1);
@@ -163,8 +183,9 @@ export default {
 }
 
 .fui-modal-body {
-    height: 100%;
     position: relative;
+    z-index: 1;
+    height: 100%;
     overflow: auto;
 }
 
