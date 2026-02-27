@@ -97,7 +97,24 @@ export default {
     mounted() {
         this.$nextTick().then(() => {
             this.createModal();
+
+            // Craft's sortable moves DOM nodes when elements are reordered.
+            // Watch for childList mutations to detect sorts.
+            this._sortObserver = new MutationObserver(() => {
+                if (this.modal) {
+                    this.domToModel();
+                }
+            });
+
+            this._sortObserver.observe(this.$refs.elements, { childList: true });
         });
+    },
+
+    beforeUnmount() {
+        if (this._sortObserver) {
+            this._sortObserver.disconnect();
+            this._sortObserver = null;
+        }
     },
 
     methods: {
@@ -162,8 +179,10 @@ export default {
         domToModel() {
             const elements = [];
 
-            this.modal.$elements.each((index, $element) => {
-                elements.push({ id: $element.dataset.id, siteId: $element.dataset.siteId });
+            // Read from the live DOM order rather than this.modal.$elements, which maintains
+            // insertion order and doesn't update after drag-and-drop reordering.
+            $(this.$refs.elements).find('[data-id]').each((_, el) => {
+                elements.push({ id: el.dataset.id, siteId: el.dataset.siteId });
             });
 
             this.context.node.input(elements);
