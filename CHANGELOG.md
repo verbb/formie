@@ -1269,6 +1269,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.15 - 2026-03-03
+
+### Changed
+- Update Opayo API endpoints to align with latest API changes.
+
 ## 2.2.14 - 2026-02-18
 
 ### Changed
