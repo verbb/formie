@@ -1,5 +1,27 @@
 # Changelog
 
+## 3.1.16 - 2026-03-03
+
+### Added
+- Add support for Friendly Captcha v2 (opt-in).
+
+### Changed
+- Update ElementSelect Model from DOM nodes and respect DOM order.
+- Update Opayo API endpoints to align with latest API changes.
+
+### Fixed
+- Fix Group and Repeater email templates not filtering out conditionally-hidden inner fields.
+- Fix Repeater field conditions evalutations not working with the correct serialized field values.
+- Fix Group field conditions evalutations not working with the correct serialized field values.
+- Fix Date fields not populating their value correctly for conditions for some display types (inputs/dropdowns).
+- Fix an error for client-side validation not showing inline errors.
+- Fix showing “Public URL” as an Email Notification Value for File Upload fields when allowPublicVolumes was false.
+- Fix an error when trying to use element select modals within field edit and other Vue-based modals.
+- Fix an error during form plugin migrations where a backup could fail.
+- Fix an issue with Summary fields not always generating a valid handle.
+- Fix an issue with Section fields not always generating a valid handle.
+- Fix “Advanced” and “Templates” tabs for Email Notifications not working correctly when setting per-form user permissions.
+
 ## 3.1.15 - 2026-02-18
 
 ### Changed
