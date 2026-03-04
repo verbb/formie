@@ -954,7 +954,7 @@ class Submission extends CustomElement
             $fields = $page ? $page->getFields() : $form->getFields();
 
             foreach ($fields as $field) {
-                $values[$field->handle] = $field->getValue($this);
+                $values[$field->handle] = $this->getFieldValue($field->handle);
             }
         }
 
