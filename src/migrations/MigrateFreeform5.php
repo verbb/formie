@@ -215,7 +215,7 @@ class MigrateFreeform5 extends Migration
 
             /* @var FreeformSubmission $entry */
             $submission = new Submission();
-            $submission->title = $now->format('D, d M Y H:i:s');
+            $submission->title = $entry->title;
             $submission->setForm($this->_form);
             $submission->dateCreated = $entry->dateCreated;
             $submission->dateUpdated = $entry->dateUpdated;
