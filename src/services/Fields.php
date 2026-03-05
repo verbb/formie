@@ -4,7 +4,6 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\SubFieldInterface;
 use verbb\formie\base\SubFieldInnerFieldInterface;
 use verbb\formie\elements\Form;
@@ -640,7 +639,12 @@ class Fields extends Component
         $transaction = Craft::$app->getDb()->beginTransaction();
 
         // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
-        $previousPages = unserialize(serialize($layout->getPages()));
+        // Fallback to model re-instantiation if some field state includes closures.
+        try {
+            $previousPages = unserialize(serialize($layout->getPages()));
+        } catch (Throwable $e) {
+            $previousPages = array_map(fn(array $page) => new FieldLayoutPage($page), $layout->getFormBuilderConfig());
+        }
 
         foreach ($layout->getPages() as $pageKey => $page) {
             $page->layoutId = $layout->id;
