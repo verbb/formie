@@ -4,6 +4,7 @@ namespace verbb\formie\base;
 use verbb\formie\Formie;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\services\Countries;
+use verbb\formie\services\EmailDomains;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
 use verbb\formie\services\Fields;
@@ -72,6 +73,7 @@ trait PluginTrait
         return [
             'components' => [
                 'countries' => Countries::class,
+                'emailDomains' => EmailDomains::class,
                 'emails' => Emails::class,
                 'emailTemplates' => EmailTemplates::class,
                 'fields' => Fields::class,
@@ -146,6 +148,11 @@ trait PluginTrait
     public function getEmails(): Emails
     {
         return $this->get('emails');
+    }
+
+    public function getEmailDomains(): EmailDomains
+    {
+        return $this->get('emailDomains');
     }
 
     public function getEmailTemplates(): EmailTemplates

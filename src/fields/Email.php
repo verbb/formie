@@ -2,6 +2,7 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
@@ -47,6 +48,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
 
     public bool $validateDomain = false;
     public array $blockedDomains = [];
+    public bool $blockFreeDomains = false;
     public bool $uniqueValue = false;
 
 
@@ -69,6 +71,10 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
             $rules[] = 'validateDomain';
         }
 
+        if ($this->blockFreeDomains) {
+            $rules[] = 'validateFreeDomain';
+        }
+
         if ($this->uniqueValue) {
             $rules[] = 'validateUniqueValue';
         }
@@ -78,20 +84,39 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
 
     public function validateDomain(ElementInterface $element): void
     {
-        $blockedDomains = ArrayHelper::getColumn($this->blockedDomains, 'value');
-
+        $emailDomains = Formie::$plugin->getEmailDomains();
         $value = $element->getFieldValue($this->fieldKey);
+        $domain = $emailDomains->extractDomainFromEmail((string)$value);
 
-        $domain = explode('@', $value)[1] ?? null;
+        if (!$domain) {
+            return;
+        }
 
-        if ($domain) {
-            $domain = trim($domain);
+        $blockedDomains = array_filter(array_map(function($blockedDomain) use ($emailDomains) {
+            return $emailDomains->normalizeDomain((string)$blockedDomain);
+        }, ArrayHelper::getColumn($this->blockedDomains, 'value')));
 
-            if (in_array($domain, $blockedDomains)) {
-                $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
-                    'domain' => $domain,
-                ]));
-            }
+        if (in_array($domain, $blockedDomains, true)) {
+            $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
+                'domain' => $domain,
+            ]));
+        }
+    }
+
+    public function validateFreeDomain(ElementInterface $element): void
+    {
+        $emailDomains = Formie::$plugin->getEmailDomains();
+        $value = $element->getFieldValue($this->fieldKey);
+        $domain = $emailDomains->extractDomainFromEmail((string)$value);
+
+        if (!$domain) {
+            return;
+        }
+
+        if ($emailDomains->isFreeDomain($domain)) {
+            $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
+                'domain' => $domain,
+            ]));
         }
     }
 
@@ -180,6 +205,11 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
                     ],
                 ],
             ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Block Free Email Providers'),
+                'help' => Craft::t('formie', 'Whether block emails based on free email providers like `gmail.com` or `hotmail.com`.'),
+                'name' => 'blockFreeDomains',
+            ]),
         ];
     }
 
@@ -260,4 +290,5 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
     {
         return $faker->email;
     }
+
 }
