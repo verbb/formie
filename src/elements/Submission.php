@@ -323,6 +323,7 @@ class Submission extends CustomElement
     private bool $_previousIsSpam = false;
     private ?int $_previousStatusId = null;
     private array $_captchaData = [];
+    private bool $_updateTitle = false;
 
 
     // Public Methods
@@ -669,6 +670,11 @@ class Submission extends CustomElement
             // Rather than re-save, directly update the content record
             Db::update(Table::ELEMENTS_SITES, ['title' => $this->title], ['elementId' => $this->id, 'siteId' => $this->siteId]);
         }
+    }
+
+    public function setUpdateTitle(bool $updateTitle): void
+    {
+        $this->_updateTitle = $updateTitle;
     }
 
     public function getForm(): ?Form
@@ -1253,6 +1259,10 @@ class Submission extends CustomElement
                     }
                 }
             }
+        }
+
+        if ($this->_updateTitle) {
+            $this->updateTitle($this->getForm());
         }
 
         parent::afterSave($isNew);

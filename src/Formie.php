@@ -759,17 +759,18 @@ class Formie extends Plugin
                     }
 
                     foreach ($formIds as $formId) {
-                        $criteria = ['formId' => $formId];
+                        $criteria = ['formId' => $formId, 'updateTitle' => $controller->updateTitle];
 
                         $controller->resaveElements(Submission::class, $criteria);
                     }
 
                     return true;
                 },
-                'options' => ['formId'],
+                'options' => ['formId', 'updateTitle'],
                 'helpSummary' => 'Re-saves Forms submissions.',
                 'optionsHelp' => [
                     'formId' => 'The form ID of the submissions to resave.',
+                    'updateTitle' => 'Whether to force the title‘s to update according to the Submission Title Format.',
                 ],
             ];
         });

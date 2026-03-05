@@ -39,6 +39,7 @@ class SubmissionQuery extends ElementQuery
     public ?bool $isSpam = false;
     public mixed $before = null;
     public mixed $after = null;
+    public mixed $updateTitle = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
 
@@ -167,6 +168,20 @@ class SubmissionQuery extends ElementQuery
     {
         $this->after = $value;
         return $this;
+    }
+
+    public function afterPopulate(array $elements): array
+    {
+        $elements = parent::afterPopulate($elements);
+
+        // Allow setting an element query property on the resave controller
+        if ($this->updateTitle) {
+            foreach ($elements as $element) {
+                $element->setUpdateTitle(true);
+            }
+        }
+
+        return $elements;
     }
 
 
