@@ -84,4 +84,16 @@ class Forms extends BaseRelationField
             'resolve' => FormResolver::class . '::resolve',
         ];
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function supportedViewModes(): array
+    {
+        return [
+            self::VIEW_MODE_LIST => Craft::t('app', 'List'),
+            self::VIEW_MODE_LIST_INLINE => Craft::t('app', 'Inline list'),
+        ];
+    }
 }
