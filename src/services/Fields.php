@@ -532,7 +532,7 @@ class Fields extends Component
 
                 $plugin = Craft::$app->getPlugins()->getPlugin($handle);
 
-                if (version_compare($plugin->getVersion(), $version, '<')) {
+                if (!$plugin || !$this->_meetsRequiredPluginVersion((string)$plugin->getVersion(), (string)$version)) {
                     throw new MissingComponentException();
                 }
             }
@@ -1225,6 +1225,24 @@ class Fields extends Component
             ])
             ->from(['fields' => CraftTable::FIELDS])
             ->orderBy(['fields.name' => SORT_ASC, 'fields.handle' => SORT_ASC]);
+    }
+
+    private function _meetsRequiredPluginVersion(string $pluginVersion, string $requiredVersion): bool
+    {
+        if ($requiredVersion === '' || $requiredVersion === '0') {
+            return true;
+        }
+
+        if ($pluginVersion === '') {
+            return false;
+        }
+
+        // Allow Composer branch aliases such as `dev-main` and `4.x-dev`.
+        if (str_contains($pluginVersion, 'dev')) {
+            return true;
+        }
+
+        return version_compare($pluginVersion, $requiredVersion, '>=');
     }
 
     /**
