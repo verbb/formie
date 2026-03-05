@@ -423,7 +423,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // decrypt field content
         if (is_string($value)) {
             // Ensure that we sanitize content
-            $value = StringHelper::cleanString($value);
+            // Temporary monkey patch for #2753:
+            // keep ampersands in plain text fields from being persisted as `&amp;`.
+            $value = str_replace('&amp;', '&', StringHelper::cleanString($value));
 
             if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
                 $value = StringHelper::decdec($value);
@@ -1688,7 +1690,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
         // Escape any HTML in field content for good measure
-        return StringHelper::cleanString((string)$value);
+        // Temporary monkey patch for #2753.
+        return str_replace('&amp;', '&', StringHelper::cleanString((string)$value));
     }
 
     protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
