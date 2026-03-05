@@ -2027,8 +2027,18 @@ class Form extends Element
             return;
         }
 
-        // Remove the quik-edit ability
+        // Remove the quick-edit ability
         $event->html = str_replace(['data-editable'], [''], $event->html);
+
+        // Manually add the hyperlink. No other way to do this in the BaseRelationField class.
+        $event->html = str_replace('"hyperlink":false', '"hyperlink":true', $event->html);
+
+        $anchor = Html::tag('a', Html::tag('span', $event->element->title), [
+            'class' => 'label-link',
+            'href' => $event->element->cpEditUrl(),
+        ]);
+
+        $event->html = preg_replace('/<span class="label-link">(.+?)<\/span>/', $anchor, $event->html);
     }
 
     public function beforeSave(bool $isNew): bool
