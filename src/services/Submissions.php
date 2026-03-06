@@ -428,10 +428,10 @@ class Submissions extends Component
 
             if ($consoleInstance) {
                 $consoleInstance->stdout(Craft::t('formie', 'Starting data retention checks for form “{f}”: {d} {c}.', [
-                        'f' => $form['handle'],
-                        'c' => $dataRetention,
-                        'd' => $dataRetentionValue,
-                    ]) . PHP_EOL, Console::FG_YELLOW);
+                    'f' => $form['handle'],
+                    'c' => $dataRetention,
+                    'd' => $dataRetentionValue,
+                ]) . PHP_EOL, Console::FG_YELLOW);
             }
 
             // Setup intervals, depending on the setting
@@ -458,22 +458,36 @@ class Submissions extends Component
             $date = new DateTime();
             $date->sub($interval);
 
-            $submissions = Submission::find()
+            // Include complete/incomplete/spam submissions and all element statuses for retention checks.
+            $submissionQuery = Submission::find()
+                ->anyStatus()
+                ->status(null)
+                ->isIncomplete(null)
+                ->isSpam(null)
+                ->formId($form['id']);
+
+            $totalSubmissionCount = (clone $submissionQuery)->count();
+
+            $submissions = (clone $submissionQuery)
                 // Don't use `Db::prepareDateForDb()` because the `dateCreated` param will already do that
                 ->dateCreated('< ' . $date->format('Y-m-d H:i:s'))
-                ->formId($form['id'])
                 ->all();
 
             if ($consoleInstance) {
+                $consoleInstance->stdout(Craft::t('formie', 'Found {c} total submissions for form “{f}”.', [
+                    'c' => $totalSubmissionCount,
+                    'f' => $form['handle'],
+                ]) . PHP_EOL, Console::FG_YELLOW);
+
                 if ($submissions) {
                     $consoleInstance->stdout(Craft::t('formie', 'Preparing to prune {c} submissions older than {d}.', [
-                            'c' => count($submissions),
-                            'd' => Db::prepareDateForDb($date),
-                        ]) . PHP_EOL, Console::FG_YELLOW);
+                        'c' => count($submissions),
+                        'd' => Db::prepareDateForDb($date),
+                    ]) . PHP_EOL, Console::FG_YELLOW);
                 } else {
                     $consoleInstance->stdout(Craft::t('formie', 'No submissions found to prune older than {d}.', [
-                            'd' => Db::prepareDateForDb($date),
-                        ]) . PHP_EOL, Console::FG_GREEN);
+                        'd' => Db::prepareDateForDb($date),
+                    ]) . PHP_EOL, Console::FG_GREEN);
                 }
             }
 
