@@ -643,7 +643,8 @@ class Fields extends Component
         try {
             $previousPages = unserialize(serialize($layout->getPages()));
         } catch (Throwable $e) {
-            $previousPages = array_map(fn(array $page) => new FieldLayoutPage($page), $layout->getFormBuilderConfig());
+            $pagesConfig = $this->_stripErrorsFromConfig($layout->getFormBuilderConfig());
+            $previousPages = array_map(fn(array $page) => new FieldLayoutPage($page), $pagesConfig);
         }
 
         foreach ($layout->getPages() as $pageKey => $page) {
@@ -717,6 +718,19 @@ class Fields extends Component
         }
 
         return true;
+    }
+
+    private function _stripErrorsFromConfig(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            unset($value['errors']);
+
+            foreach ($value as $key => $item) {
+                $value[$key] = $this->_stripErrorsFromConfig($item);
+            }
+        }
+
+        return $value;
     }
     
     public function deleteLayoutById(int $id): bool
