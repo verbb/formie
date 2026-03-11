@@ -201,7 +201,8 @@ class Stripe extends Payment
     public function getReturnUrl(Submission $submission): string
     {
         $url = 'formie/payment-webhooks/process-callback';
-        $params = ['token' => $submission->uid, 'handle' => $this->handle];
+        // Avoid using `token` as a query param, as Craft reserves it for secure token validation.
+        $params = ['submissionUid' => $submission->uid, 'handle' => $this->handle];
 
         if (Craft::$app->getConfig()->getGeneral()->headlessMode) {
             return UrlHelper::actionUrl($url, $params);
@@ -549,7 +550,8 @@ class Stripe extends Payment
             $request = Craft::$app->getRequest();
 
             $origin = $request->getParam('origin');
-            $token = $request->getParam('token');
+            // Keep a legacy fallback for older callback URLs.
+            $token = $request->getParam('submissionUid') ?: $request->getParam('token');
             $paymentIntentId = $request->getParam('payment_intent');
 
             if (!$token) {
