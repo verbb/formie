@@ -13,10 +13,18 @@
 {{ fieldtag('fieldAddButton') }}
 
 {% set includeScriptsInline = renderOptions.includeScriptsInline ?? false %}
+{% set scriptAttributes = { type: 'text/javascript' } 
+    | merge(craft.formie.getRenderVariables('scriptAttributes') ?? {})
+    | merge(renderOptions.scriptAttributes ?? {})
+    | merge({
+        type: 'text/x-template',
+        'data-repeater-template': field.handle,
+    })
+%}
 
 {% if includeScriptsInline %}
     {# For GraphQL requests we need to render this inline #}
-    <script type="text/x-template" data-repeater-template="{{ field.handle }}">{% apply spaceless %}
+    <script{{ attr(scriptAttributes) }}>{% apply spaceless %}
         {{ formieInclude('fields/repeater/_row', {
             index: '__ROW__',
         }) }}
@@ -24,7 +32,7 @@
 {% else %}
     {# Have to use the `script` tag here to place the script outside of a Vue3 wrapper #}
     {# as Vue3 will strip out inline `script` tags (all other scenarios would be fine) #}
-    {% script with { type: 'text/x-template', 'data-repeater-template': field.handle } %}{% apply spaceless %}
+    {% script with scriptAttributes %}{% apply spaceless %}
         {{ formieInclude('fields/repeater/_row', {
             index: '__ROW__',
         }) }}

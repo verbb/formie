@@ -168,7 +168,7 @@ class Formie
 
     public function getRenderVariables(string $key): mixed
     {
-        FormiePlugin::$plugin->getRendering()->getRenderVariables($key);
+        return FormiePlugin::$plugin->getRendering()->getRenderVariables($key);
     }
 
     public function getPlugin(): FormiePlugin
