@@ -161,13 +161,7 @@ class Paddle extends Payment
                 'customData' => [
                     'formiePaymentUId' => $payment->id,
                 ],
-                'customer' => [
-                    'email' => 'josh@engramdesign.com.au',
-                    'address' => [
-                        'countryCode' => 'AU',
-                        'postalCode' => '3032',
-                    ],
-                ],
+                'customer' => [],
             ];
 
             // Add in extra settings configured at the field level
