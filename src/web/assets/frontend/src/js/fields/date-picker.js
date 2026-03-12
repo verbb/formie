@@ -88,6 +88,8 @@ export class FormieDatePicker {
         // Include time for time-only and datetime
         if (this.getIsTime || this.getIsDateTime) {
             defaultOptions.enableTime = true;
+            // eslint-disable-next-line camelcase
+            defaultOptions.time_24hr = this.getIs24HourTimeFormat();
         }
 
         // Exclude date for time-only
@@ -175,6 +177,11 @@ export class FormieDatePicker {
         // Convert date format from PHP to Flatpickr
         // https://flatpickr.js.org/formatting/
         return this.dateTimeFormat.replace('A', 'K').replace('a', 'K').replace('s', 'S').replace('g', 'h').replace('h', 'G');
+    }
+
+    getIs24HourTimeFormat() {
+        // If a 12-hour token exists, use a 12-hour picker; otherwise use 24-hour.
+        return !/[ghaA]/.test(this.timeFormat || '');
     }
 
     getDisabledWeekdays(date) {
