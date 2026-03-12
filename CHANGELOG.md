@@ -11,8 +11,8 @@
 
 ### Fixed
 - Fix Group and Repeater email templates not filtering out conditionally-hidden inner fields.
-- Fix Repeater field conditions evalutations not working with the correct serialized field values.
-- Fix Group field conditions evalutations not working with the correct serialized field values.
+- Fix Repeater field conditions evaluations not working with the correct serialized field values.
+- Fix Group field conditions evaluations not working with the correct serialized field values.
 - Fix Date fields not populating their value correctly for conditions for some display types (inputs/dropdowns).
 - Fix an error for client-side validation not showing inline errors.
 - Fix showing “Public URL” as an Email Notification Value for File Upload fields when allowPublicVolumes was false.

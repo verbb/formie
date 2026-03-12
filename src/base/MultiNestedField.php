@@ -85,6 +85,8 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 $subValue = $element->getFieldValue($fieldKey);
 
                 // Ensure that we swap out the __ROW__ placeholder for conditions to evaluate properly
+                $originalConditions = $field->conditions;
+
                 if ($field->enableConditions) {
                     $conditionSettings = $field->getConditions();
                     $conditions = $conditionSettings['conditions'] ?? [];
@@ -93,7 +95,7 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                         foreach ($conditions as $conditionKey => $condition) {
 
                             if (isset($condition['field'])) {
-                                $field->conditions['conditions'][$conditionKey]['field'] =str_replace('__ROW__', $rowKey, $condition['field']);
+                                $field->conditions['conditions'][$conditionKey]['field'] = str_replace('__ROW__', $rowKey, $condition['field']);
                             }
                         }
                     }
@@ -103,6 +105,9 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
                     continue;
                 }
+
+                // Ensure we reset the conditions back to the original, so we don't affect other fields
+                $field->conditions = $originalConditions;
 
                 // Roll our own validation, due to lack of field layout and elements
                 $attribute = 'field:' . $field->getErrorKey();
