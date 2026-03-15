@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.1.17 - 2026-03-15
+
+### Added
+- Add status support for Freeform 5 submission migration.
+- Add “Block Free Email Providers” setting to Email fields.
+- Add the `—update-title` command argument to `resave/submissions` controller command.
+
+### Changed
+- Update Flatpickr UI to reflect Time Format settings (particularly for AM/PM).
+- Remove debug customer for Paddle.
+- Remove debug customer for Paddle.
+
+### Fixed
+- Fix Repeater field conditions evaluations not working with the correct serialized field values.
+- Fix an error with Stripe requests and invalid token handling.
+- Fix lack of support for `scriptAttributes` with Table/Repeater `<script>` elements.
+- Fix an issue with `formie/gc/prune-data-retention-submissions` to finding all available submissions.
+- Fix an error when saving field layouts for complex fields that might contain closures.
+- Fix ampersand encoding in field values.
+- Fix Forms and Submissions element fields not allowing hyperlink to elements.
+- Fix Forms and Submissions element fields allowing invalid view modes.
+- Fix handling of plugin checks for fields that require plugins (Commerce).
+- Fix an error when saving field layouts for complex fields that might contain closures.
+- Fix Freeform 5 migration not honoring current submission titles.
+- Fix an error when calling `Submission::getValues()`.
+
 ## 3.1.16 - 2026-03-03
 
 ### Added
