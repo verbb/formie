@@ -1291,6 +1291,14 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.16 - 2026-03-15
+
+### Changed
+- Remove debug customer for Paddle.
+
+### Fixed
+- Fix handling of plugin checks for fields that require plugins (Commerce).
+
 ## 2.2.15 - 2026-03-03
 
 ### Changed
