@@ -47,7 +47,6 @@ export class FormiePhoneCountry {
             // Also put it into national mode for input-ease
             if (options.onlyCountries.length === 1) {
                 options.allowDropdown = false;
-                options.separateDialCode = false;
                 options.nationalMode = true;
             }
 
