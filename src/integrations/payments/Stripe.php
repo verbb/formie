@@ -613,7 +613,7 @@ class Stripe extends Payment
                 'submitAction' => 'submit',
                 'success' => true,
             ]);
-            $this->trigger(Submissions::EVENT_AFTER_SUBMISSION, $event);
+            Formie::$plugin->getSubmissions()->trigger(Submissions::EVENT_AFTER_SUBMISSION, $event);
 
             if (!$submission->isIncomplete) {
                 if ($event->success) {
