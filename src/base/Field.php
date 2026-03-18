@@ -1852,6 +1852,7 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'isNested',
             'isCosmetic',
             'isSynced',
+            'isElementField',
             'isMultiNested',
             'isSingleNested',
 
