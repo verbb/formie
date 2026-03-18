@@ -1846,8 +1846,14 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             'vid',
             'brandNewField',
             'hasLabel',
+            'hasSubFields',
+            'hasNestedFields',
+            'hasConditions',
             'isNested',
+            'isCosmetic',
             'isSynced',
+            'isMultiNested',
+            'isSingleNested',
 
             // Relations
             'allowSelfRelations',
