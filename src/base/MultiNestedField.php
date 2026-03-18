@@ -87,42 +87,43 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
                 // Ensure that we swap out the __ROW__ placeholder for conditions to evaluate properly
                 $originalConditions = $field->conditions;
 
-                if ($field->enableConditions) {
-                    $conditionSettings = $field->getConditions();
-                    $conditions = $conditionSettings['conditions'] ?? [];
+                try {
+                    if ($field->enableConditions) {
+                        $conditionSettings = $field->getConditions();
+                        $conditions = $conditionSettings['conditions'] ?? [];
 
-                    if ($conditionSettings && $conditions) {
-                        foreach ($conditions as $conditionKey => $condition) {
-
-                            if (isset($condition['field'])) {
-                                $field->conditions['conditions'][$conditionKey]['field'] = str_replace('__ROW__', $rowKey, $condition['field']);
+                        if ($conditionSettings && $conditions) {
+                            foreach ($conditions as $conditionKey => $condition) {
+                                if (isset($condition['field'])) {
+                                    $field->conditions['conditions'][$conditionKey]['field'] = str_replace('__ROW__', $rowKey, $condition['field']);
+                                }
                             }
                         }
                     }
-                }
 
-                // No need to validate if the field is conditionally hidden or disabled
-                if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
-                    continue;
-                }
-
-                // Ensure we reset the conditions back to the original, so we don't affect other fields
-                $field->conditions = $originalConditions;
-
-                // Roll our own validation, due to lack of field layout and elements
-                $attribute = 'field:' . $field->getErrorKey();
-                $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
-
-                if ($scenario === Element::SCENARIO_LIVE && $field->required) {
-                    (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
-                }
-
-                foreach ($field->getElementValidationRules() as $rule) {
-                    $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
-
-                    if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
-                        $validator->validateAttributes($element);
+                    // No need to validate if the field is conditionally hidden or disabled
+                    if ($field->isConditionallyHidden($element) || $field->getIsDisabled()) {
+                        continue;
                     }
+
+                    // Roll our own validation, due to lack of field layout and elements
+                    $attribute = 'field:' . $field->getErrorKey();
+                    $isEmpty = fn() => $field->isValueEmpty($subValue, $element);
+
+                    if ($scenario === Element::SCENARIO_LIVE && $field->required) {
+                        (new RequiredValidator(['isEmpty' => $isEmpty]))->validateAttribute($element, $attribute);
+                    }
+
+                    foreach ($field->getElementValidationRules() as $rule) {
+                        $validator = $this->normalizeFieldValidator($attribute, $rule, $field, $element, $isEmpty);
+
+                        if (in_array($scenario, $validator->on) || (empty($validator->on) && !in_array($scenario, $validator->except))) {
+                            $validator->validateAttributes($element);
+                        }
+                    }
+                } finally {
+                    // Nested field instances are shared across repeater rows, so always restore conditions.
+                    $field->conditions = $originalConditions;
                 }
             }
         }
@@ -132,11 +133,39 @@ abstract class MultiNestedField extends NestedField implements MultiNestedFieldI
     {
         // We need to factor in the error message key for Repeater blocks, but at this point we don't know what they are
         // so fudge it a little, and generate 70 label keys, and hope that people aren't making more than 70 rows.
-        for ($i = 0; $i < 70; $i++) { 
-            foreach ($this->getFields() as $field) {
-                $field->setParentField($this, $i);
+        $fields = [];
+        $originalNamespaces = [];
 
+        foreach ($this->getRows() as $row) {
+            foreach ($row->getFields() as $field) {
+                $fields[] = $field;
+                $originalNamespaces[spl_object_id($field)] = $field->getNamespace();
+            }
+        }
+
+        $processFields = function(array $fields) use (&$labels, &$processFields) {
+            foreach ($fields as $field) {
                 $labels[$field->fieldKey] = $field->label;
+
+                $field->modifyAttributeLabels($labels);
+
+                if ($field instanceof SingleNestedFieldInterface) {
+                    $processFields($field->getFields());
+                }
+            }
+        };
+
+        try {
+            for ($i = 0; $i < 70; $i++) {
+                foreach ($fields as $field) {
+                    $field->setParentField($this, (string)$i);
+                }
+
+                $processFields($fields);
+            }
+        } finally {
+            foreach ($fields as $field) {
+                $field->setNamespace($originalNamespaces[spl_object_id($field)] ?? $field->getNamespace());
             }
         }
     }

@@ -404,7 +404,15 @@ abstract class NestedField extends Field implements NestedFieldInterface
     public function validateCustomFieldAttribute(string $attribute, ?array $params = null): void
     {
         /** @var array|null $params */
-        [$element, $field, $method, $fieldParams] = $params;
+        [$element, $field, $method, $fieldParams, $fieldNamespace, $fieldConditions] = $params;
+
+        if ($fieldNamespace !== null) {
+            $field->setNamespace($fieldNamespace);
+        }
+
+        if ($fieldConditions !== null) {
+            $field->conditions = $fieldConditions;
+        }
 
         if (is_string($method) && !is_callable($method)) {
             $method = [$field, $method];
@@ -488,6 +496,8 @@ abstract class NestedField extends Field implements NestedFieldInterface
                 $field,
                 $rule[1],
                 $rule['params'] ?? null,
+                $field->getNamespace(),
+                $field->conditions,
             ];
 
             $rule[1] = 'validateCustomFieldAttribute';

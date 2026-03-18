@@ -52,8 +52,16 @@ abstract class SingleNestedField extends NestedField implements SingleNestedFiel
     public function validateBlocks(ElementInterface $element): void
     {
         $scenario = $element->getScenario();
+        $originalNamespace = $this->getNamespace();
 
         foreach ($this->getFields() as $field) {
+            // Nested validation can trigger attribute-label lookups that temporarily mutate the
+            // shared parent namespace, so restore it for each child validation pass.
+            $this->setNamespace($originalNamespace);
+
+            // Nested child instances are shared, so re-apply the current parent namespace per iteration.
+            $field->setParentField($this);
+
             $value = $element->getFieldValue($field->fieldKey);
 
             // No need to validate if the field is conditionally hidden or disabled

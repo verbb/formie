@@ -439,13 +439,15 @@ class Submission extends CustomElement
                 // Allow fields to modify the attribute labels
                 $field->modifyAttributeLabels($labels);
 
-                if ($field instanceof NestedFieldInterface) {
+                if ($field instanceof SingleNestedFieldInterface) {
                     $processFields($field->getFields());
                 }
             }
         };
 
-        $processFields($this->getFields());
+        foreach ($this->getRows() as $row) {
+            $processFields($row->getFields());
+        }
 
         return $labels;
     }
@@ -1342,6 +1344,12 @@ class Submission extends CustomElement
                 if ($scenario === self::SCENARIO_LIVE && $field->required) {
                     (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $field->errorMessage]))
                         ->validateAttribute($this, $attribute);
+                }
+
+                // Nested fields already run their own validation rules via the normal model validator pass.
+                // Re-running them here can duplicate nested validation with mutated shared state.
+                if ($field instanceof NestedFieldInterface) {
+                    continue;
                 }
 
                 foreach ($field->getElementValidationRules() as $rule) {
