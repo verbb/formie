@@ -229,7 +229,9 @@ abstract class Payment extends Integration
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = $amountFixed;
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            $amount = Variables::getParsedValue($amountVariable, $submission, $submission->getForm());
+            // Payment calculations should always use the submitted/raw field value, not the
+            // formatted variable output (which can be an option label for choice fields).
+            $amount = Variables::getParsedValue($amountVariable, $submission, $submission->getForm(), null, false, true);
 
             // Just in case there's a currency symbol in the value
             $symbols = ['$','€','£','¥','₣','₹','₻','₽','₾','₺','₼','₸','฿','원','₫','₱','₳','₵'];
@@ -249,7 +251,7 @@ abstract class Payment extends Integration
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
         } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm());
+            return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm(), null, false, true);
         }
 
         return null;

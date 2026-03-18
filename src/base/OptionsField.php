@@ -464,6 +464,11 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         return parent::defineValueForVariable($value, $submission, $notification);
     }
 
+    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    {
+        return $this->getValueAsString($value, $submission, $notification);
+    }
+
     protected function getPredefinedOptions(): array
     {
         return Formie::$plugin->getPredefinedOptions()->getPredefinedOptions();
