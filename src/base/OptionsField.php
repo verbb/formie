@@ -206,7 +206,17 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         }
     }
 
+    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->_normalizeOptionValue($value, $element, false);
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
+    {
+        return $this->_normalizeOptionValue($value, $element, true);
+    }
+
+    protected function _normalizeOptionValue(mixed $value, ?ElementInterface $element = null, bool $applyFreshDefault = true): mixed
     {
         if ($value instanceof MultiOptionsFieldData || $value instanceof SingleOptionFieldData) {
             return $value;
@@ -221,7 +231,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
             $value = Json::decodeIfJson($value);
         } else if (is_string($value) && strtolower($value) === '__blank__') {
             $value = '';
-        } else if (empty($value) && $this->isFresh($element)) {
+        } else if ($applyFreshDefault && empty($value) && $this->isFresh($element)) {
             $value = $this->defaultValue();
         }
 
