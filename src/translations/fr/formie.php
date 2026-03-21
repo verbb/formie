@@ -1821,6 +1821,7 @@ return [
   'Select a form to export.' => 'Sélectionnez un formulaire à exporter.',
   'Select a form to export as a JSON file. This will include all pages, settings, notifications and fields. You‘ll be able to import this file later on the same, or a different environment.' => 'Sélectionnez un formulaire à exporter au format JSON. Ce fichier inclura toutes les pages, les paramètres, les notifications et les champs. Vous pourrez ensuite l’importer dans le même environnement ou dans un autre.',
   'Select a JSON file you‘ve exported from Formie to import. You‘ll be able to configure your import at the next step.' => 'Sélectionnez un fichier JSON exporté depuis Formie à importer. Vous pourrez configurer l’importation à l’étape suivante.',
+  'Select a Formie-exported JSON file for the form to import. You‘ll be able to configure your import at the next step.' => 'Sélectionnez un fichier JSON exporté depuis Formie pour le formulaire à importer. Vous pourrez configurer l’importation à l’étape suivante.',
   'Select an Email Template to be used as the default for all new forms.' => 'Sélectionnez un modèle d’email à utiliser par défaut pour tous les nouveaux formulaires.',
   'Select an entry' => 'Sélectionnez une entrée',
   'Select an entry for the user to be redirected to.' => 'Sélectionnez une entrée vers laquelle l’utilisateur sera redirigé.',
