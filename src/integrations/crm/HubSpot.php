@@ -6,12 +6,15 @@ use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Assets as AssetsHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
+use craft\base\LocalFsInterface;
+use craft\elements\Asset;
 use craft\helpers\App;
 use craft\helpers\Json;
 
@@ -70,6 +73,7 @@ class HubSpot extends Crm
     public ?string $formId = null;
 
     private ?Client $_formsClient = null;
+    private ?Client $_uploadClient = null;
 
 
     // Public Methods
@@ -133,15 +137,27 @@ class HubSpot extends Crm
             }
 
             if ($event->integrationField->sourceType === 'file' && $event->integration->mapToForm) {
-                // For HubSpot File fields, we need to handle content differently
-                if (is_string($event->value)) {
-                    $event->value = array_map('trim', explode(',', $event->value));
+                $values = [];
+
+                if ($event->rawValue && method_exists($event->rawValue, 'all')) {
+                    foreach ($event->rawValue->all() as $asset) {
+                        if (!$asset instanceof Asset) {
+                            continue;
+                        }
+
+                        $values[] = $this->_getHubSpotFileValue($asset);
+                    }
+                }
+
+                // Fall back to the string-formatted value when we don't have Asset elements available.
+                if (!$values && is_string($event->value)) {
+                    $values = array_map('trim', explode(',', $event->value));
                 }
 
                 // Let our form-field processing handling know about it needs to be treated differently
                 // Prevent changing multiple times, as this event is called
-                if (is_array($event->value) && !isset($event->value['FILE_UPLOAD_DATA'])) {
-                    $event->value = ['FILE_UPLOAD_DATA' => $event->value];
+                if ($values && !isset($values['FILE_UPLOAD_DATA'])) {
+                    $event->value = ['FILE_UPLOAD_DATA' => array_filter($values)];
                 }
             }
         });
@@ -585,7 +601,7 @@ class HubSpot extends Crm
                             $formPayload['fields'][] = [
                                 'objectTypeId' => $objectTypeId,
                                 'name' => $handleParts[1] ?? '',
-                                'value' => strtok($subValue, '?'),
+                                'value' => $subValue,
                             ];
                         }
                     } else {
@@ -659,6 +675,22 @@ class HubSpot extends Crm
 
         return $this->_formsClient = Craft::createGuzzleClient([
             'base_uri' => 'https://api.hsforms.com/',
+        ]);
+    }
+
+    public function getUploadClient(): Client
+    {
+        if ($this->_uploadClient) {
+            return $this->_uploadClient;
+        }
+
+        $accessToken = App::parseEnv($this->accessToken);
+
+        return $this->_uploadClient = Craft::createGuzzleClient([
+            'base_uri' => 'https://api.hubapi.com/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+            ],
         ]);
     }
 
@@ -743,6 +775,82 @@ class HubSpot extends Crm
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    private function _getHubSpotFileValue(Asset $asset): ?string
+    {
+        $fs = $asset->getVolume()->getFs();
+        $url = null;
+
+        if ($fs->hasUrls) {
+            $url = $asset->getUrl();
+        }
+
+        if ($url) {
+            return $url;
+        }
+
+        return $this->_uploadAssetToHubSpot($asset);
+    }
+
+    private function _uploadAssetToHubSpot(Asset $asset): ?string
+    {
+        $path = AssetsHelper::getFullAssetFilePath($asset);
+        $fs = $asset->getVolume()->getFs();
+        $cleanupPath = !($fs instanceof LocalFsInterface);
+        $handle = null;
+
+        if (!is_file($path) || !is_readable($path)) {
+            return null;
+        }
+
+        try {
+            $handle = fopen($path, 'r');
+
+            if ($handle === false) {
+                return null;
+            }
+
+            $response = $this->getUploadClient()->request('POST', 'files/v3/files', [
+                'multipart' => [
+                    [
+                        'name' => 'file',
+                        'contents' => $handle,
+                        'filename' => $asset->getFilename(),
+                    ],
+                    [
+                        'name' => 'fileName',
+                        'contents' => $asset->getFilename(),
+                    ],
+                    [
+                        'name' => 'folderPath',
+                        'contents' => '/formie',
+                    ],
+                    [
+                        'name' => 'options',
+                        'contents' => Json::encode([
+                            'access' => 'PUBLIC_NOT_INDEXABLE',
+                        ]),
+                    ],
+                ],
+            ]);
+
+            $response = Json::decode((string)$response->getBody());
+
+            return $response['url'] ?? $response['defaultHostingUrl'] ?? null;
+        } catch (Throwable $e) {
+            self::apiError($this, $e, false);
+
+            return null;
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+
+            if ($cleanupPath) {
+                @unlink($path);
+            }
+        }
     }
 
     private function _getCustomFields(array $fields, array $excludeNames = []): array
