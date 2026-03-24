@@ -422,10 +422,9 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
         // This might occur if the field was set to encrypted, but changed later. We still need to
         // decrypt field content
         if (is_string($value)) {
-            // Ensure that we sanitize content
-            // Temporary monkey patch for #2753:
-            // keep ampersands in plain text fields from being persisted as `&amp;`.
-            $value = str_replace('&amp;', '&', StringHelper::cleanString($value));
+            // Temporarily preserve plain-text characters like `<` and `>` without allowing
+            // encoded tag-like content such as `&lt;script&gt;` back into raw markup.
+            $value = $this->sanitizePlainTextValue($value);
 
             if ($this->enableContentEncryption || str_contains($value, 'base64:')) {
                 $value = StringHelper::decdec($value);
@@ -1689,9 +1688,25 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        // Escape any HTML in field content for good measure
-        // Temporary monkey patch for #2753.
-        return str_replace('&amp;', '&', StringHelper::cleanString((string)$value));
+        return $this->sanitizePlainTextValue((string)$value);
+    }
+
+    protected function sanitizePlainTextValue(string $value): string
+    {
+        $value = StringHelper::cleanString($value);
+
+        $tokens = [];
+
+        $value = preg_replace_callback('/&lt;\s*\/?\s*[a-zA-Z!?][\s\S]*?&gt;/u', function(array $matches) use (&$tokens) {
+            $token = '__FORMIE_HTML_ENTITY_' . count($tokens) . '__';
+            $tokens[$token] = $matches[0];
+
+            return $token;
+        }, $value);
+
+        $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return strtr($value, $tokens);
     }
 
     protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
