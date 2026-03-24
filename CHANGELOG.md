@@ -1317,6 +1317,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.17 - 2026-03-24
+
+### Fixed
+- Fix visuals for single-option limited Phone fields.
+
 ## 2.2.16 - 2026-03-15
 
 ### Changed
