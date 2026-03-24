@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.18 - 2026-03-24
+
+### Fixed
+- Fix options-fields (particularly Checkboxes) settings their defaults when an empty value is submitted.
+- Fix field normalizer for some removed properties.
+- Fix an error for options-based fields not properly handling their value for dynamic Payment field amounts.
+- Fix Repeater field conditions evaluations not working with the correct serialized field values.
+- Fix visuals for single-option limited Phone fields.
+- Fix Stripe `Submissions::EVENT_AFTER_SUBMISSION` triggered on the wrong class.
+- Fix an error with Craft 5.8 and Forms/Submissions element fields.
+
 ## 3.1.17 - 2026-03-15
 
 ### Added
