@@ -137,7 +137,16 @@ class HubSpot extends Crm
             }
 
             if ($event->integrationField->sourceType === 'file' && $event->integration->mapToForm) {
+                $fallbackValues = [];
                 $values = [];
+
+                if (is_array($event->value) && isset($event->value['FILE_UPLOAD_DATA'])) {
+                    $fallbackValues = array_filter($event->value['FILE_UPLOAD_DATA']);
+                } else if (is_array($event->value)) {
+                    $fallbackValues = array_filter($event->value);
+                } else if (is_string($event->value)) {
+                    $fallbackValues = array_filter(array_map('trim', explode(',', $event->value)));
+                }
 
                 if ($event->rawValue && method_exists($event->rawValue, 'all')) {
                     foreach ($event->rawValue->all() as $asset) {
@@ -145,19 +154,22 @@ class HubSpot extends Crm
                             continue;
                         }
 
-                        $values[] = $this->_getHubSpotFileValue($asset);
+                        $value = $this->_getHubSpotFileValue($asset);
+
+                        if ($value) {
+                            $values[] = $value;
+                        }
                     }
                 }
 
-                // Fall back to the string-formatted value when we don't have Asset elements available.
-                if (!$values && is_string($event->value)) {
-                    $values = array_map('trim', explode(',', $event->value));
+                if (!$values) {
+                    $values = $fallbackValues;
                 }
 
                 // Let our form-field processing handling know about it needs to be treated differently
                 // Prevent changing multiple times, as this event is called
                 if ($values && !isset($values['FILE_UPLOAD_DATA'])) {
-                    $event->value = ['FILE_UPLOAD_DATA' => array_filter($values)];
+                    $event->value = ['FILE_UPLOAD_DATA' => array_values(array_filter($values))];
                 }
             }
         });
