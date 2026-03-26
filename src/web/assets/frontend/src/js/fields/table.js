@@ -11,8 +11,25 @@ export class FormieTable {
         this.rowCounter = 0;
 
         this.static = settings.static;
+        this.form.registerEvent('registerFormieValidation', this.registerValidation.bind(this));
 
         this.initTable();
+    }
+
+    registerValidation(e) {
+        e.validator.addValidator('tableRequired', ({ field, input, getRule }) => {
+            if (!field || field.getAttribute('data-field-type') !== 'table' || !getRule('tableRequired')) {
+                return true;
+            }
+
+            const tableInputs = field.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), select, textarea');
+
+            return Array.prototype.some.call(tableInputs, (tableInput) => {
+                return this.isFilled(tableInput);
+            });
+        }, ({ input, label }) => {
+            return input.getAttribute('data-required-message') ?? t('{attribute} cannot be blank.', { attribute: label });
+        });
     }
 
     initTable() {
@@ -155,6 +172,22 @@ export class FormieTable {
                 this.$addButton.removeAttribute('disabled');
             }
         }
+    }
+
+    isFilled(input) {
+        if (input.disabled) {
+            return false;
+        }
+
+        if (input.type === 'checkbox' || input.type === 'radio') {
+            return input.checked;
+        }
+
+        if (input.type === 'file') {
+            return !!input.files?.length;
+        }
+
+        return input.value.trim() !== '';
     }
 }
 

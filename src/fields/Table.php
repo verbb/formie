@@ -166,24 +166,25 @@ class Table extends Field
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        $isEmpty = false;
+        if (!is_array($value) || empty($this->columns)) {
+            return true;
+        }
 
-        if (is_array($value)) {
-            foreach ($value as &$row) {
-                foreach ($this->columns as $colId => $col) {
-                    if (is_string($row[$colId])) {
-                        // Trim the value before validating
-                        $row[$colId] = trim($row[$colId]);
-                    }
+        foreach ($value as $row) {
+            foreach ($this->columns as $colId => $col) {
+                if (($col['type'] ?? null) === 'heading') {
+                    continue;
+                }
 
-                    if ($row[$colId] === null || $row[$colId] === '') {
-                        $isEmpty = true;
-                    }
+                $cellValue = $row[$colId] ?? null;
+
+                if (!$this->_isCellEmpty($cellValue)) {
+                    return false;
                 }
             }
         }
 
-        return $isEmpty;
+        return true;
     }
 
     public function validateColumns(): void
@@ -240,6 +241,21 @@ class Table extends Field
                 'static' => $this->static,
             ],
         ];
+    }
+
+    public function getValidationConfigString(array $context = []): string
+    {
+        $validators = array_filter(explode('|', parent::getValidationConfigString($context)));
+
+        foreach ($validators as &$validator) {
+            if ($validator === 'required') {
+                $validator = 'tableRequired';
+            }
+        }
+
+        unset($validator);
+
+        return implode('|', $validators);
     }
 
     public function getFormBuilderSettings(): array
@@ -652,7 +668,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'checkbox',
                 'class' => 'fui-input fui-checkbox-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -660,7 +678,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'color',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -668,7 +688,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'date',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -676,21 +698,24 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'email',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
         if ($key === 'tableHeadingInput') {
             return new HtmlTag('input', [
                 'type' => 'hidden',
-                'required' => $this->required,
             ]);
         }
 
         if ($key === 'tableMultilineInput') {
             return new HtmlTag('textarea', [
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -698,14 +723,18 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'number',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
         if ($key === 'tableSelectInput') {
             return new HtmlTag('select', [
                 'class' => 'fui-select',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -713,7 +742,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'text',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -721,7 +752,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'time',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -729,7 +762,9 @@ class Table extends Field
             return new HtmlTag('input', [
                 'type' => 'url',
                 'class' => 'fui-input',
-                'required' => $this->required,
+                'data' => [
+                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ],
             ]);
         }
 
@@ -1031,6 +1066,27 @@ class Table extends Field
         $validator->message = str_replace('{attribute}', '{value}', $validator->message);
 
         return $validator->validate($value, $error);
+    }
+
+    private function _isCellEmpty(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return trim($value) === '';
+        }
+
+        if ($value instanceof ColorData) {
+            return $value->getHex() === '';
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return false;
+        }
+
+        if (is_array($value)) {
+            return $value === [];
+        }
+
+        return $value === null || $value === false;
     }
 
     private function _normalizeCellValueAsString(string $type, mixed $value): mixed
