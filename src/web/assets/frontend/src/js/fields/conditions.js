@@ -92,7 +92,8 @@ export class FormieConditions {
                 // Visibility changes should use IntersectionObserver
                 if (condition.condition === 'visible' || condition.condition === 'hidden') {
                     const observer = new IntersectionObserver((entries) => {
-                        const isVisible = entries[0].intersectionRatio == 0 ? false : true;
+                        const entry = entries[0];
+                        const isVisible = entry ? entry.intersectionRatio !== 0 : false;
 
                         $field.dispatchEvent(new CustomEvent('onFormieEvaluateConditions', { bubbles: true, detail: { conditions: this, isVisible } }));
                     }, { root: this.$form });
@@ -245,20 +246,26 @@ export class FormieConditions {
             }
         }
 
+        const isPage = $field.hasAttribute('data-fui-page');
+
         // Show or hide? Also toggle the disabled state to sort out any hidden required fields
         if ((finalResult && showRule !== 'show') || (!finalResult && showRule === 'show')) {
             $field.conditionallyHidden = true;
-            $field.setAttribute('data-conditionally-hidden', true);
+            $field.setAttribute(isPage ? 'data-fui-page-hidden' : 'data-conditionally-hidden', true);
 
-            $field.querySelectorAll('input, textarea, select').forEach(($input) => {
-                $input.setAttribute('disabled', true);
+            $field.querySelectorAll('input, textarea, select, button').forEach(($input) => {
+                if (!$input.disabled) {
+                    $input.setAttribute('disabled', true);
+                    $input.setAttribute('data-conditionally-hidden-disabled', true);
+                }
             });
         } else {
             $field.conditionallyHidden = false;
-            $field.removeAttribute('data-conditionally-hidden');
+            $field.removeAttribute(isPage ? 'data-fui-page-hidden' : 'data-conditionally-hidden');
 
-            $field.querySelectorAll('input, textarea, select').forEach(($input) => {
+            $field.querySelectorAll('[data-conditionally-hidden-disabled]').forEach(($input) => {
                 $input.removeAttribute('disabled');
+                $input.removeAttribute('data-conditionally-hidden-disabled');
             });
         }
 

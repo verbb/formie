@@ -259,7 +259,7 @@ class FormieValidator {
         const fieldContainer = input.closest('[data-field-handle]');
 
         // The label is pretty common, so add that in
-        const label = fieldContainer?.querySelector('[data-field-label]')?.childNodes[0].textContent?.trim() ?? '';
+        const label = fieldContainer?.querySelector('[data-field-label]')?.childNodes[0]?.textContent?.trim() ?? '';
 
         return {
             t,

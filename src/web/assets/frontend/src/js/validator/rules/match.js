@@ -41,7 +41,7 @@ export const rule = ({ field, input, config, getRule }) => {
 export const message = ({ field, label, t, getRule }) => {
     const match = getRule('match');
     const sourceField = getSourceField(field, match);
-    const sourceLabel = sourceField?.querySelector('[data-field-label]')?.childNodes[0].textContent?.trim() ?? '';
+    const sourceLabel = sourceField?.querySelector('[data-field-label]')?.childNodes[0]?.textContent?.trim() ?? '';
 
     return t('{name} must match {value}.', { name: label, value: sourceLabel });
 };

@@ -35,7 +35,7 @@ export const getFieldLabel = function($form, handle) {
                 const $label = $field.querySelector('[data-field-label]');
 
                 if ($label) {
-                    label = $label.childNodes[0].textContent?.trim() ?? '';
+                    label = $label.childNodes[0]?.textContent?.trim() ?? '';
                 }
             }
         });

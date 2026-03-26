@@ -40,6 +40,7 @@ export class FormieFormTheme {
 
         // Save the form's current state so we can tell if its changed later on
         this.updateFormHash();
+        this.syncPageInputState();
 
         // Listen to form changes if the user tries to reload
         if (this.settings.enableUnloadWarning) {
@@ -734,6 +735,26 @@ export class FormieFormTheme {
         }
     }
 
+    togglePageInputs($page, hidden) {
+        $page.querySelectorAll('input, textarea, select, button').forEach(($input) => {
+            if (hidden) {
+                if (!$input.disabled) {
+                    $input.setAttribute('disabled', true);
+                    $input.setAttribute('data-fui-page-hidden-disabled', true);
+                }
+            } else if ($input.hasAttribute('data-fui-page-hidden-disabled')) {
+                $input.removeAttribute('disabled');
+                $input.removeAttribute('data-fui-page-hidden-disabled');
+            }
+        });
+    }
+
+    syncPageInputState() {
+        this.$form.querySelectorAll('[data-fui-page]').forEach(($page) => {
+            this.togglePageInputs($page, $page.hasAttribute('data-fui-page-hidden'));
+        });
+    }
+
     togglePage(data, scrollToTop = true) {
         // Trigger an event when a page is toggled
         this.$form.dispatchEvent(new CustomEvent('onFormiePageToggle', {
@@ -754,6 +775,8 @@ export class FormieFormTheme {
                 } else {
                     $page.setAttribute('data-fui-page-hidden', true);
                 }
+
+                this.togglePageInputs($page, $page.hasAttribute('data-fui-page-hidden'));
             });
         }
 

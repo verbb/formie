@@ -1289,6 +1289,7 @@ class Form extends Element
             return new HtmlTag('div', [
                 'id' => "{$this->getFormId()}-p-{$pageId}",
                 'class' => 'fui-page',
+                'data-field-conditions' => $page->getConditionsJson(),
                 'data' => [
                     'index' => $page->sortOrder ?? null,
                     'id' => $pageId,
