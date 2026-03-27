@@ -82,7 +82,7 @@
         "install": "^0.13.0",
         "intl-tel-input": "^25.2.1",
         "js-cookie": "^3.0.5",
-        "locutus": "^2.0.16",
+        "locutus": "^3.0.25",
         "markdown-it": "^14.0.0",
         "md5-hex": "^5.0.0",
         "mobile-drag-drop": "^3.0.0-rc.0",
