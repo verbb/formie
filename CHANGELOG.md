@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.19 - 2026-03-28
+
+### Added
+- Add support for non-public asset uploading with HubSpot forms.
+- Add GraphQL variable support for CaptchaEu.
+
+### Fixed
+- Fix an issue with page-level conditions not treating conditionally hidden fields correctly in some cases.
+- Fix Table fields and their inner field required state for validation.
+- Fix encoding of `<` and `>` characters in field values.
+
 ## 3.1.18 - 2026-03-24
 
 ### Fixed
