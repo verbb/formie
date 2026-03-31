@@ -12,6 +12,7 @@ class FormCondition extends ElementCondition
     {
         $rules = parent::selectableConditionRules();
 
+        $rules[] = FormHandleConditionRule::class;
         $rules[] = PageCountConditionRule::class;
 
         return $rules;
