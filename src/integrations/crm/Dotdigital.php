@@ -110,7 +110,7 @@ class Dotdigital extends Crm
                 $settings['contact'] = array_merge([
                     new IntegrationField([
                         'handle' => 'addressBook',
-                        'name' => Craft::t('formie', 'Address Book'),
+                        'name' => Craft::t('formie', 'Address Book (List)'),
                         'options' => [
                             'label' => Craft::t('formie', 'Address Book'),
                             'options' => array_map(function($addressBook) {
