@@ -4,12 +4,14 @@ namespace verbb\formie\integrations\crm;
 use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\DotdigitalAddressBooksEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
 use DateTimeZone;
@@ -19,6 +21,12 @@ use GuzzleHttp\Client;
 
 class Dotdigital extends Crm
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_ADDRESS_BOOKS = 'modifyAddressBooks';
+
+
     // Static Methods
     // =========================================================================
 
@@ -107,6 +115,16 @@ class Dotdigital extends Crm
                 $fields = $this->request('GET', 'data-fields');
                 $customFields = $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']);
 
+                $addressBooks = $this->request('GET', 'address-books');
+
+                $addressBooksEvent = new DotdigitalAddressBooksEvent([
+                    'addressBooks' => $addressBooks,
+                ]);
+
+                $this->trigger(self::EVENT_MODIFY_ADDRESS_BOOKS, $addressBooksEvent);
+
+                $addressBooks = $addressBooksEvent->addressBooks;
+
                 $settings['contact'] = array_merge([
                     new IntegrationField([
                         'handle' => 'addressBook',
@@ -118,7 +136,7 @@ class Dotdigital extends Crm
                                     'label' => $addressBook['name'],
                                     'value' => (string)$addressBook['id'],
                                 ];
-                            }, $this->request('GET', 'address-books')),
+                            }, $addressBooks),
                         ],
                     ]),
                     new IntegrationField([
