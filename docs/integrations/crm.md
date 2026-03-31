@@ -300,8 +300,10 @@ Follow the below steps to connect to the Dotdigital API.
 
 ### Step 2. Connect to the Dotdigital API
 1. Go to <a href="https://dotdigital.com/" target="_blank">Dotdigital</a> and login to your account.
-1. Click the more-options (triple dots) in the bottom left corner and go to **Access** > **API users**.
-1. Click the **New user** button.
+1. Click the profile button at the bottom of the left-hand side main menu.
+1. Click the **Access** button.
+1. Click the **API Access** button.
+1. Click the **Add New API User** button.
 1. Copy the **Email Address** from Dotdigital and paste in the **Username** field in Formie.
 1. Create a password and copy this from Dotdigital and paste in the **Password** field in Formie.
 1. Click the **Save** button.
