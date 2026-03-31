@@ -272,6 +272,11 @@ export class FormieConditions {
         // Update the parent row to show the correct number of visible fields
         this.updateRowVisibility($field);
 
+        // Keep non-current page inputs aligned with `data-fui-page-hidden` when page-level conditions toggle it
+        if (isPage && this.form.formTheme && typeof this.form.formTheme.syncPageInputState === 'function') {
+            this.form.formTheme.syncPageInputState();
+        }
+
         // Fire an event to notify that the field's conditions have been evaluated
         $field.dispatchEvent(new CustomEvent('onAfterFormieEvaluateConditions', {
             bubbles: true,

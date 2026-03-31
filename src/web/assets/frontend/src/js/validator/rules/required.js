@@ -1,5 +1,5 @@
 export const rule = ({ input }) => {
-    if (!input.hasAttribute('required') || input.type === 'hidden') {
+    if (!input.hasAttribute('required') || input.type === 'hidden' || input.disabled) {
         return true;
     }
 

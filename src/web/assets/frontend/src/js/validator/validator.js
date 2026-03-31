@@ -321,6 +321,16 @@ class FormieValidator {
     }
 
     isVisible(element) {
+        if (!element || element.disabled) {
+            return false;
+        }
+
+        // Do not validate fields inside conditionally hidden containers or hidden pages, even if layout/CSS
+        // leaves misleading box metrics (custom themes, nested layouts, or timing before paint).
+        if (element.closest('[data-conditionally-hidden], [data-fui-page-hidden]')) {
+            return false;
+        }
+
         return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
     }
 
