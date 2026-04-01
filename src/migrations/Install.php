@@ -523,14 +523,10 @@ class Install extends Migration
             $this->_defaultStencils();
         }
 
-        // If the config data exists, but we're re-installing, apply it
+        // If the config data exists, but we're re-installing, apply it to the database.
+        // This must not be gated on allowAdminChanges: we're reading existing project config
+        // into the DB, not mutating YAML (see https://github.com/verbb/formie/issues/2785).
         if (!$installed && $configExists) {
-            $allowAdminChanges = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-
-            if (!$allowAdminChanges) {
-                return;
-            }
-
             $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 
             foreach ($statuses as $statusUid => $statusData) {
