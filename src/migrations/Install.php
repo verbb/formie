@@ -584,14 +584,10 @@ class Install extends Migration
             $this->_defaultStencils();
         }
 
-        // If the config data exists, but we're re-installing, apply it
+        // If the config data exists, but we're re-installing, apply it.
+        // Sync project config into the database regardless of allowAdminChanges — that setting
+        // blocks writes *to* project config YAML, not applying existing YAML to the DB.
         if (!$installed && $configExists) {
-            $allowAdminChanges = Craft::$app->getConfig()->getGeneral()->allowAdminChanges;
-
-            if (!$allowAdminChanges) {
-                return;
-            }
-
             $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 
             foreach ($statuses as $statusUid => $statusData) {

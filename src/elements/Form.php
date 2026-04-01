@@ -510,34 +510,36 @@ class Form extends Element
             }
         }
 
-        // Check if for whatever reason there isn't a default status - create it
+        // Check if for whatever reason there isn't a default status — try syncing from project config.
         if ($this->_defaultStatus === null) {
-            // But check for admin changes, as it's a project config setting change to make.
-            if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                $projectConfig = Craft::$app->projectConfig;
+            $projectConfig = Craft::$app->projectConfig;
 
-                // Maybe the project config didn't get applied? Check for existing values
-                // This can likely be removed later, as this fix is already in place when installing Formie
-                $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+            // Maybe the project config didn't get applied? Apply existing YAML to the DB (no YAML write).
+            $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 
-                foreach ($statuses as $statusUid => $statusData) {
-                    $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
-                }
+            foreach ($statuses as $statusUid => $statusData) {
+                $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+            }
 
-                // If there's _still_ not a status, just go ahead and create it...
+            if ($this->defaultStatusId) {
+                $this->_defaultStatus = Formie::$plugin->getStatuses()->getStatusById($this->defaultStatusId);
+            }
+
+            if ($this->_defaultStatus === null) {
                 $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
+            }
 
-                if ($this->_defaultStatus === null) {
-                    $this->_defaultStatus = new Status([
-                        'name' => 'New',
-                        'handle' => 'new',
-                        'color' => 'green',
-                        'sortOrder' => 1,
-                        'isDefault' => 1,
-                    ]);
+            // Creating a brand-new status writes to project config — only when admin changes are allowed.
+            if ($this->_defaultStatus === null && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                $this->_defaultStatus = new Status([
+                    'name' => 'New',
+                    'handle' => 'new',
+                    'color' => 'green',
+                    'sortOrder' => 1,
+                    'isDefault' => 1,
+                ]);
 
-                    Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
-                }
+                Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
             }
         }
 
