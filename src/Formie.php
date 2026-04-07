@@ -46,6 +46,7 @@ use craft\elements\exporters\Expanded;
 use craft\elements\exporters\Raw;
 use craft\enums\CmsEdition;
 use craft\events\DefineConsoleActionsEvent;
+use craft\events\ExecuteGqlQueryEvent;
 use craft\events\FieldLayoutEvent;
 use craft\events\PluginEvent;
 use craft\events\RebuildConfigEvent;
@@ -545,6 +546,34 @@ class Formie extends Plugin
                         $suffix . ':delete' => ['label' => Craft::t('app', 'Delete submissions for form “{form}”', ['form' => Craft::t('formie', $form->title)])],
                     ],
                 ];
+            }
+        });
+
+        // Strip GraphQL validation "Did you mean" hints when devMode is off (Craft passes the same flag
+        // into Gql::executeQuery() for validation rule selection; some rules still leak suggestions).
+        Event::on(Gql::class, Gql::EVENT_AFTER_EXECUTE_GQL_QUERY, function(ExecuteGqlQueryEvent $event): void {
+            if (Craft::$app->getConfig()->getGeneral()->devMode) {
+                return;
+            }
+
+            if (empty($event->result['errors']) || !is_array($event->result['errors'])) {
+                return;
+            }
+
+            foreach ($event->result['errors'] as $i => $error) {
+                if (!is_array($error)) {
+                    continue;
+                }
+
+                $msg = $error['message'] ?? null;
+                if (!is_string($msg) || $msg === '') {
+                    continue;
+                }
+
+                $sanitized = GqlHelper::stripGraphqlSuggestionHints($msg);
+                if ($sanitized !== '') {
+                    $event->result['errors'][$i]['message'] = $sanitized;
+                }
             }
         });
     }
