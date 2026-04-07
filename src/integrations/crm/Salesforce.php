@@ -6,6 +6,7 @@ use verbb\formie\base\Crm;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ArrayHelper;
@@ -25,6 +26,8 @@ use yii\base\Event;
 use GuzzleHttp\Exception\RequestException;
 
 use DateTime;
+use DateTimeInterface;
+use DateTimeZone;
 use Throwable;
 use Exception;
 
@@ -96,12 +99,30 @@ class Salesforce extends Crm implements OAuthProviderInterface
         parent::init();
 
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Salesforce need DateTime to be in standard format.
-            if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-                if ($event->rawValue instanceof DateTime) {
-                    $date = clone $event->rawValue;
+            if ($event->integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
+                return;
+            }
 
-                    $event->value = $date->format('Y-m-d\TH:i:s');
+            $formatted = self::_normalizeMappedDateTimeForSalesforce($event->rawValue, $event->value);
+            if ($formatted !== null) {
+                $event->value = $formatted;
+            }
+        });
+
+        Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUES, function(ModifyFieldIntegrationValuesEvent $event) {
+            if (!is_array($event->fieldValues) || !is_array($event->fieldSettings)) {
+                return;
+            }
+
+            foreach ($event->fieldValues as $tag => $value) {
+                $integrationField = ArrayHelper::firstWhere($event->fieldSettings, 'handle', $tag);
+                if (!$integrationField || $integrationField->getType() !== IntegrationField::TYPE_DATETIME) {
+                    continue;
+                }
+
+                $formatted = self::_normalizeMappedDateTimeForSalesforce($value, $value);
+                if ($formatted !== null) {
+                    $event->fieldValues[$tag] = $formatted;
                 }
             }
         });
@@ -859,6 +880,34 @@ class Salesforce extends Crm implements OAuthProviderInterface
         }
 
         return $payload;
+    }
+
+    /**
+     * Salesforce REST expects ISO-8601 datetimes (e.g. with "T" and timezone), not `Y-m-d H:i:s`.
+     */
+    private static function _normalizeMappedDateTimeForSalesforce(mixed $rawValue, mixed $value): ?string
+    {
+        foreach ([$rawValue, $value] as $candidate) {
+            if ($candidate instanceof DateTimeInterface) {
+                return self::_dateTimeInterfaceToSalesforceUtc($candidate);
+            }
+        }
+
+        foreach ([$value, $rawValue] as $candidate) {
+            if (is_string($candidate) && $candidate !== '' && ($dt = DateTimeHelper::toDateTime($candidate))) {
+                return self::_dateTimeInterfaceToSalesforceUtc($dt);
+            }
+        }
+
+        return null;
+    }
+
+    private static function _dateTimeInterfaceToSalesforceUtc(DateTimeInterface $date): string
+    {
+        $dt = $date instanceof DateTime ? clone $date : DateTime::createFromInterface($date);
+        $dt->setTimezone(new DateTimeZone('UTC'));
+
+        return $dt->format('Y-m-d\TH:i:s') . '.000Z';
     }
 
     private function _getAssetsForSubmission(Submission $submission): array
