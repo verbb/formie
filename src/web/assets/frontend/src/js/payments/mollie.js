@@ -8,20 +8,19 @@ export class FormieMollie extends FormiePaymentProvider {
         this.$form = settings.$form;
         this.form = this.$form.form;
 
-        // We can start listening for the field to become visible to initialize it
+        // Offsite redirect has no heavy init; bind immediately so hidden fields still receive
+        // FormiePaymentMollieRedirect (IntersectionObserver never calls onShow when not visible).
         this.initialized = true;
+        this.initField();
     }
 
     onShow() {
-        // Initialize the field only when it's visible
         this.initField();
     }
 
     onHide() {
-        this.boundEvents = false;
-
-        // Remove unique event listeners
-        this.form.removeEventListener(eventKey('FormiePaymentMollieRedirect', 'mollie'));
+        // Do not remove the redirect listener. Hidden fields get intersectionRatio 0, so the
+        // base observer calls onHide without a prior onShow — removing here would break checkout.
     }
 
     initField() {

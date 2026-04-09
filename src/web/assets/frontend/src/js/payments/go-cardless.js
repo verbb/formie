@@ -8,20 +8,16 @@ export class FormieGoCardless extends FormiePaymentProvider {
         this.$form = settings.$form;
         this.form = this.$form.form;
 
-        // We can start listening for the field to become visible to initialize it
         this.initialized = true;
+        this.initField();
     }
 
     onShow() {
-        // Initialize the field only when it's visible
         this.initField();
     }
 
     onHide() {
-        this.boundEvents = false;
-
-        // Remove unique event listeners
-        this.form.removeEventListener(eventKey('FormiePaymentGoCardlessRedirect', 'goCardless'));
+        // See FormieMollie: hidden fields must keep the offsite redirect listener attached.
     }
 
     initField() {
