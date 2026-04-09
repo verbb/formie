@@ -9,6 +9,7 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
         this.form = this.$form.form;
         this.publicKey = settings.publicKey;
         this.scriptId = 'FORMIE_CAPTCHA_EU_SCRIPT';
+        this.providerName = 'CaptchaEu';
     }
 
     getPlaceholders() {
@@ -54,6 +55,7 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
     }
 
     destroyCaptcha($placeholder) {
+        this.form.removeEventListener(eventKey('onAfterFormieSubmit', this.providerName));
         // Reset the DOM for the placeholder, if it's been rendered
         this.destroyContainer($placeholder);
     }
@@ -76,6 +78,8 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
         KROT.on('CPT_OK', (e) => {
             $input.value = JSON.stringify(e.detail);
         }, $container);
+
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
     }
 
     onAfterSubmit() {
@@ -85,6 +89,8 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
         if (!hasMultiplePages && this.$activePlaceholder) {
             setTimeout(() => {
                 this.destroyCaptcha(this.$activePlaceholder);
+        this.refreshSinglePageCaptchaWidget();
+    }
 
                 this.renderCaptcha(this.$activePlaceholder);
             }, 300);
