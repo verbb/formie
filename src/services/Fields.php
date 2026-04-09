@@ -1015,6 +1015,11 @@ class Fields extends Component
                 // Remove some attributes that shouldn't be synced
                 unset($settings['required']);
 
+                // Each field row has its own nested layout; submission content stores nested
+                // values keyed by those sub-field UIDs. Copying nestedLayoutId/contentTable from
+                // another synced instance deserializes old submissions as empty (see #2794).
+                unset($settings['nestedLayoutId'], $settings['contentTable']);
+
                 $syncedField->setAttributes($settings, false);
 
                 // Saved the synced field, but be careful not to case a loop
