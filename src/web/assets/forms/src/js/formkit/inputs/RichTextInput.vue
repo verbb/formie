@@ -51,6 +51,7 @@ import History from '@tiptap/extension-history';
 import TextAlign from '@tiptap/extension-text-align';
 
 // TipTap - Custom
+import CleanPaste from './richtext/clean-paste/CleanPaste';
 import Link from './richtext/link/Link';
 import VariableTag from './richtext/variable-tag/VariableTag';
 
@@ -151,6 +152,14 @@ export default {
 
         disableInputRules() {
             return get(this.context.attrs, 'disable-input-rules', false);
+        },
+
+        /**
+         * When true, paste uses text/plain only so Word/HTML clipboard styling is dropped.
+         * Default false; set `cleanPaste` to true on a richText schema field (or in config/formie/rich-text.json) to enable.
+         */
+        cleanPaste() {
+            return get(this.context.attrs, 'cleanPaste', false);
         },
     },
 
@@ -256,7 +265,13 @@ export default {
                 Paragraph,
                 Text,
                 Focus.configure({ className: 'has-focus', mode: 'deepest' }),
+            ];
 
+            if (this.cleanPaste) {
+                extensions.push(CleanPaste);
+            }
+
+            extensions.push(
                 // Optional Marks
                 Bold,
                 Code,
@@ -292,7 +307,7 @@ export default {
                 // Optional Custom
                 Link.configure({ openOnClick: false }),
                 VariableTag.configure({ field: this }),
-            ];
+            );
 
             return extensions;
         },
