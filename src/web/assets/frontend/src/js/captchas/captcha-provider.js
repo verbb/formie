@@ -64,6 +64,24 @@ export class FormieCaptchaProvider {
     destroyContainer($placeholder) {
         $placeholder.innerHTML = '';
     }
+
+    /**
+     * Re-render the captcha widget so a new one-time token can be issued.
+     * Called after a successful Ajax submit and after Ajax validation/payment errors,
+     * otherwise the same token is POSTed again (e.g. Stripe’s second submit) and
+     * providers return duplicate/timeout errors.
+     */
+    refreshSinglePageCaptchaWidget() {
+        const { hasMultiplePages } = this.form.settings;
+
+        if (!hasMultiplePages && this.$activePlaceholder) {
+            setTimeout(() => {
+                this.destroyCaptcha(this.$activePlaceholder);
+
+                this.renderCaptcha(this.$activePlaceholder);
+            }, 300);
+        }
+    }
 }
 
 window.FormieCaptchaProvider = FormieCaptchaProvider;

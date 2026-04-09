@@ -56,6 +56,8 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
 
     destroyCaptcha($placeholder) {
         this.form.removeEventListener(eventKey('onAfterFormieSubmit', this.providerName));
+        this.form.removeEventListener(eventKey('onFormieSubmitError', this.providerName));
+
         // Reset the DOM for the placeholder, if it's been rendered
         this.destroyContainer($placeholder);
     }
@@ -80,21 +82,15 @@ export class FormieCaptchaEu extends FormieCaptchaProvider {
         }, $container);
 
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieSubmitError', this.providerName), this.onSubmitError.bind(this));
     }
 
     onAfterSubmit() {
-        const { hasMultiplePages } = this.form.settings;
-
-        // If a single-captcha form, re-render. Multi-captchas will handle themselves via onShow/onHide
-        if (!hasMultiplePages && this.$activePlaceholder) {
-            setTimeout(() => {
-                this.destroyCaptcha(this.$activePlaceholder);
         this.refreshSinglePageCaptchaWidget();
     }
 
-                this.renderCaptcha(this.$activePlaceholder);
-            }, 300);
-        }
+    onSubmitError() {
+        this.refreshSinglePageCaptchaWidget();
     }
 }
 

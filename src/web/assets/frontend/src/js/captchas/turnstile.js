@@ -72,6 +72,7 @@ export class FormieTurnstile extends FormieCaptchaProvider {
         // Remove all events
         this.form.removeEventListener(eventKey('onFormieCaptchaValidate', this.providerName));
         this.form.removeEventListener(eventKey('onAfterFormieSubmit', this.providerName));
+        this.form.removeEventListener(eventKey('onFormieSubmitError', this.providerName));
     }
 
     renderCaptcha($placeholder) {
@@ -87,6 +88,7 @@ export class FormieTurnstile extends FormieCaptchaProvider {
 
         this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', this.providerName), this.onValidate.bind(this));
         this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieSubmitError', this.providerName), this.onSubmitError.bind(this));
 
         try {
             const widgetId = turnstile.render($container, {
@@ -161,16 +163,11 @@ export class FormieTurnstile extends FormieCaptchaProvider {
     }
 
     onAfterSubmit() {
-        const { hasMultiplePages } = this.form.settings;
+        this.refreshSinglePageCaptchaWidget();
+    }
 
-        // If a single-captcha form, re-render. Multi-captchas will handle themselves via onShow/onHide
-        if (!hasMultiplePages && this.$activePlaceholder) {
-            setTimeout(() => {
-                this.destroyCaptcha(this.$activePlaceholder);
-
-                this.renderCaptcha(this.$activePlaceholder);
-            }, 300);
-        }
+    onSubmitError() {
+        this.refreshSinglePageCaptchaWidget();
     }
 
     onExpired() {
