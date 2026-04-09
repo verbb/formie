@@ -141,7 +141,7 @@ abstract class Element extends Integration
             }
 
             // Check if we're mapping to a Craft relations field
-            if (is_a($fieldClass, fields\BaseRelationField::class, true) || is_subclass_of($fieldClass, fields\BaseRelationField::class, true)) {
+            if (is_a($fieldClass, CraftFields\BaseRelationField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseRelationField::class, true)) {
 
                 if (is_string($event->rawValue) && Json::isJsonObject($event->rawValue)) {
                     $event->value = Json::decode($event->rawValue);
