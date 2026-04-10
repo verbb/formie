@@ -10,6 +10,7 @@ export class FormieRichText {
         this.defaultParagraphSeparator = 'p';
 
         this.buttons = settings.buttons;
+        this.plainTextPaste = Boolean(settings.plainTextPaste);
 
         if (this.$field && this.$container) {
             this.initEditor();
@@ -127,6 +128,30 @@ export class FormieRichText {
         return buttons;
     }
 
+    _setupPlainTextPaste() {
+        if (!this.plainTextPaste || !this.editor?.content) {
+            return;
+        }
+
+        this.editor.content.addEventListener('paste', (event) => {
+            const { clipboardData } = event;
+
+            if (!clipboardData) {
+                return;
+            }
+
+            const text = clipboardData.getData('text/plain');
+
+            // Keep default behaviour for non-text clipboard payloads (e.g. images).
+            if (!text) {
+                return;
+            }
+
+            event.preventDefault();
+            document.execCommand('insertText', false, text);
+        });
+    }
+
     initEditor() {
         // Assign this instance to the field's DOM, so it can be accessed by third parties
         this.$field.richText = this;
@@ -182,6 +207,8 @@ export class FormieRichText {
         this.defaultParagraphSeparator = options.defaultParagraphSeparator || this.defaultParagraphSeparator;
 
         this.editor = init(options);
+
+        this._setupPlainTextPaste();
 
         // Populate any values initially set
         this.editor.content.innerHTML = this.$field.textContent;

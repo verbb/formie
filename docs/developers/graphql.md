@@ -450,6 +450,7 @@ See [nested fields](#nested-fields) for how to query the inner fields.
 | `max`| `Int!` | The field’s maximum number of characters/words, based on `maxType`.
 | `useRichText` | `Boolean` | Whether the front-end of the field should use a Rich Text editor. This is powered by [Pell](https://github.com/jaredreich/pell).
 | `richTextButtons` | `[String]!` | An array of available buttons the Rich Text field should use. Consult the [Pell](https://github.com/jaredreich/pell) docs for these options.
+| `plainTextPaste` | `Boolean` | When enabled, pasted content is inserted as plain text only (no source formatting).
 
 
 #### Name

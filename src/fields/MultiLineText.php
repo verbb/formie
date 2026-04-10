@@ -58,6 +58,7 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
     public ?string $maxType = 'characters';
     public bool $useRichText = false;
     public ?array $richTextButtons = ['bold', 'italic'];
+    public bool $plainTextPaste = false;
     public bool $uniqueValue = false;
 
 
@@ -216,9 +217,10 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             $modules[] = [
                 'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/rich-text.js'),
                 'module' => 'FormieRichText',
-                'settings' => [
+                'settings' => array_filter([
                     'buttons' => $this->getRichTextButtons(),
-                ],
+                    'plainTextPaste' => $this->plainTextPaste,
+                ]),
             ];
         }
 
@@ -298,6 +300,10 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             'richTextButtons' => [
                 'name' => 'richTextButtons',
                 'type' => Type::listOf(Type::string()),
+            ],
+            'plainTextPaste' => [
+                'name' => 'plainTextPaste',
+                'type' => Type::boolean(),
             ],
             'uniqueValue' => [
                 'name' => 'uniqueValue',
@@ -449,6 +455,12 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
                 'showAllOption' => false,
                 'if' => '$get(useRichText).value',
                 'options' => $this->getButtonOptions(),
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Paste as Plain Text'),
+                'help' => Craft::t('formie', 'When enabled, pasted content is inserted without formatting (for example from Word or websites).'),
+                'name' => 'plainTextPaste',
+                'if' => '$get(useRichText).value',
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
