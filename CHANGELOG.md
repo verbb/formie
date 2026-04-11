@@ -1,5 +1,31 @@
 # Changelog
 
+## 3.1.20 - 2026-04-11
+
+### Added
+- Add `PaymentSuccessRedirectEvent` to manage the redirect for some payment providers.
+- Add optional “Paste as Plain Text” setting for Multi-Line Text fields using the front-end rich text editor.
+- Add support for `cleanPaste` for Tiptap rich text fields.
+- Add `Dotdigital::EVENT_MODIFY_ADDRESS_BOOKS` event.
+- Add note to DotDigital Address Book regarding List.
+- Add “Form” conditions for Form element source conditions.
+
+### Changed
+- Improve client-side handling of conditional page logic.
+
+### Fixed
+- Fix payment webhook redirects not allowing dynamic variables in the URL.
+- Fix an error when redirecting payments via webhooks.
+- Fix an issue for GoCardless and Mollie when their respective payment fields are hidden.
+- Fix Craft `BaseRelationField` check so entry integrations decode relation IDs from JSON strings.
+- Fix captchas and payments not working correctly in some cases, when combined, when additional client-side action was required.
+- Fix Captcha.eu front-end refresh handler for success.
+- Fix an issues with synced fields and shared content handling.
+- Fix an issue with Captcha.eu integration.
+- Fix Salesforce integration Date/Time values.
+- Fix GraphQL mutations leaking schema details.
+- Fix statuses not persisting correctly on first installation on new environments.
+
 ## 3.1.19 - 2026-03-28
 
 ### Added
