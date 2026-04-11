@@ -523,9 +523,9 @@ class Install extends Migration
             $this->_defaultStencils();
         }
 
-        // If the config data exists, but we're re-installing, apply it to the database.
-        // This must not be gated on allowAdminChanges: we're reading existing project config
-        // into the DB, not mutating YAML (see https://github.com/verbb/formie/issues/2785).
+        // If the config data exists, but we're re-installing, apply it.
+        // Sync project config into the database regardless of allowAdminChanges — that setting
+        // blocks writes *to* project config YAML, not applying existing YAML to the DB.
         if (!$installed && $configExists) {
             $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 

@@ -100,7 +100,7 @@ class CaptchaEu extends Captcha
         return true;
     }
 
-    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
+    public function getGqlVariables(Form $form, $page = null): ?array
     {
         return $this->getFrontEndJsVariables($form, $page);
     }
