@@ -7,9 +7,10 @@ use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
 use craft\helpers\App;
-use craft\helpers\Json;
 use craft\web\Controller;
 use craft\web\View;
+
+use Throwable;
 
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
@@ -137,6 +138,8 @@ class PaymentWebhooksController extends Controller
             } else {
                 $url = $form->getRedirectUrl(false, false);
             }
+
+            $url = Formie::$plugin->getPayments()->resolvePaymentSuccessRedirectUrl($payment, $submission, $form, $url);
 
             return $this->asJson([
                 'status' => 'success',

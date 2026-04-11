@@ -319,6 +319,8 @@ class GoCardless extends Payment
             $url = $form->getRedirectUrl(false, false);
         }
 
+        $url = Formie::$plugin->getPayments()->resolvePaymentSuccessRedirectUrl($payment, $submission, $form, $url);
+
         Craft::$app->getResponse()->redirect($url)->send();
     }
 
