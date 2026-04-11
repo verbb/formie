@@ -81,7 +81,7 @@ class PaymentWebhooksController extends Controller
         }
 
         // Always poll the API in dev mode, or when explicitly requested. Webhooks likely won't be delivered locally.
-        if (App::devMode() || $checkGateway) {
+        if (App::devMode() || $shouldCheckGateway) {
             try {
                 $integration->getTransaction($payment);
             } catch (Throwable $e) {
