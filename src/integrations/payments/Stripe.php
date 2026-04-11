@@ -544,6 +544,8 @@ class Stripe extends Payment
     public function processCallback(): Response
     {
         $form = null;
+        $submission = null;
+        $payment = null;
         $origin = '/';
 
         try {
@@ -616,6 +618,8 @@ class Stripe extends Payment
             Formie::$plugin->getSubmissions()->trigger(Submissions::EVENT_AFTER_SUBMISSION, $event);
 
             if (!$submission->isIncomplete) {
+                $settings = Formie::$plugin->getSettings();
+
                 if ($event->success) {
                     // Send off some emails, if all good!
                     Formie::$plugin->getSubmissions()->sendNotifications($event->submission);
@@ -640,9 +644,13 @@ class Stripe extends Payment
             }
         }
 
-        // Check the form settings for what needs to be done, as we're returning from offssite
+        // Check the form settings for what needs to be done, as we're returning from offsite
         if ($form && ($redirect = $form->getRedirectUrl())) {
             $origin = $redirect;
+
+            if ($submission && $payment) {
+                $origin = Formie::$plugin->getPayments()->resolvePaymentSuccessRedirectUrl($payment, $submission, $form, $origin);
+            }
         }
 
         return Craft::$app->getResponse()->redirect($origin);
