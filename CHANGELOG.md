@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.18 - 2026-04-11
+
+### Fixed
+- Fix an issue with Captcha.eu integration.
+- Fix statuses not persisting correctly on first installation on new environments.
+- Fix Captcha.eu lacking graphql variables.
+
 ## 2.2.17 - 2026-03-24
 
 ### Fixed
