@@ -5,6 +5,7 @@ use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\PaymentEvent;
+use verbb\formie\events\PaymentSuccessRedirectEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
@@ -35,6 +36,7 @@ class Payments extends Component
     public const EVENT_AFTER_SAVE_PAYMENT = 'afterSavePayment';
     public const EVENT_BEFORE_DELETE_PAYMENT = 'beforeDeletePayment';
     public const EVENT_AFTER_DELETE_PAYMENT = 'afterDeletePayment';
+    public const EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL = 'definePaymentSuccessRedirectUrl';
 
 
     // Properties
@@ -69,6 +71,26 @@ class Payments extends Component
     public function getPaymentByUid(string $uid): ?Payment
     {
         return $this->_payments()->firstWhere('uid', $uid, true);
+    }
+
+    public function resolvePaymentSuccessRedirectUrl(Payment $payment, Submission $submission, Form $form, ?string $url): string
+    {
+        $url = (string)($url ?? '');
+
+        if ($url !== '') {
+            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $submission);
+        }
+
+        $event = new PaymentSuccessRedirectEvent([
+            'payment' => $payment,
+            'submission' => $submission,
+            'form' => $form,
+            'redirectUrl' => $url,
+        ]);
+
+        $this->trigger(self::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $event);
+
+        return $event->redirectUrl;
     }
 
     public function savePayment(Payment $payment, bool $runValidation = true): bool
