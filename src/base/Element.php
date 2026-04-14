@@ -135,11 +135,6 @@ abstract class Element extends Integration
                 }
             }
 
-            // Element fields should map 1-for-1
-            if ($event->field instanceof ElementFieldInterface) {
-                $event->value = $event->submission->getFieldValue($event->field->handle)->ids();
-            }
-
             // Check if we're mapping to a Craft relations field
             if (is_a($fieldClass, CraftFields\BaseRelationField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseRelationField::class, true)) {
 
