@@ -232,7 +232,7 @@ $('[name="integrations[recaptcha][settings][type]"]').on('change', function(e) {
     const $input = $('[name="integrations[recaptcha][settings][secretKey]"]')
     const $field = $input.parents('.field');
     const $label = $field.find('label');
-    const required = '<span class="visually-hidden">Required</span><span class="required" aria-hidden="true"></span>';
+    const required = '<span class="visually-hidden">{{ 'Required' | t('app') | e('js') }}</span><span class="required" aria-hidden="true"></span>';
 
     if (type === 'enterprise') {
         $label.html('{{ secretKeyAlt }}' + required);

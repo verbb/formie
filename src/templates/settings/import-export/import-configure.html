@@ -9,7 +9,7 @@
 
 {% if errors is defined %}
     <p class="error">
-        Error: {{ errors | json_encode }}
+        {{ 'Error' | t('formie') }}: {{ errors | json_encode }}
     </p>
 {% endif %}
 

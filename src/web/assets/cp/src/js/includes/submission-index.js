@@ -478,8 +478,8 @@ Craft.Formie.SubmissionTableView = Craft.TableElementIndexView.extend({
 
         var dataTable = {
             columns: [
-                { type: dateType, label: 'Date' },
-                { type: 'number', label: 'Submissions' },
+                { type: dateType, label: Craft.t('app', 'Date') },
+                { type: 'number', label: Craft.t('app', 'Submissions') },
             ],
             rows: chartData.data,
         };

@@ -24,7 +24,7 @@
 <div id="fui-error-summary">
     <div v-if="errors.length" class="error-summary" tabindex="-1" v-cloak>
         <div>
-            <span class="notification-icon" data-icon="alert" aria-label="error" role="img"></span>
+            <span class="notification-icon" data-icon="alert" aria-label="{{ 'Error' | t('formie') }}" role="img"></span>
             <h2>${errorMessage}</h2>
         </div>
 

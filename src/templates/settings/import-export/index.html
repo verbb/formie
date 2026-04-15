@@ -10,7 +10,7 @@
 
 {% if importError %}
     <p class="error">
-        Error: {{ importError }}
+        {{ 'Error' | t('formie') }}: {{ importError }}
     </p>
 {% endif %}
 
@@ -37,7 +37,7 @@
 
 {% if exportError %}
     <p class="error">
-        Error: {{ exportError }}
+        {{ 'Error' | t('formie') }}: {{ exportError }}
     </p>
 {% endif %}
 

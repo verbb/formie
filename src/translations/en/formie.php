@@ -2249,6 +2249,7 @@ return [
   'The visibility of the field on the front-end.' => 'The visibility of the field on the front-end.',
   'This action will be permanent.' => 'This action will be permanent.',
   'This form has met the number of allowed submissions.' => 'This form has met the number of allowed submissions.',
+  'This form has not been referenced by another element.' => 'This form has not been referenced by another element.',
   'This form is not available.' => 'This form is not available.',
   'the next button if' => 'the next button if',
   'this field if' => 'this field if',
