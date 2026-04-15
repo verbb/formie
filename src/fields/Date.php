@@ -309,7 +309,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         // For dropdowns and inputs, we need to convert our array syntax to string
         if ($this->displayType === 'dropdowns' || $this->displayType === 'inputs') {
             if (is_array($value)) {
-                $value = array_filter($value);
+                $value = array_filter($value, static fn($v) => $v !== '' && $v !== null);
 
                 $year = isset($value['year']) ? intval($value['year']) : null;
                 $month = isset($value['month']) ? intval($value['month']) : null;
@@ -318,11 +318,49 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $minute = isset($value['minute']) ? intval($value['minute']) : null;
                 $second = isset($value['second']) ? intval($value['second']) : null;
 
-                // Handle any invalid dates
-                if ($year === null || $month === null || $day === null) {
+                $yearEnabled = (bool)$this->getFieldByHandle('year')?->enabled;
+                $monthEnabled = (bool)$this->getFieldByHandle('month')?->enabled;
+                $dayEnabled = (bool)$this->getFieldByHandle('day')?->enabled;
+                $hourEnabled = (bool)$this->getFieldByHandle('hour')?->enabled;
+                $minuteEnabled = (bool)$this->getFieldByHandle('minute')?->enabled;
+                $secondEnabled = (bool)$this->getFieldByHandle('second')?->enabled;
+
+                // Disabled sub-fields are not posted; use neutral defaults so partial dates/times persist (e.g. year-only).
+                if (!$monthEnabled) {
+                    $month = 1;
+                }
+                if (!$dayEnabled) {
+                    $day = 1;
+                }
+                if (!$hourEnabled) {
+                    $hour = 0;
+                }
+                if (!$minuteEnabled) {
+                    $minute = 0;
+                }
+                if (!$secondEnabled) {
+                    $second = 0;
+                }
+
+                $anyDateEnabled = $yearEnabled || $monthEnabled || $dayEnabled;
+                if (!$anyDateEnabled) {
+                    $year = $year ?? 1970;
+                    $month = 1;
+                    $day = 1;
+                } elseif (!$yearEnabled) {
+                    $year = $year ?? 1970;
+                }
+
+                if (($yearEnabled && $year === null) ||
+                    ($monthEnabled && $month === null) ||
+                    ($dayEnabled && $day === null) ||
+                    ($hourEnabled && $hour === null) ||
+                    ($minuteEnabled && $minute === null) ||
+                    ($secondEnabled && $second === null)
+                ) {
                     $value = null;
                 } else {
-                    $value = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hour, $minute, $second);
+                    $value = sprintf('%04d-%02d-%02d %02d:%02d:%02d', $year, $month, $day, $hour, $minute, $second);
                 }
             }
         } else if ($this->displayType === 'calendar') {
