@@ -270,6 +270,9 @@ class Emails extends Component
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw(StringHelper::cleanString($parsedContent));
 
+            // Parsed headers (subject, recipients, etc.) are on the message — `notification.*` stays raw config.
+            $renderVariables['email'] = $newEmail;
+
             $event = new MailRenderEvent([
                 'email' => $newEmail,
                 'notification' => $notification,

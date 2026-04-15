@@ -34,6 +34,7 @@ Variable | Description
 `notification` | A [ Notification](docs:developers/notification) object, for current email notification.
 `submission` | A [Submission](docs:developers/submission) object, for what the email is notifying about.
 `form` | A [Form](docs:developers/form) object, for what the email is notifying about.
+`email` | The Craft email [Message](https://docs.craftcms.com/api/v5/craft-mail-message.html) for this send. Use `email.subject` for the parsed subject line (field tokens and variables already resolved). `notification.subject` remains the raw value from the notification settings.
 `contentHtml` | The HTML generated from the **Email Content** field for the email notification.
 `body` | Alias for `contentHtml` to make templates compatible with [Craft HTML Templates](https://craftcms.com/docs/4.x/system/mail.html#html-template).
 

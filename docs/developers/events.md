@@ -1206,6 +1206,8 @@ Event::on(Emails::class, Emails::EVENT_MODIFY_RENDER_VARIABLES, function(MailRen
 });
 ```
 
+`renderVariables` includes an `email` key (the same `craft\mail\Message` as `$event->email`) so notification templates can read the composed subject and other headers.
+
 ### The `beforeRenderEmail` event
 The event that is triggered before an email is rendered.
 
