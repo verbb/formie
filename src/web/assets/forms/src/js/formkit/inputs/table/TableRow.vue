@@ -177,11 +177,11 @@
         </template>
 
         <td class="thin action">
-            <a class="move icon" :title="t('app', 'Reorder')" role="button"></a>
+            <a class="move icon" :title="t('formie', 'Reorder')" role="button"></a>
         </td>
 
         <td class="thin action">
-            <a class="delete icon" :title="t('app', 'Delete')" role="button" @click.prevent="removeItem"></a>
+            <a class="delete icon" :title="t('formie', 'Delete')" role="button" @click.prevent="removeItem"></a>
         </td>
     </tr>
 </template>

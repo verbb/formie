@@ -3,7 +3,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Notification') }}</h3>
 
-            <button type="button" class="fui-dialog-close" tabindex="-1" aria-label="Close" @click.prevent="onCancelModal"></button>
+            <button type="button" class="fui-dialog-close" tabindex="-1" :aria-label="t('formie', 'Close')" @click.prevent="onCancelModal"></button>
         </template>
 
         <template #body>

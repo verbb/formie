@@ -5,7 +5,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Add Existing Notification') }}</h3>
 
-            <button type="button" class="fui-dialog-close" tabindex="-1" aria-label="Close" @click.prevent="closeModal"></button>
+            <button type="button" class="fui-dialog-close" tabindex="-1" :aria-label="t('formie', 'Close')" @click.prevent="closeModal"></button>
         </template>
 
         <template #body>
@@ -40,8 +40,8 @@
                     <div class="fui-modal-content">
                         <div class="toolbar flex flex-nowrap">
                             <div class="flex-grow texticon search icon clearable">
-                                <input v-model="search" class="text fullwidth" type="text" autocomplete="off" placeholder="Search">
-                                <div class="clear hidden" title="Clear"></div>
+                                <input v-model="search" class="text fullwidth" type="text" autocomplete="off" :placeholder="t('formie', 'Search')">
+                                <div class="clear hidden" :title="t('formie', 'Clear')"></div>
                             </div>
                         </div>
 

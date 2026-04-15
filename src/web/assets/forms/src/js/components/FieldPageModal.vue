@@ -3,7 +3,7 @@
         <template #header>
             <h3 class="fui-modal-title">{{ t('formie', 'Edit Pages') }}</h3>
 
-            <button type="button" class="fui-dialog-close" tabindex="-1" aria-label="Close" @click.prevent="onModalCancel"></button>
+            <button type="button" class="fui-dialog-close" tabindex="-1" :aria-label="t('formie', 'Close')" @click.prevent="onModalCancel"></button>
         </template>
 
         <template #body>
@@ -26,11 +26,11 @@
                                     <div class="fui-pages-sidebar-item-name">
                                         <h4>
                                             {{ element.label }}
-                                            <span v-if="!isEmpty(element.errors)" data-icon="alert" aria-label="Error"></span>
+                                            <span v-if="!isEmpty(element.errors)" data-icon="alert" :aria-label="t('formie', 'Error')"></span>
                                         </h4>
                                     </div>
 
-                                    <a class="move icon" title="Reorder"></a>
+                                    <a class="move icon" :title="t('formie', 'Reorder')"></a>
                                 </div>
                             </template>
                         </draggable>

@@ -364,7 +364,7 @@ export default {
                             columns: [
                                 {
                                     type: 'label',
-                                    label: 'Option',
+                                    label: Craft.t('formie', 'Option'),
                                     class: 'singleline-cell textual',
                                 },
                                 {

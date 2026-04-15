@@ -7,16 +7,16 @@
         <div class="fui-menu menu menu--disclosure" data-align="right">
             <ul class="padded">
                 <!-- Use `v-show` not `v-if` as Craft's bindings won't play well here otherwise -->
-                <field-dropdown-item v-show="canEdit" icon="edit" action="edit" label="Edit" @clicked="selectOption" />
-                <field-dropdown-item v-show="!isRequired && canRequire" icon="asterisk" action="require" label="Make required" @clicked="selectOption" />
-                <field-dropdown-item v-show="isRequired && canRequire" icon="asterisk" action="unrequire" label="Make optional" @clicked="selectOption" />
-                <field-dropdown-item v-show="canClone" icon="plus" action="clone" label="Clone" @clicked="selectOption" />
+                <field-dropdown-item v-show="canEdit" icon="edit" action="edit" :label="t('formie', 'Edit')" @clicked="selectOption" />
+                <field-dropdown-item v-show="!isRequired && canRequire" icon="asterisk" action="require" :label="t('formie', 'Make required')" @clicked="selectOption" />
+                <field-dropdown-item v-show="isRequired && canRequire" icon="asterisk" action="unrequire" :label="t('formie', 'Make optional')" @clicked="selectOption" />
+                <field-dropdown-item v-show="canClone" icon="plus" action="clone" :label="t('formie', 'Clone')" @clicked="selectOption" />
 
                 <li>
                     <hr class="padded">
                 </li>
 
-                <field-dropdown-item v-show="canDelete" icon="remove" action="delete" label="Delete" classes="error" @clicked="selectOption" />
+                <field-dropdown-item v-show="canDelete" icon="remove" action="delete" :label="t('formie', 'Delete')" classes="error" @clicked="selectOption" />
             </ul>
         </div>
     </div>

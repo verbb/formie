@@ -294,7 +294,7 @@ export default {
                                         children: [
                                             {
                                                 $el: 'a',
-                                                attrs: { class: 'move icon', title: 'Reorder', role: 'button' },
+                                                attrs: { class: 'move icon', title: Craft.t('formie', 'Reorder'), role: 'button' },
                                             },
                                         ],
                                     },
@@ -305,7 +305,7 @@ export default {
                                             {
                                                 $el: 'a',
                                                 attrs: {
-                                                    class: 'delete icon', title: 'Delete', role: 'button', onClick: '$fns.removeRow($index)',
+                                                    class: 'delete icon', title: Craft.t('formie', 'Delete'), role: 'button', onClick: '$fns.removeRow($index)',
                                                 },
                                             },
                                         ],

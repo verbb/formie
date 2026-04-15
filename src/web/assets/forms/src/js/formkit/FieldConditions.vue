@@ -67,7 +67,7 @@
                 </td>
 
                 <td class="thin action">
-                    <a class="delete icon" title="Delete" @click.prevent="removeRow(index)"></a>
+                    <a class="delete icon" :title="t('formie', 'Delete')" @click.prevent="removeRow(index)"></a>
                 </td>
             </tr>
         </tbody>

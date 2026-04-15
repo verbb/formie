@@ -11,7 +11,7 @@
         :allow-empty="true"
         :show-labels="false"
         :close-on-select="false"
-        tag-placeholder="test"
+        :tag-placeholder="t('formie', 'Add')"
     />
 </template>
 

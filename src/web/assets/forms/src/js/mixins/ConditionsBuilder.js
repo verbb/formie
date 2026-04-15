@@ -82,8 +82,8 @@ export default {
                 // Special case for agree fields
                 if (testField.type === 'verbb\\formie\\fields\\Agree') {
                     return [
-                        { label: 'Checked', value: '1' },
-                        { label: 'Unchecked', value: '0' },
+                        { label: Craft.t('formie', 'Checked'), value: '1' },
+                        { label: Craft.t('formie', 'Unchecked'), value: '0' },
                     ];
                 }
 
