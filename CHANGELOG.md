@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.21 - 2026-04-16
+
+### Added
+- Add `email` variable to email notification templates, exposing the composed Craft mail message (including parsed `subject`).
+- Add missing translations for the form builder.
+- Add missing translations for the form builder.
+
+### Fixed
+- Fix Date field normalization for single-value fields (like Year-only, etc).
+- Fix entry element integration field mapping for legacy IDs and nested groups.
+
 ## 3.1.20 - 2026-04-11
 
 ### Added
