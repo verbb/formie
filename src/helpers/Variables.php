@@ -237,7 +237,7 @@ class Variables
             ];
 
             // Add support for all global sets
-            foreach (Craft::$app->getGlobals()->getAllSets() as $globalSet) {
+            foreach (Craft::$app->getGlobals()->getAllSets() ?? [] as $globalSet) {
                 $variables[$globalSet->handle] = $globalSet;
             }
 
@@ -248,14 +248,23 @@ class Variables
         $fieldVariables[] = self::getParsedFieldValues($form, $submission, $notification, $rawValue);
 
         if ($includeSummary) {
-            // Populate a collection of fields for "all", "visible" and "with-content"
-            $fieldVariables[] = self::getFieldsHtml($form, $notification, $submission);
+            // Only build the (expensive) field summaries when the template actually uses them.
+            // Otherwise a body containing only e.g. `{submissionUrl}` would still render every field's email HTML,
+            // which can trigger errors for edge-case field data and is unnecessary work.
+            $needsFieldSummary = str_contains($value, '{allFields}')
+                || str_contains($value, '{allContentFields}')
+                || str_contains($value, '{allVisibleFields}');
 
-            // We should also re-format the string to remove `<p>` tags from variables, which might produce invalid HTML
-            // but just for these summary tags which are block-level
-            $value = str_replace(['<p>{allFields}</p>'], '{allFields}', $value);
-            $value = str_replace(['<p>{allContentFields}</p>'], '{allContentFields}', $value);
-            $value = str_replace(['<p>{allVisibleFields}</p>'], '{allVisibleFields}', $value);
+            if ($needsFieldSummary) {
+                // Populate a collection of fields for "all", "visible" and "with-content"
+                $fieldVariables[] = self::getFieldsHtml($form, $notification, $submission);
+
+                // We should also re-format the string to remove `<p>` tags from variables, which might produce invalid HTML
+                // but just for these summary tags which are block-level
+                $value = str_replace(['<p>{allFields}</p>'], '{allFields}', $value);
+                $value = str_replace(['<p>{allContentFields}</p>'], '{allContentFields}', $value);
+                $value = str_replace(['<p>{allVisibleFields}</p>'], '{allVisibleFields}', $value);
+            }
         }
 
         // For performance
@@ -410,7 +419,8 @@ class Variables
         $mail = App::mailSettings();
         $currentSite = Craft::$app->getSites()->getCurrentSite();
 
-        $overrides = $mail->siteOverrides[$currentSite->uid] ?? [];
+        $siteOverrides = $mail->siteOverrides ?? [];
+        $overrides = $siteOverrides[$currentSite->uid] ?? [];
 
         if (isset($overrides[$setting])) {
             return App::parseEnv($overrides[$setting]);
