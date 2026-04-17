@@ -140,7 +140,7 @@ function repeaterField(node) {
         node.context.showHeader = get(node.context.attrs, 'showHeader', true);
         node.context.confirmDelete = get(node.context.attrs, 'confirmDelete', false);
         node.context.confirmMessage = get(node.context.attrs, 'confirmMessage', '');
-        node.context.newRowLabel = get(node.context.attrs, 'newRowLabel', 'Add an option');
+        node.context.newRowLabel = get(node.context.attrs, 'newRowLabel', Craft.t('formie', 'Add an option'));
         node.context.newRowDefaults = get(node.context.attrs, 'newRowDefaults', {});
         node.context.useColumnIds = get(node.context.attrs, 'useColumnIds', false);
         node.context.enableBulkOptions = get(node.context.attrs, 'enableBulkOptions', false);

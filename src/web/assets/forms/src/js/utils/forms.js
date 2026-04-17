@@ -13,7 +13,7 @@ export const getErrorMessage = function(error) {
 
     // The category of error - should be `Internal Server Error` or `Bad Request`.
     // Fallback on generic message - likely JS-side which doesn't have a category.
-    content.heading = get(error, 'response.statusText', 'An error has occurred');
+    content.heading = get(error, 'response.statusText', Craft.t('formie', 'An error occurred.'));
 
     // Check for application errors returning via `asFailure()` from controllers, handle generic `error`,
     // or fallback on a string-cast of the error (likely JS-side error)
