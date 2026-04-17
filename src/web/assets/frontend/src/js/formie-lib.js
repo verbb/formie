@@ -67,11 +67,12 @@ export class Formie {
             return;
         }
 
-        // Check if we are initializing a form multiple times
+        // Check if we are initializing a form multiple times (same `formHashId`). Only tear down when
+        // re-initializing the *same* DOM node (e.g. cache refresh). A second embed of the same form is
+        // a different `$form` and must keep the first instance alive.
         const initializeForm = this.getFormByHashId(formConfig.formHashId);
 
-        if (initializeForm) {
-            // Wait until the form is destroyed first before initializing again
+        if (initializeForm && initializeForm.$form === $form) {
             await this.destroyForm(initializeForm);
         }
 
@@ -92,16 +93,19 @@ export class Formie {
 
         // Is there any additional JS config registered for this form?
         if (registeredJs.length) {
-            // Check if we've already loaded scripts for this form
-            if (document.querySelector(`[data-fui-scripts="${formConfig.formHashId}"]`)) {
-                console.warn(`Formie scripts already loaded for form #${formConfig.formHashId}.`);
+            const formScriptId = formConfig.formScriptId || formConfig.formHashId;
+
+            // Check if we've already loaded scripts for this specific embed (not `formHashId`, so duplicate
+            // forms on one page each get their own script tags).
+            if (document.querySelector(`[data-fui-scripts="${formScriptId}"]`)) {
+                console.warn(`Formie scripts already loaded for form #${formScriptId}.`);
 
                 return;
             }
 
             // Create a container to add these items to, so we can destroy them later
             form.$registeredJs = document.createElement('div');
-            form.$registeredJs.setAttribute('data-fui-scripts', formConfig.formHashId);
+            form.$registeredJs.setAttribute('data-fui-scripts', formScriptId);
             document.body.appendChild(form.$registeredJs);
 
             // Create a `<script>` for each registered JS
@@ -274,14 +278,18 @@ export class Formie {
     }
 
     refreshForCache(formHashId, callback) {
-        const form = this.getFormByHashId(formHashId);
+        const forms = this.forms.filter((f) => {
+            return f.config && f.config.formHashId == formHashId;
+        });
 
-        if (!form) {
+        if (!forms.length) {
             console.error(`Unable to find form "${formHashId}".`);
             return;
         }
 
-        this.refreshFormTokens(form, callback);
+        return Promise.all(forms.map((form) => {
+            return this.refreshFormTokens(form, callback);
+        }));
     }
 
     ensureCsrfInitialized(url) {

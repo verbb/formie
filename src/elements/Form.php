@@ -1599,6 +1599,8 @@ class Form extends Element
 
         return [
             'formHashId' => $this->getFormId(),
+            // Unique per `renderForm()` call so multiple embeds of the same form get their own script bundle.
+            'formScriptId' => StringHelper::UUID(),
             'formId' => $this->id,
             'formHandle' => $this->handle,
             'registeredJs' => $registeredJs,
