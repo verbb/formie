@@ -270,8 +270,8 @@ class Entries extends ElementField
                 'help' => Craft::t('formie', 'Select what order to show entries by.'),
                 'name' => 'orderBy',
                 'options' => array_merge([
-                    ['value' => 'lft ASC', 'label' => 'Structure Ascending'],
-                    ['value' => 'lft DESC', 'label' => 'Structure Descending'],
+                    ['value' => 'lft ASC', 'label' => Craft::t('formie', 'Structure Ascending')],
+                    ['value' => 'lft DESC', 'label' => Craft::t('formie', 'Structure Descending')],
                 ], $this->getOrderByOptions()),
             ]),
         ];

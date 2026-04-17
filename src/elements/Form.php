@@ -116,7 +116,7 @@ class Form extends Element
         $sources = [
             [
                 'key' => '*',
-                'label' => 'All forms',
+                'label' => Craft::t('formie', 'All forms'),
                 'defaultSort' => ['title', 'desc'],
             ],
         ];

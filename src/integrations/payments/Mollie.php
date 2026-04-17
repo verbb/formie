@@ -381,12 +381,12 @@ class Mollie extends Payment
                 'columns' => [
                     [
                         'type' => 'label',
-                        'label' => 'Option',
+                        'label' => Craft::t('formie', 'Option'),
                         'class' => 'singleline-cell textual',
                     ],
                     [
                         'type' => 'value',
-                        'label' => 'Value',
+                        'label' => Craft::t('formie', 'Value'),
                         'class' => 'singleline-cell textual',
                     ],
                 ],

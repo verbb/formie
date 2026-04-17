@@ -123,9 +123,9 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                     'options' => [
                         'label' => Craft::t('formie', 'Role'),
                         'options' => [
-                            ['label' => 'User', 'value' => 'user'],
-                            ['label' => 'Lead', 'value' => 'lead'],
-                            ['label' => 'Visitor', 'value' => 'visitor'],
+                            ['label' => Craft::t('formie', 'User'), 'value' => 'user'],
+                            ['label' => Craft::t('formie', 'Lead'), 'value' => 'lead'],
+                            ['label' => Craft::t('formie', 'Visitor'), 'value' => 'visitor'],
                         ],
                     ],
                 ]),
