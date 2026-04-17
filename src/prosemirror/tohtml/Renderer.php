@@ -161,8 +161,9 @@ class Renderer
             }
         }
 
-        if (isset($node->content)) {
-            foreach ($node->content as $nestedNode) {
+        $nestedContent = $node->content ?? null;
+        if (is_array($nestedContent)) {
+            foreach ($nestedContent as $nestedNode) {
                 $html[] = $this->renderNode($nestedNode);
             }
         } else if (isset($node->text)) {

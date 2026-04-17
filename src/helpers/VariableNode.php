@@ -19,6 +19,6 @@ class VariableNode extends Node
 
     public function text(): ?string
     {
-        return $this->node->attrs->value ?? '';
+        return $this->node->attrs?->value ?? '';
     }
 }
