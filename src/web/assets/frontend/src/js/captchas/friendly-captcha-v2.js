@@ -3,6 +3,18 @@ import { FriendlyCaptchaSDK } from '@friendlycaptcha/sdk';
 import { FormieCaptchaProvider } from './captcha-provider';
 import { eventKey } from '../utils/utils';
 
+// Friendly Captcha documents one SDK instance per page; call `createWidget()` for each widget.
+// Store on `window` so multiple loads of this bundle (one per Formie embed) still share one SDK.
+const FRIENDLY_CAPTCHA_SDK_GLOBAL = '__formieFriendlyCaptchaSdkV2__';
+
+function getSharedFriendlyCaptchaSdk() {
+    if (!window[FRIENDLY_CAPTCHA_SDK_GLOBAL]) {
+        window[FRIENDLY_CAPTCHA_SDK_GLOBAL] = new FriendlyCaptchaSDK();
+    }
+
+    return window[FRIENDLY_CAPTCHA_SDK_GLOBAL];
+}
+
 export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
     constructor(settings = {}) {
         super(settings);
@@ -14,7 +26,12 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         this.startMode = settings.startMode;
         this.providerName = 'FriendlyCaptcha';
         this.widgets = new Map();
-        this.sdk = new FriendlyCaptchaSDK();
+        this.sdk = getSharedFriendlyCaptchaSdk();
+
+        // Stable listener references so deduped add/remove via EventManager stays predictable.
+        this._onValidate = this.onValidate.bind(this);
+        this._onAfterSubmit = this.onAfterSubmit.bind(this);
+        this._onSubmitError = this.onSubmitError.bind(this);
     }
 
     getPlaceholders() {
@@ -65,9 +82,9 @@ export class FormieFriendlyCaptcha extends FormieCaptchaProvider {
         // Prepare an inner element to render the captcha
         const $container = this.createContainer($placeholder);
 
-        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', this.providerName), this.onValidate.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this.onAfterSubmit.bind(this));
-        this.form.addEventListener(this.$form, eventKey('onFormieSubmitError', this.providerName), this.onSubmitError.bind(this));
+        this.form.addEventListener(this.$form, eventKey('onFormieCaptchaValidate', this.providerName), this._onValidate);
+        this.form.addEventListener(this.$form, eventKey('onAfterFormieSubmit', this.providerName), this._onAfterSubmit);
+        this.form.addEventListener(this.$form, eventKey('onFormieSubmitError', this.providerName), this._onSubmitError);
 
         try {
             const widget = this.sdk.createWidget({
