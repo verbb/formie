@@ -5,6 +5,8 @@
 
 // ==========================================================================
 
+@import './variables';
+
 // ==========================================================================
 // Framework - Instance
 // ==========================================================================
@@ -26,7 +28,7 @@
 
 .fui-sr-only,
 [data-fui-sr-only] {
-    clip: rect(0,0,0,0);
+    clip: rect(0, 0, 0, 0);
     height: 1px;
     margin: -1px;
     overflow: hidden;
@@ -39,6 +41,7 @@
 // ==========================================================================
 
 .fui-field {
+
     // For conditions - better than classes, and doesn't rely on toggling
     // between none/block. Maybe we don't want the field to be display: block?
     &[data-conditionally-hidden] {
@@ -64,8 +67,9 @@
 }
 
 .fui-label-below-input {
+
     // Force legends to display in the correct position.
-    > .fui-field-container > .fui-input-wrapper > .fui-fieldset > .fui-legend {
+    >.fui-field-container>.fui-input-wrapper>.fui-fieldset>.fui-legend {
         display: block;
         float: left;
         clear: both;
@@ -152,6 +156,7 @@
     }
 
     .fui-btn {
+
         // For conditions - better than classes, and doesn't rely on toggling
         // between none/block. Maybe we don't want the field to be display: block?
         &[data-conditionally-hidden] {
