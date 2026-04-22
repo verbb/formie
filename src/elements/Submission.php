@@ -8,7 +8,6 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\FieldTrait;
 use verbb\formie\base\FieldValueInterface;
-use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\SingleNestedFieldInterface;
 use verbb\formie\elements\actions\SetSubmissionSpam;
@@ -1346,11 +1345,6 @@ class Submission extends CustomElement
                         ->validateAttribute($this, $attribute);
                 }
 
-                // Nested fields already run their own validation rules via the normal model validator pass.
-                // Re-running them here can duplicate nested validation with mutated shared state.
-                if ($field instanceof NestedFieldInterface) {
-                    continue;
-                }
 
                 foreach ($field->getElementValidationRules() as $rule) {
                     $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);

@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\MultiNestedFieldInterface;
 use verbb\formie\base\NestedFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -261,6 +262,49 @@ class FieldLayoutPage extends SavableComponent
         // Ensure that we recursively check for nested/subfields for errors
         $getFieldErrors = function(array $fields) use ($submission, &$errors, &$getFieldErrors) {
             foreach ($fields as $field) {
+                if ($field instanceof MultiNestedFieldInterface) {
+                    // Repeater errors use row indexes in the key (`repeater.0.text`), but layout field
+                    // instances only get `setParentField($repeater)` without a row, so `fieldKey` is wrong
+                    // until we set the row here (mirrors validation in MultiNestedField::validateBlocks()).
+                    $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
+
+                    $rowKeys = [];
+
+                    $value = $submission->getFieldValue($field->handle);
+                    if (is_array($value)) {
+                        $rowKeys = array_keys($value);
+                    }
+
+                    $prefix = $field->handle . '.';
+                    foreach (array_keys($submission->getErrors()) as $errorFieldKey) {
+                        if (!str_starts_with($errorFieldKey, $prefix)) {
+                            continue;
+                        }
+
+                        $rest = substr($errorFieldKey, strlen($prefix));
+                        $rowCandidate = strstr($rest, '.', true);
+
+                        if ($rowCandidate === false) {
+                            $rowCandidate = $rest;
+                        }
+
+                        if ($rowCandidate !== '') {
+                            $rowKeys[] = $rowCandidate;
+                        }
+                    }
+
+                    $rowKeys = array_values(array_unique($rowKeys));
+
+                    foreach ($rowKeys as $rowKey) {
+                        foreach ($field->getFields() as $nestedField) {
+                            $nestedField->setParentField($field, (string)$rowKey);
+                            $getFieldErrors([$nestedField]);
+                        }
+                    }
+
+                    continue;
+                }
+
                 $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
 
                 if ($field instanceof NestedFieldInterface) {

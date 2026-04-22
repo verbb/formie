@@ -1307,8 +1307,11 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
 
         $this->_customNamespace = $renderOptions['fieldNamespace'] ?? null;
 
-        // Allow the use of falsey namespaces
-        if ($this->_customNamespace !== null) {
+        // Only apply a custom field namespace to root-level fields. Nested fields inside
+        // Group/Repeater rely on `setParentField()` (from layout + Twig) to build namespaces
+        // like `repeaterHandle[0]`; overwriting that here breaks `fieldKey`, which must match
+        // submission errors (e.g. server-side validation). See https://github.com/verbb/formie/issues/2809
+        if ($this->_customNamespace !== null && $this->getParentField() === null) {
             $this->setNamespace($this->_customNamespace);
         }
 
