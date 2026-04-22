@@ -355,9 +355,16 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function checkConnection($useCache = true): bool
     {
-        if ($useCache && $status = $this->getCache('connection')) {
-            if ($status === self::CONNECT_SUCCESS) {
+        if ($useCache) {
+            $status = $this->getCache('connection');
+
+            if ($this->_isCachedConnectionSuccessful($status)) {
                 return true;
+            }
+
+            // Honour a cached negative result without another API call
+            if ($status === false) {
+                return false;
             }
         }
 
@@ -395,7 +402,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         if (static::supportsConnection()) {
-            return $this->getCache('connection') === self::CONNECT_SUCCESS;
+            return $this->_isCachedConnectionSuccessful($this->getCache('connection'));
         }
 
         return false;
@@ -1070,6 +1077,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $this->cache[$key] ?? null;
+    }
+
+    private function _isCachedConnectionSuccessful(mixed $status): bool
+    {
+        return $status === self::CONNECT_SUCCESS || $status === true;
     }
 
     private static function isEmpty($value): bool
