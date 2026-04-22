@@ -492,6 +492,17 @@ class Integrations extends Component
             $config['settings'] = Json::decode($config['settings']);
         }
 
+        // `cache` is stored as JSON in the DB (longText); decode like `settings` so in-memory merge/state stays correct.
+        if (array_key_exists('cache', $config)) {
+            if (is_string($config['cache']) && $config['cache'] !== '') {
+                $config['cache'] = Json::decode($config['cache']) ?: [];
+            }
+
+            if (!is_array($config['cache'])) {
+                unset($config['cache']);
+            }
+        }
+
         try {
             $integration = ComponentHelper::createComponent($config, IntegrationInterface::class);
         } catch (UnknownPropertyException $e) {
