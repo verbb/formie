@@ -156,13 +156,18 @@ abstract class Payment extends Integration
         return Template::raw($notification->renderTemplate("integrations/payments/{$handle}/field", $inputOptions));
     }
 
-    public function getSubmissionSummaryHtml(Submission $submission): ?string
+    public function getSubmissionSummaryHtml(Submission $submission, ?PaymentField $field = null): ?string
     {
         $handle = $this->getIntegrationHandle();
 
         // Only show if there's payments for a submission
         $payments = $submission->getPayments();
         $subscriptions = $submission->getSubscriptions();
+
+        if ($field) {
+            $payments = array_values(array_filter($payments, fn($payment) => (int)$payment->fieldId === (int)$field->id));
+            $subscriptions = array_values(array_filter($subscriptions, fn($subscription) => (int)$subscription->fieldId === (int)$field->id));
+        }
 
         if (!$payments && !$subscriptions) {
             return null;
