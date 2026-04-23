@@ -66,6 +66,23 @@
             ],
             warning: macros.configWarning('submissionsBehaviour', 'formie'),
         }) }}
+
+        {{ forms.selectField({
+            label: 'Submissions Sidebar Form Order' | t('formie'),
+            instructions: 'Controls how forms are listed in the left sidebar on the Submissions element index.' | t('formie'),
+            id: 'submissionSidebarFormOrder',
+            name: 'submissionSidebarFormOrder',
+            value: settings.submissionSidebarFormOrder,
+            options: [
+                { label: 'Date created (newest first)' | t('formie'), value: 'dateCreatedDesc' },
+                { label: 'Date created (oldest first)' | t('formie'), value: 'dateCreatedAsc' },
+                { label: 'Form title (A-Z)' | t('formie'), value: 'titleAsc' },
+                { label: 'Form title (Z-A)' | t('formie'), value: 'titleDesc' },
+                { label: 'Form handle (A-Z)' | t('formie'), value: 'handleAsc' },
+                { label: 'Form handle (Z-A)' | t('formie'), value: 'handleDesc' },
+            ],
+            warning: macros.configWarning('submissionSidebarFormOrder', 'formie'),
+        }) }}
     {% endnamespace %}
 
     <hr>

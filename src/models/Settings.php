@@ -22,6 +22,13 @@ class Settings extends Model
 
     public const SPAM_BEHAVIOUR_SUCCESS = 'showSuccess';
     public const SPAM_BEHAVIOUR_MESSAGE = 'showMessage';
+    
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC = 'dateCreatedDesc';
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC = 'dateCreatedAsc';
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_ASC = 'titleAsc';
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_DESC = 'titleDesc';
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC = 'handleAsc';
+    public const SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC = 'handleDesc';
 
 
     // Properties
@@ -63,6 +70,7 @@ class Settings extends Model
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';
+    public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -206,6 +214,14 @@ class Settings extends Model
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
         $rules[] = [['alertEmails'], 'validateAlertEmails'];
+        $rules[] = [['submissionSidebarFormOrder'], 'in', 'range' => [
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC,
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC,
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_ASC,
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_DESC,
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC,
+            self::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC,
+        ]];
 
         return $rules;
     }

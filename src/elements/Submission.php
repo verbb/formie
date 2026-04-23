@@ -131,7 +131,19 @@ class Submission extends CustomElement
     protected static function defineSources(string $context = null): array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $forms = Form::find()->all();
+        $formQuery = Form::find();
+        $order = Formie::$plugin->getSettings()->submissionSidebarFormOrder;
+
+        match ($order) {
+            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_ASC => $formQuery->orderBy('title ASC'),
+            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_DESC => $formQuery->orderBy('title DESC'),
+            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC => $formQuery->orderBy('handle ASC'),
+            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC => $formQuery->orderBy('handle DESC'),
+            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC => $formQuery->orderBy('dateCreated ASC'),
+            default => null,
+        };
+
+        $forms = $formQuery->all();
 
         $sources = [];
 
