@@ -154,10 +154,25 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
 
     private function _getValueLabel(mixed $value): string
     {
-        if ($value) {
-            if ($countryOption = ArrayHelper::firstWhere($this->getCountryOptions(), 'value', $value)) {
-                return $countryOption['label'] ?? '';
-            }
+        if (!$value) {
+            return '';
+        }
+
+        // Match stored value against the same option list used by the front-end / CP (`optionValue` /
+        // `optionLabel` settings). `getCountryOptions()` always uses ISO codes as `value`, so lookups
+        // failed for exports when `optionValue` is "full" (stored value is e.g. "Zambia", not "ZM").
+        if ($option = ArrayHelper::firstWhere($this->options(), 'value', $value)) {
+            return $option['label'] ?? '';
+        }
+
+        // Fallback: value may be an ISO code from older data or integrations
+        if ($countryOption = ArrayHelper::firstWhere($this->getCountryOptions(), 'value', $value)) {
+            return $countryOption['label'] ?? '';
+        }
+
+        // Fallback: stored full name when only ISO-keyed list is available
+        if ($countryOption = ArrayHelper::firstWhere($this->getCountryOptions(), 'label', $value)) {
+            return $countryOption['label'] ?? '';
         }
 
         return '';
