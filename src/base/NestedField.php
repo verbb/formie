@@ -316,6 +316,12 @@ abstract class NestedField extends Field implements NestedFieldInterface
 
         // Save the field layout as the last step - only if this has a field layout. Some SubFields opt-out
         if ($this->hasFieldLayout()) {
+            if ($isNew) {
+                // New nested fields must never re-use copied layout/field IDs from another field instance.
+                $this->_clearLayoutIdentifiers($this->getFieldLayout());
+                $this->nestedLayoutId = null;
+            }
+
             if (!Formie::$plugin->getFields()->saveLayout($this->getFieldLayout())) {
                 foreach ($this->getFieldLayout()->getPages() as $page) {
                     $errors = ArrayHelper::flatten($page->getErrors());
@@ -514,6 +520,42 @@ abstract class NestedField extends Field implements NestedFieldInterface
         }
 
         return Validator::createValidator($rule[1], $this, (array)$rule[0], array_slice($rule, 2));
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _clearLayoutIdentifiers(FieldLayout $layout): void
+    {
+        $layout->id = null;
+        $layout->uid = '';
+
+        foreach ($layout->getPages() as $page) {
+            $page->id = null;
+            $page->layoutId = null;
+            $page->uid = '';
+
+            foreach ($page->getRows() as $row) {
+                $row->id = null;
+                $row->layoutId = null;
+                $row->pageId = null;
+                $row->uid = '';
+
+                foreach ($row->getFields() as $field) {
+                    $field->id = null;
+                    $field->layoutId = null;
+                    $field->pageId = null;
+                    $field->rowId = null;
+                    $field->uid = '';
+
+                    if ($field instanceof NestedFieldInterface) {
+                        $this->_clearLayoutIdentifiers($field->getFieldLayout());
+                        $field->nestedLayoutId = null;
+                    }
+                }
+            }
+        }
     }
 
 }
