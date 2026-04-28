@@ -502,8 +502,25 @@ Craft.Formie.SaveButton = Garnish.Base.extend({
 
 // Create a site-aware element select input
 Craft.Formie.SiteElementSelect = Craft.BaseElementSelectInput.extend({
+    makeElementTitleClickable($element, url) {
+        url = url || $element.data('url');
+
+        const $title = $element.find('.label .title').first();
+
+        if (!url || !$title.length || $title.find('a').length) {
+            return;
+        }
+
+        $title.wrapInner($('<a/>', {
+            href: url,
+            target: '_blank',
+            rel: 'noopener',
+        }));
+    },
+
     createNewElement(elementInfo) {
         const $element = elementInfo.$element.clone();
+        const cpEditUrl = elementInfo.cpEditUrl || elementInfo.url || $element.data('url');
         const removeText = Craft.t('app', 'Remove {label}', {
             label: Craft.escapeHtml(elementInfo.label),
         });
@@ -515,11 +532,18 @@ Craft.Formie.SiteElementSelect = Craft.BaseElementSelectInput.extend({
         );
 
         $element.addClass('removable');
+
+        if (cpEditUrl) {
+            $element.attr('data-url', cpEditUrl);
+        }
+
         $element.prepend(`
             <input type="hidden" name="${this.settings.name}[id]" value="${elementInfo.id}">
             <input type="hidden" name="${this.settings.name}[siteId]" value="${elementInfo.siteId}">
             <button type="button" class="delete icon" title="${Craft.t('app', 'Remove')}" aria-label="${removeText}"></button>
         `);
+
+        this.makeElementTitleClickable($element, cpEditUrl);
 
         return $element;
     },

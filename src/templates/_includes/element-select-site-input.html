@@ -33,6 +33,7 @@
             {# Modify behaviour here to include site ID #}
             {% set element %}
                 {% set label = element.getUiLabel() %}
+                {% set cpEditUrl = element.getCpEditUrl() %}
 
                 {% tag 'div' with {
                     class: "element small removable hasstatus",
@@ -42,7 +43,7 @@
                     'data-site-id': element.siteId,
                     'data-status': element.getStatus(),
                     'data-label': '' ~ element,
-                    'data-url': element.getUrl(),
+                    'data-url': cpEditUrl,
                     'data-settings': {
                         context: 'field',
                         size: 'small',
@@ -66,7 +67,13 @@
                     }) }}
 
                     <div class="label">
-                        <span class="title">{{ label }}</span>
+                        <span class="title">
+                            {% if cpEditUrl %}
+                                <a href="{{ cpEditUrl }}" target="_blank" rel="noopener">{{ label }}</a>
+                            {% else %}
+                                {{ label }}
+                            {% endif %}
+                        </span>
                     </div>
                 {% endtag %}
             {% endset %}
