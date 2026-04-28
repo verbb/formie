@@ -310,7 +310,7 @@ class SubmissionsController extends Controller
         $maps = [];
 
         foreach ($form->getFields() as $field) {
-            if (!$field instanceof SingleNestedFieldInterface || !$field->syncId) {
+            if (!$field instanceof SingleNestedFieldInterface) {
                 continue;
             }
 
@@ -318,7 +318,10 @@ class SubmissionsController extends Controller
 
             foreach ($field->getFields() as $subfield) {
                 if ($subfield->handle && $subfield->uid) {
-                    $currentSubfields[$subfield->handle] = $subfield->uid;
+                    $currentSubfields[$subfield->handle] = [
+                        'type' => get_class($subfield),
+                        'uid' => $subfield->uid,
+                    ];
                 }
             }
 
@@ -326,29 +329,23 @@ class SubmissionsController extends Controller
                 continue;
             }
 
-            $syncedFieldIds = (new Query())
-                ->select('id')
+            // Map any old/orphaned subfield UIDs for this parent field back to the current
+            // subfields by handle + type. This covers synced-field drift and old nested layouts.
+            $oldSubfields = (new Query())
+                ->select(['handle', 'type', 'uid'])
                 ->from(Table::FORMIE_FIELDS)
-                ->where(['or', ['id' => $field->syncId], ['syncId' => $field->syncId]])
-                ->column();
+                ->where(['handle' => array_keys($currentSubfields)])
+                ->all();
 
-            foreach ($syncedFieldIds as $syncedFieldId) {
-                if ((int)$syncedFieldId === (int)$field->id) {
+            foreach ($oldSubfields as $oldSubfield) {
+                $currentSubfield = $currentSubfields[$oldSubfield['handle']] ?? null;
+
+                if (!$currentSubfield || $oldSubfield['type'] !== $currentSubfield['type']) {
                     continue;
                 }
 
-                $syncedField = Formie::$plugin->getFields()->getFieldById((int)$syncedFieldId);
-
-                if (!$syncedField instanceof SingleNestedFieldInterface) {
-                    continue;
-                }
-
-                foreach ($syncedField->getFields() as $syncedSubfield) {
-                    $currentUid = $currentSubfields[$syncedSubfield->handle] ?? null;
-
-                    if ($currentUid && $syncedSubfield->uid && $syncedSubfield->uid !== $currentUid) {
-                        $maps[$field->uid][$syncedSubfield->uid] = $currentUid;
-                    }
+                if ($oldSubfield['uid'] && $oldSubfield['uid'] !== $currentSubfield['uid']) {
+                    $maps[$field->uid][$oldSubfield['uid']] = $currentSubfield['uid'];
                 }
             }
         }
