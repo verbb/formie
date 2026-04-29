@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.19 - 2026-04-29
+
+### Added
+- Add support for “Redirect Entry” setting to be hyperlinked.
+
+### Fixed
+- Fix integration cache and connection status.
+
 ## 2.2.18 - 2026-04-11
 
 ### Fixed
