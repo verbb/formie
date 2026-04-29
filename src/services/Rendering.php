@@ -496,6 +496,7 @@ class Rendering extends Component
         }
 
         $view = Craft::$app->getView();
+        $renderedJs = $this->_renderedJs;
 
         // Create our own buffer for CSS files. `View::startCssBuffer()` only handles CSS code, not files
         $this->startFileBuffer('cssFiles', $view);
@@ -516,6 +517,10 @@ class Rendering extends Component
 
         $this->_cssFiles = array_filter($this->_cssFiles);
         $this->_jsFiles = array_filter($this->_jsFiles);
+
+        // This render only discovers assets for the manual CSS/JS helpers. If a template
+        // only outputs `renderFormCss()`, the later real form render still needs Formie's JS.
+        $this->_renderedJs = $renderedJs;
     }
 
     public function renderFormCss(Form|string|null $form, array $renderOptions = []): Markup
@@ -537,6 +542,10 @@ class Rendering extends Component
             } else {
                 $allJsFiles[] = $jsFile;
             }
+        }
+
+        if ($allJsFiles) {
+            $this->_renderedJs = true;
         }
 
         return TemplateHelper::raw(implode("\n", $allJsFiles));
