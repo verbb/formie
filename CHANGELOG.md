@@ -1,10 +1,31 @@
 # Changelog
 
+## 3.1.22 - 2026-04-30
+
+### Added
+- Add support for “Redirect Entry” setting to be hyperlinked.
+- Add plugin setting to control the default order of the forms list in the submissions element index sidebar.
+- Add missing translations for the form builder.
+
+### Changed
+- Improve Address Country handling for exports and integrations.
+- Improve handling of JS modules and re-binding for multiple forms.
+- Loosen `symfony/expression-language` dependency.
+- Only build notification field summaries when `{allFields}`/etc appear, and harden globals/siteOverrides iteration.
+
+### Fixed
+- Fix a rendering issue when `craft.formie.renderFormCss()` was used, causing Formie’s JS not to work correctly.
+- Fix an issue with data loss for synced fields, specifically for sub-fields.
+- Fix integration cache and connection status.
+- Fix Mollie payment summary not showing in submission edit screen in control panel.
+- Fix an error with inner field validation (server-side) for Repeater fields.
+- Fix Base CSS not rendering variable-based styles correctly due to lack of CSS Variables.
+- Fix Friendly Captcha when initialized multiple times.
+
 ## 3.1.21 - 2026-04-16
 
 ### Added
 - Add `email` variable to email notification templates, exposing the composed Craft mail message (including parsed `subject`).
-- Add missing translations for the form builder.
 - Add missing translations for the form builder.
 
 ### Fixed
