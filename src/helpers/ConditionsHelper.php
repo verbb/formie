@@ -23,7 +23,7 @@ class ConditionsHelper
         $expressionLanguage = new ExpressionLanguage();
 
         // Add custom evaluation rules
-        $expressionLanguage->register('contains', function() {
+        $expressionLanguage->register('formieContains', function() {
         }, function($args, $subject, $pattern) {
             if (is_array($subject)) {
                 return in_array($pattern, $subject);
@@ -113,8 +113,12 @@ class ConditionsHelper
         $operator = ConditionsHelper::getCondition($condition);
 
         // For custom rules, we need a custom syntax. Symfony doesn't support custom operators, which would be nice
-        // Instead of `field contains value` we need to do `contains(field, value)`.
+        // Instead of `field contains value` we need to do `formieContains(field, value)`.
         if (in_array($operator, ['contains', 'notContains', 'startsWith', 'endsWith', 'empty', 'notEmpty'])) {
+            if ($operator === 'contains') {
+                return 'formieContains(field, value)';
+            }
+
             return "{$operator}(field, value)";
         }
 

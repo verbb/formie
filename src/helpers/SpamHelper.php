@@ -2,9 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Settings;
-use verbb\formie\parsers\SpamExpressionLanguage;
 
 use Craft;
 
@@ -63,7 +61,7 @@ class SpamHelper
     {
         $expressionLanguage = new ExpressionLanguage();
 
-        $expressionLanguage->register('contains', function($haystack, $needle) {
+        $expressionLanguage->register('formieContains', function($haystack, $needle) {
         }, function ($args, $haystack, $needle) {
             // Use regex to match whole words, not `str_contains`, and ensure case-sensitive
             return preg_match('/\b' . preg_quote($needle, '/') . '\b/', $haystack) === 1;
@@ -118,7 +116,7 @@ class SpamHelper
         }
 
         // If none of the above, treat as plain text
-        return sprintf("contains(content, '%s')", addslashes($line));
+        return sprintf("formieContains(content, '%s')", addslashes($line));
     }
 
     private static function _convertMatchSyntax(string $expr): string
@@ -137,13 +135,13 @@ class SpamHelper
                 continue;
             }
 
-            // Otherwise, it's a keyword, wrap in "contains(content, 'keyword')"
+            // Otherwise, it's a keyword, wrap in "formieContains(content, 'keyword')"
             $escaped = addslashes($tokTrim);
-            $parts[] = "contains(content, '{$escaped}')";
+            $parts[] = "formieContains(content, '{$escaped}')";
         }
 
-        // Rejoin with spaces. ExpressionLanguage can parse: 
-        // "( contains(...) or contains(...) ) and contains(...)"
+        // Rejoin with spaces. ExpressionLanguage can parse:
+        // "( formieContains(...) or formieContains(...) ) and formieContains(...)"
         return implode(' ', $parts);
     }
 
