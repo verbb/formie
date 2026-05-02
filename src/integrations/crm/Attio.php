@@ -295,6 +295,10 @@ class Attio extends Crm
     {
         $fieldType = $this->_convertFieldType($field['type']);
 
+        if (($field['is_multiselect'] ?? false) && $fieldType === IntegrationField::TYPE_STRING) {
+            $fieldType = IntegrationField::TYPE_ARRAY;
+        }
+
         $handle = $field['api_slug'];
         $name = $field['title'];
 
