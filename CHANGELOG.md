@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.23 - 2026-05-03
+
+### Changed
+- Bump `verbb/auth` to allow `firebase/php-jwt` 7.x.
+
+### Fixed
+- Fix an issue with Attio when mapping to multi-select fields.
+- Fix an incompatibility with `symfony/expression-language` and `contains`.
+
 ## 3.1.22 - 2026-04-30
 
 ### Added
