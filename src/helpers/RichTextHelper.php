@@ -254,7 +254,7 @@ class RichTextHelper
         $userService = Craft::$app->getUser();
 
         foreach ($allVolumes as $volume) {
-            if (($userService->checkPermission("viewVolume:{$volume->uid}"))) {
+            if (($userService->checkPermission("viewAssets:{$volume->uid}"))) {
                 $allowedVolumes[] = 'volume:' . $volume->uid;
             }
         }
