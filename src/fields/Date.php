@@ -1478,6 +1478,8 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $format = 'm';
             } else if ($fieldKey === 'day') {
                 $format = 'd';
+            } else if ($fieldKey === 'date') {
+                $format = $this->getDateFormat();
             } else if ($fieldKey === 'hour') {
                 $format = 'H';
             } else if ($fieldKey === 'minute') {
@@ -1486,6 +1488,8 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $format = 's';
             } else if ($fieldKey === 'ampm') {
                 $format = 'A';
+            } else if ($fieldKey === 'time') {
+                $format = $this->getTimeFormat();
             }
 
             if (!$this->getIsTime()) {
