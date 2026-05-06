@@ -7,6 +7,7 @@ use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\fields\conditions\TextFieldConditionRule;
 use verbb\formie\models\HtmlTag;
+use verbb\formie\options\Autocomplete;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -48,6 +49,7 @@ class SingleLineText extends Field implements InlineEditableFieldInterface, Prev
     public ?int $max = null;
     public ?string $maxType = 'characters';
     public bool $uniqueValue = false;
+    public ?string $autocomplete = 'off';
 
 
     // Public Methods
@@ -247,6 +249,12 @@ class SingleLineText extends Field implements InlineEditableFieldInterface, Prev
                 'name' => 'defaultValue',
                 'variables' => 'userVariables',
             ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Autocomplete'),
+                'help' => Craft::t('formie', 'Set the autocomplete attribute used by browsers to autofill this field.'),
+                'name' => 'autocomplete',
+                'options' => Autocomplete::getDataOptions()
+            ])
         ];
     }
 
@@ -407,6 +415,7 @@ class SingleLineText extends Field implements InlineEditableFieldInterface, Prev
                 'name' => $this->getHtmlName(),
                 'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
                 'required' => $this->required ? true : null,
+                'autocomplete' => $this->autocomplete,
                 'data' => [
                     'fui-id' => $dataId,
                     'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
