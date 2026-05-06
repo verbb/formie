@@ -40,6 +40,7 @@ class SubmissionsController extends Controller
     // =========================================================================
 
     public const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
+    public const EVENT_BEFORE_SUBMISSION_REQUEST_FORM = 'beforeSubmissionRequestForm';
     public const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
 
 
@@ -432,6 +433,27 @@ class SubmissionsController extends Controller
         $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
         $storage = $this->_getTypedParam('storage', 'string', 'session');
 
+        // Fire a 'beforeSubmissionRequestForm' event, allowing requests to be filtered before querying for a form.
+        $event = new SubmissionEvent([
+            'handle' => $handle,
+            'submitAction' => $submitAction,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST_FORM, $event);
+
+        if (!$event->isValid) {
+            if ($event->response) {
+                return $event->response;
+            }
+
+            $this->response->setStatusCode(400);
+            $this->response->format = Response::FORMAT_RAW;
+            $this->response->data = '';
+
+            return $this->response;
+        }
+
+        $handle = $event->handle ?? $handle;
+
         Formie::info("Submission triggered for {$handle}.");
 
         /* @var Form $form */
@@ -536,6 +558,7 @@ class SubmissionsController extends Controller
         $event = new SubmissionEvent([
             'submission' => $submission,
             'form' => $form,
+            'handle' => $handle,
             'submitAction' => $submitAction,
         ]);
         $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
@@ -678,6 +701,7 @@ class SubmissionsController extends Controller
         $event = new SubmissionEvent([
             'submission' => $submission,
             'form' => $form,
+            'handle' => $handle,
             'submitAction' => $submitAction,
             'success' => true,
         ]);

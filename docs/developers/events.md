@@ -358,6 +358,23 @@ Event::on(SubmissionsController::class, SubmissionsController::EVENT_BEFORE_SUBM
 });
 ```
 
+### The `beforeSubmissionRequestForm` event
+The event that is triggered before the posted form handle is used to query for a form. This is useful for filtering obviously invalid or malicious requests before any form lookup is performed.
+
+The `isValid` event property can be set to `false` to stop processing the request. Set the `response` event property to return a custom response.
+
+```php
+use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\events\SubmissionEvent;
+use yii\base\Event;
+
+Event::on(SubmissionsController::class, SubmissionsController::EVENT_BEFORE_SUBMISSION_REQUEST_FORM, function(SubmissionEvent $event) {
+    if (!$event->handle || !preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $event->handle)) {
+        $event->isValid = false;
+    }
+});
+```
+
 ### The `afterSubmissionRequest` event
 The event that is triggered after a submission has been completed, whether successful or not. This is triggered on the controller action endpoint, so should primarily be used for redirection hijacking, or any other use-case that needs to occur in the controller.
 
