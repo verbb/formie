@@ -2,10 +2,18 @@
 namespace verbb\formie\options;
 
 use verbb\formie\base\PredefinedOption;
+use verbb\formie\events\ModifyAutocompleteOptionsEvent;
 use Craft;
+
+use yii\base\Event;
 
 class Autocomplete extends PredefinedOption
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_MODIFY_AUTOCOMPLETE_OPTIONS = 'modifyAutocompleteOptions';
+
     // Protected Properties
     // =========================================================================
 
@@ -39,7 +47,7 @@ class Autocomplete extends PredefinedOption
 
     public static function getDataOptions(): array
     {
-        return [
+        $options = [
             // Controls
             [
                 'label' => Craft::t('formie', 'Disabled'),
@@ -182,5 +190,13 @@ class Autocomplete extends PredefinedOption
                 'value' => 'language',
             ],
         ];
+
+        $event = new ModifyAutocompleteOptionsEvent([
+            'options' => $options,
+        ]);
+
+        $this->trigger(self::EVENT_MODIFY_AUTOCOMPLETE_OPTIONS, $event);
+
+        return $event->options;
     }
 }

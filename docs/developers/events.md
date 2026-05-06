@@ -1047,6 +1047,21 @@ Event::on(PredefinedOptions::class, PredefinedOptions::EVENT_REGISTER_PREDEFINED
 });
 ```
 
+## Autocomplete Options
+
+### The `modifyAutocompleteOptions` event
+The event that is triggered to modify the available autocomplete options for fields.
+
+```php
+use verbb\formie\events\ModifyAutocompleteOptionsEvent;
+use verbb\formie\options\Autocomplete;
+use yii\base\Event;
+
+Event::on(Autocomplete::class, Autocomplete::EVENT_MODIFY_AUTOCOMPLETE_OPTIONS, function(ModifyAutocompleteOptionsEvent $event) {
+    $event->options[] = ['label' => 'Custom Option', 'value' => 'custom-option'];
+});
+```
+
 
 ## Submission Status Events
 
@@ -2272,4 +2287,3 @@ Event::on(Formie::class, Formie::EVENT_MODIFY_TWIG_ENVIRONMENT, function(ModifyT
     $event->allowedProperties[\craft\base\Element::class] = 'title';
 });
 ```
-
