@@ -1470,6 +1470,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
         // If a string value is requested for a date, return the ISO 8601 date string
         if ($integrationField->getType() === IntegrationField::TYPE_STRING) {
             $format = 'c';
+            $isDateTimeSubField = false;
 
             // Check if we're mapping sub-fields
             if ($fieldKey === 'year') {
@@ -1480,6 +1481,7 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $format = 'd';
             } else if ($fieldKey === 'date') {
                 $format = $this->getDateFormat();
+                $isDateTimeSubField = true;
             } else if ($fieldKey === 'hour') {
                 $format = 'H';
             } else if ($fieldKey === 'minute') {
@@ -1490,6 +1492,15 @@ class Date extends SubField implements InlineEditableFieldInterface, Previewable
                 $format = 'A';
             } else if ($fieldKey === 'time') {
                 $format = $this->getTimeFormat();
+                $isDateTimeSubField = true;
+            }
+
+            if ($isDateTimeSubField && !$value && $element) {
+                $value = $element->getFieldValue($this->fieldKey);
+            }
+
+            if ($isDateTimeSubField && $value instanceof DateTime) {
+                return $value->format($format);
             }
 
             if (!$this->getIsTime()) {
