@@ -7,6 +7,7 @@ use verbb\formie\elements\Submission;
 use Craft;
 use craft\base\ElementAction;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Html;
 use craft\helpers\Json;
 
 class SetSubmissionSpam extends ElementAction
@@ -51,7 +52,28 @@ JS,
             static::class,
         ]);
 
-        return Craft::$app->getView()->renderTemplate('formie/_components/actions/mark-spam/trigger');
+        $markSpam = Html::tag('li', Html::a(
+            Html::tag('span', '', ['class' => ['status', 'off']])
+            . ' ' . Html::encode(Craft::t('formie', 'Mark as spam')),
+            '#',
+            [
+                'class' => 'formsubmit',
+                'data-param' => 'spam',
+                'data-value' => 'markSpam',
+            ],
+        ));
+
+        $unmark = Html::tag('li', Html::tag('a',
+            Html::tag('span', '', ['class' => ['status', 'on']])
+            . ' ' . Html::encode(Craft::t('formie', 'Unmark as spam')),
+            [
+                'id' => 'verbb-formie-elements-actions-SetSubmissionSpam-MarkAsNotSpam-actiontrigger',
+                'href' => '#',
+            ],
+        ));
+
+        return Html::tag('div', Craft::t('formie', 'Set spam'), ['class' => ['btn', 'menubtn']])
+            . Html::tag('div', Html::tag('ul', $markSpam . "\n" . $unmark), ['class' => 'menu']);
     }
 
     public function performAction(ElementQueryInterface $query): bool
