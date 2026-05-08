@@ -6,9 +6,9 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
-use craft\base\ElementAction;
 use craft\elements\actions\SetStatus;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Html;
 use craft\helpers\Json;
 
 class SetSubmissionStatus extends SetStatus
@@ -30,9 +30,28 @@ class SetSubmissionStatus extends SetStatus
 
     public function getTriggerHtml(): ?string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_components/actions/set-status/trigger', [
-            'statuses' => $this->statuses,
-        ]);
+        $label = Craft::t('app', 'Set status');
+        $items = [];
+
+        foreach ($this->statuses ?? [] as $status) {
+            $items[] = Html::tag('li', Html::a(
+                Html::tag('span', '', ['class' => ['status', $status->color]])
+                . ' ' . Html::encode($status->name),
+                '#',
+                [
+                    'class' => 'formsubmit',
+                    'data-param' => 'statusId',
+                    'data-value' => $status->id,
+                ],
+            ));
+        }
+
+        return Html::tag('button', $label, [
+                'type' => 'button',
+                'class' => ['btn', 'menubtn'],
+                'aria-label' => $label,
+            ])
+            . Html::tag('div', Html::tag('ul', implode("\n", $items)), ['class' => 'menu']);
     }
 
     public function performAction(ElementQueryInterface $query): bool
