@@ -111,10 +111,8 @@ class Hidden extends FormField implements PreviewableFieldInterface, SortableFie
 
             // Check if there's no value been added on the front-end, and use the default value
             if ($value === '') {
-                $value = $this->defaultValue;
+                $value = Variables::getParsedValue($this->defaultValue, $element);
             }
-
-            $value = Variables::getParsedValue($value, $element);
 
             // Immediately update the value for the element, so integrations use the up-to-date value
             if ($element) {
