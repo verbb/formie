@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.1.24 - 2026-05-10
+
+### Added
+- Add `SubmissionsController:: EVENT_BEFORE_SUBMISSION_REQUEST_FORM` event.
+
+### Fixed
+- Fix an issue with Hidden fields and evaluating Twig.
+- Fix a twig error when managing spam actions in a submission.
+- Fix Date/Time and `date/time` values and integration mapping values.
+- Fix asset permissions for rich text fields.
+
 ## 3.1.23 - 2026-05-03
 
 ### Changed
