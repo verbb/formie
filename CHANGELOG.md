@@ -1406,6 +1406,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.20 - 2026-05-10
+
+### Fixed
+- Fix an issue with Hidden fields and evaluating Twig.
+
 ## 2.2.19 - 2026-04-29
 
 ### Added
