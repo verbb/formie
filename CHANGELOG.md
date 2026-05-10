@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.20 - 2026-05-10
+
+### Fixed
+- Fix an issue with Hidden fields and evaluating Twig.
+
 ## 2.2.19 - 2026-04-29
 
 ### Added
