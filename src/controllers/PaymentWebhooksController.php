@@ -81,14 +81,31 @@ class PaymentWebhooksController extends Controller
             throw new NotFoundHttpException('Integration not found');
         }
 
+        $integrationHandle = $integration->handle;
+        $calledGateway = App::devMode() || $shouldCheckGateway;
+
         // Always poll the API in dev mode, or when explicitly requested. Webhooks likely won't be delivered locally.
-        if (App::devMode() || $shouldCheckGateway) {
+        if ($calledGateway) {
             try {
                 $integration->getTransaction($payment);
             } catch (Throwable $e) {
+                Formie::error('Payment poll: gateway verification failed for paymentUid {paymentUid} ({integration}): {message}', [
+                    'paymentUid' => $paymentUid,
+                    'integration' => $integrationHandle,
+                    'message' => $e->getMessage(),
+                ]);
+
                 return $this->asJson([
                     'status' => 'failed',
                     'message' => Craft::t('formie', 'We were unable to verify your payment. Please try again or contact support.'),
+                ]);
+            }
+
+            if ($shouldCheckGateway) {
+                Formie::info('Payment poll: gateway check for paymentUid {paymentUid} ({integration}), status is now {status}', [
+                    'paymentUid' => $paymentUid,
+                    'integration' => $integrationHandle,
+                    'status' => $payment->status,
                 ]);
             }
         }
@@ -97,6 +114,10 @@ class PaymentWebhooksController extends Controller
             $submission = $payment->getSubmission();
 
             if (!$submission) {
+                Formie::error('Payment poll: payment marked success but no submission for paymentUid {paymentUid}', [
+                    'paymentUid' => $paymentUid,
+                ]);
+
                 return $this->asJson([
                     'status' => 'failed',
                     'message' => Craft::t('formie', 'Unable to find submission for payment.'),
@@ -105,6 +126,11 @@ class PaymentWebhooksController extends Controller
 
             // Has this submission already been marked as completed?
             if (!$submission->isIncomplete) {
+                Formie::info('Payment poll: submission already completed (paymentUid {paymentUid}, submissionId {submissionId})', [
+                    'paymentUid' => $paymentUid,
+                    'submissionId' => $submission->id,
+                ]);
+
                 return $this->asJson([
                     'status' => 'failed',
                     'message' => Craft::t('formie', 'Submission has been completed.'),
@@ -141,6 +167,12 @@ class PaymentWebhooksController extends Controller
 
             $url = Formie::$plugin->getPayments()->resolvePaymentSuccessRedirectUrl($payment, $submission, $form, $url);
 
+            Formie::info('Payment poll: finalising paymentUid {paymentUid}, submissionId {submissionId}, formId {formId}', [
+                'paymentUid' => $paymentUid,
+                'submissionId' => $submission->id,
+                'formId' => $form->id,
+            ]);
+
             return $this->asJson([
                 'status' => 'success',
                 'redirectUrl' => $url,
@@ -148,9 +180,21 @@ class PaymentWebhooksController extends Controller
         }
 
         if ($payment->status === PaymentModel::STATUS_FAILED) {
+            Formie::info('Payment poll: gateway reports failed for paymentUid {paymentUid} ({integration})', [
+                'paymentUid' => $paymentUid,
+                'integration' => $integrationHandle,
+            ]);
+
             return $this->asJson([
                 'status' => 'failed',
                 'message' => Craft::t('formie', 'Your payment failed. Please try again.'),
+            ]);
+        }
+
+        if ($shouldCheckGateway) {
+            Formie::info('Payment poll: still pending after gateway check (paymentUid {paymentUid}, {integration})', [
+                'paymentUid' => $paymentUid,
+                'integration' => $integrationHandle,
             ]);
         }
 
@@ -173,10 +217,23 @@ class PaymentWebhooksController extends Controller
             throw new NotFoundHttpException('Integration not found');
         }
 
+        $statusBefore = $payment->status;
+        $integrationHandle = $integration->handle;
+
         // Some gateways (GoCardless) take over the status state handling
         // Always poll the API in dev mode, or when explicitly requested. Webhooks likely won't be delivered locally.
         $integration->getTransactionStatus($payment);
 
-        return $this->renderTemplate('formie/integrations/payments/status', ['payment' => $payment], View::TEMPLATE_MODE_CP);
+        $paymentAfter = Formie::$plugin->getPayments()->getPaymentByUid($paymentUid) ?? $payment;
+
+        Formie::info('Payment return URL: paymentUid {paymentUid}, integration {integration}, submissionId {submissionId}, status {statusBefore} to {statusAfter}', [
+            'paymentUid' => $paymentUid,
+            'integration' => $integrationHandle,
+            'submissionId' => $paymentAfter->submissionId,
+            'statusBefore' => $statusBefore,
+            'statusAfter' => $paymentAfter->status,
+        ]);
+
+        return $this->renderTemplate('formie/integrations/payments/status', ['payment' => $paymentAfter], View::TEMPLATE_MODE_CP);
     }
 }

@@ -254,6 +254,8 @@ class Mollie extends Payment
 
             $this->_updateFormiePaymentStatus($payment, $molliePayment);
 
+            Integration::info($this, 'Webhook processed: Mollie payment ' . $paymentId . ', Formie payment id ' . $formiePaymentId . ', Mollie status "' . ($molliePayment['status'] ?? '') . '", Formie status "' . $payment->status . '".', false);
+
             // Trigger event hook if needed
             if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
                 $this->trigger(self::EVENT_RECEIVE_WEBHOOK, new PaymentReceiveWebhookEvent([
@@ -289,6 +291,17 @@ class Mollie extends Payment
         $molliePayment = $this->request('GET', "payments/{$payment->reference}");
 
         $this->_updateFormiePaymentStatus($payment, $molliePayment);
+    }
+
+    public function getTransactionStatus(PaymentModel $payment): void
+    {
+        try {
+            $this->getTransaction($payment);
+        } catch (Throwable $e) {
+            Integration::error($this, Craft::t('formie', 'Unable to refresh Mollie payment: “{message}”.', [
+                'message' => $e->getMessage(),
+            ]));
+        }
     }
 
     public function fetchConnection(): bool

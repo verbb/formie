@@ -37,22 +37,27 @@
     let pollInterval = 3000;
     let pollCount = 0;
     let maxPolls = 20; // e.g. 60 seconds
-    let checkGatewayEvery = 10000;
+    let checkGatewayEveryMs = 10000;
+    let elapsedMs = 0;
+    let nextGatewayCheckAtMs = 0;
+
+    const pollStatusUrl = "{{ actionUrl('formie/payment-webhooks/poll-status')|e('js') }}";
 
     const interval = setInterval(async () => {
         pollCount++;
+        elapsedMs += pollInterval;
 
         const params = new URLSearchParams({
             paymentUid: '{{ payment.uid }}',
         });
 
-        // Only check gateway every 10s
-        if ((pollCount * pollInterval) % checkGatewayEvery === 0) {
+        if (elapsedMs >= nextGatewayCheckAtMs) {
             params.append('checkGateway', '1');
+            nextGatewayCheckAtMs += checkGatewayEveryMs;
         }
 
         try {
-            const res = await fetch(`/actions/formie/payment-webhooks/poll-status?${params.toString()}`);
+            const res = await fetch(pollStatusUrl + '?' + params.toString());
             const json = await res.json();
 
             if (json.status === 'success') {
