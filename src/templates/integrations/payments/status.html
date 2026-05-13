@@ -41,7 +41,7 @@
     let elapsedMs = 0;
     let nextGatewayCheckAtMs = 0;
 
-    const pollStatusUrl = "{{ actionUrl('formie/payment-webhooks/poll-status')|e('js') }}";
+    const pollStatusUrl = "{{ (pollStatusUrl ?? actionUrl('formie/payment-webhooks/poll-status'))|e('js') }}";
 
     const interval = setInterval(async () => {
         pollCount++;
@@ -57,10 +57,35 @@
         }
 
         try {
-            const res = await fetch(pollStatusUrl + '?' + params.toString());
-            const json = await res.json();
+            const res = await fetch(pollStatusUrl + '?' + params.toString(), {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            });
+            const bodyText = await res.text();
+            let json;
+            try {
+                json = JSON.parse(bodyText);
+            } catch (parseErr) {
+                showError('{{ 'Something went wrong while checking your payment. Please try again.' | t('formie') }}');
+                clearInterval(interval);
+                return;
+            }
+
+            if (!res.ok) {
+                showError((json && json.message) ? json.message : '{{ 'Something went wrong while checking your payment. Please try again.' | t('formie') }}');
+                clearInterval(interval);
+                return;
+            }
 
             if (json.status === 'success') {
+                if (!json.redirectUrl) {
+                    showError('{{ 'We could not confirm your payment in time. Please contact support.' | t('formie') }}');
+                    clearInterval(interval);
+                    return;
+                }
                 window.location.href = json.redirectUrl;
                 clearInterval(interval);
             } else if (json.status === 'failed') {

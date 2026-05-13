@@ -7,6 +7,7 @@ use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
 use craft\helpers\App;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\View;
 
@@ -66,6 +67,8 @@ class PaymentWebhooksController extends Controller
 
     public function actionPollStatus(): Response
     {
+        Craft::$app->getResponse()->setNoCacheHeaders();
+
         $paymentUid = $this->request->getRequiredParam('paymentUid');
         $shouldCheckGateway = (bool)$this->request->getParam('checkGateway');
 
@@ -140,9 +143,23 @@ class PaymentWebhooksController extends Controller
             $submission->isIncomplete = false;
             Craft::$app->getElements()->saveElement($submission, false);
 
-            // Fire any notifications/integrations
-            Formie::$plugin->getSubmissions()->sendNotifications($submission);
-            Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+            // Fire any notifications/integrations (must not take down the JSON response — paid customers should still redirect)
+            try {
+                Formie::$plugin->getSubmissions()->sendNotifications($submission);
+            } catch (Throwable $e) {
+                Formie::error('Payment poll: sendNotifications failed for submissionId {submissionId}: {message}', [
+                    'submissionId' => $submission->id,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+            try {
+                Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
+            } catch (Throwable $e) {
+                Formie::error('Payment poll: triggerIntegrations failed for submissionId {submissionId}: {message}', [
+                    'submissionId' => $submission->id,
+                    'message' => $e->getMessage(),
+                ]);
+            }
 
             $form = $submission->getForm();
 
@@ -234,6 +251,14 @@ class PaymentWebhooksController extends Controller
             'statusAfter' => $paymentAfter->status,
         ]);
 
-        return $this->renderTemplate('formie/integrations/payments/status', ['payment' => $paymentAfter], View::TEMPLATE_MODE_CP);
+        $general = Craft::$app->getConfig()->getGeneral();
+        $pollStatusUrl = $general->headlessMode
+            ? UrlHelper::actionUrl('formie/payment-webhooks/poll-status')
+            : UrlHelper::siteUrl('formie/payment-webhooks/poll-status');
+
+        return $this->renderTemplate('formie/integrations/payments/status', [
+            'payment' => $paymentAfter,
+            'pollStatusUrl' => $pollStatusUrl,
+        ], View::TEMPLATE_MODE_CP);
     }
 }

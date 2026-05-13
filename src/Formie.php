@@ -229,6 +229,7 @@ class Formie extends Plugin
             $event->rules['formie/payment-webhooks/process-webhook'] = 'formie/payment-webhooks/process-webhook';
             $event->rules['formie/payment-webhooks/process-callback'] = 'formie/payment-webhooks/process-callback';
             $event->rules['formie/payment-webhooks/status'] = 'formie/payment-webhooks/status';
+            $event->rules['formie/payment-webhooks/poll-status'] = 'formie/payment-webhooks/poll-status';
         });
     }
     
