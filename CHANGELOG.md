@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.25 - 2026-05-14
+
+### Changed
+- Improve Payment handling for webhook-providers, and add extra logging.
+- Bump `stripe/stripe-php`.
+
+### Fixed
+- Fix GoCardless payments never completing the redirect flow or creating a mandate charge; the return URL now completes the flow, creates the payment, and polling/webhooks update status as before.
+
 ## 3.1.24 - 2026-05-10
 
 ### Added
