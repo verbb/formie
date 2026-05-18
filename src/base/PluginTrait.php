@@ -2,6 +2,7 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
 use verbb\formie\services\Countries;
 use verbb\formie\services\EmailDomains;
@@ -68,6 +69,19 @@ trait PluginTrait
             'allowedMethods' => [],
             'allowedProperties' => [],
         ]);
+
+        $event->allowedProperties[SubmissionElement::class] = function(SubmissionElement $submission, string $property): bool {
+            if (in_array($property, $submission->attributes(), true)) {
+                return true;
+            }
+
+            if (strncmp($property, 'field:', 6) === 0) {
+                return $submission->getFieldByHandle(substr($property, 6)) !== null;
+            }
+
+            return $submission->getFieldByHandle($property) !== null;
+        };
+
         Event::trigger(self::class, self::EVENT_MODIFY_TWIG_ENVIRONMENT, $event);
 
         return [
