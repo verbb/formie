@@ -897,6 +897,21 @@ class Form extends Element
         return (bool)$this->_editingSubmission;
     }
 
+    public function getSubmissionEditToken(): ?string
+    {
+        if (!$this->_editingSubmission?->id || !$this->_editingSubmission->uid) {
+            return null;
+        }
+
+        return Craft::$app->getSecurity()->hashData(Json::encode([
+            'purpose' => 'formie-edit-submission',
+            'formId' => $this->id,
+            'formUid' => $this->uid,
+            'submissionId' => $this->_editingSubmission->id,
+            'submissionUid' => $this->_editingSubmission->uid,
+        ]));
+    }
+
     public function getActionUrl(): string
     {
         // In case people want to use `setSubmission()` but not change the endpoint so integrations will fire.

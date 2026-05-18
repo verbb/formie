@@ -208,6 +208,14 @@ class SubmissionsController extends Controller
         // Get the submission, or create a new one
         $submission = $this->_populateSubmission($form, null);
 
+        if ($request->getIsSiteRequest() && $submission->id) {
+            $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
+
+            if (!$editingSubmission || !$this->_validateSubmissionEditToken($form, $submission)) {
+                throw new ForbiddenHttpException('User is not permitted to perform this action');
+            }
+        }
+
         if ($currentUser && !$submission->canSave($currentUser)) {
             throw new ForbiddenHttpException('User is not permitted to perform this action');
         }
@@ -1238,6 +1246,37 @@ class SubmissionsController extends Controller
             $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
             $submission->title = $now->format('D, d M Y H:i:s');
         }
+    }
+
+    private function _validateSubmissionEditToken(Form $form, Submission $submission): bool
+    {
+        $token = $this->_getTypedParam('submissionEditToken', 'string');
+
+        if (!$token) {
+            return false;
+        }
+
+        $payload = Craft::$app->getSecurity()->validateData($token);
+
+        if (!is_string($payload)) {
+            return false;
+        }
+
+        try {
+            $data = Json::decode($payload);
+        } catch (Throwable) {
+            return false;
+        }
+
+        if (!is_array($data)) {
+            return false;
+        }
+
+        return ($data['purpose'] ?? null) === 'formie-edit-submission' &&
+            (int)($data['formId'] ?? 0) === (int)$form->id &&
+            hash_equals((string)$form->uid, (string)($data['formUid'] ?? '')) &&
+            (int)($data['submissionId'] ?? 0) === (int)$submission->id &&
+            hash_equals((string)$submission->uid, (string)($data['submissionUid'] ?? ''));
     }
 
     private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
