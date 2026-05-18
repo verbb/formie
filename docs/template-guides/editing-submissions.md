@@ -50,6 +50,8 @@ You can also take complete control over the form's HTML if you wish.
     {{ hiddenInput('action', 'formie/submissions/save-submission') }}
     {{ hiddenInput('handle', submission.form.handle) }}
     {{ hiddenInput('submissionId', submission.id) }}
+    {{ hiddenInput('editingSubmission', true) }}
+    {{ hiddenInput('submissionEditToken', submission.form.getSubmissionEditToken()) }}
     {{ hiddenInput('siteId', submission.siteId) }}
     {{ csrfInput() }}
 

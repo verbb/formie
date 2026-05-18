@@ -66,6 +66,7 @@
 
                 {% if form.isEditingSubmission() %}
                     {{ hiddenInput('editingSubmission', true) }}
+                    {{ hiddenInput('submissionEditToken', form.getSubmissionEditToken()) }}
                 {% endif %}
 
                 {% if form.getRedirectUrl() %}

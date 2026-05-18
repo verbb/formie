@@ -1075,6 +1075,21 @@ class Form extends Element
         return (bool)$this->_editingSubmission;
     }
 
+    public function getSubmissionEditToken(): ?string
+    {
+        if (!$this->_editingSubmission?->id || !$this->_editingSubmission->uid) {
+            return null;
+        }
+
+        return Craft::$app->getSecurity()->hashData(Json::encode([
+            'purpose' => 'formie-edit-submission',
+            'formId' => $this->id,
+            'formUid' => $this->uid,
+            'submissionId' => $this->_editingSubmission->id,
+            'submissionUid' => $this->_editingSubmission->uid,
+        ]));
+    }
+
     /**
      * Returns the action URL for form submissions. Changes depending on whether we're editing
      * a form on the front-end, or submitting as normal.
