@@ -657,6 +657,7 @@ class Emails extends Component
         }
 
         $variables = [
+            'form' => $submission->getForm(),
             'submission' => $submission,
             'notification' => $notification,
         ];
