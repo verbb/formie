@@ -33,6 +33,8 @@ use verbb\base\BaseHelper;
 use verbb\base\services\Templates;
 
 use Craft;
+use craft\base\Model;
+use craft\fields\data\OptionData;
 
 use yii\base\Event;
 use yii\log\Logger;
@@ -232,6 +234,13 @@ trait PluginTrait
             'allowedMethods' => [],
             'allowedProperties' => [],
         ]);
+
+        $event->allowedMethods[Model::class] = ['__toString'];
+        $event->allowedMethods[OptionData::class] = ['__toString'];
+
+        $event->allowedProperties[OptionData::class] = function(OptionData $value, string $property): bool {
+            return property_exists($value, $property);
+        };
 
         $event->allowedProperties[SubmissionElement::class] = function(SubmissionElement $submission, string $property): bool {
             if (in_array($property, $submission->attributes(), true)) {
