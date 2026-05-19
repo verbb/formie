@@ -37,7 +37,10 @@ use verbb\base\services\Templates;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
+use ArrayAccess;
+
 use yii\base\Event;
+use yii\base\Model;
 use yii\log\Logger;
 
 trait PluginTrait
@@ -69,6 +72,20 @@ trait PluginTrait
             'allowedMethods' => [],
             'allowedProperties' => [],
         ]);
+
+        $event->allowedMethods[FieldValueInterface::class] = ['__toString'];
+
+        $event->allowedProperties[FieldValueInterface::class] = function(FieldValueInterface $value, string $property): bool {
+            if ($value instanceof Model && in_array($property, $value->attributes(), true)) {
+                return true;
+            }
+
+            if ($value instanceof ArrayAccess && $value->offsetExists($property)) {
+                return true;
+            }
+
+            return property_exists($value, $property);
+        };
 
         $event->allowedProperties[SubmissionElement::class] = function(SubmissionElement $submission, string $property): bool {
             if (in_array($property, $submission->attributes(), true)) {
