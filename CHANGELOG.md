@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.21 - 2026-05-19
+
+### Added
+- Add `submissionEditToken` to tighten submission editing requests.
+
+### Fixed
+- Fix sandboxed variable access for Formie object templates.
+
 ## 2.2.20 - 2026-05-10
 
 ### Fixed
