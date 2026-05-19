@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.1.26 - 2026-05-19
+
+### Added
+- Add `submissionEditToken` to tighten submission editing requests.
+- Add missing Dutch translations for frontend JS strings.
+
+### Fixed
+- Fix sandboxed variable access for Formie object templates.
+
 ## 3.1.25 - 2026-05-14
 
 ### Changed
