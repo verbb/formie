@@ -194,6 +194,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
     private function _addPopulateLayouts(): bool
     {
         $forms = (new Query())->from(Table::FORMIE_FORMS)->all();
+        $canConvertEmojiShortcodes = Formie::$plugin->getRepair()->canStoreEmojiInLayoutTables();
+        $emojiShortcodeWarningShown = false;
 
         echo '    > Updating all forms with new field layout.' . PHP_EOL;
 
@@ -216,6 +218,19 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             // Any extra processing (for some fields)
             $layoutConfig = $this->_processLayoutFields($layoutConfig);
+
+            $convertedLayoutConfig = Formie::$plugin->getRepair()->convertEmojiShortcodes($layoutConfig);
+
+            if ($convertedLayoutConfig !== $layoutConfig) {
+                if ($canConvertEmojiShortcodes) {
+                    $layoutConfig = $convertedLayoutConfig;
+                } else if (!$emojiShortcodeWarningShown) {
+                    echo "    > Skipping emoji shortcode conversion because Formie layout tables cannot safely store 4-byte emoji characters.\n";
+                    echo "    > Run Craft's `db/convert-charset` command, then run `craft formie/repair/emoji-shortcodes`.\n";
+
+                    $emojiShortcodeWarningShown = true;
+                }
+            }
 
             $formLayout = new FieldLayout($layoutConfig);
 
