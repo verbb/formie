@@ -17,6 +17,7 @@ use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
 use verbb\formie\services\Plans;
 use verbb\formie\services\PredefinedOptions;
+use verbb\formie\services\Repair;
 use verbb\formie\services\Relations;
 use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
@@ -116,6 +117,7 @@ trait PluginTrait
                 'pdfTemplates' => PdfTemplates::class,
                 'plans' => Plans::class,
                 'predefinedOptions' => PredefinedOptions::class,
+                'repair' => Repair::class,
                 'relations' => Relations::class,
                 'renderCache' => RenderCache::class,
                 'rendering' => Rendering::class,
@@ -234,6 +236,11 @@ trait PluginTrait
     public function getPredefinedOptions(): PredefinedOptions
     {
         return $this->get('predefinedOptions');
+    }
+
+    public function getRepair(): Repair
+    {
+        return $this->get('repair');
     }
 
     public function getRelations(): Relations
