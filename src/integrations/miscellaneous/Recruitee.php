@@ -222,7 +222,7 @@ class Recruitee extends Miscellaneous
             'boolean' => 'flag',
             'legal' => 'flag',
             'multi_choice' => 'multi_content',
-            'file' => 'file',
+            'file' => 'remote_file_url',
         ];
 
         foreach ($offers as $offer) {
