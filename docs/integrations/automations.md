@@ -137,6 +137,7 @@ Follow the below steps to connect to the Zapier API.
 
 ## Payloads
 Data sent to these nominated URL‘s is in the form of a JSON payload, and contains information about your form and submission.
+If the submission is linked to a user, `submission.user` contains their ID, username, email address and name details.
 
 An example payload would look something like:
 
@@ -148,6 +149,7 @@ An example payload would look something like:
             "formId":1025,
             "statusId":null,
             "userId":null,
+            "user":null,
             "ipAddress":null,
             "isIncomplete":false,
             "isSpam":false,

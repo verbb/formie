@@ -909,6 +909,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     protected function generateSubmissionPayloadValues(Submission $submission): array
     {
+        $user = $submission->getUser();
         $submissionContent = $submission->getValuesAsJson();
         $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
 
@@ -927,6 +928,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             'dateDeleted',
             'trashed',
         ]);
+
+        $submissionAttributes['user'] = $user ? [
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'fullName' => $user->fullName,
+            'firstName' => $user->firstName,
+            'lastName' => $user->lastName,
+        ] : null;
 
         // Trim the form settings a little
         unset($formAttributes['settings']['integrations']);
