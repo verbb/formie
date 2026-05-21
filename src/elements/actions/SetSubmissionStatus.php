@@ -30,6 +30,39 @@ class SetSubmissionStatus extends SetStatus
 
     public function getTriggerHtml(): ?string
     {
+        Craft::$app->getView()->registerJsWithVars(fn($type) => <<<JS
+(() => {
+    const trigger = new Craft.ElementActionTrigger({
+        type: $type,
+    });
+    const \$statusOptions = trigger.\$trigger.find('[data-formie-submission-status-id]');
+
+    \$statusOptions.on('click', (ev) => {
+        ev.preventDefault();
+    });
+
+    \$statusOptions.on('activate', async (ev) => {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+
+        if (!trigger.triggerEnabled) {
+            return;
+        }
+
+        try {
+            await trigger.elementIndex.submitAction($type, {
+                statusId: ev.currentTarget.dataset.formieSubmissionStatusId,
+            });
+        } catch (error) {
+            // Craft can cancel in-flight element index requests while refreshing the index.
+            if (error && !axios.isCancel(error)) {
+                throw error;
+            }
+        }
+    });
+})();
+JS, [static::class]);
+
         $label = Craft::t('app', 'Set status');
         $items = [];
 
@@ -39,9 +72,7 @@ class SetSubmissionStatus extends SetStatus
                 . ' ' . Html::encode($status->name),
                 '#',
                 [
-                    'class' => 'formsubmit',
-                    'data-param' => 'statusId',
-                    'data-value' => $status->id,
+                    'data-formie-submission-status-id' => $status->id,
                 ],
             ));
         }
