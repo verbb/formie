@@ -97,7 +97,11 @@ class SubmissionQuery extends ElementQuery
                 ->where(Db::parseParam('handle', $value))
                 ->scalar();
         } else {
+            parent::status(null);
+
             $this->statusId = null;
+            $this->isIncomplete = null;
+            $this->isSpam = null;
         }
 
         return $this;
@@ -151,11 +155,7 @@ class SubmissionQuery extends ElementQuery
 
     public function anyStatus(): static
     {
-        parent::status(null);
-
-        $this->isIncomplete = null;
-        $this->isSpam = null;
-        return $this;
+        return $this->status(null);
     }
 
     public function before(mixed $value): self
