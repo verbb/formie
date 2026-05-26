@@ -26,6 +26,7 @@ use Money\Currency;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 use Exception;
@@ -323,6 +324,8 @@ class GoCardless extends Payment
             return;
         }
 
+        $mandateId = null;
+
         try {
             $completedFlow = $this->_completeGoCardlessRedirectFlow($payment, $redirectFlowId, $sessionToken);
             $mandateId = $completedFlow['links']['mandate'] ?? null;
@@ -336,8 +339,21 @@ class GoCardless extends Payment
             $gcPayment = $this->_createGoCardlessPaymentForMandate($payment, $submission, $mandateId);
             $this->_syncFormiePaymentFromGoCardlessPayment($payment, $gcPayment);
         } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'GoCardless payment error: “{message}”.', [
+            Integration::error($this, Craft::t('formie', 'GoCardless payment error: “{message}” {file}:{line}. Context: “{context}”. Response: “{response}”.', [
                 'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'context' => Json::encode([
+                    'paymentId' => $payment->id,
+                    'paymentUid' => $payment->uid,
+                    'submissionId' => $submission->id,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'redirectFlowId' => $redirectFlowId,
+                    'mandateId' => $mandateId,
+                    'statusCode' => $this->_getGoCardlessExceptionStatusCode($e),
+                ]),
+                'response' => $this->_getGoCardlessExceptionResponse($e),
             ]));
 
             $this->_failGoCardlessReturn(
@@ -664,7 +680,7 @@ class GoCardless extends Payment
         }
 
         try {
-            $body = Json::decode($e->getResponse()->getBody()->getContents());
+            $body = Json::decode((string)$e->getResponse()->getBody());
             $errors = $body['error']['errors'] ?? [];
 
             foreach ($errors as $error) {
@@ -750,6 +766,24 @@ class GoCardless extends Payment
         $url = $payment->redirectUrl ?: UrlHelper::siteUrl();
 
         Craft::$app->getResponse()->redirect($url)->send();
+    }
+
+    private function _getGoCardlessExceptionStatusCode(Throwable $e): ?int
+    {
+        if ($e instanceof RequestException && $e->hasResponse()) {
+            return $e->getResponse()->getStatusCode();
+        }
+
+        return null;
+    }
+
+    private function _getGoCardlessExceptionResponse(Throwable $e): ?string
+    {
+        if ($e instanceof RequestException && $e->hasResponse()) {
+            return (string)$e->getResponse()->getBody();
+        }
+
+        return null;
     }
 
     private function _amountToMinorUnits(float $amount, string $currencyCode): int
