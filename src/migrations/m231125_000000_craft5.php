@@ -648,13 +648,12 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         }
 
         $suffix = strtolower(substr($field['handle'], 0, 51));
+        $tablePrefix = Craft::$app->getDb()->tablePrefix;
 
         // In some cases, the content table will be missing, so try and guess it
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
-            $guessedTable = preg_match('/^fmc_\d+_(' . preg_quote($suffix) . ')$/', $tableName, $matches) ? $matches[1] : false;
-
-            if ($guessedTable) {
-                return $guessedTable;
+            if (preg_match('/^' . preg_quote($tablePrefix, '/') . 'fmc_\d+_' . preg_quote($suffix, '/') . '$/', $tableName)) {
+                return $tableName;
             }
         }
 
@@ -1453,8 +1452,10 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         }
 
         // Remove all old content tables
+        $tablePrefix = Craft::$app->getDb()->tablePrefix;
+
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
-            if (str_starts_with($tableName, 'fmc_') || str_starts_with($tableName, 'fmcd_')) {
+            if (str_starts_with($tableName, $tablePrefix . 'fmc_') || str_starts_with($tableName, $tablePrefix . 'fmcd_')) {
                 MigrationHelper::dropAllForeignKeysOnTable($tableName, $this);
 
                 $this->dropTableIfExists($tableName);
