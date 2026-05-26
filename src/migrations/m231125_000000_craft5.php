@@ -153,7 +153,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         if (!$this->db->columnExists(Table::FORMIE_SUBMISSIONS, 'content')) {
             $this->addColumn(Table::FORMIE_SUBMISSIONS, 'content', $this->json()->after('id'));
         }
-        
+
         // In case the migration is run again
         MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_PAGES, $this);
         MigrationHelper::dropAllForeignKeysOnTable(Table::FORMIE_FIELD_LAYOUT_ROWS, $this);
@@ -282,13 +282,13 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
         foreach ($forms as $form) {
             if (!$form['fieldContentTable']) {
                 echo '    > ' . $form['handle'] . ': missing `fieldContentTable`.' . PHP_EOL;
-                
+
                 continue;
             }
 
             if (!$form['layoutId']) {
                 echo '    > ' . $form['handle'] . ': missing `layoutId`.' . PHP_EOL;
-                
+
                 continue;
             }
 
@@ -651,7 +651,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         // In some cases, the content table will be missing, so try and guess it
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
-            $guessedTable = preg_match('/^fmc_\d+_(' . preg_quote($suffix) . ')$/', $tableName, $matches) ? $matches[1] : false;
+            $guessedTable = preg_match('/^'. preg_quote(Craft::$app->getDb()->tablePrefix) . 'fmc_\d+_(' . preg_quote($suffix) . ')$/', $tableName, $matches) ? $matches[1] : false;
 
             if ($guessedTable) {
                 return $guessedTable;
@@ -674,7 +674,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
                 // Don't remove the original content here, instead do at the very end
                 // $this->update('{{%content}}', ['title' => null], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated form #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }
@@ -690,7 +690,7 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
             if ($title) {
                 $this->update(Table::ELEMENTS_SITES, ['title' => $title], ['elementId' => $elementId]);
-            
+
                 echo '    > Updated submission #' . $elementId . ' title to ' . $title . '.' . PHP_EOL;
             }
         }
@@ -1454,7 +1454,8 @@ class m231125_000000_craft5 extends BaseContentRefactorMigration
 
         // Remove all old content tables
         foreach (Craft::$app->getDb()->schema->getTableNames() as $tableName) {
-            if (str_starts_with($tableName, 'fmc_') || str_starts_with($tableName, 'fmcd_')) {
+            $prefix = Craft::$app->getDb()->tablePrefix;
+            if (str_starts_with($tableName, $prefix . 'fmc_') || str_starts_with($tableName, $prefix . 'fmcd_')) {
                 MigrationHelper::dropAllForeignKeysOnTable($tableName, $this);
 
                 $this->dropTableIfExists($tableName);
