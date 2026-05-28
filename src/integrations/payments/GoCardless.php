@@ -37,6 +37,7 @@ class GoCardless extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_RECEIVE_WEBHOOK = 'receiveWebhook';
 
 
     // Static Methods
