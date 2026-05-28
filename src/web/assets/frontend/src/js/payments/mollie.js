@@ -40,6 +40,10 @@ export class FormieMollie extends FormiePaymentProvider {
             return this.addError('Missing Mollie checkout URL.');
         }
 
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
+
         // Perform a full browser redirect
         window.location.href = data.checkoutUrl;
     }

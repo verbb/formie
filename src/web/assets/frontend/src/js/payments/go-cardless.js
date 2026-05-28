@@ -37,6 +37,10 @@ export class FormieGoCardless extends FormiePaymentProvider {
             return this.addError('Missing GoCardless redirect URL.');
         }
 
+        if (this.form.formTheme) {
+            this.form.formTheme.updateFormHash();
+        }
+
         window.location.href = data.redirectUrl;
     }
 }
