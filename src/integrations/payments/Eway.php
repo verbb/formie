@@ -7,7 +7,6 @@ use verbb\formie\base\FormFieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyFrontEndSubfieldsEvent;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
@@ -28,8 +27,6 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\web\Response;
 
-use yii\base\Event;
-
 use GuzzleHttp\Client;
 
 use Throwable;
@@ -41,9 +38,6 @@ class Eway extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_MODIFY_FRONT_END_SUBFIELDS = 'modifyFrontEndSubfields';
-
-
     // Static Methods
     // =========================================================================
 
@@ -293,7 +287,7 @@ class Eway extends Payment
             [
                 [
                     'type' => fields\SingleLineText::class,
-                    'name' => Craft::t('formie', 'Cardholder Name'),
+                    'label' => Craft::t('formie', 'Cardholder Name'),
                     'handle' => 'cardName',
                     'required' => true,
                     'inputAttributes' => [
@@ -315,7 +309,7 @@ class Eway extends Payment
             [
                 [
                     'type' => fields\SingleLineText::class,
-                    'name' => Craft::t('formie', 'Card Number'),
+                    'label' => Craft::t('formie', 'Card Number'),
                     'handle' => 'cardNumber',
                     'required' => true,
                     'placeholder' => '•••• •••• •••• ••••',
@@ -336,7 +330,7 @@ class Eway extends Payment
                 ],
                 [
                     'type' => fields\SingleLineText::class,
-                    'name' => Craft::t('formie', 'Expiry'),
+                    'label' => Craft::t('formie', 'Expiry'),
                     'handle' => 'cardExpiry',
                     'required' => true,
                     'placeholder' => 'MMYY',
@@ -357,7 +351,7 @@ class Eway extends Payment
                 ],
                 [
                     'type' => fields\SingleLineText::class,
-                    'name' => Craft::t('formie', 'CVC'),
+                    'label' => Craft::t('formie', 'CVC'),
                     'handle' => 'cardCvc',
                     'required' => true,
                     'placeholder' => '•••',
@@ -390,14 +384,7 @@ class Eway extends Payment
             }
         }
 
-        $event = new ModifyFrontEndSubfieldsEvent([
-            'field' => $this,
-            'rows' => $subFields,
-        ]);
-
-        Event::trigger(static::class, self::EVENT_MODIFY_FRONT_END_SUBFIELDS, $event);
-
-        return $event->rows;
+        return $subFields;
     }
     
 
