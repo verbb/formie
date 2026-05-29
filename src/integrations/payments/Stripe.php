@@ -58,6 +58,8 @@ class Stripe extends Payment
 
     // https://stripe.com/docs/currencies#zero-decimal
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
+    private const STRIPE_EVENT_PAYMENT_INTENT_PROCESSING = 'payment_intent.processing';
+    private const STRIPE_PAYMENT_INTENT_STATUS_PROCESSING = 'processing';
 
 
     // Static Methods
@@ -389,11 +391,11 @@ class Stripe extends Payment
                 $paymentIntent = $this->getStripe()->paymentIntents->retrieve($paymentIntentId);
 
                 if ($paymentIntent) {
-                    if ($paymentIntent->status === PaymentIntent::STATUS_SUCCEEDED) {
+                    if ($this->_isProcessablePaymentIntentStatus($paymentIntent->status)) {
                         $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntent->id);
 
                         if ($payment) {
-                            $payment->status = PaymentModel::STATUS_SUCCESS;
+                            $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntent->status);
                             $payment->reference = $paymentIntent->id;
                             $payment->response = $paymentIntent->toArray();
 
@@ -584,7 +586,7 @@ class Stripe extends Payment
                 throw new NotFoundHttpException('Payment Intent ' . $paymentIntentId . ' not found');
             }
 
-            if ($paymentIntent->status !== PaymentIntent::STATUS_SUCCEEDED) {
+            if (!$this->_isProcessablePaymentIntentStatus($paymentIntent->status)) {
                 $payment->status = PaymentModel::STATUS_FAILED;
                 $payment->reference = $paymentIntentId;
 
@@ -594,7 +596,7 @@ class Stripe extends Payment
             }
 
             // Complete the submission and lodge the payment
-            $payment->status = PaymentModel::STATUS_SUCCESS;
+            $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntent->status);
             $payment->reference = $paymentIntentId;
 
             Formie::$plugin->getPayments()->savePayment($payment);
@@ -705,6 +707,8 @@ class Stripe extends Payment
                 } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_CANCELED) {
                     $this->handlePaymentIntent($data);
                 } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_PAYMENT_FAILED) {
+                    $this->handlePaymentIntent($data);
+                } else if ($data['type'] === self::STRIPE_EVENT_PAYMENT_INTENT_PROCESSING) {
                     $this->handlePaymentIntent($data);
                 } else if ($data['type'] === StripeEvent::PAYMENT_INTENT_SUCCEEDED) {
                     $this->handlePaymentIntent($data);
@@ -1202,11 +1206,7 @@ class Stripe extends Payment
             $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentIntentId);
 
             if ($payment) {
-                if ($paymentIntentStatus !== PaymentIntent::STATUS_SUCCEEDED) {
-                    $payment->status = PaymentModel::STATUS_FAILED;
-                } else {
-                    $payment->status = PaymentModel::STATUS_SUCCESS;
-                }
+                $payment->status = $this->_getPaymentStatusFromPaymentIntentStatus($paymentIntentStatus);
 
                 Formie::$plugin->getPayments()->savePayment($payment);
             }
@@ -1216,6 +1216,27 @@ class Stripe extends Payment
 
     // Private Methods
     // =========================================================================
+
+    private function _isProcessablePaymentIntentStatus(?string $status): bool
+    {
+        return in_array($status, [
+            PaymentIntent::STATUS_SUCCEEDED,
+            self::STRIPE_PAYMENT_INTENT_STATUS_PROCESSING,
+        ], true);
+    }
+
+    private function _getPaymentStatusFromPaymentIntentStatus(?string $status): string
+    {
+        if ($status === PaymentIntent::STATUS_SUCCEEDED) {
+            return PaymentModel::STATUS_SUCCESS;
+        }
+
+        if ($status === self::STRIPE_PAYMENT_INTENT_STATUS_PROCESSING) {
+            return PaymentModel::STATUS_PROCESSING;
+        }
+
+        return PaymentModel::STATUS_FAILED;
+    }
 
     private function _getOrCreatePlan(Submission $submission): mixed
     {
