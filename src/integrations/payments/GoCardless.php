@@ -717,15 +717,6 @@ class GoCardless extends Payment
             throw new Exception(Craft::t('formie', 'The payment amount is too small for GoCardless.'));
         }
 
-        $paymentDescription = $this->getFieldSetting('paymentDescription') ?? "Formie Submission #{$submission->id}";
-        $referenceBase = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
-        $reference = strtoupper(substr(preg_replace('/[^A-Za-z0-9\-]/', '-', (string)$referenceBase), 0, 18));
-
-        if ($reference === '' || $reference === '-') {
-            $reference = 'F' . $submission->id;
-            $reference = strtoupper(substr($reference, 0, 18));
-        }
-
         $payload = [
             'amount' => $amountMinor,
             'currency' => strtoupper($currency),
@@ -735,7 +726,6 @@ class GoCardless extends Payment
             'links' => [
                 'mandate' => $mandateId,
             ],
-            'reference' => $reference,
         ];
 
         $apiResponse = $this->request('POST', 'payments', [
