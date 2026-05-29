@@ -1083,7 +1083,7 @@ return [
     'Select which {name} sheet to add rows to.' => 'Wähle, zu welchem {name} Blatt Zeilen hinzugefügt werden sollen.',
     'Choose how your form fields should map to your {name} columns.' => 'Wähle, wie deine Formularfelder den {name} Spalten zugeordnet werden sollen.',
     'Proxy Redirect URI' => 'Proxy-Weiterleitungs-URI',
-    'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) for more.' => 'Ob die Weiterleitungs-URI über die Server von Verbb geleitet werden soll. Dies sollte **nur** für lokale Tests verwendet werden. Siehe [Dokumentation](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy) für mehr Informationen.',
+    'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See [docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous#local-testing-proxy) for more.' => 'Ob die Weiterleitungs-URI über die Server von Verbb geleitet werden soll. Dies sollte **nur** für lokale Tests verwendet werden. Siehe [Dokumentation](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous#local-testing-proxy) für mehr Informationen.',
     'Spreadsheet ID' => 'Tabellenkalkulations-ID',
     'Enter your {name} Spreadsheet ID here.' => 'Gib hier deine {name} Tabellenkalkulations-ID ein.',
     'Channel Type' => 'Kanaltyp',

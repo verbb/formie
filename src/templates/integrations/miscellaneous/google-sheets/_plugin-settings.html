@@ -7,7 +7,7 @@
 
 {{ macros.proxyField(fieldVariables, 'booleanMenuField', {
     label: 'Proxy Redirect URI' | t('formie'),
-    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See {link} for more.' | t('formie', { link: '[docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous-integrations#local-testing-proxy)' }),
+    instructions: 'Whether to proxy the redirect URI through Verbb‘s servers. This should **only** be used for local testing. See {link} for more.' | t('formie', { link: '[docs](https://verbb.io/craft-plugins/formie/docs/integrations/miscellaneous#local-testing-proxy)' }),
     name: 'proxyRedirect',
     includeEnvVars: true,
     value: integration.settings.proxyRedirect ?? false,
