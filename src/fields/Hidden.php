@@ -157,19 +157,22 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
     public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
     {
         $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
+        $defaultValue = (string)$this->defaultValue;
 
-        try {
-            $defaultValue = Craft::$app->getView()->renderString(
-                (string)$this->defaultValue,
-                [
-                    'field' => $this,
-                    'form' => $form,
-                ],
-                View::TEMPLATE_MODE_SITE
-            );
-        } catch (Throwable $e) {
-            $defaultValue = $this->defaultValue;
-            Formie::error('Failed to render hidden field template: ' . $e->getMessage());
+        if ($this->defaultOption === 'custom') {
+            try {
+                $defaultValue = Craft::$app->getView()->renderString(
+                    $defaultValue,
+                    [
+                        'field' => $this,
+                        'form' => $form,
+                    ],
+                    View::TEMPLATE_MODE_SITE
+                );
+            } catch (Throwable $e) {
+                $defaultValue = (string)$this->defaultValue;
+                Formie::error('Failed to render hidden field template: ' . $e->getMessage());
+            }
         }
 
         $inputOptions['defaultValue'] = $defaultValue;
