@@ -2069,7 +2069,7 @@
 - Fixed an error when exporting submissions where a Craft field had the same handle as a Formie field.
 
 ## 2.0.0 - 2022-07-11
-> {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](https://verbb.io/craft-plugins/formie/docs/get-started/upgrading-from-v1#templates) guide.
+> {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](docs/get-started/upgrading-from-v1#templates) guide.
 
 ### Added
 - Added Stripe payment integration (single and subscriptions).
@@ -2101,7 +2101,7 @@
 - Added Feed Me v5 support.
 
 ### Changed
-- Re-architected front-end templates to be more maintainable, easier to override, easier to manipulate and better organised. Makes it possible to use Tailwind and Bootstrap classes without writing templates from scratch and maintaining them as overrides. Read up on the [changes](https://verbb.io/craft-plugins/formie/docs/theming).
+- Re-architected front-end templates to be more maintainable, easier to override, easier to manipulate and better organised. Makes it possible to use Tailwind and Bootstrap classes without writing templates from scratch and maintaining them as overrides. Read up on the [changes](docs/theming/overview).
 - Changed `Field::getFrontEndInputOptions()` `$options = null` parameter to `$renderOptions = []`.
 - Changed `Field::getFrontEndInputHtml()` `$options = null` parameter to `$renderOptions = []`.
 - Changed `Field::getEmailOptions()` `$options = null` parameter to `$renderOptions = []`.
