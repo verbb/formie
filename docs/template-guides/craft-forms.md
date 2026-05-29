@@ -111,7 +111,7 @@ The form should be pretty simple to put together, which renders the page of fiel
 ```
 
 :::tip
-**Hot Tip!** You can also use Formie's [User Element Integration](docs:integrations/element-integrations#user) if you'd like Formie to make a submission when someone registers. After the submission is received, Formie will create (or update) the user for you through its integration.
+**Hot Tip!** You can also use Formie's [User Element Integration](docs:integrations/elements#user) if you'd like Formie to make a submission when someone registers. After the submission is received, Formie will create (or update) the user for you through its integration.
 :::
 
 ## User Password Reset
@@ -233,5 +233,5 @@ You could also use Formie to manage an [Entry Form](https://craftcms.com/knowled
 For this reason, we recommend you stick with the custom [Entry Form](https://craftcms.com/knowledge-base/entry-form).
 
 :::tip
-**Hot Tip!** You can also use Formie's [Entry Element Integration](docs:integrations/element-integrations#entry) if you'd like Formie to make a submission when someone fills out a form. After the submission is received, Formie will create (or update) the entry for you through its integration.
+**Hot Tip!** You can also use Formie's [Entry Element Integration](docs:integrations/elements#entry) if you'd like Formie to make a submission when someone fills out a form. After the submission is received, Formie will create (or update) the entry for you through its integration.
 :::

@@ -64,7 +64,7 @@ Event::on(Form::class, Form::EVENT_AFTER_DELETE, function(Event $event) {
 ### The `modifyHtmlTag` event
 The event that is triggered when preparing a form's HTML tag for render. Modify the `tag` event property change for a form's HTML is rendered.
 
-For more examples, consult the [theming](docs:template-guides/theming) docs.
+For more examples, consult the [theming](docs:theming/overview) docs.
 
 ```php
 use verbb\formie\elements\Form;
@@ -640,7 +640,7 @@ The event that is triggered when preparing a field's HTML tag for render. You ca
 
 Modify the `tag` event property change for a field's HTML is rendered.
 
-For more examples, consult the [theming](docs:template-guides/theming) docs.
+For more examples, consult the [theming](docs:theming/overview) docs.
 
 ```php
 use verbb\formie\fields\SingleLineText;

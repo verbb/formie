@@ -1,7 +1,7 @@
 # Hooks
 Hooks give you the means to insert your own Twig template code into Formie's templates without having to overwrite templates. This allows you to add HTML, Twig variables or even JavaScript as various points of the form's rendering.
 
-Hooks are purely for inserting new content, and cannot be used to prevent something already existing in the Formie template from rendering. To do this, read our [theming](docs:theming) guide.
+Hooks are purely for inserting new content, and cannot be used to prevent something already existing in the Formie template from rendering. To do this, read our [theming](docs:theming/overview) guide.
 
 ## Form
 [View this template](https://github.com/verbb/formie/blob/craft-5/src/templates/_special/form-template/form.html).
