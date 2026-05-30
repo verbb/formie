@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.1.27 - 2026-05-30
+
+### Added
+- Add extra logging to GoCardless.
+- Add submission user details to automation payloads when available.
+- Add `formie/repair/emoji-shortcodes` console command.
+- Add french translations.
+
+### Fixed
+- Fix Stripe ACH payments stuck in processing state.
+- Fix Eway payment front-end rendering.
+- Fix GoCardless payment creation for accounts without custom references.
+- Fix Hidden field Twig evaluation for request-derived defaults.
+- Fix Mollie and GoCardless front-end handling, producing unload warnings.
+- Fix Craft 5 migration table-prefix handling for legacy Formie content tables.
+- Fix bulk deletion for spam and incomplete submissions.
+- Fix Recruitee integration not correctly mapping file fields.
+- Fix an issue when using element index actions to change submission status.
+- Fix Craft 5 migration for emoji’s.
+- Fix some fields handling in the Twig sandbox evaluation.
+
 ## 3.1.26 - 2026-05-19
 
 ### Added
