@@ -1435,6 +1435,11 @@
 - `Field::name` attribute has been deprecated. Use `Field::label` instead.
 - `Field::inputHtml()` method has been deprecated. Use `Field::cpInputHtml()` instead.
 
+## 2.2.22 - 2026-05-30
+
+### Fixed
+- Fix some fields handling in the Twig sandbox evaluation.
+
 ## 2.2.21 - 2026-05-19
 
 ### Added
@@ -3507,7 +3512,7 @@
 
 ## 2.0.0 - 2022-07-11
 
-> {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [theming](docs/theming/overview) guide.
+> {warning} If you are using custom templates, template overrides, or anything to do with front-end template manipulation, please note we have completely revamped our front-end templates. Refer to the [Upgrading from v1](docs/get-started/upgrading-from-v1#templates) guide.
 
 ### Added
 - Added Stripe payment integration (single and subscriptions).
