@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.22 - 2026-05-30
+
+### Fixed
+- Fix some fields handling in the Twig sandbox evaluation.
+
 ## 2.2.21 - 2026-05-19
 
 ### Added
