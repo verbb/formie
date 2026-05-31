@@ -13,7 +13,6 @@ use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
 
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Client;
 
 use Throwable;
@@ -71,33 +70,17 @@ class EmailOctopus extends EmailMarketing
     {
         try {
             $fieldValues = $this->getFieldMappingValues($submission, $this->fieldMapping);
-            $errorCode = '';
 
             // Pull out email, as it needs to be top level
             $email = ArrayHelper::remove($fieldValues, 'EmailAddress');
-            $emailHash = md5(strtolower($email));
 
             $payload = [
-                'api_key' => App::parseEnv($this->apiKey),
                 'email_address' => $email,
                 'status' => 'subscribed',
                 'fields' => $fieldValues,
             ];
 
-            // An error will be thrown if a user already exists
-            try {
-                $response = $this->deliverPayload($submission, "lists/{$this->listId}/contacts", $payload);
-            } catch (Throwable $exception) {
-                if ($exception instanceof RequestException && $response = $exception->getResponse()) {
-                    $message = Json::decode((string)$response->getBody());
-                    $errorCode = $message['error']['code'] ?? '';
-                }
-            }
-
-            // If there was an error that the user already exists, update it
-            if ($errorCode === 'MEMBER_EXISTS_WITH_EMAIL_ADDRESS') {
-                $response = $this->deliverPayload($submission, "lists/{$this->listId}/contacts/$emailHash", $payload, 'PUT');
-            }
+            $response = $this->deliverPayload($submission, "lists/{$this->listId}/contacts", $payload, 'PUT');
 
             if ($response === false) {
                 return true;
@@ -165,6 +148,8 @@ class EmailOctopus extends EmailMarketing
     private function _convertFieldType(string $fieldType): string
     {
         $fieldTypes = [
+            'number' => IntegrationField::TYPE_NUMBER,
+            'date' => IntegrationField::TYPE_DATE,
             'NUMBER' => IntegrationField::TYPE_NUMBER,
             'DATE' => IntegrationField::TYPE_DATETIME,
         ];
