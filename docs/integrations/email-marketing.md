@@ -446,7 +446,8 @@ Follow the below steps to connect to the EmailOctopus API.
 ### Step 2. Connect to the EmailOctopus API
 1. Go to <a href="https://emailoctopus.com/" target="_blank">EmailOctopus</a> and login to your account.
 1. Click on your profile dropdown on the top-left of the screen, and select **Integrations & API**.
-1. Under the **EmailOctopus's API** section, click the **Create** button.
+1. Under the **Developer tools - API** section, click the **Manage** button.
+1. Click the **Add a key** button and create a key.
 1. Copy the newly created key into the **API Key** field in Formie.
 
 ### Step 3. Test Connection
