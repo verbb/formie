@@ -1,11 +1,9 @@
 <?php
 namespace verbb\formie\controllers;
 
-use craft\web\Controller;
-
 use yii\web\Response;
 
-class PrivacyController extends Controller
+class PrivacyController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

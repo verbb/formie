@@ -14,7 +14,6 @@ use craft\db\Query;
 use craft\helpers\Console;
 use craft\helpers\Html;
 use craft\helpers\Json;
-use craft\web\Controller;
 use craft\web\UploadedFile;
 
 use yii\helpers\Markdown;
@@ -23,7 +22,7 @@ use yii\web\Response;
 
 use stdClass;
 
-class ImportExportController extends Controller
+class ImportExportController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

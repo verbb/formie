@@ -8,7 +8,6 @@ use verbb\formie\models\EmailTemplate;
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -20,7 +19,7 @@ use yii\web\ServerErrorHttpException;
 
 use Throwable;
 
-class EmailTemplatesController extends Controller
+class EmailTemplatesController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

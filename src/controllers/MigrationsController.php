@@ -9,7 +9,6 @@ use Craft;
 use craft\errors\MissingComponentException;
 use craft\errors\ShellCommandException;
 use craft\helpers\App;
-use craft\web\Controller;
 
 use yii\base\Exception;
 
@@ -18,7 +17,7 @@ use Throwable;
 use Solspace\Freeform\Freeform;
 use barrelstrength\sproutforms\elements\Form as SproutFormsForm;
 
-class MigrationsController extends Controller
+class MigrationsController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

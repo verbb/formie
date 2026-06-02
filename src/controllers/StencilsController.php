@@ -15,7 +15,6 @@ use Craft;
 use craft\db\Query;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use yii\base\InvalidConfigException;
 use yii\web\HttpException;
@@ -23,7 +22,7 @@ use yii\web\Response;
 
 use Throwable;
 
-class StencilsController extends Controller
+class StencilsController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

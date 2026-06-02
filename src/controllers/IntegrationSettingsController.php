@@ -11,12 +11,11 @@ use verbb\formie\models\MissingIntegration;
 
 use Craft;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-class IntegrationSettingsController extends Controller
+class IntegrationSettingsController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

@@ -32,6 +32,8 @@ class SentNotificationsController extends Controller
 
     public function actionSettings(): Response
     {
+        $this->requirePermission('formie-accessSettings');
+
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 

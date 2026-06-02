@@ -194,7 +194,7 @@ class Formie extends Plugin
             ];
         }
 
-        if (Craft::$app->getUser()->getIsAdmin()) {
+        if (Craft::$app->getUser()->checkPermission('formie-accessSettings')) {
             $nav['subnav']['settings'] = [
                 'label' => Craft::t('formie', 'Settings'),
                 'url' => 'formie/settings',
@@ -412,6 +412,7 @@ class Formie extends Plugin
                     'formie-accessForms' => ['label' => Craft::t('formie', 'Access forms'), 'nested' => $formPermissions],
                     'formie-accessSubmissions' => ['label' => Craft::t('formie', 'Access submissions'), 'nested' => $submissionPermissions],
                     'formie-accessSentNotifications' => ['label' => Craft::t('formie', 'Access sent notifications'), 'nested' => $sentNotificationsPermissions],
+                    'formie-accessSettings' => ['label' => Craft::t('formie', 'Access settings')],
                 ],
             ];
         });

@@ -9,7 +9,6 @@ use verbb\formie\models\FormTemplate;
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -21,7 +20,7 @@ use yii\web\ServerErrorHttpException;
 
 use Throwable;
 
-class FormTemplatesController extends Controller
+class FormTemplatesController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

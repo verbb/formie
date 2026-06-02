@@ -7,12 +7,11 @@ use verbb\formie\models\Settings;
 
 use Craft;
 use craft\errors\MissingComponentException;
-use craft\web\Controller;
 
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
-class SettingsController extends Controller
+class SettingsController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

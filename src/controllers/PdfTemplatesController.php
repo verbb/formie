@@ -7,7 +7,6 @@ use verbb\formie\models\PdfTemplate;
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use yii\base\ErrorException;
 use yii\base\Exception;
@@ -19,7 +18,7 @@ use yii\web\ServerErrorHttpException;
 
 use Throwable;
 
-class PdfTemplatesController extends Controller
+class PdfTemplatesController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

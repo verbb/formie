@@ -6,14 +6,13 @@ use verbb\formie\models\Status;
 
 use Craft;
 use craft\helpers\Json;
-use craft\web\Controller;
 
 use Throwable;
 
 use yii\web\HttpException;
 use yii\web\Response;
 
-class StatusesController extends Controller
+class StatusesController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================

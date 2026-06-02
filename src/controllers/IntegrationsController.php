@@ -38,6 +38,10 @@ class IntegrationsController extends Controller
             $this->enableCsrfValidation = false;
         }
 
+        if (in_array($action->id, ['save-integration', 'reorder-integrations', 'delete-integration', 'check-connection', 'connect', 'disconnect'], true)) {
+            $this->requirePermission('formie-accessSettings');
+        }
+
         return parent::beforeAction($action);
     }
 
