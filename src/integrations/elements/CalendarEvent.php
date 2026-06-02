@@ -49,6 +49,7 @@ class CalendarEvent extends Element
     // =========================================================================
 
     public ?int $calendarId = null;
+    public ?int $siteId = null;
     public int|array|null $defaultAuthorId = null;
 
 
@@ -236,12 +237,14 @@ class CalendarEvent extends Element
 
         try {
             $calendar = Calendar::getInstance()->calendars->getCalendarById($this->calendarId);
+            $siteId = $this->siteId ?: $submission->siteId;
 
             $event = $this->getElementForPayload(EventElement::class, $this->calendarId, $submission, [
                 'calendarId' => $calendar->id,
+                'siteId' => $siteId,
             ]);
 
-            $event->siteId = $submission->siteId;
+            $event->siteId = $siteId;
             $event->calendarId = $calendar->id;
 
             $attributeValues = $this->getFieldMappingValues($submission, $this->attributeMapping, $this->getElementAttributes());
@@ -345,7 +348,8 @@ class CalendarEvent extends Element
         $rules = parent::defineRules();
 
         // Validate the following when saving form settings
-        $rules[] = [['calendarId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['calendarId', 'siteId', 'defaultAuthorId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['siteId'], 'integer'];
 
         $fields = $this->_getCalendarSettings()->fields ?? [];
 

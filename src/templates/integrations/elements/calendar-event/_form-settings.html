@@ -5,6 +5,15 @@
 {% set displayName = integration.displayName() %}
 {% set formSettings = integration.getFormSettings().getSettings() %}
 {% set calendarId = form.settings.integrations[handle].calendarId ?? '' %}
+{% set siteId = form.settings.integrations[handle].siteId ?? form.siteId ?? craft.app.sites.currentSite.id %}
+{% set siteOptions = [] %}
+
+{% for site in craft.app.sites.getAllSites() %}
+    {% set siteOptions = siteOptions | merge([{
+        label: site.name ~ ' (' ~ site.handle ~ ')',
+        value: site.id,
+    }]) %}
+{% endfor %}
 
 <field-select
     label="{{ 'Opt-In Field' | t('formie') }}"
@@ -20,7 +29,7 @@
     <template v-slot="{ get, isEmpty, input, settings, sourceId, loading, refresh, error, errorMessage, getSourceFields, getCollectionFields }">
         <div class="field">
             <div class="heading">
-                <label id="sourceId-label" for="sourceId" class="required">{{ 'Calender' | t('formie') }}</label>
+                <label id="sourceId-label" for="sourceId" class="required">{{ 'Calendar' | t('formie') }}</label>
 
                 <div class="instructions">
                     <p>{{ 'Select a calendar to map content to. This will reflect the available fields to map to.' | t('formie') }}</p>
@@ -45,6 +54,17 @@
                 </li>
             </ul>
         </div>
+
+        {{ forms.selectField({
+            label: 'Site' | t('app'),
+            instructions: 'Select the site to create events in.' | t('formie'),
+            id: 'siteId',
+            name: 'siteId',
+            required: true,
+            options: siteOptions,
+            value: siteId,
+            errors: form.settings.integrations[handle].errors.siteId ?? null,
+        }) }}
 
         <div v-if="error" class="error" style="margin-top: 10px;" v-cloak>
             <span data-icon="alert"></span>
