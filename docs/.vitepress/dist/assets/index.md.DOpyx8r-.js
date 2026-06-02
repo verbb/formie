@@ -1,1 +1,0 @@
-import{R as e,e as t,f as a}from"./chunks/framework.ywem4qy5.js";const f=JSON.parse('{"title":"","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","filePath":"index.md","lastUpdated":1776315915000}'),n={name:"index.md"};function r(s,d,o,c,i,p){return t(),a("div")}const m=e(n,[["render",r]]);export{f as __pageData,m as default};
