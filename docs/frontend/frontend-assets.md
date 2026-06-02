@@ -73,7 +73,7 @@ document.addEventListener('formie:validator:ready', (event) => {
 
 That sort of extension is useful when you want to adjust behavior without replacing Formie's rendered markup.
 
-Read more in the [Browser package docs](https://packages.formie.test/browser/).
+Read more in the [Browser package docs](https://docs.verbb.io/formie/browser/).
 
 ### Styling a Form
 While you can use things like Theme Config to easily change the appearance of a form by removing default classes or adding your own, another alternative is to alter the CSS directly without touching theme config.
@@ -92,7 +92,7 @@ For example, you might like to change the button colours to match your site's br
 
 This is often the lightest way to restyle the default output when you are happy with the markup and just want the form to better match your site.
 
-You can find the full variable list in the [CSS variables docs](https://packages.formie.test/browser/ui-reference/css-variables).
+You can find the full variable list in the [CSS variables docs](https://docs.verbb.io/formie/browser/ui-reference/css-variables).
 
 ### BYO Bundle
 If you want to include Formie's browser package in your own bundle, you can disable Formie's automatic per-form startup by creating your own Form template, or using the [Render Options](/templates/render-options) to control that.
@@ -101,7 +101,7 @@ Then, it's a matter of installing the `@verbb/formie-browser` package in your ow
 
 For plugin-rendered pages, Formie also seeds front-end translations for you. In headless or fully custom bundle setups, your application should own translations explicitly instead of expecting Craft to preload them.
 
-Start with the [Browser package docs](https://packages.formie.test/browser/).
+Start with the [Browser package docs](https://docs.verbb.io/formie/browser/).
 
 ## Frameworks
 We also provide support for popular frontend frameworks to make integration even easier, whether Craft is server-rendering the form HTML for you, or you are loading and submitting forms through REST or GraphQL.
@@ -114,25 +114,25 @@ These packages generally give you two approaches:
 ### React
 The `@verbb/formie-react` package gives you a more natural React developer experience, whether you want a quick HTML-based setup or a more component-driven approach.
 
-Check out the [React starter](https://verbb.io/craft-plugins/formie/examples/react) project to see it in action, and read further in the [React package docs](https://packages.formie.test/react/).
+Check out the [React starter](https://formie-starters.verbb.io/react) project to see it in action, and read further in the [React package docs](https://docs.verbb.io/formie/react/).
 
 ### Vue
 The `@verbb/formie-vue` package provides the same two-path approach for Vue, with server-rendered forms for a quicker setup and client-rendered forms for more control.
 
-Check out the [Vue starter](https://verbb.io/craft-plugins/formie/examples/vue) project to see it in action, and read further in the [Vue package docs](https://packages.formie.test/vue/).
+Check out the [Vue starter](https://formie-starters.verbb.io/vue) project to see it in action, and read further in the [Vue package docs](https://docs.verbb.io/formie/vue/).
 
 ### Web Components
 The `@verbb/formie-web-components` package is useful when you want portable custom elements, or when your front end is not centered around React or Vue.
 
-Check out the [Web Components starter](https://verbb.io/craft-plugins/formie/examples/web-components) project to see it in action, and read further in the [Web Components package docs](https://packages.formie.test/web-components/).
+Check out the [Web Components starter](https://formie-starters.verbb.io/web-components) project to see it in action, and read further in the [Web Components package docs](https://docs.verbb.io/formie/web-components/).
 
 ### Next.js
 
-Use the [Next.js starter](https://verbb.io/craft-plugins/formie/examples/next) as the starting point, then refer to the [React package docs](https://packages.formie.test/react/) for the package itself.
+Use the [Next.js starter](https://formie-starters.verbb.io/next) as the starting point, then refer to the [React package docs](https://docs.verbb.io/formie/react/) for the package itself.
 
 ### Nuxt
 
-Use the [Nuxt starter](https://verbb.io/craft-plugins/formie/examples/nuxt) as the starting point, then refer to the [Vue package docs](https://packages.formie.test/vue/) for the package itself.
+Use the [Nuxt starter](https://formie-starters.verbb.io/nuxt) as the starting point, then refer to the [Vue package docs](https://docs.verbb.io/formie/vue/) for the package itself.
 
 ## Examples
 While we don't have dedicated packages to support these solutions, we've put together some example pages.
@@ -140,14 +140,14 @@ While we don't have dedicated packages to support these solutions, we've put tog
 ### Barba.js
 When using [barba.js](https://barba.js.org/) for a SPA-like application with page transitions, you'll want to have fine-grained control over when Formie forms initialize. Particularly when navigating to and from a page where a Formie form exists.
 
-Have a look at our [Barba.js example](https://verbb.io/craft-plugins/formie/examples/barba).
+Have a look at our [Barba.js example](https://formie-starters.verbb.io/barba).
 
 ### Sprig
 If you are using [Sprig](https://putyourlightson.com/plugins/sprig), Formie can work well inside reactive Twig components, but you will usually want to pay attention to when forms are re-rendered and when Formie's browser behavior needs to initialize again.
 
-Read more on the [Sprig plugin page](https://putyourlightson.com/plugins/sprig) and have a look at our [Sprig example](https://verbb.io/craft-plugins/formie/examples/sprig).
+Read more on the [Sprig plugin page](https://putyourlightson.com/plugins/sprig) and have a look at our [Sprig example](https://formie-starters.verbb.io/sprig).
 
 ### Datastar
 If you are using [Datastar](https://putyourlightson.com/plugins/datastar), Formie can fit into a Twig-driven reactive frontend without needing a larger JavaScript framework, but the same considerations apply around re-rendering and front-end initialization.
 
-Read more on the [Datastar plugin page](https://putyourlightson.com/plugins/datastar) and have a look at our [Datastar example](https://verbb.io/craft-plugins/formie/examples/datastar).
+Read more on the [Datastar plugin page](https://putyourlightson.com/plugins/datastar) and have a look at our [Datastar example](https://formie-starters.verbb.io/datastar).
