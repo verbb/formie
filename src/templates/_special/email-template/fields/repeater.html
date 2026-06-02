@@ -21,10 +21,10 @@
 
                 <tbody>
                     {% for field in field.getFields() %}
-                        {% if not field.isConditionallyHidden(submission) %}
-                            {# Update the namespace for the field, to include the specific block index #}
-                            {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
+                        {# Update the namespace for the field, to include the specific block index #}
+                        {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
 
+                        {% if not field.isConditionallyHidden(submission) %}
                             {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
 
                             {% set html = field.getEmailHtml(submission, notification, fieldValue) %}

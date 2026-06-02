@@ -1427,6 +1427,8 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
             $conditions = $conditionSettings['conditions'] ?? [];
 
             if ($conditionSettings && $conditions) {
+                $conditionSettings = $this->prepareConditionsForEvaluation($conditionSettings);
+
                 // A `true` result means the field passed the evaluation and that it has a value, whilst a `false` result means
                 // it didn't (for instance the field doesn't have a value)
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
@@ -1937,6 +1939,29 @@ abstract class Field extends SavableComponent implements CraftFieldInterface, Fi
                 unset($config[$removedProperty]);
             }
         }
+    }
+
+    protected function prepareConditionsForEvaluation(array $conditionSettings): array
+    {
+        if (!$this->getParentField() instanceof MultiNestedFieldInterface) {
+            return $conditionSettings;
+        }
+
+        $fieldKeyParts = explode('.', $this->fieldKey);
+        $parentKey = array_search($this->getParentField()->handle, $fieldKeyParts, true);
+        $rowKey = $parentKey !== false ? ($fieldKeyParts[$parentKey + 1] ?? null) : null;
+
+        if ($rowKey === null) {
+            return $conditionSettings;
+        }
+
+        array_walk_recursive($conditionSettings, function(&$value) use ($rowKey) {
+            if (is_string($value)) {
+                $value = str_replace('__ROW__', $rowKey, $value);
+            }
+        });
+
+        return $conditionSettings;
     }
 
 
