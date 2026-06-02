@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -28,7 +28,7 @@
     "**/*.css"
   ],
   "imports": {
-    "#theme/*": "./src/css/theme/*",
+    "#theme/*": "./src/js/theme/*",
     "#theme-base/*": "./src/css/theme-base/*",
     "#icons/*": "./src/icons/*",
     "#contracts/*": "./src/js/contracts/*",
@@ -36,7 +36,6 @@
     "#core/*": "./src/js/core/*",
     "#events/*": "./src/js/events/*",
     "#modules/*": "./src/js/modules/*",
-    "#theme/*": "./src/js/theme/*",
     "#submit/*": "./src/js/submit/*",
     "#transport/*": "./src/js/transport/*",
     "#utils/*": "./src/js/utils/*",
@@ -65,7 +64,7 @@
     "vite": "^8.0.10"
   },
   "dependencies": {
-    "@verbb/formie-core": "1.0.0",
+    "@verbb/formie-core": "1.0.1",
     "@friendlycaptcha/sdk": "^1.0.0",
     "@placekit/autocomplete-js": "^2.2.1",
     "expression-language": "^2.5.4",
