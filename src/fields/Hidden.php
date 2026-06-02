@@ -114,8 +114,8 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
-            // Check if there's no value been added on the front-end, and use the default value
-            if ($value === '') {
+            // Check if there's no value been added or changed on the front-end, and use the default value.
+            if ($value === '' || $value === $this->defaultValue) {
                 $value = Variables::getParsedValue($this->defaultValue, $element);
             }
 
