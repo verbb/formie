@@ -1,4 +1,4 @@
-import repeaterCss from '#theme/fields/_repeater.css?inline';
+import repeaterCss from '#theme-css/fields/_repeater.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml } from '#modules/fields/shared';

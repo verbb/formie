@@ -1,4 +1,4 @@
-import stripeCss from '#theme/integrations/_stripe.css?inline';
+import stripeCss from '#theme-css/integrations/_stripe.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
 import { ensureModuleStyles } from '#modules/styles';

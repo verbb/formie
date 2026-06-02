@@ -1,7 +1,7 @@
 import { exec, init as initPell } from 'pell';
 import pellCss from 'pell/dist/pell.min.css?inline';
-import tokensCss from '#theme/_tokens.css?inline';
-import richTextCss from '#theme/fields/_rich-text.css?inline';
+import tokensCss from '#theme-css/_tokens.css?inline';
+import richTextCss from '#theme-css/fields/_rich-text.css?inline';
 import alignCenterIcon from '#icons/rich-text/aligncenter.svg?raw';
 import alignLeftIcon from '#icons/rich-text/alignleft.svg?raw';
 import alignRightIcon from '#icons/rich-text/alignright.svg?raw';

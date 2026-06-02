@@ -1,4 +1,4 @@
-import textLimitCss from '#theme/fields/_text-limit.css?inline';
+import textLimitCss from '#theme-css/fields/_text-limit.css?inline';
 
 import { getTextLimitMetrics } from '@verbb/formie-core';
 

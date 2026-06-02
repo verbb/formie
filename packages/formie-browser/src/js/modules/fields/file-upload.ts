@@ -1,4 +1,4 @@
-import fileUploadCss from '#theme/fields/_file.css?inline';
+import fileUploadCss from '#theme-css/fields/_file.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldTarget, releaseFormValidators, retainFormValidators } from '#modules/fields/shared';

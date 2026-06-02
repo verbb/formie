@@ -29,6 +29,7 @@
   ],
   "imports": {
     "#theme/*": "./src/js/theme/*",
+    "#theme-css/*": "./src/css/theme/*",
     "#theme-base/*": "./src/css/theme-base/*",
     "#icons/*": "./src/icons/*",
     "#contracts/*": "./src/js/contracts/*",

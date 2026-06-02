@@ -1,4 +1,4 @@
-import tableCss from '#theme/fields/_table.css?inline';
+import tableCss from '#theme-css/fields/_table.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getTemplateSource, getTemplateSourceHtml } from '#modules/fields/shared';

@@ -1731,15 +1731,15 @@ var builtinFieldModuleLoaders = {
 	"checkbox-radio": () => import("./chunks/checkbox-radio-0x7Tc0br.js").then((module) => module.checkboxRadioModule),
 	"conditions": () => import("./chunks/conditions-4fXKhEJS.js").then((module) => module.conditionsModule),
 	"date-picker": () => import("./chunks/date-picker-B6iZkjHS.js").then((module) => module.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-BIj85NFH.js").then((module) => module.fileUploadModule),
+	"file-upload": () => import("./chunks/file-upload-Bh63PQSE.js").then((module) => module.fileUploadModule),
 	"hidden": () => import("./chunks/hidden-CYnZYple.js").then((module) => module.hiddenModule),
 	"phone-country": () => import("./chunks/phone-country-B6Me4lK0.js").then((module) => module.phoneCountryModule),
-	"repeater": () => import("./chunks/repeater-BPm7Mkyn.js").then((module) => module.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-CHSly1Hq.js").then((module) => module.richTextModule),
-	"signature": () => import("./chunks/signature-DNMCgrMd.js").then((module) => module.signatureModule),
-	"summary": () => import("./chunks/summary-BTG0uIOt.js").then((module) => module.summaryModule),
-	"table": () => import("./chunks/table-BTYc0Qm8.js").then((module) => module.tableModule),
-	"text-limit": () => import("./chunks/text-limit-CgBMu4sJ.js").then((module) => module.textLimitModule)
+	"repeater": () => import("./chunks/repeater-CXD1eLSn.js").then((module) => module.repeaterModule),
+	"rich-text": () => import("./chunks/rich-text-DkmZRhGj.js").then((module) => module.richTextModule),
+	"signature": () => import("./chunks/signature-E9KyYXS1.js").then((module) => module.signatureModule),
+	"summary": () => import("./chunks/summary-EcNE0cvg.js").then((module) => module.summaryModule),
+	"table": () => import("./chunks/table-yxEDL6kA.js").then((module) => module.tableModule),
+	"text-limit": () => import("./chunks/text-limit-D0H_Ca2c.js").then((module) => module.textLimitModule)
 };
 //#endregion
 //#region src/js/modules/payments/index.ts
@@ -1751,10 +1751,10 @@ var builtinPaymentModuleLoaders = {
 	"moneris": () => import("./chunks/moneris-B_IFZFTx.js").then((module) => module.monerisModule),
 	"opayo": () => import("./chunks/opayo-U2x_TOII.js").then((module) => module.opayoModule),
 	"paddle": () => import("./chunks/paddle-BqXFrc79.js").then((module) => module.paddleModule),
-	"paypal": () => import("./chunks/paypal-VowQ3ilP.js").then((module) => module.paypalModule),
-	"payway": () => import("./chunks/payway-VOO-ajyg.js").then((module) => module.paywayModule),
+	"paypal": () => import("./chunks/paypal-Cn_DYGDb.js").then((module) => module.paypalModule),
+	"payway": () => import("./chunks/payway-Rnq796eC.js").then((module) => module.paywayModule),
 	"square": () => import("./chunks/square-BLqK51rS.js").then((module) => module.squareModule),
-	"stripe": () => import("./chunks/stripe-B6ZcDQdx.js").then((module) => module.stripeModule)
+	"stripe": () => import("./chunks/stripe-B8gHpZNC.js").then((module) => module.stripeModule)
 };
 //#endregion
 //#region src/js/modules/loader.ts

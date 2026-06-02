@@ -1,4 +1,4 @@
-import summaryCss from '#theme/fields/_summary.css?inline';
+import summaryCss from '#theme-css/fields/_summary.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';

@@ -7,7 +7,7 @@
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2021"],
     "paths": {
-      "#theme/*": ["./src/css/theme/*"],
+      "#theme-css/*": ["./src/css/theme/*"],
       "#theme-base/*": ["./src/css/theme-base/*"],
       "#icons/*": ["./src/icons/*"],
       "#contracts/*": ["./src/js/contracts/*"],

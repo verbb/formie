@@ -1,4 +1,4 @@
-import paywayCss from '#theme/integrations/_payway.css?inline';
+import paywayCss from '#theme-css/integrations/_payway.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
 import { ensureModuleStyles } from '#modules/styles';

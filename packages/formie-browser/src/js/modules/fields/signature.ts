@@ -1,5 +1,5 @@
 import SignaturePad from 'signature_pad';
-import signatureCss from '#theme/fields/_signature.css?inline';
+import signatureCss from '#theme-css/fields/_signature.css?inline';
 
 import type { FormieModuleDefinition } from '#contracts/modules';
 import { dispatchFieldEvent, getModuleFieldContainers } from '#modules/fields/shared';

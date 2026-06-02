@@ -1,4 +1,4 @@
-import paypalCss from '#theme/integrations/_paypal.css?inline';
+import paypalCss from '#theme-css/integrations/_paypal.css?inline';
 
 import { definePaymentModule } from '#modules/payments/api';
 import { ensureModuleStyles } from '#modules/styles';
