@@ -378,6 +378,8 @@ export class FormieFormTheme {
                 }
             }
         }
+
+        return $alert;
     }
 
     showTabErrors(errors) {
@@ -649,7 +651,7 @@ export class FormieFormTheme {
             // Allow the submit action message to be sent from the response, or fallback to static.
             const submitActionMessage = data.submitActionMessage || this.settings.submitActionMessage;
 
-            this.showFormAlert(submitActionMessage, 'success');
+            const $successMessage = this.showFormAlert(submitActionMessage, 'success');
 
             // Check if we need to remove the success message
             this.hideSuccess();
@@ -658,9 +660,13 @@ export class FormieFormTheme {
                 this.$form.style.display = 'none';
             }
 
-            // Smooth-scroll to the top of the form.
+            // Smooth-scroll to the success message when positioned at the bottom.
             if (this.settings.scrollToTop) {
-                this.scrollToForm();
+                if (this.settings.submitActionMessagePosition == 'bottom-form') {
+                    this.scrollToElement($successMessage);
+                } else {
+                    this.scrollToForm();
+                }
             }
         }
 
@@ -868,7 +874,15 @@ export class FormieFormTheme {
     }
 
     scrollToForm() {
-        this.$form.parentNode.scrollIntoView({
+        this.scrollToElement(this.$form.parentNode);
+    }
+
+    scrollToElement($element) {
+        if (!$element) {
+            return;
+        }
+
+        $element.scrollIntoView({
             behavior: 'smooth',
             block: 'start', // Align to the top of the viewport
         });
