@@ -1,5 +1,7 @@
+import { t as e } from "./styles-BuYIxHcX.js";
+import { r as t, t as n } from "./shared-ktsx_SHX.js";
 //#region ../../node_modules/signature_pad/dist/signature_pad.js
-var e = class {
+var r = class {
 	x;
 	y;
 	pressure;
@@ -17,28 +19,28 @@ var e = class {
 	velocityFrom(e) {
 		return this.time === e.time ? 0 : this.distanceTo(e) / (this.time - e.time);
 	}
-}, t = class t {
+}, i = class e {
 	constructor(e, t, n, r, i, a) {
 		this.startPoint = e, this.control2 = t, this.control1 = n, this.endPoint = r, this.startWidth = i, this.endWidth = a;
 	}
-	static fromPoints(e, n) {
-		let r = this.calculateControlPoints(e[0], e[1], e[2]).c2, i = this.calculateControlPoints(e[1], e[2], e[3]).c1;
-		return new t(e[1], r, i, e[2], n.start, n.end);
+	static fromPoints(t, n) {
+		let r = this.calculateControlPoints(t[0], t[1], t[2]).c2, i = this.calculateControlPoints(t[1], t[2], t[3]).c1;
+		return new e(t[1], r, i, t[2], n.start, n.end);
 	}
-	static calculateControlPoints(t, n, r) {
-		let i = t.x - n.x, a = t.y - n.y, o = n.x - r.x, s = n.y - r.y, c = {
+	static calculateControlPoints(e, t, n) {
+		let i = e.x - t.x, a = e.y - t.y, o = t.x - n.x, s = t.y - n.y, c = {
+			x: (e.x + t.x) / 2,
+			y: (e.y + t.y) / 2
+		}, l = {
 			x: (t.x + n.x) / 2,
 			y: (t.y + n.y) / 2
-		}, l = {
-			x: (n.x + r.x) / 2,
-			y: (n.y + r.y) / 2
 		}, u = Math.sqrt(i * i + a * a), d = Math.sqrt(o * o + s * s), f = c.x - l.x, p = c.y - l.y, m = u + d == 0 ? 0 : d / (u + d), h = {
 			x: l.x + f * m,
 			y: l.y + p * m
-		}, g = n.x - h.x, _ = n.y - h.y;
+		}, g = t.x - h.x, _ = t.y - h.y;
 		return {
-			c1: new e(c.x + g, c.y + _),
-			c2: new e(l.x + g, l.y + _)
+			c1: new r(c.x + g, c.y + _),
+			c2: new r(l.x + g, l.y + _)
 		};
 	}
 	length() {
@@ -56,7 +58,7 @@ var e = class {
 	point(e, t, n, r, i) {
 		return t * (1 - e) * (1 - e) * (1 - e) + 3 * n * (1 - e) * (1 - e) * e + 3 * r * (1 - e) * e * e + i * e * e * e;
 	}
-}, n = class {
+}, a = class {
 	_et;
 	constructor() {
 		try {
@@ -75,7 +77,7 @@ var e = class {
 		this._et.removeEventListener(e, t, n);
 	}
 };
-function r(e, t = 250) {
+function o(e, t = 250) {
 	let n = 0, r = null, i, a, o, s = () => {
 		n = Date.now(), r = null, i = e.apply(a, o), r || (a = null, o = []);
 	};
@@ -84,9 +86,9 @@ function r(e, t = 250) {
 		return a = this, o = c, u <= 0 || u > t ? (r &&= (clearTimeout(r), null), n = l, i = e.apply(a, o), r || (a = null, o = [])) : r ||= window.setTimeout(s, u), i;
 	};
 }
-var i = class i extends n {
-	constructor(e, t = {}) {
-		super(), this.canvas = e, this.velocityFilterWeight = t.velocityFilterWeight || .7, this.minWidth = t.minWidth || .5, this.maxWidth = t.maxWidth || 2.5, this.throttle = t.throttle ?? 16, this.minDistance = t.minDistance ?? 5, this.dotSize = t.dotSize || 0, this.penColor = t.penColor || "black", this.backgroundColor = t.backgroundColor || "rgba(0,0,0,0)", this.compositeOperation = t.compositeOperation || "source-over", this.canvasContextOptions = t.canvasContextOptions ?? {}, this._strokeMoveUpdate = this.throttle ? r(i.prototype._strokeUpdate, this.throttle) : i.prototype._strokeUpdate, this._handleMouseDown = this._handleMouseDown.bind(this), this._handleMouseMove = this._handleMouseMove.bind(this), this._handleMouseUp = this._handleMouseUp.bind(this), this._handleTouchStart = this._handleTouchStart.bind(this), this._handleTouchMove = this._handleTouchMove.bind(this), this._handleTouchEnd = this._handleTouchEnd.bind(this), this._handlePointerDown = this._handlePointerDown.bind(this), this._handlePointerMove = this._handlePointerMove.bind(this), this._handlePointerUp = this._handlePointerUp.bind(this), this._handlePointerCancel = this._handlePointerCancel.bind(this), this._handleTouchCancel = this._handleTouchCancel.bind(this), this._ctx = e.getContext("2d", this.canvasContextOptions), this.clear(), this.on();
+var s = class e extends a {
+	constructor(t, n = {}) {
+		super(), this.canvas = t, this.velocityFilterWeight = n.velocityFilterWeight || .7, this.minWidth = n.minWidth || .5, this.maxWidth = n.maxWidth || 2.5, this.throttle = n.throttle ?? 16, this.minDistance = n.minDistance ?? 5, this.dotSize = n.dotSize || 0, this.penColor = n.penColor || "black", this.backgroundColor = n.backgroundColor || "rgba(0,0,0,0)", this.compositeOperation = n.compositeOperation || "source-over", this.canvasContextOptions = n.canvasContextOptions ?? {}, this._strokeMoveUpdate = this.throttle ? o(e.prototype._strokeUpdate, this.throttle) : e.prototype._strokeUpdate, this._handleMouseDown = this._handleMouseDown.bind(this), this._handleMouseMove = this._handleMouseMove.bind(this), this._handleMouseUp = this._handleMouseUp.bind(this), this._handleTouchStart = this._handleTouchStart.bind(this), this._handleTouchMove = this._handleTouchMove.bind(this), this._handleTouchEnd = this._handleTouchEnd.bind(this), this._handlePointerDown = this._handlePointerDown.bind(this), this._handlePointerMove = this._handlePointerMove.bind(this), this._handlePointerUp = this._handlePointerUp.bind(this), this._handlePointerCancel = this._handlePointerCancel.bind(this), this._handleTouchCancel = this._handleTouchCancel.bind(this), this._ctx = t.getContext("2d", this.canvasContextOptions), this.clear(), this.on();
 	}
 	dotSize;
 	minWidth;
@@ -307,16 +309,16 @@ var i = class i extends n {
 	_reset(e) {
 		this._lastPoints = [], this._lastVelocity = 0, this._lastWidth = (e.minWidth + e.maxWidth) / 2, this._ctx.fillStyle = e.penColor, this._ctx.globalCompositeOperation = e.compositeOperation;
 	}
-	_createPoint(t, n, r) {
+	_createPoint(e, t, n) {
 		let i = this.canvas.getBoundingClientRect();
-		return new e(t - i.left, n - i.top, r, (/* @__PURE__ */ new Date()).getTime());
+		return new r(e - i.left, t - i.top, n, (/* @__PURE__ */ new Date()).getTime());
 	}
-	_addPoint(e, n) {
-		let { _lastPoints: r } = this;
-		if (r.push(e), r.length > 2) {
-			r.length === 3 && r.unshift(r[0]);
-			let e = this._calculateCurveWidths(r[1], r[2], n), i = t.fromPoints(r, e);
-			return r.shift(), i;
+	_addPoint(e, t) {
+		let { _lastPoints: n } = this;
+		if (n.push(e), n.length > 2) {
+			n.length === 3 && n.unshift(n[0]);
+			let e = this._calculateCurveWidths(n[1], n[2], t), r = i.fromPoints(n, e);
+			return n.shift(), r;
 		}
 		return null;
 	}
@@ -351,16 +353,16 @@ var i = class i extends n {
 		let n = this._ctx, r = t.dotSize > 0 ? t.dotSize : (t.minWidth + t.maxWidth) / 2;
 		n.beginPath(), this._drawCurveSegment(e.x, e.y, r), n.closePath(), n.fillStyle = t.penColor, n.fill();
 	}
-	_fromData(t, n, r) {
-		for (let i of t) {
-			let { points: t } = i, a = this._getPointGroupOptions(i);
-			if (t.length > 1) for (let r = 0; r < t.length; r += 1) {
-				let i = t[r], o = new e(i.x, i.y, i.pressure, i.time);
-				r === 0 && this._reset(a);
+	_fromData(e, t, n) {
+		for (let i of e) {
+			let { points: e } = i, a = this._getPointGroupOptions(i);
+			if (e.length > 1) for (let n = 0; n < e.length; n += 1) {
+				let i = e[n], o = new r(i.x, i.y, i.pressure, i.time);
+				n === 0 && this._reset(a);
 				let s = this._addPoint(o, a);
-				s && n(s, a);
+				s && t(s, a);
 			}
-			else this._reset(a), r(t[0], a);
+			else this._reset(a), n(e[0], a);
 		}
 	}
 	toSVG({ includeBackgroundColor: e = !1, includeDataUrl: t = !1 } = {}) {
@@ -384,6 +386,78 @@ var i = class i extends n {
 			a.setAttribute("r", s.toString()), a.setAttribute("cx", e.x.toString()), a.setAttribute("cy", e.y.toString()), a.setAttribute("fill", t), o.appendChild(a);
 		}), o.outerHTML;
 	}
+}, c = "@layer formie-theme{[data-formie-field-type=signature] .formie-field-control{transition:border-color .15s,box-shadow .15s,background-color .15s;position:relative}[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{border-color:var(--formie-focus-ring-border-color);box-shadow:var(--formie-shadow-focus)}.formie-field-has-error[data-formie-field-type=signature] .formie-signature-canvas{border-color:var(--formie-color-danger)}.formie-field-has-error[data-formie-field-type=signature] .formie-field-control:focus-within .formie-signature-canvas{box-shadow:var(--formie-shadow-danger-focus)}[data-formie-field-type=signature] .formie-signature-canvas{width:var(--formie-signature-width);height:var(--formie-signature-height);border:var(--formie-signature-border);background:var(--formie-signature-background);border-radius:var(--formie-signature-border-radius);touch-action:none;transition:border-color .15s,box-shadow .15s,background-color .15s;display:block}[data-formie-field-type=signature] .formie-signature-remove-button{top:var(--formie-signature-remove-button-top);right:var(--formie-signature-remove-button-right);transform:var(--formie-signature-remove-button-transform);font-size:0;line-height:0;position:absolute}}", l = "input[data-formie-signature-input]", u = "canvas[data-formie-signature-canvas]", d = "[data-formie-signature-clear]", f = "signature";
+e(f, [c]);
+function p(e) {
+	let t = e.getBoundingClientRect();
+	return {
+		width: Math.round(t.width),
+		height: Math.round(t.height)
+	};
+}
+function m(e, t) {
+	if (!t) return;
+	let n = new Image();
+	n.src = t, n.onload = () => {
+		let t = Math.max(window.devicePixelRatio || 1, 1), r = e.getContext("2d");
+		r && r.drawImage(n, 0, 0, e.width / t, e.height / t);
+	};
+}
+function h(e, t, r, i, a, o) {
+	let c = parseFloat(o.penWeight || "2") || 2, l = i.parentElement instanceof HTMLElement ? i.parentElement : t, u = new s(i, {
+		backgroundColor: o.backgroundColor || "rgba(255, 255, 255, 0)",
+		penColor: o.penColor || "#000000",
+		dotSize: c,
+		minWidth: c,
+		maxWidth: c
+	}), d = () => {
+		let { width: e, height: t } = p(i);
+		if (!(e > 0) || !(t > 0)) return;
+		let n = Math.max(window.devicePixelRatio || 1, 1), a = i.getContext("2d");
+		if (!a) return;
+		let o = r.value || (u.isEmpty() ? "" : u.toDataURL());
+		i.width = e * n, i.height = t * n, a.setTransform(1, 0, 0, 1, 0, 0), a.scale(n, n), u.clear(), m(i, o);
+	}, h = (e = 0) => {
+		window.setTimeout(() => {
+			window.requestAnimationFrame(() => {
+				d();
+			});
+		}, e);
+	}, g = () => {
+		h();
+	}, _ = () => {
+		h(100);
+	}, v = typeof ResizeObserver > "u" ? null : new ResizeObserver(() => {
+		h();
+	}), y = (e) => {
+		let t = r.value !== e;
+		r.value = e, t && (r.dispatchEvent(new Event("input", { bubbles: !0 })), r.dispatchEvent(new Event("change", { bubbles: !0 })));
+	}, b = () => {
+		y(u.isEmpty() ? "" : u.toDataURL());
+	}, x = () => {
+		u.clear(), y("");
+	};
+	return u.addEventListener("endStroke", b), window.addEventListener("resize", g), e.addEventListener("formie:page:navigate:after", _), v?.observe(l), h(), a && a.addEventListener("click", x), n(t, f, "init", { signature: u }), () => {
+		u.removeEventListener("endStroke", b), window.removeEventListener("resize", g), e.removeEventListener("formie:page:navigate:after", _), v?.disconnect(), a && a.removeEventListener("click", x), u.clear();
+	};
+}
+var g = {
+	id: f,
+	kind: "field",
+	match: (e) => !!e.target.querySelector(u),
+	setup: async (e) => {
+		let n = e.options || {}, r = e.root instanceof HTMLElement ? e.root : e.target instanceof HTMLElement ? e.target : null;
+		if (!r) return;
+		let i = t(e).map((e) => {
+			let t = e.querySelector(l), i = e.querySelector(u), a = e.querySelector(d);
+			return !(t instanceof HTMLInputElement) || !(i instanceof HTMLCanvasElement) ? () => {} : h(r, e, t, i, a instanceof HTMLElement ? a : null, n);
+		});
+		return await e.emit("formie:module:signature:init", { count: i.length }), { destroy: () => {
+			i.forEach((e) => {
+				e();
+			}), e.emit("formie:module:signature:destroy", {});
+		} };
+	}
 };
 //#endregion
-export { i as default };
+export { g as signatureModule };

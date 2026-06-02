@@ -13,7 +13,6 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
-        minify: false,
         cssMinify: true,
         sourcemap: false,
         cssCodeSplit: true,

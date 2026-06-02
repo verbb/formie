@@ -9,6 +9,7 @@ docs/ export-ignore
 .phpunit* export-ignore
 .prettier* export-ignore
 .tsconfig.json export-ignore
+*.map export-ignore
 
 composer.lock export-ignore
 package-lock.json export-ignore

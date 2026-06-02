@@ -1,15 +1,15 @@
-import { c as getScopedModuleLifecycleEventName, d as toDomEventName, l as getValidatorEventName, o as getGlobalModuleLifecycleEventName, r as getFieldModuleEventName, t as FORMIE_HTML_EVENT_NAMES, u as normalizeFormieEventName } from "./chunks/event-names-DamGPtXR.js";
-import { a as setFormieDebugEnabled, i as isFormieDebugEnabled, n as debugLog, r as debugWarn, t as createDebug } from "./chunks/debug-KnZeKYBI.js";
-import { a as setFormHiddenState, c as dispatchPageClientEventForSubmit, i as clearSubmitLoading, n as applyPageState, o as setSubmitLoading, r as applySubmitResultState, s as syncPageTabErrors, t as definePaymentModule } from "./chunks/api-DE7LfK-R.js";
-import { n as registerThemeClassMap, r as removeThemeClasses, t as addThemeClasses } from "./chunks/theme-classes-vSHpdCUO.js";
-import { t as requestJson } from "./chunks/http-18nn97DZ.js";
-import { a as translate, i as t, n as mergeFormieTranslations, r as setFormieTranslations, t as getFormieTranslations } from "./chunks/i18n-vUh-KGiH.js";
-import { n as definePassiveCaptchaModule, t as defineCaptchaModule } from "./chunks/api-DOfDzYC_.js";
-import { n as inputNameToFieldKey, r as normalizeFieldKey, t as fieldKeyToInputName } from "./chunks/field-references.keys-BpBZ_quS.js";
-import { i as parseFieldReference, n as resolveFieldReferenceLive, r as buildFieldValueRegistry, t as resolveFieldReferenceFromFormData } from "./chunks/field-references.resolver-Ba6xhiJC.js";
-import { t as defineAddressModule } from "./chunks/api-CbqEMQT5.js";
+import { c as e, d as t, l as n, o as r, r as i, t as a, u as o } from "./chunks/event-names-BzJlD9YG.js";
+import { a as s, i as c, n as l, r as u, t as d } from "./chunks/debug-JxLdQzL0.js";
+import { a as f, c as p, i as m, n as h, o as g, r as _, s as v, t as y } from "./chunks/api-D4e3ID69.js";
+import { n as ee, r as b, t as x } from "./chunks/theme-classes-BQeZGsT6.js";
+import { t as S } from "./chunks/http-B8SNggtm.js";
+import { a as C, i as w, n as T, r as E, t as te } from "./chunks/i18n-CuNHSAl8.js";
+import { n as ne, t as re } from "./chunks/api-BBbsV96E.js";
+import { n as ie, r as ae, t as oe } from "./chunks/field-references.keys-BGhkWxVZ.js";
+import { i as se, n as ce, r as le, t as ue } from "./chunks/field-references.resolver-D3zB6rj6.js";
+import { t as de } from "./chunks/api-KSUyxI7O.js";
 //#region src/js/compatibility/event-map.ts
-var LEGACY_FORMIE_DOM_EVENT_BRIDGES = [
+var fe = [
 	{
 		legacyEvent: "onFormieLoaded",
 		canonicalEvent: "formie:mount:after",
@@ -62,8 +62,7 @@ var LEGACY_FORMIE_DOM_EVENT_BRIDGES = [
 		canonicalEvent: "formie:submit:after",
 		disposition: "approximate"
 	}
-];
-var LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES = [
+], pe = [
 	{
 		legacyEvent: "formieValidatorInitialized",
 		canonicalEvent: "formie:validator:ready",
@@ -85,442 +84,363 @@ var LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES = [
 		disposition: "safe"
 	}
 ];
-function resolveLegacyCompatibilityOptions(options) {
-	if (!options) return {
-		enabled: false,
-		legacyDomEvents: false,
-		legacyValidatorEvents: false
+function me(e) {
+	if (!e) return {
+		enabled: !1,
+		legacyDomEvents: !1,
+		legacyValidatorEvents: !1
 	};
-	if (options === true) return {
-		enabled: true,
-		legacyDomEvents: true,
-		legacyValidatorEvents: true
+	if (e === !0) return {
+		enabled: !0,
+		legacyDomEvents: !0,
+		legacyValidatorEvents: !0
 	};
-	const legacyDomEvents = options.legacyDomEvents ?? true;
-	const legacyValidatorEvents = options.legacyValidatorEvents ?? true;
+	let t = e.legacyDomEvents ?? !0, n = e.legacyValidatorEvents ?? !0;
 	return {
-		enabled: legacyDomEvents || legacyValidatorEvents,
-		legacyDomEvents,
-		legacyValidatorEvents
+		enabled: t || n,
+		legacyDomEvents: t,
+		legacyValidatorEvents: n
 	};
 }
 //#endregion
 //#region src/js/compatibility/dom-adapter.ts
-function dispatchLegacyDomEvent(target, legacyEvent, detail) {
-	target.dispatchEvent(new CustomEvent(legacyEvent, {
-		bubbles: true,
-		detail
+function he(e, t, n) {
+	e.dispatchEvent(new CustomEvent(t, {
+		bubbles: !0,
+		detail: n
 	}));
 }
-function shouldDispatchBridge(bridge, detail) {
-	if (bridge.canonicalEvent !== "formie:submit:result") return true;
-	const result = detail;
-	if (bridge.legacyEvent === "onAfterFormieSubmit") return !!result?.ok;
-	if (bridge.legacyEvent === "onFormieSubmitError") return result?.ok === false;
-	return true;
+function ge(e, t) {
+	if (e.canonicalEvent !== "formie:submit:result") return !0;
+	let n = t;
+	return e.legacyEvent === "onAfterFormieSubmit" ? !!n?.ok : e.legacyEvent === "onFormieSubmitError" ? n?.ok === !1 : !0;
 }
-function createLegacyPageToggleDetail(form, detail) {
-	const eventDetail = detail && typeof detail === "object" ? detail : {};
-	const nextPageId = typeof eventDetail.pageId === "string" ? eventDetail.pageId : "";
-	const pages = Array.from(form.querySelectorAll("[data-formie-page-id]"));
+function _e(e, t) {
+	let n = t && typeof t == "object" ? t : {}, r = typeof n.pageId == "string" ? n.pageId : "", i = Array.from(e.querySelectorAll("[data-formie-page-id]"));
 	return { data: {
-		nextPageId,
-		nextPageIndex: pages.findIndex((page) => {
-			return page.getAttribute("data-formie-page-id") === nextPageId;
-		}),
-		totalPages: pages.length
+		nextPageId: r,
+		nextPageIndex: i.findIndex((e) => e.getAttribute("data-formie-page-id") === r),
+		totalPages: i.length
 	} };
 }
-function createLegacyDetail(bridge, detail, target, form, instance) {
-	const legacyFormieApi = globalThis.Formie || instance;
-	if (bridge.legacyEvent === "onFormieLoaded") return { formie: legacyFormieApi };
-	if (bridge.legacyEvent === "onFormieInit") return {
-		formie: legacyFormieApi,
-		form: instance,
-		$form: form,
-		formId: instance.id
-	};
-	if (bridge.legacyEvent === "onFormieReady") return {
-		...detail && typeof detail === "object" ? detail : {},
-		form,
-		target,
-		instance
-	};
-	if (bridge.legacyEvent === "onFormiePageToggle") return createLegacyPageToggleDetail(form, detail);
-	return detail;
+function ve(e, t, n, r, i) {
+	let a = globalThis.Formie || i;
+	return e.legacyEvent === "onFormieLoaded" ? { formie: a } : e.legacyEvent === "onFormieInit" ? {
+		formie: a,
+		form: i,
+		$form: r,
+		formId: i.id
+	} : e.legacyEvent === "onFormieReady" ? {
+		...t && typeof t == "object" ? t : {},
+		form: r,
+		target: n,
+		instance: i
+	} : e.legacyEvent === "onFormiePageToggle" ? _e(r, t) : t;
 }
-function bindLegacyDomEventCompatibility({ target, form, instance, options, unbinds }) {
-	if (!options.legacyDomEvents) return;
-	LEGACY_FORMIE_DOM_EVENT_BRIDGES.forEach((bridge) => {
-		const handler = (event) => {
-			if (!(event instanceof CustomEvent) || !shouldDispatchBridge(bridge, event.detail)) return;
-			dispatchLegacyDomEvent(bridge.target === "document" ? document : form, bridge.legacyEvent, createLegacyDetail(bridge, event.detail, target, form, instance));
+function ye({ target: e, form: n, instance: r, options: i, unbinds: a }) {
+	i.legacyDomEvents && fe.forEach((i) => {
+		let o = (t) => {
+			!(t instanceof CustomEvent) || !ge(i, t.detail) || he(i.target === "document" ? document : n, i.legacyEvent, ve(i, t.detail, e, n, r));
 		};
-		target.addEventListener(toDomEventName(bridge.canonicalEvent), handler);
-		unbinds.push(() => {
-			target.removeEventListener(toDomEventName(bridge.canonicalEvent), handler);
+		e.addEventListener(t(i.canonicalEvent), o), a.push(() => {
+			e.removeEventListener(t(i.canonicalEvent), o);
 		});
 	});
 }
 //#endregion
 //#region src/js/compatibility/validator-adapter.ts
-function dispatchLegacyValidatorEvent(target, legacyEvent, detail) {
-	target.dispatchEvent(new CustomEvent(legacyEvent, {
-		bubbles: true,
-		detail
+function D(e, t, n) {
+	e.dispatchEvent(new CustomEvent(t, {
+		bubbles: !0,
+		detail: n
 	}));
 }
-function matchesValidator(detail, validator) {
-	return !!detail && typeof detail === "object" && detail.validator === validator;
+function O(e, t) {
+	return !!e && typeof e == "object" && e.validator === t;
 }
-function bindLegacyValidatorCompatibility({ target, form, validatorDetail, options, unbinds }) {
-	if (!options.legacyValidatorEvents || !validatorDetail) return;
-	const { validator, addValidator, removeValidator } = validatorDetail;
-	const baseDetail = {
-		...validatorDetail,
-		form,
-		target
+function be({ target: e, form: t, validatorDetail: n, options: r, unbinds: i }) {
+	if (!r.legacyValidatorEvents || !n) return;
+	let { validator: a, addValidator: o, removeValidator: s } = n, c = {
+		...n,
+		form: t,
+		target: e
 	};
-	dispatchLegacyValidatorEvent(document, "formieValidatorInitialized", baseDetail);
-	const destroyHandler = (event) => {
-		if (!(event instanceof CustomEvent) || !matchesValidator(event.detail, validator)) return;
-		dispatchLegacyValidatorEvent(document, "formieValidatorDestroyed", {
-			...baseDetail,
-			...event.detail
+	D(document, "formieValidatorInitialized", c);
+	let l = (e) => {
+		!(e instanceof CustomEvent) || !O(e.detail, a) || D(document, "formieValidatorDestroyed", {
+			...c,
+			...e.detail
+		});
+	}, u = (n) => {
+		!(n instanceof CustomEvent) || !O(n.detail, a) || !(n.target instanceof Element) || t.contains(n.target) && D(n.target, "formieValidatorShowError", {
+			...n.detail,
+			addValidator: o,
+			removeValidator: s,
+			form: t,
+			target: e
+		});
+	}, d = (n) => {
+		!(n instanceof CustomEvent) || !O(n.detail, a) || !(n.target instanceof Element) || t.contains(n.target) && D(n.target, "formieValidatorClearError", {
+			...n.detail,
+			addValidator: o,
+			removeValidator: s,
+			form: t,
+			target: e
 		});
 	};
-	const showErrorHandler = (event) => {
-		if (!(event instanceof CustomEvent) || !matchesValidator(event.detail, validator) || !(event.target instanceof Element)) return;
-		if (!form.contains(event.target)) return;
-		dispatchLegacyValidatorEvent(event.target, "formieValidatorShowError", {
-			...event.detail,
-			addValidator,
-			removeValidator,
-			form,
-			target
-		});
-	};
-	const clearErrorHandler = (event) => {
-		if (!(event instanceof CustomEvent) || !matchesValidator(event.detail, validator) || !(event.target instanceof Element)) return;
-		if (!form.contains(event.target)) return;
-		dispatchLegacyValidatorEvent(event.target, "formieValidatorClearError", {
-			...event.detail,
-			addValidator,
-			removeValidator,
-			form,
-			target
-		});
-	};
-	document.addEventListener("formie:validator:destroy", destroyHandler);
-	document.addEventListener("formie:validator:show-error", showErrorHandler);
-	document.addEventListener("formie:validator:clear-error", clearErrorHandler);
-	unbinds.push(() => {
-		document.removeEventListener("formie:validator:destroy", destroyHandler);
-		document.removeEventListener("formie:validator:show-error", showErrorHandler);
-		document.removeEventListener("formie:validator:clear-error", clearErrorHandler);
+	document.addEventListener("formie:validator:destroy", l), document.addEventListener("formie:validator:show-error", u), document.addEventListener("formie:validator:clear-error", d), i.push(() => {
+		document.removeEventListener("formie:validator:destroy", l), document.removeEventListener("formie:validator:show-error", u), document.removeEventListener("formie:validator:clear-error", d);
 	});
 }
 //#endregion
 //#region src/js/core/dom-events.ts
-function dispatchFormieDomEvent(target, eventName, detail) {
-	target.dispatchEvent(new CustomEvent(toDomEventName(eventName), {
-		bubbles: true,
-		detail
+function k(e, n, r) {
+	e.dispatchEvent(new CustomEvent(t(n), {
+		bubbles: !0,
+		detail: r
 	}));
 }
 //#endregion
 //#region src/js/events/event-bus.ts
-var EventBus = class {
+var xe = class {
 	constructor() {
 		this.listeners = /* @__PURE__ */ new Map();
 	}
-	on(eventName, callback) {
-		if (!this.listeners.has(eventName)) this.listeners.set(eventName, /* @__PURE__ */ new Set());
-		this.listeners.get(eventName)?.add(callback);
-		return () => {
-			this.listeners.get(eventName)?.delete(callback);
+	on(e, t) {
+		return this.listeners.has(e) || this.listeners.set(e, /* @__PURE__ */ new Set()), this.listeners.get(e)?.add(t), () => {
+			this.listeners.get(e)?.delete(t);
 		};
 	}
-	async emit(eventName, payload) {
-		const callbacks = this.listeners.get(eventName);
-		if (!callbacks || callbacks.size === 0) return;
-		for (const callback of callbacks) await callback(payload);
+	async emit(e, t) {
+		let n = this.listeners.get(e);
+		if (!(!n || n.size === 0)) for (let e of n) await e(t);
 	}
-	async emitSafe(eventName, payload) {
-		const callbacks = this.listeners.get(eventName);
-		const report = {
-			eventName,
-			total: callbacks?.size || 0,
+	async emitSafe(e, t) {
+		let n = this.listeners.get(e), r = {
+			eventName: e,
+			total: n?.size || 0,
 			succeeded: 0,
 			failed: []
 		};
-		if (!callbacks || callbacks.size === 0) return report;
-		let index = 0;
-		for (const callback of callbacks) {
+		if (!n || n.size === 0) return r;
+		let i = 0;
+		for (let e of n) {
 			try {
-				await callback(payload);
-				report.succeeded += 1;
-			} catch (error) {
-				report.failed.push({
-					index,
-					error
+				await e(t), r.succeeded += 1;
+			} catch (e) {
+				r.failed.push({
+					index: i,
+					error: e
 				});
 			}
-			index += 1;
+			i += 1;
 		}
-		return report;
+		return r;
 	}
-	async emitParallelSafe(eventName, payload) {
-		const callbacks = this.listeners.get(eventName);
-		const report = {
-			eventName,
-			total: callbacks?.size || 0,
+	async emitParallelSafe(e, t) {
+		let n = this.listeners.get(e), r = {
+			eventName: e,
+			total: n?.size || 0,
 			succeeded: 0,
 			failed: []
 		};
-		if (!callbacks || callbacks.size === 0) return report;
-		(await Promise.allSettled(Array.from(callbacks).map(async (callback) => {
-			return callback(payload);
-		}))).forEach((result, index) => {
-			if (result.status === "fulfilled") {
-				report.succeeded += 1;
+		return !n || n.size === 0 || (await Promise.allSettled(Array.from(n).map(async (e) => e(t)))).forEach((e, t) => {
+			if (e.status === "fulfilled") {
+				r.succeeded += 1;
 				return;
 			}
-			report.failed.push({
-				index,
-				error: result.reason
+			r.failed.push({
+				index: t,
+				error: e.reason
 			});
-		});
-		return report;
+		}), r;
 	}
 	clear() {
 		this.listeners.clear();
 	}
-};
-//#endregion
-//#region src/js/transport/forms-api.ts
-var debug$6 = createDebug("general", "transport");
-function toServerRenderPayloadInput(renderOptions) {
-	const input = {};
-	[
+}, A = d("general", "transport");
+function Se(e) {
+	let t = {};
+	return [
 		"theme",
 		"themeConfig",
 		"locale",
 		"siteId"
-	].forEach((key) => {
-		if (renderOptions[key] !== void 0) input[key] = renderOptions[key];
-	});
-	return input;
+	].forEach((n) => {
+		e[n] !== void 0 && (t[n] = e[n]);
+	}), t;
 }
-function flattenErrors(errors, path = "", output = {}) {
-	if (Array.isArray(errors)) {
-		const messages = errors.map((value) => {
-			return typeof value === "string" ? value : String(value ?? "");
-		}).filter((value) => {
-			return value.trim() !== "";
-		});
-		if (path && messages.length) output[path] = (output[path] || []).concat(messages);
-		return output;
+function Ce(e, t = "", n = {}) {
+	if (Array.isArray(e)) {
+		let r = e.map((e) => typeof e == "string" ? e : String(e ?? "")).filter((e) => e.trim() !== "");
+		return t && r.length && (n[t] = (n[t] || []).concat(r)), n;
 	}
-	if (errors && typeof errors === "object") Object.entries(errors).forEach(([key, value]) => {
-		flattenErrors(value, path ? `${path}.${key}` : key, output);
-	});
-	return output;
+	return e && typeof e == "object" && Object.entries(e).forEach(([e, r]) => {
+		Ce(r, t ? `${t}.${e}` : e, n);
+	}), n;
 }
-function normalizePayload(payload, fallbackFormError) {
-	const success = payload.success === true;
-	const keepSubmitLoading = payload.keepSubmitLoading === true;
-	const errors = payload.errors;
-	const fieldErrorsFlat = flattenErrors(errors || {});
-	const formErrors = fieldErrorsFlat.form || [];
-	const fieldErrors = {};
-	Object.entries(fieldErrorsFlat).forEach(([key, value]) => {
-		if (key === "form") return;
-		const topKey = key.split(".")[0];
-		fieldErrors[topKey] = (fieldErrors[topKey] || []).concat(value);
+function we(e, t) {
+	let n = e.success === !0, r = e.keepSubmitLoading === !0, i = e.errors, a = Ce(i || {}), o = a.form || [], s = {};
+	Object.entries(a).forEach(([e, t]) => {
+		if (e === "form") return;
+		let n = e.split(".")[0];
+		s[n] = (s[n] || []).concat(t);
 	});
-	const resolvedFormErrors = !success && formErrors.length === 0 && Object.keys(fieldErrors).length > 0 ? [fallbackFormError || "Submission failed."] : formErrors;
-	const isTransientPendingResult = !success && keepSubmitLoading && resolvedFormErrors.length === 0 && Object.keys(fieldErrors).length === 0;
+	let c = !n && o.length === 0 && Object.keys(s).length > 0 ? [t || "Submission failed."] : o, l = !n && r && c.length === 0 && Object.keys(s).length === 0;
 	return {
-		ok: success,
-		action: payload.submitAction === "back" || payload.submitAction === "save" || payload.submitAction === "submit" ? payload.submitAction : void 0,
-		message: payload.submitActionMessage || (success ? "Submission completed." : isTransientPendingResult ? "" : resolvedFormErrors[0] || "Submission failed."),
-		code: success ? void 0 : String(payload.code || "SUBMIT_ERROR"),
-		keepSubmitLoading,
-		fieldErrors: Object.keys(fieldErrors).length ? fieldErrors : void 0,
-		formErrors: resolvedFormErrors.length ? resolvedFormErrors : void 0,
-		nextPage: payload.nextPageId ? { id: String(payload.nextPageId) } : null,
-		redirect: payload.redirectUrl ? {
-			url: String(payload.redirectUrl),
-			target: payload.submitActionTab === "new-tab" ? "new-tab" : "same-tab"
+		ok: n,
+		action: e.submitAction === "back" || e.submitAction === "save" || e.submitAction === "submit" ? e.submitAction : void 0,
+		message: e.submitActionMessage || (n ? "Submission completed." : l ? "" : c[0] || "Submission failed."),
+		code: n ? void 0 : String(e.code || "SUBMIT_ERROR"),
+		keepSubmitLoading: r,
+		fieldErrors: Object.keys(s).length ? s : void 0,
+		formErrors: c.length ? c : void 0,
+		nextPage: e.nextPageId ? { id: String(e.nextPageId) } : null,
+		redirect: e.redirectUrl ? {
+			url: String(e.redirectUrl),
+			target: e.submitActionTab === "new-tab" ? "new-tab" : "same-tab"
 		} : null,
-		submitData: Array.isArray(payload.submitData) ? payload.submitData : void 0,
-		meta: payload
+		submitData: Array.isArray(e.submitData) ? e.submitData : void 0,
+		meta: e
 	};
 }
-async function requestRender(endpoint, handle, renderOptions = {}) {
-	const body = JSON.stringify({
-		handle,
-		renderOptions
+async function Te(e, t, n = {}) {
+	let r = JSON.stringify({
+		handle: t,
+		renderOptions: n
 	});
-	debug$6.log("requestRender start.", {
-		endpoint,
-		handle
+	A.log("requestRender start.", {
+		endpoint: e,
+		handle: t
 	});
-	const result = await requestJson(endpoint, {
+	let i = await S(e, {
 		method: "POST",
-		body,
+		body: r,
 		headers: { "Content-Type": "application/json" }
 	});
-	debug$6.log("requestRender complete.", { hasHtml: !!result.html });
-	return result;
+	return A.log("requestRender complete.", { hasHtml: !!i.html }), i;
 }
-async function requestGraphqlRender(endpoint, handle, renderOptions = {}) {
-	const body = JSON.stringify({
-		query: `
-query FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {
-  formieHtmlForm(handle: $handle, input: $input) {
-    html
-  }
-}`,
+async function Ee(e, t, n = {}) {
+	let r = JSON.stringify({
+		query: "\nquery FormieHtmlForm($handle: String!, $input: ServerRenderPayloadInput) {\n  formieHtmlForm(handle: $handle, input: $input) {\n    html\n  }\n}",
 		variables: {
-			handle,
-			input: toServerRenderPayloadInput(renderOptions)
+			handle: t,
+			input: Se(n)
 		}
 	});
-	debug$6.log("requestGraphqlRender start.", {
-		endpoint,
-		handle
+	A.log("requestGraphqlRender start.", {
+		endpoint: e,
+		handle: t
 	});
-	const result = await requestJson(endpoint, {
+	let i = await S(e, {
 		method: "POST",
-		body,
+		body: r,
 		headers: { "Content-Type": "application/json" }
 	});
-	if (Array.isArray(result.errors) && result.errors.length > 0) throw new Error(result.errors.map((error) => error.message || "Unknown GraphQL error").join("; "));
-	if (!result.data?.formieHtmlForm) throw new Error(`Form not found for handle "${handle}".`);
-	const payload = result.data.formieHtmlForm;
-	debug$6.log("requestGraphqlRender complete.", { hasHtml: !!payload.html });
-	return payload;
+	if (Array.isArray(i.errors) && i.errors.length > 0) throw Error(i.errors.map((e) => e.message || "Unknown GraphQL error").join("; "));
+	if (!i.data?.formieHtmlForm) throw Error(`Form not found for handle "${t}".`);
+	let a = i.data.formieHtmlForm;
+	return A.log("requestGraphqlRender complete.", { hasHtml: !!a.html }), a;
 }
-async function requestRefreshTokens(endpoint, handle, renderId) {
-	const url = new URL(endpoint, window.location.origin);
-	url.searchParams.set("handle", handle);
-	if (renderId) url.searchParams.set("renderId", renderId);
-	debug$6.log("requestRefreshTokens start.", {
-		endpoint: url.toString(),
-		handle,
-		hasRenderId: !!renderId
+async function j(e, t, n) {
+	let r = new URL(e, window.location.origin);
+	r.searchParams.set("handle", t), n && r.searchParams.set("renderId", n), A.log("requestRefreshTokens start.", {
+		endpoint: r.toString(),
+		handle: t,
+		hasRenderId: !!n
 	});
-	const response = await requestJson(url.toString());
-	debug$6.log("requestRefreshTokens complete.", { hasRefreshTokens: !!response.refreshTokens });
-	return response.refreshTokens || response;
+	let i = await S(r.toString());
+	return A.log("requestRefreshTokens complete.", { hasRefreshTokens: !!i.refreshTokens }), i.refreshTokens || i;
 }
-async function requestSetPage(url, form, pageId) {
-	const requestUrl = new URL(url, window.location.origin);
-	const body = new FormData();
-	if (pageId) body.append("pageId", pageId);
-	if (form) {
+async function De(e, t, n) {
+	let r = new URL(e, window.location.origin), i = new FormData();
+	if (n && i.append("pageId", n), t) {
 		[
 			"handle",
 			"renderId",
 			"draftContextToken",
 			"draftContext",
 			"continuationToken"
-		].forEach((name) => {
-			const value = form.querySelector(`input[name="${name}"]`)?.value?.trim();
-			if (value) body.append(name, value);
+		].forEach((e) => {
+			let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
+			n && i.append(e, n);
 		});
-		const csrfValue = form.querySelector("input[name=\"CRAFT_CSRF_TOKEN\"]")?.value?.trim();
-		if (csrfValue) body.append("CRAFT_CSRF_TOKEN", csrfValue);
+		let e = t.querySelector("input[name=\"CRAFT_CSRF_TOKEN\"]")?.value?.trim();
+		e && i.append("CRAFT_CSRF_TOKEN", e);
 	}
-	debug$6.log("requestSetPage start.", {
-		requestUrl: requestUrl.toString(),
-		pageId: pageId || null
+	A.log("requestSetPage start.", {
+		requestUrl: r.toString(),
+		pageId: n || null
 	});
-	const result = await requestJson(requestUrl.toString(), {
+	let a = await S(r.toString(), {
 		method: "POST",
-		body
+		body: i
 	});
-	debug$6.log("requestSetPage complete.", result);
-	return result;
+	return A.log("requestSetPage complete.", a), a;
 }
-function clearSubmissionOnUnload(endpoint, form) {
-	const requestUrl = new URL(endpoint, window.location.origin);
-	const body = new FormData();
+function Oe(e, t) {
+	let n = new URL(e, window.location.origin), r = new FormData();
 	[
 		"handle",
 		"renderId",
 		"draftContextToken",
 		"draftContext"
-	].forEach((name) => {
-		const value = form.querySelector(`input[name="${name}"]`)?.value?.trim();
-		if (value) body.append(name, value);
+	].forEach((e) => {
+		let n = t.querySelector(`input[name="${e}"]`)?.value?.trim();
+		n && r.append(e, n);
 	});
-	const csrfValue = form.querySelector("input[name=\"CRAFT_CSRF_TOKEN\"]")?.value?.trim();
-	if (csrfValue) body.append("CRAFT_CSRF_TOKEN", csrfValue);
-	debug$6.log("clearSubmissionOnUnload start.", { requestUrl: requestUrl.toString() });
+	let i = t.querySelector("input[name=\"CRAFT_CSRF_TOKEN\"]")?.value?.trim();
+	i && r.append("CRAFT_CSRF_TOKEN", i), A.log("clearSubmissionOnUnload start.", { requestUrl: n.toString() });
 	try {
-		if (typeof navigator.sendBeacon === "function" && navigator.sendBeacon(requestUrl.toString(), body)) return;
-	} catch (_error) {}
-	fetch(requestUrl.toString(), {
+		if (typeof navigator.sendBeacon == "function" && navigator.sendBeacon(n.toString(), r)) return;
+	} catch {}
+	fetch(n.toString(), {
 		method: "POST",
-		body,
+		body: r,
 		credentials: "include",
-		keepalive: true,
+		keepalive: !0,
 		headers: { Accept: "application/json" }
 	});
 }
-async function submitForm(form, formData) {
-	const method = (form.getAttribute("method") || "POST").toUpperCase();
-	const action = form.getAttribute("action") || window.location.href;
-	const fallbackFormError = form.dataset.formieErrorMessage?.trim() || "Submission failed.";
-	debug$6.log("submitForm start.", {
-		method,
-		action,
-		submitAction: formData.get("submitAction")
+async function ke(e, t) {
+	let n = (e.getAttribute("method") || "POST").toUpperCase(), r = e.getAttribute("action") || window.location.href, i = e.dataset.formieErrorMessage?.trim() || "Submission failed.";
+	A.log("submitForm start.", {
+		method: n,
+		action: r,
+		submitAction: t.get("submitAction")
 	});
-	const response = await fetch(action, {
-		method,
-		body: formData,
+	let a = await fetch(r, {
+		method: n,
+		body: t,
 		credentials: "include",
 		headers: { Accept: "application/json" }
+	}), o = a.headers.get("content-type") || "";
+	if (!o.includes("application/json")) return a.ok ? (A.log("submitForm non-JSON success response.", {
+		status: a.status,
+		contentType: o
+	}), {
+		ok: !0,
+		message: "Submission completed."
+	}) : (A.warn("submitForm non-JSON HTTP error.", {
+		status: a.status,
+		contentType: o
+	}), {
+		ok: !1,
+		code: "HTTP_ERROR",
+		message: `Request failed (${a.status}).`,
+		formErrors: [`Request failed (${a.status}).`]
 	});
-	const contentType = response.headers.get("content-type") || "";
-	if (!contentType.includes("application/json")) {
-		if (!response.ok) {
-			debug$6.warn("submitForm non-JSON HTTP error.", {
-				status: response.status,
-				contentType
-			});
-			return {
-				ok: false,
-				code: "HTTP_ERROR",
-				message: `Request failed (${response.status}).`,
-				formErrors: [`Request failed (${response.status}).`]
-			};
-		}
-		debug$6.log("submitForm non-JSON success response.", {
-			status: response.status,
-			contentType
-		});
-		return {
-			ok: true,
-			message: "Submission completed."
-		};
-	}
-	const normalized = normalizePayload(await response.json(), fallbackFormError);
-	debug$6.log("submitForm JSON response normalized.", {
-		ok: normalized.ok,
-		code: normalized.code,
-		hasRedirect: !!normalized.redirect?.url,
-		hasSubmitData: Array.isArray(normalized.submitData) && normalized.submitData.length > 0
-	});
-	return normalized;
+	let s = we(await a.json(), i);
+	return A.log("submitForm JSON response normalized.", {
+		ok: s.ok,
+		code: s.code,
+		hasRedirect: !!s.redirect?.url,
+		hasSubmitData: Array.isArray(s.submitData) && s.submitData.length > 0
+	}), s;
 }
 //#endregion
 //#region src/js/submit/pipeline.ts
-var STAGES = [
+var Ae = [
 	"prepare",
 	"normalize",
 	"validate",
@@ -528,456 +448,364 @@ var STAGES = [
 	"authorize",
 	"dispatch",
 	"finalize"
-];
-var PREFLIGHT_STAGES = [
+], je = [
 	"prepare",
 	"normalize",
 	"validate",
 	"screen",
 	"authorize"
-];
-var debug$5 = createDebug("general", "pipeline");
-function getAbortedResult(stage, reason) {
+], M = d("general", "pipeline");
+function Me(e, t) {
 	return {
-		ok: false,
-		stage,
+		ok: !1,
+		stage: e,
 		code: "ABORTED",
-		message: reason || "Submission aborted.",
-		formErrors: [reason || "Submission aborted."]
+		message: t || "Submission aborted.",
+		formErrors: [t || "Submission aborted."]
 	};
 }
-function getPages(form) {
-	return Array.from(form.querySelectorAll("[data-formie-page]"));
+function Ne(e) {
+	return Array.from(e.querySelectorAll("[data-formie-page]"));
 }
-function getValidationScope(form) {
-	const pages = getPages(form);
-	if (!pages.length) return {
-		scope: form,
-		final: true
+function Pe(e) {
+	let t = Ne(e);
+	if (!t.length) return {
+		scope: e,
+		final: !0
 	};
-	const currentPage = pages.find((page) => {
-		return !page.hasAttribute("data-formie-page-hidden");
-	}) || pages[pages.length - 1];
+	let n = t.find((e) => !e.hasAttribute("data-formie-page-hidden")) || t[t.length - 1];
 	return {
-		scope: currentPage,
-		final: currentPage === pages[pages.length - 1]
+		scope: n,
+		final: n === t[t.length - 1]
 	};
 }
-function isSubmittableControl(element) {
-	return element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement;
+function Fe(e) {
+	return e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement;
 }
-function shouldIncludeControl(control) {
-	if (!control.name || control.disabled) return false;
-	if (control instanceof HTMLInputElement) {
-		if (control.type === "submit" || control.type === "button" || control.type === "reset" || control.type === "image") return false;
-		if ((control.type === "checkbox" || control.type === "radio") && !control.checked) return false;
-		if (control.type === "file" && (!control.files || control.files.length === 0)) return false;
-	}
-	return true;
+function Ie(e) {
+	return !(!e.name || e.disabled || e instanceof HTMLInputElement && (e.type === "submit" || e.type === "button" || e.type === "reset" || e.type === "image" || (e.type === "checkbox" || e.type === "radio") && !e.checked || e.type === "file" && (!e.files || e.files.length === 0)));
 }
-function appendControlValue(formData, control) {
-	if (control instanceof HTMLInputElement) {
-		if (control.type === "file") {
-			Array.from(control.files || []).forEach((file) => {
-				formData.append(control.name, file);
+function Le(e, t) {
+	if (t instanceof HTMLInputElement) {
+		if (t.type === "file") {
+			Array.from(t.files || []).forEach((n) => {
+				e.append(t.name, n);
 			});
 			return;
 		}
-		formData.append(control.name, control.value);
+		e.append(t.name, t.value);
 		return;
 	}
-	if (control instanceof HTMLSelectElement && control.multiple) {
-		Array.from(control.selectedOptions).forEach((option) => {
-			formData.append(control.name, option.value);
+	if (t instanceof HTMLSelectElement && t.multiple) {
+		Array.from(t.selectedOptions).forEach((n) => {
+			e.append(t.name, n.value);
 		});
 		return;
 	}
-	formData.append(control.name, control.value);
+	e.append(t.name, t.value);
 }
-function appendControlsFromRoot(formData, form) {
-	form.querySelectorAll("input, select, textarea").forEach((node) => {
-		const control = isSubmittableControl(node) ? node : null;
-		if (!control || control.closest("[data-formie-page]")) return;
-		if (!shouldIncludeControl(control)) return;
-		appendControlValue(formData, control);
+function Re(e, t) {
+	t.querySelectorAll("input, select, textarea").forEach((t) => {
+		let n = Fe(t) ? t : null;
+		!n || n.closest("[data-formie-page]") || Ie(n) && Le(e, n);
 	});
 }
-function appendControlsFromPage(formData, page) {
-	const fieldNames = /* @__PURE__ */ new Set();
-	page.querySelectorAll("input, select, textarea").forEach((node) => {
-		const control = isSubmittableControl(node) ? node : null;
-		if (!control || !control.name || control.disabled) return;
-		if (control instanceof HTMLInputElement && (control.type === "submit" || control.type === "button" || control.type === "reset" || control.type === "image")) return;
-		if (control.name.startsWith("fields[")) fieldNames.add(control.name);
-		if (!shouldIncludeControl(control)) return;
-		appendControlValue(formData, control);
-	});
-	return fieldNames;
+function ze(e, t) {
+	let n = /* @__PURE__ */ new Set();
+	return t.querySelectorAll("input, select, textarea").forEach((t) => {
+		let r = Fe(t) ? t : null;
+		!r || !r.name || r.disabled || r instanceof HTMLInputElement && (r.type === "submit" || r.type === "button" || r.type === "reset" || r.type === "image") || (r.name.startsWith("fields[") && n.add(r.name), Ie(r) && Le(e, r));
+	}), n;
 }
-function appendMissingFieldClears(formData, fieldNames) {
-	fieldNames.forEach((name) => {
-		if (!formData.has(name)) formData.append(name, "");
+function Be(e, t) {
+	t.forEach((t) => {
+		e.has(t) || e.append(t, "");
 	});
 }
-function buildSubmitFormData(form, action) {
-	const pages = getPages(form);
-	const currentPage = pages.find((page) => {
-		return !page.hasAttribute("data-formie-page-hidden");
-	}) || null;
-	if (!pages.length || !currentPage) {
-		const formData = new FormData(form);
-		formData.set("submitAction", action);
-		return formData;
+function Ve(e, t) {
+	let n = Ne(e), r = n.find((e) => !e.hasAttribute("data-formie-page-hidden")) || null;
+	if (!n.length || !r) {
+		let n = new FormData(e);
+		return n.set("submitAction", t), n;
 	}
-	const formData = new FormData();
-	appendControlsFromRoot(formData, form);
-	appendMissingFieldClears(formData, appendControlsFromPage(formData, currentPage));
-	formData.set("submitAction", action);
-	return formData;
+	let i = new FormData();
+	return Re(i, e), Be(i, ze(i, r)), i.set("submitAction", t), i;
 }
-function isFinalSubmitAttempt(form, action) {
-	if (action !== "submit") return false;
-	const pages = getPages(form);
-	if (!pages.length) return true;
-	return (pages.find((page) => {
-		return !page.hasAttribute("data-formie-page-hidden");
-	}) || pages[pages.length - 1]) === pages[pages.length - 1];
+function He(e, t) {
+	if (t !== "submit") return !1;
+	let n = Ne(e);
+	return n.length ? (n.find((e) => !e.hasAttribute("data-formie-page-hidden")) || n[n.length - 1]) === n[n.length - 1] : !0;
 }
-async function runSubmitPipeline(form, action, bus, options = {}) {
-	debug$5.log("Starting submit pipeline.", {
-		action,
-		preflightOnly: options.preflightOnly === true
+async function Ue(e, t, n, r = {}) {
+	M.log("Starting submit pipeline.", {
+		action: t,
+		preflightOnly: r.preflightOnly === !0
 	});
-	let aborted = false;
-	let abortReason;
-	let dispatchResult = null;
-	const finalSubmitAttempt = isFinalSubmitAttempt(form, action);
-	const context = {
-		form,
-		action,
-		formData: buildSubmitFormData(form, action),
-		abort: (reason) => {
-			aborted = true;
-			abortReason = reason;
-			debug$5.warn("Pipeline aborted.", { reason });
+	let i = !1, a, o = null, s = He(e, t), c = {
+		form: e,
+		action: t,
+		formData: Ve(e, t),
+		abort: (e) => {
+			i = !0, a = e, M.warn("Pipeline aborted.", { reason: e });
 		},
-		isAborted: () => aborted,
-		abortReason: () => abortReason
-	};
-	const runners = {
-		prepare: async (ctx) => {
-			const submitAction = ctx.form.querySelector("input[name=\"submitAction\"]");
-			if (submitAction) submitAction.value = ctx.action;
-			ctx.formData.set("submitAction", ctx.action);
-			return null;
+		isAborted: () => i,
+		abortReason: () => a
+	}, l = {
+		prepare: async (e) => {
+			let t = e.form.querySelector("input[name=\"submitAction\"]");
+			return t && (t.value = e.action), e.formData.set("submitAction", e.action), null;
 		},
-		normalize: async () => {
-			return null;
-		},
-		validate: async (ctx) => {
-			if (ctx.action !== "submit") return null;
-			if (options.validateOnSubmit === false) return null;
-			if (options.validator) {
-				const { scope, final } = getValidationScope(ctx.form);
-				const errors = options.validator.submit(final ? ctx.form : scope, { final });
-				if (errors.length > 0) {
-					errors[0]?.input.focus();
-					return {
-						ok: false,
-						stage: "validate",
-						code: "VALIDATION_FAILED",
-						message: options.validator.config.errorMessage || "Validation failed.",
-						fieldErrors: options.validator.getFieldErrors(errors),
-						formErrors: [options.validator.config.errorMessage || "Validation failed."]
-					};
-				}
-				return null;
-			}
-			if (!ctx.form.checkValidity()) {
-				ctx.form.querySelector(":invalid")?.focus();
-				return {
-					ok: false,
+		normalize: async () => null,
+		validate: async (e) => {
+			if (e.action !== "submit" || r.validateOnSubmit === !1) return null;
+			if (r.validator) {
+				let { scope: t, final: n } = Pe(e.form), i = r.validator.submit(n ? e.form : t, { final: n });
+				return i.length > 0 ? (i[0]?.input.focus(), {
+					ok: !1,
 					stage: "validate",
 					code: "VALIDATION_FAILED",
-					message: "Validation failed.",
-					formErrors: ["Validation failed."]
-				};
+					message: r.validator.config.errorMessage || "Validation failed.",
+					fieldErrors: r.validator.getFieldErrors(i),
+					formErrors: [r.validator.config.errorMessage || "Validation failed."]
+				}) : null;
 			}
-			return null;
+			return e.form.checkValidity() ? null : (e.form.querySelector(":invalid")?.focus(), {
+				ok: !1,
+				stage: "validate",
+				code: "VALIDATION_FAILED",
+				message: "Validation failed.",
+				formErrors: ["Validation failed."]
+			});
 		},
-		screen: async () => {
-			return null;
+		screen: async () => null,
+		authorize: async () => null,
+		dispatch: async (e) => {
+			e.formData = Ve(e.form, e.action);
+			let t = await ke(e.form, e.formData);
+			return o = t, t;
 		},
-		authorize: async () => {
-			return null;
-		},
-		dispatch: async (ctx) => {
-			ctx.formData = buildSubmitFormData(ctx.form, ctx.action);
-			const result = await submitForm(ctx.form, ctx.formData);
-			dispatchResult = result;
-			return result;
-		},
-		finalize: async (resultCtx) => {
-			if (!dispatchResult) return null;
-			if (dispatchResult.ok && dispatchResult.redirect?.url) if (dispatchResult.redirect.target === "new-tab") window.open(dispatchResult.redirect.url, "_blank");
-			else window.location.href = dispatchResult.redirect.url;
-			return null;
-		}
+		finalize: async (e) => (o && o.ok && o.redirect?.url && (o.redirect.target === "new-tab" ? window.open(o.redirect.url, "_blank") : window.location.href = o.redirect.url), null)
 	};
 	{
-		const emitReport = await bus.emitSafe("formie:submit:before", context);
-		if (emitReport.failed.length > 0) debug$5.warn("Submit before listeners failed.", {
-			eventName: emitReport.eventName,
-			failed: emitReport.failed.length
+		let e = await n.emitSafe("formie:submit:before", c);
+		e.failed.length > 0 && M.warn("Submit before listeners failed.", {
+			eventName: e.eventName,
+			failed: e.failed.length
 		});
 	}
-	if (finalSubmitAttempt) {
-		const emitReport = await bus.emitSafe("formie:submit:final:before", context);
-		if (emitReport.failed.length > 0) debug$5.warn("Final submit before listeners failed.", {
-			eventName: emitReport.eventName,
-			failed: emitReport.failed.length
+	if (s) {
+		let e = await n.emitSafe("formie:submit:final:before", c);
+		e.failed.length > 0 && M.warn("Final submit before listeners failed.", {
+			eventName: e.eventName,
+			failed: e.failed.length
 		});
 	}
-	const stages = options.preflightOnly ? PREFLIGHT_STAGES : STAGES;
-	for (const stage of stages) {
-		debug$5.log("Stage start.", {
-			stage,
-			action
-		});
-		if (aborted) {
-			debug$5.warn("Stage skipped due to abort.", {
-				stage,
-				reason: abortReason
-			});
-			return getAbortedResult(stage, abortReason);
-		}
+	let u = r.preflightOnly ? je : Ae;
+	for (let e of u) {
+		if (M.log("Stage start.", {
+			stage: e,
+			action: t
+		}), i) return M.warn("Stage skipped due to abort.", {
+			stage: e,
+			reason: a
+		}), Me(e, a);
 		{
-			const emitReport = await bus.emitSafe(`formie:stage:${stage}:before`, {
-				...context,
-				stage
+			let t = await n.emitSafe(`formie:stage:${e}:before`, {
+				...c,
+				stage: e
 			});
-			if (emitReport.failed.length > 0) debug$5.warn("Stage before listeners failed.", {
-				stage,
-				failed: emitReport.failed.length
+			t.failed.length > 0 && M.warn("Stage before listeners failed.", {
+				stage: e,
+				failed: t.failed.length
 			});
 		}
-		if (aborted) {
-			const abortedResult = getAbortedResult(stage, abortReason);
+		if (i) {
+			let t = Me(e, a);
 			{
-				const emitReport = await bus.emitSafe("formie:submit:after", abortedResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Submit after listeners failed (abort before stage).", {
-					stage,
-					failed: emitReport.failed.length
+				let r = await n.emitSafe("formie:submit:after", t);
+				r.failed.length > 0 && M.warn("Submit after listeners failed (abort before stage).", {
+					stage: e,
+					failed: r.failed.length
 				});
 			}
-			if (finalSubmitAttempt) {
-				const emitReport = await bus.emitSafe("formie:submit:final:after", abortedResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Final submit after listeners failed (abort before stage).", {
-					stage,
-					failed: emitReport.failed.length
+			if (s) {
+				let r = await n.emitSafe("formie:submit:final:after", t);
+				r.failed.length > 0 && M.warn("Final submit after listeners failed (abort before stage).", {
+					stage: e,
+					failed: r.failed.length
 				});
 			}
-			debug$5.warn("Aborted after stage before-hooks.", {
-				stage,
-				reason: abortReason
-			});
-			return abortedResult;
+			return M.warn("Aborted after stage before-hooks.", {
+				stage: e,
+				reason: a
+			}), t;
 		}
-		const stageResult = await runners[stage](context);
-		debug$5.log("Stage runner complete.", {
-			stage,
-			hasResult: !!stageResult,
-			ok: stageResult ? stageResult.ok : void 0,
-			code: stageResult?.code
+		let r = await l[e](c);
+		M.log("Stage runner complete.", {
+			stage: e,
+			hasResult: !!r,
+			ok: r ? r.ok : void 0,
+			code: r?.code
 		});
 		{
-			const emitReport = await bus.emitSafe(`formie:stage:${stage}:after`, {
-				...context,
-				stage,
-				result: stageResult
+			let t = await n.emitSafe(`formie:stage:${e}:after`, {
+				...c,
+				stage: e,
+				result: r
 			});
-			if (emitReport.failed.length > 0) debug$5.warn("Stage after listeners failed.", {
-				stage,
-				failed: emitReport.failed.length
+			t.failed.length > 0 && M.warn("Stage after listeners failed.", {
+				stage: e,
+				failed: t.failed.length
 			});
 		}
-		if (aborted) {
-			const abortedResult = getAbortedResult(stage, abortReason);
+		if (i) {
+			let t = Me(e, a);
 			{
-				const emitReport = await bus.emitSafe("formie:submit:after", abortedResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Submit after listeners failed (abort after stage).", {
-					stage,
-					failed: emitReport.failed.length
+				let r = await n.emitSafe("formie:submit:after", t);
+				r.failed.length > 0 && M.warn("Submit after listeners failed (abort after stage).", {
+					stage: e,
+					failed: r.failed.length
 				});
 			}
-			if (finalSubmitAttempt) {
-				const emitReport = await bus.emitSafe("formie:submit:final:after", abortedResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Final submit after listeners failed (abort after stage).", {
-					stage,
-					failed: emitReport.failed.length
+			if (s) {
+				let r = await n.emitSafe("formie:submit:final:after", t);
+				r.failed.length > 0 && M.warn("Final submit after listeners failed (abort after stage).", {
+					stage: e,
+					failed: r.failed.length
 				});
 			}
-			debug$5.warn("Aborted after stage after-hooks.", {
-				stage,
-				reason: abortReason
-			});
-			return abortedResult;
+			return M.warn("Aborted after stage after-hooks.", {
+				stage: e,
+				reason: a
+			}), t;
 		}
-		if (stageResult && !stageResult.ok) {
+		if (r && !r.ok) {
 			{
-				const emitReport = await bus.emitSafe("formie:submit:after", stageResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Submit after listeners failed (failed stage).", {
-					stage,
-					failed: emitReport.failed.length
+				let t = await n.emitSafe("formie:submit:after", r);
+				t.failed.length > 0 && M.warn("Submit after listeners failed (failed stage).", {
+					stage: e,
+					failed: t.failed.length
 				});
 			}
-			if (finalSubmitAttempt) {
-				const emitReport = await bus.emitSafe("formie:submit:final:after", stageResult);
-				if (emitReport.failed.length > 0) debug$5.warn("Final submit after listeners failed (failed stage).", {
-					stage,
-					failed: emitReport.failed.length
+			if (s) {
+				let t = await n.emitSafe("formie:submit:final:after", r);
+				t.failed.length > 0 && M.warn("Final submit after listeners failed (failed stage).", {
+					stage: e,
+					failed: t.failed.length
 				});
 			}
-			debug$5.warn("Pipeline short-circuited by failed stage.", {
-				stage,
-				code: stageResult.code,
-				message: stageResult.message
-			});
-			return stageResult;
+			return M.warn("Pipeline short-circuited by failed stage.", {
+				stage: e,
+				code: r.code,
+				message: r.message
+			}), r;
 		}
 	}
-	const successResult = dispatchResult || {
-		ok: true,
-		stage: options.preflightOnly ? "authorize" : "finalize",
-		message: options.preflightOnly ? "Submission preflight completed." : "Submission completed."
+	let d = o || {
+		ok: !0,
+		stage: r.preflightOnly ? "authorize" : "finalize",
+		message: r.preflightOnly ? "Submission preflight completed." : "Submission completed."
 	};
 	{
-		const emitReport = await bus.emitSafe("formie:submit:after", successResult);
-		if (emitReport.failed.length > 0) debug$5.warn("Submit after listeners failed (success).", { failed: emitReport.failed.length });
+		let e = await n.emitSafe("formie:submit:after", d);
+		e.failed.length > 0 && M.warn("Submit after listeners failed (success).", { failed: e.failed.length });
 	}
-	if (finalSubmitAttempt) {
-		const emitReport = await bus.emitSafe("formie:submit:final:after", successResult);
-		if (emitReport.failed.length > 0) debug$5.warn("Final submit after listeners failed (success).", { failed: emitReport.failed.length });
+	if (s) {
+		let e = await n.emitSafe("formie:submit:final:after", d);
+		e.failed.length > 0 && M.warn("Final submit after listeners failed (success).", { failed: e.failed.length });
 	}
-	debug$5.log("Pipeline completed.", {
-		ok: successResult.ok,
-		stage: successResult.stage,
-		code: successResult.code
-	});
-	return successResult;
+	return M.log("Pipeline completed.", {
+		ok: d.ok,
+		stage: d.stage,
+		code: d.code
+	}), d;
 }
 //#endregion
 //#region src/js/validation/rules/email.ts
-var email = {
-	rule: ({ input, getRule }) => {
-		if (!getRule("email") || !input.value || input.value.length < 1) return true;
-		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value);
-	},
-	message: ({ input, label, t }) => {
-		return input.getAttribute("data-formie-pattern-email-message") ?? input.getAttribute("data-pattern-email-message") ?? t("{attribute} is not a valid email address.", { attribute: label });
-	}
+var We = {
+	rule: ({ input: e, getRule: t }) => !t("email") || !e.value || e.value.length < 1 ? !0 : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.value),
+	message: ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-pattern-email-message") ?? e.getAttribute("data-pattern-email-message") ?? n("{attribute} is not a valid email address.", { attribute: t })
 };
 //#endregion
 //#region src/js/validation/rules/shared.ts
-function getLabelText(field) {
-	return field?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim() || "";
+function Ge(e) {
+	return e?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim() || "";
 }
-function getComparableInput(ctx) {
-	const match = ctx.getRule("match");
-	if (!match || match === true || typeof match !== "object" || !ctx.field) return null;
-	const fieldHandle = typeof match.fieldHandle === "string" ? match.fieldHandle.trim() : "";
-	if (!fieldHandle) return null;
-	const sourceField = ctx.form.querySelector(`[data-formie-field-handle="${fieldHandle}"]`);
-	if (!sourceField) return null;
-	return sourceField.querySelector(ctx.config.fieldsSelector);
+function Ke(e) {
+	let t = e.getRule("match");
+	if (!t || t === !0 || typeof t != "object" || !e.field) return null;
+	let n = typeof t.fieldHandle == "string" ? t.fieldHandle.trim() : "";
+	if (!n) return null;
+	let r = e.form.querySelector(`[data-formie-field-handle="${n}"]`);
+	return r ? r.querySelector(e.config.fieldsSelector) : null;
 }
 //#endregion
 //#region src/js/validation/rules.ts
-var rules_default = {
+var qe = {
 	required: {
-		rule: ({ input, getRule }) => {
-			if (!getRule("required") || input.type === "hidden") return true;
-			if (input.type === "checkbox" || input.type === "radio") {
-				const checkboxInputs = input.form?.querySelectorAll(`[name="${input.name}"]:not([type="hidden"]):not([disabled])`) || [];
-				if (checkboxInputs.length) return Array.from(checkboxInputs).some((button) => {
-					return button instanceof HTMLInputElement && button.checked;
-				});
-				return input instanceof HTMLInputElement ? input.checked : true;
+		rule: ({ input: e, getRule: t }) => {
+			if (!t("required") || e.type === "hidden") return !0;
+			if (e.type === "checkbox" || e.type === "radio") {
+				let t = e.form?.querySelectorAll(`[name="${e.name}"]:not([type="hidden"]):not([disabled])`) || [];
+				return t.length ? Array.from(t).some((e) => e instanceof HTMLInputElement && e.checked) : e instanceof HTMLInputElement ? e.checked : !0;
 			}
-			return input.value.trim() !== "";
+			return e.value.trim() !== "";
 		},
-		message: ({ input, label, t }) => {
-			return input.getAttribute("data-formie-required-message") ?? input.getAttribute("data-required-message") ?? t("{attribute} cannot be blank.", { attribute: label });
-		}
+		message: ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-required-message") ?? e.getAttribute("data-required-message") ?? n("{attribute} cannot be blank.", { attribute: t })
 	},
-	email,
+	email: We,
 	url: {
-		rule: ({ input, getRule }) => {
-			if (!getRule("url") || !input.value || input.value.length < 1) return true;
+		rule: ({ input: e, getRule: t }) => {
+			if (!t("url") || !e.value || e.value.length < 1) return !0;
 			try {
-				new URL(input.value);
-				return true;
+				return new URL(e.value), !0;
 			} catch {
-				return false;
+				return !1;
 			}
 		},
-		message: ({ input, label, t }) => {
-			return input.getAttribute("data-formie-pattern-url-message") ?? input.getAttribute("data-pattern-url-message") ?? t("{attribute} is not a valid URL.", { attribute: label });
-		}
+		message: ({ input: e, label: t, t: n }) => e.getAttribute("data-formie-pattern-url-message") ?? e.getAttribute("data-pattern-url-message") ?? n("{attribute} is not a valid URL.", { attribute: t })
 	},
 	number: {
-		rule: ({ input, getRule }) => {
-			const rule = getRule("number");
-			if (!rule || !input.value || input.value.trim() === "") return true;
-			const value = parseFloat(input.value);
-			if (Number.isNaN(value)) return false;
-			if (rule !== true && typeof rule === "object") {
-				const min = typeof rule.min === "number" ? rule.min : null;
-				const max = typeof rule.max === "number" ? rule.max : null;
-				if (min !== null && value < min) return false;
-				if (max !== null && value > max) return false;
+		rule: ({ input: e, getRule: t }) => {
+			let n = t("number");
+			if (!n || !e.value || e.value.trim() === "") return !0;
+			let r = parseFloat(e.value);
+			if (Number.isNaN(r)) return !1;
+			if (n !== !0 && typeof n == "object") {
+				let e = typeof n.min == "number" ? n.min : null, t = typeof n.max == "number" ? n.max : null;
+				if (e !== null && r < e || t !== null && r > t) return !1;
 			}
-			return true;
+			return !0;
 		},
-		message: ({ input, label, getRule, t }) => {
-			const rule = getRule("number");
-			const min = rule !== true && rule && typeof rule === "object" && typeof rule.min === "number" ? rule.min : null;
-			const max = rule !== true && rule && typeof rule === "object" && typeof rule.max === "number" ? rule.max : null;
-			if (min !== null && max !== null) return t("{attribute} must be between {min} and {max}.", {
-				attribute: label,
-				min,
-				max
+		message: ({ input: e, label: t, getRule: n, t: r }) => {
+			let i = n("number"), a = i !== !0 && i && typeof i == "object" && typeof i.min == "number" ? i.min : null, o = i !== !0 && i && typeof i == "object" && typeof i.max == "number" ? i.max : null;
+			return a !== null && o !== null ? r("{attribute} must be between {min} and {max}.", {
+				attribute: t,
+				min: a,
+				max: o
+			}) : a === null ? o === null ? e.getAttribute("data-formie-pattern-number-message") ?? e.getAttribute("data-pattern-number-message") ?? r("{attribute} is not a valid number.", { attribute: t }) : r("{attribute} must be no greater than {max}.", {
+				attribute: t,
+				max: o
+			}) : r("{attribute} must be no less than {min}.", {
+				attribute: t,
+				min: a
 			});
-			if (min !== null) return t("{attribute} must be no less than {min}.", {
-				attribute: label,
-				min
-			});
-			if (max !== null) return t("{attribute} must be no greater than {max}.", {
-				attribute: label,
-				max
-			});
-			return input.getAttribute("data-formie-pattern-number-message") ?? input.getAttribute("data-pattern-number-message") ?? t("{attribute} is not a valid number.", { attribute: label });
 		}
 	},
 	match: {
-		rule: (ctx) => {
-			const sourceInput = getComparableInput(ctx);
-			if (!sourceInput) return true;
-			return sourceInput.value === ctx.input.value;
+		rule: (e) => {
+			let t = Ke(e);
+			return t ? t.value === e.input.value : !0;
 		},
-		message: (ctx) => {
-			const sourceField = getComparableInput(ctx)?.closest("[data-formie-field-handle]");
-			const sourceLabel = getLabelText(sourceField);
-			return ctx.t("{name} must match {value}.", {
-				name: ctx.label,
-				value: sourceLabel
+		message: (e) => {
+			let t = Ke(e)?.closest("[data-formie-field-handle]"), n = Ge(t);
+			return e.t("{name} must match {value}.", {
+				name: e.label,
+				value: n
 			});
 		}
 	}
-};
-//#endregion
-//#region src/js/validation/validator.ts
-var DEFAULT_PATTERNS = {
+}, Je = {
 	email: /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*(\.\w{2,})+$/,
 	url: /^(?:(?:https?|HTTPS?|ftp|FTP):\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-zA-Z\u00a1-\uffff0-9]-*)*[a-zA-Z\u00a1-\uffff0-9]+)(?:\.(?:[a-zA-Z\u00a1-\uffff0-9]-*)*[a-zA-Z\u00a1-\uffff0-9]+)*(?:\.(?:[a-zA-Z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/,
 	number: /^(?:[-+]?[0-9]*[.,]?[0-9]+)$/,
@@ -985,990 +813,664 @@ var DEFAULT_PATTERNS = {
 	date: /(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1[0-9]|2[0-9])|(?:(?!02)(?:0[1-9]|1[0-2])-(?:30))|(?:(?:0[13578]|1[02])-31))/,
 	time: /^(?:(0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]))$/,
 	month: /^(?:(?:19|20)[0-9]{2}-(?:(?:0[1-9]|1[0-2])))$/
-};
-var debug$4 = createDebug("general", "validator");
-function isValidationInput(node) {
-	return !!node && (node instanceof HTMLInputElement || node instanceof HTMLSelectElement || node instanceof HTMLTextAreaElement);
+}, N = d("general", "validator");
+function P(e) {
+	return !!e && (e instanceof HTMLInputElement || e instanceof HTMLSelectElement || e instanceof HTMLTextAreaElement);
 }
-function removeDescribedBy$1(input, describedById) {
-	const current = (input.getAttribute("aria-describedby") || "").trim();
-	if (!current) return;
-	const filtered = current.split(/\s+/).filter((item) => {
-		return item !== describedById;
-	});
-	if (filtered.length) {
-		input.setAttribute("aria-describedby", filtered.join(" "));
+function Ye(e, t) {
+	let n = (e.getAttribute("aria-describedby") || "").trim();
+	if (!n) return;
+	let r = n.split(/\s+/).filter((e) => e !== t);
+	if (r.length) {
+		e.setAttribute("aria-describedby", r.join(" "));
 		return;
 	}
-	input.removeAttribute("aria-describedby");
+	e.removeAttribute("aria-describedby");
 }
-function appendDescribedBy$1(input, describedById) {
-	const current = (input.getAttribute("aria-describedby") || "").trim();
-	const items = current ? current.split(/\s+/) : [];
-	if (!items.includes(describedById)) items.push(describedById);
-	input.setAttribute("aria-describedby", items.join(" ").trim());
+function Xe(e, t) {
+	let n = (e.getAttribute("aria-describedby") || "").trim(), r = n ? n.split(/\s+/) : [];
+	r.includes(t) || r.push(t), e.setAttribute("aria-describedby", r.join(" ").trim());
 }
-function setErrorMessageReference$1(input, errorMessageId) {
-	input.setAttribute("aria-errormessage", errorMessageId);
+function Ze(e, t) {
+	e.setAttribute("aria-errormessage", t);
 }
-function clearErrorMessageReference$1(input, errorMessageId) {
-	if (input.getAttribute("aria-errormessage") === errorMessageId) input.removeAttribute("aria-errormessage");
+function Qe(e, t) {
+	e.getAttribute("aria-errormessage") === t && e.removeAttribute("aria-errormessage");
 }
-var FormieValidator = class {
-	constructor(form, config = {}) {
-		this.errors = [];
-		this.validators = {};
-		this.boundListeners = false;
-		this.activated = /* @__PURE__ */ new WeakSet();
-		this.submitted = false;
-		this.initialValues = /* @__PURE__ */ new WeakMap();
-		this.form = form;
-		this.onBlur = this.blurHandler.bind(this);
-		this.onChange = this.changeHandler.bind(this);
-		this.onInput = this.inputHandler.bind(this);
-		this.config = {
-			live: false,
+var $e = class {
+	constructor(e, t = {}) {
+		this.errors = [], this.validators = {}, this.boundListeners = !1, this.activated = /* @__PURE__ */ new WeakSet(), this.submitted = !1, this.initialValues = /* @__PURE__ */ new WeakMap(), this.form = e, this.onBlur = this.blurHandler.bind(this), this.onChange = this.changeHandler.bind(this), this.onInput = this.inputHandler.bind(this), this.config = {
+			live: !1,
 			errorMessage: "",
 			fieldContainerErrorClass: [],
 			inputErrorClass: [],
 			messagesClass: [],
 			messageClass: [],
 			fieldsSelector: "input:not([type=\"hidden\"]):not([type=\"submit\"]):not([type=\"button\"]):not([disabled]), select:not([disabled]), textarea:not([disabled])",
-			patterns: DEFAULT_PATTERNS,
-			...config
-		};
-		Object.entries(rules_default).forEach(([validatorName, validator]) => {
-			this.addValidator(validatorName, validator.rule, validator.message);
-		});
-		this.init();
+			patterns: Je,
+			...t
+		}, Object.entries(qe).forEach(([e, t]) => {
+			this.addValidator(e, t.rule, t.message);
+		}), this.init();
 	}
 	init() {
-		debug$4.log("Initializing validator.", {
+		N.log("Initializing validator.", {
 			formId: this.form.id || null,
 			live: this.config.live
-		});
-		this.form.setAttribute("novalidate", "true");
-		this.inputs().forEach((input) => {
-			this.initialValues.set(input, this.getInputValue(input));
-		});
-		if (this.config.live) this.addEventListeners();
-		this.emitEvent(document, getValidatorEventName("ready"), { validator: this });
+		}), this.form.setAttribute("novalidate", "true"), this.inputs().forEach((e) => {
+			this.initialValues.set(e, this.getInputValue(e));
+		}), this.config.live && this.addEventListeners(), this.emitEvent(document, n("ready"), { validator: this });
 	}
-	inputs(inputOrSelector = null) {
-		if (isValidationInput(inputOrSelector)) return [inputOrSelector];
-		const root = inputOrSelector || this.form;
-		return Array.from(root.querySelectorAll(this.config.fieldsSelector)).filter((input) => {
-			return isValidationInput(input);
-		});
+	inputs(e = null) {
+		if (P(e)) return [e];
+		let t = e || this.form;
+		return Array.from(t.querySelectorAll(this.config.fieldsSelector)).filter((e) => P(e));
 	}
-	getInputValue(input) {
-		if (input instanceof HTMLInputElement && (input.type === "checkbox" || input.type === "radio")) return input.checked;
-		if (input instanceof HTMLInputElement && input.type === "file") return input.files?.length ? Array.from(input.files).map((file) => {
-			return file.name;
-		}).join("|") : "";
-		return input.value ?? "";
+	getInputValue(e) {
+		return e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio") ? e.checked : e instanceof HTMLInputElement && e.type === "file" ? e.files?.length ? Array.from(e.files).map((e) => e.name).join("|") : "" : e.value ?? "";
 	}
-	isDirty(input) {
-		if (!this.initialValues.has(input)) {
-			this.initialValues.set(input, this.getInputValue(input));
-			return false;
-		}
-		return this.getInputValue(input) !== this.initialValues.get(input);
+	isDirty(e) {
+		return this.initialValues.has(e) ? this.getInputValue(e) !== this.initialValues.get(e) : (this.initialValues.set(e, this.getInputValue(e)), !1);
 	}
-	shouldShowError(input) {
-		return this.submitted || this.activated.has(input);
+	shouldShowError(e) {
+		return this.submitted || this.activated.has(e);
 	}
-	validate(inputOrSelector = null, options = {}) {
+	validate(e = null, t = {}) {
 		this.errors = [];
-		const seenGroups = /* @__PURE__ */ new Set();
-		this.inputs(inputOrSelector).forEach((input) => {
-			let errorShown = false;
-			if (!this.isVisible(input, options)) return;
-			const field = input.closest("[data-formie-field-handle]");
-			const groupKey = input instanceof HTMLInputElement && (input.type === "checkbox" || input.type === "radio") ? `${field?.getAttribute("data-formie-field-handle") || ""}:${input.name}` : null;
-			if (groupKey) {
-				if (seenGroups.has(groupKey)) return;
-				seenGroups.add(groupKey);
+		let n = /* @__PURE__ */ new Set();
+		return this.inputs(e).forEach((e) => {
+			let r = !1;
+			if (!this.isVisible(e, t)) return;
+			let i = e.closest("[data-formie-field-handle]"), a = e instanceof HTMLInputElement && (e.type === "checkbox" || e.type === "radio") ? `${i?.getAttribute("data-formie-field-handle") || ""}:${e.name}` : null;
+			if (a) {
+				if (n.has(a)) return;
+				n.add(a);
 			}
-			if (this.shouldShowError(input)) this.removeError(input);
-			const opts = this.getValidatorCallbackOptions(input);
-			Object.entries(this.validators).forEach(([validatorName, validatorConfig]) => {
-				if (!validatorConfig.validate(opts)) {
-					const errorMessage = this.getErrorMessage(input, validatorName, validatorConfig, opts);
-					if (this.shouldShowError(input) && !errorShown) this.showError(input, validatorName, errorMessage);
-					this.errors.push({
-						input,
-						field: opts.field,
-						validator: validatorName,
-						message: errorMessage,
-						handle: opts.field?.getAttribute("data-formie-field-handle") || null,
-						result: false
-					});
-					errorShown = true;
+			this.shouldShowError(e) && this.removeError(e);
+			let o = this.getValidatorCallbackOptions(e);
+			Object.entries(this.validators).forEach(([t, n]) => {
+				if (!n.validate(o)) {
+					let i = this.getErrorMessage(e, t, n, o);
+					this.shouldShowError(e) && !r && this.showError(e, t, i), this.errors.push({
+						input: e,
+						field: o.field,
+						validator: t,
+						message: i,
+						handle: o.field?.getAttribute("data-formie-field-handle") || null,
+						result: !1
+					}), r = !0;
 				}
-			});
-			if (!errorShown && this.shouldShowError(input)) this.removeError(input);
-		});
-		debug$4.log("Validation pass complete.", {
+			}), !r && this.shouldShowError(e) && this.removeError(e);
+		}), N.log("Validation pass complete.", {
 			errorCount: this.errors.length,
-			includeHiddenPages: options.includeHiddenPages === true
-		});
-		return this.errors;
+			includeHiddenPages: t.includeHiddenPages === !0
+		}), this.errors;
 	}
 	removeAllErrors() {
-		this.inputs().forEach((input) => {
-			this.removeError(input);
+		this.inputs().forEach((e) => {
+			this.removeError(e);
 		});
 	}
-	removeError(input) {
-		const fieldContainer = input.closest("[data-formie-field-handle]");
-		if (!fieldContainer) {
-			input.removeAttribute("aria-invalid");
+	removeError(e) {
+		let t = e.closest("[data-formie-field-handle]");
+		if (!t) {
+			e.removeAttribute("aria-invalid");
 			return;
 		}
-		const errorMessages = fieldContainer.querySelector("[data-formie-field-errors]");
-		const errorContainerId = errorMessages?.id || "";
-		fieldContainer.querySelectorAll("[data-formie-field-error]").forEach((node) => {
-			node.remove();
-		});
-		if (errorMessages) errorMessages.innerHTML = "";
-		fieldContainer.querySelectorAll("input, select, textarea").forEach((fieldInput) => {
-			const element = fieldInput;
-			element.removeAttribute("aria-invalid");
-			if (this.config.inputErrorClass.length) element.classList.remove(...this.config.inputErrorClass);
-			element.removeAttribute("data-formie-input-has-error");
-			if (errorContainerId) removeDescribedBy$1(element, errorContainerId);
-			fieldContainer.querySelectorAll("[data-formie-field-error]").forEach((errorNode) => {
-				const errorMessageId = errorNode.id;
-				if (errorMessageId) clearErrorMessageReference$1(element, errorMessageId);
+		let r = t.querySelector("[data-formie-field-errors]"), i = r?.id || "";
+		t.querySelectorAll("[data-formie-field-error]").forEach((e) => {
+			e.remove();
+		}), r && (r.innerHTML = ""), t.querySelectorAll("input, select, textarea").forEach((e) => {
+			let n = e;
+			n.removeAttribute("aria-invalid"), this.config.inputErrorClass.length && n.classList.remove(...this.config.inputErrorClass), n.removeAttribute("data-formie-input-has-error"), i && Ye(n, i), t.querySelectorAll("[data-formie-field-error]").forEach((e) => {
+				let t = e.id;
+				t && Qe(n, t);
 			});
 		});
-		for (let element = fieldContainer; element; element = element.parentElement?.closest("[data-formie-field-handle]")) {
-			if (this.config.fieldContainerErrorClass.length) element.classList.remove(...this.config.fieldContainerErrorClass);
-			element.removeAttribute("data-formie-field-has-error");
-		}
-		this.emitEvent(input, getValidatorEventName("clear-error"), { validator: this });
-		syncPageTabErrors(this.form);
+		for (let e = t; e; e = e.parentElement?.closest("[data-formie-field-handle]")) this.config.fieldContainerErrorClass.length && e.classList.remove(...this.config.fieldContainerErrorClass), e.removeAttribute("data-formie-field-has-error");
+		this.emitEvent(e, n("clear-error"), { validator: this }), v(this.form);
 	}
-	showError(input, validatorName, errorMessage) {
-		const fieldContainer = input.closest("[data-formie-field-handle]");
-		if (!fieldContainer) return;
-		let errorMessages = fieldContainer.querySelector("[data-formie-field-errors]");
-		if (!errorMessages) {
-			errorMessages = document.createElement("div");
-			errorMessages.setAttribute("data-formie-field-errors", "true");
-			if (this.config.messagesClass.length) errorMessages.classList.add(...this.config.messagesClass);
-			fieldContainer.appendChild(errorMessages);
-		}
-		if (this.config.messagesClass.length) errorMessages.classList.add(...this.config.messagesClass);
-		errorMessages.innerHTML = "";
-		const handle = fieldContainer.getAttribute("data-formie-field-handle") || "field";
-		const errorId = `${handle}-error`;
-		errorMessages.id = errorMessages.id || `${handle}-errors`;
-		errorMessages.setAttribute("aria-live", "polite");
-		errorMessages.setAttribute("aria-atomic", "true");
-		const errorElement = document.createElement("div");
-		errorElement.setAttribute("data-formie-field-error", "true");
-		errorElement.setAttribute(`data-formie-field-error-${validatorName}`, "true");
-		errorElement.setAttribute("id", errorId);
-		errorElement.setAttribute("role", "alert");
-		if (this.config.messageClass.length) errorElement.classList.add(...this.config.messageClass);
-		errorElement.textContent = errorMessage;
-		errorMessages.appendChild(errorElement);
-		fieldContainer.setAttribute("data-formie-field-has-error", "true");
-		fieldContainer.querySelectorAll("input, select, textarea").forEach((fieldInput) => {
-			const element = fieldInput;
-			element.setAttribute("aria-invalid", "true");
-			if (this.config.inputErrorClass.length) element.classList.add(...this.config.inputErrorClass);
-			element.setAttribute("data-formie-input-has-error", "true");
-			appendDescribedBy$1(element, errorMessages.id);
-			setErrorMessageReference$1(element, errorId);
+	showError(e, t, r) {
+		let i = e.closest("[data-formie-field-handle]");
+		if (!i) return;
+		let a = i.querySelector("[data-formie-field-errors]");
+		a || (a = document.createElement("div"), a.setAttribute("data-formie-field-errors", "true"), this.config.messagesClass.length && a.classList.add(...this.config.messagesClass), i.appendChild(a)), this.config.messagesClass.length && a.classList.add(...this.config.messagesClass), a.innerHTML = "";
+		let o = i.getAttribute("data-formie-field-handle") || "field", s = `${o}-error`;
+		a.id = a.id || `${o}-errors`, a.setAttribute("aria-live", "polite"), a.setAttribute("aria-atomic", "true");
+		let c = document.createElement("div");
+		c.setAttribute("data-formie-field-error", "true"), c.setAttribute(`data-formie-field-error-${t}`, "true"), c.setAttribute("id", s), c.setAttribute("role", "alert"), this.config.messageClass.length && c.classList.add(...this.config.messageClass), c.textContent = r, a.appendChild(c), i.setAttribute("data-formie-field-has-error", "true"), i.querySelectorAll("input, select, textarea").forEach((e) => {
+			let t = e;
+			t.setAttribute("aria-invalid", "true"), this.config.inputErrorClass.length && t.classList.add(...this.config.inputErrorClass), t.setAttribute("data-formie-input-has-error", "true"), Xe(t, a.id), Ze(t, s);
 		});
-		for (let element = fieldContainer; element; element = element.parentElement?.closest("[data-formie-field-handle]")) {
-			if (this.config.fieldContainerErrorClass.length) element.classList.add(...this.config.fieldContainerErrorClass);
-			element.setAttribute("data-formie-field-has-error", "true");
-		}
-		this.emitEvent(input, getValidatorEventName("show-error"), {
+		for (let e = i; e; e = e.parentElement?.closest("[data-formie-field-handle]")) this.config.fieldContainerErrorClass.length && e.classList.add(...this.config.fieldContainerErrorClass), e.setAttribute("data-formie-field-has-error", "true");
+		this.emitEvent(e, n("show-error"), {
 			validator: this,
-			validatorName,
-			errorMessage
-		});
-		syncPageTabErrors(this.form);
+			validatorName: t,
+			errorMessage: r
+		}), v(this.form);
 	}
-	getValidatorCallbackOptions(input) {
-		const fieldContainer = input.closest("[data-formie-field-handle]");
-		const label = fieldContainer?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim() ?? "";
-		const rules = this.parseValidationRules(fieldContainer?.getAttribute("data-formie-validation"));
+	getValidatorCallbackOptions(e) {
+		let t = e.closest("[data-formie-field-handle]"), n = t?.querySelector("[data-formie-field-label]")?.childNodes[0]?.textContent?.trim() ?? "", r = this.parseValidationRules(t?.getAttribute("data-formie-validation"));
 		return {
-			t,
-			input,
-			label,
-			field: fieldContainer,
+			t: w,
+			input: e,
+			label: n,
+			field: t,
 			form: this.form,
 			config: this.config,
-			rules,
-			getRule: (rule) => {
-				return this.getRule(fieldContainer, rule);
-			}
+			rules: r,
+			getRule: (e) => this.getRule(t, e)
 		};
 	}
-	getErrorMessage(input, validatorName, validator, opts) {
-		return (typeof validator.errorMessage === "function" ? validator.errorMessage(opts) : validator.errorMessage) ?? t("{attribute} is invalid.", { attribute: opts.label });
+	getErrorMessage(e, t, n, r) {
+		return (typeof n.errorMessage == "function" ? n.errorMessage(r) : n.errorMessage) ?? w("{attribute} is invalid.", { attribute: r.label });
 	}
 	getErrors() {
 		return this.errors;
 	}
-	getFieldErrors(errors = this.errors) {
-		const fieldErrors = {};
-		errors.forEach((error) => {
-			if (!error.handle || fieldErrors[error.handle]?.length) return;
-			fieldErrors[error.handle] = [error.message];
-		});
-		return fieldErrors;
+	getFieldErrors(e = this.errors) {
+		let t = {};
+		return e.forEach((e) => {
+			!e.handle || t[e.handle]?.length || (t[e.handle] = [e.message]);
+		}), t;
 	}
-	getRule(field, rule) {
-		if (!field) return false;
-		const rules = this.parseValidationRules(field.getAttribute("data-formie-validation"));
-		if (Object.prototype.hasOwnProperty.call(rules, rule)) return rules[rule];
-		return false;
+	getRule(e, t) {
+		if (!e) return !1;
+		let n = this.parseValidationRules(e.getAttribute("data-formie-validation"));
+		return Object.prototype.hasOwnProperty.call(n, t) ? n[t] : !1;
 	}
-	parseValidationRules(ruleString) {
-		const rules = {};
-		if (!ruleString) return rules;
-		let parsedRules = null;
+	parseValidationRules(e) {
+		let t = {};
+		if (!e) return t;
+		let n = null;
 		try {
-			parsedRules = JSON.parse(ruleString);
+			n = JSON.parse(e);
 		} catch {
-			debug$4.warn("Invalid validation rules payload.", { formId: this.form.id || null });
-			return rules;
+			return N.warn("Invalid validation rules payload.", { formId: this.form.id || null }), t;
 		}
-		if (!Array.isArray(parsedRules)) return rules;
-		parsedRules.forEach((part) => {
-			if (!part || typeof part !== "object" || Array.isArray(part)) return;
-			const candidate = part;
-			const type = typeof candidate.type === "string" ? candidate.type.trim() : "";
-			if (!type) return;
-			rules[type] = candidate;
-		});
-		return rules;
+		return Array.isArray(n) && n.forEach((e) => {
+			if (!e || typeof e != "object" || Array.isArray(e)) return;
+			let n = e, r = typeof n.type == "string" ? n.type.trim() : "";
+			r && (t[r] = n);
+		}), t;
 	}
 	destroy() {
-		debug$4.log("Destroying validator.", { formId: this.form.id || null });
-		this.removeEventListeners();
-		this.form.removeAttribute("novalidate");
-		this.emitEvent(document, getValidatorEventName("destroy"), { validator: this });
+		N.log("Destroying validator.", { formId: this.form.id || null }), this.removeEventListeners(), this.form.removeAttribute("novalidate"), this.emitEvent(document, n("destroy"), { validator: this });
 	}
-	isVisible(element, options = {}) {
-		if (element.closest("[data-formie-conditionally-hidden]")) return false;
-		if (element.closest("[data-formie-page-hidden]")) return !!options.includeHiddenPages;
-		return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+	isVisible(e, t = {}) {
+		return e.closest("[data-formie-conditionally-hidden]") ? !1 : e.closest("[data-formie-page-hidden]") ? !!t.includeHiddenPages : !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
 	}
-	blurHandler(event) {
-		if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) return;
-		if (event instanceof CustomEvent) return;
-		if (event.target instanceof HTMLInputElement && event.target.type === "file") return;
-		if (event.target instanceof HTMLInputElement && (event.target.type === "checkbox" || event.target.type === "radio")) return;
-		if (this.isDirty(event.target)) this.activated.add(event.target);
-		if (this.shouldShowError(event.target)) this.validate(event.target);
+	blurHandler(e) {
+		!(e.target instanceof HTMLElement) || !P(e.target) || !e.target.form?.isSameNode(this.form) || e instanceof CustomEvent || e.target instanceof HTMLInputElement && e.target.type === "file" || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || (this.isDirty(e.target) && this.activated.add(e.target), this.shouldShowError(e.target) && this.validate(e.target));
 	}
-	changeHandler(event) {
-		if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) return;
-		if (event instanceof CustomEvent) return;
-		if (event.target instanceof HTMLSelectElement) {
-			this.activated.add(event.target);
-			this.validate(event.target);
-			return;
+	changeHandler(e) {
+		if (!(!(e.target instanceof HTMLElement) || !P(e.target) || !e.target.form?.isSameNode(this.form)) && !(e instanceof CustomEvent)) {
+			if (e.target instanceof HTMLSelectElement) {
+				this.activated.add(e.target), this.validate(e.target);
+				return;
+			}
+			e.target instanceof HTMLInputElement && (e.target.type !== "file" && e.target.type !== "checkbox" && e.target.type !== "radio" || (this.activated.add(e.target), this.validate(e.target)));
 		}
-		if (!(event.target instanceof HTMLInputElement)) return;
-		if (event.target.type !== "file" && event.target.type !== "checkbox" && event.target.type !== "radio") return;
-		this.activated.add(event.target);
-		this.validate(event.target);
 	}
-	inputHandler(event) {
-		if (!(event.target instanceof HTMLElement) || !isValidationInput(event.target) || !event.target.form?.isSameNode(this.form)) return;
-		if (event instanceof CustomEvent) return;
-		if (event.target instanceof HTMLInputElement && (event.target.type === "checkbox" || event.target.type === "radio")) return;
-		if (this.shouldShowError(event.target)) this.validate(event.target);
+	inputHandler(e) {
+		!(e.target instanceof HTMLElement) || !P(e.target) || !e.target.form?.isSameNode(this.form) || e instanceof CustomEvent || e.target instanceof HTMLInputElement && (e.target.type === "checkbox" || e.target.type === "radio") || this.shouldShowError(e.target) && this.validate(e.target);
 	}
-	submit(inputOrSelector = null, { final = false } = {}) {
-		this.submitted = true;
-		debug$4.log("Submit validation requested.", { final });
-		if (!this.boundListeners) this.addEventListeners();
-		this.removeAllErrors();
-		return this.validate(inputOrSelector, { includeHiddenPages: final });
+	submit(e = null, { final: t = !1 } = {}) {
+		return this.submitted = !0, N.log("Submit validation requested.", { final: t }), this.boundListeners || this.addEventListeners(), this.removeAllErrors(), this.validate(e, { includeHiddenPages: t });
 	}
 	resetLiveState() {
-		this.submitted = false;
-		this.activated = /* @__PURE__ */ new WeakSet();
-		this.errors = [];
-		this.removeAllErrors();
+		this.submitted = !1, this.activated = /* @__PURE__ */ new WeakSet(), this.errors = [], this.removeAllErrors();
 	}
 	addEventListeners() {
-		if (this.boundListeners) return;
-		this.form.addEventListener("blur", this.onBlur, true);
-		this.form.addEventListener("change", this.onChange, false);
-		this.form.addEventListener("input", this.onInput, false);
-		this.boundListeners = true;
-		debug$4.log("Event listeners attached.");
+		this.boundListeners || (this.form.addEventListener("blur", this.onBlur, !0), this.form.addEventListener("change", this.onChange, !1), this.form.addEventListener("input", this.onInput, !1), this.boundListeners = !0, N.log("Event listeners attached."));
 	}
 	removeEventListeners() {
-		this.form.removeEventListener("blur", this.onBlur, true);
-		this.form.removeEventListener("change", this.onChange, false);
-		this.form.removeEventListener("input", this.onInput, false);
-		this.boundListeners = false;
-		debug$4.log("Event listeners removed.");
+		this.form.removeEventListener("blur", this.onBlur, !0), this.form.removeEventListener("change", this.onChange, !1), this.form.removeEventListener("input", this.onInput, !1), this.boundListeners = !1, N.log("Event listeners removed.");
 	}
-	emitEvent(target, type, detail = {}) {
-		target.dispatchEvent(new CustomEvent(type, {
-			bubbles: true,
-			detail
+	emitEvent(e, t, n = {}) {
+		e.dispatchEvent(new CustomEvent(t, {
+			bubbles: !0,
+			detail: n
 		}));
 	}
-	addValidator(name, validatorFunction, errorMessage) {
-		this.validators[name] = {
-			validate: validatorFunction,
-			errorMessage
+	addValidator(e, t, n) {
+		this.validators[e] = {
+			validate: t,
+			errorMessage: n
 		};
 	}
-	removeValidator(name) {
-		delete this.validators[name];
+	removeValidator(e) {
+		delete this.validators[e];
 	}
-};
-//#endregion
-//#region src/js/core/submit-result-ui.ts
-var successHideTimers = /* @__PURE__ */ new WeakMap();
-function getConfiguredSubmitAction(form) {
-	return (form.dataset.formieSubmitAction || "").trim();
+}, F = /* @__PURE__ */ new WeakMap();
+function et(e) {
+	return (e.dataset.formieSubmitAction || "").trim();
 }
-function getErrorMessagePosition(form) {
-	return (form.dataset.formieErrorMessagePosition || "top-form").trim() || "top-form";
+function tt(e) {
+	return (e.dataset.formieErrorMessagePosition || "top-form").trim() || "top-form";
 }
-function getSuccessMessagePosition(form) {
-	return (form.dataset.formieSubmitActionMessagePosition || "").trim();
+function nt(e) {
+	return (e.dataset.formieSubmitActionMessagePosition || "").trim();
 }
-function getSuccessMessageTimeoutMs(form) {
-	const rawValue = (form.dataset.formieSubmitActionMessageTimeout || "").trim();
-	if (!rawValue) return null;
-	const seconds = Number.parseFloat(rawValue);
-	if (!Number.isFinite(seconds) || seconds < 0) return null;
-	return Math.round(seconds * 1e3);
+function rt(e) {
+	let t = (e.dataset.formieSubmitActionMessageTimeout || "").trim();
+	if (!t) return null;
+	let n = Number.parseFloat(t);
+	return !Number.isFinite(n) || n < 0 ? null : Math.round(n * 1e3);
 }
-function shouldHideFormOnSuccess(form) {
-	const rawValue = form.dataset.formieSubmitActionFormHide;
-	if (rawValue === void 0) return false;
-	const normalized = rawValue.trim().toLowerCase();
-	return normalized === "true" || normalized === "1" || normalized === "";
+function it(e) {
+	let t = e.dataset.formieSubmitActionFormHide;
+	if (t === void 0) return !1;
+	let n = t.trim().toLowerCase();
+	return n === "true" || n === "1" || n === "";
 }
-function clearPendingSuccessHide(form) {
-	const timerId = successHideTimers.get(form);
-	if (typeof timerId === "number") {
-		window.clearTimeout(timerId);
-		successHideTimers.delete(form);
-	}
+function at(e) {
+	let t = F.get(e);
+	typeof t == "number" && (window.clearTimeout(t), F.delete(e));
 }
-function getTopMessageHost(form) {
-	return form.querySelector("[data-formie-form-messages-top]") || form;
+function ot(e) {
+	return e.querySelector("[data-formie-form-messages-top]") || e;
 }
-function getBottomMessageHost(form) {
-	return form.querySelector("[data-formie-form-messages-bottom]") || form;
+function st(e) {
+	return e.querySelector("[data-formie-form-messages-bottom]") || e;
 }
-function getErrorMessageHost(form, position) {
-	if (position === "bottom-form") return getBottomMessageHost(form);
-	return getTopMessageHost(form);
+function ct(e, t) {
+	return t === "bottom-form" ? st(e) : ot(e);
 }
-function getSuccessMessageHost(form, position) {
-	if (position === "top-form") return getTopMessageHost(form);
-	if (position === "bottom-form" && !shouldHideFormOnSuccess(form)) return getBottomMessageHost(form);
-	return form;
+function lt(e, t) {
+	return t === "top-form" ? ot(e) : t === "bottom-form" && !it(e) ? st(e) : e;
 }
-function ensureFormErrorContainer(form) {
-	const position = getErrorMessagePosition(form);
-	const host = getErrorMessageHost(form, position);
-	let container = host.querySelector("[data-formie-error-container], [data-formie-errors]");
-	if (!container) {
-		container = document.createElement("div");
-		container.setAttribute("data-formie-errors", "true");
-		addThemeClasses(container, form, "errors");
-	}
-	container.setAttribute("data-formie-error-container", "true");
-	if (position === "bottom-form") host.append(container);
-	else host.prepend(container);
-	return container;
+function ut(e) {
+	let t = tt(e), n = ct(e, t), r = n.querySelector("[data-formie-error-container], [data-formie-errors]");
+	return r || (r = document.createElement("div"), r.setAttribute("data-formie-errors", "true"), x(r, e, "errors")), r.setAttribute("data-formie-error-container", "true"), t === "bottom-form" ? n.append(r) : n.prepend(r), r;
 }
-function ensureFormErrorMessageContainer(form, container) {
-	let messageContainer = container.querySelector("[data-formie-error-message-container], [data-formie-message][data-formie-message-error]");
-	if (!messageContainer) {
-		messageContainer = document.createElement("div");
-		messageContainer.setAttribute("data-formie-error-message-container", "true");
-		container.appendChild(messageContainer);
-	}
-	messageContainer.setAttribute("data-formie-message", "true");
-	messageContainer.setAttribute("data-formie-message-error", "true");
-	addThemeClasses(messageContainer, form, "message", "messageError");
-	messageContainer.setAttribute("role", "alert");
-	messageContainer.setAttribute("aria-live", "polite");
-	messageContainer.setAttribute("aria-atomic", "true");
-	return messageContainer;
+function dt(e, t) {
+	let n = t.querySelector("[data-formie-error-message-container], [data-formie-message][data-formie-message-error]");
+	return n || (n = document.createElement("div"), n.setAttribute("data-formie-error-message-container", "true"), t.appendChild(n)), n.setAttribute("data-formie-message", "true"), n.setAttribute("data-formie-message-error", "true"), x(n, e, "message", "messageError"), n.setAttribute("role", "alert"), n.setAttribute("aria-live", "polite"), n.setAttribute("aria-atomic", "true"), n;
 }
-function ensureFormSuccessContainer(form, position) {
-	let container = form.querySelector("[data-formie-success-container]");
-	const host = getSuccessMessageHost(form, position);
-	if (!container) {
-		container = document.createElement("div");
-		container.setAttribute("data-formie-success-container", "true");
-		addThemeClasses(container, form, "successes");
-	}
-	if (position === "bottom-form") host.append(container);
-	else if (host === form) host.prepend(container);
-	else host.prepend(container);
-	return container;
+function ft(e, t) {
+	let n = e.querySelector("[data-formie-success-container]"), r = lt(e, t);
+	return n || (n = document.createElement("div"), n.setAttribute("data-formie-success-container", "true"), x(n, e, "successes")), t === "bottom-form" ? r.append(n) : r.prepend(n), n;
 }
-function ensureFieldErrorContainer(fieldNode) {
-	let container = fieldNode.querySelector("[data-formie-field-errors]");
-	if (!container) {
-		container = document.createElement("div");
-		container.setAttribute("data-formie-field-errors", "true");
-		addThemeClasses(container, fieldNode, "fieldErrors");
-		fieldNode.appendChild(container);
-	}
-	return container;
+function pt(e) {
+	let t = e.querySelector("[data-formie-field-errors]");
+	return t || (t = document.createElement("div"), t.setAttribute("data-formie-field-errors", "true"), x(t, e, "fieldErrors"), e.appendChild(t)), t;
 }
-function removeDescribedBy(input, describedById) {
-	const current = (input.getAttribute("aria-describedby") || "").trim();
-	if (!current) return;
-	const nextValue = current.split(/\s+/).filter((item) => {
-		return item !== describedById;
-	}).join(" ").trim();
-	if (nextValue) {
-		input.setAttribute("aria-describedby", nextValue);
+function mt(e, t) {
+	let n = (e.getAttribute("aria-describedby") || "").trim();
+	if (!n) return;
+	let r = n.split(/\s+/).filter((e) => e !== t).join(" ").trim();
+	if (r) {
+		e.setAttribute("aria-describedby", r);
 		return;
 	}
-	input.removeAttribute("aria-describedby");
+	e.removeAttribute("aria-describedby");
 }
-function setErrorMessageReference(input, errorMessageId) {
-	input.setAttribute("aria-errormessage", errorMessageId);
+function ht(e, t) {
+	e.setAttribute("aria-errormessage", t);
 }
-function clearErrorMessageReference(input, errorMessageId) {
-	if (input.getAttribute("aria-errormessage") === errorMessageId) input.removeAttribute("aria-errormessage");
+function gt(e, t) {
+	e.getAttribute("aria-errormessage") === t && e.removeAttribute("aria-errormessage");
 }
-function clearFieldErrors(form) {
-	form.querySelectorAll("[data-formie-field-handle]").forEach((fieldNode) => {
-		const fieldElement = fieldNode;
-		const container = fieldElement.querySelector("[data-formie-field-errors]");
-		const containerId = container?.id || "";
-		const errorMessageIds = Array.from(fieldElement.querySelectorAll("[data-formie-field-error]")).map((node) => {
-			return node.id;
-		}).filter(Boolean);
-		removeThemeClasses(fieldElement, form, "fieldLayoutError");
-		fieldElement.removeAttribute("data-formie-field-has-error");
-		fieldElement.querySelectorAll("[data-formie-field-error]").forEach((node) => {
-			node.remove();
-		});
-		if (container && !container.querySelector("[data-formie-field-error]")) container.innerHTML = "";
-		fieldElement.querySelectorAll("input, select, textarea").forEach((input) => {
-			const element = input;
-			element.removeAttribute("aria-invalid");
-			removeThemeClasses(element, form, "fieldControlError");
-			element.removeAttribute("data-formie-input-has-error");
-			if (containerId) removeDescribedBy(element, containerId);
-			errorMessageIds.forEach((errorMessageId) => {
-				clearErrorMessageReference(element, errorMessageId);
+function _t(e) {
+	e.querySelectorAll("[data-formie-field-handle]").forEach((t) => {
+		let n = t, r = n.querySelector("[data-formie-field-errors]"), i = r?.id || "", a = Array.from(n.querySelectorAll("[data-formie-field-error]")).map((e) => e.id).filter(Boolean);
+		b(n, e, "fieldLayoutError"), n.removeAttribute("data-formie-field-has-error"), n.querySelectorAll("[data-formie-field-error]").forEach((e) => {
+			e.remove();
+		}), r && !r.querySelector("[data-formie-field-error]") && (r.innerHTML = ""), n.querySelectorAll("input, select, textarea").forEach((t) => {
+			let n = t;
+			n.removeAttribute("aria-invalid"), b(n, e, "fieldControlError"), n.removeAttribute("data-formie-input-has-error"), i && mt(n, i), a.forEach((e) => {
+				gt(n, e);
 			});
 		});
-	});
-	syncPageTabErrors(form);
+	}), v(e);
 }
-function clearFormErrors(form) {
-	form.querySelectorAll("[data-formie-error-container], [data-formie-errors]").forEach((node) => {
-		const container = node;
-		container.querySelectorAll("[data-formie-error]").forEach((errorNode) => {
-			errorNode.remove();
+function vt(e) {
+	e.querySelectorAll("[data-formie-error-container], [data-formie-errors]").forEach((t) => {
+		let n = t;
+		n.querySelectorAll("[data-formie-error]").forEach((e) => {
+			e.remove();
+		}), b(n, e, "message", "messageError"), n.removeAttribute("data-formie-message"), n.removeAttribute("data-formie-message-error"), n.removeAttribute("role"), n.removeAttribute("aria-live"), n.removeAttribute("aria-atomic"), n.querySelector("[data-formie-error]") || (n.innerHTML = "");
+	});
+}
+function yt(e) {
+	at(e), e.querySelectorAll("[data-formie-message-success]:not([data-formie-success-container])").forEach((e) => {
+		e.remove();
+	}), e.querySelectorAll("[data-formie-success-container]").forEach((t) => {
+		let n = t;
+		n.querySelectorAll("[data-formie-success]").forEach((e) => {
+			e.remove();
+		}), b(n, e, "message", "messageSuccess"), n.removeAttribute("data-formie-message"), n.removeAttribute("data-formie-message-success"), n.removeAttribute("role"), n.removeAttribute("aria-live"), n.removeAttribute("aria-atomic"), n.querySelector("[data-formie-success]") || (n.innerHTML = "");
+	}), et(e) === "message" && it(e) || f(e, !1);
+}
+function bt(e) {
+	e.querySelectorAll("[aria-invalid=\"true\"]").forEach((e) => {
+		e.removeAttribute("aria-invalid");
+	});
+}
+function xt(e, t) {
+	let n = (e.getAttribute("aria-describedby") || "").trim(), r = n ? n.split(/\s+/) : [];
+	r.includes(t) || r.push(t), e.setAttribute("aria-describedby", r.join(" ").trim());
+}
+function St(e, t) {
+	Object.entries(t).forEach(([t, n]) => {
+		let r = e.querySelector(`[data-formie-field-handle="${t}"]`);
+		if (!r) return;
+		let i = pt(r), a = i.id && i.id.trim() ? i.id : `${t}-errors`;
+		i.id = a, i.setAttribute("aria-live", "polite"), i.setAttribute("aria-atomic", "true"), x(r, e, "fieldLayoutError"), r.setAttribute("data-formie-field-has-error", "true"), n.forEach((t, n) => {
+			let r = document.createElement("div");
+			r.setAttribute("data-formie-field-error", "true"), r.setAttribute("role", "alert"), r.id = `${a}-${n + 1}`, x(r, e, "fieldError"), r.textContent = t, i.appendChild(r);
 		});
-		removeThemeClasses(container, form, "message", "messageError");
-		container.removeAttribute("data-formie-message");
-		container.removeAttribute("data-formie-message-error");
-		container.removeAttribute("role");
-		container.removeAttribute("aria-live");
-		container.removeAttribute("aria-atomic");
-		if (!container.querySelector("[data-formie-error]")) container.innerHTML = "";
-	});
-}
-function clearFormSuccess(form) {
-	clearPendingSuccessHide(form);
-	form.querySelectorAll("[data-formie-message-success]:not([data-formie-success-container])").forEach((node) => {
-		node.remove();
-	});
-	form.querySelectorAll("[data-formie-success-container]").forEach((node) => {
-		const container = node;
-		container.querySelectorAll("[data-formie-success]").forEach((successNode) => {
-			successNode.remove();
+		let o = i.querySelector("[data-formie-field-error]")?.id;
+		r.querySelectorAll("input, select, textarea").forEach((t) => {
+			let n = t;
+			n.setAttribute("aria-invalid", "true"), x(n, e, "fieldControlError"), n.setAttribute("data-formie-input-has-error", "true"), xt(n, a), o && ht(n, o);
+			let i = r.querySelector("[data-formie-instructions]");
+			i?.id && xt(n, i.id);
 		});
-		removeThemeClasses(container, form, "message", "messageSuccess");
-		container.removeAttribute("data-formie-message");
-		container.removeAttribute("data-formie-message-success");
-		container.removeAttribute("role");
-		container.removeAttribute("aria-live");
-		container.removeAttribute("aria-atomic");
-		if (!container.querySelector("[data-formie-success]")) container.innerHTML = "";
-	});
-	if (!(getConfiguredSubmitAction(form) === "message" && shouldHideFormOnSuccess(form))) setFormHiddenState(form, false);
+	}), v(e);
 }
-function clearAriaInvalid(form) {
-	form.querySelectorAll("[aria-invalid=\"true\"]").forEach((node) => {
-		node.removeAttribute("aria-invalid");
+function Ct(e, t) {
+	let n = ut(e), r = dt(e, n);
+	x(n, e, "errors"), t.forEach((t) => {
+		let n = document.createElement("div");
+		n.setAttribute("data-formie-error", "true"), n.setAttribute("role", "alert"), x(n, e, "error"), n.innerHTML = t, r.appendChild(n);
 	});
 }
-function appendDescribedBy(input, describedById) {
-	const current = (input.getAttribute("aria-describedby") || "").trim();
-	const items = current ? current.split(/\s+/) : [];
-	if (!items.includes(describedById)) items.push(describedById);
-	input.setAttribute("aria-describedby", items.join(" ").trim());
+function wt(e, t) {
+	return !t.message || t.nextPage || t.redirect ? !1 : t.action === "save" ? !0 : et(e) === "message" && nt(e) !== "";
 }
-function renderFieldErrors(form, fieldErrors) {
-	Object.entries(fieldErrors).forEach(([handle, messages]) => {
-		const fieldNode = form.querySelector(`[data-formie-field-handle="${handle}"]`);
-		if (!fieldNode) return;
-		const container = ensureFieldErrorContainer(fieldNode);
-		const containerId = container.id && container.id.trim() ? container.id : `${handle}-errors`;
-		container.id = containerId;
-		container.setAttribute("aria-live", "polite");
-		container.setAttribute("aria-atomic", "true");
-		addThemeClasses(fieldNode, form, "fieldLayoutError");
-		fieldNode.setAttribute("data-formie-field-has-error", "true");
-		messages.forEach((message, index) => {
-			const errorNode = document.createElement("div");
-			errorNode.setAttribute("data-formie-field-error", "true");
-			errorNode.setAttribute("role", "alert");
-			errorNode.id = `${containerId}-${index + 1}`;
-			addThemeClasses(errorNode, form, "fieldError");
-			errorNode.textContent = message;
-			container.appendChild(errorNode);
-		});
-		const primaryErrorId = container.querySelector("[data-formie-field-error]")?.id;
-		fieldNode.querySelectorAll("input, select, textarea").forEach((input) => {
-			const element = input;
-			element.setAttribute("aria-invalid", "true");
-			addThemeClasses(element, form, "fieldControlError");
-			element.setAttribute("data-formie-input-has-error", "true");
-			appendDescribedBy(element, containerId);
-			if (primaryErrorId) setErrorMessageReference(element, primaryErrorId);
-			const instructions = fieldNode.querySelector("[data-formie-instructions]");
-			if (instructions?.id) appendDescribedBy(element, instructions.id);
-		});
-	});
-	syncPageTabErrors(form);
-}
-function renderFormErrors(form, formErrors) {
-	const container = ensureFormErrorContainer(form);
-	const messageContainer = ensureFormErrorMessageContainer(form, container);
-	addThemeClasses(container, form, "errors");
-	formErrors.forEach((error) => {
-		const errorNode = document.createElement("div");
-		errorNode.setAttribute("data-formie-error", "true");
-		errorNode.setAttribute("role", "alert");
-		addThemeClasses(errorNode, form, "error");
-		errorNode.innerHTML = error;
-		messageContainer.appendChild(errorNode);
-	});
-}
-function shouldRenderSuccessMessage(form, result) {
-	if (!result.message || result.nextPage || result.redirect) return false;
-	if (result.action === "save") return true;
-	return getConfiguredSubmitAction(form) === "message" && getSuccessMessagePosition(form) !== "";
-}
-function renderFormSuccess(form, message) {
-	const position = getSuccessMessagePosition(form);
-	if (!position) return;
-	const container = ensureFormSuccessContainer(form, position);
-	addThemeClasses(container, form, "message", "messageSuccess");
-	container.setAttribute("data-formie-message", "true");
-	container.setAttribute("data-formie-message-success", "true");
-	container.setAttribute("role", "status");
-	container.setAttribute("aria-live", "polite");
-	container.setAttribute("aria-atomic", "true");
-	const successNode = document.createElement("div");
-	successNode.setAttribute("data-formie-success", "true");
-	addThemeClasses(successNode, form, "success");
-	successNode.innerHTML = message;
-	container.appendChild(successNode);
-	if (shouldHideFormOnSuccess(form)) setFormHiddenState(form, true);
-	const timeoutMs = getSuccessMessageTimeoutMs(form);
-	if (timeoutMs !== null) {
-		const timerId = window.setTimeout(() => {
-			successHideTimers.delete(form);
-			clearFormSuccess(form);
-		}, timeoutMs);
-		successHideTimers.set(form, timerId);
+function Tt(e, t) {
+	let n = nt(e);
+	if (!n) return;
+	let r = ft(e, n);
+	x(r, e, "message", "messageSuccess"), r.setAttribute("data-formie-message", "true"), r.setAttribute("data-formie-message-success", "true"), r.setAttribute("role", "status"), r.setAttribute("aria-live", "polite"), r.setAttribute("aria-atomic", "true");
+	let i = document.createElement("div");
+	i.setAttribute("data-formie-success", "true"), x(i, e, "success"), i.innerHTML = t, r.appendChild(i), it(e) && f(e, !0);
+	let a = rt(e);
+	if (a !== null) {
+		let t = window.setTimeout(() => {
+			F.delete(e), yt(e);
+		}, a);
+		F.set(e, t);
 	}
 }
-function applySubmitResultUi(form, result) {
-	clearFieldErrors(form);
-	clearFormErrors(form);
-	clearFormSuccess(form);
-	clearAriaInvalid(form);
-	if (result.ok) {
-		if (shouldRenderSuccessMessage(form, result)) renderFormSuccess(form, result.message || "");
+function I(e, t) {
+	if (_t(e), vt(e), yt(e), bt(e), t.ok) {
+		wt(e, t) && Tt(e, t.message || "");
 		return;
 	}
-	if (result.fieldErrors) renderFieldErrors(form, result.fieldErrors);
-	if (result.formErrors?.length) {
-		renderFormErrors(form, result.formErrors);
+	if (t.fieldErrors && St(e, t.fieldErrors), t.formErrors?.length) {
+		Ct(e, t.formErrors);
 		return;
 	}
-	if (!result.fieldErrors && result.message) renderFormErrors(form, [result.message]);
+	!t.fieldErrors && t.message && Ct(e, [t.message]);
 }
 //#endregion
 //#region src/js/core/submit-flow.ts
-var debug$3 = createDebug("general", "submit-flow");
-function shouldRefreshTokensAfterSubmit(result) {
-	if (!result.ok && result.stage === "validate") return false;
-	return true;
+var Et = d("general", "submit-flow");
+function Dt(e) {
+	return !(!e.ok && e.stage === "validate");
 }
-function shouldKeepSubmitLoading(result) {
-	if (!result) return false;
-	if (result.keepSubmitLoading === true) return true;
-	if (result.ok && result.redirect?.url && result.redirect.target !== "new-tab") return true;
-	return false;
+function Ot(e) {
+	return e ? !!(e.keepSubmitLoading === !0 || e.ok && e.redirect?.url && e.redirect.target !== "new-tab") : !1;
 }
-function clearSubmitFeedback(form) {
-	clearFieldErrors(form);
-	clearFormErrors(form);
-	clearFormSuccess(form);
-	clearAriaInvalid(form);
+function kt(e) {
+	_t(e), vt(e), yt(e), bt(e);
 }
-async function executeAjaxSubmitFlow(params) {
-	const { id, target, form, bus, validator, validateOnSubmit, action, submitter, waitForSubmitDelay, onRefreshTokensAfterSubmit, dispatchSubmitResult } = params;
-	clearSubmitFeedback(form);
-	setSubmitLoading(form, submitter || null);
-	let result = {
-		ok: false,
+async function At(e) {
+	let { id: t, target: n, form: r, bus: i, validator: a, validateOnSubmit: o, action: s, submitter: c, waitForSubmitDelay: l, onRefreshTokensAfterSubmit: u, dispatchSubmitResult: d } = e;
+	kt(r), g(r, c || null);
+	let f = {
+		ok: !1,
 		code: "SUBMIT_ERROR",
 		message: "Submission failed.",
 		formErrors: ["Submission failed."]
 	};
 	try {
-		await waitForSubmitDelay(form);
-		result = await runSubmitPipeline(form, action, bus, {
-			validator,
-			validateOnSubmit
-		});
-		applySubmitResultUi(form, result);
-		applySubmitResultState(form, result, action);
-		if (shouldRefreshTokensAfterSubmit(result)) await onRefreshTokensAfterSubmit(result);
-		dispatchSubmitResult(result);
-	} catch (error) {
-		result = {
-			ok: false,
+		await l(r), f = await Ue(r, s, i, {
+			validator: a,
+			validateOnSubmit: o
+		}), I(r, f), _(r, f, s), Dt(f) && await u(f), d(f);
+	} catch (e) {
+		f = {
+			ok: !1,
 			code: "SUBMIT_ERROR",
-			message: error instanceof Error ? error.message : "Submission failed.",
-			formErrors: [error instanceof Error ? error.message : "Submission failed."]
-		};
-		applySubmitResultUi(form, result);
-		dispatchSubmitResult(result);
-		debug$3.warn("Submit failed with exception.", {
-			id,
-			action,
-			target,
-			error: error instanceof Error ? error.message : error
+			message: e instanceof Error ? e.message : "Submission failed.",
+			formErrors: [e instanceof Error ? e.message : "Submission failed."]
+		}, I(r, f), d(f), Et.warn("Submit failed with exception.", {
+			id: t,
+			action: s,
+			target: n,
+			error: e instanceof Error ? e.message : e
 		});
 	} finally {
-		if (!shouldKeepSubmitLoading(result)) clearSubmitLoading(form);
+		Ot(f) || m(r);
 	}
-	return result;
+	return f;
 }
 //#endregion
 //#region src/js/modules/registry.ts
-var ModuleRegistry = class {
+var L = class {
 	constructor() {
 		this.modules = /* @__PURE__ */ new Map();
 	}
-	register(moduleDefinition, options = {}) {
-		const existing = this.modules.get(moduleDefinition.id);
-		if (existing === moduleDefinition) return true;
-		if (existing && !options.replace) {
-			console.warn(`[formie] Module "${moduleDefinition.id}" is already registered. Pass { replace: true } to override the existing definition.`);
-			return false;
-		}
-		this.modules.set(moduleDefinition.id, moduleDefinition);
-		return true;
+	register(e, t = {}) {
+		let n = this.modules.get(e.id);
+		return n === e ? !0 : n && !t.replace ? (console.warn(`[formie] Module "${e.id}" is already registered. Pass { replace: true } to override the existing definition.`), !1) : (this.modules.set(e.id, e), !0);
 	}
-	unregister(moduleId) {
-		this.modules.delete(moduleId);
+	unregister(e) {
+		this.modules.delete(e);
 	}
-	get(moduleId) {
-		return this.modules.get(moduleId) || null;
+	get(e) {
+		return this.modules.get(e) || null;
 	}
 	getAll() {
 		return Array.from(this.modules.values());
 	}
-};
-//#endregion
-//#region src/js/modules/address/index.ts
-var builtinAddressModuleLoaders = {
-	"address-finder": () => import("./chunks/address-finder-DfMCiW89.js").then((m) => m.addressFinderModule),
-	"google-address": () => import("./chunks/google-address--uR8WDSm.js").then((m) => m.googleAddressModule),
-	"loqate": () => import("./chunks/loqate-BICNJlVK.js").then((m) => m.loqateModule),
-	"place-kit": () => import("./chunks/place-kit-ldUl-u9w.js").then((m) => m.placeKitModule)
-};
-//#endregion
-//#region src/js/modules/captchas/index.ts
-var builtinCaptchaModuleLoaders = {
-	"captcha-eu": () => import("./chunks/captcha-eu-DnOWhMwr.js").then((module) => module.captchaEuModule),
-	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-CqO4WVre.js").then((module) => module.friendlyCaptchaV1Module),
-	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-CyykcJcM.js").then((module) => module.friendlyCaptchaV2Module),
-	"hcaptcha": () => import("./chunks/hcaptcha-CmaFUesv.js").then((module) => module.hcaptchaModule),
-	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-DPJNyv1X.js").then((module) => module.recaptchaEnterpriseModule),
-	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-zFjpvJ5c.js").then((module) => module.recaptchaV2CheckboxModule),
-	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-CnYtkNvz.js").then((module) => module.recaptchaV2InvisibleModule),
-	"recaptcha-v3": () => import("./chunks/recaptcha-v3-EAlWhnkX.js").then((module) => module.recaptchaV3Module),
-	"snaptcha": () => import("./chunks/snaptcha-CCDunGeb.js").then((module) => module.snaptchaModule),
-	"turnstile": () => import("./chunks/turnstile-DP0bdR7T.js").then((module) => module.turnstileModule)
-};
-//#endregion
-//#region src/js/modules/fields/index.ts
-var builtinFieldModuleLoaders = {
-	"calculations": () => import("./chunks/calculations-CkYAqO_-.js").then((module) => module.calculationsModule),
-	"checkbox-radio": () => import("./chunks/checkbox-radio-0x7Tc0br.js").then((module) => module.checkboxRadioModule),
-	"conditions": () => import("./chunks/conditions-4fXKhEJS.js").then((module) => module.conditionsModule),
-	"date-picker": () => import("./chunks/date-picker-B6iZkjHS.js").then((module) => module.datePickerModule),
-	"file-upload": () => import("./chunks/file-upload-Bh63PQSE.js").then((module) => module.fileUploadModule),
-	"hidden": () => import("./chunks/hidden-CYnZYple.js").then((module) => module.hiddenModule),
-	"phone-country": () => import("./chunks/phone-country-B6Me4lK0.js").then((module) => module.phoneCountryModule),
-	"repeater": () => import("./chunks/repeater-CXD1eLSn.js").then((module) => module.repeaterModule),
-	"rich-text": () => import("./chunks/rich-text-DkmZRhGj.js").then((module) => module.richTextModule),
-	"signature": () => import("./chunks/signature-E9KyYXS1.js").then((module) => module.signatureModule),
-	"summary": () => import("./chunks/summary-EcNE0cvg.js").then((module) => module.summaryModule),
-	"table": () => import("./chunks/table-yxEDL6kA.js").then((module) => module.tableModule),
-	"text-limit": () => import("./chunks/text-limit-D0H_Ca2c.js").then((module) => module.textLimitModule)
-};
-//#endregion
-//#region src/js/modules/payments/index.ts
-var builtinPaymentModuleLoaders = {
-	"bpoint": () => import("./chunks/bpoint-Ciy3yY9Q.js").then((module) => module.bpointModule),
-	"eway": () => import("./chunks/eway-DEAYcwT0.js").then((module) => module.ewayModule),
-	"go-cardless": () => import("./chunks/go-cardless-CuND59rR.js").then((module) => module.goCardlessModule),
-	"mollie": () => import("./chunks/mollie-DwlsgHZ1.js").then((module) => module.mollieModule),
-	"moneris": () => import("./chunks/moneris-B_IFZFTx.js").then((module) => module.monerisModule),
-	"opayo": () => import("./chunks/opayo-U2x_TOII.js").then((module) => module.opayoModule),
-	"paddle": () => import("./chunks/paddle-BqXFrc79.js").then((module) => module.paddleModule),
-	"paypal": () => import("./chunks/paypal-Cn_DYGDb.js").then((module) => module.paypalModule),
-	"payway": () => import("./chunks/payway-Rnq796eC.js").then((module) => module.paywayModule),
-	"square": () => import("./chunks/square-BLqK51rS.js").then((module) => module.squareModule),
-	"stripe": () => import("./chunks/stripe-B8gHpZNC.js").then((module) => module.stripeModule)
-};
-//#endregion
-//#region src/js/modules/loader.ts
-var builtinModuleLoaders = {
-	...builtinFieldModuleLoaders,
-	...builtinAddressModuleLoaders,
-	...builtinCaptchaModuleLoaders,
-	...builtinPaymentModuleLoaders
-};
-var builtinModuleLoadCache = /* @__PURE__ */ new Map();
-var debug$2 = createDebug("general", "loader");
-var importModuleFromSrc = new Function("src", "return import(src);");
-async function emitModuleLifecycleEvent(emit, moduleId, phase, detail) {
-	await emit(getGlobalModuleLifecycleEventName(phase), detail);
-	await emit(getScopedModuleLifecycleEventName(moduleId, phase), detail);
+}, jt = {
+	"address-finder": () => import("./chunks/address-finder-CXl4YmOI.js").then((e) => e.addressFinderModule),
+	"google-address": () => import("./chunks/google-address-D0k64BQv.js").then((e) => e.googleAddressModule),
+	loqate: () => import("./chunks/loqate-BccsO5t0.js").then((e) => e.loqateModule),
+	"place-kit": () => import("./chunks/place-kit-DCN1MmCZ.js").then((e) => e.placeKitModule)
+}, Mt = {
+	"captcha-eu": () => import("./chunks/captcha-eu-wMO5p5qq.js").then((e) => e.captchaEuModule),
+	"friendly-captcha-v1": () => import("./chunks/friendly-captcha-v1-BvlojJKi.js").then((e) => e.friendlyCaptchaV1Module),
+	"friendly-captcha-v2": () => import("./chunks/friendly-captcha-v2-CRIr_Sx5.js").then((e) => e.friendlyCaptchaV2Module),
+	hcaptcha: () => import("./chunks/hcaptcha-CCv3dTQr.js").then((e) => e.hcaptchaModule),
+	"recaptcha-enterprise": () => import("./chunks/recaptcha-enterprise-xtkNSoML.js").then((e) => e.recaptchaEnterpriseModule),
+	"recaptcha-v2-checkbox": () => import("./chunks/recaptcha-v2-checkbox-DedUgbyk.js").then((e) => e.recaptchaV2CheckboxModule),
+	"recaptcha-v2-invisible": () => import("./chunks/recaptcha-v2-invisible-BDEl0Bsz.js").then((e) => e.recaptchaV2InvisibleModule),
+	"recaptcha-v3": () => import("./chunks/recaptcha-v3-CTBkiDHT.js").then((e) => e.recaptchaV3Module),
+	snaptcha: () => import("./chunks/snaptcha-B4BgsUmT.js").then((e) => e.snaptchaModule),
+	turnstile: () => import("./chunks/turnstile-DWUbRXUo.js").then((e) => e.turnstileModule)
+}, Nt = {
+	calculations: () => import("./chunks/calculations-KVkbzCEI.js").then((e) => e.calculationsModule),
+	"checkbox-radio": () => import("./chunks/checkbox-radio-WUgl0nR5.js").then((e) => e.checkboxRadioModule),
+	conditions: () => import("./chunks/conditions-BmgIVbit.js").then((e) => e.conditionsModule),
+	"date-picker": () => import("./chunks/date-picker-DVT743Jx.js").then((e) => e.datePickerModule),
+	"file-upload": () => import("./chunks/file-upload-Bpbxo2FA.js").then((e) => e.fileUploadModule),
+	hidden: () => import("./chunks/hidden--vWnuigP.js").then((e) => e.hiddenModule),
+	"phone-country": () => import("./chunks/phone-country-k0eS9vcA.js").then((e) => e.phoneCountryModule),
+	repeater: () => import("./chunks/repeater-CXB2I2F9.js").then((e) => e.repeaterModule),
+	"rich-text": () => import("./chunks/rich-text-CX3WVaEF.js").then((e) => e.richTextModule),
+	signature: () => import("./chunks/signature-q3AbQT9T.js").then((e) => e.signatureModule),
+	summary: () => import("./chunks/summary-BtJzUToG.js").then((e) => e.summaryModule),
+	table: () => import("./chunks/table-BJstRCVy.js").then((e) => e.tableModule),
+	"text-limit": () => import("./chunks/text-limit-gFoaFOAt.js").then((e) => e.textLimitModule)
+}, Pt = {
+	bpoint: () => import("./chunks/bpoint-D-zbssUp.js").then((e) => e.bpointModule),
+	eway: () => import("./chunks/eway-Bb_pdXyx.js").then((e) => e.ewayModule),
+	"go-cardless": () => import("./chunks/go-cardless-BoRR7krL.js").then((e) => e.goCardlessModule),
+	mollie: () => import("./chunks/mollie-D9FsmBaL.js").then((e) => e.mollieModule),
+	moneris: () => import("./chunks/moneris-DOrxQzeB.js").then((e) => e.monerisModule),
+	opayo: () => import("./chunks/opayo-BvUbb6Up.js").then((e) => e.opayoModule),
+	paddle: () => import("./chunks/paddle-BkJ0dXOL.js").then((e) => e.paddleModule),
+	paypal: () => import("./chunks/paypal-BUZG7oBz.js").then((e) => e.paypalModule),
+	payway: () => import("./chunks/payway-CNXRwIfk.js").then((e) => e.paywayModule),
+	square: () => import("./chunks/square-D2I3V3Pg.js").then((e) => e.squareModule),
+	stripe: () => import("./chunks/stripe-CaIkX-W5.js").then((e) => e.stripeModule)
+}, Ft = {
+	...Nt,
+	...jt,
+	...Mt,
+	...Pt
+}, R = /* @__PURE__ */ new Map(), z = d("general", "loader"), It = Function("src", "return import(src);");
+async function B(t, n, i, a) {
+	await t(r(i), a), await t(e(n, i), a);
 }
-function isModuleDefinition(definition) {
-	return !!definition && typeof definition === "object" && typeof definition.id === "string" && typeof definition.setup === "function" && typeof definition.match === "function";
+function Lt(e) {
+	return !!e && typeof e == "object" && typeof e.id == "string" && typeof e.setup == "function" && typeof e.match == "function";
 }
-async function resolveBuiltinDefinition(moduleId, ctx) {
-	const loader = builtinModuleLoaders[moduleId];
-	if (!loader) return null;
-	if (!builtinModuleLoadCache.has(moduleId)) builtinModuleLoadCache.set(moduleId, (async () => {
+async function Rt(e, t) {
+	let n = Ft[e];
+	return n ? (R.has(e) || R.set(e, (async () => {
 		try {
-			const definition = await loader();
-			if (!isModuleDefinition(definition)) return null;
-			ctx.registry.register(definition);
-			return definition;
-		} catch (error) {
-			console.error("[formie] Failed to load builtin module:", moduleId, error);
-			debug$2.warn("Failed loading builtin module.", {
-				moduleId,
-				error
-			});
-			return null;
+			let e = await n();
+			return Lt(e) ? (t.registry.register(e), e) : null;
+		} catch (t) {
+			return console.error("[formie] Failed to load builtin module:", e, t), z.warn("Failed loading builtin module.", {
+				moduleId: e,
+				error: t
+			}), null;
 		}
-	})());
-	return builtinModuleLoadCache.get(moduleId) || null;
+	})()), R.get(e) || null) : null;
 }
-async function resolveDefinitionFromSrc(src) {
+async function zt(e) {
 	try {
-		const imported = await importModuleFromSrc(src);
-		const definition = imported?.default || imported?.formieModule || null;
-		if (!isModuleDefinition(definition)) return null;
-		return definition;
-	} catch (error) {
-		console.error("[formie] Failed to load module from src:", src, error);
-		debug$2.warn("Failed loading module from src.", {
-			src,
-			error
-		});
-		return null;
+		let t = await It(e), n = t?.default || t?.formieModule || null;
+		return Lt(n) ? n : null;
+	} catch (t) {
+		return console.error("[formie] Failed to load module from src:", e, t), z.warn("Failed loading module from src.", {
+			src: e,
+			error: t
+		}), null;
 	}
 }
-async function resolveDefinition(manifestItem, ctx) {
-	const registered = ctx.registry.get(manifestItem.id);
-	if (registered) return registered;
-	const builtin = await resolveBuiltinDefinition(manifestItem.id, ctx);
-	if (builtin) return builtin;
-	if (manifestItem.src) {
-		const fromSrc = await resolveDefinitionFromSrc(manifestItem.src);
-		if (fromSrc) {
-			ctx.registry.register(fromSrc);
-			return fromSrc;
-		}
+async function Bt(e, t) {
+	let n = t.registry.get(e.id);
+	if (n) return n;
+	let r = await Rt(e.id, t);
+	if (r) return r;
+	if (e.src) {
+		let n = await zt(e.src);
+		if (n) return t.registry.register(n), n;
 	}
 	return null;
 }
-function escapeSelectorValue(value) {
-	if (typeof window.CSS?.escape === "function") return window.CSS.escape(value);
-	return value.replace(/["\\]/g, "\\$&");
+function V(e) {
+	return typeof window.CSS?.escape == "function" ? window.CSS.escape(e) : e.replace(/["\\]/g, "\\$&");
 }
-function queryTargets(root, selector) {
-	if (root.matches(selector)) return [root, ...Array.from(root.querySelectorAll(selector))];
-	return Array.from(root.querySelectorAll(selector));
+function H(e, t) {
+	return e.matches(t) ? [e, ...Array.from(e.querySelectorAll(t))] : Array.from(e.querySelectorAll(t));
 }
-function resolveTarget(target, ctx) {
-	const root = ctx.setupContext.root;
-	const form = ctx.setupContext.form;
-	const scope = target.targetType;
-	const targetId = target.targetId;
-	if (scope === "selector") return queryTargets(root, targetId).map((element) => {
-		return {
-			scope,
-			element
-		};
-	});
-	if (scope === "field") return queryTargets(root, `[data-formie-field-handle="${escapeSelectorValue(targetId)}"]`).map((element) => {
-		return {
-			scope,
-			element
-		};
-	});
-	if (scope === "page") return queryTargets(root, `[data-formie-page-id="${escapeSelectorValue(targetId)}"]`).map((element) => {
-		return {
-			scope,
-			element
-		};
-	});
-	if (scope === "button") return queryTargets(root, `[data-formie-action="${escapeSelectorValue(targetId)}"]`).map((element) => {
-		return {
-			scope,
-			element
-		};
-	});
-	return [{
+function Vt(e, t) {
+	let n = t.setupContext.root, r = t.setupContext.form, i = e.targetType, a = e.targetId;
+	return i === "selector" ? H(n, a).map((e) => ({
+		scope: i,
+		element: e
+	})) : i === "field" ? H(n, `[data-formie-field-handle="${V(a)}"]`).map((e) => ({
+		scope: i,
+		element: e
+	})) : i === "page" ? H(n, `[data-formie-page-id="${V(a)}"]`).map((e) => ({
+		scope: i,
+		element: e
+	})) : i === "button" ? H(n, `[data-formie-action="${V(a)}"]`).map((e) => ({
+		scope: i,
+		element: e
+	})) : [{
 		scope: "form",
-		element: form || root
+		element: r || n
 	}];
 }
-function resolveTargets(item, ctx) {
-	return (item.targets && item.targets.length > 0 ? item.targets : [{
+function Ht(e, t) {
+	return (e.targets && e.targets.length > 0 ? e.targets : [{
 		targetType: "form",
 		targetId: "form"
-	}]).flatMap((target) => {
-		return resolveTarget(target, ctx);
-	});
+	}]).flatMap((e) => Vt(e, t));
 }
-async function loadModulesFromManifest(manifest, ctx) {
-	const instances = [];
-	debug$2.log("Loading module manifest.", { manifestCount: manifest.length });
-	for (const item of manifest) {
-		const definition = await resolveDefinition(item, ctx);
-		if (!definition) {
-			debug$2.warn("Skipping manifest item (definition not resolved).", {
-				moduleId: item.id,
-				src: item.src
+async function Ut(e, t) {
+	let n = [];
+	z.log("Loading module manifest.", { manifestCount: e.length });
+	for (let r of e) {
+		let e = await Bt(r, t);
+		if (!e) {
+			z.warn("Skipping manifest item (definition not resolved).", {
+				moduleId: r.id,
+				src: r.src
 			});
 			continue;
 		}
-		const targets = resolveTargets(item, ctx);
-		debug$2.log("Resolved module targets.", {
-			moduleId: definition.id,
-			targets: item.targets || [],
-			targetCount: targets.length
-		});
-		if (targets.length === 0 && definition.kind === "address") console.warn(`[formie] Address module "${item.id}" skipped: no target element found for fieldHandle="${item.targets?.find((target) => target.targetType === "field")?.targetId ?? "?"}". Check that the Address field exists in the rendered form.`);
-		for (const target of targets) {
-			const matchContext = {
-				...ctx.matchContext,
-				target: target.element,
-				scope: target.scope,
-				manifestItem: item
+		let i = Ht(r, t);
+		z.log("Resolved module targets.", {
+			moduleId: e.id,
+			targets: r.targets || [],
+			targetCount: i.length
+		}), i.length === 0 && e.kind === "address" && console.warn(`[formie] Address module "${r.id}" skipped: no target element found for fieldHandle="${r.targets?.find((e) => e.targetType === "field")?.targetId ?? "?"}". Check that the Address field exists in the rendered form.`);
+		for (let a of i) {
+			let i = {
+				...t.matchContext,
+				target: a.element,
+				scope: a.scope,
+				manifestItem: r
 			};
-			if (!definition.match(matchContext)) {
-				if (definition.kind === "address") console.warn(`[formie] Address module "${definition.id}" skipped: target element does not contain [data-formie-address-autocomplete-input]. Enable the Auto-Complete subfield.`);
-				debug$2.log("Module target did not match predicate.", {
-					moduleId: definition.id,
-					scope: target.scope
+			if (!e.match(i)) {
+				e.kind === "address" && console.warn(`[formie] Address module "${e.id}" skipped: target element does not contain [data-formie-address-autocomplete-input]. Enable the Auto-Complete subfield.`), z.log("Module target did not match predicate.", {
+					moduleId: e.id,
+					scope: a.scope
 				});
 				continue;
 			}
-			const options = item.config || ctx.setupContext.options;
-			const moduleEventName = definition.id;
-			const lifecycleDetail = {
-				moduleId: definition.id,
-				moduleKind: definition.kind,
-				target: target.element,
-				scope: target.scope,
-				options,
-				manifestItem: item
+			let o = r.config || t.setupContext.options, s = e.id, c = {
+				moduleId: e.id,
+				moduleKind: e.kind,
+				target: a.element,
+				scope: a.scope,
+				options: o,
+				manifestItem: r
 			};
-			await emitModuleLifecycleEvent(ctx.setupContext.emit, moduleEventName, "before-setup", lifecycleDetail);
-			let instance = null;
+			await B(t.setupContext.emit, s, "before-setup", c);
+			let l = null;
 			try {
-				const setupResult = await definition.setup({
-					...ctx.setupContext,
-					target: target.element,
-					scope: target.scope,
-					options
+				let n = await e.setup({
+					...t.setupContext,
+					target: a.element,
+					scope: a.scope,
+					options: o
 				});
-				if (setupResult) instance = setupResult;
-			} catch (err) {
-				console.error(`[formie] Module "${definition.id}" setup failed:`, err);
-				debug$2.warn("Module setup failed.", {
-					moduleId: definition.id,
-					scope: target.scope,
-					error: err
-				});
-			}
-			await emitModuleLifecycleEvent(ctx.setupContext.emit, moduleEventName, "after-setup", {
-				...lifecycleDetail,
-				instanceCreated: !!instance
-			});
-			if (instance) {
-				debug$2.log("Module instance created.", {
-					moduleId: definition.id,
-					scope: target.scope
-				});
-				instances.push({
-					...instance,
-					destroy: async () => {
-						debug$2.log("Destroying module instance.", {
-							moduleId: definition.id,
-							scope: target.scope
-						});
-						await emitModuleLifecycleEvent(ctx.setupContext.emit, moduleEventName, "before-destroy", lifecycleDetail);
-						await instance.destroy();
-						await emitModuleLifecycleEvent(ctx.setupContext.emit, moduleEventName, "after-destroy", lifecycleDetail);
-						debug$2.log("Module instance destroyed.", {
-							moduleId: definition.id,
-							scope: target.scope
-						});
-					}
+				n && (l = n);
+			} catch (t) {
+				console.error(`[formie] Module "${e.id}" setup failed:`, t), z.warn("Module setup failed.", {
+					moduleId: e.id,
+					scope: a.scope,
+					error: t
 				});
 			}
+			await B(t.setupContext.emit, s, "after-setup", {
+				...c,
+				instanceCreated: !!l
+			}), l && (z.log("Module instance created.", {
+				moduleId: e.id,
+				scope: a.scope
+			}), n.push({
+				...l,
+				destroy: async () => {
+					z.log("Destroying module instance.", {
+						moduleId: e.id,
+						scope: a.scope
+					}), await B(t.setupContext.emit, s, "before-destroy", c), await l.destroy(), await B(t.setupContext.emit, s, "after-destroy", c), z.log("Module instance destroyed.", {
+						moduleId: e.id,
+						scope: a.scope
+					});
+				}
+			}));
 		}
 	}
-	debug$2.log("Module manifest processing complete.", { instanceCount: instances.length });
-	return instances;
+	return z.log("Module manifest processing complete.", { instanceCount: n.length }), n;
 }
 //#endregion
 //#region src/js/utils/unload-warning.ts
-var DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
+var Wt = new Set([
 	"CRAFT_CSRF_TOKEN",
 	"action",
 	"redirect",
@@ -1980,580 +1482,421 @@ var DIRTY_TRACKING_IGNORED_FIELD_NAMES = new Set([
 	"draftContext",
 	"continuationToken"
 ]);
-function serializeStableValue(value, seen) {
-	if (value == null) return String(value);
-	if (typeof value === "string") return JSON.stringify(value);
-	if (typeof value === "number" || typeof value === "boolean") return String(value);
-	if (typeof value === "function") return "[function]";
-	if (typeof File !== "undefined" && value instanceof File) return `[file:${value.name}:${value.size}:${value.type}]`;
-	if (typeof Blob !== "undefined" && value instanceof Blob) return `[blob:${value.size}:${value.type}]`;
-	if (Array.isArray(value)) return `[${value.map((item) => serializeStableValue(item, seen)).join(",")}]`;
-	if (typeof value === "object") {
-		if (seen.has(value)) return "[circular]";
-		seen.add(value);
-		const entries = Object.entries(value).sort(([left], [right]) => left.localeCompare(right)).map(([key, item]) => {
-			return `${JSON.stringify(key)}:${serializeStableValue(item, seen)}`;
-		});
-		seen.delete(value);
-		return `{${entries.join(",")}}`;
+function U(e, t) {
+	if (e == null) return String(e);
+	if (typeof e == "string") return JSON.stringify(e);
+	if (typeof e == "number" || typeof e == "boolean") return String(e);
+	if (typeof e == "function") return "[function]";
+	if (typeof File < "u" && e instanceof File) return `[file:${e.name}:${e.size}:${e.type}]`;
+	if (typeof Blob < "u" && e instanceof Blob) return `[blob:${e.size}:${e.type}]`;
+	if (Array.isArray(e)) return `[${e.map((e) => U(e, t)).join(",")}]`;
+	if (typeof e == "object") {
+		if (t.has(e)) return "[circular]";
+		t.add(e);
+		let n = Object.entries(e).sort(([e], [t]) => e.localeCompare(t)).map(([e, n]) => `${JSON.stringify(e)}:${U(n, t)}`);
+		return t.delete(e), `{${n.join(",")}}`;
 	}
-	return JSON.stringify(String(value));
+	return JSON.stringify(String(e));
 }
-function stableSerialize(value) {
-	return serializeStableValue(value, /* @__PURE__ */ new WeakSet());
+function Gt(e) {
+	return U(e, /* @__PURE__ */ new WeakSet());
 }
-function shouldTrackFieldName(name) {
-	if (!name) return false;
-	const normalizedName = name.endsWith("[]") ? name.slice(0, -2) : name;
-	return !DIRTY_TRACKING_IGNORED_FIELD_NAMES.has(normalizedName);
+function Kt(e) {
+	if (!e) return !1;
+	let t = e.endsWith("[]") ? e.slice(0, -2) : e;
+	return !Wt.has(t);
 }
-function buildTrackedSnapshot(form) {
-	return stableSerialize(Array.from(new FormData(form).entries()).filter(([name]) => {
-		return shouldTrackFieldName(String(name || ""));
-	}));
+function qt(e) {
+	return Gt(Array.from(new FormData(e).entries()).filter(([e]) => Kt(String(e || ""))));
 }
-function createFormUnloadWarningGuard(form, options = {}) {
-	let baselineSnapshot = null;
-	let isReady = false;
-	let isDirty = false;
-	let animationFrameId = null;
-	let dirtyTimerId = null;
-	let baselineTimerId = null;
-	const clearScheduledWork = () => {
-		if (animationFrameId !== null) {
-			window.cancelAnimationFrame(animationFrameId);
-			animationFrameId = null;
-		}
-		if (dirtyTimerId !== null) {
-			window.clearTimeout(dirtyTimerId);
-			dirtyTimerId = null;
-		}
-		if (baselineTimerId !== null) {
-			window.clearTimeout(baselineTimerId);
-			baselineTimerId = null;
-		}
-	};
-	const refreshDirtyState = () => {
-		if (!isReady) return false;
-		isDirty = buildTrackedSnapshot(form) !== baselineSnapshot;
-		return isDirty;
-	};
-	const captureBaseline = () => {
-		baselineSnapshot = buildTrackedSnapshot(form);
-		isReady = true;
-		isDirty = false;
-	};
-	const scheduleBaselineCapture = () => {
-		clearScheduledWork();
-		isReady = false;
-		animationFrameId = window.requestAnimationFrame(() => {
-			animationFrameId = null;
-			baselineTimerId = window.setTimeout(() => {
-				baselineTimerId = null;
-				captureBaseline();
+function Jt(e, t = {}) {
+	let n = null, r = !1, i = !1, a = null, o = null, s = null, c = () => {
+		a !== null && (window.cancelAnimationFrame(a), a = null), o !== null && (window.clearTimeout(o), o = null), s !== null && (window.clearTimeout(s), s = null);
+	}, l = () => r ? (i = qt(e) !== n, i) : !1, u = () => {
+		n = qt(e), r = !0, i = !1;
+	}, d = () => {
+		c(), r = !1, a = window.requestAnimationFrame(() => {
+			a = null, s = window.setTimeout(() => {
+				s = null, u();
 			}, 0);
 		});
-	};
-	const scheduleDirtyRefresh = () => {
-		if (dirtyTimerId !== null) window.clearTimeout(dirtyTimerId);
-		dirtyTimerId = window.setTimeout(() => {
-			dirtyTimerId = null;
-			refreshDirtyState();
+	}, f = () => {
+		o !== null && window.clearTimeout(o), o = window.setTimeout(() => {
+			o = null, l();
 		}, 120);
+	}, p = (e) => {
+		t.shouldWarn && !t.shouldWarn() || l() && (e.preventDefault(), e.returnValue = "");
 	};
-	const handleBeforeUnload = (event) => {
-		if (options.shouldWarn && !options.shouldWarn()) return;
-		if (!refreshDirtyState()) return;
-		event.preventDefault();
-		event.returnValue = "";
-	};
-	form.addEventListener("input", scheduleDirtyRefresh);
-	form.addEventListener("change", scheduleDirtyRefresh);
-	window.addEventListener("beforeunload", handleBeforeUnload);
-	scheduleBaselineCapture();
-	return {
-		captureBaseline,
-		scheduleBaselineCapture,
-		refreshDirtyState,
+	return e.addEventListener("input", f), e.addEventListener("change", f), window.addEventListener("beforeunload", p), d(), {
+		captureBaseline: u,
+		scheduleBaselineCapture: d,
+		refreshDirtyState: l,
 		destroy: () => {
-			clearScheduledWork();
-			form.removeEventListener("input", scheduleDirtyRefresh);
-			form.removeEventListener("change", scheduleDirtyRefresh);
-			window.removeEventListener("beforeunload", handleBeforeUnload);
+			c(), e.removeEventListener("input", f), e.removeEventListener("change", f), window.removeEventListener("beforeunload", p);
 		}
 	};
 }
 //#endregion
 //#region src/js/core/create-formie-client.ts
-var ROOT_SELECTORS = "[data-formie]:not([data-formie-init=\"false\"]), [data-formie-form]:not([data-formie-init=\"false\"])";
-var DEFAULT_SUBMIT_DELAY_MS = 300;
-var DEFAULT_HEADLESS_RENDER_ACTION = "/actions/formie/server/forms/render";
-var DEFAULT_HEADLESS_GRAPHQL_ENDPOINT = "/api";
-var DEFAULT_HEADLESS_REFRESH_TOKENS_ACTION = "/actions/formie/server/forms/refresh-tokens";
-var DEFAULT_HEADLESS_SUBMIT_ACTION = "/actions/formie/server/submissions/submit";
-var DEFAULT_HEADLESS_SET_PAGE_ACTION = "/actions/formie/server/submissions/set-page";
-var DEFAULT_HEADLESS_CLEAR_SUBMISSION_ACTION = "/actions/formie/server/submissions/clear-submission";
-var DEFAULT_FILE_UPLOAD_HYDRATE_ACTION = "/actions/formie/file-upload/hydrate";
-var debug$1 = createDebug("general", "client");
-var compatibilityWarnings = /* @__PURE__ */ new Set();
-function parseBooleanOption(value, defaultValue) {
-	if (value == null || value === "") return defaultValue;
-	const normalized = value.toLowerCase();
-	return !(normalized === "false" || normalized === "0" || normalized === "off");
+var W = "[data-formie]:not([data-formie-init=\"false\"]), [data-formie-form]:not([data-formie-init=\"false\"])", Yt = 300, Xt = "/actions/formie/server/forms/render", Zt = "/api", Qt = "/actions/formie/server/forms/refresh-tokens", $t = "/actions/formie/server/submissions/submit", en = "/actions/formie/server/submissions/set-page", tn = "/actions/formie/server/submissions/clear-submission", nn = "/actions/formie/file-upload/hydrate", G = d("general", "client"), rn = /* @__PURE__ */ new Set();
+function K(e, t) {
+	if (e == null || e === "") return t;
+	let n = e.toLowerCase();
+	return !(n === "false" || n === "0" || n === "off");
 }
-function inferStaticCacheOnLoadFromDataset(dataset) {
-	if (dataset.formieRefreshTokens != null && dataset.formieRefreshTokens !== "") return parseBooleanOption(dataset.formieRefreshTokens, false);
-	if (dataset.formieStaticCache != null && dataset.formieStaticCache !== "") return parseBooleanOption(dataset.formieStaticCache, false);
-	return false;
+function an(e) {
+	return e.formieRefreshTokens != null && e.formieRefreshTokens !== "" ? K(e.formieRefreshTokens, !1) : e.formieStaticCache != null && e.formieStaticCache !== "" ? K(e.formieStaticCache, !1) : !1;
 }
-function inferOptionsFromElement(target) {
-	const dataset = target instanceof HTMLElement ? target.dataset : {};
+function q(e) {
+	let t = e instanceof HTMLElement ? e.dataset : {};
 	return {
 		mode: "server-rendered",
-		transport: dataset.formieTransport || "rest",
-		formHandle: dataset.formieHandle,
-		endpoint: dataset.formieEndpoint,
-		staticCache: inferStaticCacheOnLoadFromDataset(dataset),
-		autoVisible: parseBooleanOption(dataset.formieAutoVisible, true),
-		compatibility: parseBooleanOption(dataset.formieCompatibility, false)
+		transport: t.formieTransport || "rest",
+		formHandle: t.formieHandle,
+		endpoint: t.formieEndpoint,
+		staticCache: an(t),
+		autoVisible: K(t.formieAutoVisible, !0),
+		compatibility: K(t.formieCompatibility, !1)
 	};
 }
-function normalizeMode(mode) {
-	return mode || "server-rendered";
+function J(e) {
+	return e || "server-rendered";
 }
-function normalizeTransport(transport) {
-	return transport || "rest";
+function Y(e) {
+	return e || "rest";
 }
-function getFormFromTarget(target) {
-	if (target instanceof HTMLFormElement) return target;
-	return target.querySelector("form");
+function X(e) {
+	return e instanceof HTMLFormElement ? e : e.querySelector("form");
 }
-function warnCompatibilityOnce(key, message) {
-	if (compatibilityWarnings.has(key)) return;
-	compatibilityWarnings.add(key);
-	debug$1.warn(message);
+function on(e, t) {
+	rn.has(e) || (rn.add(e), G.warn(t));
 }
-function resolveEndpointAgainstBase(endpoint, baseEndpoint) {
-	if (!endpoint) return endpoint;
+function sn(e, t) {
+	if (!e) return e;
 	try {
-		return new URL(endpoint).toString();
-	} catch (_error) {}
-	if (!baseEndpoint) return endpoint;
+		return new URL(e).toString();
+	} catch {}
+	if (!t) return e;
 	try {
-		return new URL(endpoint, baseEndpoint).toString();
-	} catch (_error) {
-		return endpoint;
+		return new URL(e, t).toString();
+	} catch {
+		return e;
 	}
 }
-function resolveHeadlessEndpoint(baseOrEndpoint, actionPath) {
-	const candidate = (baseOrEndpoint || "").trim();
-	if (!candidate) return actionPath;
-	if (candidate.includes("/actions/")) return candidate;
-	return resolveEndpointAgainstBase(actionPath, candidate);
+function Z(e, t) {
+	let n = (e || "").trim();
+	return n ? n.includes("/actions/") ? n : sn(t, n) : t;
 }
-function resolveHtmlRenderEndpoint(options, target) {
-	return resolveHeadlessEndpoint(options.endpoint || target.dataset.formieEndpoint, DEFAULT_HEADLESS_RENDER_ACTION);
+function cn(e, t) {
+	return Z(e.endpoint || t.dataset.formieEndpoint, Xt);
 }
-function resolveGraphqlEndpoint(options, target) {
-	const candidate = (options.endpoint || target.dataset.formieEndpoint || "").trim();
-	if (!candidate) return DEFAULT_HEADLESS_GRAPHQL_ENDPOINT;
-	if (candidate.includes("/graphql") || candidate.endsWith("/api") || candidate.includes("/actions/graphql/")) return candidate;
-	return resolveEndpointAgainstBase(DEFAULT_HEADLESS_GRAPHQL_ENDPOINT, candidate);
+function ln(e, t) {
+	let n = (e.endpoint || t.dataset.formieEndpoint || "").trim();
+	return n ? n.includes("/graphql") || n.endsWith("/api") || n.includes("/actions/graphql/") ? n : sn(Zt, n) : Zt;
 }
-function resolveRefreshTokensEndpoint(options, target) {
-	return resolveHeadlessEndpoint(target.dataset.formieRefreshTokensEndpoint || options.endpoint || target.dataset.formieEndpoint, DEFAULT_HEADLESS_REFRESH_TOKENS_ACTION);
+function un(e, t) {
+	return Z(t.dataset.formieRefreshTokensEndpoint || e.endpoint || t.dataset.formieEndpoint, Qt);
 }
-function mergeSearchParams(sourceUrl, destinationUrl) {
-	if (!sourceUrl) return destinationUrl;
+function dn(e, t) {
+	if (!e) return t;
 	try {
-		const source = new URL(sourceUrl, window.location.origin);
-		const destination = new URL(destinationUrl, window.location.origin);
-		source.searchParams.forEach((value, key) => {
-			if (!destination.searchParams.has(key)) destination.searchParams.set(key, value);
+		let n = new URL(e, window.location.origin), r = new URL(t, window.location.origin);
+		return n.searchParams.forEach((e, t) => {
+			r.searchParams.has(t) || r.searchParams.set(t, e);
+		}), r.toString();
+	} catch {
+		return t;
+	}
+}
+function fn(e, t, n) {
+	let r = n.endpoint || e.dataset.formieEndpoint, i = Z(r, $t), a = t.getAttribute("action");
+	t.setAttribute("action", dn(a, i)), t.querySelectorAll("[data-formie-tab-link]").forEach((e) => {
+		let t = e.getAttribute("href"), n = Z(r, en);
+		e.setAttribute("href", dn(t, n));
+	}), t.querySelectorAll("[data-formie-file-upload-hydrate-endpoint]").forEach((e) => {
+		e.setAttribute("data-formie-file-upload-hydrate-endpoint", Z(r, nn));
+	});
+}
+function pn(e, t) {
+	if (e === "graphql" && t !== "server-rendered") throw Error(`Formie ${t} mode does not support GraphQL transport yet.`);
+}
+function mn(e) {
+	if (e == null) return !1;
+	let t = e.trim().toLowerCase();
+	return t === "true" || t === "1" || t === "";
+}
+function hn(e) {
+	return K(e.dataset.formieAutomaticSubmissionState, !0);
+}
+function gn(e, t, n) {
+	return Z(n.dataset.formieClearSubmissionEndpoint || e.endpoint || t.dataset.formieEndpoint, tn);
+}
+function _n(e) {
+	return mn(e.dataset.formieUnloadWarning);
+}
+function vn(e, t) {
+	e.setAttribute("data-formie-internal-navigation", t);
+}
+function yn(e) {
+	e.removeAttribute("data-formie-internal-navigation");
+}
+function bn(e) {
+	return e.getAttribute("data-formie-internal-navigation") !== null;
+}
+function xn(e, t) {
+	if (!e) return !1;
+	try {
+		return new URL(e, window.location.origin).searchParams.has(t);
+	} catch {
+		return !1;
+	}
+}
+function Sn(e) {
+	return xn(window.location.href, "resumeToken") || xn(e.getAttribute("action"), "resumeToken");
+}
+function Cn(e) {
+	return e instanceof MouseEvent ? e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey : !0;
+}
+function wn(e, t = 0) {
+	if (!e) return t;
+	let n = Number.parseInt(e, 10);
+	return Number.isFinite(n) ? n : t;
+}
+function Tn(e) {
+	return Math.max(0, wn(e.dataset.formieSubmitDelay, Yt));
+}
+function En(e) {
+	return mn(e.dataset.formieValidationOnSubmit);
+}
+async function Dn(e) {
+	let t = Tn(e);
+	t < 1 || await new Promise((e) => {
+		window.setTimeout(e, t);
+	});
+}
+function On(e, t) {
+	let n = e?.getAttribute(t)?.trim();
+	if (!n) return null;
+	try {
+		return JSON.parse(n);
+	} catch (e) {
+		return console.error(`[formie] Failed to parse ${t}.`, e), null;
+	}
+}
+function kn(e, t) {
+	let n = t || (e instanceof HTMLFormElement ? e : null);
+	if (!n) return null;
+	let r = On(n, "data-formie-modules"), i = On(n, "data-formie-theme");
+	return !r && !i ? null : {
+		modules: r || void 0,
+		theme: i || void 0
+	};
+}
+function An(e) {
+	if (!(e instanceof HTMLElement)) return !0;
+	if (!e.isConnected || e.hidden || e.closest("[hidden]")) return !1;
+	let t = window.getComputedStyle(e);
+	return t.display === "none" || t.visibility === "hidden" ? !1 : e.getClientRects().length > 0;
+}
+function jn(e, t) {
+	return t === document ? !0 : t instanceof Element ? t === e || t.contains(e) : !0;
+}
+function Q(e) {
+	let t = e, n = t.id ? `#${t.id}` : "", r = t.dataset?.formieHandle ? `[handle="${t.dataset.formieHandle}"]` : "";
+	return `${t.tagName ? t.tagName.toLowerCase() : "element"}${n}${r}`;
+}
+function Mn(e, t) {
+	if (t) {
+		if (t.csrf?.param && t.csrf?.token) {
+			let n = e.querySelector(`input[name="${t.csrf.param}"]`);
+			n && (n.value = t.csrf.token);
+		}
+		if (t.requestToken) {
+			let n = e.querySelector("input[name=\"requestToken\"]");
+			n && (n.value = t.requestToken);
+		}
+		if (t.renderId) {
+			let n = e.querySelector("input[name=\"renderId\"]");
+			n && (n.value = t.renderId);
+		}
+		t.captchas && typeof t.captchas == "object" && Object.values(t.captchas).forEach((t) => {
+			if (!t || typeof t != "object") return;
+			let n = t;
+			if (!n.sessionKey) return;
+			let r = e.querySelector(`input[name="${n.sessionKey}"]`);
+			r && typeof n.value == "string" && (r.value = n.value);
 		});
-		return destination.toString();
-	} catch (_error) {
-		return destinationUrl;
 	}
 }
-function normalizeHeadlessManagedUrls(target, form, options) {
-	const baseEndpoint = options.endpoint || target.dataset.formieEndpoint;
-	const submitAction = resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SUBMIT_ACTION);
-	const existingAction = form.getAttribute("action");
-	form.setAttribute("action", mergeSearchParams(existingAction, submitAction));
-	form.querySelectorAll("[data-formie-tab-link]").forEach((link) => {
-		const existingHref = link.getAttribute("href");
-		const setPageEndpoint = resolveHeadlessEndpoint(baseEndpoint, DEFAULT_HEADLESS_SET_PAGE_ACTION);
-		link.setAttribute("href", mergeSearchParams(existingHref, setPageEndpoint));
+async function Nn(e, t) {
+	let n = J(t.mode), r = Y(t.transport);
+	if (n !== "server-rendered") return null;
+	if (t.payload) return t.payload.html && (e.innerHTML = t.payload.html), t.payload;
+	pn(r, n);
+	let i = !!X(e), a = t.formHandle || e.dataset.formieHandle;
+	if (i || !a) return null;
+	let o = {
+		mode: n,
+		endpoint: t.endpoint,
+		locale: t.locale,
+		siteId: t.siteId,
+		theme: t.theme,
+		themeConfig: t.themeConfig
+	}, s = r === "graphql" ? ln(t, e) : cn(t, e), c = r === "graphql" ? await Ee(s, a, o) : await Te(s, a, {
+		...o,
+		endpoint: s
 	});
-	form.querySelectorAll("[data-formie-file-upload-hydrate-endpoint]").forEach((input) => {
-		input.setAttribute("data-formie-file-upload-hydrate-endpoint", resolveHeadlessEndpoint(baseEndpoint, DEFAULT_FILE_UPLOAD_HYDRATE_ACTION));
-	});
+	return c?.html && (e.innerHTML = c.html), c;
 }
-function ensureSupportedHeadlessTransport(transport, mode) {
-	if (transport === "graphql" && mode !== "server-rendered") throw new Error(`Formie ${mode} mode does not support GraphQL transport yet.`);
+async function Pn(e, t, n) {
+	if (t.refreshTokens === !1) return;
+	pn(Y(t.transport), J(t.mode));
+	let r = t.formHandle || e.dataset.formieHandle;
+	if (!r) return;
+	let i = await j(un(t, e), r, n.querySelector("input[name=\"renderId\"]")?.value || void 0);
+	Mn(n, i), k(e, "formie:refresh-tokens:refreshed", i);
 }
-function parseBooleanDatasetValue(value) {
-	if (value == null) return false;
-	const normalized = value.trim().toLowerCase();
-	return normalized === "true" || normalized === "1" || normalized === "";
-}
-function hasAutomaticSubmissionState(form) {
-	return parseBooleanOption(form.dataset.formieAutomaticSubmissionState, true);
-}
-function resolveClearSubmissionEndpoint(options, target, form) {
-	return resolveHeadlessEndpoint(form.dataset.formieClearSubmissionEndpoint || options.endpoint || target.dataset.formieEndpoint, DEFAULT_HEADLESS_CLEAR_SUBMISSION_ACTION);
-}
-function shouldEnableUnloadWarning(form) {
-	return parseBooleanDatasetValue(form.dataset.formieUnloadWarning);
-}
-function markInternalNavigation(form, reason) {
-	form.setAttribute("data-formie-internal-navigation", reason);
-}
-function clearInternalNavigation(form) {
-	form.removeAttribute("data-formie-internal-navigation");
-}
-function hasInternalNavigation(form) {
-	return form.getAttribute("data-formie-internal-navigation") !== null;
-}
-function urlHasSearchParam(sourceUrl, param) {
-	if (!sourceUrl) return false;
-	try {
-		return new URL(sourceUrl, window.location.origin).searchParams.has(param);
-	} catch (_error) {
-		return false;
-	}
-}
-function formHasResumeTokenState(form) {
-	return urlHasSearchParam(window.location.href, "resumeToken") || urlHasSearchParam(form.getAttribute("action"), "resumeToken");
-}
-function isSameTabClickEvent(event) {
-	if (!(event instanceof MouseEvent)) return true;
-	return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
-}
-function parseIntegerDatasetValue(value, fallback = 0) {
-	if (!value) return fallback;
-	const parsed = Number.parseInt(value, 10);
-	if (!Number.isFinite(parsed)) return fallback;
-	return parsed;
-}
-function getSubmitDelayMs(form) {
-	return Math.max(0, parseIntegerDatasetValue(form.dataset.formieSubmitDelay, DEFAULT_SUBMIT_DELAY_MS));
-}
-function shouldValidateOnSubmit(form) {
-	return parseBooleanDatasetValue(form.dataset.formieValidationOnSubmit);
-}
-async function waitForSubmitDelay(form) {
-	const delay = getSubmitDelayMs(form);
-	if (delay < 1) return;
-	await new Promise((resolve) => {
-		window.setTimeout(resolve, delay);
-	});
-}
-function parseJsonAttribute(element, attributeName) {
-	const rawValue = element?.getAttribute(attributeName)?.trim();
-	if (!rawValue) return null;
-	try {
-		return JSON.parse(rawValue);
-	} catch (error) {
-		console.error(`[formie] Failed to parse ${attributeName}.`, error);
-		return null;
-	}
-}
-function getEmbeddedPayload(target, form) {
-	const payloadRoot = form || (target instanceof HTMLFormElement ? target : null);
-	if (!payloadRoot) return null;
-	const modules = parseJsonAttribute(payloadRoot, "data-formie-modules");
-	const theme = parseJsonAttribute(payloadRoot, "data-formie-theme");
-	if (!modules && !theme) return null;
-	return {
-		modules: modules || void 0,
-		theme: theme || void 0
-	};
-}
-function isElementVisible(target) {
-	if (!(target instanceof HTMLElement)) return true;
-	if (!target.isConnected) return false;
-	if (target.hidden || target.closest("[hidden]")) return false;
-	const style = window.getComputedStyle(target);
-	if (style.display === "none" || style.visibility === "hidden") return false;
-	return target.getClientRects().length > 0;
-}
-function isWithinScope(target, scope) {
-	if (scope === document) return true;
-	if (scope instanceof Element) return scope === target || scope.contains(target);
-	return true;
-}
-function getTargetDebugLabel(target) {
-	const element = target;
-	const id = element.id ? `#${element.id}` : "";
-	const handle = element.dataset?.formieHandle ? `[handle="${element.dataset.formieHandle}"]` : "";
-	return `${element.tagName ? element.tagName.toLowerCase() : "element"}${id}${handle}`;
-}
-function applyRefreshTokensToForm(form, refreshTokens) {
-	if (!refreshTokens) return;
-	if (refreshTokens.csrf?.param && refreshTokens.csrf?.token) {
-		const csrfInput = form.querySelector(`input[name="${refreshTokens.csrf.param}"]`);
-		if (csrfInput) csrfInput.value = refreshTokens.csrf.token;
-	}
-	if (refreshTokens.requestToken) {
-		const requestTokenInput = form.querySelector("input[name=\"requestToken\"]");
-		if (requestTokenInput) requestTokenInput.value = refreshTokens.requestToken;
-	}
-	if (refreshTokens.renderId) {
-		const renderIdInput = form.querySelector("input[name=\"renderId\"]");
-		if (renderIdInput) renderIdInput.value = refreshTokens.renderId;
-	}
-	if (refreshTokens.captchas && typeof refreshTokens.captchas === "object") Object.values(refreshTokens.captchas).forEach((captchaEntry) => {
-		if (!captchaEntry || typeof captchaEntry !== "object") return;
-		const entry = captchaEntry;
-		if (!entry.sessionKey) return;
-		const captchaInput = form.querySelector(`input[name="${entry.sessionKey}"]`);
-		if (captchaInput && typeof entry.value === "string") captchaInput.value = entry.value;
-	});
-}
-async function ensureHtmlRender(target, options) {
-	const mode = normalizeMode(options.mode);
-	const transport = normalizeTransport(options.transport);
-	if (mode !== "server-rendered") return null;
-	if (options.payload) {
-		if (options.payload.html) target.innerHTML = options.payload.html;
-		return options.payload;
-	}
-	ensureSupportedHeadlessTransport(transport, mode);
-	const hasForm = !!getFormFromTarget(target);
-	const formHandle = options.formHandle || target.dataset.formieHandle;
-	if (hasForm || !formHandle) return null;
-	const renderOptions = {
-		mode,
-		endpoint: options.endpoint,
-		locale: options.locale,
-		siteId: options.siteId,
-		theme: options.theme,
-		themeConfig: options.themeConfig
-	};
-	const endpoint = transport === "graphql" ? resolveGraphqlEndpoint(options, target) : resolveHtmlRenderEndpoint(options, target);
-	const payload = transport === "graphql" ? await requestGraphqlRender(endpoint, formHandle, renderOptions) : await requestRender(endpoint, formHandle, {
-		...renderOptions,
-		endpoint
-	});
-	if (payload?.html) target.innerHTML = payload.html;
-	return payload;
-}
-async function refreshTokensAfterSubmitIfNeeded(target, options, form) {
-	if (options.refreshTokens === false) return;
-	ensureSupportedHeadlessTransport(normalizeTransport(options.transport), normalizeMode(options.mode));
-	const formHandle = options.formHandle || target.dataset.formieHandle;
-	if (!formHandle) return;
-	const refreshTokens = await requestRefreshTokens(resolveRefreshTokensEndpoint(options, target), formHandle, form.querySelector("input[name=\"renderId\"]")?.value || void 0);
-	applyRefreshTokensToForm(form, refreshTokens);
-	dispatchFormieDomEvent(target, "formie:refresh-tokens:refreshed", refreshTokens);
-}
-function bindFormEvents(target, form, options, bus, validator, unbinds) {
-	const submitMethod = String(form.dataset.formieSubmitMethod || "").trim().toLowerCase();
-	const clearSubmissionEndpoint = resolveClearSubmissionEndpoint(options, target, form);
-	let allowNativeSubmit = false;
-	const submitButtons = form.querySelectorAll("[data-formie-action]");
-	const setPendingAction = (action) => {
-		if (action) {
-			form.setAttribute("data-formie-pending-action", action);
+function Fn(e, t, n, r, i, a) {
+	let o = String(t.dataset.formieSubmitMethod || "").trim().toLowerCase(), s = gn(n, e, t), c = !1, l = t.querySelectorAll("[data-formie-action]"), u = (e) => {
+		if (e) {
+			t.setAttribute("data-formie-pending-action", e);
 			return;
 		}
-		form.removeAttribute("data-formie-pending-action");
+		t.removeAttribute("data-formie-pending-action");
 	};
-	if (shouldEnableUnloadWarning(form)) {
-		const unloadWarning = createFormUnloadWarningGuard(form, { shouldWarn: () => {
-			return !hasInternalNavigation(form);
-		} });
-		const handleSubmitResult = (event) => {
-			if (!(event instanceof CustomEvent)) return;
-			const result = event.detail;
-			if (!result?.ok) return;
-			if (result.action === "save") unloadWarning.scheduleBaselineCapture();
+	if (_n(t)) {
+		let n = Jt(t, { shouldWarn: () => !bn(t) }), r = (e) => {
+			if (!(e instanceof CustomEvent)) return;
+			let t = e.detail;
+			t?.ok && t.action === "save" && n.scheduleBaselineCapture();
+		}, i = () => {
+			n.scheduleBaselineCapture();
 		};
-		const handleStateReset = () => {
-			unloadWarning.scheduleBaselineCapture();
-		};
-		target.addEventListener("formie:submit:result", handleSubmitResult);
-		form.addEventListener("formie:state:reset", handleStateReset);
-		unbinds.push(() => {
-			target.removeEventListener("formie:submit:result", handleSubmitResult);
-			form.removeEventListener("formie:state:reset", handleStateReset);
-			unloadWarning.destroy();
+		e.addEventListener("formie:submit:result", r), t.addEventListener("formie:state:reset", i), a.push(() => {
+			e.removeEventListener("formie:submit:result", r), t.removeEventListener("formie:state:reset", i), n.destroy();
 		});
 	}
-	submitButtons.forEach((button) => {
-		const handler = (event) => {
-			const action = event.currentTarget.getAttribute("data-formie-action");
-			const submitAction = form.querySelector("input[name=\"submitAction\"]");
-			setPendingAction(action);
-			if (action && submitAction) submitAction.value = action;
+	if (l.forEach((e) => {
+		let n = (e) => {
+			let n = e.currentTarget.getAttribute("data-formie-action"), r = t.querySelector("input[name=\"submitAction\"]");
+			u(n), n && r && (r.value = n);
 		};
-		button.addEventListener("click", handler);
-		unbinds.push(() => {
-			button.removeEventListener("click", handler);
+		e.addEventListener("click", n), a.push(() => {
+			e.removeEventListener("click", n);
 		});
-	});
-	form.querySelectorAll("[data-formie-tab-link]").forEach((link) => {
-		const handler = async (event) => {
-			if (submitMethod !== "ajax") {
-				if (isSameTabClickEvent(event)) markInternalNavigation(form, "set-page");
+	}), t.querySelectorAll("[data-formie-tab-link]").forEach((n) => {
+		let r = async (n) => {
+			if (o !== "ajax") {
+				Cn(n) && vn(t, "set-page");
 				return;
 			}
-			event.preventDefault();
-			const currentTarget = event.currentTarget;
-			const nextPageId = currentTarget?.getAttribute("data-formie-page-id");
-			const href = currentTarget?.getAttribute("href");
-			if (!nextPageId || !href) return;
-			applyPageState(form, nextPageId);
-			dispatchFormieDomEvent(target, "formie:page:navigate", {
-				pageId: nextPageId,
-				href
-			});
-			try {
-				dispatchFormieDomEvent(target, "formie:page:navigate:after", {
-					pageId: nextPageId,
-					href,
-					response: await requestSetPage(href, form, nextPageId)
+			n.preventDefault();
+			let r = n.currentTarget, i = r?.getAttribute("data-formie-page-id"), a = r?.getAttribute("href");
+			if (!(!i || !a)) {
+				h(t, i), k(e, "formie:page:navigate", {
+					pageId: i,
+					href: a
 				});
-			} catch (error) {
-				console.error("[formie] Failed to persist page navigation state.", error);
-				dispatchFormieDomEvent(target, "formie:page:navigate:error", {
-					pageId: nextPageId,
-					href,
-					error
-				});
+				try {
+					k(e, "formie:page:navigate:after", {
+						pageId: i,
+						href: a,
+						response: await De(a, t, i)
+					});
+				} catch (t) {
+					console.error("[formie] Failed to persist page navigation state.", t), k(e, "formie:page:navigate:error", {
+						pageId: i,
+						href: a,
+						error: t
+					});
+				}
 			}
 		};
-		link.addEventListener("click", handler);
-		unbinds.push(() => {
-			link.removeEventListener("click", handler);
+		n.addEventListener("click", r), a.push(() => {
+			n.removeEventListener("click", r);
 		});
-	});
-	if (!hasAutomaticSubmissionState(form)) {
-		let requestedClearOnLeave = false;
-		const leaveHandler = () => {
-			if (requestedClearOnLeave || hasInternalNavigation(form) || formHasResumeTokenState(form)) return;
-			requestedClearOnLeave = true;
-			clearSubmissionOnUnload(clearSubmissionEndpoint, form);
+	}), !hn(t)) {
+		let e = !1, n = () => {
+			e || bn(t) || Sn(t) || (e = !0, Oe(s, t));
 		};
-		window.addEventListener("pagehide", leaveHandler);
-		window.addEventListener("beforeunload", leaveHandler);
-		unbinds.push(() => {
-			window.removeEventListener("pagehide", leaveHandler);
-			window.removeEventListener("beforeunload", leaveHandler);
+		window.addEventListener("pagehide", n), window.addEventListener("beforeunload", n), a.push(() => {
+			window.removeEventListener("pagehide", n), window.removeEventListener("beforeunload", n);
 		});
 	}
-	const submitHandler = async (event) => {
-		if (allowNativeSubmit) return;
-		const isAjaxSubmit = submitMethod === "ajax";
-		if (!isAjaxSubmit) event.preventDefault();
-		else event.preventDefault();
-		if (form.getAttribute("data-formie-loading") === "true") {
-			if (!(form.getAttribute("data-formie-internal-resubmit") === "true")) return;
-			form.removeAttribute("data-formie-internal-resubmit");
-		} else form.removeAttribute("data-formie-internal-resubmit");
-		const submitter = event.submitter;
-		const actionFromSubmitter = submitter?.getAttribute("data-formie-action");
-		const pendingAction = form.getAttribute("data-formie-pending-action");
-		const submitAction = form.querySelector("input[name=\"submitAction\"]");
-		const action = actionFromSubmitter || pendingAction || submitAction?.value || "submit";
-		let result = null;
-		let nativeSubmitStarted = false;
+	let d = async (a) => {
+		if (c) return;
+		let s = o === "ajax";
+		if (a.preventDefault(), t.getAttribute("data-formie-loading") === "true") {
+			if (t.getAttribute("data-formie-internal-resubmit") !== "true") return;
+			t.removeAttribute("data-formie-internal-resubmit");
+		} else t.removeAttribute("data-formie-internal-resubmit");
+		let l = a.submitter, d = l?.getAttribute("data-formie-action"), f = t.getAttribute("data-formie-pending-action"), h = t.querySelector("input[name=\"submitAction\"]"), _ = d || f || h?.value || "submit", v = null, y = !1;
 		try {
-			if (isAjaxSubmit) result = await executeAjaxSubmitFlow({
-				target,
-				form,
-				bus,
-				validator,
-				validateOnSubmit: shouldValidateOnSubmit(form),
-				action,
-				submitter,
-				waitForSubmitDelay,
+			if (s) v = await At({
+				target: e,
+				form: t,
+				bus: r,
+				validator: i,
+				validateOnSubmit: En(t),
+				action: _,
+				submitter: l,
+				waitForSubmitDelay: Dn,
 				onRefreshTokensAfterSubmit: async () => {
-					await refreshTokensAfterSubmitIfNeeded(target, options, form);
+					await Pn(e, n, t);
 				},
-				dispatchSubmitResult: (submitResult) => {
-					dispatchFormieDomEvent(target, "formie:submit:result", submitResult);
+				dispatchSubmitResult: (t) => {
+					k(e, "formie:submit:result", t);
 				}
 			});
 			else {
-				clearSubmitFeedback(form);
-				setSubmitLoading(form, submitter);
-				await waitForSubmitDelay(form);
-				result = await runSubmitPipeline(form, action, bus, {
-					validator,
-					validateOnSubmit: shouldValidateOnSubmit(form),
-					preflightOnly: true
-				});
-				if (result.ok) {
-					dispatchPageClientEventForSubmit(form, action);
-					allowNativeSubmit = true;
-					markInternalNavigation(form, "submit");
-					setPendingAction(null);
-					let nativeValidationFailed = false;
-					const nativeInvalidHandler = () => {
-						nativeValidationFailed = true;
-						allowNativeSubmit = false;
-						clearInternalNavigation(form);
-						clearSubmitLoading(form);
+				if (kt(t), g(t, l), await Dn(t), v = await Ue(t, _, r, {
+					validator: i,
+					validateOnSubmit: En(t),
+					preflightOnly: !0
+				}), v.ok) {
+					p(t, _), c = !0, vn(t, "submit"), u(null);
+					let e = !1, n = () => {
+						e = !0, c = !1, yn(t), m(t);
 					};
-					if (typeof form.requestSubmit === "function") {
-						form.addEventListener("invalid", nativeInvalidHandler, true);
+					if (typeof t.requestSubmit == "function") {
+						t.addEventListener("invalid", n, !0);
 						try {
-							form.requestSubmit();
+							t.requestSubmit();
 						} finally {
-							form.removeEventListener("invalid", nativeInvalidHandler, true);
+							t.removeEventListener("invalid", n, !0);
 						}
-					} else form.submit();
-					if (nativeValidationFailed) return;
-					nativeSubmitStarted = true;
+					} else t.submit();
+					if (e) return;
+					y = !0;
 					return;
 				}
-				applySubmitResultUi(form, result);
-				dispatchFormieDomEvent(target, "formie:submit:result", result);
-				clearInternalNavigation(form);
+				I(t, v), k(e, "formie:submit:result", v), yn(t);
 			}
-		} catch (error) {
-			allowNativeSubmit = false;
-			result = {
-				ok: false,
+		} catch (n) {
+			c = !1, v = {
+				ok: !1,
 				code: "SUBMIT_ERROR",
-				message: error instanceof Error ? error.message : "Submission failed.",
-				formErrors: [error instanceof Error ? error.message : "Submission failed."]
-			};
-			applySubmitResultUi(form, result);
-			dispatchFormieDomEvent(target, "formie:submit:result", result);
-			clearInternalNavigation(form);
+				message: n instanceof Error ? n.message : "Submission failed.",
+				formErrors: [n instanceof Error ? n.message : "Submission failed."]
+			}, I(t, v), k(e, "formie:submit:result", v), yn(t);
 		} finally {
-			setPendingAction(null);
-			if (!isAjaxSubmit && !nativeSubmitStarted && !shouldKeepSubmitLoading(result)) clearSubmitLoading(form);
+			u(null), !s && !y && !Ot(v) && m(t);
 		}
 	};
-	form.addEventListener("submit", submitHandler);
-	unbinds.push(() => {
-		form.removeEventListener("submit", submitHandler);
+	t.addEventListener("submit", d), a.push(() => {
+		t.removeEventListener("submit", d);
 	});
 }
-async function refreshTokensIfNeeded(target, options, form) {
-	if (options.refreshTokens === false) return;
-	if (!options.staticCache) return;
-	ensureSupportedHeadlessTransport(normalizeTransport(options.transport), normalizeMode(options.mode));
-	const formHandle = options.formHandle || target.dataset.formieHandle;
-	const endpoint = resolveRefreshTokensEndpoint(options, target);
-	const renderId = (form?.querySelector("input[name=\"renderId\"]"))?.value || void 0;
-	if (!formHandle) return;
-	const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId);
-	if (!refreshTokens || !form) return;
-	applyRefreshTokensToForm(form, refreshTokens);
-	dispatchFormieDomEvent(target, "formie:refresh-tokens:after", refreshTokens);
+async function In(e, t, n) {
+	if (t.refreshTokens === !1 || !t.staticCache) return;
+	pn(Y(t.transport), J(t.mode));
+	let r = t.formHandle || e.dataset.formieHandle, i = un(t, e), a = n?.querySelector("input[name=\"renderId\"]")?.value || void 0;
+	if (!r) return;
+	let o = await j(i, r, a);
+	!o || !n || (Mn(n, o), k(e, "formie:refresh-tokens:after", o));
 }
-function createFormieClient() {
-	const instances = /* @__PURE__ */ new Map();
-	const moduleRegistry = new ModuleRegistry();
-	const pendingVisibilityMounts = /* @__PURE__ */ new Map();
-	const pendingUnmounts = /* @__PURE__ */ new Map();
-	const stageNames = [
+function Ln() {
+	let e = /* @__PURE__ */ new Map(), t = new L(), n = /* @__PURE__ */ new Map(), r = /* @__PURE__ */ new Map(), i = [
 		"prepare",
 		"normalize",
 		"validate",
@@ -2561,646 +1904,460 @@ function createFormieClient() {
 		"authorize",
 		"dispatch",
 		"finalize"
-	];
-	const unmount = async (target) => {
-		const inFlightUnmount = pendingUnmounts.get(target);
-		if (inFlightUnmount) {
-			await inFlightUnmount;
+	], a = async (t) => {
+		let i = r.get(t);
+		if (i) {
+			await i;
 			return;
 		}
-		const unmountPromise = (async () => {
-			debug$1.log("Unmount requested.", { target: getTargetDebugLabel(target) });
-			const pendingUnmount = pendingVisibilityMounts.get(target);
-			if (pendingUnmount) {
-				pendingUnmount();
-				pendingVisibilityMounts.delete(target);
-			}
-			const state = instances.get(target);
-			if (!state) {
-				debug$1.log("Unmount skipped (no mounted state).", { target: getTargetDebugLabel(target) });
+		let a = (async () => {
+			G.log("Unmount requested.", { target: Q(t) });
+			let r = n.get(t);
+			r && (r(), n.delete(t));
+			let i = e.get(t);
+			if (!i) {
+				G.log("Unmount skipped (no mounted state).", { target: Q(t) });
 				return;
 			}
-			dispatchFormieDomEvent(target, "formie:unmount:before", { id: state.instance.id });
-			state.unbinds.forEach((unbind) => {
-				unbind();
-			});
-			state.unbinds = [];
-			state.validator?.destroy();
-			state.validator = null;
-			for (const moduleInstance of state.modules) await moduleInstance.destroy();
-			state.modules = [];
-			state.bus.clear();
-			instances.delete(target);
-			dispatchFormieDomEvent(target, "formie:unmount:after", { id: state.instance.id });
-			debug$1.log("Unmount complete.", {
-				id: state.instance.id,
-				target: getTargetDebugLabel(target)
+			k(t, "formie:unmount:before", { id: i.instance.id }), i.unbinds.forEach((e) => {
+				e();
+			}), i.unbinds = [], i.validator?.destroy(), i.validator = null;
+			for (let e of i.modules) await e.destroy();
+			i.modules = [], i.bus.clear(), e.delete(t), k(t, "formie:unmount:after", { id: i.instance.id }), G.log("Unmount complete.", {
+				id: i.instance.id,
+				target: Q(t)
 			});
 		})().finally(() => {
-			pendingUnmounts.delete(target);
+			r.delete(t);
 		});
-		pendingUnmounts.set(target, unmountPromise);
-		await unmountPromise;
-	};
-	const mount = async (target, options) => {
-		debug$1.log("Mount requested.", {
-			target: getTargetDebugLabel(target),
-			mode: options.mode,
-			autoVisible: options.autoVisible
+		r.set(t, a), await a;
+	}, o = async (r, o) => {
+		G.log("Mount requested.", {
+			target: Q(r),
+			mode: o.mode,
+			autoVisible: o.autoVisible
 		});
-		const pendingMount = pendingVisibilityMounts.get(target);
-		if (pendingMount) {
-			pendingMount();
-			pendingVisibilityMounts.delete(target);
-		}
-		const existing = instances.get(target);
-		if (existing) {
-			debug$1.log("Mount skipped (already mounted).", {
-				id: existing.instance.id,
-				target: getTargetDebugLabel(target)
-			});
-			return existing.instance;
-		}
-		const bus = new EventBus();
-		const unbinds = [];
-		const id = target?.id || `formie-${instances.size + 1}`;
-		const mergedFromDom = inferOptionsFromElement(target);
-		const normalizedOptions = {
-			...mergedFromDom,
-			...options,
-			mode: normalizeMode(options.mode ?? mergedFromDom.mode),
-			transport: normalizeTransport(options.transport ?? mergedFromDom.transport)
-		};
-		const compatibilityOptions = resolveLegacyCompatibilityOptions(normalizedOptions.compatibility);
-		if (normalizedOptions.mode !== "server-rendered" && !getFormFromTarget(target)) throw new Error(`Formie ${normalizedOptions.mode} mode is not implemented yet in the browser client.`);
-		const renderPayload = await ensureHtmlRender(target, normalizedOptions);
-		const form = getFormFromTarget(target);
-		normalizedOptions.staticCache = options.staticCache ?? (form ? inferStaticCacheOnLoadFromDataset(form.dataset) : inferStaticCacheOnLoadFromDataset(target.dataset));
-		const embeddedPayload = getEmbeddedPayload(target, form);
-		const payload = renderPayload || embeddedPayload ? {
-			...renderPayload || {},
-			...embeddedPayload || {}
-		} : null;
-		const themeClassMap = payload?.theme;
-		const stateStore = {};
-		const moduleManifest = (payload?.modules || []).filter((item) => {
-			return !!item?.id && !!item?.type;
+		let s = n.get(r);
+		s && (s(), n.delete(r));
+		let c = e.get(r);
+		if (c) return G.log("Mount skipped (already mounted).", {
+			id: c.instance.id,
+			target: Q(r)
+		}), c.instance;
+		let l = new xe(), u = [], d = r?.id || `formie-${e.size + 1}`, f = q(r), p = {
+			...f,
+			...o,
+			mode: J(o.mode ?? f.mode),
+			transport: Y(o.transport ?? f.transport)
+		}, m = me(p.compatibility);
+		if (p.mode !== "server-rendered" && !X(r)) throw Error(`Formie ${p.mode} mode is not implemented yet in the browser client.`);
+		let h = await Nn(r, p), g = X(r);
+		p.staticCache = o.staticCache ?? an(g ? g.dataset : r.dataset);
+		let _ = kn(r, g), y = h || _ ? {
+			...h || {},
+			..._ || {}
+		} : null, b = y?.theme, x = {}, S = (y?.modules || []).filter((e) => !!e?.id && !!e?.type);
+		G.log("Resolved mount payload.", {
+			target: Q(r),
+			hasRenderPayload: !!h,
+			hasEmbeddedPayload: !!_,
+			moduleCount: S.length
 		});
-		debug$1.log("Resolved mount payload.", {
-			target: getTargetDebugLabel(target),
-			hasRenderPayload: !!renderPayload,
-			hasEmbeddedPayload: !!embeddedPayload,
-			moduleCount: moduleManifest.length
-		});
-		const resolvedThemeClassMap = registerThemeClassMap(target, themeClassMap, form);
-		const validator = form ? new FormieValidator(form, {
-			live: parseBooleanDatasetValue(form.dataset.formieValidationOnFocus),
-			errorMessage: form.dataset.formieErrorMessage || "",
-			fieldContainerErrorClass: resolvedThemeClassMap.fieldLayoutError || [],
-			inputErrorClass: resolvedThemeClassMap.fieldControlError || [],
-			messagesClass: resolvedThemeClassMap.fieldErrors || [],
-			messageClass: resolvedThemeClassMap.fieldError || []
+		let C = ee(r, b, g), w = g ? new $e(g, {
+			live: mn(g.dataset.formieValidationOnFocus),
+			errorMessage: g.dataset.formieErrorMessage || "",
+			fieldContainerErrorClass: C.fieldLayoutError || [],
+			inputErrorClass: C.fieldControlError || [],
+			messagesClass: C.fieldErrors || [],
+			messageClass: C.fieldError || []
 		}) : null;
-		if (form && validator) {
-			const formWithValidationApi = form;
-			formWithValidationApi.formieValidation = validator;
-			stateStore.validation = validator;
-			const validatorDetail = {
-				validator,
-				addValidator: validator.addValidator.bind(validator),
-				removeValidator: validator.removeValidator.bind(validator)
+		if (g && w) {
+			let e = g;
+			e.formieValidation = w, x.validation = w;
+			let t = {
+				validator: w,
+				addValidator: w.addValidator.bind(w),
+				removeValidator: w.removeValidator.bind(w)
 			};
-			dispatchFormieDomEvent(form, "formie:validator:ready", validatorDetail);
-			dispatchFormieDomEvent(target, "formie:validator:ready", validatorDetail);
+			k(g, "formie:validator:ready", t), k(r, "formie:validator:ready", t);
 		}
-		if (form) {
-			if (renderPayload || normalizedOptions.endpoint || target.dataset.formieEndpoint) normalizeHeadlessManagedUrls(target, form, normalizedOptions);
-			syncPageTabErrors(form);
-		}
-		if (Object.keys(resolvedThemeClassMap).length) dispatchFormieDomEvent(target, "formie:theme:applied", { hasClasses: true });
-		const modules = await loadModulesFromManifest(moduleManifest, {
-			registry: moduleRegistry,
+		g && ((h || p.endpoint || r.dataset.formieEndpoint) && fn(r, g, p), v(g)), Object.keys(C).length && k(r, "formie:theme:applied", { hasClasses: !0 });
+		let T = await Ut(S, {
+			registry: t,
 			matchContext: {
-				root: target,
-				form,
-				mode: normalizedOptions.mode
+				root: r,
+				form: g,
+				mode: p.mode
 			},
 			setupContext: {
-				formId: id,
-				root: target,
-				form,
-				target,
+				formId: d,
+				root: r,
+				form: g,
+				target: r,
 				scope: "form",
-				state: stateStore,
-				on: (eventName, callback) => {
-					return bus.on(eventName, callback);
-				},
-				emit: (eventName, payload) => {
-					dispatchFormieDomEvent(target, eventName, payload);
-					return bus.emitSafe(eventName, payload).then((emitReport) => {
-						if (emitReport.failed.length > 0) debug$1.warn("Lifecycle listeners failed.", {
-							eventName,
-							failed: emitReport.failed.length
-						});
+				state: x,
+				on: (e, t) => l.on(e, t),
+				emit: (e, t) => (k(r, e, t), l.emitSafe(e, t).then((t) => {
+					t.failed.length > 0 && G.warn("Lifecycle listeners failed.", {
+						eventName: e,
+						failed: t.failed.length
 					});
-				}
+				}))
 			}
 		});
-		debug$1.log("Module setup complete.", {
-			target: getTargetDebugLabel(target),
-			moduleInstances: modules.length
+		G.log("Module setup complete.", {
+			target: Q(r),
+			moduleInstances: T.length
 		});
-		const instance = {
-			id,
-			root: target,
-			submit: async (action = "submit") => {
-				debug$1.log("Submit requested.", {
-					id,
-					target: getTargetDebugLabel(target),
-					action
-				});
-				if (!form) return {
-					ok: false,
+		let E = {
+			id: d,
+			root: r,
+			submit: async (e = "submit") => {
+				if (G.log("Submit requested.", {
+					id: d,
+					target: Q(r),
+					action: e
+				}), !g) return {
+					ok: !1,
 					code: "FORM_NOT_FOUND",
 					message: "No form element found for mount target.",
 					formErrors: ["No form element found for mount target."]
 				};
-				const submitAction = form.querySelector("input[name=\"submitAction\"]");
-				if (submitAction) submitAction.value = action;
-				if (form.getAttribute("data-formie-loading") === "true") return {
-					ok: false,
+				let t = g.querySelector("input[name=\"submitAction\"]");
+				if (t && (t.value = e), g.getAttribute("data-formie-loading") === "true") return {
+					ok: !1,
 					code: "SUBMIT_IN_PROGRESS",
 					message: "Submission already in progress.",
 					formErrors: []
 				};
-				const fallbackSubmitter = form.querySelector(`[data-formie-action="${action}"]`);
-				const result = await executeAjaxSubmitFlow({
-					id,
-					target,
-					form,
-					bus,
-					validator,
-					validateOnSubmit: shouldValidateOnSubmit(form),
-					action,
-					submitter: fallbackSubmitter,
-					waitForSubmitDelay,
+				let n = g.querySelector(`[data-formie-action="${e}"]`), i = await At({
+					id: d,
+					target: r,
+					form: g,
+					bus: l,
+					validator: w,
+					validateOnSubmit: En(g),
+					action: e,
+					submitter: n,
+					waitForSubmitDelay: Dn,
 					onRefreshTokensAfterSubmit: async () => {
-						await refreshTokensAfterSubmitIfNeeded(target, normalizedOptions, form);
+						await Pn(r, p, g);
 					},
-					dispatchSubmitResult: (submitResult) => {
-						dispatchFormieDomEvent(target, "formie:submit:result", submitResult);
+					dispatchSubmitResult: (e) => {
+						k(r, "formie:submit:result", e);
 					}
 				});
-				debug$1.log("Submit completed.", {
-					id,
-					action,
-					ok: result.ok,
-					code: result.code,
-					message: result.message
-				});
-				return result;
+				return G.log("Submit completed.", {
+					id: d,
+					action: e,
+					ok: i.ok,
+					code: i.code,
+					message: i.message
+				}), i;
 			},
 			destroy: async () => {
-				await unmount(target);
+				await a(r);
 			},
-			on: (eventName, callback) => {
-				return bus.on(eventName, callback);
-			}
+			on: (e, t) => l.on(e, t)
 		};
-		if (form) {
-			bindLegacyValidatorCompatibility({
-				target,
-				form,
-				validatorDetail: validator ? {
-					validator,
-					addValidator: validator.addValidator.bind(validator),
-					removeValidator: validator.removeValidator.bind(validator)
-				} : null,
-				options: compatibilityOptions,
-				unbinds
+		g && (be({
+			target: r,
+			form: g,
+			validatorDetail: w ? {
+				validator: w,
+				addValidator: w.addValidator.bind(w),
+				removeValidator: w.removeValidator.bind(w)
+			} : null,
+			options: m,
+			unbinds: u
+		}), ye({
+			target: r,
+			form: g,
+			instance: E,
+			options: m,
+			unbinds: u
+		})), g && (Fn(r, g, p, l, w, u), await In(r, p, g)), i.forEach((e) => {
+			let t = l.on(`formie:stage:${e}:before`, async (t) => {
+				k(r, `formie:stage:${e}:before`, t);
+			}), n = l.on(`formie:stage:${e}:before`, async (e) => {
+				for (let t of T) t.onBeforeStage && await t.onBeforeStage(e);
+			}), i = l.on(`formie:stage:${e}:after`, async (t) => {
+				k(r, `formie:stage:${e}:after`, t);
+			}), a = l.on(`formie:stage:${e}:after`, async (e) => {
+				let t = e;
+				for (let e of T) e.onAfterStage && await e.onAfterStage(t, t.result);
 			});
-			bindLegacyDomEventCompatibility({
-				target,
-				form,
-				instance,
-				options: compatibilityOptions,
-				unbinds
-			});
-		}
-		if (form) {
-			bindFormEvents(target, form, normalizedOptions, bus, validator, unbinds);
-			await refreshTokensIfNeeded(target, normalizedOptions, form);
-		}
-		stageNames.forEach((stageName) => {
-			const beforeDomUnbind = bus.on(`formie:stage:${stageName}:before`, async (payload) => {
-				dispatchFormieDomEvent(target, `formie:stage:${stageName}:before`, payload);
-			});
-			const beforeUnbind = bus.on(`formie:stage:${stageName}:before`, async (payload) => {
-				for (const moduleInstance of modules) if (moduleInstance.onBeforeStage) await moduleInstance.onBeforeStage(payload);
-			});
-			const afterDomUnbind = bus.on(`formie:stage:${stageName}:after`, async (payload) => {
-				dispatchFormieDomEvent(target, `formie:stage:${stageName}:after`, payload);
-			});
-			const afterUnbind = bus.on(`formie:stage:${stageName}:after`, async (payload) => {
-				const stagePayload = payload;
-				for (const moduleInstance of modules) if (moduleInstance.onAfterStage) await moduleInstance.onAfterStage(stagePayload, stagePayload.result);
-			});
-			unbinds.push(beforeDomUnbind, beforeUnbind, afterDomUnbind, afterUnbind);
+			u.push(t, n, i, a);
 		});
-		const submitBeforeUnbind = bus.on("formie:submit:before", async (payload) => {
-			dispatchFormieDomEvent(target, "formie:submit:before", payload);
+		let te = l.on("formie:submit:before", async (e) => {
+			k(r, "formie:submit:before", e);
+		}), ne = l.on("formie:submit:after", async (e) => {
+			k(r, "formie:submit:after", e);
+		}), re = l.on("formie:submit:final:before", async (e) => {
+			k(r, "formie:submit:final:before", e);
+		}), ie = l.on("formie:submit:final:after", async (e) => {
+			k(r, "formie:submit:final:after", e);
 		});
-		const submitAfterUnbind = bus.on("formie:submit:after", async (payload) => {
-			dispatchFormieDomEvent(target, "formie:submit:after", payload);
-		});
-		const submitFinalBeforeUnbind = bus.on("formie:submit:final:before", async (payload) => {
-			dispatchFormieDomEvent(target, "formie:submit:final:before", payload);
-		});
-		const submitFinalAfterUnbind = bus.on("formie:submit:final:after", async (payload) => {
-			dispatchFormieDomEvent(target, "formie:submit:final:after", payload);
-		});
-		unbinds.push(submitBeforeUnbind, submitAfterUnbind, submitFinalBeforeUnbind, submitFinalAfterUnbind);
-		instances.set(target, {
-			options: normalizedOptions,
-			bus,
-			form,
-			validator,
-			modules,
-			unbinds,
-			instance
-		});
-		dispatchFormieDomEvent(target, "formie:mount:after", {
-			id,
-			mode: normalizedOptions.mode
-		});
-		debug$1.log("Mount complete.", {
-			id,
-			target: getTargetDebugLabel(target),
-			mode: normalizedOptions.mode
-		});
-		return instance;
-	};
-	const mountWhenVisible = (target, options) => {
-		if (!options.autoVisible || isElementVisible(target) || typeof IntersectionObserver === "undefined") return mount(target, options);
-		if (instances.has(target)) return Promise.resolve(instances.get(target)?.instance || null);
-		if (pendingVisibilityMounts.has(target)) {
-			debug$1.log("Mount deferred (already waiting visibility).", { target: getTargetDebugLabel(target) });
-			return Promise.resolve(null);
-		}
-		const observer = new IntersectionObserver((entries) => {
-			if (!entries.some((entry) => {
-				return entry.target === target && entry.isIntersecting;
-			})) return;
-			observer.disconnect();
-			pendingVisibilityMounts.delete(target);
-			debug$1.log("Visibility reached, proceeding mount.", { target: getTargetDebugLabel(target) });
-			mount(target, {
-				...options,
-				autoVisible: false
-			});
+		return u.push(te, ne, re, ie), e.set(r, {
+			options: p,
+			bus: l,
+			form: g,
+			validator: w,
+			modules: T,
+			unbinds: u,
+			instance: E
+		}), k(r, "formie:mount:after", {
+			id: d,
+			mode: p.mode
+		}), G.log("Mount complete.", {
+			id: d,
+			target: Q(r),
+			mode: p.mode
+		}), E;
+	}, s = (t, r) => {
+		if (!r.autoVisible || An(t) || typeof IntersectionObserver > "u") return o(t, r);
+		if (e.has(t)) return Promise.resolve(e.get(t)?.instance || null);
+		if (n.has(t)) return G.log("Mount deferred (already waiting visibility).", { target: Q(t) }), Promise.resolve(null);
+		let i = new IntersectionObserver((e) => {
+			e.some((e) => e.target === t && e.isIntersecting) && (i.disconnect(), n.delete(t), G.log("Visibility reached, proceeding mount.", { target: Q(t) }), o(t, {
+				...r,
+				autoVisible: !1
+			}));
 		}, { threshold: .01 });
-		observer.observe(target);
-		pendingVisibilityMounts.set(target, () => {
-			observer.disconnect();
-		});
-		debug$1.log("Mount deferred until visible.", { target: getTargetDebugLabel(target) });
-		return Promise.resolve(null);
-	};
-	const update = async (target, options) => {
-		const state = instances.get(target);
-		if (!state) return mount(target, {
-			...inferOptionsFromElement(target),
-			...options,
-			mode: options.mode || "server-rendered"
-		});
-		state.options = {
-			...state.options,
-			...options
-		};
-		const resolvedThemeClassMap = registerThemeClassMap(target, options.payload?.theme || state.options.payload?.theme || getEmbeddedPayload(target, state.form)?.theme, state.form);
-		if (state.validator) {
-			state.validator.config.fieldContainerErrorClass = resolvedThemeClassMap.fieldLayoutError || [];
-			state.validator.config.inputErrorClass = resolvedThemeClassMap.fieldControlError || [];
-			state.validator.config.messagesClass = resolvedThemeClassMap.fieldErrors || [];
-			state.validator.config.messageClass = resolvedThemeClassMap.fieldError || [];
-		}
-		if (Object.keys(resolvedThemeClassMap).length) dispatchFormieDomEvent(target, "formie:theme:applied", {
-			hasClasses: true,
-			reason: "update"
-		});
-		return state.instance;
-	};
-	const getInstance = (target) => {
-		return instances.get(target)?.instance || null;
-	};
-	const refreshForCache = async (targetOrId) => {
-		warnCompatibilityOnce("refreshForCache", "Global `Formie.refreshForCache()` has been deprecated. Use built-in static-cache token refresh handling instead.");
-		let target = null;
-		if (typeof targetOrId === "string") {
-			const byId = document.getElementById(targetOrId);
-			if (byId) target = byId;
-			else target = document.querySelector(`[data-formie-form-id="${targetOrId}"]`);
-		} else target = targetOrId;
-		if (!target) {
-			debug$1.warn("refreshForCache target not found.", { targetOrId });
-			return;
-		}
-		const state = instances.get(target);
-		const form = getFormFromTarget(target);
-		const options = state?.options || inferOptionsFromElement(target);
-		if (!form) {
-			debug$1.warn("refreshForCache found no form element for target.", { target: getTargetDebugLabel(target) });
-			return;
-		}
-		const formHandle = options.formHandle || target.dataset.formieHandle || form.dataset.formieHandle;
-		const endpoint = resolveRefreshTokensEndpoint(options, target);
-		const renderId = form.querySelector("input[name=\"renderId\"]")?.value || void 0;
-		if (!formHandle) {
-			debug$1.warn("refreshForCache found no form handle for target.", { target: getTargetDebugLabel(target) });
-			return;
-		}
-		const refreshTokens = await requestRefreshTokens(endpoint, formHandle, renderId);
-		if (!refreshTokens) return;
-		applyRefreshTokensToForm(form, refreshTokens);
-		dispatchFormieDomEvent(target, "formie:refresh-tokens:after", refreshTokens);
-	};
-	const registerModule = (moduleDefinition, options) => {
-		return moduleRegistry.register(moduleDefinition, options);
-	};
-	const unregisterModule = (moduleId) => {
-		moduleRegistry.unregister(moduleId);
-	};
-	const getRegisteredModules = () => {
-		return moduleRegistry.getAll();
-	};
-	const scan = async (root) => {
-		const scope = root || document;
-		const targets = Array.from(scope.querySelectorAll(ROOT_SELECTORS));
-		debug$1.log("Scan started.", {
-			scope: scope === document ? "document" : scope,
-			targetCount: targets.length
-		});
-		const instances = (await Promise.all(targets.map((target) => {
-			return mountWhenVisible(target, inferOptionsFromElement(target));
-		}))).filter((item) => !!item);
-		debug$1.log("Scan finished.", {
-			mountedCount: instances.length,
-			deferredCount: targets.length - instances.length
-		});
-		return instances;
-	};
-	const observe = (root) => {
-		if (typeof MutationObserver === "undefined") return () => {};
-		const scope = root || document;
-		debug$1.log("Observer started.", { scope: scope === document ? "document" : scope });
-		const observer = new MutationObserver((mutations) => {
-			mutations.forEach((mutation) => {
-				mutation.addedNodes.forEach((node) => {
-					if (!(node instanceof Element)) return;
-					if (node.matches(ROOT_SELECTORS)) {
-						debug$1.log("Observer detected new root.", { target: getTargetDebugLabel(node) });
-						mountWhenVisible(node, inferOptionsFromElement(node));
-					}
-					node.querySelectorAll(ROOT_SELECTORS).forEach((child) => {
-						debug$1.log("Observer detected new nested root.", { target: getTargetDebugLabel(child) });
-						mountWhenVisible(child, inferOptionsFromElement(child));
-					});
-				});
-				mutation.removedNodes.forEach((node) => {
-					if (!(node instanceof Element)) return;
-					if (instances.has(node)) {
-						debug$1.log("Observer detected removed root.", { target: getTargetDebugLabel(node) });
-						unmount(node);
-					}
-					node.querySelectorAll(ROOT_SELECTORS).forEach((child) => {
-						if (instances.has(child)) {
-							debug$1.log("Observer detected removed nested root.", { target: getTargetDebugLabel(child) });
-							unmount(child);
-						}
-					});
-				});
-			});
-		});
-		observer.observe(scope, {
-			childList: true,
-			subtree: true
-		});
-		return () => {
-			observer.disconnect();
-			debug$1.log("Observer stopped.");
-			pendingVisibilityMounts.forEach((cleanup, target) => {
-				if (isWithinScope(target, scope)) {
-					cleanup();
-					pendingVisibilityMounts.delete(target);
-				}
-			});
-			const roots = [];
-			if (scope instanceof Element && scope.matches(ROOT_SELECTORS)) roots.push(scope);
-			scope.querySelectorAll(ROOT_SELECTORS).forEach((target) => {
-				roots.push(target);
-			});
-			roots.forEach((target) => {
-				if (instances.has(target)) unmount(target);
-			});
-		};
+		return i.observe(t), n.set(t, () => {
+			i.disconnect();
+		}), G.log("Mount deferred until visible.", { target: Q(t) }), Promise.resolve(null);
 	};
 	return {
-		mount,
-		unmount,
-		update,
-		getInstance,
-		refreshForCache,
-		registerModule,
-		unregisterModule,
-		getRegisteredModules,
-		scan,
-		observe
+		mount: o,
+		unmount: a,
+		update: async (t, n) => {
+			let r = e.get(t);
+			if (!r) return o(t, {
+				...q(t),
+				...n,
+				mode: n.mode || "server-rendered"
+			});
+			r.options = {
+				...r.options,
+				...n
+			};
+			let i = ee(t, n.payload?.theme || r.options.payload?.theme || kn(t, r.form)?.theme, r.form);
+			return r.validator && (r.validator.config.fieldContainerErrorClass = i.fieldLayoutError || [], r.validator.config.inputErrorClass = i.fieldControlError || [], r.validator.config.messagesClass = i.fieldErrors || [], r.validator.config.messageClass = i.fieldError || []), Object.keys(i).length && k(t, "formie:theme:applied", {
+				hasClasses: !0,
+				reason: "update"
+			}), r.instance;
+		},
+		getInstance: (t) => e.get(t)?.instance || null,
+		refreshForCache: async (t) => {
+			on("refreshForCache", "Global `Formie.refreshForCache()` has been deprecated. Use built-in static-cache token refresh handling instead.");
+			let n = null;
+			if (n = typeof t == "string" ? document.getElementById(t) || document.querySelector(`[data-formie-form-id="${t}"]`) : t, !n) {
+				G.warn("refreshForCache target not found.", { targetOrId: t });
+				return;
+			}
+			let r = e.get(n), i = X(n), a = r?.options || q(n);
+			if (!i) {
+				G.warn("refreshForCache found no form element for target.", { target: Q(n) });
+				return;
+			}
+			let o = a.formHandle || n.dataset.formieHandle || i.dataset.formieHandle, s = un(a, n), c = i.querySelector("input[name=\"renderId\"]")?.value || void 0;
+			if (!o) {
+				G.warn("refreshForCache found no form handle for target.", { target: Q(n) });
+				return;
+			}
+			let l = await j(s, o, c);
+			l && (Mn(i, l), k(n, "formie:refresh-tokens:after", l));
+		},
+		registerModule: (e, n) => t.register(e, n),
+		unregisterModule: (e) => {
+			t.unregister(e);
+		},
+		getRegisteredModules: () => t.getAll(),
+		scan: async (e) => {
+			let t = e || document, n = Array.from(t.querySelectorAll(W));
+			G.log("Scan started.", {
+				scope: t === document ? "document" : t,
+				targetCount: n.length
+			});
+			let r = (await Promise.all(n.map((e) => s(e, q(e))))).filter((e) => !!e);
+			return G.log("Scan finished.", {
+				mountedCount: r.length,
+				deferredCount: n.length - r.length
+			}), r;
+		},
+		observe: (t) => {
+			if (typeof MutationObserver > "u") return () => {};
+			let r = t || document;
+			G.log("Observer started.", { scope: r === document ? "document" : r });
+			let i = new MutationObserver((t) => {
+				t.forEach((t) => {
+					t.addedNodes.forEach((e) => {
+						e instanceof Element && (e.matches(W) && (G.log("Observer detected new root.", { target: Q(e) }), s(e, q(e))), e.querySelectorAll(W).forEach((e) => {
+							G.log("Observer detected new nested root.", { target: Q(e) }), s(e, q(e));
+						}));
+					}), t.removedNodes.forEach((t) => {
+						t instanceof Element && (e.has(t) && (G.log("Observer detected removed root.", { target: Q(t) }), a(t)), t.querySelectorAll(W).forEach((t) => {
+							e.has(t) && (G.log("Observer detected removed nested root.", { target: Q(t) }), a(t));
+						}));
+					});
+				});
+			});
+			return i.observe(r, {
+				childList: !0,
+				subtree: !0
+			}), () => {
+				i.disconnect(), G.log("Observer stopped."), n.forEach((e, t) => {
+					jn(t, r) && (e(), n.delete(t));
+				});
+				let t = [];
+				r instanceof Element && r.matches(W) && t.push(r), r.querySelectorAll(W).forEach((e) => {
+					t.push(e);
+				}), t.forEach((t) => {
+					e.has(t) && a(t);
+				});
+			};
+		}
 	};
 }
 //#endregion
 //#region src/js/core/hydrate-modules.ts
-var debug = createDebug("general", "module-hydrator");
-async function hydrateFormieModules(options) {
-	const root = options.root;
-	const form = options.form ?? (root instanceof HTMLFormElement ? root : root.closest("form"));
-	const modules = options.modules ?? [];
-	const mode = options.mode ?? "server-rendered";
-	const registry = options.registry ?? new ModuleRegistry();
-	const bus = new EventBus();
-	const instances = await loadModulesFromManifest(modules, {
-		registry,
+var Rn = d("general", "module-hydrator");
+async function zn(e) {
+	let t = e.root, n = e.form ?? (t instanceof HTMLFormElement ? t : t.closest("form")), r = e.modules ?? [], i = e.mode ?? "server-rendered", a = e.registry ?? new L(), o = new xe(), s = await Ut(r, {
+		registry: a,
 		setupContext: {
-			formId: form?.id || root.id || "formie-modules",
-			root,
-			form,
-			target: root,
+			formId: n?.id || t.id || "formie-modules",
+			root: t,
+			form: n,
+			target: t,
 			scope: "form",
 			state: {},
 			options: {},
-			on: (eventName, callback) => {
-				return bus.on(eventName, callback);
-			},
-			emit: async (eventName, payload) => {
-				await bus.emit(eventName, payload);
+			on: (e, t) => o.on(e, t),
+			emit: async (e, t) => {
+				await o.emit(e, t);
 			}
 		},
 		matchContext: {
-			root,
-			form,
-			mode
+			root: t,
+			form: n,
+			mode: i
 		}
 	});
-	debug.log("Hydrated module manifest.", {
-		moduleCount: modules.length,
-		instanceCount: instances.length,
-		mode
-	});
-	return {
+	return Rn.log("Hydrated module manifest.", {
+		moduleCount: r.length,
+		instanceCount: s.length,
+		mode: i
+	}), {
 		destroy: async () => {
-			await destroyModuleInstances(instances);
-			bus.clear();
+			await Bn(s), o.clear();
 		},
-		on: (eventName, callback) => {
-			return bus.on(eventName, callback);
+		on: (e, t) => o.on(e, t),
+		emit: async (e, t) => {
+			await o.emit(e, t);
 		},
-		emit: async (eventName, payload) => {
-			await bus.emit(eventName, payload);
+		registerModule: (e, t = {}) => a.register(e, t),
+		unregisterModule: (e) => {
+			a.unregister(e);
 		},
-		registerModule: (moduleDefinition, registrationOptions = {}) => {
-			return registry.register(moduleDefinition, registrationOptions);
-		},
-		unregisterModule: (moduleId) => {
-			registry.unregister(moduleId);
-		},
-		getRegisteredModules: () => {
-			return registry.getAll();
-		}
+		getRegisteredModules: () => a.getAll()
 	};
 }
-async function destroyModuleInstances(instances) {
-	for (const instance of instances) try {
-		await instance.destroy();
-	} catch (error) {
-		console.error("[formie] Failed to destroy module instance.", error);
-		debug.warn("Failed destroying module instance.", { error });
+async function Bn(e) {
+	for (let t of e) try {
+		await t.destroy();
+	} catch (e) {
+		console.error("[formie] Failed to destroy module instance.", e), Rn.warn("Failed destroying module instance.", { error: e });
 	}
 }
 //#endregion
 //#region src/js/core/formie.ts
-function isElement(value) {
-	return value instanceof Element;
+function $(e) {
+	return e instanceof Element;
 }
-function isSuccessfulResult(result) {
-	return result.ok;
+function Vn(e) {
+	return e.ok;
 }
-function describeTarget(target) {
-	if (typeof target === "string") return `selector "${target}"`;
-	if (isElement(target)) return `element "${target.tagName.toLowerCase()}"`;
-	return "provided element collection";
+function Hn(e) {
+	return typeof e == "string" ? `selector "${e}"` : $(e) ? `element "${e.tagName.toLowerCase()}"` : "provided element collection";
 }
-function toUniqueElements(values) {
-	const seen = /* @__PURE__ */ new Set();
-	const elements = [];
-	for (const value of values) {
-		if (!isElement(value) || seen.has(value)) continue;
-		seen.add(value);
-		elements.push(value);
-	}
-	return elements;
+function Un(e) {
+	let t = /* @__PURE__ */ new Set(), n = [];
+	for (let r of e) !$(r) || t.has(r) || (t.add(r), n.push(r));
+	return n;
 }
-function resolveElements(target) {
-	if (typeof target === "string") return Array.from(document.querySelectorAll(target));
-	if (isElement(target)) return [target];
-	return toUniqueElements(target);
+function Wn(e) {
+	return typeof e == "string" ? Array.from(document.querySelectorAll(e)) : $(e) ? [e] : Un(e);
 }
-function waitForDomReady() {
-	if (document.readyState !== "loading") return Promise.resolve();
-	return new Promise((resolve) => {
-		document.addEventListener("DOMContentLoaded", () => resolve(), { once: true });
-	});
+function Gn() {
+	return document.readyState === "loading" ? new Promise((e) => {
+		document.addEventListener("DOMContentLoaded", () => e(), { once: !0 });
+	}) : Promise.resolve();
 }
-async function resolveElementsWhenReady(target) {
-	const elements = resolveElements(target);
-	if (elements.length > 0 || typeof target !== "string") return elements;
-	await waitForDomReady();
-	return resolveElements(target);
+async function Kn(e) {
+	let t = Wn(e);
+	return t.length > 0 || typeof e != "string" ? t : (await Gn(), Wn(e));
 }
-function resolveObservationScope(target) {
-	if (typeof target === "string") return document;
-	if (isElement(target)) return target.getRootNode();
-	return document;
+function qn(e) {
+	return typeof e == "string" ? document : $(e) ? e.getRootNode() : document;
 }
-function buildMountOptions(options) {
-	const { element: _element, observe: _observe, allowEmpty: _allowEmpty, client: _client, onReady: _onReady, onResult: _onResult, onSuccess: _onSuccess, onError: _onError, onEvent: _onEvent, ...mountOptions } = options;
+function Jn(e) {
+	let { element: t, observe: n, allowEmpty: r, client: i, onReady: a, onResult: o, onSuccess: s, onError: c, onEvent: l, ...u } = e;
 	return {
 		mode: "server-rendered",
-		...mountOptions
+		...u
 	};
 }
-async function mountResolvedElements(options, client, states, targets) {
-	const mounted = [];
-	const mountOptions = buildMountOptions(options);
-	for (const target of targets) {
-		const existing = states.get(target);
-		if (existing) {
-			mounted.push(existing.instance);
+async function Yn(e, t, n, r) {
+	let i = [], o = Jn(e);
+	for (let s of r) {
+		let r = n.get(s);
+		if (r) {
+			i.push(r.instance);
 			continue;
 		}
-		const instance = await client.mount(target, mountOptions);
-		const unsubs = [];
-		options.onReady?.(instance);
-		unsubs.push(instance.on("formie:submit:result", (payload) => {
-			const result = payload;
-			options.onResult?.(result, instance);
-			if (isSuccessfulResult(result)) options.onSuccess?.(result, instance);
-			else options.onError?.(result, instance);
+		let c = await t.mount(s, o), l = [];
+		if (e.onReady?.(c), l.push(c.on("formie:submit:result", (t) => {
+			let n = t;
+			e.onResult?.(n, c), Vn(n) ? e.onSuccess?.(n, c) : e.onError?.(n, c);
+		})), e.onEvent) for (let t of a) l.push(c.on(t, (n) => {
+			e.onEvent?.({
+				name: t,
+				payload: n
+			}, c);
 		}));
-		if (options.onEvent) for (const eventName of FORMIE_HTML_EVENT_NAMES) unsubs.push(instance.on(eventName, (payload) => {
-			options.onEvent?.({
-				name: eventName,
-				payload
-			}, instance);
-		}));
-		states.set(target, {
-			instance,
-			unsubs
-		});
-		mounted.push(instance);
+		n.set(s, {
+			instance: c,
+			unsubs: l
+		}), i.push(c);
 	}
-	return mounted;
+	return i;
 }
-async function formie(options) {
-	const client = options.client ?? createFormieClient();
-	const states = /* @__PURE__ */ new Map();
-	const matchedElements = await resolveElementsWhenReady(options.element);
-	if (matchedElements.length === 0 && !options.allowEmpty) throw new Error(`Formie could not find any elements for ${describeTarget(options.element)}.`);
-	await mountResolvedElements(options, client, states, matchedElements);
-	const stopObserving = options.observe ? client.observe(resolveObservationScope(options.element)) : null;
+async function Xn(e) {
+	let t = e.client ?? Ln(), n = /* @__PURE__ */ new Map(), r = await Kn(e.element);
+	if (r.length === 0 && !e.allowEmpty) throw Error(`Formie could not find any elements for ${Hn(e.element)}.`);
+	await Yn(e, t, n, r);
+	let i = e.observe ? t.observe(qn(e.element)) : null;
 	return {
-		client,
+		client: t,
 		get instances() {
-			return Array.from(states.values()).map(({ instance }) => instance);
+			return Array.from(n.values()).map(({ instance: e }) => e);
 		},
-		get(target) {
-			const element = typeof target === "string" ? document.querySelector(target) : target;
-			if (!element) return null;
-			return states.get(element)?.instance ?? client.getInstance(element);
+		get(e) {
+			let r = typeof e == "string" ? document.querySelector(e) : e;
+			return r ? n.get(r)?.instance ?? t.getInstance(r) : null;
 		},
 		async rescan() {
-			const nextTargets = resolveElements(options.element);
-			if (nextTargets.length === 0) return Array.from(states.values()).map(({ instance }) => instance);
-			return mountResolvedElements(options, client, states, nextTargets);
+			let r = Wn(e.element);
+			return r.length === 0 ? Array.from(n.values()).map(({ instance: e }) => e) : Yn(e, t, n, r);
 		},
 		async destroy() {
-			stopObserving?.();
-			const mountedEntries = Array.from(states.entries());
-			for (const [target, state] of mountedEntries) {
-				state.unsubs.forEach((unsubscribe) => unsubscribe());
-				await client.unmount(target);
-				states.delete(target);
-			}
+			i?.();
+			let e = Array.from(n.entries());
+			for (let [r, i] of e) i.unsubs.forEach((e) => e()), await t.unmount(r), n.delete(r);
 		}
 	};
 }
 //#endregion
-export { FORMIE_HTML_EVENT_NAMES, FormieValidator, LEGACY_FORMIE_DOM_EVENT_BRIDGES, LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, ModuleRegistry, bindLegacyDomEventCompatibility, bindLegacyValidatorCompatibility, buildFieldValueRegistry, createDebug, createFormieClient, debugLog, debugWarn, defineAddressModule, defineCaptchaModule, definePassiveCaptchaModule, definePaymentModule, fieldKeyToInputName, formie, getFieldModuleEventName, getFormieTranslations, getGlobalModuleLifecycleEventName, getScopedModuleLifecycleEventName, hydrateFormieModules, inputNameToFieldKey, isFormieDebugEnabled, mergeFormieTranslations, normalizeFieldKey, normalizeFormieEventName, parseFieldReference, resolveFieldReferenceFromFormData, resolveFieldReferenceLive, resolveLegacyCompatibilityOptions, setFormieDebugEnabled, setFormieTranslations, t, toDomEventName, translate };
+export { a as FORMIE_HTML_EVENT_NAMES, $e as FormieValidator, fe as LEGACY_FORMIE_DOM_EVENT_BRIDGES, pe as LEGACY_FORMIE_VALIDATOR_EVENT_BRIDGES, L as ModuleRegistry, ye as bindLegacyDomEventCompatibility, be as bindLegacyValidatorCompatibility, le as buildFieldValueRegistry, d as createDebug, Ln as createFormieClient, l as debugLog, u as debugWarn, de as defineAddressModule, re as defineCaptchaModule, ne as definePassiveCaptchaModule, y as definePaymentModule, oe as fieldKeyToInputName, Xn as formie, i as getFieldModuleEventName, te as getFormieTranslations, r as getGlobalModuleLifecycleEventName, e as getScopedModuleLifecycleEventName, zn as hydrateFormieModules, ie as inputNameToFieldKey, c as isFormieDebugEnabled, T as mergeFormieTranslations, ae as normalizeFieldKey, o as normalizeFormieEventName, se as parseFieldReference, ue as resolveFieldReferenceFromFormData, ce as resolveFieldReferenceLive, me as resolveLegacyCompatibilityOptions, s as setFormieDebugEnabled, E as setFormieTranslations, w as t, t as toDomEventName, C as translate };

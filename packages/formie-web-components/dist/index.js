@@ -1592,5 +1592,3 @@ function Rt() {
 }
 //#endregion
 export { J as FORMIE_CONTROL_VALUE_EVENT, X as FormieCoreForm, It as FormieFormElement, $ as FormieInternalSignature, G as FormieRegistry, W as assertValidCustomElementName, ee as createFormieClient, Ze as createFormieRegistry, Xe as getFormieRegistry, ft as isFieldDefinition, Rt as registerFormieWebComponents, Mt as renderErrorView, kt as renderFormView, jt as renderLoadingView, pt as resolveFieldRendererType };
-
-//# sourceMappingURL=index.js.map

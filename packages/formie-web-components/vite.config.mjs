@@ -5,7 +5,7 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         emptyOutDir: true,
-        sourcemap: true,
+        sourcemap: false,
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             formats: ['es'],
