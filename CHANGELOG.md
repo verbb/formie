@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-beta.1 - 2026-05-27
+## 4.0.0-beta.1 - 2026-06-02
 
 ### Added
 - Add a Formie 3 to Formie 4 migration path for existing Craft 5 projects.
