@@ -2,6 +2,7 @@
   "name": "formie-plugin-workspace",
   "private": true,
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "prettier": "^3.8.3"
   },
   "workspaces": [
@@ -10,6 +11,9 @@
     "src/web/assets/frontend"
   ],
   "scripts": {
+    "changeset": "changeset",
+    "version:packages": "changeset version && npm install --package-lock-only --ignore-scripts",
+    "publish:packages": "changeset publish",
     "dev": "npm run dev:cp & npm run dev:frontend & wait",
     "dev:docs": "npm run docs:dev -w @verbb/formie-frontend-docs",
     "dev:plugin-docs": "npm run docs:dev --prefix docs",
