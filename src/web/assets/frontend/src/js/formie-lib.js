@@ -31,16 +31,36 @@ export class Formie {
         this.$forms.forEach(($form) => {
             // Check if we want to use an `IntersectionObserver` to only initialize the form when visible
             if (useObserver) {
-                const observer = new IntersectionObserver((entries) => {
-                    if (entries[0].intersectionRatio !== 0) {
-                        this.initForm($form);
+                let initialized = false;
+                const initObservedForm = (observer) => {
+                    if (initialized) {
+                        return;
+                    }
 
-                        // Stop listening to prevent multiple init - just in case
-                        observer.disconnect();
+                    initialized = true;
+                    this.initForm($form);
+                    observer.disconnect();
+                };
+                const observer = new IntersectionObserver((entries) => {
+                    const entry = entries[0];
+
+                    if (entry.isIntersecting || entry.intersectionRatio > 0) {
+                        initObservedForm(observer);
                     }
                 });
 
                 observer.observe($form);
+
+                // Safari can delay reporting an intersection for elements already visible on load.
+                setTimeout(() => {
+                    const rect = $form.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+                    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+                    if (rect.bottom > 0 && rect.right > 0 && rect.top < viewportHeight && rect.left < viewportWidth) {
+                        initObservedForm(observer);
+                    }
+                });
             } else {
                 this.initForm($form);
             }
