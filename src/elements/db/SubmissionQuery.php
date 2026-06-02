@@ -3,29 +3,50 @@ namespace verbb\formie\elements\db;
 
 use craft\elements\User;
 use verbb\formie\Formie;
-use verbb\formie\behaviors\CustomFieldBehavior;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayout;
-use verbb\formie\models\QueryFieldLayout;
 use verbb\formie\models\Status;
-use verbb\formie\services\Fields;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\db\Query;
 use craft\db\QueryAbortedException;
 use craft\elements\db\ElementQuery;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
-
-use yii\base\UnknownMethodException;
-
-use Throwable;
+use craft\search\SearchQueryTerm;
+use craft\search\SearchQueryTermGroup;
 
 class SubmissionQuery extends ElementQuery
 {
+    // Static Methods
+    // =========================================================================
+
+    public static function invalidateStaticCaches(): void
+    {
+        self::$_fieldHandleCacheByScope = [];
+        self::$_customFieldsByHandleScope = [];
+    }
+
+    private static function _storeFieldHandleScopeCache(string $scopeKey, array $mappedHandles): void
+    {
+        if (!isset(self::$_fieldHandleCacheByScope[$scopeKey]) && count(self::$_fieldHandleCacheByScope) >= self::FIELD_HANDLE_SCOPE_CACHE_MAX) {
+            array_shift(self::$_fieldHandleCacheByScope);
+        }
+
+        self::$_fieldHandleCacheByScope[$scopeKey] = $mappedHandles;
+    }
+
+    private static function _storeCustomFieldLoadCache(string $scopeKey, array $fields): void
+    {
+        if (!isset(self::$_customFieldsByHandleScope[$scopeKey]) && count(self::$_customFieldsByHandleScope) >= self::FIELD_HANDLE_SCOPE_CACHE_MAX) {
+            array_shift(self::$_customFieldsByHandleScope);
+        }
+
+        self::$_customFieldsByHandleScope[$scopeKey] = $fields;
+    }
+
     // Properties
     // =========================================================================
 
@@ -34,7 +55,6 @@ class SubmissionQuery extends ElementQuery
     public mixed $formId = null;
     public mixed $statusId = null;
     public mixed $userId = null;
-    public mixed $ipAddress = null;
     public ?bool $isIncomplete = false;
     public ?bool $isSpam = false;
     public mixed $before = null;
@@ -42,22 +62,34 @@ class SubmissionQuery extends ElementQuery
     public mixed $updateTitle = null;
 
     protected array $defaultOrderBy = ['elements.dateCreated' => SORT_DESC];
+    private const FIELD_HANDLE_SCOPE_CACHE_MAX = 128;
+    private static array $_fieldHandleCacheByScope = [];
+    private static array $_customFieldsByHandleScope = [];
+    private array $_fieldCriteriaByHandle = [];
+    private ?array $_availableFieldHandles = null;
+    private ?array $_resolvedFormIdsCache = null;
+    private ?string $_resolvedFormIdsCacheKey = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function behaviors(): array
+    public function __call($name, $params)
     {
-        $behaviors = parent::behaviors();
+        // Keep Craft-like DX for custom-field querying: `$query->myField('value')`.
+        if (count($params) === 1 && $name !== 'owner') {
+            $this->_availableFieldHandles ??= $this->_resolveAvailableFieldHandles();
+            $lookupHandle = strtolower((string)$name);
 
-        // Override the Craft custom field behavior with our own
-        $behaviors['customFields'] = [
-            'class' => CustomFieldBehavior::class,
-            'hasMethods' => true,
-        ];
+            if (isset($this->_availableFieldHandles[$lookupHandle])) {
+                $canonicalHandle = $this->_availableFieldHandles[$lookupHandle];
+                $this->_fieldCriteriaByHandle[$canonicalHandle] = $params[0];
 
-        return $behaviors;
+                return $this;
+            }
+        }
+
+        return parent::__call($name, $params);
     }
 
     public function form(Form|array|string|null $value): static
@@ -65,16 +97,14 @@ class SubmissionQuery extends ElementQuery
         if ($value instanceof Form) {
             $this->formId = $value->id;
         } else if ($value !== null) {
-            $this->formId = (new Query())
-                ->select(['forms.id'])
-                ->from(['forms' => Table::FORMIE_FORMS])
-                ->where(Db::parseParam('handle', $value))
-                ->leftJoin(['elements' => Table::ELEMENTS], '[[forms.id]] = [[elements.id]]')
-                ->andWhere(['dateDeleted' => null])
-                ->scalar();
+            $this->formId = $this->_resolveFormIdValue($value);
         } else {
             $this->formId = null;
         }
+
+        $this->_availableFieldHandles = null;
+        $this->_resolvedFormIdsCache = null;
+        $this->_resolvedFormIdsCacheKey = null;
 
         return $this;
     }
@@ -82,6 +112,16 @@ class SubmissionQuery extends ElementQuery
     public function formId($value): static
     {
         $this->formId = $value;
+        $this->_availableFieldHandles = null;
+        $this->_resolvedFormIdsCache = null;
+        $this->_resolvedFormIdsCacheKey = null;
+
+        return $this;
+    }
+
+    public function field(string $handle, mixed $value): static
+    {
+        $this->_fieldCriteriaByHandle[$handle] = $value;
 
         return $this;
     }
@@ -91,11 +131,7 @@ class SubmissionQuery extends ElementQuery
         if ($value instanceof Status) {
             $this->statusId = $value->id;
         } else if ($value !== null) {
-            $this->statusId = (new Query())
-                ->select(['id'])
-                ->from([Table::FORMIE_STATUSES])
-                ->where(Db::parseParam('handle', $value))
-                ->scalar();
+            $this->statusId = $this->_resolveStatusIdValue($value);
         } else {
             parent::status(null);
 
@@ -132,12 +168,6 @@ class SubmissionQuery extends ElementQuery
     {
         $this->userId = $value;
 
-        return $this;
-    }
-    
-    public function ipAddress($value): static
-    {
-        $this->ipAddress = $value;
         return $this;
     }
 
@@ -184,6 +214,54 @@ class SubmissionQuery extends ElementQuery
         return $elements;
     }
 
+    private function _resolveStatusIdValue(array|string $value): mixed
+    {
+        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
+        $statusIdsByHandle = [];
+
+        foreach ($statuses as $status) {
+            $statusIdsByHandle[strtolower((string)$status->handle)] = (int)$status->id;
+        }
+
+        if (is_array($value)) {
+            $resolvedIds = [];
+
+            foreach ($value as $handle) {
+                $resolvedId = $statusIdsByHandle[strtolower((string)$handle)] ?? null;
+
+                if ($resolvedId !== null) {
+                    $resolvedIds[] = $resolvedId;
+                }
+            }
+
+            if ($resolvedIds) {
+                return $resolvedIds;
+            }
+        } else {
+            $trimmedValue = trim($value);
+            $normalizedValue = strtolower($trimmedValue);
+
+            if (isset($statusIdsByHandle[$normalizedValue])) {
+                return $statusIdsByHandle[$normalizedValue];
+            }
+
+            if (str_starts_with($normalizedValue, 'not ')) {
+                $handle = trim(substr($trimmedValue, 4));
+                $resolvedId = $statusIdsByHandle[strtolower($handle)] ?? null;
+
+                if ($resolvedId !== null) {
+                    return "not {$resolvedId}";
+                }
+            }
+        }
+
+        return (new Query())
+            ->select(['id'])
+            ->from([Table::FORMIE_STATUSES])
+            ->where(Db::parseParam('handle', $value))
+            ->scalar();
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -203,13 +281,10 @@ class SubmissionQuery extends ElementQuery
             'formie_submissions.spamClass',
             'formie_submissions.snapshot',
             'formie_submissions.ipAddress',
-        ]);
 
-        // Just in case this fires too early in another plugin migration
-        if (Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
             // Should always be at the end, due to `setFieldContent` triggering order, so that `formId` (and other props) are set first
-            $this->query->addSelect('formie_submissions.content as fieldContent');
-        }
+            'formie_submissions.content as fieldContent',
+        ]);
 
         if ($this->formId) {
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.formId', $this->formId));
@@ -231,10 +306,6 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseParam('formie_submissions.isSpam', $this->isSpam));
         }
 
-        if ($this->ipAddress) {
-            $this->subQuery->andWhere(Db::parseParam('formie_submissions.ipAddress', $this->ipAddress));
-        }
-
         if ($this->before) {
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->before, '<'));
         }
@@ -243,22 +314,26 @@ class SubmissionQuery extends ElementQuery
             $this->subQuery->andWhere(Db::parseDateParam('formie_submissions.dateCreated', $this->after, '>='));
         }
 
-        // As we roll our own field layout, ensure field querying is handled
-        $this->_applyCustomFieldParams();
-
         return parent::beforePrepare();
+    }
+
+    protected function afterPrepare(): bool
+    {
+        // Apply Formie-owned field criteria collected via dynamic field-handle methods
+        // (for example: Submission::find()->myCustomField('value')).
+        if ($this->_fieldCriteriaByHandle) {
+            $this->_applyCustomFieldParams();
+        }
+
+        return parent::afterPrepare();
     }
 
     protected function statusCondition(string $status): mixed
     {
-        // Could potentially use a join in the main sub-query to not have another query,
-        // but I figure this is only called when using `status(handle)`, and we shouldn't
-        // let the 'regular' query suffer for this possible querying
-        $statusId = (new Query())
-            ->select(['id'])
-            ->from([Table::FORMIE_STATUSES])
-            ->where(Db::parseParam('handle', $status))
-            ->scalar();
+        // ElementQuery asks this for Craft-native statuses like `live` on every query.
+        // Resolve real Formie status handles from the cached status service first, then
+        // let Craft handle native element statuses without an avoidable status-table miss.
+        $statusId = $this->_resolveCachedStatusId($status);
 
         if ($statusId) {
             return ['formie_submissions.statusId' => $statusId];
@@ -267,30 +342,49 @@ class SubmissionQuery extends ElementQuery
         return parent::statusCondition($status);
     }
 
-    protected function fieldLayouts(): array
+    protected function customFields(): array
     {
-        $layouts = [];
-        $layoutFields = [];
+        if (!$this->withCustomFields) {
+            return [];
+        }
 
-        // If restricting to a form, only load the layouts we need for performance. As we're rolling our own field
-        // and field layouts, we need to handle this in a special way
-        if ($formIds = $this->_resolveFormIds()) {
-            foreach ($formIds as $formId) {
-                $layoutFields[] = Formie::$plugin->getFields()->getAllFieldsForForm($formId);
+        // Craft will try and load custom fields when dealing with provisional drafts, which is rough for performance
+        // As submissions don't make use of provisional draft, we can discard this.
+        if ($this->withProvisionalDrafts || $this->provisionalDrafts) {
+            return [];
+        }
+
+        $formIds = $this->_resolveFormIds();
+        $criteriaHandles = array_keys($this->_fieldCriteriaByHandle);
+
+        // If we have explicit field criteria, only hydrate those fields.
+        if ($criteriaHandles) {
+            return $this->_loadCustomFieldsForHandles($criteriaHandles, $formIds);
+        }
+
+        // If restricting to a form, only load the fields we need for performance.
+        if ($formIds) {
+            $fieldsByForm = Formie::$plugin->getFields()->getAllFieldsForForms($formIds);
+            $fieldsById = [];
+
+            foreach ($fieldsByForm as $fields) {
+                foreach ($fields as $field) {
+                    $fieldsById[$field->id] = $field;
+                }
             }
-        } else {
-            $layoutFields[] = Formie::$plugin->getFields()->getAllFields();
+
+            return array_values($fieldsById);
         }
 
-        foreach ($layoutFields as $fields) {
-            // Construct a custom field layout just for our query, for static fields
-            $layout = new QueryFieldLayout();
-            $layout->setCustomFields($fields);
+        // For all-source queries, avoid instantiating every Formie field definition unless
+        // the query actually references field handles (criteria/search/orderBy).
+        $requiredHandles = $this->_resolveRequiredFieldHandlesForAllSources();
 
-            $layouts[] = $layout;
+        if ($requiredHandles) {
+            return $this->_loadCustomFieldsForHandles($requiredHandles);
         }
 
-        return $layouts;
+        return [];
     }
 
 
@@ -299,23 +393,34 @@ class SubmissionQuery extends ElementQuery
 
     private function _applyCustomFieldParams(): void
     {
-        // Just in case this fires too early in another plugin migration
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
+        if (!$this->_fieldCriteriaByHandle) {
             return;
         }
 
-        $fieldAttributes = $this->getBehavior('customFields');
+        $criteriaHandles = array_keys($this->_fieldCriteriaByHandle);
+        $formIds = $this->_resolveFormIds();
+        $criteriaFields = $this->_loadCustomFieldsForHandles($criteriaHandles, $formIds);
 
-        // Group the fields by handle and field UUID
+        if (!$criteriaFields) {
+            return;
+        }
+
+        // Group only criteria-targeted fields by handle and field UUID.
+        $criteriaHandleMap = array_flip($criteriaHandles);
         $fieldsByHandle = [];
 
-        foreach ($this->customFields() as $field) {
+        foreach ($criteriaFields as $field) {
+            if (!isset($criteriaHandleMap[$field->handle])) {
+                continue;
+            }
+
             $fieldsByHandle[$field->handle][$field->uid][] = $field;
         }
 
-        foreach ($fieldsByHandle as $handle => $instancesByUid) {
-            // $fieldAttributes->$handle will return true even if it's set to null, so can't use isset() here
-            if ($handle === 'owner' || ($fieldAttributes->$handle ?? null) === null) {
+        foreach ($this->_fieldCriteriaByHandle as $handle => $fieldValue) {
+            $instancesByUid = $fieldsByHandle[$handle] ?? null;
+
+            if (!$instancesByUid) {
                 continue;
             }
 
@@ -324,7 +429,7 @@ class SubmissionQuery extends ElementQuery
 
             foreach ($instancesByUid as $instances) {
                 $firstInstance = $instances[0];
-                $condition = $firstInstance::queryCondition($instances, $fieldAttributes->$handle, $params);
+                $condition = $firstInstance::queryCondition($instances, $fieldValue, $params);
 
                 // aborting?
                 if ($condition === false) {
@@ -346,31 +451,331 @@ class SubmissionQuery extends ElementQuery
         }
     }
 
+    private function _resolveFormIdValue(array|string $value): mixed
+    {
+        if (is_string($value) && $this->_isExactHandleParam($value)) {
+            return Formie::$plugin->getForms()->getFormByHandle($value)?->id ?: false;
+        }
+
+        if (is_array($value) && $this->_isExactHandleListParam($value)) {
+            $ids = [];
+
+            foreach ($value as $handle) {
+                $form = Formie::$plugin->getForms()->getFormByHandle($handle);
+
+                if ($form) {
+                    $ids[] = (int)$form->id;
+                }
+            }
+
+            return $ids ?: false;
+        }
+
+        return (new Query())
+            ->select(['forms.id'])
+            ->from(['forms' => Table::FORMIE_FORMS])
+            ->where(Db::parseParam('handle', $value))
+            ->leftJoin(['elements' => Table::ELEMENTS], '[[forms.id]] = [[elements.id]]')
+            ->andWhere(['dateDeleted' => null])
+            ->scalar();
+    }
+
+    private function _resolveCachedStatusId(string $status): ?int
+    {
+        $normalizedStatus = strtolower(trim($status));
+
+        if ($normalizedStatus === '' || str_starts_with($normalizedStatus, 'not ')) {
+            return null;
+        }
+
+        foreach (Formie::$plugin->getStatuses()->getAllStatuses() as $formieStatus) {
+            if (strtolower((string)$formieStatus->handle) === $normalizedStatus) {
+                return (int)$formieStatus->id;
+            }
+        }
+
+        return null;
+    }
+
+    private function _isExactHandleParam(string $value): bool
+    {
+        $value = trim($value);
+
+        if ($value === '' || str_starts_with(strtolower($value), 'not ')) {
+            return false;
+        }
+
+        return !str_contains($value, '*') && !str_contains($value, ',');
+    }
+
+    private function _isExactHandleListParam(array $value): bool
+    {
+        if (!$value || array_is_list($value) === false) {
+            return false;
+        }
+
+        foreach ($value as $handle) {
+            if (!is_string($handle) || !$this->_isExactHandleParam($handle)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function _resolveAvailableFieldHandles(): array
+    {
+        $scopeKey = $this->_fieldHandleScopeCacheKey();
+
+        if (isset(self::$_fieldHandleCacheByScope[$scopeKey])) {
+            return self::$_fieldHandleCacheByScope[$scopeKey];
+        }
+
+        $query = (new Query())
+            ->select(['f.handle'])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->distinct();
+
+        if ($formIds = $this->_resolveFormIds()) {
+            $query->innerJoin(['fo' => Table::FORMIE_FORMS], '[[ff.layoutId]] = [[fo.layoutId]]');
+            $query->andWhere(['fo.id' => $formIds]);
+        }
+
+        $handles = $query->column();
+        $mappedHandles = [];
+
+        foreach ($handles as $handle) {
+            if (is_string($handle) && $handle !== '') {
+                $mappedHandles[strtolower($handle)] = $handle;
+            }
+        }
+
+        self::_storeFieldHandleScopeCache($scopeKey, $mappedHandles);
+
+        return $mappedHandles;
+    }
+
+    private function _fieldHandleScopeCacheKey(): string
+    {
+        $formIds = $this->_resolveFormIds();
+
+        if (!$formIds) {
+            return '*';
+        }
+
+        $formIds = array_values(array_unique(array_map('intval', $formIds)));
+        sort($formIds, SORT_NUMERIC);
+
+        return implode(',', $formIds);
+    }
+
+    private function _loadCustomFieldsForHandles(array $handles, array $formIds = []): array
+    {
+        $handles = array_values(array_unique(array_filter($handles, fn($handle) => is_string($handle) && $handle !== '')));
+
+        if (!$handles) {
+            return [];
+        }
+
+        sort($handles, SORT_STRING);
+        $formIds = array_values(array_unique(array_map('intval', $formIds)));
+        sort($formIds, SORT_NUMERIC);
+        $cacheKey = Json::encode([
+            'handles' => $handles,
+            'formIds' => $formIds,
+        ]);
+
+        if (isset(self::$_customFieldsByHandleScope[$cacheKey])) {
+            return self::$_customFieldsByHandleScope[$cacheKey];
+        }
+
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
+
+        $query = (new Query())
+            ->select([
+                'ff.id',
+                'ff.fieldId',
+                'ff.layoutId',
+                'ff.pageId',
+                'ff.rowId',
+                'f.label',
+                'f.handle',
+                'ff.reference',
+                'f.type',
+                'ff.sortOrder',
+                'f.settings',
+                'ff.dateCreated',
+                'ff.dateUpdated',
+                'ff.uid',
+                'ff.settings as formFieldSettings',
+                'COALESCE(usage.count, 1) as usageCount',
+            ])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
+            ->where(['f.handle' => $handles]);
+
+        if ($formIds) {
+            $query->innerJoin(['fo' => Table::FORMIE_FORMS], '[[ff.layoutId]] = [[fo.layoutId]]');
+            $query->andWhere(['fo.id' => $formIds]);
+        }
+
+        $fieldRecords = $query->all();
+        $fieldsById = [];
+
+        foreach ($fieldRecords as $fieldRecord) {
+            $formFieldSettings = Json::decodeIfJson($fieldRecord['formFieldSettings'] ?? null);
+
+            if (is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)) {
+                $fieldRecord['required'] = (bool)$formFieldSettings['required'];
+            }
+
+            $fieldRecord['isSynced'] = (int)($fieldRecord['usageCount'] ?? 1) > 1;
+            $fieldRecord['syncId'] = $fieldRecord['isSynced'] ? (int)($fieldRecord['fieldId'] ?? 0) : null;
+            unset($fieldRecord['formFieldSettings']);
+
+            $field = Formie::$plugin->getFields()->createField($fieldRecord);
+
+            if ($field->id) {
+                $fieldsById[$field->id] = $field;
+            } else {
+                $fieldsById[] = $field;
+            }
+        }
+
+        $fields = array_values($fieldsById);
+
+        // Criteria queries can ask for the same handle-scoped field definitions twice in a
+        // single execution: once to build SQL conditions, then again while populating custom
+        // fields on the matched submissions. Cache that hydrated field set for the request so
+        // repeated submission queries and the second pass in the same query can reuse it.
+        self::_storeCustomFieldLoadCache($cacheKey, $fields);
+
+        return $fields;
+    }
+
     private function _resolveFormIds(): array
     {
+        $cacheKey = Json::encode([
+            'formId' => $this->formId,
+            'id' => $this->id,
+            'uid' => $this->uid,
+        ]);
+
+        if ($this->_resolvedFormIdsCacheKey === $cacheKey && $this->_resolvedFormIdsCache !== null) {
+            return $this->_resolvedFormIdsCache;
+        }
+
         // If `formId` is directly available
         if ($this->formId) {
-            return (array)$this->formId;
+            $result = (array)$this->formId;
+            $this->_resolvedFormIdsCacheKey = $cacheKey;
+            $this->_resolvedFormIdsCache = $result;
+
+            return $result;
         }
 
         // If working with submission IDs
         if ($this->id) {
-            return (new Query())
+            $result = (new Query())
                 ->select(['formId'])
                 ->from(Table::FORMIE_SUBMISSIONS)
                 ->where(['id' => (array)$this->id])
                 ->column();
+
+            $this->_resolvedFormIdsCacheKey = $cacheKey;
+            $this->_resolvedFormIdsCache = $result;
+
+            return $result;
         }
 
         // If working with submission UIDs
         if ($this->uid) {
-            return (new Query())
+            $result = (new Query())
                 ->select(['formId'])
                 ->from(Table::FORMIE_SUBMISSIONS)
                 ->where(['uid' => (array)$this->uid])
                 ->column();
+
+            $this->_resolvedFormIdsCacheKey = $cacheKey;
+            $this->_resolvedFormIdsCache = $result;
+
+            return $result;
         }
 
+        $this->_resolvedFormIdsCacheKey = $cacheKey;
+        $this->_resolvedFormIdsCache = [];
+
         return [];
+    }
+
+    private function _resolveRequiredFieldHandlesForAllSources(): array
+    {
+        $requiredHandles = array_keys($this->_fieldCriteriaByHandle);
+
+        // Handle `search('fieldHandle:value')` on all-source queries by loading only those handles.
+        $requiredHandles = array_merge($requiredHandles, $this->_extractSearchAttributeHandles());
+
+        // Allow orderBy on field handles without loading all fields.
+        $orderBy = (array)$this->orderBy;
+        $requiredHandles = array_merge($requiredHandles, array_keys($orderBy));
+
+        $requiredHandles = array_values(array_unique(array_filter($requiredHandles, fn($handle) => is_string($handle) && $handle !== '')));
+
+        if (!$requiredHandles) {
+            return [];
+        }
+
+        $this->_availableFieldHandles ??= $this->_resolveAvailableFieldHandles();
+        $availableHandlesByLower = $this->_availableFieldHandles;
+        $canonicalHandles = [];
+
+        foreach ($requiredHandles as $handle) {
+            $lookupHandle = strtolower($handle);
+
+            if (isset($availableHandlesByLower[$lookupHandle])) {
+                $canonicalHandles[] = $availableHandlesByLower[$lookupHandle];
+            }
+        }
+
+        return array_values(array_unique($canonicalHandles));
+    }
+
+    private function _extractSearchAttributeHandles(): array
+    {
+        if (!$this->search) {
+            return [];
+        }
+
+        $searchQuery = Craft::$app->getSearch()->normalizeSearchQuery($this->search);
+        $tokens = $searchQuery->getTokens();
+        $attributes = [];
+
+        $collectTermAttribute = static function($term) use (&$attributes): void {
+            if ($term instanceof SearchQueryTerm && is_string($term->attribute) && $term->attribute !== '') {
+                $attributes[] = $term->attribute;
+            }
+        };
+
+        foreach ($tokens as $token) {
+            if ($token instanceof SearchQueryTermGroup) {
+                foreach ($token->terms as $term) {
+                    $collectTermAttribute($term);
+                }
+
+                continue;
+            }
+
+            $collectTermAttribute($token);
+        }
+
+        return array_values(array_unique($attributes));
     }
 }

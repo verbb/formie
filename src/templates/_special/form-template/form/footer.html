@@ -1,0 +1,5 @@
+{% formtag 'formFooter' %}
+    {% if form.settings.progressPosition == 'end' %}
+        {{ formieInclude('form/progress') }}
+    {% endif %}
+{% endformtag %}

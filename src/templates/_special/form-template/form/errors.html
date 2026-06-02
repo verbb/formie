@@ -1,0 +1,7 @@
+{% formtag 'errors' %}
+    {% for error in errors %}
+        {% formtag 'error' %}
+            {{- error | t('formie') -}}
+        {% endformtag %}
+    {% endfor %}
+{% endformtag %}

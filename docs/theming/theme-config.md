@@ -1,41 +1,43 @@
 # Theme Config
-Using a Theme Config to render your form is the recommended approach for quickly customising your form's output HTML. Put simply, it provides you an easy way to control and manipulate each HTML element and attribute that's used to build a form, through its pages, rows, fields, buttons and more. This allows you to change the attributes (commonly class attributes) for components like the submit button, field `<input>` elements, and even the `<form>` element itself.
+Using theme config is the recommended way to customize Formie's rendered HTML.
+
+It gives you control over the HTML tags and attributes used to build a form, including pages, rows, fields, buttons, and more. That makes it useful for changing classes, adding attributes, adjusting wrappers, or changing the tag used for a particular part of the output.
 
 For this reason, it's well-suited to being used to output opinionated class attributes used by utility CSS frameworks like [Tailwind](https://tailwindcss.com/), or other frameworks like [Bootstrap](https://getbootstrap.com/).
 
-:::warning
-We recommend reading the [theming overview](docs:theming/overview) docs before getting started, for an explanation of theme config compared to other methods of theming forms.
-:::
+For complete framework presets and larger examples, see [Formie theme configs](https://github.com/verbb/formie-theme-configs).
+
+> [!NOTE]
+> Read [Theming Overview](/theming/overview) first if you want to compare theme config with template overrides and custom rendering.
 
 ## Overview
 To gain a better understanding of what theme config is for, let's walk through the HTML output of a form. Take for example the default structure below (without every attribute shown):
 
-```twig
-<div class="fui-i">
-    <form class="fui-form">
-        <div class="fui-form-container">
-            <div class="fui-page">
-                <div class="fui-page-container">
-                    <div class="fui-row fui-page-row">
-                        <div class="fui-field">
-                            <div class="fui-field-container">
-                                <label class="fui-label">My Example Field</label>
-                                <div class="fui-instructions">Some instructions</div>
+```html
+<form class="formie-form" data-formie-form>
+    <div class="formie-pages">
+        <div class="formie-page">
+            <div class="formie-page-container">
+                <div class="formie-row">
+                    <div class="formie-field">
+                        <div class="formie-field-container">
+                            <label class="formie-label">My Example Field</label>
+                            <div class="formie-instructions">Some instructions</div>
 
-                                <div class="fui-input-wrapper">
-                                    <input type="text">
-                                </div>
-                            </div>
-
-                           <div class="fui-errors">
-                               <div class="fui-error">
+                            <div class="formie-field-control">
+                                <input type="text">
                             </div>
                         </div>
+
+                       <div class="formie-field-errors">
+                           <div class="formie-field-error">
+                        </div>
+                    </div>
 ```
 
 Here, we have outlined the full structure of a form, containing a single field which would be rendered by `craft.formie.renderForm()`. While there are many HTML elements, each serve a purpose with styling, semantic structure, accessibility and general organisation.
 
-Let's say, we want to add a `my-form` ID attribute to the `<form>` element. Whilst we could use [custom rendering](docs:theming/custom-rendering) or [template overrides](docs:theming/template-overrides) to gain control over the templating used to generate the `<form>` element, that's quite heavy-handed, and relies on you now maintaining that template as Formie changes.
+Let's say you want to add a `my-form` ID attribute to the `<form>` element. You could use [Custom Rendering](/theming/custom-rendering) or [Template Overrides](/theming/template-overrides), but that is a heavier approach and gives you more template maintenance to keep up with.
 
 Instead, we can use theme config to manipulate the attributes for this form.
 
@@ -51,34 +53,30 @@ Instead, we can use theme config to manipulate the attributes for this form.
 }) }}
 
 {# Rendering #}
-<div class="fui-i">
-    <form id="my-form" class="fui-form">
-        <div class="fui-form-container">
-            <div class="fui-page">
-                ...
+<form id="my-form" class="formie-form" data-formie-form>
+    <div class="formie-pages">
+        <div class="formie-page">
+            ...
 ```
 
-Let's try a few more things at once for fun:
+Here is a more involved example:
 
-- Remove the `<div class="fui-i">`
 - Remove all of Formie's classes on the `<form>` element and add `id="my-form"`
-- Change `<div class="fui-form-container">` to `<fieldset class="fui-form-container">`
-- And some padding to the field wrapper (Tailwind)
+- Change one wrapper to a `<fieldset>`
+- Add padding to the field wrapper
 - Add a red border to the `<input>` element for all fields (Tailwind)
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
-        formWrapper: false,
-
         form: {
-            resetClass: true,
+            reset: true,
             attributes: {
                 id: 'my-form',
             },
         },
 
-        formContainer: {
+        pages: {
             tag: 'fieldset',
         },
 
@@ -98,43 +96,45 @@ Let's try a few more things at once for fun:
 
 {# Rendering #}
 <form id="my-form">
-    <fieldset class="fui-form-container">
-        <div class="fui-page">
-            <div class="fui-page-container">
-                <div class="fui-row fui-page-row">
-                    <div class="fui-field p-4 w-full mb-4">
-                        <div class="fui-field-container">
-                            <label class="fui-label">My Example Field</label>
-                            <div class="fui-instructions">Some instructions</div>
+    <fieldset class="formie-pages">
+        <div class="formie-page">
+            <div class="formie-page-container">
+                <div class="formie-row">
+                    <div class="formie-field p-4 w-full mb-4">
+                        <div class="formie-field-container">
+                            <label class="formie-label">My Example Field</label>
+                            <div class="formie-instructions">Some instructions</div>
 
-                            <div class="fui-input-wrapper">
+                            <div class="formie-field-control">
                                 <input type="text" class="border border-red-500">
                             </div>
                         </div>
 
-                       <div class="fui-errors">
-                           <div class="fui-error">
+                       <div class="formie-field-errors">
+                           <div class="formie-field-error">
                         </div>
                     </div>
 ```
 
 ## Theme Tags
-As you can see above, we're passing in a Twig object with keys for certain components of the rendered HTML, and either providing attributes as a nested Twig object, or the ability to exclude them from render altogether (returning `false` or `null`).
+As you can see above, you pass a Twig object with keys for different parts of the rendered HTML. Each key can define attributes, a different tag, or even remove that element entirely by returning `false` or `null`.
 
-Formie has several of these "theme tags" defined, to allow us to define an API of sorts for how a form is structured, and how you can provide definitions for them. Some are for the overall form, for fields, and for specific field types. Every tag definition can have the following set:
+Formie exposes several of these theme tags. Some apply to the overall form, some apply to all fields, and some are specific to particular field types. Every tag definition can use the following properties:
 
 | Attribute | Type | Description
 | - | - | -
-| `resetClass` | `Boolean` | Whether to retain or remove any `fui-*` classes for the element.
-| `tag` | `String` | the valid HTML to be used for the HTML element.
-| `attributes` | `Boolean` | A collection of valid HTML attributes for the HTML element. Some items can be arrays like `class`, `data`, `style` or `aria`. This works exactly like Craft's [`attr`](https://craftcms.com/docs/4.x/functions.html#attr) function.
+| `reset` | `Boolean` | Whether to retain or remove Formie's default `formie-*` classes for the element. |
+| `tag` | `String` | The HTML tag to use for that element. |
+| `attributes` | `Object` | A collection of HTML attributes for the element. Values such as `class`, `data`, `style`, and `aria` can be arrays or nested objects. This works much like Craft's [`attr`](https://craftcms.com/docs/4.x/functions.html#attr) helper. |
+| `cssVars` | `Object` | CSS custom properties to merge into the element's inline style. |
+| `prepend` / `append` | `Array|Object` | Extra content nodes to inject before or after the element content. |
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
-        formContainer: {
+        pages: {
             tag: 'fieldset',
-            resetClass: true,
+            reset: true,
             attributes: {
                 class: ['one', 'two'],
                 disabled: true,
@@ -149,62 +149,74 @@ Formie has several of these "theme tags" defined, to allow us to define an API o
 }) }}
 ```
 
-For a full list of available tags, refer to the below:
+The available tags are grouped below.
 
-### Form Tags
-- `formWrapper`
+### Form tags
 - `form`
-- `formContainer`
-- `alertError`
-- `alertSuccess`
-- `errors`
-- `error`
+- `formHeader`
+- `formMessagesTop`
+- `formNavigation`
+- `formBody`
+- `formFooter`
+- `formMessagesBottom`
+- `pages`
+- `messageError`
+- `messageSuccess`
 - `formTitle`
-
-## Page Tags
-- `page`
-- `pageContainer`
-- `pageTitle`
-- `row`
-
-## Page Tab Tags
 - `pageTabs`
 - `pageTab`
 - `pageTabLink`
-
-## Progress Tags
+- `page`
+- `pageContainer`
+- `pageHeader`
+- `pageBody`
+- `pageFooter`
+- `pageCaptchas`
+- `pageButtons`
+- `pageTitle`
+- `rows`
+- `row`
+- `captchaContainer`
+- `buttonContainer`
+- `submitButton`
+- `saveButton`
+- `backButton`
 - `progressWrapper`
 - `progress`
 - `progressContainer`
 - `progressValue`
+- `errors`
+- `error`
 
-## Buttons
-- `buttonWrapper`
-- `submitButton`
-- `backButton`
-- `saveButton`
-
-## Field Tags
+### Shared field tags
 - `field`
-- `fieldContainer`
+- `fieldLayout`
 - `fieldLabel`
 - `fieldRequired`
 - `fieldOptional`
 - `fieldInstructions`
-- `fieldInputWrapper`
-- `fieldInput`
+- `fieldContent`
+- `fieldControl`
 - `fieldErrors`
 - `fieldError`
+- `subFieldRows`
+- `subFieldRow`
+- `nestedFieldRows`
+- `nestedFieldRow`
 
 ### Address Field
 - `subFieldRows`
 - `subFieldRow`
+- `fieldInput`
 
 ### Agree Field
+- `fieldOptions`
+- `fieldInput`
 - `fieldOption`
 - `fieldOptionLabel`
 
 ### Checkboxes Field
+- `fieldInput`
 - `fieldOptions`
 - `fieldOption`
 - `fieldOptionLabel`
@@ -212,8 +224,10 @@ For a full list of available tags, refer to the below:
 ### Date/Time Field
 - `subFieldRows`
 - `subFieldRow`
+- `fieldInput`
 
 ### File Upload Field
+- `fieldInput`
 - `fieldSummary`
 - `fieldSummaryContainer`
 - `fieldSummaryItem`
@@ -227,14 +241,21 @@ For a full list of available tags, refer to the below:
 - `fieldHeading`
 
 ### Multi-Line Text Field
+- `fieldInput`
 - `fieldLimit`
 - `fieldRichText`
 
 ### Name Field
 - `subFieldRows`
 - `subFieldRow`
+- `fieldInput`
+
+### Phone Field
+- `fieldInput`
+- `fieldCountryInput`
 
 ### Radio Field
+- `fieldInput`
 - `fieldOptions`
 - `fieldOption`
 - `fieldOptionLabel`
@@ -253,17 +274,25 @@ For a full list of available tags, refer to the below:
 
 ### Signature Field
 - `fieldCanvas`
+- `fieldInput`
 - `fieldRemoveButton`
 
 ### Single-Line Text Field
+- `fieldInput`
 - `fieldLimit`
 
 ### Summary Field
+- `fieldSummary`
 - `fieldSummaryBlocks`
 - `fieldSummaryBlock`
+- `fieldSummaryContainer`
 - `fieldSummaryHeading`
+- `fieldSummaryItem`
+- `fieldSummaryLabel`
+- `fieldSummaryValue`
 
 ### Table Field
+- `fieldTableWrapper`
 - `fieldTable`
 - `fieldTableHeader`
 - `fieldTableHeaderRow`
@@ -273,6 +302,7 @@ For a full list of available tags, refer to the below:
 - `fieldTableBodyColumn`
 - `fieldAddButton`
 - `fieldRemoveButton`
+- `fieldTableRemoveColumn`
 - `tableCheckboxInput`
 - `tableColorInput`
 - `tableDateInput`
@@ -285,8 +315,14 @@ For a full list of available tags, refer to the below:
 - `tableTimeInput`
 - `tableUrlInput`
 
-### Field Types
-In addition, you can also target fields on a particular type. You can then provide all the same field-level tag configs that you would for general fields.
+### Captcha and integration-specific tags
+
+- `captcha`
+- `stripePlaceholder`
+
+### Targeting a field type
+
+You can also target a field type directly. This lets you apply the same tag config only to one type of field instead of all fields.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -302,7 +338,8 @@ In addition, you can also target fields on a particular type. You can then provi
 }) }}
 ```
 
-These tags are the `camelCase` string for the field type class.
+These keys use the field class' `camelCase` name. Available field type keys include:
+
 - `address`
 - `agree`
 - `calculations`
@@ -313,6 +350,7 @@ These tags are the `camelCase` string for the field type class.
 - `emailAddress`
 - `entries`
 - `fileUpload`
+- `forms`
 - `group`
 - `heading`
 - `hiddenField`
@@ -320,24 +358,26 @@ These tags are the `camelCase` string for the field type class.
 - `multiLineText`
 - `name`
 - `number`
-- `payment`
 - `password`
+- `payment`
 - `phoneNumber`
+- `products`
 - `radioButtons`
 - `recipients`
 - `repeater`
 - `section`
 - `signature`
 - `singleLineText`
+- `submissions`
 - `summary`
 - `table`
 - `tags`
 - `users`
-- `products`
 - `variants`
 
-### Sub-Field Types
-Some fields (sub-fields) also expose their inner fields, which can have their own handling.
+Some fields also expose their inner sub-fields as their own targetable keys.
+
+Available sub-field keys include:
 
 - `address1`
 - `address2`
@@ -370,9 +410,35 @@ Some fields (sub-fields) also expose their inner fields, which can have their ow
 - `nameMiddle`
 - `namePrefix`
 
+That lets you target one part of the field without affecting the rest.
+
+```twig
+{{ craft.formie.renderForm('contactForm', {
+    themeConfig: {
+        address1: {
+            fieldInput: {
+                attributes: {
+                    class: 'street-line',
+                },
+            },
+        },
+
+        addressCountry: {
+            fieldInput: {
+                attributes: {
+                    class: 'country-select',
+                },
+            },
+        },
+    },
+}) }}
+```
+
+The same pattern applies to other fields with inner sub-fields, such as Name and some Date/Time input modes.
+
 
 ## Examples
-Below are some common examples to better understand what you can do with theme config. 
+Below are some common examples of what theme config can do.
 
 ### Appending Attributes
 We can append attributes to an element, ensuring that existing ones are kept in-place.
@@ -390,18 +456,18 @@ We can append attributes to an element, ensuring that existing ones are kept in-
 }) }}
 
 {# Rendering #}
-<div class="fui-field appended-class" data-field-type="single-line-text" data-custom="my-field">
+<div class="formie-field appended-class" data-formie-field-type="single-line-text" data-custom="my-field">
     ...
 ```
 
 ### Resetting Classes
-If you don't want to retain Formie's default classes on tag, you can remove them by passing `resetClass`.
+If you do not want to retain Formie's default classes on a tag, use `reset`.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
         field: {
-            resetClass: true,
+            reset: true,
             attributes: {
                 class: 'my-field',
             },
@@ -415,61 +481,31 @@ If you don't want to retain Formie's default classes on tag, you can remove them
 ```
 
 ### Removing Tags
-If you don't want to render a tag at all, you can return a falsey value.
+If you do not want to render a tag at all, you can return a falsey value.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
-        fieldContainer: false,
-        fieldInputWrapper: null,
+        fieldInstructions: false,
+        fieldErrors: null,
     },
 }) }}
 
 {# Rendering #}
-<div class="fui-field">
-    <label class="fui-label">My Example Field</label>
-    <div class="fui-instructions">Some instructions</div>
-
-    <input type="text">
+<div class="formie-field">
+    <label class="formie-label">My Example Field</label>
+    <div class="formie-field-content">
+        <div class="formie-field-control">
+            <input type="text">
+        </div>
+    </div>
 </div>
 ```
 
-### Resetting All Classes
-Like using `resetClass` on an individual tag, you can use `resetClasses` at the theme config level to remove all classes for everything. This can provide you with a blank-slate for you to theme. No other attributes are reset to ensure accessibility and Formie's JS functionality.
+### Conditional values
+Theme config supports structured conditional values using `if`, `then`, and `else`.
 
-```twig
-{{ craft.formie.renderForm('contactForm', {
-    themeConfig: {
-        resetClasses: true,
-    },
-}) }}
-
-{# Rendering #}
-<div>
-    <form id="uniqueId" method="post" data-fui-form>
-        <div>
-            <div>
-                <div>
-                    <div>
-                        <div data-field-handle="example" data-field-type="single-line-text">
-                            <div>
-                                <label for="uniqueId">My Example Field</label>
-                                <div>Some instructions</div>
-
-                                <div>
-                                    <input id="uniqueId" type="text" name="fields[example]">
-                                </div>
-                            </div>
-                        </div>
-                    ...
-```
-
-### Advanced Usage with Twig
-You can also include Twig templating within the value of a class for even more powerful usage.
-
-Let's take for example the Recipients field. There's 4 different display options for this field; Dropdown, Hidden, Checkboxes and Radio Buttons. In the case of when this field is Hidden, we clearly don't want the field to be visible (but still rendered), but there's not an easy way to change classes depending on settings on the field.
-
-Fortunately, we've included the ability to write Twig in class values.
+For example, if you want to add a class only when a Recipients field is hidden:
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
@@ -479,7 +515,10 @@ Fortunately, we've included the ability to write Twig in class values.
                 attributes: {
                     class: [
                         'hidden-field',
-                        "{{ field.getIsHidden() ? 'is-hidden' : false }}",
+                        {
+                            if: 'field.isHidden',
+                            then: 'is-hidden',
+                        },
                     ],
                 },
             },
@@ -488,21 +527,31 @@ Fortunately, we've included the ability to write Twig in class values.
 }) }}
 ```
 
-Here, we're targeting all Recipients fields, and the `field` theme tag. We're applying a `hidden-field` class on this tag, but you'll also notice the Twig code surrounded by `"` - `{{ field.getIsHidden() ? 'is-hidden' : false }}`. When you provide a Twig template as a string, Formie will evaluate that Twig code in the context of the current field. 
+The `hidden-field` class is always added, while `is-hidden` is only added when `field.isHidden` is truthy.
 
-You'll notice we're calling `field.getIsHidden()` which is a [Field](docs:developers/field) method. You could call **any** property or method on this field if your template. We're then using a ternary operator to return `is-hidden` if the `getIsHidden()` function returns true, or `false` if not.
+You can also use more explicit comparisons:
 
-Your Twig template can be whatever you need, just ensure to wrap is as a string with either `"` or `'` characters.
+```twig
+{
+    if: {
+        context: 'page.buttonsPosition',
+        equals: 'left',
+    },
+    then: 'buttons-left',
+    else: 'buttons-other',
+}
+```
+
+The available condition context comes from the current render state, including `form`, `field`, `page`, `currentPage`, `row`, and `submission`.
 
 ## Ready-Made Configs
-We've put together a few full-featured and drop-in theme config's for you to use in your forms. Each example completely removes Formie's default `fui-*` classes. You're welcome to use them as-is, or modify them for your next project.
+We have also put together a few full-featured theme config examples you can use as a starting point. Each one removes Formie's default classes and replaces them with framework-specific ones.
 
 - [Tailwind](https://github.com/verbb/formie-theme-configs/blob/formie-3/tailwind/index.html)
 - [Bootstrap](https://github.com/verbb/formie-theme-configs/blob/formie-3/bootstrap/index.html)
 
-:::tip
-Have a theme config you'd like to share? [Drop us a line](/contact).
-:::
+> [!TIP]
+> If you build a useful theme config for your project, it can be a good starting point for future forms and future projects too.
 
 ## Config Definitions
 There are 3 methods for how you define a theme config, which are shown below in order of priority (with the first being the lowest priority).
@@ -514,16 +563,11 @@ There are 3 methods for how you define a theme config, which are shown below in 
 Although each method is a different way to define a theme config, it all ends up being treated the same - just a different way of registering this configuration. Your project could even use a combination of all methods!
 
 ### Render-time (Twig)
-Used with your `craft.formie.renderForm()` in the form of [Render Options](docs:theming/render-options), you can provide a config for your form at render time with Twig.
+Used with `craft.formie.renderForm()` through [Render Options](/templates/render-options), this is the most direct way to provide theme config in a template.
 
 ```twig
 {{ craft.formie.renderForm('contactForm', {
     themeConfig: {
-        formWrapper: {
-            attributes: {
-                class: 'border border-green-500',
-            },
-        },
         form: {
             attributes: {
                 class: 'border border-red-500',
@@ -536,7 +580,7 @@ Used with your `craft.formie.renderForm()` in the form of [Render Options](docs:
         },
         fieldInput: {
             tag: 'div',
-            resetClass: true,
+            reset: true,
             attributes: {
                 class: 'border border-blue-500',
             },
@@ -546,16 +590,16 @@ Used with your `craft.formie.renderForm()` in the form of [Render Options](docs:
 ```
 
 ### Events (PHP)
-You can also use [Events](docs:developers/events) to define your theme config in the same manner. Using PHP gives you more control and flexibility than Twig, but does require knowledge of PHP and Craft's modules.
+You can also use [Form Events](/developers/events/form-events) to define theme config in PHP. This gives you more control than Twig, but it also means writing module or plugin code.
 
 For form-level tags:
 
 ```php
 use verbb\formie\elements\Form;
-use verbb\formie\events\ModifyFormHtmlTagEvent;
+use verbb\formie\events\ModifyFormSlotTagEvent;
 use yii\base\Event;
 
-Event::on(Form::class, Form::EVENT_MODIFY_HTML_TAG, function(ModifyFormHtmlTagEvent $event) {
+Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEvent $event) {
     $form = $event->form;
     $tag = $event->tag;
     $key = $event->key;
@@ -572,13 +616,13 @@ Event::on(Form::class, Form::EVENT_MODIFY_HTML_TAG, function(ModifyFormHtmlTagEv
 For field-level tags:
 
 ```php
-use verbb\formie\base\FormField;
+use verbb\formie\base\Field;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\events\ModifyFieldHtmlTagEvent;
+use verbb\formie\events\ModifyFieldSlotTagEvent;
 use yii\base\Event;
 
 // Provide config for all fields
-Event::on(FormField::class, FormField::EVENT_MODIFY_HTML_TAG, function(ModifyFieldHtmlTagEvent $event) {
+Event::on(Field::class, Field::EVENT_MODIFY_SLOT_TAG, function(ModifyFieldSlotTagEvent $event) {
     $field = $event->field;
     $tag = $event->tag;
     $key = $event->key;
@@ -589,14 +633,14 @@ Event::on(FormField::class, FormField::EVENT_MODIFY_HTML_TAG, function(ModifyFie
         $event->tag->attributes['class'] = 'p-4 w-full mb-4';
     }
 
-    // For the inner field wrapper, don't render the element
-    if ($event->key === 'fieldContainer') {
+    // For the field instructions element, don't render the element
+    if ($event->key === 'fieldInstructions') {
         $event->tag = null;
     }
 });
 
 // Single-line-text field-specific config
-Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function(ModifyFieldHtmlTagEvent $event) {
+Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_SLOT_TAG, function(ModifyFieldSlotTagEvent $event) {
     $field = $event->field;
     $tag = $event->tag;
     $key = $event->key;
@@ -611,21 +655,19 @@ Event::on(SingleLineText::class, SingleLineText::EVENT_MODIFY_HTML_TAG, function
 ```
 
 ### Plugin Configuration (PHP)
-You can also define your config at the global plugin level through the [plugin configuration](docs:get-started/configuration) file. Because this has the least priority, all other methods can override your definition here. This allows you to create sane defaults at the plugin level - even across multiple projects - and tweak them as needed.
+You can also define theme config globally through the [plugin configuration](/get-started/configuration) file. Because this has the lowest priority, render-time config and events can still override it.
 
 ```php
 <?php
 
 return [
     'themeConfig' => [
-        // Remove all of Formie's classes by default
-        'resetClasses' => true,
-
         // For the field `<form>` element, change the tag and add attributes
         'form' => [
+            'reset' => true,
+            'tag' => 'div',
             'attributes' => [
                 'class' => 'p-4 w-full mb-4',
-                'tag' => 'div',
             ],
         ],
 
@@ -649,7 +691,7 @@ return [
 ```
 
 ### Combining with Template Overrides
-Even if you want to use [template overrides](docs:theming/template-overrides), you can still use theme config in a non-breaking manner. Let's look at the default Twig template for a Single-Line Text field.
+Even if you want to use [Template Overrides](/theming/template-overrides), you can still keep theme config in play. For example, the default Twig template for a Single-Line Text field is very small:
 
 ```twig
 {{ fieldtag('fieldInput', {

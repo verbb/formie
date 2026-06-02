@@ -10,10 +10,15 @@ use Exception;
 
 class ImportForm extends BaseJob
 {
+    // Properties
+    // =========================================================================
 
     public ?string $fileLocation = null;
     public ?string $formAction = 'update';
 
+
+    // Public Methods
+    // =========================================================================
 
     public function execute($queue): void
     {
@@ -29,17 +34,22 @@ class ImportForm extends BaseJob
         $this->setProgress($queue, 0.66);
 
         // check for errors
-        if ($form->getConsolidatedErrors()) {
-            $errors = Json::encode($form->getConsolidatedErrors());
+        if ($form->getErrors()) {
+            $errors = Json::encode($form->getErrors());
             throw new Exception("Unable to import form {$this->fileLocation}" . PHP_EOL . "Errors: {$errors}.");
         }
 
         $this->setProgress($queue, 1);
     }
 
+
+    // Protected Methods
+    // =========================================================================
+
     protected function defaultDescription(): string
     {
         $fileName = basename($this->fileLocation);
+        
         return "Import of JSON '$fileName'.";
     }
 }

@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\models;
 
+use Craft;
 use craft\behaviors\FieldLayoutBehavior;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 
+use verbb\formie\deprecations\FormTemplateDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\records\FormTemplate as FormTemplateRecord;
 
@@ -18,15 +20,20 @@ class FormTemplate extends BaseTemplate
     public const INSIDE_FORM = 'inside-form';
     public const MANUAL = 'manual';
 
+
+    // Traits
+    // =========================================================================
+
+    use FormTemplateDeprecations;
+
+
     // Properties
     // =========================================================================
 
     public ?string $fieldLayoutId = null;
     public bool $useCustomTemplates = false;
-    public bool $outputCssLayout = true;
-    public bool $outputCssTheme = true;
-    public bool $outputJsBase = true;
-    public bool $outputJsTheme = true;
+    public bool $outputCss = true;
+    public bool $outputJs = true;
     public string $outputCssLocation = self::PAGE_HEADER;
     public string $outputJsLocation = self::PAGE_FOOTER;
 
@@ -35,6 +42,24 @@ class FormTemplate extends BaseTemplate
 
     // Public Methods
     // =========================================================================
+
+    public function __construct($config = [])
+    {
+        if (!array_key_exists('outputCss', $config) && (array_key_exists('outputCssLayout', $config) || array_key_exists('outputCssTheme', $config))) {
+            $config['outputCss'] = (bool)($config['outputCssLayout'] ?? false) || (bool)($config['outputCssTheme'] ?? false);
+        }
+
+        if (!array_key_exists('outputJs', $config) && (array_key_exists('outputJsBase', $config) || array_key_exists('outputJsTheme', $config))) {
+            $config['outputJs'] = (bool)($config['outputJsBase'] ?? false) || (bool)($config['outputJsTheme'] ?? false);
+        }
+
+        unset($config['outputCssLayout']);
+        unset($config['outputCssTheme']);
+        unset($config['outputJsBase']);
+        unset($config['outputJsTheme']);
+
+        parent::__construct($config);
+    }
 
     public function getCpEditUrl(): ?string
     {
@@ -74,10 +99,8 @@ class FormTemplate extends BaseTemplate
             'handle' => $this->handle,
             'template' => $this->template,
             'useCustomTemplates' => $this->useCustomTemplates,
-            'outputCssTheme' => $this->outputCssTheme,
-            'outputCssLayout' => $this->outputCssLayout,
-            'outputJsBase' => $this->outputJsBase,
-            'outputJsTheme' => $this->outputJsTheme,
+            'outputCss' => $this->outputCss,
+            'outputJs' => $this->outputJs,
             'outputCssLocation' => $this->outputCssLocation,
             'outputJsLocation' => $this->outputJsLocation,
             'sortOrder' => $this->sortOrder,

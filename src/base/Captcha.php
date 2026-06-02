@@ -1,18 +1,33 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\events\CaptchaValidateSubmissionEvent;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
 use Craft;
+use craft\helpers\UrlHelper;
 
 use Closure;
+use Throwable;
 
 abstract class Captcha extends Integration
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_VALIDATE_SUBMISSION = 'beforeValidateSubmission';
+    public const EVENT_AFTER_VALIDATE_SUBMISSION = 'afterValidateSubmission';
+
+
     // Static Methods
     // =========================================================================
 
@@ -23,7 +38,7 @@ abstract class Captcha extends Integration
 
     public static function supportsConnection(): bool
     {
-        return false;
+        return false; 
     }
 
     public static function supportsPayloadSending(): bool
@@ -38,6 +53,7 @@ abstract class Captcha extends Integration
     public bool $showAllPages = false;
     public ?string $spamReason = null;
     public ?bool $saveSpam = null;
+    public bool $validationErrored = false;
 
 
     // Public Methods
@@ -62,23 +78,21 @@ abstract class Captcha extends Integration
     {
         $handle = StringHelper::toKebabCase($this->getHandle());
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/captchas/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/captchas/{$handle}.svg");
     }
 
-    public function getFormSettingsHtml(Form|Stencil $form): string
+    public function getCpIconPath(): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/_form-settings', [
-            'integration' => $this,
-            'form' => $form,
-        ]);
+        $handle = trim((string)StringHelper::toKebabCase($this->getHandle()));
+        return $handle !== '' ? "icons/captchas/{$handle}.svg" : '';
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         return null;
     }
@@ -93,6 +107,35 @@ abstract class Captcha extends Integration
         return null;
     }
 
+    public function runValidation(Submission $submission): bool
+    {
+        $this->validationErrored = false;
+
+        $beforeEvent = new CaptchaValidateSubmissionEvent([
+            'submission' => $submission,
+            'success' => true,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_VALIDATE_SUBMISSION, $beforeEvent);
+
+        if ($beforeEvent->isValid === false) {
+            return false;
+        }
+
+        try {
+            $success = $this->validateSubmission($submission);
+        } catch (Throwable $e) {
+            return $this->handleValidationException($submission, $e);
+        }
+
+        $afterEvent = new CaptchaValidateSubmissionEvent([
+            'submission' => $submission,
+            'success' => $success,
+        ]);
+        $this->trigger(self::EVENT_AFTER_VALIDATE_SUBMISSION, $afterEvent);
+
+        return $afterEvent->success;
+    }
+
     public function validateSubmission(Submission $submission): bool
     {
         return true;
@@ -103,9 +146,45 @@ abstract class Captcha extends Integration
         return StringHelper::toCamelCase($this->handle . 'Captcha');
     }
 
-
+    
     // Protected Methods
     // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'label' => Craft::t('formie', 'Show on All Pages'),
+            'instructions' => Craft::t('formie', 'For multi-page forms, choose whether to show the captcha on all pages of the form, or only on the final page of the form.'),
+            'name' => 'showAllPages',
+        ]);
+        
+        return $schema;
+    }
+
+    protected function getMissingSettingsWarningSchema(string $providerName, string $settingsTab): array
+    {
+        $settingsUrl = UrlHelper::cpUrl("formie/settings/captchas#tab-{$settingsTab}");
+
+        return [
+            '$el' => 'p',
+            'attrs' => [
+                'class' => 'warning with-icon',
+            ],
+            'children' => [
+                Craft::t('formie', 'Please provide the site and secret keys for {name} in ', ['name' => $providerName]),
+                [
+                    '$el' => 'a',
+                    'attrs' => [
+                        'href' => $settingsUrl,
+                    ],
+                    'children' => Craft::t('formie', 'Settings'),
+                ],
+                '.',
+            ],
+        ];
+    }
 
     protected function getOrSet(string $key, Closure $callable)
     {
@@ -132,5 +211,26 @@ abstract class Captcha extends Integration
 
         // Handle the traditional param, as a POST param
         return Craft::$app->getRequest()->getParam($name);
+    }
+
+    protected function getValidationErrorMessage(): string
+    {
+        return Craft::t('formie', 'We couldn’t verify the form security check. Please try again.');
+    }
+
+    protected function handleValidationException(Submission $submission, Throwable $e, ?string $message = null): bool
+    {
+        $this->validationErrored = true;
+        $this->spamReason = $message ?: $this->getValidationErrorMessage();
+
+        Formie::error('Captcha validation failed for {captcha}: {message}', [
+            'captcha' => static::displayName(),
+            'message' => self::getExceptionLogMessage($e),
+            'exception' => $e,
+        ]);
+
+        $submission->addError('form', $this->spamReason);
+
+        return false;
     }
 }

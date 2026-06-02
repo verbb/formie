@@ -70,10 +70,8 @@ class FormTemplatesController extends SettingsAccessController
         $template->template = preg_replace('/\/index(?:\.html|\.twig)?$/', '', $request->getBodyParam('template'));
         $template->useCustomTemplates = (bool)$request->getBodyParam('useCustomTemplates');
         $template->copyTemplates = (bool)$request->getBodyParam('copyTemplates', false);
-        $template->outputCssLayout = (bool)$request->getBodyParam('outputCssLayout');
-        $template->outputCssTheme = (bool)$request->getBodyParam('outputCssTheme');
-        $template->outputJsBase = (bool)$request->getBodyParam('outputJsBase');
-        $template->outputJsTheme = (bool)$request->getBodyParam('outputJsTheme');
+        $template->outputCss = (bool)$request->getBodyParam('outputCss');
+        $template->outputJs = (bool)$request->getBodyParam('outputJs');
         $template->outputCssLocation = $request->getBodyParam('outputCssLocation');
         $template->outputJsLocation = $request->getBodyParam('outputJsLocation');
 

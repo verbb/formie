@@ -1,0 +1,70 @@
+@layer formie-theme {
+    .formie-form-title {
+        color: var(--formie-color-heading);
+        margin: 0 0 var(--formie-space-4);
+        font-size: var(--formie-title-form-size);
+        font-weight: var(--formie-font-weight-bold);
+        letter-spacing: var(--formie-letter-spacing-tight);
+    }
+
+    .formie-page-title {
+        color: var(--formie-color-heading);
+        margin: 0 0 var(--formie-space-4);
+        font-size: var(--formie-title-page-size);
+        font-weight: var(--formie-font-weight-semibold);
+    }
+
+    .formie-label,
+    .formie-field-label,
+    .formie-field-option-label,
+    .formie-summary-label {
+        color: var(--formie-color-heading);
+        font-size: var(--formie-label-size);
+        font-weight: var(--formie-font-weight-medium);
+        line-height: var(--formie-line-height-tight);
+    }
+
+    label.formie-field-label {
+        /* legend should be `display: contents` to work with grid */
+        /* so only apply this to label elements */
+        display: block;
+    }
+
+    .formie-form label,
+    .formie-form legend {
+        color: var(--formie-color-heading);
+    }
+
+    .formie-field-has-error .formie-label,
+    .formie-field-has-error .formie-field-label,
+    .formie-field-has-error .formie-field-option-label,
+    .formie-field-has-error .formie-summary-label,
+    .formie-field-has-error label,
+    .formie-field-has-error legend {
+        color: var(--formie-color-danger-dark);
+    }
+
+    .formie-instructions {
+        color: var(--formie-color-text-muted);
+        font-size: var(--formie-meta-size);
+        line-height: var(--formie-line-height-relaxed);
+        margin-top: calc(var(--formie-space-1) * -1);
+    }
+
+    .formie-instructions p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .formie-field-note {
+        color: var(--formie-color-text-muted);
+        font-size: var(--formie-meta-size);
+        line-height: var(--formie-line-height-relaxed);
+    }
+
+    .formie-form p,
+    .formie-form ul {
+        margin-top: 0;
+    }
+
+}

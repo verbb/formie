@@ -1,28 +1,33 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\NotificationEvent;
 use verbb\formie\events\ModifyExistingNotificationsEvent;
 use verbb\formie\events\ModifyNotificationSchemaEvent;
+use verbb\formie\events\SendNotificationEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\Variables;
+use verbb\formie\jobs\SendNotification;
 use verbb\formie\models\Notification;
+use verbb\formie\models\RichText;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Notification as NotificationRecord;
 
 use Craft;
-use craft\base\MemoizableArray;
 use craft\db\Query;
 use craft\elements\Asset;
 use craft\helpers\Db;
 use craft\helpers\Json;
+use craft\helpers\Queue;
 
 use yii\base\Component;
 use yii\db\Exception;
@@ -44,12 +49,12 @@ class Notifications extends Component
     public const EVENT_AFTER_DELETE_NOTIFICATION = 'afterDeleteNotification';
     public const EVENT_MODIFY_EXISTING_NOTIFICATIONS = 'modifyExistingNotifications';
     public const EVENT_MODIFY_NOTIFICATION_SCHEMA = 'modifyNotificationSchema';
+    public const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
 
 
     // Properties
     // =========================================================================
 
-    private ?MemoizableArray $_notifications = null;
     private ?array $_existingNotifications = null;
 
 
@@ -58,25 +63,101 @@ class Notifications extends Component
 
     public function getAllNotifications(): array
     {
-        return $this->_notifications()->all();
+        $notifications = [];
+
+        foreach ($this->_createNotificationsQuery()->all() as $result) {
+            $notifications[] = new Notification($result);
+        }
+
+        return $notifications;
     }
 
     public function getFormNotifications(Form $form): array
     {
-        return $this->_notifications()->where('formId', $form->id)->all();
+        $notifications = [];
+
+        foreach ($this->_createNotificationsQuery()->where(['formId' => $form->id])->all() as $result) {
+            $notifications[] = new Notification($result);
+        }
+
+        return $notifications;
     }
 
     public function getNotificationById(int $id): ?Notification
     {
-        return $this->_notifications()->firstWhere('id', $id);
+        $result = $this->_createNotificationsQuery()->where(['id' => $id])->one();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new Notification($result);
     }
 
     public function getFormNotificationByHandle(Form $form, string $handle): ?Notification
     {
-        return ArrayHelper::firstWhere(
-            $this->_notifications(),
-            fn(Notification $notification) => $notification->formId === $form->id && $notification->handle === $handle,
-        );
+        $result = $this->_createNotificationsQuery()->where([
+            'formId' => $form->id,
+            'handle' => $handle,
+        ])->one();
+
+        if (!$result) {
+            return null;
+        }
+
+        return new Notification($result);
+    }
+
+    public function sendNotifications(Submission $submission): void
+    {
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return;
+        }
+
+        foreach ($form->getEnabledNotifications() as $notification) {
+            $this->sendNotification($notification, $submission);
+        }
+    }
+
+    public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null): void
+    {
+        $settings = Formie::$plugin->getSettings();
+        $useQueue ??= $settings->useQueueForNotifications;
+
+        if (!$this->evaluateConditions($notification, $submission)) {
+            return;
+        }
+
+        if ($useQueue) {
+            // Queue after evaluating conditions so delayed jobs do not have to
+            // recompute submission-dependent rules against a potentially changed
+            // submission state.
+            Queue::push(new SendNotification([
+                'submissionId' => $submission->id,
+                'notificationId' => $notification->id,
+            ]), $settings->queuePriority);
+
+            return;
+        }
+
+        $this->sendNotificationEmail($notification, $submission);
+    }
+
+    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
+    {
+        $event = new SendNotificationEvent([
+            'submission' => $submission,
+            'notification' => $notification,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
+
+        if (!$event->isValid) {
+            return true;
+        }
+
+        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
     }
 
     public function saveNotification(Notification $notification, bool $runValidation = true): bool
@@ -241,23 +322,12 @@ class Notifications extends Component
 
         foreach ($notifications as $notification) {
             $config = $notification->getAttributes();
-            $config['errors'] = $notification->getErrors();
 
-            $attachAssets = Json::decodeIfJson($notification->attachAssets) ?? [];
-
-            // For assets to attach, supply extra content that can't be called directly in Vue, like it can in Twig.
-            if ($ids = ArrayHelper::getColumn($attachAssets, 'id')) {
-                $elements = Asset::find()->id($ids)->all();
-
-                // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
-                $config['attachAssetsOptions'] = array_map(function($input) {
-                    return ['label' => $input->title, 'value' => $input->id];
-                }, $elements);
-
-                // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
-                // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
-                $config['attachAssetsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
+            if (($config['content'] ?? null) !== null && $config['content'] !== '') {
+                $config['content'] = RichText::from($config['content'])->getSchema();
             }
+
+            $config['errors'] = $notification->getErrors();
 
             $notificationsConfig[] = $config;
         }
@@ -265,99 +335,80 @@ class Notifications extends Component
         return $notificationsConfig;
     }
 
-    public function getExistingNotifications(Form|Stencil $excludeForm = null): array
+    public function getExistingNotifications(FormInterface $excludeForm = null): array
     {
         if ($this->_existingNotifications !== null) {
             return $this->_existingNotifications;
         }
 
-        $query = Form::find()->orderBy('title ASC');
-
-        // Exclude the current form.
-        if ($excludeForm instanceof Form) {
-            $query = $query->id("not {$excludeForm->id}");
-        }
-
-        /* @var Form[] $forms */
-        $forms = $query->all();
-        $stencils = Formie::$plugin->getStencils()->getAllStencils();
-
-        // Exclude the current stencil.
-        if ($excludeForm instanceof Stencil) {
-            $filteredStencils = [];
-
-            foreach ($stencils as $stencil) {
-                if ($stencil->id != $excludeForm->id) {
-                    $filteredStencils[] = $stencil;
-                }
-            }
-
-            $stencils = $filteredStencils;
-        }
-
         $existingNotifications = [];
-        $formNotifications = [];
-        $stencilNotifications = [];
+        $sources = $this->_getExistingNotificationSources($excludeForm);
+        $allNotifications = [];
+        $hasFormNotifications = false;
+        $hasStencilNotifications = false;
+        $stencilInsertIndex = null;
 
-        foreach ($forms as $form) {
-            $formNotifications[] = $this->getNotificationsConfig($form->getNotifications());
+        foreach ($sources['forms'] as $source) {
+            $notifications = $this->getNotificationsConfig($source['model']->getNotifications());
+
+            if ($notifications) {
+                $hasFormNotifications = true;
+                $existingNotifications[] = [
+                    'key' => $source['key'],
+                    'label' => $source['label'],
+                    'notifications' => $notifications,
+                ];
+
+                $allNotifications = array_merge($allNotifications, $notifications);
+            }
         }
 
-        foreach ($stencils as $stencil) {
-            $stencilNotifications[] = $this->getNotificationsConfig($stencil->getNotifications());
+        foreach ($sources['stencils'] as $source) {
+            $notifications = $this->getNotificationsConfig($source['model']->getNotifications());
+
+            if ($notifications) {
+                $hasStencilNotifications = true;
+
+                if ($stencilInsertIndex === null) {
+                    $stencilInsertIndex = count($existingNotifications);
+                }
+
+                foreach ($notifications as $index => $notification) {
+                    if (empty($notification['id'])) {
+                        $notifications[$index]['id'] = StringHelper::appendRandomString('new', 16);
+                    }
+                }
+
+                $existingNotifications[] = [
+                    'key' => $source['key'],
+                    'label' => $source['label'],
+                    'notifications' => $notifications,
+                ];
+
+                $allNotifications = array_merge($allNotifications, $notifications);
+            }
         }
 
-        // For performance
-        $formNotifications = array_merge(...$formNotifications);
-        $stencilNotifications = array_merge(...$stencilNotifications);
-
-        // Stencils will always have no ID, so generate one
-        foreach ($stencilNotifications as $key => $stencilNotification) {
-            $stencilNotifications[$key]['id'] = StringHelper::appendRandomString('new', 16);
-        }
-
-        $existingNotifications[] = [
+        array_unshift($existingNotifications, [
             'key' => '*',
             'label' => Craft::t('formie', 'All notifications'),
-            'notifications' => array_merge($formNotifications, $stencilNotifications),
-        ];
+            'notifications' => $allNotifications,
+        ]);
 
-        if ($formNotifications) {
-            $existingNotifications[] = [
+        if ($hasFormNotifications) {
+            array_splice($existingNotifications, 1, 0, [[
                 'heading' => Craft::t('formie', 'Forms'),
                 'notifications' => [],
-            ];
+            ]]);
         }
 
-        foreach ($forms as $form) {
-            $formNotifications = $this->getNotificationsConfig($form->getNotifications());
+        if ($hasStencilNotifications) {
+            $insertIndex = ($stencilInsertIndex ?? count($existingNotifications)) + ($hasFormNotifications ? 1 : 0);
 
-            if ($formNotifications) {
-                $existingNotifications[] = [
-                    'key' => $form->handle,
-                    'label' => $form->title,
-                    'notifications' => $formNotifications,
-                ];
-            }
-        }
-
-        if ($stencilNotifications) {
-            $existingNotifications[] = [
+            array_splice($existingNotifications, $insertIndex, 0, [[
                 'heading' => Craft::t('formie', 'Stencils'),
                 'notifications' => [],
-            ];
-        }
-
-        foreach ($stencils as $stencil) {
-            $formNotifications = $this->getNotificationsConfig($stencil->getNotifications());
-
-            if ($formNotifications) {
-                $existingNotifications[] = [
-                    'key' => $stencil->handle,
-                    'label' => $stencil->title,
-                    'notifications' => $formNotifications,
-                ];
-            }
+            ]]);
         }
 
         // Fire a 'modifyExistingNotifications' event
@@ -369,6 +420,119 @@ class Notifications extends Component
         return $this->_existingNotifications = $event->notifications;
     }
 
+    public function getExistingNotificationFormOptions(FormInterface $excludeForm = null): array
+    {
+        $sources = $this->_getExistingNotificationSources($excludeForm);
+        $formsWithNotifications = array_values(array_filter($sources['forms'], function(array $source): bool {
+            return !empty($source['model']->getNotifications());
+        }));
+        $stencilsWithNotifications = array_values(array_filter($sources['stencils'], function(array $source): bool {
+            return !empty($source['model']->getNotifications());
+        }));
+
+        $options = [[
+            'key' => '*',
+            'label' => Craft::t('formie', 'All notifications'),
+            'notifications' => [],
+        ]];
+
+        if (!empty($formsWithNotifications)) {
+            $options[] = [
+                'heading' => Craft::t('formie', 'Forms'),
+                'notifications' => [],
+            ];
+
+            foreach ($formsWithNotifications as $source) {
+                $options[] = [
+                    'key' => $source['key'],
+                    'label' => $source['label'],
+                    'notifications' => [],
+                ];
+            }
+        }
+
+        if (!empty($stencilsWithNotifications)) {
+            $options[] = [
+                'heading' => Craft::t('formie', 'Stencils'),
+                'notifications' => [],
+            ];
+
+            foreach ($stencilsWithNotifications as $source) {
+                $options[] = [
+                    'key' => $source['key'],
+                    'label' => $source['label'],
+                    'notifications' => [],
+                ];
+            }
+        }
+
+        return $options;
+    }
+
+    public function getExistingNotificationSummaries(FormInterface $excludeForm = null, ?string $formKey = null, string $search = ''): array
+    {
+        $sources = $this->_getExistingNotificationSources($excludeForm);
+        $trimmedSearch = trim($search);
+
+        if ($formKey === '*' && $trimmedSearch === '') {
+            return [[
+                'key' => '*',
+                'label' => Craft::t('formie', 'All notifications'),
+                'notifications' => [],
+            ]];
+        }
+
+        $resolveNotifications = function(array $notificationConfigs) use ($trimmedSearch): array {
+            if ($trimmedSearch === '') {
+                return $notificationConfigs;
+            }
+
+            return array_values(array_filter($notificationConfigs, function(array $notification) use ($trimmedSearch) {
+                return $this->_notificationMatchesSearch($notification, $trimmedSearch);
+            }));
+        };
+
+        if ($formKey === '*') {
+            $allNotifications = [];
+
+            foreach (array_merge($sources['forms'], $sources['stencils']) as $source) {
+                $notifications = $resolveNotifications($this->getNotificationsConfig($source['model']->getNotifications()));
+
+                if ($notifications) {
+                    $allNotifications = array_merge($allNotifications, $notifications);
+                }
+            }
+
+            return [[
+                'key' => '*',
+                'label' => Craft::t('formie', 'All notifications'),
+                'notifications' => $allNotifications,
+            ]];
+        }
+
+        $filteredSources = array_merge($sources['forms'], $sources['stencils']);
+
+        if ($formKey) {
+            $filteredSources = array_values(array_filter($filteredSources, function(array $source) use ($formKey) {
+                return $source['key'] === $formKey;
+            }));
+        }
+
+        $existingNotifications = [];
+
+        foreach ($filteredSources as $source) {
+            $notifications = $resolveNotifications($this->getNotificationsConfig($source['model']->getNotifications()));
+
+            $existingNotifications[] = [
+                'key' => $source['key'],
+                'label' => $source['label'],
+                'notifications' => $notifications,
+            ];
+        }
+
+        return $existingNotifications;
+    }
+
     public function evaluateConditions($notification, Submission $submission): bool
     {
         if ($notification->enableConditions) {
@@ -378,7 +542,9 @@ class Notifications extends Component
             if ($conditionSettings && $conditions) {
                 $result = ConditionsHelper::getConditionalTestResult($conditionSettings, $submission);
 
-                // Lastly, check to see if we should return true or false depending on if we want to send or not
+                // Notification conditions are authored as "match rows" plus a
+                // separate send/don't-send rule. Inverting here preserves that
+                // builder model instead of forcing authors to negate each row.
                 if ($conditionSettings['sendRule'] === 'send') {
                     return $result;
                 }
@@ -390,67 +556,64 @@ class Notifications extends Component
         return true;
     }
 
-    public function getNotificationsSchema(Form|Stencil $form): array
+    public function getNotificationsSchema(): array
     {
         $user = Craft::$app->getUser();
-        $suffix = ':' . $form->uid;
 
-        $tabs = [];
-        $fields = [];
-
-        // Define the tabs we have for editing a field. Only these can be used.
-        $definedTabs = [
-            'Content',
+        $tabs = [
+            [
+                'handle' => 'content',
+                'label' => Craft::t('formie', 'Content'),
+                'content' => $this->defineContentSchema(),
+            ],
         ];
 
-        if ($user->checkPermission('formie-showNotificationsAdvanced') || $user->checkPermission("formie-showNotificationsAdvanced{$suffix}")) {
-            $definedTabs[] = 'Advanced';
+        if ($user->checkPermission('formie-showNotificationsAdvanced')) {
+            $tabs[] = [
+                'handle' => 'advanced',
+                'label' => Craft::t('formie', 'Advanced'),
+                'content' => $this->defineFormBuilderAdvancedSchema(),
+            ];
         }
 
-        if ($user->checkPermission('formie-showNotificationsTemplates') || $user->checkPermission("formie-showNotificationsTemplates{$suffix}")) {
-            $definedTabs[] = 'Templates';
+        if ($user->checkPermission('formie-showNotificationsTemplates')) {
+            $tabs[] = [
+                'handle' => 'templates',
+                'label' => Craft::t('formie', 'Templates'),
+                'content' => $this->defineTemplatesSchema(),
+            ];
         }
         
-        $definedTabs[] = 'Settings';
-        $definedTabs[] = 'Preview';
-        $definedTabs[] = 'Conditions';
+        $tabs[] = [
+            'handle' => 'settings',
+            'label' => Craft::t('formie', 'Settings'),
+            'content' => $this->defineFormBuilderSettingsSchema(),
+        ];
 
-        foreach ($definedTabs as $definedTab) {
-            $methodName = 'define' . $definedTab . 'Schema';
+        $tabs[] = [
+            'handle' => 'preview',
+            'label' => Craft::t('formie', 'Preview'),
+            'content' => $this->definePreviewSchema(),
+        ];
 
-            if (method_exists($this, $methodName) && $this->$methodName()) {
-                $tabLabel = Craft::t('formie', $definedTab);
+        $tabs[] = [
+            'handle' => 'conditions',
+            'label' => Craft::t('formie', 'Conditions'),
+            'content' => $this->defineFormBuilderConditionsSchema(),
+        ];
 
-                $fieldSchema = $this->$methodName();
-
-                // Add `name` and `id` attributes automatically for every FormKit input
-                SchemaHelper::setFieldAttributes($fieldSchema);
-
-                $tabs[] = SchemaHelper::tab($tabLabel, $fieldSchema);
-                $fields[] = SchemaHelper::tabPanel($tabLabel, $fieldSchema);
-            }
-        }
+        // Filter out tabs with empty content
+        $tabs = array_values(array_filter($tabs, function ($tab) {
+            return $tab['content'];
+        }));
 
         // Fire a 'modifyNotificationSchema' event
         $event = new ModifyNotificationSchemaEvent([
             'tabs' => $tabs,
-            'fields' => $fields,
         ]);
         $this->trigger(self::EVENT_MODIFY_NOTIFICATION_SCHEMA, $event);
 
-        // Return the DOM schema for Vue to render
-        return [
-            'tabsSchema' => $event->tabs,
-            'fieldsSchema' => [
-                [
-                    '$cmp' => 'TabPanels',
-                    'attrs' => [
-                        'class' => 'fui-modal-content',
-                    ],
-                    'children' => $event->fields,
-                ],
-            ],
-        ];
+        return SchemaHelper::compileSchema(SchemaHelper::modalTabs($event->tabs));
     }
 
     public function defineContentSchema(): array
@@ -458,22 +621,29 @@ class Notifications extends Component
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Enabled'),
-                'help' => Craft::t('formie', 'Whether this notification is enabled to send.'),
+                'instructions' => Craft::t('formie', 'Whether this notification is enabled to send.'),
                 'name' => 'enabled',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Name'),
-                'help' => Craft::t('formie', 'What this notification will be called in the control panel.'),
+                'instructions' => Craft::t('formie', 'What this notification will be called in the control panel.'),
                 'name' => 'name',
-                'validation' => 'required',
                 'required' => true,
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Recipients'),
-                'help' => Craft::t('formie', 'Define who should receive this email notification. Define either specific emails, or emails based on conditions.'),
+                'instructions' => Craft::t('formie', 'Define who should receive this email notification. Define either specific emails, or emails based on conditions.'),
                 'name' => 'recipients',
-                'validation' => 'required',
                 'required' => true,
                 'options' => [
                     ['label' => Craft::t('formie', 'Email Addresses'), 'value' => 'email'],
@@ -482,98 +652,184 @@ class Notifications extends Component
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Recipient Emails'),
-                'help' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
+                'instructions' => Craft::t('formie', 'Email addresses who receive this email notification. Separate multiple emails with a comma.'),
                 'name' => 'to',
-                'validation' => 'required',
                 'required' => true,
-                'variables' => 'emailVariables',
-                'if' => '$get(recipients).value == email',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
+                'if' => 'recipients == "email"',
             ]),
             [
-                '$formkit' => 'notificationRecipients',
+                '$field' => 'notificationRecipients',
                 'label' => Craft::t('formie', 'Recipient Conditions'),
-                'help' => Craft::t('formie', 'Use conditional logic to determine which email addresses receive this email notification.'),
+                'instructions' => Craft::t('formie', 'Use conditional logic to determine which email addresses receive this email notification.'),
                 'name' => 'toConditions',
-                'id' => 'toConditions',
-                'if' => '$get(recipients).value == conditions',
+                'if' => 'recipients == "conditions"',
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions($this->_getConditionFieldOptionConfig()),
+                'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Subject'),
-                'help' => Craft::t('formie', 'The subject of the email notification.'),
+                'instructions' => Craft::t('formie', 'The subject of the email notification.'),
                 'name' => 'subject',
-                'validation' => 'required',
                 'required' => true,
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::richTextField(array_merge([
                 'label' => Craft::t('formie', 'Email Content'),
-                'help' => Craft::t('formie', 'The body content for this notification.'),
+                'instructions' => Craft::t('formie', 'The body content for this notification.'),
                 'name' => 'content',
-                'validation' => 'required',
                 'required' => true,
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ], RichTextHelper::getRichTextConfig('notifications.content'))),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'From Name'),
-                'help' => Craft::t('formie', 'The name the notification email will be sent from.'),
+                'instructions' => Craft::t('formie', 'The name the notification email will be sent from.'),
                 'name' => 'fromName',
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'From Email'),
-                'help' => Craft::t('formie', 'The email address the notification email will be sent from. Leave empty to use the default email address for your site.'),
+                'instructions' => Craft::t('formie', 'The email address the notification email will be sent from. Leave empty to use the default email address for your site.'),
                 'name' => 'from',
-                'validation' => '?emailOrVariable',
-                'variables' => 'emailVariables',
+                'validation' => 'emailOrVariable',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
                 'info' => Craft::t('formie', 'If not correctly configured, setting the "From" setting can lead to deliverability issues. Read [our guide](https://verbb.io/craft-plugins/formie/user-guides/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Reply-To Name'),
-                'help' => Craft::t('formie', 'The name to be used as the reply to for the notification email.'),
+                'instructions' => Craft::t('formie', 'The name to be used as the reply to for the notification email.'),
                 'name' => 'replyToName',
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Reply-To Email'),
-                'help' => Craft::t('formie', 'The email address to be used as the reply to address for the notification email.'),
+                'instructions' => Craft::t('formie', 'The email address to be used as the reply to address for the notification email.'),
                 'name' => 'replyTo',
-                'validation' => '?emailOrVariable',
-                'variables' => 'emailVariables',
+                'validation' => 'emailOrVariable',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
                 'info' => Craft::t('formie', 'Do not use the same email for "From" and "Reply-To". Read [our guide](https://verbb.io/craft-plugins/formie/user-guides/how-to-keep-email-notifications-out-of-your-junk-emails) for tips.'),
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'CC'),
-                'help' => Craft::t('formie', 'Email addresses who will receive a CC of the notification email. Separate multiple emails with a comma.'),
+                'instructions' => Craft::t('formie', 'Email addresses who will receive a CC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'cc',
-                'variables' => 'emailVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'BCC'),
-                'help' => Craft::t('formie', 'Email addresses who will receive a BCC of the notification email. Separate multiple emails with a comma.'),
+                'instructions' => Craft::t('formie', 'Email addresses who will receive a BCC of the notification email. Separate multiple emails with a comma.'),
                 'name' => 'bcc',
-                'variables' => 'emailVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Sender Email'),
-                'help' => Craft::t('formie', 'The email address for the notification email "sender" header, for advanced usage. Leave empty to use the "From Email".'),
+                'instructions' => Craft::t('formie', 'The email address for the notification email "sender" header, for advanced usage. Leave empty to use the "From Email".'),
                 'name' => 'sender',
-                'validation' => '?emailOrVariable',
-                'variables' => 'emailVariables',
+                'validation' => 'emailOrVariable',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_EMAIL],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Attach File Uploads'),
-                'help' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
+                'instructions' => Craft::t('formie', 'Whether to attach file uploads to this email notification.'),
                 'name' => 'attachFiles',
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Attach Assets'),
-                'help' => Craft::t('formie', 'Select assets to be attached to this email notification.'),
+                'instructions' => Craft::t('formie', 'Select assets to be attached to this email notification.'),
                 'name' => 'attachAssets',
                 'selectionLabel' => Craft::t('formie', 'Add an asset'),
                 'config' => [
@@ -603,31 +859,32 @@ class Notifications extends Component
         return [
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Email Template'),
-                'help' => Craft::t('formie', 'Select a template to use for the Email, or leave empty to use Formie‘s default.'),
+                'instructions' => Craft::t('formie', 'Select a template to use for the Email, or leave empty to use Formie‘s default.'),
                 'name' => 'templateId',
                 'options' => $emailTemplates,
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Attach PDF Template'),
-                'help' => Craft::t('formie', 'Whether to attach a PDF template to this email notification.'),
+                'instructions' => Craft::t('formie', 'Whether to attach a PDF template to this email notification.'),
                 'name' => 'attachPdf',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'PDF Template'),
-                'help' => Craft::t('formie', 'Select a template to use for the PDF, or leave empty to use Formie‘s default.'),
+                'instructions' => Craft::t('formie', 'Select a template to use for the PDF, or leave empty to use Formie‘s default.'),
                 'name' => 'pdfTemplateId',
                 'options' => $pdfTemplates,
-                'if' => '$get(attachPdf).value',
+                'if' => 'attachPdf',
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::handleField([
-                'help' => Craft::t('formie', 'How you’ll refer to this notification in your templates. Use the refresh icon to re-generate this from your notification name.'),
+                'instructions' => Craft::t('formie', 'How you’ll refer to this notification in your templates. Use the refresh icon to re-generate this from your notification name.'),
                 'warning' => Craft::t('formie', 'Changing this may result in your notification not working as expected.'),
+                'source' => 'name',
             ]),
         ];
     }
@@ -650,18 +907,20 @@ class Notifications extends Component
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Enable Conditions'),
-                'help' => Craft::t('formie', 'Whether to enable conditional logic to control how this email notification is sent.'),
+                'instructions' => Craft::t('formie', 'Whether to enable conditional logic to control how this email notification is sent.'),
                 'name' => 'enableConditions',
             ]),
             [
-                '$formkit' => 'notificationConditions',
+                '$field' => 'notificationConditions',
                 'name' => 'conditions',
-                'if' => '$get(enableConditions).value',
+                'if' => 'enableConditions',
+                'fieldOptions' => ConditionsHelper::getConditionFieldOptions($this->_getConditionFieldOptionConfig()),
+                'conditionOptions' => ConditionsHelper::getConditionOptions(),
             ],
         ];
     }
@@ -669,21 +928,6 @@ class Notifications extends Component
 
     // Private Methods
     // =========================================================================
-
-    private function _notifications(): MemoizableArray
-    {
-        if (!isset($this->_notifications)) {
-            $notifications = [];
-
-            foreach ($this->_createNotificationsQuery()->all() as $result) {
-                $notifications[] = new Notification($result);
-            }
-
-            $this->_notifications = new MemoizableArray($notifications);
-        }
-
-        return $this->_notifications;
-    }
 
     private function _createNotificationsQuery(): Query
     {
@@ -720,6 +964,87 @@ class Notifications extends Component
             ->from([Table::FORMIE_NOTIFICATIONS]);
     }
 
+    private function _getExistingNotificationSources(FormInterface $excludeForm = null): array
+    {
+        $query = Form::find()->orderBy('title ASC');
+
+        if ($excludeForm instanceof Form) {
+            $query = $query->id("not {$excludeForm->id}");
+        }
+
+        /* @var Form[] $forms */
+        $forms = $query->all();
+        $stencils = Formie::$plugin->getStencils()->getAllStencils();
+
+        if ($excludeForm instanceof Stencil) {
+            $stencils = array_values(array_filter($stencils, function($stencil) use ($excludeForm) {
+                return $stencil->id != $excludeForm->id;
+            }));
+        }
+
+        // Keys must be unique across forms and stencils: handles (and titles shown
+        // as labels) can match between a Form and a Stencil, so never use handle alone.
+        $formSources = array_map(function(Form $form) {
+            return [
+                'key' => 'form:' . $form->id,
+                'label' => $form->title,
+                'model' => $form,
+            ];
+        }, $forms);
+
+        $stencilSources = array_map(function(Stencil $stencil) {
+            return [
+                'key' => 'stencil:' . $stencil->id,
+                'label' => $stencil->title,
+                'model' => $stencil,
+            ];
+        }, $stencils);
+
+        return [
+            'forms' => $formSources,
+            'stencils' => $stencilSources,
+            'hasForms' => !empty($formSources),
+            'hasStencils' => !empty($stencilSources),
+        ];
+    }
+
+    private function _notificationMatchesSearch(array $notification, string $search): bool
+    {
+        $query = mb_strtolower(trim($search));
+
+        if ($query === '') {
+            return true;
+        }
+
+        $name = mb_strtolower($this->_getSearchableRichText($notification['name'] ?? ''));
+        $subject = mb_strtolower($this->_getSearchableRichText($notification['subject'] ?? ''));
+        $handle = mb_strtolower((string)($notification['handle'] ?? ''));
+
+        return str_contains($name, $query)
+            || str_contains($subject, $query)
+            || str_contains($handle, $query);
+    }
+
+    private function _getSearchableRichText(mixed $content): string
+    {
+        if ($content === null || $content === '') {
+            return '';
+        }
+
+        try {
+            $html = RichTextHelper::getHtmlContent($content, null, false);
+            $text = strip_tags((string)$html);
+
+            return trim(preg_replace('/\s+/u', ' ', html_entity_decode($text)) ?? '');
+        } catch (Throwable $e) {
+            // Fallback for plain strings or malformed rich-text payloads.
+            $text = is_string($content) ? $content : Json::encode($content);
+            $text = strip_tags((string)$text);
+
+            return trim(preg_replace('/\s+/u', ' ', html_entity_decode($text)) ?? '');
+        }
+    }
+
     private function _getNotificationRecord(int|string|null $id): NotificationRecord
     {
         /** @var NotificationRecord $notification */
@@ -728,5 +1053,36 @@ class Notifications extends Component
         }
 
         return new NotificationRecord();
+    }
+
+    private function _getConditionFieldOptionConfig(): array
+    {
+        return [
+            'includeSubmissionDate' => true,
+            'siteNameOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($site) {
+                return [
+                    'label' => $site->name,
+                    'value' => $site->name,
+                ];
+            }, Craft::$app->getSites()->getAllSites())),
+            'siteHandleOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($site) {
+                return [
+                    'label' => $site->name,
+                    'value' => $site->handle,
+                ];
+            }, Craft::$app->getSites()->getAllSites())),
+            'statusOptions' => array_merge([
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+            ], array_map(function($status) {
+                return [
+                    'label' => $status->name,
+                    'value' => $status->handle,
+                ];
+            }, Formie::$plugin->getStatuses()->getAllStatuses())),
+        ];
     }
 }

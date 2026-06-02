@@ -1,0 +1,8 @@
+dist/
+node_modules/
+vendor/
+test-results/
+src/web/assets/cp/dist/
+src/web/assets/frontend/dist/
+coverage/
+storybook-static/

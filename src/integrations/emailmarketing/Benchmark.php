@@ -31,7 +31,6 @@ class Benchmark extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -178,18 +177,6 @@ class Benchmark extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://clientapi.benchmarkemail.com/',
-            'headers' => ['AuthToken' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -198,4 +185,13 @@ class Benchmark extends EmailMarketing
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://clientapi.benchmarkemail.com/',
+            'headers' => ['AuthToken' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
 }

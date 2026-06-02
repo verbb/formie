@@ -1,5 +1,7 @@
-{% if field.description %}
-    <h2>{{ field.description | t('formie') }}</h2>
-{% endif %}
+<div style={ { color: 'var(--tw-color-gray-300)' } }>
+    {field.description && (
+        <h2>{field.description}</h2>
+    )}
 
-<i>{{ 'A summary of your field content will be displayed here.' | t('formie') }}</i>
+    <i>{Craft.t('formie', 'A summary of your field content will be displayed here.')}</i>
+</div>

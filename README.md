@@ -1,13 +1,10 @@
 > [!IMPORTANT]
-> **Formie 3** for **Craft 5** has some breaking changes. Consult our [Upgrading from v2](https://github.com/verbb/formie/blob/craft-5/docs/get-started/upgrading-from-v2.md) the details.
+> **Formie 4** for **Craft 5** has some breaking changes. Consult our [Upgrading from v3](https://github.com/verbb/formie/blob/craft-5/docs/get-started/upgrading-from-v3.md) docs for the details.
 >
 > Most aspects are backwards compatible and deprecated, but **Custom Fields** and **Custom Integrations** will be affected the most.
 
 <p align="center"><img src="https://assets.verbb.io/plugins/formie/formie-icon.svg" width="100" height="100" alt="Formie icon"></p>
 <h1 align="center">Formie for Craft CMS</h1>
-
-> [!NOTE]
-> Looking to make the switch to Formie? Read our [blog post](https://verbb.io/blog/introducing-formie) on why we built Formie.
 
 Formie is a Craft CMS plugin for creating user-friendly forms that your content editors will love. With over 30 fields available, a drag-and-drop form builder, multi-page support, and more!
 
@@ -76,6 +73,7 @@ Formie is a Craft CMS plugin for creating user-friendly forms that your content 
 - Set whether to retain file uploads when deleting a submission.
 
 ### Headless
+- JavaScript packages for browser, React, Vue, and web components live under [`packages/`](./packages/README.md) (which one to install, monorepo notes, styling hooks).
 - Full support for headless implementations, with GraphQL querying and mutations.
 - Query forms, fetching all settings, pages, rows, fields and more. Everything you need to create your own forms.
 - Query submissions, if you want to show them on your site.
@@ -151,16 +149,11 @@ Protect your site against spam!
 - Captcha.eu
 - CleanTalk
 - Cloudflare Turnstile
-- Duplicate
 - Friendly Captcha
 - hCaptcha
-- Honeypot
-- Javascript
 - OOPSpam
 - Question
-- reCAPTCHA v2 (Checkbox and Invisible)
-- reCAPTCHA v3
-- reCAPTCHA v3 (Enterprise)
+- reCAPTCHA v2 (v2 Checkbox, v2 Invisible, v3, Enterprise)
 - [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha)
 
 #### CRM

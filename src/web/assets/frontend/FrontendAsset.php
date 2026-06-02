@@ -17,10 +17,7 @@ class FrontendAsset extends AssetBundle
         ];
 
         $this->css = [
-            'css/formie-base.css',
-            'css/formie-theme.css',
-            'css/formie-base-layer.css',
-            'css/formie-theme-layer.css',
+            'css/formie.css',
         ];
 
         parent::init();

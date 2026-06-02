@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -46,7 +48,6 @@ class Mercury extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function getUseUat(): string
     {
         return App::parseBooleanEnv($this->useUat);
@@ -57,7 +58,7 @@ class Mercury extends Crm
         $settings = [];
 
         try {
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $settings['contact'] = [
                     new IntegrationField([
                         'handle' => 'email',
@@ -199,7 +200,7 @@ class Mercury extends Crm
                 ];
             }
 
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $settings['opportunity'] = [
                     new IntegrationField([
                         'handle' => 'company',
@@ -417,6 +418,36 @@ class Mercury extends Crm
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'apiToken'], 'required'];
+
+        // Require URLs for public Volumes.
+        if ($this->getUseUat()) {
+            $rules[] = [['uatKey', 'uatToken'], 'required'];
+        }
+
+        $contact = $this->getFormSettingValue('contact');
+        $opportunity = $this->getFormSettingValue('opportunity');
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
+                return $model->enabled && $model->mapToContact;
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
+        ];
+
+        $rules[] = [
+            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
+                return $model->enabled && $model->mapToOpportunity;
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
+        ];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         $url = 'https://apis.connective.com.au/mercury/v1';
@@ -437,38 +468,33 @@ class Mercury extends Crm
         ]);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        $rules = parent::defineRules();
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
 
-        $rules[] = [['apiKey', 'apiToken'], 'required'];
-
-        // Require URLs for public Volumes.
-        if ($this->getUseUat()) {
-            $rules[] = [['uatKey', 'uatToken'], 'required'];
-        }
-
-        $contact = $this->getFormSettingValue('contact');
-        $opportunity = $this->getFormSettingValue('opportunity');
-
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
-                return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        $rules[] = [
-            ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
-                return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
+        return $schema;
     }
 
 

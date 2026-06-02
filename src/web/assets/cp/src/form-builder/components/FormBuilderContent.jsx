@@ -1,0 +1,331 @@
+import {
+    useMemo, useEffect, useRef, useState, useCallback,
+} from 'react';
+
+import { flatten } from 'flat';
+
+import { SchemaFormEngine, useSchemaFormEngine } from '@verbb/plugin-kit-react/forms';
+import {
+    normalizeFormData, serializeFormData, saveForm, saveAsStencil,
+} from '@form-builder/hooks/useFormTools';
+import { useHandleSyncOnChange } from '@form-builder/hooks/useHandleSyncOnChange';
+import { stableSerialize, useUnloadWarning } from '@form-builder/hooks/useUnloadWarning';
+import { FormBuilderErrorsPane } from '@form-builder/components/FormBuilderErrorsPane';
+import { FormBuilderFormProvider } from '@form-builder/contexts/FormBuilderFormContext';
+import { VariableCategoriesProvider } from '@form-builder/components/VariableCategoriesProvider';
+
+import { useFormBuilderApp } from '@form-builder/contexts/FormBuilderAppContext';
+import useAppStore from '@form-builder/hooks/useAppStore';
+import { announceFormBuilderStatus } from '@form-builder/utils/accessibility';
+
+function FormBuilderContent({
+    formRef,
+    initialData,
+    schema = [],
+    schemaIndex = null,
+}) {
+    const {
+        setSaving, setSaveFeedbackState, setTitle, saveAction, setSaveAction, saveActionUrl, saveRequestData,
+        saveDuplicateRequestData, saveSuccessMessage,
+    } = useFormBuilderApp();
+    const setSelectedTemplateId = useAppStore((state) => {
+        return state.setSelectedTemplateId;
+    });
+    const [errors, setErrors] = useState({});
+    const isAjaxSubmissionForced = useAppStore((state) => {
+        return state.isAjaxSubmissionForced;
+    });
+
+    const normalizedInitialData = useMemo(() => {
+        const normalized = normalizeFormData(initialData || {});
+        const requiresForcedAjax = isAjaxSubmissionForced(normalized);
+        const currentSubmitMethod = normalized?.settings?.submitMethod;
+
+        return {
+            ...normalized,
+            settings: {
+                ...(normalized?.settings || {}),
+                submitMethod: requiresForcedAjax ? 'ajax' : currentSubmitMethod,
+            },
+        };
+    }, [initialData, isAjaxSubmissionForced]);
+
+    const normalizedSchema = useMemo(() => {
+        return schemaIndex?.schema ?? schema;
+    }, [schema, schemaIndex]);
+    const handleSyncOnChange = useHandleSyncOnChange(normalizedSchema);
+    const lastTitleRef = useRef(null);
+    const latestFormValuesRef = useRef(normalizedInitialData);
+
+    const form = useSchemaFormEngine({
+        schema: normalizedSchema,
+        schemaIndex,
+        defaultValues: normalizedInitialData,
+        errors,
+        getConditionContext: (values) => {
+            return {
+                formBuilder: {
+                    ajaxSubmissionForced: isAjaxSubmissionForced(values),
+                },
+            };
+        },
+        onChange: (data, formApi) => {
+            latestFormValuesRef.current = data;
+            handleSyncOnChange(data, formApi);
+
+            const nextRequiresForcedAjax = isAjaxSubmissionForced(data);
+
+            if (nextRequiresForcedAjax && data?.settings?.submitMethod !== 'ajax') {
+                formApi.setFieldValue('settings.submitMethod', 'ajax');
+            }
+
+            const nextTitle = data?.title;
+            if (nextTitle !== undefined && nextTitle !== lastTitleRef.current) {
+                lastTitleRef.current = nextTitle;
+                setTitle(nextTitle);
+            }
+
+            const nextTemplateId = data?.templateId ?? null;
+            setSelectedTemplateId(nextTemplateId);
+            refreshUnloadWarningDirtyState(stableSerialize(saveFormSnapshot(data)));
+        },
+    });
+    const initialTitle = normalizedInitialData?.title;
+    const computeDirtySnapshot = useCallback((values = null) => {
+        const sourceValues = values ?? latestFormValuesRef.current ?? form?.store?.state?.values ?? normalizedInitialData;
+        return stableSerialize(saveFormSnapshot(sourceValues));
+    }, [form, normalizedInitialData]);
+    const subscribeToFormChanges = useCallback((listener) => {
+        if (!form?.store?.subscribe) {
+            return undefined;
+        }
+
+        return form.store.subscribe(listener);
+    }, [form]);
+    const {
+        captureBaseline: captureUnloadWarningBaseline,
+        refreshDirtyState: refreshUnloadWarningDirtyState,
+        suppressWarning: suppressUnloadWarning,
+    } = useUnloadWarning({
+        computeSnapshot: computeDirtySnapshot,
+        subscribe: subscribeToFormChanges,
+    });
+
+    useEffect(() => {
+        latestFormValuesRef.current = normalizedInitialData;
+        setSelectedTemplateId(normalizedInitialData?.templateId ?? null);
+    }, [normalizedInitialData?.templateId, setSelectedTemplateId]);
+
+    useEffect(() => {
+        if (initialTitle === undefined) {
+            return;
+        }
+
+        if (lastTitleRef.current === initialTitle) {
+            return;
+        }
+
+        lastTitleRef.current = initialTitle;
+        setTitle(initialTitle);
+    }, [initialTitle, setTitle]);
+
+    // Set event handlers after form creation
+    form.onSubmit(async(data) => {
+        setErrors({});
+        setSaving(true);
+        setSaveFeedbackState('idle');
+
+        // Add a delay before letting form validation run for a nicer UX
+        await new Promise((resolve) => { return setTimeout(resolve, 300); });
+    });
+
+    form.onError((errors) => {
+        setSaving(false);
+        setSaveFeedbackState('error');
+        announceFormBuilderStatus(Craft.t('formie', 'Unable to save. Please review the highlighted errors.'));
+    });
+
+    form.onSuccess(async(data) => {
+        setErrors({});
+        setSaving(true);
+        const currentSaveAction = useAppStore.getState().saveAction || saveAction;
+        const shouldSaveAsNew = currentSaveAction === 'saveAsNew';
+        const shouldSaveAsStencil = currentSaveAction === 'saveAsStencil';
+        const isDuplicateSave = currentSaveAction !== 'save' && !shouldSaveAsStencil;
+
+        const result = shouldSaveAsStencil
+            ? await saveAsStencil(data)
+            : await saveForm(data, {
+                saveAsNew: shouldSaveAsNew,
+                action: saveActionUrl,
+                requestData: isDuplicateSave ? {
+                    ...saveRequestData,
+                    ...saveDuplicateRequestData,
+                } : saveRequestData,
+            });
+
+        if (!result.ok && result.errors) {
+            const normalizedErrors = normalizeServerErrors(result.errors);
+            setErrors(normalizedErrors);
+            setSaving(false);
+            setSaveFeedbackState('error');
+            announceFormBuilderStatus(Craft.t('formie', 'Unable to save. Please review the highlighted errors.'));
+            if (shouldSaveAsStencil) {
+                Craft.cp.displayError(Craft.t('formie', 'Couldn\'t save stencil.'));
+            }
+            setSaveAction('save');
+            return;
+        }
+
+        if (result.ok) {
+            const redirectUrl = result?.data?.redirect;
+
+            // New-form saves return a redirect URL; follow it so the builder reloads
+            // with fully-hydrated server state (ids, layout/page/row/field references).
+            if (redirectUrl) {
+                suppressUnloadWarning();
+                window.location.href = redirectUrl;
+                return;
+            }
+
+            const serverFormData = result?.data?.data;
+
+            // Reconcile local state with canonical saved payload so subsequent saves
+            // include server-assigned ids and layout metadata.
+            if (serverFormData && typeof serverFormData === 'object') {
+                const reconciledServerFormData = preserveNotificationClientIds(serverFormData, latestFormValuesRef.current);
+                const normalizedServerFormData = normalizeFormData(reconciledServerFormData);
+                latestFormValuesRef.current = normalizedServerFormData;
+                form.store.reset(normalizedServerFormData);
+                captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(normalizedServerFormData)));
+            } else if (!shouldSaveAsStencil) {
+                latestFormValuesRef.current = data;
+                captureUnloadWarningBaseline(stableSerialize(saveFormSnapshot(data)));
+            }
+
+            const resolvedSaveSuccessMessage = shouldSaveAsStencil
+                ? Craft.t('formie', 'Stencil saved.')
+                : (saveSuccessMessage || Craft.t('formie', 'Form saved.'));
+            Craft.cp.displayNotice(resolvedSaveSuccessMessage);
+            setSaveFeedbackState('success');
+            announceFormBuilderStatus(resolvedSaveSuccessMessage);
+        }
+
+        setSaving(false);
+        setSaveAction('save');
+    });
+
+    return (
+        <FormBuilderFormProvider form={form}>
+            <VariableCategoriesProvider>
+                <FormBuilderErrorsPane />
+
+                <SchemaFormEngine
+                    ref={formRef}
+                    form={form}
+                    className="min-h-0 flex-1"
+                />
+            </VariableCategoriesProvider>
+        </FormBuilderFormProvider>
+    );
+}
+
+function saveFormSnapshot(values = {}) {
+    return serializeFormData(normalizeFormData(values || {}));
+}
+
+function preserveNotificationClientIds(serverFormData = {}, currentFormData = {}) {
+    const serverNotifications = Array.isArray(serverFormData?.notifications) ? serverFormData.notifications : [];
+    const currentNotifications = Array.isArray(currentFormData?.notifications) ? currentFormData.notifications : [];
+
+    if (!serverNotifications.length || !currentNotifications.length) {
+        return serverFormData;
+    }
+
+    const currentById = new Map();
+    const currentByUid = new Map();
+    const currentByHandle = new Map();
+
+    currentNotifications.forEach((notification) => {
+        if (!notification || typeof notification !== 'object') {
+            return;
+        }
+
+        if (notification.id != null) {
+            currentById.set(String(notification.id), notification);
+        }
+
+        if (notification.uid) {
+            currentByUid.set(String(notification.uid), notification);
+        }
+
+        if (notification.handle) {
+            currentByHandle.set(String(notification.handle).toLowerCase(), notification);
+        }
+    });
+
+    return {
+        ...serverFormData,
+        notifications: serverNotifications.map((notification) => {
+            if (!notification || typeof notification !== 'object') {
+                return notification;
+            }
+
+            const matchingNotification = (
+                (notification.id != null ? currentById.get(String(notification.id)) : null)
+                || (notification.uid ? currentByUid.get(String(notification.uid)) : null)
+                || (notification.handle ? currentByHandle.get(String(notification.handle).toLowerCase()) : null)
+            );
+
+            if (!matchingNotification?._id) {
+                return notification;
+            }
+
+            return {
+                ...notification,
+                _id: matchingNotification._id,
+            };
+        }),
+    };
+}
+
+function normalizeServerErrors(errors) {
+    if (!errors || typeof errors !== 'object') {
+        return {};
+    }
+
+    const entries = Object.entries(errors);
+    if (entries.length && entries.every(([, value]) => {
+        return Array.isArray(value) && value.every((item) => { return typeof item === 'string'; });
+    })) {
+        return errors;
+    }
+
+    const flatErrors = flatten(errors);
+    const normalized = {};
+
+    Object.entries(flatErrors).forEach(([key, value]) => {
+        if (Array.isArray(value) && value.every((item) => { return typeof item === 'string'; })) {
+            normalized[key] = value;
+            return;
+        }
+
+        if (typeof value !== 'string') {
+            return;
+        }
+
+        const parts = key.split('.');
+        const lastPart = parts[parts.length - 1];
+        const baseKey = /^\d+$/.test(lastPart) ? parts.slice(0, -1).join('.') : key;
+
+        if (!normalized[baseKey]) {
+            normalized[baseKey] = [];
+        }
+
+        normalized[baseKey].push(value);
+    });
+
+    return normalized;
+}
+
+export { FormBuilderContent };

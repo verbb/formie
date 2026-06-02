@@ -1,9 +1,7 @@
 {% set maxChars = (field.limit and field.maxType == 'characters' and field.max) ? field.max : null %}
 {% set maxWords = (field.limit and field.maxType == 'words' and field.max) ? field.max : null %}
 
-{{ fieldtag('fieldInput', {
-    value: value ?? false,
-}) }}
+{{ fieldtag('fieldInput') }}
 
 {% if field.limit %}
     {% if maxChars %}
@@ -13,7 +11,7 @@
         } %}
             {{- '{startTag}{num}{endTag} characters left' | t('formie', {
                 num: maxChars,
-                startTag: '<span class="fui-limit-number">',
+                startTag: '<span class="formie-limit-number">',
                 endTag: '</span>',
             }) | raw -}}
         {% endfieldtag %}
@@ -26,7 +24,7 @@
         } %}
             {{- '{startTag}{num}{endTag} words left' | t('formie', {
                 num: maxWords,
-                startTag: '<span class="fui-limit-number">',
+                startTag: '<span class="formie-limit-number">',
                 endTag: '</span>',
             }) | raw -}}
         {% endfieldtag %}

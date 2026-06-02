@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Number;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateDayNumber extends DateNumber implements SubFieldInnerFieldInterface
+class DateDayNumber extends DateNumber implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -17,12 +17,12 @@ class DateDayNumber extends DateNumber implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Date - Day');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/number';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/number';
     }

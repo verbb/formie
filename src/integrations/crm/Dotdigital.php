@@ -2,10 +2,12 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\DotdigitalAddressBooksEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -55,15 +57,15 @@ class Dotdigital extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            $settings['emailCampaign'] = [
-                new IntegrationField([
-                    'handle' => 'emailCampaignId',
+            if ($this->settingsContext->dataKey === 'emailCampaign') {
+                $settings['emailCampaign'] = [
+                    new IntegrationField([
+                        'handle' => 'emailCampaignId',
                     'name' => Craft::t('formie', 'Email Campaign'),
                     'required' => true,
                     'options' => [
@@ -108,10 +110,11 @@ class Dotdigital extends Crm
                             ]
                         ],
                     ],
-                ])
-            ];
+                    ])
+                ];
+            }
 
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $fields = $this->request('GET', 'data-fields');
                 $customFields = $this->_getCustomFields($fields, ['FIRSTNAME', 'FULLNAME', 'LASTNAME', 'GENDER', 'LASTSUBSCRIBED', 'POSTCODE']);
 
@@ -345,22 +348,6 @@ class Dotdigital extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        $url = rtrim(App::parseEnv($this->apiDomain), '/');
-
-        return Craft::createGuzzleClient([
-            'base_uri' => $url . '/v2/',
-            'auth' => [
-                App::parseEnv($this->username), App::parseEnv($this->password),
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -374,16 +361,63 @@ class Dotdigital extends Crm
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['emailSendMapping'], 'validateFieldMapping', 'params' => $emailCampaign, 'when' => function($model) {
                 return $model->enabled && $model->sendEmailCampaign;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
+
+        return Craft::createGuzzleClient([
+            'base_uri' => $url . '/v2/',
+            'auth' => [
+                App::parseEnv($this->username), App::parseEnv($this->password),
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'sendEmailCampaign',
+            'label' => Craft::t('formie', 'Send Email Campaign'),
+            'instructions' => Craft::t('formie', 'Whether to send an email campaign to the created contact.'),
+        ]);
+
+        $emailCampaign = $this->getFormSettingValue('emailCampaign');
+        $emailMappingSchema = is_array($emailCampaign) ? $this->convertIntegrationFieldsToSchema($emailCampaign) : [];
+        if ($emailMappingSchema) {
+            $schema[] = $this->getIntegrationFieldMappingField([
+                'name' => 'emailSendMapping',
+                'if' => 'sendEmailCampaign',
+                'dataLabel' => 'Email Campaign',
+                'dataKey' => 'emailCampaign',
+                'integrationFields' => $emailMappingSchema,
+            ]);
+        }
+
+        return $schema;
     }
 
 

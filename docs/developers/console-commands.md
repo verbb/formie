@@ -4,13 +4,13 @@ Formie comes with a number of command line utilities that can be run on-demand, 
 ## Forms
 
 ### Re-save Forms
-Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
+Refer to the [Craft docs](https://craftcms.com/docs/5.x/reference/cli#resave) on available options.
 
 ```shell
 ./craft resave/formie-forms --update-search-index=1
 ```
 
-## Delete Forms
+### Delete Forms
 You can bulk delete forms with this command.
 
 Option | Description
@@ -69,7 +69,7 @@ Option | Description
 ## Submissions
 
 ### Re-save Submissions
-Refer to the [Craft docs](https://craftcms.com/docs/4.x/console-commands.html#resave) on available options.
+Refer to the [Craft docs](https://craftcms.com/docs/5.x/reference/cli#resave) on available options.
 
 ```shell
 ./craft resave/formie-submissions --form-id=1234 --update-search-index=1
@@ -102,13 +102,6 @@ Option | Description
 
 ## Garbage Collection
 
-### Delete Orphaned Fields
-A cleanup tasks to ensure fields aren't orphaned. Not normally required.
-
-```shell
-./craft formie/gc/delete-orphaned-fields
-```
-
 ### Prune Incomplete Submissions
 Deletes any incomplete submissions that exceed the "Maximum Incomplete Submission Age" plugin setting.
 
@@ -123,7 +116,14 @@ Deletes any submissions that exceed your data retention form settings.
 ./craft formie/gc/prune-data-retention-submissions
 ```
 
-Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/4.x/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.
+### Prune Submission States
+Deletes stale submission draft state records.
+
+```shell
+./craft formie/gc/prune-submission-states
+```
+
+Each of the above commands are also run automatically through [Craft's Garbage Collection](https://craftcms.com/docs/5.x/system/gc.html), so there's no need to add these commands unless you want fine-grained control over when they run.
 
 ## Delete Submissions
 You can bulk delete submissions with this command.
@@ -134,6 +134,8 @@ Option | Description
 `--form-id` | The form ID(s) to delete submissions from. Can be set to multiple comma-separated IDs.
 `--incomplete-only` | Whether to delete only incomplete submissions.
 `--spam-only` | Whether to delete only spam submissions.
+`--before` | Delete submissions created before a date or relative date string.
+`--after` | Delete submissions created after a date or relative date string.
 
 ```shell
 ./craft formie/submissions/delete --form-handle=form1,anotherForm
@@ -146,13 +148,15 @@ Option | Description
 --- | ---
 `--form-handle` | The form handle(s) to delete sent notifications for. Can be set to multiple comma-separated handles.
 `--form-id` | The form ID(s) to delete sent notifications for. Can be set to multiple comma-separated IDs.
+`--all` | Delete sent notifications for all forms.
+`--hard-delete` | Permanently delete sent notifications instead of soft deleting them.
 
 ```shell
 ./craft formie/sent-notifications/delete --form-handle=form1,anotherForm
 ```
 
 ## Migration
-You can run the migrations from either Sprout Forms or Freeform via the command line. This would be an ideal approach if you have a large number of submissions or complex forms to migrate.
+You can run the migrations from either Sprout Forms or Freeform via the command line. This is useful if you have a large number of submissions or complex forms to migrate.
 
 ### Migrate Sprout Forms
 
@@ -161,7 +165,7 @@ Option | Description
 `--form-handle` | The Sprout Forms handle(s) to migrate. Can be set to multiple comma-separated handles. Omit to migrate all.
 
 ```shell
-./craft formie/migrate/migrate-sprout-forms --form-handle=form1,anotherForm
+./craft formie/migrate/sprout-forms --form-handle=form1,anotherForm
 ```
 
 ### Migrate Freeform
@@ -171,9 +175,9 @@ Option | Description
 `--form-handle` | The Freeform form handle(s) to migrate. Can be set to multiple comma-separated handles. Omit to migrate all.
 
 ```shell
-./craft formie/migrate/migrate-freeform4 --form-handle=form1,anotherForm
+./craft formie/migrate/freeform4 --form-handle=form1,anotherForm
 ```
 
 ```shell
-./craft formie/migrate/migrate-freeform5 --form-handle=form1,anotherForm
+./craft formie/migrate/freeform5 --form-handle=form1,anotherForm
 ```

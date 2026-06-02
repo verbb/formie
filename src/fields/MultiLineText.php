@@ -2,18 +2,27 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\coercion\StringValueCoercer;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\fields\conditions\TextFieldConditionRule;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
+use craft\helpers\Template;
 
 use Faker\Generator as FakerFactory;
 
@@ -21,7 +30,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\db\Schema;
 
-class MultiLineText extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
+class MultiLineText extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -65,26 +74,18 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
     // Public Methods
     // =========================================================================
 
-    public function __construct(array $config = [])
+    public function fieldKind(): string
     {
-        // Migrate legacy settings - remove at the next breakpoint
-        if (array_key_exists('limitType', $config)) {
-            $config['maxType'] = $config['limitType'];
-            unset($config['limitType']);
-        }
-        
-        // Migrate legacy settings - remove at the next breakpoint
-        if (array_key_exists('limitAmount', $config)) {
-            $config['max'] = $config['limitAmount'];
-            unset($config['limitAmount']);
-        }
-
-        parent::__construct($config);
+        return self::KIND_TEXTAREA;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = $value !== '' ? $value : null;
+
+        if ($this->useRichText && is_string($value)) {
+            $value = StringHelper::cleanString($value);
+        }
 
         return parent::normalizeValue($value, $element);
     }
@@ -104,7 +105,7 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             }
 
             if ($this->maxType === 'characters') {
-                $rules[] = 'validateMaxCharacters';
+                $rules[] = [$this->handle, 'validateMaxCharacters'];
             }
 
             if ($this->minType === 'words') {
@@ -112,12 +113,12 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             }
 
             if ($this->maxType === 'words') {
-                $rules[] = 'validateMaxWords';
+                $rules[] = [$this->handle, 'validateMaxWords'];
             }
         }
 
         if ($this->uniqueValue) {
-            $rules[] = 'validateUniqueValue';
+            $rules[] = [$this->handle, 'validateUniqueValue'];
         }
 
         return $rules;
@@ -131,11 +132,11 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->fieldKey);
+        $value = (string)$element->getFieldValue($this->valueKey());
         $count = StringHelper::getCharacterCount($value);
 
         if ($count < $min) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} characters.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'You must enter at least {limit} characters.', [
                 'limit' => $min,
             ]));
         }
@@ -149,11 +150,11 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->fieldKey);
+        $value = (string)$element->getFieldValue($this->valueKey());
         $count = StringHelper::getCharacterCount($value);
 
         if ($count > $max) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} characters.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'Limited to {limit} characters.', [
                 'limit' => $max,
             ]));
         }
@@ -167,11 +168,11 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->fieldKey);
+        $value = (string)$element->getFieldValue($this->valueKey());
         $count = StringHelper::getWordCount($value);
 
         if ($count < $min) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'You must enter at least {limit} words.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'You must enter at least {limit} words.', [
                 'limit' => $min,
             ]));
         }
@@ -185,46 +186,21 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             return;
         }
 
-        $value = (string)$element->getFieldValue($this->fieldKey);
+        $value = (string)$element->getFieldValue($this->valueKey());
         $count = StringHelper::getWordCount($value);
 
         if ($count > $max) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'Limited to {limit} words.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'Limited to {limit} words.', [
                 'limit' => $max,
             ]));
         }
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/multi-line-text/preview', [
-            'field' => $this,
-        ]);
-    }
-
-    public function getFrontEndJsModules(): ?array
-    {
-        $modules = [];
-
-        if ($this->limit) {
-            $modules[] = [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/text-limit.js'),
-                'module' => 'FormieTextLimit',
-            ];
-        }
-
-        if ($this->useRichText) {
-            $modules[] = [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/rich-text.js'),
-                'module' => 'FormieRichText',
-                'settings' => array_filter([
-                    'buttons' => $this->getRichTextButtons(),
-                    'plainTextPaste' => $this->plainTextPaste,
-                ]),
-            ];
-        }
-
-        return $modules;
+        return [
+            SchemaHelper::previewTextarea(),
+        ];
     }
 
     public function getRichTextButtons(): ?array
@@ -312,155 +288,126 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
             SchemaHelper::textareaField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'rows' => '3',
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Value'),
-                'help' => Craft::t('formie', 'Whether to limit the value of this field.'),
+                'instructions' => Craft::t('formie', 'Whether to limit the value of this field.'),
                 'name' => 'limit',
             ]),
             [
                 '$el' => 'div',
-                'attrs' => [
-                    'class' => 'fui-row',
-                ],
-                'if' => '$get(limit).value',
+                'if' => 'limit',
                 'children' => [
                     [
                         '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'fui-col-6',
-                        ],
                         'children' => [
-                            [
-                                '$formkit' => 'fieldWrap',
+                            SchemaHelper::fieldWrap([
                                 'label' => Craft::t('formie', 'Min Value'),
-                                'help' => Craft::t('formie', 'Set a minimum value that users must enter.'),
+                                'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
                                 'children' => [
-                                    [
-                                        '$el' => 'div',
-                                        'attrs' => [
-                                            'class' => 'flex',
+                                    SchemaHelper::numberField([
+                                        'name' => 'min',
+                                    ]),
+                                    SchemaHelper::selectField([
+                                        'name' => 'minType',
+                                        'options' => [
+                                            ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                            ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
                                         ],
-                                        'children' => [
-                                            SchemaHelper::numberField([
-                                                'name' => 'min',
-                                                'inputClass' => 'text flex-grow',
-                                            ]),
-                                            SchemaHelper::selectField([
-                                                'name' => 'minType',
-                                                'options' => [
-                                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
-                                                ],
-                                            ]),
-                                        ],
-                                    ],
+                                    ]),
                                 ],
-                            ],
+                            ]),
                         ],
                     ],
                     [
                         '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'fui-col-6',
-                        ],
                         'children' => [
-                            [
-                                '$formkit' => 'fieldWrap',
+                            SchemaHelper::fieldWrap([
                                 'label' => Craft::t('formie', 'Max Value'),
-                                'help' => Craft::t('formie', 'Set a maximum value that users must enter.'),
+                                'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
                                 'children' => [
-                                    [
-                                        '$el' => 'div',
-                                        'attrs' => [
-                                            'class' => 'flex',
+                                    SchemaHelper::numberField([
+                                        'name' => 'max',
+                                    ]),
+                                    SchemaHelper::selectField([
+                                        'name' => 'maxType',
+                                        'options' => [
+                                            ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
+                                            ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
                                         ],
-                                        'children' => [
-                                            SchemaHelper::numberField([
-                                                'name' => 'max',
-                                                'inputClass' => 'text flex-grow',
-                                            ]),
-                                            SchemaHelper::selectField([
-                                                'name' => 'maxType',
-                                                'options' => [
-                                                    ['label' => Craft::t('formie', 'Characters'), 'value' => 'characters'],
-                                                    ['label' => Craft::t('formie', 'Words'), 'value' => 'words'],
-                                                ],
-                                            ]),
-                                        ],
-                                    ],
+                                    ]),
                                 ],
-                            ],
+                            ]),
                         ],
                     ],
                 ],
             ],
             SchemaHelper::matchField([
-                'fieldTypes' => [self::class],
+                'includedTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
-                'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
                 'name' => 'uniqueValue',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Use Rich Text Field'),
-                'help' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter values with.'),
+                'instructions' => Craft::t('formie', 'Whether to display this field with a rich text editor for users to enter values with.'),
                 'name' => 'useRichText',
             ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Rich Text Buttons'),
-                'help' => Craft::t('formie', 'Select which formatting buttons available for users to use.'),
+                'instructions' => Craft::t('formie', 'Select which formatting buttons available for users to use.'),
                 'name' => 'richTextButtons',
                 'showAllOption' => false,
-                'if' => '$get(useRichText).value',
+                'if' => 'useRichText',
                 'options' => $this->getButtonOptions(),
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Paste as Plain Text'),
-                'help' => Craft::t('formie', 'When enabled, pasted content is inserted without formatting (for example from Word or websites).'),
+                'instructions' => Craft::t('formie', 'When enabled, pasted content is inserted without formatting (for example from Word or websites).'),
                 'name' => 'plainTextPaste',
-                'if' => '$get(useRichText).value',
+                'if' => 'useRichText',
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
@@ -468,7 +415,7 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -479,7 +426,7 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -487,56 +434,75 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
+        $form = $context->form;
+        $errors = $context->errors;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('textarea', [
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                    'min-chars' => ($this->limit && $this->minType === 'characters' && $this->min) ? $this->min : null,
-                    'max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
-                    'min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,
-                    'max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('textarea')
+                ->core([
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'required' => $this->required ? true : null,
+                    'data-formie-textarea' => true,
+                    'data-formie-multi-line-text-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'textarea',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'data-formie-min-chars' => ($this->limit && $this->minType === 'characters' && $this->min) ? $this->min : null,
+                    'data-formie-max-chars' => ($this->limit && $this->maxType === 'characters' && $this->max) ? $this->max : null,
+                    'data-formie-min-words' => ($this->limit && $this->minType === 'words' && $this->min) ? $this->min : null,
+                    'data-formie-max-words' => ($this->limit && $this->maxType === 'words' && $this->max) ? $this->max : null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-textarea',
+                        'formie-multi-line-text-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
         if ($key === 'fieldLimit') {
-            return new HtmlTag('div', [
-                'class' => 'fui-limit-text',
-                'data-limit' => true,
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-field-limit' => true,
+                    'data-formie-limit-text' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-note',
+                        'formie-field-limit',
+                        'formie-limit-text',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldRichText') {
-            return new HtmlTag('div', [
-                'class' => 'fui-rich-text',
-                'data-rich-text' => true,
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-rich-text' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-rich-text',
+                    ],
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -548,7 +514,7 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $form = null;
 
@@ -561,11 +527,94 @@ class MultiLineText extends Field implements InlineEditableFieldInterface, Previ
             'value' => $value,
             'field' => $this,
             'form' => $form,
+            'textLimitConfig' => $this->getTextLimitClientConfig(ClientModule::RENDER_TARGET_CP_EDIT),
         ]);
+    }
+
+    protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
+    {
+        $stringValue = StringValueCoercer::asString($value);
+
+        if ($this->useRichText) {
+            return StringHelper::cleanString($stringValue);
+        }
+
+        return $stringValue;
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
+    {
+        $stringValue = $this->defineValueAsString($value, $element);
+
+        if ($this->useRichText) {
+            return Template::raw($stringValue);
+        }
+
+        return $stringValue;
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->realText;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [Variables::TYPE_TEXT],
+                'content' => Variables::CONTENT_ANY,
+            ]),
+        ];
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'min' => $this->min,
+            'max' => $this->max,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+
+        if ($this->limit) {
+            $modules[] = function(ClientModuleContext $context) {
+                return new ClientModule([
+                    'id' => 'text-limit',
+                    'config' => $this->getTextLimitClientConfig($context->renderTarget),
+                ]);
+            };
+        }
+
+        if ($this->useRichText) {
+            $modules[] = new ClientModule([
+                'id' => 'rich-text',
+                'config' => [
+                    'buttons' => $this->getRichTextButtons(),
+                ],
+            ]);
+        }
+
+        return $modules;
+    }
+
+    protected function getTextLimitClientConfig(string $renderTarget): array
+    {
+        return [
+            'allowOvertype' => $renderTarget === ClientModule::RENDER_TARGET_CP_EDIT,
+        ];
+    }
+
+    protected function supportsPlainTextHtmlSanitization(): bool
+    {
+        return !$this->useRichText;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return StringFieldValue::class;
     }
 }

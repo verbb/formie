@@ -2,17 +2,23 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
-use verbb\formie\base\SingleNestedFieldInterface;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\values\CalculationFieldValue;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
-use verbb\formie\helpers\Html;
-use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\FieldReferenceHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\RichText;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
 use craft\helpers\Json;
 
 use GraphQL\Type\Definition\Type;
@@ -36,7 +42,7 @@ class Calculations extends Field implements PreviewableFieldInterface
     // Properties
     // =========================================================================
 
-    public ?array $formula = [];
+    public RichText $formula;
     public string $formatting = '';
     public string $prefix = '';
     public string $suffix = '';
@@ -48,25 +54,39 @@ class Calculations extends Field implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function getPreviewInputHtml(): string
+    public function __construct(array $config = [])
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/calculations/preview', [
-            'field' => $this,
-        ]);
+        $config['formula'] = RichText::from($config['formula'] ?? null);
+
+        parent::__construct($config);
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function fieldKind(): string
+    {
+        return self::KIND_TEXT;
+    }
+
+    public function setAttributes($values, $safeOnly = true): void
+    {
+        if (is_array($values)) {
+            $hasFormula = array_key_exists('formula', $values);
+
+            if ($hasFormula) {
+                $values['formula'] = RichText::from($values['formula']);
+            }
+
+            if ($hasFormula) {
+                $this->_renderedFormula = null;
+            }
+        }
+
+        parent::setAttributes($values, $safeOnly);
+    }
+
+    public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/calculations.js'),
-            'module' => 'FormieCalculations',
-            'settings' => [
-                'formula' => $this->getFormula(),
-                'formatting' => $this->formatting,
-                'prefix' => $this->prefix,
-                'suffix' => $this->suffix,
-                'decimals' => $this->decimals,
-            ],
+            SchemaHelper::previewInput(),
         ];
     }
 
@@ -76,39 +96,75 @@ class Calculations extends Field implements PreviewableFieldInterface
             return $this->_renderedFormula;
         }
 
-        // Take the tiptap-stored formula and turn it into something JS will understand.
-        $formula = RichTextHelper::getHtmlContent($this->formula);
-
-        // Grab all the variables used in the formula
+        $formula = trim($this->formula->toPlainText());
         $variables = [];
+        $form = $this->getForm();
+        $fieldMap = $form ? FieldReferenceHelper::getClientFieldReferenceMap($form->getFields()) : [];
+        $variableIdsBySourceKey = [];
+        $sourceKeyByVariableId = [];
 
-        // Extract the field handles from a formula
-        preg_match_all('/{field:(.*?[^}])}/m', $formula, $matches);
+        $formula = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use (&$variables, &$variableIdsBySourceKey, &$sourceKeyByVariableId, $fieldMap) {
+            $token = (string)($matches[0] ?? '');
+            $expression = References::parseReferenceExpression($token);
+            
+            if (!$expression->isValid || $expression->target !== 'field' || $expression->identifier === '') {
+                return '';
+            }
 
-        // `$keys` will be `{field:handle}`, `$values` will be `handle`.
-        $keys = $matches[0] ?? [];
-        $values = $matches[1] ?? [];
-        $handles = array_combine($keys, $values);
+            $sourceHandle = FieldReferenceHelper::resolveClientFieldKey($expression->identifier, $fieldMap);
+            $sourceHandle = trim($sourceHandle);
 
-        // Go through each field and make sure to namespace it for DOM lookup
-        foreach ($handles as $handle) {
-            $newHandle = 'field_' . str_replace('.', '_', $handle);
+            if ($expression->selector !== '') {
+                $sourceHandle = $sourceHandle !== ''
+                    ? "{$sourceHandle}.{$expression->selector}"
+                    : $expression->identifier . ".{$expression->selector}";
+            }
 
-            $variables[$newHandle] = $this->_getFieldVariable($handle);
-        }
+            if ($sourceHandle === '') {
+                $sourceHandle = $expression->identifier;
+            }
 
-        // Replace `{field.handle.sub}` with `field_handle_sub` to save any potential collisions with keywords
-        // and because some characters won't work well with the expressionLanguage parser. It's important not to
-        // replace `.` characters outside of this string of course
-        $formula = preg_replace_callback('/({.*?})/', function($matches) {
-            $string = $matches[1] ?? '';
-            return str_replace(['.', ':', '{', '}'], ['_', '_', '', ''], $string);
-        }, $formula);
+            if (isset($variableIdsBySourceKey[$sourceHandle])) {
+                return $variableIdsBySourceKey[$sourceHandle];
+            }
+
+            $baseVariableId = 'field_' . preg_replace('/[^A-Za-z0-9_]/', '_', $sourceHandle);
+            $baseVariableId = trim((string)$baseVariableId, '_');
+
+            if ($baseVariableId === '' || preg_match('/^[0-9]/', $baseVariableId)) {
+                $baseVariableId = 'field_var';
+            }
+
+            $variableId = $baseVariableId;
+            $suffix = 2;
+
+            while (isset($sourceKeyByVariableId[$variableId]) && $sourceKeyByVariableId[$variableId] !== $sourceHandle) {
+                $variableId = "{$baseVariableId}_{$suffix}";
+                $suffix++;
+            }
+
+            $variableIdsBySourceKey[$sourceHandle] = $variableId;
+            $sourceKeyByVariableId[$variableId] = $sourceHandle;
+            $variables[$variableId] = [
+                'sourceKey' => $sourceHandle,
+            ];
+
+            return $variableId;
+        }, $formula) ?? $formula;
 
         return $this->_renderedFormula = [
+            'expression' => $formula,
             'formula' => $formula,
             'variables' => $variables,
         ];
+    }
+
+    public function getSettings(): array
+    {
+        $settings = parent::getSettings();
+        $settings['formula'] = $this->formula->getSchema();
+
+        return $settings;
     }
 
     public function getSettingGqlTypes(): array
@@ -140,42 +196,50 @@ class Calculations extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::richTextField(array_merge([
+            SchemaHelper::calculationsField([
                 'label' => Craft::t('formie', 'Calculations Formula'),
-                'help' => Craft::t('formie', 'Provide the formula used to calculate the result for this field. Use arithmetic operators (`+`, `-`, `*`, `/`, etc) and reference other fields.'),
+                'instructions' => Craft::t('formie', 'Provide the formula used to calculate the result for this field. Use arithmetic operators (`+`, `-`, `*`, `/`, etc) and reference other fields.'),
                 'name' => 'formula',
-                'variables' => 'calculationsVariables',
-                'disable-paste-rules' => true,
-                'disable-input-rules' => true,
-            ], RichTextHelper::getRichTextConfig('fields.calculations'))),
+                'validationAction' => 'formie/fields/validate-calculations-formula',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT, Variables::TYPE_EMAIL, Variables::TYPE_NUMBER],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                    ],
+                    'referenceContext' => 'client',
+                    'fieldSelectionPageScope' => 'currentAndPrevious',
+                    'excludeSelf' => true,
+                ],
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::matchField([
-                'fieldTypes' => [self::class],
+                'includedTypes' => [self::class],
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Formatting'),
-                'help' => Craft::t('formie', 'Select how to format the value calculated for this field.'),
+                'instructions' => Craft::t('formie', 'Select how to format the value calculated for this field.'),
                 'name' => 'formatting',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
@@ -184,26 +248,26 @@ class Calculations extends Field implements PreviewableFieldInterface
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Prefix'),
-                'help' => Craft::t('formie', 'Add a prefix to the number.'),
+                'instructions' => Craft::t('formie', 'Add a prefix to the number.'),
                 'name' => 'prefix',
-                'if' => '$get(formatting).value == number',
+                'if' => 'formatting == "number"',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Suffix'),
-                'help' => Craft::t('formie', 'Add a suffix to the number.'),
+                'instructions' => Craft::t('formie', 'Add a suffix to the number.'),
                 'name' => 'suffix',
-                'if' => '$get(formatting).value == number',
+                'if' => 'formatting == "number"',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Decimal Rounding'),
-                'help' => Craft::t('formie', 'How many decimals to round the number to.'),
+                'instructions' => Craft::t('formie', 'How many decimals to round the number to.'),
                 'name' => 'decimals',
-                'if' => '$get(formatting).value == number',
+                'if' => 'formatting == "number"',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -213,7 +277,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -224,7 +288,7 @@ class Calculations extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -232,38 +296,45 @@ class Calculations extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
+        $form = $context->form;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'text',
-                'id' => $id,
-                'class' => 'fui-input',
-                'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'required' => $this->required ? true : null,
-                'readonly' => true,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'text',
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'required' => $this->required ? true : null,
+                    'readonly' => true,
+                    'data-formie-input' => true,
+                    'data-formie-calculation-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'calculation',
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-calculation-input',
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
         
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/calculations/input', [
             'name' => $this->handle,
@@ -272,48 +343,39 @@ class Calculations extends Field implements PreviewableFieldInterface
         ]);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private function _getFieldVariable(string $fieldKey, mixed $element = null): ?array
+    protected function defineClientModules(): array
     {
-        // Check for nested field handles
-        if (str_contains($fieldKey, '.')) {
-            $fieldKey = explode('.', $fieldKey);
-            $fieldHandle = array_shift($fieldKey);
-            $fieldKey = implode('.', $fieldKey);
-        } else {
-            $fieldHandle = $fieldKey;
-            $fieldKey = '';
-        }
+        $modules = parent::defineClientModules();
+        
+        $modules[] = new ClientModule([
+            'id' => 'calculations',
+            'config' => [
+                'formula' => $this->getFormula(),
+                'formatting' => $this->formatting,
+                'prefix' => $this->prefix,
+                'suffix' => $this->suffix,
+                'decimals' => $this->decimals,
+            ],
+        ]);
 
-        if (!$element) {
-            $element = $this->getForm();
-        }
+        return $modules;
+    }
 
-        if ($field = $element->getFieldByHandle($fieldHandle)) {
-            $namespace = Html::getInputNameAttribute($field->getFullNamespace());
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [
+                    Variables::TYPE_CALCULATIONS,
+                    Variables::TYPE_NUMBER,
+                    Variables::TYPE_TEXT,
+                ],
+            ]),
+        ];
+    }
 
-            if ($field instanceof SingleNestedFieldInterface) {
-                return $this->_getFieldVariable($fieldKey, $field);
-            }
-
-            if ($field instanceof Checkboxes) {
-                return [
-                    'handle' => $fieldHandle,
-                    'name' => Html::namespaceInputName($fieldHandle, $namespace) . '[]',
-                    'type' => get_class($field),
-                ];
-            }
-
-            return [
-                'handle' => $fieldHandle,
-                'name' => Html::namespaceInputName($fieldHandle, $namespace),
-                'type' => get_class($field),
-            ];
-        }
-
-        return null;
+    protected function defineValueClass(): ?string
+    {
+        return CalculationFieldValue::class;
     }
 }

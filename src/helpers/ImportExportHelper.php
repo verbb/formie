@@ -2,7 +2,7 @@
 namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
-use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
@@ -350,7 +350,7 @@ class ImportExportHelper
                 ];
 
                 // Handle nested fields
-                if ($field instanceof NestedFieldInterface) {
+                if ($field instanceof ParentFieldInterface) {
                     self::getFieldInfoForExport($field->getRows(), $pageData['rows'][$rowId]['fields'][$fieldId]['settings']);
                 }
             }
@@ -421,7 +421,7 @@ class ImportExportHelper
             $fieldMap[$key] = $field;
 
             // Check for nested fields
-            if ($field instanceof NestedFieldInterface) {
+            if ($field instanceof ParentFieldInterface) {
                 $nestedFields = $field->getFields();
                 $fieldMap = array_merge($fieldMap, self::buildFieldMap($nestedFields, $key));
             }

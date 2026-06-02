@@ -41,7 +41,6 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
         return Craft::t('formie', 'CleverReach');
     }
 
-
     // Public Methods
     // =========================================================================
 
@@ -112,7 +111,7 @@ class CleverReach extends EmailMarketing implements OAuthProviderInterface
 
         return true;
     }
-
+    
 
     // Private Methods
     // =========================================================================

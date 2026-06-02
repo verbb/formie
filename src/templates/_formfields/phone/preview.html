@@ -1,9 +1,34 @@
-<div>
-    <div v-if="field.settings.countryEnabled" class="fui-phone-flag-wrap" >
-        <span class="fui-phone-flag-icon iti__flag" :class="'iti__' + (field.settings.countryDefaultValue ? field.settings.countryDefaultValue.toLowerCase() : 'auto')"></span>
-        <select class="fui-field-select fui-phone-flag-select"></select>
-    </div>
+<div className="formie-field-preview-layout-phone">
+    {field.countryEnabled && (
+        <div className="formie-field-preview-control formie-field-preview-control--phone-combined">
+            <div className="formie-field-preview-phone-country-trigger">
+                <span className="formie-field-preview-phone-country-flag" />
+                <span className="formie-field-preview-phone-country-code">{field.countryDefaultValue || 'US'}</span>
+            </div>
 
-    <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue" :style="field.settings.countryEnabled ? 'padding-left: 55px;' : ''">
-    <span class="fui-field-icon">{{ field.getSvgIcon() | raw }}</span>
+            <input
+                type="text"
+                className="formie-field-preview-input formie-field-preview-input--phone-inline"
+                placeholder={field.placeholder || Craft.t('formie', 'Phone number')}
+                value={field.defaultValue || ''}
+                readOnly
+            />
+
+            <span className="formie-field-preview-icon" dangerouslySetInnerHTML={{ __html: fieldType.icon || '' }} />
+        </div>
+    )}
+
+    {!field.countryEnabled && (
+        <div className="formie-field-preview-control formie-field-preview-control--phone">
+        <input
+            type="text"
+            className="formie-field-preview-input"
+            placeholder={field.placeholder || Craft.t('formie', 'Phone number')}
+            value={field.defaultValue || ''}
+            readOnly
+        />
+
+        <span className="formie-field-preview-icon" dangerouslySetInnerHTML={{ __html: fieldType.icon || '' }} />
+        </div>
+    )}
 </div>

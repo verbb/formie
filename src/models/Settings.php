@@ -3,6 +3,7 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\Plugin;
 use verbb\formie\positions\AboveInput;
 
 use Craft;
@@ -22,6 +23,9 @@ class Settings extends Model
 
     public const SPAM_BEHAVIOUR_SUCCESS = 'showSuccess';
     public const SPAM_BEHAVIOUR_MESSAGE = 'showMessage';
+
+    public const PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE = 'preserve';
+    public const PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE = 'sanitize';
     
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC = 'dateCreatedDesc';
     public const SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC = 'dateCreatedAsc';
@@ -36,6 +40,8 @@ class Settings extends Model
 
     public string $pluginName = 'Formie';
     public string $defaultPage = 'forms';
+    public bool $compatibilityMode = true;
+    public bool $staticCacheRefreshOnLoad = false;
 
     // Forms
     public bool $validateCustomTemplates = true; // Allow power users to handle form template path checks on their own
@@ -61,6 +67,7 @@ class Settings extends Model
     public string $defaultDateValueOption = '';
     public ?DateTime $defaultDateTime = null;
     public bool $enableLargeFieldStorage = false;
+    public string $plainTextHtmlSanitizationMode = self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE;
 
     // Submissions
     public int $maxIncompleteSubmissionAge = 30;
@@ -70,7 +77,13 @@ class Settings extends Model
     public ?int $queuePriority = null;
     public bool $setOnlyCurrentPagePayload = false;
     public string|array $submissionsBehaviour = 'all';
+    public int $submissionStateRetentionDays = 30;
     public string $submissionSidebarFormOrder = self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC;
+    public int $saveResumeTokenTtlDays = 14;
+    public int $maxSavedDraftsPerSession = 10;
+    public int $anonymousClientBootstrapRateLimit = 30;
+    public int $anonymousClientRefreshRateLimit = 120;
+    public int $anonymousClientRateWindowSeconds = 60;
 
     // Sent Notifications
     public bool $sentNotifications = true;
@@ -111,6 +124,8 @@ class Settings extends Model
     {
         // Remove deprecated settings
         unset($config['enableGatsbyCompatibility']);
+        unset($config['submissionStateMode']);
+        unset($config['submissionStore']);
 
         // Normalize config
         if (isset($config['submissionsBehaviour']) && is_array($config['submissionsBehaviour'])) {
@@ -126,6 +141,8 @@ class Settings extends Model
         if (isset($values['submissionsBehaviour']) && is_array($values['submissionsBehaviour'])) {
             $values['submissionsBehaviour'] = 'all';
         }
+        unset($values['submissionStateMode']);
+        unset($values['submissionStore']);
 
         parent::setAttributes($values, $safeOnly);
     }
@@ -206,6 +223,29 @@ class Settings extends Model
         return Craft::$app->getConfig()->getGeneral()->securityKey;
     }
 
+    public function hasStaticCache(): bool
+    {
+        // If Blitz is installed and enabled, we can assume it's being used for static caching.
+        if (Plugin::isPluginInstalledAndEnabled('blitz')) {
+            return true;
+        }
+
+        return $this->staticCacheRefreshOnLoad;
+    }
+
+    public function getAbsoluteDefaultExportFolder(): ?string
+    {
+        $path = Craft::getAlias( $this->defaultExportFolder );
+        $exportFolder = FileHelper::normalizePath($path);
+        FileHelper::createDirectory($exportFolder);
+     
+        return $exportFolder;
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -213,6 +253,15 @@ class Settings extends Model
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['maxSavedDraftsPerSession'], 'number', 'integerOnly' => true, 'min' => 0];
+        $rules[] = [['anonymousClientBootstrapRateLimit', 'anonymousClientRefreshRateLimit'], 'number', 'integerOnly' => true, 'min' => 0];
+        $rules[] = [['anonymousClientRateWindowSeconds'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['plainTextHtmlSanitizationMode'], 'in', 'range' => [
+            self::PLAIN_TEXT_HTML_SANITIZATION_MODE_PRESERVE,
+            self::PLAIN_TEXT_HTML_SANITIZATION_MODE_SANITIZE,
+        ]];
         $rules[] = [['alertEmails'], 'validateAlertEmails'];
         $rules[] = [['submissionSidebarFormOrder'], 'in', 'range' => [
             self::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_DESC,
@@ -224,14 +273,5 @@ class Settings extends Model
         ]];
 
         return $rules;
-    }
-
-    public function getAbsoluteDefaultExportFolder(): ?string
-    {
-        $path = Craft::getAlias( $this->defaultExportFolder );
-        $exportFolder = FileHelper::normalizePath($path);
-        FileHelper::createDirectory($exportFolder);
-     
-        return $exportFolder;
     }
 }

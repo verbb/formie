@@ -3,13 +3,15 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -51,7 +53,6 @@ class SharpSpring extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -86,17 +87,18 @@ class SharpSpring extends Crm
                     $settings['syncFormError'] = Craft::t('formie', 'Endpoint required');
                 }
             } else {
-                $response = $this->request('POST', '', [
-                    'json' => [
-                        'method' => 'getFields',
-                        'params' => ['where' => [], 'limit' => 500, 'offset' => 0],
-                        'id' => 'formie',
-                    ],
-                ]);
+                if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
+                    $response = $this->request('POST', '', [
+                        'json' => [
+                            'method' => 'getFields',
+                            'params' => ['where' => [], 'limit' => 500, 'offset' => 0],
+                            'id' => 'formie',
+                        ],
+                    ]);
 
-                $fields = $response['result']['field'] ?? [];
+                    $fields = $response['result']['field'] ?? [];
 
-                $contactFields = array_merge([
+                    $contactFields = array_merge([
                     new IntegrationField([
                         'handle' => 'emailAddress',
                         'name' => Craft::t('formie', 'Email'),
@@ -173,11 +175,12 @@ class SharpSpring extends Crm
                         'handle' => 'accountID',
                         'name' => Craft::t('formie', 'Account IDs'),
                     ]),
-                ], $this->_getCustomFields($fields));
+                    ], $this->_getCustomFields($fields));
 
-                $settings = [
-                    'contact' => $contactFields,
-                ];
+                    $settings = [
+                        'contact' => $contactFields,
+                    ];
+                }
             }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
@@ -248,21 +251,6 @@ class SharpSpring extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.sharpspring.com/pubapi/v1.2/',
-            'query' => [
-                'accountID' => App::parseEnv($this->accountId),
-                'secretKey' => App::parseEnv($this->secretKey),
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -275,10 +263,51 @@ class SharpSpring extends Crm
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.sharpspring.com/pubapi/v1.2/',
+            'query' => [
+                'accountID' => App::parseEnv($this->accountId),
+                'secretKey' => App::parseEnv($this->secretKey),
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToForm',
+            'label' => Craft::t('formie', 'Map to Form'),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Forms']),
+        ]);
+        $schema[] = SchemaHelper::textField([
+            'name' => 'endpoint',
+            'label' => Craft::t('formie', 'Endpoint'),
+            'instructions' => Craft::t('formie', 'Enter the SharpSpring native form endpoint ID used for payload sync.'),
+            'if' => 'mapToForm',
+            'required' => true,
+        ]);
+
+        return $schema;
     }
 
 
@@ -355,8 +384,8 @@ class SharpSpring extends Crm
 
             $rawValue = $element->getFieldValue($field->handle);
 
-            if ($field instanceof SubFieldInterface) {
-                $value = $field->getValueAsJson($rawValue, $element);
+            if ($field instanceof FixedParentFieldInterface) {
+                $value = $field->getValueAsArray($rawValue, $element);
 
                 if (is_array($value)) {
                     foreach ($value as $k => $v) {

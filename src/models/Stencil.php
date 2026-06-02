@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\helpers\ArrayHelper;
@@ -15,7 +16,6 @@ use craft\elements\Entry;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\validators\HandleValidator;
-use craft\validators\UniqueValidator;
 
 use DateTime;
 
@@ -24,7 +24,7 @@ use yii\base\NotSupportedException;
 use yii\base\Exception;
 use yii\base\ErrorException;
 
-class Stencil extends Model
+class Stencil extends Model implements FormInterface
 {
     // Traits
     // =========================================================================
@@ -107,6 +107,16 @@ class Stencil extends Model
     public function getNotifications(): array
     {
         return $this->data->notifications ?? [];
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getHandle(): ?string
+    {
+        return $this->handle;
     }
 
     public function getFormLayout(): FieldLayout
@@ -242,9 +252,9 @@ class Stencil extends Model
         }
     }
 
-    public function applyStencilToForm(Form $form): void
+    public function applyStencilToForm(Form $form, bool $regenerateFieldReferences = false): void
     {
-        $this->data->populateToForm($form);
+        $this->data->populateToForm($form, $regenerateFieldReferences);
 
         $form->isApplyingStencil = true;
         $form->setTemplate($this->getTemplate());
@@ -266,12 +276,6 @@ class Stencil extends Model
             HandleValidator::class,
             'reservedWords' => ['id', 'dateCreated', 'dateUpdated', 'uid', 'title'],
         ];
-        $rules[] = [
-            ['handle'],
-            UniqueValidator::class,
-            'targetClass' => StencilRecord::class,
-        ];
-
         return $rules;
     }
 }

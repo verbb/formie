@@ -1,0 +1,23 @@
+import type { FrontendFieldDefinition, FrontendFieldValueContract, FrontendFormDefinition, FrontendRowDefinition, FrontendFormEnvelope, KnownFrontendFieldType } from './types';
+export declare function allFields(definition: FrontendFormDefinition | FrontendFormEnvelope['definition']): FrontendFieldDefinition[];
+export declare function findFieldById(definition: FrontendFormDefinition | FrontendFormEnvelope['definition'], fieldId: string): FrontendFieldDefinition | undefined;
+export declare function findFieldByHandle(definition: FrontendFormDefinition | FrontendFormEnvelope['definition'], fieldHandle: string): FrontendFieldDefinition | undefined;
+export declare function serializeFieldValues(definition: FrontendFormDefinition, values: Record<string, unknown>): Record<string, unknown>;
+export declare function isKnownFrontendFieldType(fieldType: string): fieldType is KnownFrontendFieldType;
+export declare function fieldValueContract(field: FrontendFieldDefinition): FrontendFieldValueContract;
+export declare function fieldValueStructure(field: FrontendFieldDefinition): FrontendFieldValueContract['structure'];
+export declare function isCompositeField(field: FrontendFieldDefinition): boolean;
+export declare function isRepeatableField(field: FrontendFieldDefinition): boolean;
+export declare function isFileField(field: FrontendFieldDefinition): boolean;
+export declare function isMultiValueField(field: FrontendFieldDefinition): boolean;
+export declare function isBooleanField(field: FrontendFieldDefinition): boolean;
+export declare function isNumericField(field: FrontendFieldDefinition): boolean;
+export declare function isEmailField(field: FrontendFieldDefinition): boolean;
+export declare function compositePartDefinitions(field: FrontendFieldDefinition): FrontendFieldDefinition[];
+export declare function repeaterRowDefinitions(field: FrontendFieldDefinition): FrontendRowDefinition[];
+export declare function repeaterFieldDefinitions(field: FrontendFieldDefinition): FrontendFieldDefinition[];
+export declare function defaultValueForField(field: FrontendFieldDefinition): unknown;
+export declare function createRepeaterRowValue(field: FrontendFieldDefinition): Record<string, unknown>;
+export declare function fieldValueAsStrings(field: FrontendFieldDefinition, value: unknown): string[];
+export declare function serializeTransportFieldValues(definition: FrontendFormDefinition, values: Record<string, unknown>): Promise<Record<string, unknown>>;
+//# sourceMappingURL=schema.d.ts.map

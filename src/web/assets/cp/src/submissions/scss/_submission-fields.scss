@@ -1,0 +1,164 @@
+// ==========================================================================
+// Submission Edit Fields
+// ==========================================================================
+
+#fields .formie-rows,
+#fields .formie-subfield-rows,
+#fields .formie-nested-field-rows {
+    display: grid;
+    gap: 24px;
+}
+
+#fields .formie-row,
+#fields .formie-subfield-row,
+#fields .formie-nested-field-row {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+#fields .formie-row>.field,
+#fields .formie-subfield-row>.field,
+#fields .formie-nested-field-row>.field {
+    min-width: 0;
+    margin: 0 !important;
+}
+
+@media (min-width: 640px) {
+    #fields .formie-row[data-formie-field-count="2"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #fields .formie-subfield-row,
+    #fields .formie-nested-field-row {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    }
+}
+
+@media (min-width: 896px) {
+    #fields .formie-row[data-formie-field-count="3"] {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #fields .formie-row[data-formie-field-count="4"] {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+// ==========================================================================
+// Field Overrides
+// ==========================================================================
+
+#fields .formie-rich-text {
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 0;
+    border: var(--formie-border-width) solid var(--formie-color-border);
+    border-radius: var(--formie-radius-sm);
+    background: var(--formie-color-surface);
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+#fields .formie-rich-text:focus-within {
+    border-color: var(--formie-color-focus-ring);
+    box-shadow: var(--formie-shadow-focus);
+}
+
+#fields .formie-rich-text-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    padding: var(--formie-space-1);
+    border-bottom: var(--formie-border-width) solid var(--formie-color-border);
+    background: var(--formie-color-surface);
+    box-shadow: 0 1px 2px rgb(17 24 39 / 6%);
+}
+
+#fields .formie-rich-text .formie-rich-text-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--formie-space-8);
+    height: var(--formie-space-8);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: var(--formie-radius-sm);
+    background: transparent;
+    color: var(--formie-color-heading);
+    font-size: var(--formie-font-size-sm);
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: none;
+    transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+#fields .formie-rich-text .formie-rich-text-button:hover,
+#fields .formie-rich-text .formie-rich-text-button.formie-rich-text-selected {
+    background: var(--formie-color-surface-muted);
+}
+
+#fields .formie-rich-text .formie-rich-text-button:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 2px var(--formie-color-surface), 0 0 0 4px color-mix(in srgb, var(--formie-color-focus-ring) 60%, transparent);
+}
+
+#fields .formie-rich-text [contenteditable="true"] {
+    min-height: var(--formie-rich-text-min-height);
+    padding: var(--formie-space-3) calc(var(--formie-space-3) + var(--formie-space-1) / 2);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    outline: 0;
+    overflow-wrap: anywhere;
+    color: var(--formie-color-text);
+    line-height: var(--formie-line-height-base);
+}
+
+#fields .formie-rich-text-content> :first-child {
+    margin-top: 0;
+}
+
+#fields .formie-rich-text-content> :last-child {
+    margin-bottom: 0;
+}
+
+.fui-instructions {
+    color: #718096;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+#fields .formie-repeater-container {
+    display: grid;
+    gap: 1rem;
+}
+
+#fields .formie-repeater-item {
+    position: relative;
+    padding: 1rem;
+    border: 1px solid #cbd5e0;
+    border-radius: 0.25rem;
+    background: #fff;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+#fields .formie-repeater-item .formie-repeater-remove-button {
+    position: absolute;
+    top: -1.5rem;
+    right: -1.5rem;
+    background: #d7dee7;
+}
+
+#fields .formie-repeater-container:has(> .formie-repeater-item)+.formie-repeater-add-button {
+    margin-top: 1rem;
+}
+
+#fields .formie-group-field {
+    padding: 1rem;
+}

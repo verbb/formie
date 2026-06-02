@@ -2,20 +2,23 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
-use verbb\formie\base\FormFieldInterface;
+use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
+use verbb\formie\events\ModifySubFieldsEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -38,6 +41,9 @@ class Eway extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
+    public const EVENT_MODIFY_PAYMENT_SUBFIELDS = 'modifyPaymentSubfields';
+
+
     // Static Methods
     // =========================================================================
 
@@ -74,33 +80,32 @@ class Eway extends Payment
         return App::parseEnv($this->apiKey) && App::parseEnv($this->apiPassword) && App::parseEnv($this->clientSideEncryptionKey);
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        $settings = [
-            'cseKey' => App::parseEnv($this->clientSideEncryptionKey),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/eway.js'),
-            'module' => 'FormieEway',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'eway',
+            'config' => [
+                'cseKey' => App::parseEnv($this->clientSideEncryptionKey),
+                'requiredInputSuffixes' => ['ewayTokenData'],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         // Get the amount from the field, which handles dynamic fields
@@ -110,29 +115,29 @@ class Eway extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $this->getPaymentFieldValue($submission);
-            $cardData = $fieldValue['ewayTokenData'] ?? '';
-
-            if (is_string($cardData) && Json::isJsonObject($cardData)) {
-                $cardData = Json::decode($cardData);
-            }
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $cardData = $paymentPayload->array('ewayTokenData');
 
             if (!$cardData || !is_array($cardData)) {
-                throw new Exception("Invalid card details: {$cardData}.");
+                throw new Exception('Invalid card details payload.');
             }
 
-            $expiryDate = $cardData['expiryDate'] ?? '';
-            $expiryMonth = trim(explode('/', $expiryDate)[0] ?? '');
-            $expiryYear = trim(explode('/', $expiryDate)[1] ?? '');
+            $cardNumber = trim((string)($cardData['cardNumber'] ?? ''));
+            $securityCode = trim((string)($cardData['securityCode'] ?? ''));
+            [$expiryMonth, $expiryYear] = $this->_normalizeExpiry((string)($cardData['expiryDate'] ?? ''));
+
+            if ($cardNumber === '' || $securityCode === '' || $expiryMonth === '' || $expiryYear === '') {
+                throw new Exception('Invalid card details. Please verify card number, expiry, and CVC.');
+            }
 
             $payload = [
                 'Customer' => [
                     'CardDetails' => [
                         'Name' => $cardData['cardholderName'] ?? '',
-                        'Number' => $cardData['cardNumber'] ?? '',
+                        'Number' => $cardNumber,
                         'ExpiryMonth' => $expiryMonth,
                         'ExpiryYear' => $expiryYear,
-                        'CVN' => $cardData['securityCode'] ?? '',
+                        'CVN' => $securityCode,
                     ],
                 ],
                 'Payment' => [
@@ -156,9 +161,7 @@ class Eway extends Payment
             $transactionStatus = $response['TransactionStatus'] ?? false;
 
             if (!$transactionStatus) {
-                $errors = $response['ResponseMessage'] ?? 'Unknown error';
-
-                throw new Exception($errors);
+                throw new Exception($this->_extractGatewayErrorMessage($response));
             }
 
             $payment = new PaymentModel();
@@ -177,7 +180,7 @@ class Eway extends Payment
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -195,19 +198,21 @@ class Eway extends Payment
             $payment->currency = $currency;
             $payment->status = PaymentModel::STATUS_FAILED;
             $payment->reference = null;
+            $payment->code = $this->_extractGatewayErrorCode($response);
+            $payment->message = $e->getMessage();
             $payment->response = ['message' => $e->getMessage()];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
-            return true;
+            return PaymentDecision::succeeded($this->handle);
         }
 
-        return $result;
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -223,63 +228,60 @@ class Eway extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function getFrontEndSubfields($field, $context): array
+    public function getPaymentSubFields($field): array
     {
         $subFields = [];
 
@@ -375,16 +377,20 @@ class Eway extends Payment
 
         foreach ($rowConfigs as $key => $rowConfig) {
             foreach ($rowConfig as $config) {
-                $subField = Component::createComponent($config, FormFieldInterface::class);
+                $subField = Component::createComponent($config, FieldInterface::class);
 
                 // Ensure we set the parent field instance to handle the nested nature of subfields
-                $subField->setParentField($field);
-
-                $subFields[$key][] = $subField;
+                $subFields[$key][] = $subField->withParentField($field);
             }
         }
 
-        return $subFields;
+        $event = new ModifySubFieldsEvent([
+            'fields' => $subFields,
+        ]);
+
+        Event::trigger(static::class, self::EVENT_MODIFY_PAYMENT_SUBFIELDS, $event);
+
+        return $event->fields;
     }
     
 
@@ -409,5 +415,71 @@ class Eway extends Payment
             'base_uri' => $baseUri,
             'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->apiPassword)],
         ]);
+    }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _normalizeExpiry(string $expiryDate): array
+    {
+        $digits = preg_replace('/\D+/', '', $expiryDate) ?? '';
+
+        if (strlen($digits) < 4) {
+            return ['', ''];
+        }
+
+        $digits = substr($digits, 0, 4);
+
+        return [substr($digits, 0, 2), substr($digits, 2, 2)];
+    }
+
+    private function _extractGatewayErrorCode(?array $response): ?string
+    {
+        if (!$response) {
+            return null;
+        }
+
+        $errors = trim((string)($response['Errors'] ?? ''));
+
+        if ($errors === '') {
+            return null;
+        }
+
+        $first = trim(explode(',', $errors)[0] ?? '');
+
+        return $first !== '' ? $first : null;
+    }
+
+    private function _extractGatewayErrorMessage(?array $response): string
+    {
+        if (!$response) {
+            return 'Unknown error';
+        }
+
+        $responseMessage = trim((string)($response['ResponseMessage'] ?? ''));
+        if ($responseMessage !== '') {
+            return $responseMessage;
+        }
+
+        $errorCode = $this->_extractGatewayErrorCode($response);
+        if (!$errorCode) {
+            return 'Unknown error';
+        }
+
+        $map = [
+            'V6110' => 'Invalid card number (V6110).',
+        ];
+
+        return $map[$errorCode] ?? ("Gateway error ({$errorCode}).");
     }
 }

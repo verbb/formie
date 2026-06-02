@@ -4,7 +4,6 @@ namespace verbb\formie\models;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Html;
 
-use Craft;
 use craft\base\Model;
 
 class HtmlTag extends Model
@@ -16,6 +15,8 @@ class HtmlTag extends Model
     public array $attributes = [];
     public array $extraAttributes = [];
     public string|array|null $extraClasses = null;
+    public array $prependContent = [];
+    public array $appendContent = [];
 
 
     // Public Methods
@@ -37,15 +38,20 @@ class HtmlTag extends Model
     {
         $resetClass = $config['resetClass'] ?? false;
         $tagName = $config['tag'] ?? null;
+        $prependContent = $config['prependContent'] ?? [];
+        $appendContent = $config['appendContent'] ?? [];
 
         if ($tagName) {
             $this->tag = $tagName;
         }
 
+        $this->prependContent = $prependContent;
+        $this->appendContent = $appendContent;
+
         $attributes = $config['attributes'] ?? [];
-        
+
         // Check if we're wanting to reset classes.
-        if ($resetClass) { 
+        if ($resetClass) {
             $this->attributes['class'] = [];
         }
 
@@ -53,20 +59,6 @@ class HtmlTag extends Model
 
         // Filter nested arrays like classes
         $this->attributes = ArrayHelper::filterEmptyFalse($this->attributes);
-
-        // Provide support for Twig-in-config syntax for really complex stuff. Just for classes and style.
-        foreach (['class', 'style'] as $attribute) {
-            $items = $this->attributes[$attribute] ?? [];
-
-            if ($items) {
-                foreach ($items as $key => $item) {
-                    if (str_contains($item, '{{')) {
-                        $parsed = Craft::$app->getView()->renderString($item, $context);
-                        $this->attributes[$attribute][$key] = $parsed;
-                    }
-                }
-            }
-        }
 
         // Any custom attributes (set in field settings, typically) should be retained and not reset
         if ($this->extraAttributes) {
@@ -79,4 +71,26 @@ class HtmlTag extends Model
         }
     }
 
+    public function composeContent(?string $content = null): string
+    {
+        $segments = [];
+
+        foreach ($this->prependContent as $prepend) {
+            if ($prepend !== null && $prepend !== false && $prepend !== '') {
+                $segments[] = $prepend;
+            }
+        }
+
+        if ($content !== null && $content !== '') {
+            $segments[] = $content;
+        }
+
+        foreach ($this->appendContent as $append) {
+            if ($append !== null && $append !== false && $append !== '') {
+                $segments[] = $append;
+            }
+        }
+
+        return implode('', $segments);
+    }
 }

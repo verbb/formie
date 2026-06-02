@@ -4,18 +4,21 @@ namespace verbb\formie\fields;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\values\StringFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
+use verbb\formie\theme\context\RenderContext;
+
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
 
-class Password extends Field implements PreviewableFieldInterface, SortableFieldInterface
+class Password extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -34,6 +37,11 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
     // Public Methods
     // =========================================================================
 
+    public function fieldKind(): string
+    {
+        return self::KIND_TEXT;
+    }
+
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         // Evaluate password fields differently. Because we don't populate the value back to the
@@ -47,7 +55,7 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
             $savedElement = Craft::$app->getElements()->getElementById($element->id, Submission::class);
 
             if ($savedElement) {
-                $isValueEmpty = parent::isValueEmpty($savedElement->getFieldValue($this->fieldKey), $savedElement);
+                $isValueEmpty = parent::isValueEmpty($savedElement->getFieldValue($this->valueKey()), $savedElement);
             }
         }
 
@@ -67,60 +75,55 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    public function defineFormBuilderPreviewSchema(): array
     {
-        // Don't mess around with passwords for conditions. We don't really "know" the value
-        // but more important will cause an infinite loop (somehow)
-        return '•••••••••••••••••••••';
+        return [
+            SchemaHelper::previewInput([
+                'type' => 'password',
+            ]),
+        ];
     }
 
-    public function getPreviewInputHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/password/preview', [
-            'field' => $this,
-        ]);
-    }
-
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::matchField([
-                'fieldTypes' => [self::class],
+                'includedTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -130,7 +133,7 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -141,7 +144,7 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -149,42 +152,55 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineClientInput(): array
     {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
+        return array_merge(parent::defineClientInput(), [
+            'inputType' => 'password',
+        ]);
+    }
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
+        $errors = $context->errors;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'password',
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'off',
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'password',
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'autocomplete' => 'off',
+                    'required' => $this->required ? true : null,
+                    'data-formie-input' => true,
+                    'data-formie-password-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'password',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-password-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // Mask the value for submissions (but no indication of length)
         if ($value) {
@@ -208,5 +224,17 @@ class Password extends Field implements PreviewableFieldInterface, SortableField
     {
         // Hide the hashed password from exports as well
         return $this->getValueForSummary($value, $element);
+    }
+
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
+    {
+        // Don't mess around with passwords for conditions. We don't really "know" the value
+        // but more important will cause an infinite loop (somehow)
+        return '•••••••••••••••••••••';
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return StringFieldValue::class;
     }
 }

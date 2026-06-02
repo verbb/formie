@@ -2,7 +2,6 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -10,11 +9,11 @@ use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
 use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -71,35 +70,34 @@ class Square extends Payment
         return App::parseEnv($this->applicationId) && App::parseEnv($this->accessToken) && App::parseEnv($this->locationId);
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        $settings = [
-            'applicationId' => App::parseEnv($this->applicationId),
-            'locationId' => App::parseEnv($this->locationId),
-            'environment' => App::parseBooleanEnv($this->useSandbox) ? 'sandbox' : 'production',
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/square.js'),
-            'module' => 'FormieSquare',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'square',
+            'config' => [
+                'applicationId' => App::parseEnv($this->applicationId),
+                'locationId' => App::parseEnv($this->locationId),
+                'environment' => App::parseBooleanEnv($this->useSandbox) ? 'sandbox' : 'production',
+                'requiredInputSuffixes' => ['squarePaymentId'],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         // Get the amount from the field, which handles dynamic fields
@@ -109,11 +107,11 @@ class Square extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $this->getPaymentFieldValue($submission);
-            $squarePaymentId = $fieldValue['squarePaymentId'] ?? null;
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $squarePaymentId = $paymentPayload->string('squarePaymentId');
 
             if (!$squarePaymentId || !is_string($squarePaymentId)) {
-                throw new Exception("Missing `squarePaymentId` from payload: {$squarePaymentId}.");
+                throw new Exception('Missing `squarePaymentId` from payload.');
             }
 
             if (!$amount) {
@@ -170,7 +168,7 @@ class Square extends Payment
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -192,15 +190,15 @@ class Square extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
-            return true;
+            return PaymentDecision::succeeded($this->handle);
         }
 
-        return $result;
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -216,59 +214,56 @@ class Square extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
     
@@ -298,4 +293,14 @@ class Square extends Payment
             ],
         ]);
     }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
+    }
+
 }

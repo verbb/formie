@@ -16,6 +16,7 @@ use craft\db\Query;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
+use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -404,7 +405,7 @@ class SentNotification extends Element
                 'data-id' => $this->id,
                 'title' => Craft::t('formie', 'Resend'),
             ]) : '-',
-            'preview' => $this->body ? StringHelper::safeTruncate($this->body, 50) : '',
+            'preview' => $this->body ? ElementHelper::attributeHtml(StringHelper::safeTruncate($this->body, 50)) : '',
             'status' => '<span class="status ' . $this->status . '"></span>',
             default => parent::attributeHtml($attribute),
         };

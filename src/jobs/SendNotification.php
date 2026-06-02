@@ -7,10 +7,13 @@ use verbb\formie\models\Notification;
 
 use Craft;
 use craft\helpers\Json;
+use craft\queue\BaseJob as CraftBaseJob;
 use Exception;
 
-class SendNotification extends BaseJob
+class SendNotification extends CraftBaseJob implements DebuggableJobInterface
 {
+    use DebuggableJobTrait;
+
     // Properties
     // =========================================================================
 
@@ -18,6 +21,7 @@ class SendNotification extends BaseJob
     public ?int $notificationId = null;
     public array $submissionData = [];
     public array $notificationData = [];
+    public array $referenceMap = [];
     public mixed $email = null;
 
 
@@ -51,6 +55,7 @@ class SendNotification extends BaseJob
         // Store some context to the queue job description
         $this->submissionData = $this->_getSubmissionData($submission);
         $this->notificationData = $this->_getNotificationData($notification);
+        $this->referenceMap = $this->_getReferenceMap($submission);
 
         $this->setProgress($queue, 0.75);
 
@@ -77,7 +82,7 @@ class SendNotification extends BaseJob
         return Craft::t('formie', 'Sending form notification.');
     }
 
-    protected function handleError(mixed $job, mixed $jobData): void
+    protected function updateDebugJobData(mixed $job, mixed $jobData): void
     {
         $notification = Formie::$plugin->getNotifications()->getNotificationById($this->notificationId);
 
@@ -92,6 +97,7 @@ class SendNotification extends BaseJob
             // Don't use the full submission class as an array, which can cause infinite loops
             // when used with dynamic variables in Hidden fields.
             $jobData->submissionData = $this->_getSubmissionData($submission);
+            $jobData->referenceMap = $this->_getReferenceMap($submission);
         }
 
         $jobData->email = $job->email;
@@ -124,8 +130,33 @@ class SendNotification extends BaseJob
         ]);
 
         $submissionData['form'] = $submission->getFormHandle();
-        $submissionData['fields'] = $submission->getValuesAsJson();
+        $submissionData['fields'] = $submission->getValuesAsArray();
 
         return $submissionData;
+    }
+
+    private function _getReferenceMap(Submission $submission): array
+    {
+        $fields = [];
+
+        foreach ($submission->getFields() as $field) {
+            $reference = trim((string)($field->reference ?? ''));
+
+            if ($reference === '') {
+                continue;
+            }
+
+            $fields[$reference] = [
+                'fieldId' => $field->fieldId ?? null,
+                'uid' => $field->uid ?? null,
+                'handle' => $field->handle ?? null,
+                'label' => $field->label ?? null,
+                'type' => get_class($field),
+            ];
+        }
+
+        return [
+            'fields' => $fields,
+        ];
     }
 }

@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -61,13 +63,14 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Live Chat.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            $ticketFields = [
+            if ($this->mapToTicket && $this->settingsContext->dataKey === 'ticket') {
+                $ticketFields = [
                 new IntegrationField([
                     'handle' => 'email',
                     'name' => Craft::t('formie', 'Email'),
@@ -88,9 +91,8 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
                 ]),
             ];
 
-            $settings = [
-                'ticket' => $ticketFields,
-            ];
+                $settings['ticket'] = $ticketFields;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -165,6 +167,24 @@ class LiveChat extends HelpDesk implements OAuthProviderInterface
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToTicket',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Ticket']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tickets']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'ticketFieldMapping',
+            'if' => 'mapToTicket',
+            'dataLabel' => 'Ticket',
+            'dataKey' => 'ticket',
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

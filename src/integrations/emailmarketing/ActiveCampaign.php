@@ -33,7 +33,6 @@ class ActiveCampaign extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $apiUrl = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -232,18 +231,6 @@ class ActiveCampaign extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
-            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -253,6 +240,14 @@ class ActiveCampaign extends EmailMarketing
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
+            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+    
 
     // Private Methods
     // =========================================================================

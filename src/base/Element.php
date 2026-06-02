@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
@@ -9,9 +10,9 @@ use verbb\formie\events\ModifyElementMatchEvent;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\fields as FormieFields;
 use verbb\formie\fields\subfields as FormieSubFields;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
@@ -57,20 +58,7 @@ abstract class Element extends Integration
     {
         return false;
     }
-
-    public static function convertValueForIntegration($value, $integrationField): mixed
-    {
-        // Won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            // Mostly for when mapping a Submission ID to a Formie Submission field. Probably needs a refactor?
-            if (!is_array($value)) {
-                return [$value];
-            }
-        }
-
-        return parent::convertValueForIntegration($value, $integrationField);
-    }
-
+    
 
     // Properties
     // =========================================================================
@@ -93,6 +81,11 @@ abstract class Element extends Integration
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
             $fieldClass = $event->integrationField->sourceType;
 
+            // When mapping to an array field (e.g. Submission ID to Formie Submission field), ensure value is an array
+            if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY && !is_array($event->value)) {
+                $event->value = [$event->value];
+            }
+
             // For rich-text enabled fields, retain the HTML (safely)
             if ($event->field instanceof FormieFields\MultiLineText || $event->field instanceof FormieFields\SingleLineText) {
                 if (is_string($event->value)) {
@@ -105,12 +98,10 @@ abstract class Element extends Integration
             if ($event->field instanceof OptionsFieldInterface) {
                 if (is_a($fieldClass, CraftFields\BaseOptionsField::class, true) || is_subclass_of($fieldClass, CraftFields\BaseOptionsField::class, true)) {
                     // Check for some cases where it's options data
-                    if ($event->rawValue instanceof SingleOptionFieldData) {
+                    if ($event->rawValue instanceof SingleOptionFieldValue) {
                         $event->value = $event->rawValue->value;
-                    } else if ($event->rawValue instanceof MultiOptionsFieldData) {
-                        $event->value = array_map(function($item) {
-                            return $item->value;
-                        }, (array)$event->rawValue);
+                    } else if ($event->rawValue instanceof MultiOptionFieldValue) {
+                        $event->value = $event->rawValue->values();
                     } else {
                         $event->value = $event->rawValue;
                     }
@@ -191,7 +182,7 @@ abstract class Element extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/elements/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/elements/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -200,14 +191,6 @@ abstract class Element extends Integration
         $variables = $this->getSettingsHtmlVariables();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_plugin-settings", $variables);
-    }
-
-    public function getFormSettingsHtml(Form|Stencil $form): string
-    {
-        $handle = $this->getClassHandle();
-        $variables = $this->getFormSettingsHtmlVariables($form);
-
-        return Craft::$app->getView()->renderTemplate("formie/integrations/elements/{$handle}/_form-settings", $variables);
     }
 
     public function getFormSettings(bool $useCache = true): IntegrationFormSettings|bool
@@ -245,6 +228,14 @@ abstract class Element extends Integration
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = $this->getOptInFieldSchema();
+
+        return $schema;
+    }
 
     protected function getFieldTypeForField(string $fieldClass): string
     {

@@ -3,10 +3,10 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
+use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\RichTextHelper;
-use verbb\formie\prosemirror\toprosemirror\Renderer as ProseMirrorRenderer;
 
 use Craft;
 use craft\base\Model;
@@ -30,6 +30,7 @@ class FormSettings extends Model
     public bool $displayPageTabs = false;
     public bool $displayPageProgress = false;
     public bool $scrollToTop = true;
+    public string $progressCalculation = 'completion';
     public string $progressPosition = 'end';
     public string $progressValuePosition = 'inside-center';
     public ?string $defaultLabelPosition = null;
@@ -37,12 +38,13 @@ class FormSettings extends Model
     public string $requiredIndicator = 'asterisk';
 
     // Behaviour
-    public ?string $submitMethod = null;
-    public ?string $submitAction = null;
-    public ?string $submitActionTab = null;
+    public ?string $submitMethod = 'page-reload';
+    public ?string $submitAction = 'message';
+    public ?string $submitActionTab = 'same-tab';
     public ?string $submitActionUrl = null;
     public bool $submitActionFormHide = false;
-    public mixed $submitActionMessage = null;
+    public bool $automaticSubmissionState = true;
+    public RichText $submitActionMessage;
     public mixed $submitActionMessageTimeout = null;
     public string $submitActionMessagePosition = 'top-form';
     public ?string $loadingIndicator = null;
@@ -51,30 +53,30 @@ class FormSettings extends Model
     // Behaviour - Validation
     public bool $validationOnSubmit = true;
     public bool $validationOnFocus = false;
-    public mixed $errorMessage = null;
+    public RichText $errorMessage;
     public string $errorMessagePosition = 'top-form';
 
     // Behaviour - Restrictions
     public bool $requireUser = false;
-    public mixed $requireUserMessage = null;
+    public RichText $requireUserMessage;
     public bool $scheduleForm = false;
     public ?DateTime $scheduleFormStart = null;
     public ?DateTime $scheduleFormEnd = null;
-    public mixed $scheduleFormPendingMessage = null;
-    public mixed $scheduleFormExpiredMessage = null;
-    public ?string $limitSubmissions = null;
+    public RichText $scheduleFormPendingMessage;
+    public RichText $scheduleFormExpiredMessage;
+    public bool|string|null $limitSubmissions = null;
     public ?int $limitSubmissionsNumber = null;
-    public ?string $limitSubmissionsType = null;
-    public mixed $limitSubmissionsMessage = null;
+    public ?string $limitSubmissionsType = 'total';
+    public RichText $limitSubmissionsMessage;
     public ?int $limitSubmissionsIpAddressNumber = null;
     public ?string $limitSubmissionsIpAddressType = null;
-    public mixed $limitSubmissionsIpAddressMessage = null;
+    public RichText $limitSubmissionsIpAddressMessage;
 
     // Integrations
     public array $integrations = [];
 
     // Settings
-    public string $submissionTitleFormat = '{timestamp}';
+    public ?string $submissionTitleFormat = '{timestamp}';
 
     // Settings - Privacy
     public bool $collectIp = false;
@@ -141,6 +143,8 @@ class FormSettings extends Model
                 $config['scheduleFormEnd'] = DateTimeHelper::toDateTime($config['scheduleFormEnd']);
             }
         }
+        
+        $config = $this->_normalizeRichTextAttributes($config);
 
         parent::__construct($config);
     }
@@ -152,16 +156,12 @@ class FormSettings extends Model
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
-        if (!$this->errorMessage) {
-            $errorMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
-
-            $this->errorMessage = $errorMessage['content'];
+        if ($this->errorMessage->isEmpty()) {
+            $this->errorMessage = RichText::from('<p>' . Craft::t('formie', 'Couldn’t save submission due to errors.') . '</p>');
         }
 
-        if (!$this->submitActionMessage) {
-            $submitActionMessage = (new ProseMirrorRenderer)->render('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
-
-            $this->submitActionMessage = $submitActionMessage['content'];
+        if ($this->submitActionMessage->isEmpty()) {
+            $this->submitActionMessage = RichText::from('<p>' . Craft::t('formie', 'Submission saved.') . '</p>');
         }
 
         if (!$this->defaultLabelPosition) {
@@ -173,6 +173,15 @@ class FormSettings extends Model
         }
 
         $this->defaultEmailTemplateId = $settings->getDefaultEmailTemplateId();
+    }
+
+    public function setAttributes($values, $safeOnly = true): void
+    {
+        if (is_array($values)) {
+            $values = $this->_normalizeRichTextAttributes($values);
+        }
+
+        parent::setAttributes($values, $safeOnly);
     }
 
     public function getForm(): ?Form
@@ -188,6 +197,7 @@ class FormSettings extends Model
     public function getFormBuilderConfig(): array
     {
         $config = $this->toArray();
+        $config = $this->_serializeRichTextAttributes($config);
         $config['errors'] = $this->getErrors();
 
         foreach ($this->getEnabledIntegrations() as $key => $integration) {
@@ -199,7 +209,7 @@ class FormSettings extends Model
 
     public function getSubmitActionMessage($submission = null): string
     {
-        $message = ($this->_getHtmlContent($this->submitActionMessage, $submission) ?: $this->submitActionMessage);
+        $message = $this->_getHtmlContent($this->submitActionMessage, $submission);
 
         return Craft::t('formie', $message);
     }
@@ -211,7 +221,7 @@ class FormSettings extends Model
 
     public function getErrorMessage(): string
     {
-        $message = ($this->_getHtmlContent($this->errorMessage) ?: $this->errorMessage);
+        $message = $this->_getHtmlContent($this->errorMessage);
 
         return Craft::t('formie', $message);
     }
@@ -223,7 +233,7 @@ class FormSettings extends Model
 
     public function getRequireUserMessage(): string
     {
-        $message = ($this->_getHtmlContent($this->requireUserMessage) ?: $this->requireUserMessage);
+        $message = $this->_getHtmlContent($this->requireUserMessage);
 
         return Craft::t('formie', $message);
     }
@@ -235,7 +245,7 @@ class FormSettings extends Model
 
     public function getScheduleFormPendingMessage(): string
     {
-        $message = ($this->_getHtmlContent($this->scheduleFormPendingMessage) ?: $this->scheduleFormPendingMessage);
+        $message = $this->_getHtmlContent($this->scheduleFormPendingMessage);
 
         return Craft::t('formie', $message);
     }
@@ -247,7 +257,7 @@ class FormSettings extends Model
 
     public function getScheduleFormExpiredMessage(): string
     {
-        $message = ($this->_getHtmlContent($this->scheduleFormExpiredMessage) ?: $this->scheduleFormExpiredMessage);
+        $message = $this->_getHtmlContent($this->scheduleFormExpiredMessage);
 
         return Craft::t('formie', $message);
     }
@@ -260,9 +270,9 @@ class FormSettings extends Model
     public function getLimitSubmissionsMessage(): string
     {
         if ($this->limitSubmissions === 'ipAddress') {
-            $message = ($this->_getHtmlContent($this->limitSubmissionsIpAddressMessage) ?: $this->limitSubmissionsIpAddressMessage);
+            $message = $this->_getHtmlContent($this->limitSubmissionsIpAddressMessage);
         } else {
-            $message = ($this->_getHtmlContent($this->limitSubmissionsMessage) ?: $this->limitSubmissionsMessage);
+            $message = $this->_getHtmlContent($this->limitSubmissionsMessage);
         }
 
         return Craft::t('formie', $message);
@@ -302,6 +312,39 @@ class FormSettings extends Model
         return $enabledIntegrations;
     }
 
+    public function getAjaxSubmissionRequirementMessages(): array
+    {
+        $messages = [];
+
+        $form = $this->getForm();
+        if (!$form) {
+            return [];
+        }
+
+        foreach ($form->getFields() as $field) {
+            if (!($field instanceof PaymentField)) {
+                continue;
+            }
+
+            $integration = $field->getPaymentIntegration();
+            if (!($integration instanceof PaymentIntegration)) {
+                continue;
+            }
+
+            if (!$integration->requiresAjaxSubmission()) {
+                continue;
+            }
+
+            $message = trim((string)$integration->getAjaxSubmissionRequirementMessage());
+
+            if ($message !== '') {
+                $messages[] = $message;
+            }
+        }
+
+        return array_values(array_unique($messages));
+    }
+
     public function getFormRedirectUrl(bool $checkLastPage = true): string
     {
         return $this->getForm()->getRedirectUrl($checkLastPage);
@@ -329,6 +372,19 @@ class FormSettings extends Model
         }
     }
 
+    public function validateSubmitMethod(string $attribute): void
+    {
+        $messages = $this->getAjaxSubmissionRequirementMessages();
+        if (!$messages) {
+            return;
+        }
+
+        if ($this->submitMethod !== 'ajax') {
+            // Automatically enforce Ajax when required by configured payment providers.
+            $this->submitMethod = 'ajax';
+        }
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -338,6 +394,8 @@ class FormSettings extends Model
         $rules = parent::defineRules();
 
         $rules[] = [['integrations'], 'validateIntegrations'];
+        $rules[] = [['submitMethod'], 'validateSubmitMethod'];
+        $rules[] = [['progressCalculation'], 'in', 'range' => ['completion', 'page-position']];
 
         return $rules;
     }
@@ -348,6 +406,40 @@ class FormSettings extends Model
 
     private function _getHtmlContent($content, $submission = null): string
     {
-        return RichTextHelper::getHtmlContent($content, $submission, false);
+        return RichText::from($content)->toHtml($submission, false);
+    }
+
+    private function _serializeRichTextAttributes(array $config): array
+    {
+        foreach ([
+            'submitActionMessage',
+            'errorMessage',
+            'requireUserMessage',
+            'scheduleFormPendingMessage',
+            'scheduleFormExpiredMessage',
+            'limitSubmissionsMessage',
+            'limitSubmissionsIpAddressMessage',
+        ] as $attribute) {
+            $config[$attribute] = $this->{$attribute}->getSchema();
+        }
+
+        return $config;
+    }
+
+    private function _normalizeRichTextAttributes(array $config): array
+    {
+        foreach ([
+            'submitActionMessage',
+            'errorMessage',
+            'requireUserMessage',
+            'scheduleFormPendingMessage',
+            'scheduleFormExpiredMessage',
+            'limitSubmissionsMessage',
+            'limitSubmissionsIpAddressMessage',
+        ] as $attribute) {
+            $config[$attribute] = RichText::from($config[$attribute] ?? null);
+        }
+
+        return $config;
     }
 }

@@ -48,7 +48,7 @@
         elapsedMs += pollInterval;
 
         const params = new URLSearchParams({
-            paymentUid: '{{ payment.uid }}',
+            statusToken: '{{ statusToken }}',
         });
 
         if (elapsedMs >= nextGatewayCheckAtMs) {

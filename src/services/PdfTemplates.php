@@ -8,7 +8,7 @@ use verbb\formie\events\PdfTemplateEvent;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\References;
 use verbb\formie\models\PdfTemplate;
 use verbb\formie\models\Settings;
 use verbb\formie\records\PdfTemplate as TemplateRecord;
@@ -253,13 +253,16 @@ class PdfTemplates extends Component
         $form = $submission->getForm();
 
         // Render the body content for the notification
-        $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
+        $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
+            'notification' => $notification,
+            'includeSummary' => true,
+        ]);
 
         $variables = [
             'form' => $form,
             'submission' => $submission,
             'notification' => $notification,
-            'contentHtml' => Template::raw($parsedContent),
+            'contentHtml' => Template::raw(StringHelper::cleanString($parsedContent)),
         ];
 
         // Trigger a 'beforeRenderPdf' event

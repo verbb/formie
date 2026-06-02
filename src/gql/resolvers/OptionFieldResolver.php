@@ -1,8 +1,8 @@
 <?php
 namespace verbb\formie\gql\resolvers;
 
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 
 use craft\gql\base\Resolver;
 
@@ -21,13 +21,13 @@ class OptionFieldResolver extends Resolver
         $resolvedValue = '';
         $label = !empty($arguments['label']);
 
-        if ($optionFieldData instanceof MultiOptionsFieldData) {
+        if ($optionFieldData instanceof MultiOptionFieldValue) {
             $resolvedValue = [];
 
             foreach ($optionFieldData as $optionData) {
                 $resolvedValue[] = $label ? $optionData->label : $optionData->value;
             }
-        } elseif ($optionFieldData instanceof SingleOptionFieldData) {
+        } elseif ($optionFieldData instanceof SingleOptionFieldValue) {
             $resolvedValue = $label ? $optionFieldData->label : $optionFieldData->value;
         }
 

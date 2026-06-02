@@ -21,24 +21,26 @@ class SubmissionQuery extends Query
             return [];
         }
 
+        $arguments = SubmissionArguments::getArguments();
+
         return [
             'formieSubmissions' => [
                 'type' => Type::listOf(SubmissionInterface::getType()),
-                'args' => SubmissionArguments::getArguments(),
+                'args' => $arguments,
                 'resolve' => SubmissionResolver::class . '::resolve',
                 'description' => 'This query is used to query for submissions.',
                 'complexity' => GqlHelper::relatedArgumentComplexity(),
             ],
             'formieSubmission' => [
                 'type' => SubmissionInterface::getType(),
-                'args' => SubmissionArguments::getArguments(),
+                'args' => $arguments,
                 'resolve' => SubmissionResolver::class . '::resolveOne',
                 'description' => 'This query is used to query for a single submission.',
                 'complexity' => GqlHelper::singleQueryComplexity(),
             ],
             'formieSubmissionCount' => [
                 'type' => Type::nonNull(Type::int()),
-                'args' => SubmissionArguments::getArguments(),
+                'args' => $arguments,
                 'resolve' => SubmissionResolver::class . '::resolveCount',
                 'description' => 'This query is used to return the number of submissions.',
                 'complexity' => GqlHelper::singleQueryComplexity(),

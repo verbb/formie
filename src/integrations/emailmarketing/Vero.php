@@ -35,7 +35,6 @@ class Vero extends EmailMarketing
     public ?string $apiSecret = null;
     public ?string $authToken = null;
 
-
     // Public Methods
     // =========================================================================
 

@@ -3,13 +3,18 @@ namespace verbb\formie\fields\subfields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
+use verbb\formie\fields\Address;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
+use verbb\formie\web\twig\Extension;
 
 use Craft;
+use verbb\formie\elements\Form;
 
-class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldInterface
+class AddressAutoComplete extends SingleLineText implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -19,12 +24,12 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
         return Craft::t('formie', 'Address - Auto-Complete');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
@@ -40,25 +45,16 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
     // Public Methods
     // =========================================================================
 
-    public function attributeLabels(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
-        $labels = parent::attributeLabels();
-        $labels['integrationHandle'] = Craft::t('formie', 'Auto-Complete Integration');
-
-        return $labels;
-    }
-
-    public function defineGeneralSchema(): array
-    {
-        $fields = parent::defineGeneralSchema();
+        $fields = parent::defineFormBuilderGeneralSchema();
 
         $addressProviderOptions = $this->_getAddressProviderOptions();
 
         array_unshift($fields, SchemaHelper::selectField([
             'label' => Craft::t('formie', 'Auto-Complete Integration'),
-            'help' => Craft::t('formie', 'Select which address provider this field should use.'),
+            'instructions' => Craft::t('formie', 'Select which address provider this field should use.'),
             'name' => 'integrationHandle',
-            'validation' => 'required',
             'required' => true,
             'options' => array_merge(
                 [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
@@ -68,26 +64,76 @@ class AddressAutoComplete extends SingleLineText implements SubFieldInnerFieldIn
 
         $fields[] = SchemaHelper::lightswitchField([
             'label' => Craft::t('formie', 'Show Current Location Button'),
-            'help' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
+            'instructions' => Craft::t('formie', 'Whether this field should show a "Use my location" button.'),
             'name' => 'currentLocation',
-            'if' => '$get(integrationHandle).value == googlePlaces',
+            'if' => 'integrationHandle == "googlePlaces"',
         ]);
 
         return $fields;
+    }
+
+    public function getInputTemplateVariables(Form $form, mixed $value): array
+    {
+        $config = parent::getInputTemplateVariables($form, $value);
+
+        $parent = $this->getParentField();
+
+        if ($parent instanceof Address && $parent->hasCurrentLocation() && $this->handle === 'autoComplete') {
+            $slotContext = RenderContext::from([
+                'form' => $form,
+                'field' => $this,
+            ], []);
+            $htmlTag = $this->renderSlotTag('locationLink', $slotContext);
+
+            if ($htmlTag) {
+                $twigContext = [
+                    'form' => $form,
+                    'field' => $this,
+                    'value' => $value,
+                ];
+                $config['fieldLabelSuffix'] = Extension::formatSlotTagHtml('locationLink', $htmlTag, $twigContext);
+            }
+        }
+
+        return $config;
     }
 
 
     // Protected Methods
     // =========================================================================
 
-    protected function defineRules(): array
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $rules = parent::defineRules();
+        if ($key === 'locationLink') {
+            $parent = $this->getParentField();
 
-        // Add back when we can figure out how to enforce it with enabled state better
-        // $rules[] = [['integrationHandle'], 'required'];
+            if ($parent instanceof Address && $parent->hasCurrentLocation() && $this->handle === 'autoComplete') {
+                return $parent->createLocationLinkSlotTag($context);
+            }
 
-        return $rules;
+            return null;
+        }
+
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($tag && $key === 'fieldInput') {
+            $tag->mergeCoreAttributes([
+                'autocomplete' => 'autocomplete',
+                'data-autocomplete' => true,
+                'type' => 'search',
+                'aria-autocomplete' => 'list',
+                'data-formie-address-autocomplete-input' => true,
+            ]);
+        }
+
+        return $tag;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'inputType' => 'search',
+        ]);
     }
 
 

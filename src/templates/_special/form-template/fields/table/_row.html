@@ -8,7 +8,7 @@
 {% endfor %}
 
 {% if not field.static %}
-    <td data-col-remove>
+    {% fieldtag 'fieldTableRemoveColumn' %}
         {{ fieldtag('fieldRemoveButton') }}
-    </td>
+    {% endfieldtag %}
 {% endif %}

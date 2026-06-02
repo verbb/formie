@@ -18,9 +18,6 @@
     {{ formieInclude('fields/hidden', {
         value: valueJson ? valueJson | json_encode : '',
     }) }}
-
-    {% set cssFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'css/fields/tags.css') %}
-    {% do view.registerCssFile(cssFile) %}
 {% endif %}
 
 {% if originalField.displayType == 'checkboxes' %}

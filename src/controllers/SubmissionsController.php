@@ -5,76 +5,78 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\SubmissionEvent;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\errors\StaleSubmissionStateException;
+use verbb\formie\helpers\SetPageReturnUrlHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\TypeHelper;
+use verbb\formie\helpers\Table;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
+use verbb\formie\models\ManagedSubmissionRequest;
 use verbb\formie\models\Settings;
-use verbb\formie\storage\SessionStorage;
-use verbb\formie\web\assets\cp\CpAsset;
-
+use verbb\formie\models\SubmissionResponse;
+use verbb\formie\models\PaymentDecision;
+use verbb\formie\services\SubmissionDrafts;
+use verbb\formie\services\SubmissionWorkflow;
 use Craft;
-use craft\base\Element;
-use craft\errors\SiteNotFoundException;
-use craft\helpers\Json;
-use craft\helpers\Session;
+use craft\helpers\Html;
+use craft\helpers\UrlHelper;
 use craft\models\Site;
 use craft\web\Controller;
+use craft\db\Query;
 
-use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
-use DateTime;
-use DateTimeZone;
-use Throwable;
-
 class SubmissionsController extends Controller
 {
     // Constants
     // =========================================================================
 
-    public const EVENT_AFTER_SUBMISSION_REQUEST = 'afterSubmissionRequest';
-    public const EVENT_BEFORE_SUBMISSION_REQUEST_FORM = 'beforeSubmissionRequestForm';
-    public const EVENT_BEFORE_SUBMISSION_REQUEST = 'beforeSubmissionRequest';
+    private const STALE_SUBMISSION_STATE_CODE = 'STALE_SUBMISSION_STATE';
+    private const STALE_SUBMISSION_STATE_QUERY_PARAMS = ['pageId', 'resumeToken', 'submissionId'];
+    
 
-
-    // Protected Properties
+    // Properties
     // =========================================================================
 
     protected array|bool|int $allowAnonymous = [
-        'api' => self::ALLOW_ANONYMOUS_LIVE,
         'submit' => self::ALLOW_ANONYMOUS_LIVE,
         'set-page' => self::ALLOW_ANONYMOUS_LIVE,
         'save-submission' => self::ALLOW_ANONYMOUS_LIVE,
         'clear-submission' => self::ALLOW_ANONYMOUS_LIVE,
     ];
 
+    private string $_namespace = 'fields';
+    private bool $_allowTestOverrides = false;
 
-    // Properties
+
+    // Traits
     // =========================================================================
 
-    private string $_namespace = 'fields';
+    use CrossOriginRequestTrait;
 
 
     // Public Methods
     // =========================================================================
-
+    
     public function beforeAction($action): bool
     {
         $settings = Formie::$plugin->getSettings();
 
-        if ($action->id === 'submit' && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
+        if (in_array($action->id, ['submit', 'save-submission'], true) && Craft::$app->getUser()->isGuest && !$settings->enableCsrfValidationForGuests) {
             $this->enableCsrfValidation = false;
         }
 
-        if ($action->id === 'api') {
-            $this->enableCsrfValidation = false;
+        if (in_array($action->id, ['submit', 'save-submission'], true)) {
+            $resumeToken = $this->request->getParam('resumeToken');
+
+            if (is_string($resumeToken) && trim($resumeToken) !== '') {
+                $this->_markStatefulResponseNoCache();
+            }
         }
 
         // Check for live preview requests, or unpublished pages
@@ -89,13 +91,50 @@ class SubmissionsController extends Controller
     {
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
+        $currentUser = Craft::$app->getUser()->getIdentity();
+        $siteIds = Craft::$app->getSites()->getAllSiteIds();
+        $currentSiteId = Craft::$app->getSites()->getCurrentSite()->id;
+        $canCreateAnySubmissions = $currentUser->can('formie-createSubmissions');
 
-        $this->getView()->registerAssetBundle(CpAsset::class);
+        Formie::$plugin->registerCpSubmissionsAssets();
 
         $this->requirePermission('formie-accessSubmissions');
 
+        // Avoid hydrating full Form elements for index bootstrap payload.
+        $forms = (new Query())
+            ->select([
+                'f.id',
+                'f.uid',
+                'f.handle',
+                'es.title',
+            ])
+            ->from(['f' => Table::FORMIE_FORMS])
+            ->innerJoin(['e' => Table::ELEMENTS], '[[e.id]] = [[f.id]]')
+            ->innerJoin(['es' => Table::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
+                ':siteId' => $currentSiteId,
+            ])
+            ->where(['e.dateDeleted' => null])
+            ->all();
+
+        $editableForms = [];
+
+        foreach ($forms as $form) {
+            if (!$canCreateAnySubmissions && !$currentUser->can('formie-createSubmissions:' . ($form['uid'] ?? ''))) {
+                continue;
+            }
+
+            $editableForms[] = [
+                'id' => (int)($form['id'] ?? 0),
+                'handle' => (string)($form['handle'] ?? ''),
+                'name' => (string)($form['title'] ?? ''),
+                'sites' => $siteIds,
+                'uid' => (string)($form['uid'] ?? ''),
+            ];
+        }
+
         return $this->renderTemplate('formie/submissions/index', [
             'defaultState' => $settings->submissionsBehaviour,
+            'editableForms' => $editableForms,
         ]);
     }
 
@@ -123,7 +162,7 @@ class SubmissionsController extends Controller
             }
         }
 
-        $form = $this->_getForm($formHandle);
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
 
         if (!$form) {
             throw new HttpException(404);
@@ -133,6 +172,7 @@ class SubmissionsController extends Controller
             'formHandle' => $formHandle,
             'submissionId' => $submissionId,
             'submission' => $submission,
+            'form' => $form,
             'site' => $siteModel,
         ];
 
@@ -153,7 +193,6 @@ class SubmissionsController extends Controller
                 }
             }
         }
-
         if (!$variables['submission']) {
             throw new HttpException(404);
         }
@@ -172,668 +211,21 @@ class SubmissionsController extends Controller
             $variables['title'] = Craft::t('formie', 'Create a new submission');
         }
 
-        $formConfigJson = $variables['submission']->getForm()->getFrontEndJsVariables();
+        $formConfigJson = $form->getClientConfig();
 
         // Add some settings just for submission editing
-        $formConfigJson['settings']['outputJsTheme'] = false;
+        $formConfigJson['settings']['outputJs'] = false;
         $variables['formConfigJson'] = $formConfigJson;
 
         return $this->renderTemplate('formie/submissions/_edit', $variables);
-    }
-
-    public function actionSaveSubmission(): ?Response
-    {
-        $this->requirePostRequest();
-
-        $request = $this->request;
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        /* @var Settings $settings */
-        $formieSettings = Formie::$plugin->getSettings();
-
-        // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
-        $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
-        $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
-
-        /* @var Form $form */
-        $form = $this->_getForm($handle);
-
-        if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
-        }
-
-        // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form, null);
-
-        if ($request->getIsSiteRequest() && $submission->id) {
-            $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
-
-            if (!$editingSubmission || !$this->_validateSubmissionEditToken($form, $submission)) {
-                throw new ForbiddenHttpException('User is not permitted to perform this action');
-            }
-        }
-
-        if ($currentUser && !$submission->canSave($currentUser)) {
-            throw new ForbiddenHttpException('User is not permitted to perform this action');
-        }
-
-        $pages = $form->getPages();
-        $settings = $form->settings;
-        $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->getErrorMessage();
-
-        // Now populate the rest of it from the post data
-        $submission->enabled = true;
-        $submission->enabledForSite = true;
-        $submission->title = $request->getBodyParam('title') ?: $submission->title;
-        $submission->statusId = $request->getBodyParam('statusId', $submission->statusId);
-        $submission->isSpam = (bool)$request->getBodyParam('isSpam', $submission->isSpam);
-        $submission->setScenario(Element::SCENARIO_LIVE);
-
-        if ($request->getBodyParam('markAsComplete')) {
-            $submission->isIncomplete = false;
-        }
-
-        // Save the submission
-        if ($request->getBodyParam('saveAction') === 'draft') {
-            $submission->setScenario(Element::SCENARIO_ESSENTIALS);
-        }
-
-        // Check if this is a front-end edit
-        if ($request->getIsSiteRequest()) {
-            // Ensure we set the current submission on the form. This keeps track of session info for
-            // multipage forms, separate to "new" submissions
-            $form->setSubmission($submission);
-
-            // If we're going back, and want to  navigate without saving
-            if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
-                $nextPage = $form->getPreviousPage(null, $submission, true);
-
-                // Update the current page to reflect the next page
-                $form->setCurrentPage($nextPage);
-
-                if ($request->getAcceptsJson()) {
-                    return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
-                }
-
-                return $this->refresh();
-            }
-
-            // Set a specific page as the current page. This will override the session-based
-            // current page, but is useful for headless setups, or template overrides.
-            if (is_numeric($pageIndex)) {
-                $currentPage = $pages[$pageIndex] ?? null;
-
-                if ($currentPage) {
-                    $form->setCurrentPage($currentPage);
-                }
-            }
-
-            // Allow full submission payload to be provided for multipage forms.
-            // Skip straight to the last page.
-            if ($completeSubmission) {
-                $currentPage = $pages[(is_countable($pages) ? count($pages) : 0) - 1] ?? null;
-
-                if ($currentPage) {
-                    $form->setCurrentPage($currentPage);
-                }
-            }
-
-            // Determine the next page to navigate to
-            if (is_numeric($goToPageId)) {
-                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId);
-            } else if ($submitAction === 'back') {
-                $nextPage = $form->getPreviousPage(null, $submission, true);
-            } else if ($submitAction === 'save') {
-                $nextPage = $form->getCurrentPage();
-            } else {
-                $nextPage = $form->getNextPage(null, $submission);
-            }
-
-            // Only validate when submitting
-            if ($submitAction === 'submit') {
-                // Turn on validation, but set a flag to only validate the current page.
-                $submission->setScenario(Element::SCENARIO_LIVE);
-                $submission->validateCurrentPageOnly = true;
-            }
-
-            // Check if we're on the last page of the form, or need to keep going
-            if (empty($nextPage)) {
-                $submission->isIncomplete = false;
-                $submission->validateCurrentPageOnly = false;
-            }
-        }
-
-        // Only validate for submitting.
-        if ($submitAction === 'submit') {
-            $submission->validate();
-        }
-
-        if ($submission->hasErrors()) {
-            $errors = $submission->getErrors();
-
-            Formie::info('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
-
-            if ($request->getAcceptsJson()) {
-                return $this->asJson([
-                    'success' => false,
-                    'errors' => $errors,
-                ]);
-            }
-
-            $this->setFailFlash(Craft::t('formie', 'Couldn’t save submission due to errors.'));
-
-            Craft::$app->getUrlManager()->setRouteParams([
-                'form' => $submission->getForm(),
-                'submission' => $submission,
-                'errors' => $errors,
-            ]);
-
-            return null;
-        }
-
-        // Save the submission
-        $success = Craft::$app->getElements()->saveElement($submission, false);
-
-        if (!$success || $submission->getErrors()) {
-            $errors = $submission->getErrors();
-
-            Formie::info('Couldn’t save submission - {e}.', ['e' => Json::encode($errors)]);
-
-            if ($request->getAcceptsJson()) {
-                return $this->asJson([
-                    'success' => false,
-                    'errors' => $errors,
-                ]);
-            }
-
-            $this->setFailFlash(Craft::t('formie', 'Couldn’t save submission.'));
-
-            // Send the submission back to the template
-            Craft::$app->getUrlManager()->setRouteParams([
-                'form' => $submission->getForm(),
-                'submission' => $submission,
-                'errors' => $errors,
-            ]);
-
-            return null;
-        }
-
-        // Check if we should trigger email notifications or integrations if this was spam
-        if ($request->getBodyParam('sendNotifications')) {
-            Formie::$plugin->getSubmissions()->sendNotifications($submission);
-        }
-
-        if ($request->getBodyParam('triggerIntegrations')) {
-            Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
-        }
-
-        // Check if this is a front-end edit
-        if ($request->getIsSiteRequest()) {
-            if (!empty($nextPage)) {
-                // Update the current page to reflect the next page
-                $form->setCurrentPage($nextPage);
-            } else {
-                // Reset pages, now we're on the last step
-                $form->resetCurrentPage();
-            }
-
-            if ($request->getAcceptsJson()) {
-                return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
-            }
-
-            if (!empty($nextPage)) {
-                // Refresh, there's still more pages to complete
-                return $this->refresh();
-            }
-
-            Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
-
-            if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
-                if ($form->settings->submitAction == 'message') {
-                    Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
-                }
-
-                // When reloading the page, provide a `submission` variable to pick up on the finalise submission
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'submission' => $submission,
-                ]);
-
-                return $this->refresh();
-            }
-
-            return $this->redirectToPostedUrl($submission);
-        }
-
-        if ($request->getAcceptsJson()) {
-            return $this->asJson([
-                'success' => true,
-                'id' => $submission->id,
-                'title' => $submission->title,
-                'status' => $submission->getStatusModel()->handle ?? '',
-                'url' => $submission->getUrl(),
-                'cpEditUrl' => $submission->getCpEditUrl(),
-            ]);
-        }
-
-        $this->setSuccessFlash(Craft::t('formie', 'Submission saved.'));
-
-        return $this->redirectToPostedUrl($submission);
-    }
-
-    public function actionSubmit(): ?Response
-    {
-        $this->requirePostRequest();
-
-        $request = $this->request;
-
-        /* @var Settings $settings */
-        $formieSettings = Formie::$plugin->getSettings();
-
-        // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string');
-        $pageIndex = $this->_getTypedParam('pageIndex', 'int');
-        $goToPageId = $this->_getTypedParam('goToPageId', 'id');
-        $completeSubmission = $this->_getTypedParam('completeSubmission', 'boolean');
-        $submitAction = $this->_getTypedParam('submitAction', 'string', 'submit');
-        $storage = $this->_getTypedParam('storage', 'string', 'session');
-
-        // Fire a 'beforeSubmissionRequestForm' event, allowing requests to be filtered before querying for a form.
-        $event = new SubmissionEvent([
-            'handle' => $handle,
-            'submitAction' => $submitAction,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST_FORM, $event);
-
-        if (!$event->isValid) {
-            if ($event->response) {
-                return $event->response;
-            }
-
-            $this->response->setStatusCode(400);
-            $this->response->format = Response::FORMAT_RAW;
-            $this->response->data = '';
-
-            return $this->response;
-        }
-
-        $handle = $event->handle ?? $handle;
-
-        Formie::info("Submission triggered for {$handle}.");
-
-        /* @var Form $form */
-        $form = $this->_getForm($handle);
-
-        if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle \"$handle\"");
-        }
-
-        // Get the submission, or create a new one
-        $submission = $this->_populateSubmission($form);
-        $submission->isNewSubmission = true;
-
-        $pages = $form->getPages();
-        $settings = $form->settings;
-        $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->getErrorMessage();
-
-        // Update the storage mechanism, which can't be set via sessions, and we've re-fetched the form
-        $form->setStorageBehaviour($storage);
-
-        // If using session storage, we need to ensure the session is started before using it. `Session::exists()` isn't enough.
-        // There's no `Session::open()` function yet, so simply set a random value to kick off sessions.
-        // See https://github.com/verbb/formie/issues/2194
-        if ($form->getStorage() instanceof SessionStorage) {
-            Session::set('formie:nonce', rand());
-        }
-
-        // If we're going back, and want to  navigate without saving
-        if ($submitAction === 'back' && !$formieSettings->enableBackSubmission) {
-            // Ensure that we don't set the next page to `null` which would mean form completion
-            $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
-
-            // Allow `goToPageId` to override session behaviour.
-            // TODO: remove this when we sort out proper session/db layer
-            if (is_numeric($goToPageId)) {
-                $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $nextPage;
-            }
-
-            // Update the current page to reflect the next page
-            $form->setCurrentPage($nextPage);
-
-            if ($request->getAcceptsJson()) {
-                return $this->_returnJsonResponse(true, $submission, $form, $nextPage);
-            }
-
-            return $this->refresh();
-        }
-
-        // Set a specific page as the current page. This will override the session-based
-        // current page, but is useful for headless setups, or template overrides.
-        if (is_numeric($pageIndex)) {
-            $currentPage = $pages[$pageIndex] ?? null;
-
-            if ($currentPage) {
-                $form->setCurrentPage($currentPage);
-            }
-        }
-
-        // Allow full submission payload to be provided for multipage forms.
-        // Skip straight to the last page.
-        if ($completeSubmission) {
-            $currentPage = $pages[(is_countable($pages) ? count($pages) : 0) - 1] ?? null;
-
-            if ($currentPage) {
-                $form->setCurrentPage($currentPage);
-            }
-        }
-
-        // Determine the next page to navigate to. Be sure to fallback to the current page, as `nextPage = null`
-        // signifies the end of the form.
-        if (is_numeric($goToPageId)) {
-            $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $goToPageId) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'back') {
-            $nextPage = $form->getPreviousPage(null, $submission, true) ?? $form->getCurrentPage();
-        } else if ($submitAction === 'save') {
-            $nextPage = $form->getCurrentPage();
-        } else {
-            $nextPage = $form->getNextPage(null, $submission);
-        }
-
-        $defaultStatus = $form->getDefaultStatus();
-        $errorMessage = $form->settings->getErrorMessage();
-
-        // Only validate when submitting
-        if ($submitAction === 'submit') {
-            // Turn on validation, but set a flag to only validate the current page.
-            $submission->setScenario(Element::SCENARIO_LIVE);
-            $submission->validateCurrentPageOnly = true;
-        }
-
-        // Check if we're on the last page of the form, or need to keep going
-        if (empty($nextPage)) {
-            $submission->setStatus($defaultStatus);
-            $submission->isIncomplete = false;
-            $submission->validateCurrentPageOnly = false;
-        } else {
-            $submission->isIncomplete = true;
-        }
-
-        // Fire an 'beforeSubmissionRequest' event
-        $event = new SubmissionEvent([
-            'submission' => $submission,
-            'form' => $form,
-            'handle' => $handle,
-            'submitAction' => $submitAction,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_SUBMISSION_REQUEST, $event);
-
-        // Allow the event to modify the submission and form
-        $submission = $event->submission;
-        $form = $event->form;
-
-        // Only validate for submitting, and if the event has marked it as invalid. If the event adds errors to the submission
-        // model, and `validate()` is run again, it'll clear any errors. Instead, skip straight to regular error handling.
-        if ($submitAction === 'submit' && $event->isValid) {
-            $submission->validate();
-        }
-
-        if ($submission->hasErrors()) {
-            $errors = $submission->getErrors();
-
-            Formie::info('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
-
-            // If there are page field errors, set the current page to the page with the error for good UX.
-            $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
-
-            if ($request->getAcceptsJson()) {
-                return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
-                    'errors' => $errors,
-                    'pageFieldErrors' => $form->getPageFieldErrors($submission),
-                    'errorMessage' => $errorMessage,
-                ]);
-            }
-
-            Formie::$plugin->getService()->setError($form->id, $errorMessage);
-
-            Craft::$app->getUrlManager()->setRouteParams([
-                'form' => $form,
-                'submission' => $submission,
-                'errors' => $errors,
-            ]);
-
-            return null;
-        }
-
-        // Only process captchas if we're submitting
-        if ($submitAction === 'submit') {
-            // Check against all enabled captchas. Also take into account multi-pages
-            $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
-
-            foreach ($captchas as $captcha) {
-                // Some captchas have already run their validation earlier with submission validation
-                if ($captcha->hasStrictValidation()) {
-                    continue;
-                }
-
-                $valid = $captcha->validateSubmission($submission);
-
-                if (!$valid) {
-                    $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Failed Captcha “{c}”: “{m}”', ['c' => $captcha::displayName(), 'm' => $captcha->spamReason]);
-                    $submission->spamClass = get_class($captcha);
-                }
-            }
-
-            // Final spam checks for things like keywords
-            Formie::$plugin->getSubmissions()->spamChecks($submission);
-        }
-
-        // Check events right before our saving
-        Formie::$plugin->getSubmissions()->onBeforeSubmission($submission, $submitAction);
-
-        // Save the submission
-        $success = Craft::$app->getElements()->saveElement($submission, false);
-
-        // Set the custom title - only if set to save parsing, and after the submission is saved,
-        // so we have access to not only field variables, but submission attributes
-        if (trim($form->settings->submissionTitleFormat)) {
-            $submission->updateTitle($form);
-        }
-
-        // Run this regardless of the success state, or incomplete state
-        Formie::$plugin->getSubmissions()->onAfterSubmission($success, $submission, $submitAction);
-
-        // If this submission is marked as spam, there will be errors - so choose how we treat feedback
-        if ($submission->isSpam) {
-            // Check if we need to show an error based on spam - we want to stop right here
-            if ($formieSettings->spamBehaviour === Settings::SPAM_BEHAVIOUR_MESSAGE) {
-                $success = false;
-                $errorMessage = $formieSettings->spamBehaviourMessage;
-            }
-
-            // If there are errors, but its marked as spam, and we want to simulate success, press on
-            if ($formieSettings->spamBehaviour === Settings::SPAM_BEHAVIOUR_SUCCESS) {
-                $success = true;
-            }
-        }
-
-        if (!$success || $submission->getErrors()) {
-            $errors = $submission->getErrors();
-
-            Formie::info('Couldn’t save submission due to errors - {e}.', ['e' => Json::encode($errors)]);
-
-            // If there are page field errors, set the current page to the page with the error for good UX.
-            $nextPage = $this->_checkPageFieldErrors($submission, $form, $nextPage);
-
-            if ($request->getAcceptsJson()) {
-                return $this->_returnJsonResponse(false, $submission, $form, $nextPage, [
-                    'errors' => $errors,
-                    'pageFieldErrors' => $form->getPageFieldErrors($submission),
-                    'errorMessage' => $errorMessage,
-                ]);
-            }
-
-            Formie::$plugin->getService()->setError($form->id, $errorMessage);
-
-            Craft::$app->getUrlManager()->setRouteParams([
-                'form' => $form,
-                'submission' => $submission,
-                'errors' => $errors,
-            ]);
-
-            return null;
-        }
-
-        if (!empty($nextPage)) {
-            // Update the current page to reflect the next page
-            $form->setCurrentPage($nextPage);
-
-            // Set the active submission so we can keep going
-            $form->setCurrentSubmission($submission);
-        }
-
-        // We're all done with pages, delete any saved page state
-        if (!$submission->isIncomplete) {
-            // Delete the currently saved page
-            $form->resetCurrentPage();
-
-            // Delete the incomplete submission we've been using
-            $form->resetCurrentSubmission();
-        }
-
-        // Fire an 'afterSubmissionRequest' event
-        $event = new SubmissionEvent([
-            'submission' => $submission,
-            'form' => $form,
-            'handle' => $handle,
-            'submitAction' => $submitAction,
-            'success' => true,
-        ]);
-        $this->trigger(self::EVENT_AFTER_SUBMISSION_REQUEST, $event);
-
-        // Allow the event to modify the submission and form
-        $submission = $event->submission;
-        $form = $event->form;
-
-        if ($request->getAcceptsJson()) {
-            return $this->_returnJsonResponse(true, $submission, $form, $nextPage, [
-                // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
-                'redirectUrl' => $event->redirectUrl,
-            ]);
-        }
-
-        if (!empty($nextPage)) {
-            // Refresh, there's still more pages to complete. Or check if we should "redirect" to a template-defined
-            // URL, which is set for every page (commonly the first one, once a submission is available)
-            if ($settings->pageRedirectUrl) {
-                $url = Formie::$plugin->getTemplates()->renderObjectTemplate($settings->pageRedirectUrl, $submission);
-
-                return $this->redirect($url);
-            }
-
-            return $this->refresh();
-        }
-
-        Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
-
-        if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
-            if ($form->settings->submitAction == 'message') {
-                Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
-            }
-
-            // When reloading the page, provide a `submission` variable to pick up on the finalise submission
-            Craft::$app->getUrlManager()->setRouteParams([
-                'submission' => $submission,
-            ]);
-
-            return $this->refresh();
-        }
-
-        // Get the URL for redirection (ignore last page checks, already done)
-        $url = $form->getRedirectUrl(false);
-
-        // Check if `EVENT_AFTER_SUBMISSION_REQUEST` has overridden the redirectUrl
-        if ($event->redirectUrl) {
-            return $this->redirect($event->redirectUrl);
-        }
-
-        return $this->redirectToPostedUrl($submission, $url);
-    }
-
-    public function actionSetPage(): Response
-    {
-        $request = $this->request;
-
-        // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string', null, false);
-        $pageId = $this->_getTypedParam('pageId', 'id', null, false);
-        $submissionId = $this->_getTypedParam('submissionId', 'id', null, false);
-
-        /* @var Form $form */
-        $form = $this->_getForm($handle);
-
-        if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle `$handle`.");
-        }
-
-        // Check if we're editing a submission
-        if ($submissionId) {
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete(null)
-                ->isSpam(null)
-                ->one();
-
-            if ($submission) {
-                $form->setSubmission($submission);
-            }
-        }
-
-        $nextPage = ArrayHelper::firstWhere($form->getPages(), 'id', $pageId);
-
-        $form->setCurrentPage($nextPage);
-
-        return $this->redirect($request->referrer);
-    }
-
-    public function actionClearSubmission(): Response
-    {
-        $request = $this->request;
-
-        // Ensure we validate some params here to prevent potential malicious-ness
-        $handle = $this->_getTypedParam('handle', 'string', null, false);
-        $redirect = $this->_getTypedParam('redirect', 'string', null, false);
-
-        // Ensure the redirect passed is validated, otherwise fallback to referer
-        $redirect = Craft::$app->getSecurity()->validateData($redirect) ?: $request->referrer;
-
-        /* @var Form $form */
-        $form = $this->_getForm($handle);
-
-        if (!$form) {
-            throw new BadRequestHttpException("No form exists with the handle `$handle`.");
-        }
-
-        // Delete the currently saved page
-        $form->resetCurrentPage();
-
-        // Delete the incomplete submission we've been using
-        $form->resetCurrentSubmission();
-
-        return $this->redirect($redirect);
     }
 
     public function actionDeleteSubmission(): ?Response
     {
         $this->requirePostRequest();
 
-        $request = $this->request;
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $submissionId = $request->getRequiredBodyParam('submissionId');
+        $submissionId = $this->request->getRequiredBodyParam('submissionId');
 
         $submission = Submission::find()
             ->id($submissionId)
@@ -850,7 +242,7 @@ class SubmissionsController extends Controller
         }
 
         if (!Craft::$app->getElements()->deleteElement($submission)) {
-            if ($request->getAcceptsJson()) {
+            if ($this->request->getAcceptsJson()) {
                 return $this->asJson(['success' => false]);
             }
 
@@ -863,7 +255,7 @@ class SubmissionsController extends Controller
             return null;
         }
 
-        if ($request->getAcceptsJson()) {
+        if ($this->request->getAcceptsJson()) {
             return $this->asJson(['success' => true]);
         }
 
@@ -876,11 +268,10 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = $this->request;
         $view = $this->getView();
 
         $submission = Submission::find()
-            ->id($request->getParam('id'))
+            ->id($this->request->getParam('id'))
             ->isIncomplete(null)
             ->isSpam(null)
             ->one();
@@ -904,13 +295,11 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = $this->request;
-
-        $notificationId = $request->getRequiredParam('notificationId');
+        $notificationId = $this->request->getRequiredParam('notificationId');
         $notification = Formie::$plugin->getNotifications()->getNotificationById($notificationId);
 
         $submission = Submission::find()
-            ->id($request->getParam('submissionId'))
+            ->id($this->request->getParam('submissionId'))
             ->isIncomplete(null)
             ->isSpam(null)
             ->one();
@@ -946,11 +335,10 @@ class SubmissionsController extends Controller
     {
         $this->requireAcceptsJson();
 
-        $request = $this->request;
-        $integrationId = $request->getRequiredParam('integrationId');
+        $integrationId = $this->request->getRequiredParam('integrationId');
 
         $submission = Submission::find()
-            ->id($request->getParam('submissionId'))
+            ->id($this->request->getParam('submissionId'))
             ->isIncomplete(null)
             ->isSpam(null)
             ->one();
@@ -1009,82 +397,385 @@ class SubmissionsController extends Controller
         ]);
     }
 
-    public function actionApi(): Response
+    public function actionSaveSubmission(): ?Response
     {
-        // Add CORS headers
-        $headers = $this->response->getHeaders();
-        $headers->setDefault('Access-Control-Allow-Credentials', 'true');
-        $headers->setDefault('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Craft-Token, Cache-Control, X-Requested-With');
+        if ($response = $this->handleCrossOriginRequest()) {
+            return $response;
+        }
 
-        $generalConfig = Craft::$app->getConfig()->getGeneral();
+        $this->requirePostRequest();
 
-        if (is_array($generalConfig->allowedGraphqlOrigins)) {
-            if (($origins = $this->request->getOrigin()) !== null) {
-                $origins = ArrayHelper::filterEmptyStringsFromArray(array_map('trim', explode(',', $origins)));
+        return $this->processSubmissionRequest(SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING);
+    }
 
-                foreach ($origins as $origin) {
-                    if (in_array($origin, $generalConfig->allowedGraphqlOrigins)) {
-                        $headers->setDefault('Access-Control-Allow-Origin', $origin);
-                        break;
-                    }
-                }
+    public function actionSubmit(): ?Response
+    {
+        if ($response = $this->handleCrossOriginRequest()) {
+            return $response;
+        }
+
+        $this->requirePostRequest();
+
+        return $this->processSubmissionRequest(SubmissionWorkflow::PROCESS_MODE_SUBMIT);
+    }
+
+    public function actionSetPage(): Response
+    {
+        if ($response = $this->handleCrossOriginRequest(['POST', 'OPTIONS'])) {
+            return $response;
+        }
+
+        $this->requirePostRequest();
+
+        $handle = $this->_parseTypedParam('handle', TypeHelper::TYPE_STRING, null, false);
+        $pageId = $this->_parseTypedParam('pageId', TypeHelper::TYPE_ID, null, false);
+        $renderId = $this->_parseTypedParam('renderId', TypeHelper::TYPE_STRING, null, false);
+        $draftContextToken = $this->_parseTypedParam('draftContextToken', TypeHelper::TYPE_STRING, null, false);
+        $draftContext = null;
+
+        if ($draftContext === null) {
+            $draftContext = $this->_parseTypedParam('draftContext', TypeHelper::TYPE_STRING, null, false);
+        }
+
+        if (!$handle || !$pageId) {
+            throw new BadRequestHttpException('Missing required handle or pageId.');
+        }
+
+        /* @var Form $form */
+        $form = Formie::$plugin->getForms()->getFormByHandle($handle);
+
+        if (!$form) {
+            throw new BadRequestHttpException('Form not found');
+        }
+
+        if ($draftContextToken) {
+            $draftContext = $form->resolveDraftContextToken($draftContextToken);
+        }
+
+        if ($renderId) {
+            $form->setRenderId($renderId);
+        }
+
+        if ($draftContext) {
+            $form->setDraftContext($draftContext);
+        }
+
+        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
+        $progressState = $submissionDrafts->getProgressState($form);
+        $submissionId = $progressState?->submissionId ? (int)$progressState->submissionId : null;
+
+        Formie::$plugin->getSubmissionWorkflow()->setPageNavigationState($form, $pageId, $submissionId);
+
+        $redirectBase = SetPageReturnUrlHelper::resolveLegacySetPageRedirectUrl($this->request);
+        if ($this->request->getAcceptsJson()) {
+            return $this->asJson([
+                'success' => true,
+                'pageId' => $pageId,
+            ]);
+        }
+
+        return $this->redirect($redirectBase);
+    }
+
+    public function processSubmissionRequest(string $processMode): ?Response
+    {
+        // Handle is required to get the form
+        $handle = $this->_parseTypedParam('handle', TypeHelper::TYPE_STRING);
+
+        if (!$handle) {
+            throw new BadRequestHttpException('No form handle was provided.');
+        }
+
+        Formie::info("Submission triggered for {$handle}.");
+        $siteId = $this->_parseTypedParam('siteId', TypeHelper::TYPE_ID, Craft::$app->getSites()->getCurrentSite()->id);
+        $cpUserId = null;
+
+        if ($this->request->getIsCpRequest() && ($userParam = $this->request->getBodyParam('user'))) {
+            $cpUserId = isset($userParam[0]) ? (int)$userParam[0] : null;
+        }
+
+        try {
+            $result = Formie::$plugin->getSubmissionProcessor()->executeManaged(new ManagedSubmissionRequest([
+                'handle' => $handle,
+                'processMode' => $processMode,
+                'siteId' => $siteId,
+                'renderId' => $this->_parseTypedParam('renderId', TypeHelper::TYPE_STRING, null, false),
+                'requestToken' => $this->_parseTypedParam('requestToken', TypeHelper::TYPE_STRING),
+                'draftContext' => $this->_parseTypedParam('draftContext', TypeHelper::TYPE_STRING, null, false),
+                'draftContextToken' => $this->_parseTypedParam('draftContextToken', TypeHelper::TYPE_STRING, null, false),
+                'resumeToken' => $this->_parseTypedParam('resumeToken', TypeHelper::TYPE_STRING, null, false),
+                'submissionId' => $this->_parseTypedParam('submissionId', TypeHelper::TYPE_ID, null, false),
+                'submissionUid' => $this->_parseTypedParam('submissionUid', TypeHelper::TYPE_STRING, null, false),
+                'submissionEditToken' => $this->_parseTypedParam('submissionEditToken', TypeHelper::TYPE_STRING, null, false),
+                'submitAction' => $this->_parseSubmissionAction(),
+                'pageId' => $this->_parseTypedParam('pageId', TypeHelper::TYPE_ID),
+                'targetPageId' => $this->_parseTypedParam('targetPageId', TypeHelper::TYPE_ID),
+                'fieldParamNamespace' => $this->_namespace,
+                'userId' => $cpUserId,
+            ]));
+        } catch (StaleSubmissionStateException $exception) {
+            return $this->_handleStaleSubmissionState($exception->form, $exception->source, $exception->value);
+        }
+
+        $submissionRequest = $result->submissionRequest;
+        $response = $result->response;
+        $form = $response->form;
+        $submission = $response->submission;
+
+        if (!$response->success) {
+            $responseSubmission = $response->submission ?? $submission;
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson($this->_createSubmitJsonResponsePayload($response, $submissionRequest->submitAction));
             }
-        } else if ($generalConfig->allowedGraphqlOrigins !== false) {
-            $headers->setDefault('Access-Control-Allow-Origin', '*');
+
+            $formErrorMessages = $responseSubmission->getErrors('form');
+            $flashError = $formErrorMessages
+                ? implode('<br>', $formErrorMessages)
+                : $form->settings->getErrorMessage();
+
+            Formie::$plugin->getService()->setError($form->getFlashNamespace(), $flashError);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $response->form,
+                'submission' => $responseSubmission,
+                'errors' => $responseSubmission->errors,
+            ]);
+
+            return null;
         }
 
-        if ($this->request->getIsPost()) {
-            return Craft::$app->runAction($this->request->getParam('action'));
+        $saveResumePayload = [];
+        if ($submissionRequest->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+            $saveResumePayload = $this->_createSaveResumePayload($form, $submission);
         }
 
-        // This is just a preflight request, no need to run the actual query yet
-        if ($this->request->getIsOptions()) {
-            $this->response->format = Response::FORMAT_RAW;
-            $this->response->data = '';
-            return $this->response;
+        if ($this->request->getAcceptsJson()) {
+            return $this->asJson($this->_createSubmitJsonResponsePayload($response, $submissionRequest->submitAction, $saveResumePayload));
         }
 
-        return $this->response;
+        if ($submissionRequest->submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+            $message = $form->settings->getSubmitActionMessage($submission);
+            $resumeUrl = $saveResumePayload['resumeUrl'] ?? null;
+
+            Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $message);
+
+            if (is_string($resumeUrl) && $resumeUrl !== '') {
+                return $this->redirect($resumeUrl);
+            }
+
+            Craft::$app->getUrlManager()->setRouteParams(['submission' => $submission]);
+
+            return $this->refresh();
+        }
+
+        if ($response->nextPage) {
+            // For page-reload multipage progression, render the next page in this response
+            // using the updated in-memory form state, without query params or flash transport.
+            $form->setCurrentPage($response->nextPage);
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $form,
+                'submission' => $submission,
+                'pageId' => (int)$response->nextPage->id,
+                'renderId' => $form->getRenderId(),
+            ]);
+
+            return null;
+        }
+
+        Formie::$plugin->getService()->setFlash($form->getFlashNamespace(), 'submitted', true);
+
+        if ($submissionRequest->processMode === SubmissionWorkflow::PROCESS_MODE_EDIT_EXISTING && $this->request->getIsCpRequest()) {
+            return $this->_redirectToPostedCpSubmissionUrl($submission);
+        }
+
+        if ($form->settings->submitAction === 'message' || $form->settings->submitAction === 'reload') {
+            if ($form->settings->submitAction === 'message') {
+                Formie::$plugin->getService()->setNotice($form->getFlashNamespace(), $form->settings->getSubmitActionMessage($submission));
+            }
+
+            Craft::$app->getUrlManager()->setRouteParams(['submission' => $submission]);
+
+            return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
+        }
+
+        return $this->redirectToPostedUrl($submission, $form->getRedirectUrl());
+    }
+
+    public function setAllowTestOverrides(bool $allow): void
+    {
+        $this->_allowTestOverrides = $allow;
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _returnJsonResponse(bool $success, Submission $submission, Form $form, ?FieldLayoutPage $nextPage, array $extras = []): Response
+    private function _createSubmitJsonResponsePayload(SubmissionResponse $response, string $submitAction, array $payload = []): array
     {
-        // Try and get the redirect from the template, as it might've been altered in templates
-        $redirect = $this->request->getValidatedBodyParam('redirect');
+        $form = $response->form;
+        $submission = $response->submission;
+        $nextPage = $response->nextPage;
+        $pages = $form->getPages();
+        $nextPageId = $nextPage?->id ?? null;
 
-        // Otherwise, use the form defined
-        if (!$redirect) {
-            $redirect = $form->getRedirectUrl();
+        $payload['success'] = $response->success;
+        $payload['submissionUid'] = $submission->uid;
+        $payload['submitAction'] = $submitAction;
+        $payload['events'] = [];
+        $submitData = $form->getSubmitData();
+
+        if ($submitData) {
+            $payload['submitData'] = $submitData;
         }
 
-        $redirectUrl = Formie::$plugin->getTemplates()->renderObjectTemplate($redirect, $submission);
+        if (!$response->success) {
+            $payload['errors'] = $submission->getErrors();
+            $payload['errors'] = StringHelper::sanitizeMessageHtmlRecursive($payload['errors']);
+            $payload['keepSubmitLoading'] = in_array($response->paymentStatus, [
+                PaymentDecision::STATUS_ACTION_REQUIRED,
+                PaymentDecision::STATUS_PENDING,
+            ], true);
 
-        // Set the `redirectUrl` unless we've passed in an override
-        $extras['redirectUrl'] = $extras['redirectUrl'] ?? $redirectUrl;
+            if ($response->paymentRedirectUrl) {
+                $payload['redirectUrl'] = $response->paymentRedirectUrl;
+            }
 
-        $params = array_merge([
-            'success' => $success,
-            'submissionId' => $submission->id,
-            'submissionUid' => $submission->uid,
-            'nextPageId' => $nextPage->id ?? null,
-            'nextPageIndex' => $form->getPageIndex($nextPage) ?? null,
-            'isFinalPage' => $nextPage ? false : true,
-            'totalPages' => is_countable($form->getPages()) ? count($form->getPages()) : 0,
-            'submitActionMessage' => $form->settings->getSubmitActionMessage($submission),
-            'submitData' => $form->getSubmitData(),
-        ], $extras);
+            return $payload;
+        }
 
-        return $this->asJson($params);
+        if ($submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+            $payload['nextPageId'] = null;
+            $payload['totalPages'] = count($pages);
+            $payload['isFinalPage'] = false;
+        } else {
+            $payload['nextPageId'] = $nextPageId;
+            $payload['totalPages'] = count($pages);
+            $payload['isFinalPage'] = $nextPageId === null;
+        }
+
+        if ($submitAction === SubmissionWorkflow::SUBMIT_ACTION_SAVE) {
+            $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
+        }
+
+        if ($nextPageId === null) {
+            if (in_array($form->settings->submitAction, ['entry', 'url'], true)) {
+                $payload['redirectUrl'] = $form->getRedirectUrl();
+                $payload['submitActionTab'] = $form->settings->submitActionTab;
+            }
+
+            if ($form->settings->submitAction === 'message') {
+                $payload['submitActionMessage'] = StringHelper::sanitizeMessageHtml($form->settings->getSubmitActionMessage($submission));
+            }
+        }
+
+        return $payload;
+    }
+
+    private function _handleStaleSubmissionState(Form $form, string $source, int|string $value): Response
+    {
+        $message = Craft::t('formie', 'Your previous submission session is no longer available. Please review the form and submit again.');
+
+        Formie::warning('Recovered stale submission continuity state for form "{form}" ({source}: {value}).', [
+            'form' => $form->handle,
+            'source' => $source,
+            'value' => (string)$value,
+        ]);
+
+        Formie::$plugin->getSubmissionDrafts()->clearProgressState($form);
+
+        if ($this->request->getAcceptsJson()) {
+            return $this->asJson([
+                'success' => false,
+                'code' => self::STALE_SUBMISSION_STATE_CODE,
+                'message' => $message,
+                'errors' => [
+                    'form' => [$message],
+                ],
+                'recoverable' => true,
+                'resetState' => true,
+            ]);
+        }
+
+        Formie::$plugin->getService()->setError($form->getFlashNamespace(), $message);
+
+        return $this->redirect($this->_currentUrlWithoutParams(self::STALE_SUBMISSION_STATE_QUERY_PARAMS));
+    }
+
+    private function _markStatefulResponseNoCache(): void
+    {
+        $headers = Craft::$app->getResponse()->getHeaders();
+        $headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+        $headers->set('Pragma', 'no-cache');
+        $headers->set('Expires', '0');
+    }
+
+    private function _currentUrlWithoutParams(array $paramsToRemove): string
+    {
+        $queryParams = $this->request->getQueryParams();
+
+        foreach ($paramsToRemove as $paramName) {
+            unset($queryParams[$paramName]);
+        }
+
+        return UrlHelper::siteUrl(trim((string)$this->request->getPathInfo(), '/'), $queryParams);
+    }
+
+    private function _redirectToPostedCpSubmissionUrl(Submission $submission): Response
+    {
+        $url = $this->getPostedRedirectUrl($submission);
+
+        if ($url === null || $url === '') {
+            $url = $submission->getCpEditUrl() ?? UrlHelper::cpUrl('formie/submissions');
+        }
+
+        return $this->redirect($this->_normalizeCpSubmissionRedirectUrl($url));
+    }
+
+    private function _normalizeCpSubmissionRedirectUrl(string $url): string
+    {
+        $parts = parse_url($url);
+
+        if (!is_array($parts)) {
+            return $url;
+        }
+
+        $path = ltrim((string)($parts['path'] ?? $url), '/');
+
+        if (!str_starts_with($path, 'formie/submissions')) {
+            return $url;
+        }
+
+        if (isset($parts['host'])) {
+            $requestHost = parse_url($this->request->getHostInfo(), PHP_URL_HOST);
+
+            if (!is_string($requestHost) || strcasecmp($parts['host'], $requestHost) !== 0) {
+                return $url;
+            }
+        }
+
+        $normalized = UrlHelper::cpUrl($path, $parts['query'] ?? null);
+
+        if (isset($parts['fragment']) && $parts['fragment'] !== '') {
+            $normalized .= '#' . $parts['fragment'];
+        }
+
+        return $normalized;
+    }
+
+    private function _createSaveResumePayload(Form $form, Submission $submission): array
+    {
+        $baseResumeUrl = Formie::$plugin->getSubmissionProcessor()->resolveTrustedResumeBaseUrl(
+            $this->request->getReferrer(),
+            (string)$this->request->getPathInfo()
+        );
+
+        return Formie::$plugin->getSubmissionProcessor()->createSaveResumePayload($form, $submission, $baseResumeUrl);
     }
 
     private function _prepEditSubmissionVariables(array &$variables): void
     {
-        $request = $this->request;
-
         // Get the site
         // ---------------------------------------------------------------------
 
@@ -1141,182 +832,26 @@ class SubmissionsController extends Controller
         }
     }
 
-    private function _getForm(string $handle): ?Form
+    private function _parseTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
     {
-        $form = Form::find()->handle($handle)->one();
-
-        if ($form) {
-            if ($sessionKey = $this->_getTypedParam('sessionKey', 'string')) {
-                $form->setSessionKey($sessionKey);
-            }
-        }
-
-        return $form;
-    }
-
-    private function _populateSubmission(Form $form, ?bool $isIncomplete = true): Submission
-    {
-        $request = $this->request;
-
-        // Ensure we validate some params here to prevent potential malicious-ness
-        $editingSubmission = $this->_getTypedParam('editingSubmission', 'boolean');
-        $submissionId = $this->_getTypedParam('submissionId', 'id');
-        $siteId = $this->_getTypedParam('siteId', 'id');
-        $userParam = $request->getBodyParam('user');
-
-        if ($submissionId) {
-            // Allow fetching spammed submissions for multistep forms, where it has been flagged as spam
-            // already, but we want to complete the form submission.
-            $submission = Submission::find()
-                ->id($submissionId)
-                ->isIncomplete($isIncomplete)
-                ->isSpam(null)
-                ->one();
-
-            if (!$submission) {
-                throw new BadRequestHttpException("No submission exists with the ID \"$submissionId\"");
-            }
+        if ($bodyParam) {
+            $value = $this->request->getBodyParam($name);
         } else {
-            $submission = new Submission();
-        }
-
-        $submission->setForm($form);
-
-        $siteId = $siteId ?: null;
-        $submission->siteId = $siteId ?? $submission->siteId ?? Craft::$app->getSites()->getCurrentSite()->id;
-
-        $submission->setFieldValuesFromRequest($this->_namespace);
-        $submission->setFieldParamNamespace($this->_namespace);
-
-        // Only ever set for a brand-new submission
-        if (!$submission->id && $form->settings->collectIp) {
-            $submission->ipAddress = $request->userIP;
-        }
-
-        if ($form->settings->collectUser) {
-            if ($user = Craft::$app->getUser()->getIdentity()) {
-                $submission->setUser($user);
-            }
-
-            // Allow a `user` override (when editing a submission through the CP)
-            if ($request->getIsCpRequest() && $userParam) {
-                $submission->userId = $userParam[0] ?? null;
-            }
-        }
-
-        $this->_setTitle($submission, $form);
-
-        // If we're editing a submission, ensure we set our flag
-        if ($editingSubmission) {
-            $form->setSubmission($submission);
-        }
-
-        return $submission;
-    }
-
-    private function _checkPageFieldErrors(submission $submission, Form $form, ?FieldLayoutPage $nextPage): ?FieldLayoutPage
-    {
-        // Find the first page with a field error and set that as the current page
-        if ($pageFieldErrors = $form->getPageFieldErrors($submission)) {
-            $firstErrorPageId = array_keys($pageFieldErrors)[0];
-
-            if ($firstErrorPageId) {
-                $errorPage = ArrayHelper::firstWhere($form->getPages(), 'id', $firstErrorPageId);
-
-                $form->setCurrentPage($errorPage);
-
-                // We must return the next page to navigate to. In this case, it'll be the current page
-                // as we've already set that to be the page with the first field error
-                return $form->getCurrentPage();
-            }
-        }
-
-        return $nextPage;
-    }
-
-    private function _setTitle(Submission $submission, Form $form): void
-    {
-        $title = Variables::getParsedValue($form->settings->submissionTitleFormat, $submission, $form);
-
-        // In case any values are encoded for HTML, we should decode them here. This is after sanitization
-        $submission->title = html_entity_decode($title);
-
-        // // Set the default title for the submission, so it can save correctly
-        if (!$submission->title) {
-            $now = new DateTime('now', new DateTimeZone(Craft::$app->getTimeZone()));
-            $submission->title = $now->format('D, d M Y H:i:s');
-        }
-    }
-
-    private function _validateSubmissionEditToken(Form $form, Submission $submission): bool
-    {
-        $token = $this->_getTypedParam('submissionEditToken', 'string');
-
-        if (!$token) {
-            return false;
-        }
-
-        $payload = Craft::$app->getSecurity()->validateData($token);
-
-        if (!is_string($payload)) {
-            return false;
+            $value = $this->request->getParam($name);
         }
 
         try {
-            $data = Json::decode($payload);
-        } catch (Throwable) {
-            return false;
+            return TypeHelper::parseTypedParam($value, $type, $default);
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException('Request has invalid param ' . $name, 0, $e);
         }
-
-        if (!is_array($data)) {
-            return false;
-        }
-
-        return ($data['purpose'] ?? null) === 'formie-edit-submission' &&
-            (int)($data['formId'] ?? 0) === (int)$form->id &&
-            hash_equals((string)$form->uid, (string)($data['formUid'] ?? '')) &&
-            (int)($data['submissionId'] ?? 0) === (int)$submission->id &&
-            hash_equals((string)$submission->uid, (string)($data['submissionUid'] ?? ''));
     }
 
-    private function _getTypedParam(string $name, string $type, mixed $default = null, bool $bodyParam = true): mixed
+    private function _parseSubmissionAction(): string
     {
-        $request = $this->request;
+        $action = $this->_parseTypedParam('submitAction', TypeHelper::TYPE_STRING);
 
-        if ($bodyParam) {
-            $value = $request->getBodyParam($name);
-        } else {
-            $value = $request->getParam($name);
-        }
-
-        // Special case for `submitAction`, where we don't want just anything passed in to change behaviour
-        if ($name === 'submitAction') {
-            if (!in_array($value, ['submit', 'back', 'save'])) {
-                return $default;
-            }
-        }
-
-        if ($value !== null) {
-            // Go case-by-case, so it's easier to handle, and more predictable
-            if ($type === 'string' && is_string($value)) {
-                return $value;
-            }
-
-            if ($type === 'boolean' && is_string($value)) {
-                return StringHelper::toBoolean($value);
-            }
-
-            if ($type === 'int' && (is_numeric($value) || $value === '')) {
-                return (int)$value;
-            }
-
-            if ($type === 'id' && is_numeric($value) && (int)$value > 0) {
-                return (int)$value;
-            }
-
-            throw new BadRequestHttpException('Request has invalid param ' . $name);
-        }
-
-        return $default;
+        return TypeHelper::getEnumParam($action, SubmissionWorkflow::getAllowedSubmitActions(), SubmissionWorkflow::SUBMIT_ACTION_SUBMIT);
     }
+
 }

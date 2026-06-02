@@ -2,8 +2,10 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -44,13 +46,12 @@ class NoCrm extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToLead) {
+            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
                 $settings['lead'] = [
                     new IntegrationField([
                         'handle' => 'title',
@@ -147,7 +148,7 @@ class NoCrm extends Crm
         $rules[] = [
             ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
                 return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -161,5 +162,23 @@ class NoCrm extends Crm
             'base_uri' => "$url/api/v2/",
             'headers' => ['X-API-KEY' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLead',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'leadFieldMapping',
+            'if' => 'mapToLead',
+            'dataLabel' => 'Lead',
+            'dataKey' => 'lead',
+        ]);
+
+        return $schema;
     }
 }

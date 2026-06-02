@@ -2,9 +2,8 @@
 namespace verbb\formie\fields\conditions;
 
 use verbb\formie\base\OptionsFieldInterface;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 
 use craft\base\conditions\BaseMultiSelectConditionRule;
 
@@ -65,9 +64,9 @@ class OptionsFieldConditionRule extends BaseMultiSelectConditionRule implements 
             return true;
         }
 
-        if ($value instanceof MultiOptionsFieldData) {
-            $value = array_map(fn(OptionData $option) => $option->value, (array)$value);
-        } else if ($value instanceof SingleOptionFieldData) {
+        if ($value instanceof MultiOptionFieldValue) {
+            $value = $value->values();
+        } else if ($value instanceof SingleOptionFieldValue) {
             $value = $value->value;
         }
 

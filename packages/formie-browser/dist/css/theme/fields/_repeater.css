@@ -1,0 +1,69 @@
+@layer formie-theme {
+    .formie-repeater-container {
+        display: grid;
+        gap: var(--formie-space-4);
+    }
+
+    .formie-repeater-item-wrapper {
+        position: relative;
+        display: grid;
+        gap: var(--formie-space-4);
+        padding: var(--formie-space-4);
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-md);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    .formie-repeater-item-wrapper:focus-within {
+        border-color: var(--formie-focus-ring-border-color);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error .formie-repeater-item-wrapper {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error .formie-repeater-item-wrapper:focus-within {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    .formie-repeater-item-wrapper>.formie-repeater-remove-button {
+        position: absolute;
+        top: var(--formie-repeater-remove-button-top);
+        right: var(--formie-repeater-remove-button-right);
+        transform: var(--formie-repeater-remove-button-transform);
+        font-size: 0;
+        line-height: 0;
+    }
+
+    .formie-button.formie-repeater-add-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        max-width: 100%;
+        justify-self: start;
+        padding-left: var(--formie-repeater-add-button-padding-left);
+    }
+
+    .formie-button.formie-repeater-add-button::before {
+        position: absolute;
+        content: "";
+        display: block;
+        width: var(--formie-repeater-add-button-width);
+        height: var(--formie-repeater-add-button-height);
+        left: var(--formie-repeater-add-button-left);
+        top: 50%;
+        transform: translate(0, -50%);
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-repeater-add-button-icon-mask);
+        mask-image: var(--formie-repeater-add-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+}

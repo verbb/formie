@@ -253,7 +253,7 @@ class SupportController extends SettingsAccessController
         $guzzleClient = Craft::createGuzzleClient([
             'timeout' => 120,
             'connect_timeout' => 120,
-            'verify' => false,
+            'verify' => !App::devMode(),
         ]);
 
         try {

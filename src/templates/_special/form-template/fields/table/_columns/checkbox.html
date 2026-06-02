@@ -1,6 +1,6 @@
 {{ hiddenInput(field.getHtmlName("#{index}[#{colId}]"), '') }}
 
-<div class="fui-checkbox">
+<div class="formie-field-option formie-checkbox-option" data-formie-field-option data-formie-checkbox-option>
     {{ fieldtag('tableCheckboxInput', {
         id: rowId,
         value: '1',
@@ -8,7 +8,7 @@
         name: field.getHtmlName("#{index}[#{colId}]"),
     }) }}
 
-    <label for="{{ rowId }}" class="fui-checkbox-label">
-        &nbsp;<span data-fui-sr-only>{{ col.heading | t('formie') }}</span>
+    <label for="{{ rowId }}" class="formie-field-option-label formie-checkbox-option-label" data-formie-field-option-label data-formie-checkbox-option-label>
+        &nbsp;<span class="formie-sr-only" data-formie-sr-only>{{ col.heading | t('formie') }}</span>
     </label>
 </div>

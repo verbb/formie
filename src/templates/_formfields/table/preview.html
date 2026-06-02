@@ -1,23 +1,157 @@
-<table class="editable fullwidth">
-    <thead>
-        <tr>
-            <th v-for="(column, index) in field.settings.columns" :key="index">${column.heading ? column.heading : '&nbsp'}</th>
-        </tr>
-    </thead>
+{(() => {
+    const columns = Array.isArray(field.columns)
+        ? field.columns
+        : Object.values(field.columns || {});
+    const rows = Array.isArray(field.defaults) && field.defaults.length > 0
+        ? field.defaults.slice(0, 2)
+        : [{}];
 
-    <tbody v-if="field.settings.defaults && field.settings.defaults.length > 0">
-        <tr v-for="(defaultRow, i) in field.settings.defaults" :key="i">
-            <td class="singleline-cell textual" v-for="(column, index) in field.settings.columns" :key="index">
-                <textarea rows="1" style="min-height: 36px;" :placeholder="defaultRow[column.id]"></textarea>
-            </td>
-        </tr>
-    </tbody>
+    if (!columns.length) {
+        return (
+            <div className="formie-field-preview-input">{Craft.t('formie', 'Table')}</div>
+        );
+    }
 
-    <tbody v-else>
-        <tr>
-            <td class="singleline-cell textual" v-for="(column, index) in field.settings.columns" :key="index">
-                <textarea rows="1" style="min-height: 36px;"></textarea>
-            </td>
-        </tr>
-    </tbody>
-</table>
+    const isThinColumn = (column) => {
+        const type = column?.type || 'singleline';
+        return Boolean(column?.thin || type === 'checkbox' || type === 'lightswitch');
+    };
+
+    const extractCellValue = (rawValue) => {
+        if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+            if ('value' in rawValue) {
+                return rawValue.value;
+            }
+        }
+
+        return rawValue;
+    };
+
+    const toDisplayValue = (rawValue) => {
+        const value = extractCellValue(rawValue);
+
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        if (typeof value === 'boolean') {
+            return value ? '1' : '';
+        }
+
+        return String(value);
+    };
+
+    const getSelectOptionLabel = (column, rawValue) => {
+        const value = toDisplayValue(rawValue);
+        const options = Array.isArray(column?.options) ? column.options : [];
+        const match = options.find((option) => {
+            return String(option?.value ?? '') === value;
+        });
+
+        return match?.label || value;
+    };
+
+    const renderCell = (column, rowValue, key) => {
+        const type = column?.type || 'singleline';
+        const value = extractCellValue(rowValue);
+
+        if (type === 'checkbox') {
+            return (
+                <div key={key} className="formie-field-preview-table-checkbox-only">
+                    <input type="checkbox" checked={Boolean(value)} readOnly />
+                </div>
+            );
+        }
+
+        if (type === 'lightswitch') {
+            return (
+                <div key={key} className="formie-field-preview-table-lightswitch-only">
+                    <Components.Lightswitch checked={Boolean(value)} disabled size="sm" />
+                </div>
+            );
+        }
+
+        if (type === 'select') {
+            const selectedLabel = getSelectOptionLabel(column, value);
+
+            return (
+                <div key={key} className="formie-field-preview-table-select-indicator">
+                    {selectedLabel && (
+                        <span className="formie-field-preview-table-cell-value">
+                            {selectedLabel}
+                        </span>
+                    )}
+                </div>
+            );
+        }
+
+        if (type === 'color') {
+            const colorValue = toDisplayValue(value);
+
+            return (
+                <div key={key} className="formie-field-preview-table-color-cell">
+                    {colorValue && (
+                        <span className="formie-field-preview-table-color-swatch" style={ { backgroundColor: colorValue } } />
+                    )}
+
+                    <span className="formie-field-preview-table-cell-value">
+                        {colorValue || ' '}
+                    </span>
+                </div>
+            );
+        }
+
+        if (type === 'heading' || type === 'html') {
+            return (
+                <div key={key} className="formie-field-preview-table-static-cell">
+                    {toDisplayValue(value) || ' '}
+                </div>
+            );
+        }
+
+        const displayValue = toDisplayValue(value);
+
+        return (
+            <div key={key} className="formie-field-preview-table-empty-cell">
+                {displayValue && (
+                    <span className="formie-field-preview-table-cell-value">
+                        {displayValue}
+                    </span>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="formie-field-preview-table-wrap">
+            <table className="formie-field-preview-table">
+                <thead>
+                    <tr>
+                        {columns.map((column, index) => (
+                            <th key={index} className={isThinColumn(column) ? 'formie-field-preview-table-col--thin' : ''}>
+                                {column.heading || ' '}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {rows.map((defaultRow, rowIndex) => (
+                        <tr key={rowIndex}>
+                            {columns.map((column, columnIndex) => {
+                                const cellKey = column.id || column.handle || `col${columnIndex + 1}`;
+                                const value = defaultRow?.[cellKey] ?? '';
+
+                                return (
+                                    <td key={columnIndex} className={isThinColumn(column) ? 'formie-field-preview-table-col--thin' : ''}>
+                                        {renderCell(column, value, `${rowIndex}-${columnIndex}`)}
+                                    </td>
+                                );
+                            })}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+})()}

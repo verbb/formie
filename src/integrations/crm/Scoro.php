@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -44,13 +46,12 @@ class Scoro extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $response = $this->request('GET', 'customFields/list');
                 $fields = $response['data'] ?? [];
 
@@ -195,20 +196,6 @@ class Scoro extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        $url = rtrim(App::parseEnv($this->apiDomain), '/');
-
-        return Craft::createGuzzleClient([
-            'base_uri' => "$url/api/v2/",
-            'query' => ['apiKey' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -221,10 +208,38 @@ class Scoro extends Crm
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        $url = rtrim(App::parseEnv($this->apiDomain), '/');
+
+        return Craft::createGuzzleClient([
+            'base_uri' => "$url/api/v2/",
+            'query' => ['apiKey' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+
+        return $schema;
     }
 
 

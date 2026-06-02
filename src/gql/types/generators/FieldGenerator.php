@@ -2,7 +2,7 @@
 namespace verbb\formie\gql\types\generators;
 
 use verbb\formie\Formie;
-use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\fields\MissingField;
 use verbb\formie\gql\interfaces\FieldInterface;
 use verbb\formie\gql\interfaces\RowInterface;
@@ -22,7 +22,7 @@ class FieldGenerator implements GeneratorInterface
 
     public static function generateTypes(mixed $context = null): array
     {
-        $fieldClasses = Formie::$plugin->getFields()->getRegisteredFields();
+        $fields = Formie::$plugin->getFields()->getRegisteredFields();
 
         $gqlTypes = [];
 
@@ -34,12 +34,10 @@ class FieldGenerator implements GeneratorInterface
             return [];
         }
 
-        foreach ($fieldClasses as $fieldClass) {
-            if ($fieldClass instanceof MissingField) {
+        foreach ($fields as $field) {
+            if ($field instanceof MissingField) {
                 continue;
             }
-
-            $field = new $fieldClass;
             $typeName = $field->getGqlTypeName();
             $contentFieldGqlTypes = $field->getSettingGqlTypes();
 

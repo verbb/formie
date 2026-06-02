@@ -12,22 +12,22 @@ class WidgetsAsset extends AssetBundle
     public function init(): void
     {
         $this->sourcePath = '@verbb/formie/web/assets/cp/dist';
+        
+        $this->jsOptions = [
+            'type' => 'module',
+        ];
 
         $this->depends = [
+            WidgetsVendorAsset::class,
             CraftCpAsset::class,
         ];
 
         $this->js = [
-            'js/vendor/Chart.bundle.min.js',
-            'js/vendor/moment-with-locales.min.js',
-            'js/vendor/chartjs-adapter-moment.min.js',
-            'js/vendor/deepmerge.min.js',
-
-            'js/formie-widgets.js',
+            'widgets/js/formie-widgets.js',
         ];
 
         $this->css = [
-            'css/formie-widgets.css',
+            'widgets/css/formie-widgets.css',
         ];
 
         parent::init();

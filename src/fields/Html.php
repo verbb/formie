@@ -1,14 +1,18 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\CosmeticField;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPurifierConfigEvent;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -43,45 +47,39 @@ class Html extends CosmeticField
         return 'formie/_formfields/html/icon.svg';
     }
 
+    public static function defineFieldType(): array
+    {
+        return array_merge(parent::defineFieldType(), [
+            'hasLabel' => true,
+        ]);
+    }
+
 
     // Properties
     // =========================================================================
 
     public ?string $htmlContent = null;
     public bool $purifyContent = true;
-    public bool $includeInEmail = false;
 
 
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $config = [])
+    {
+        // Setuo defaults for some values which can't in in the property definition
+        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+
+        parent::__construct($config);
+    }
+
     public function hasLabel(): bool
     {
         return true;
     }
-    
-    public function hasEmailLabel(): bool
-    {
-        return false;
-    }
 
-    public function hasEmailPlaceholder(): bool
+    public function getRenderedHtmlContent(array $variables = []): string
     {
-        return false;
-    }
-
-    public function getFieldTypeDefaults(): array
-    {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['labelPosition'] = HiddenPosition::class;
-
-        return $settings;
-    }
-
-    public function getRenderedHtmlContent(): string
-    {
-        $variables = $this->getRenderOptions();
         $htmlContent = trim($this->htmlContent);
 
         // Render Twig content first
@@ -97,19 +95,32 @@ class Html extends CosmeticField
         return $htmlContent;
     }
 
-    public function getPreviewInputHtml(): string
+    /**
+     * Rendered HTML block: merges {@see RenderFrame::getTemplateVars()} with `field` / `form` / `submission` / `value` for the inline Twig in `htmlContent`.
+     */
+    public function getRenderedHtmlBlock(Form $form, mixed $value, ?ElementInterface $submission = null): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/html/preview', [
+        $templateVars = Formie::$plugin->getRendering()->getActiveRenderFrame()?->getTemplateVars() ?? [];
+        $variables = array_merge($templateVars, [
             'field' => $this,
+            'form' => $form,
+            'submission' => $submission,
+            'value' => $value,
         ]);
+
+        return $this->getRenderedHtmlContent($variables);
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    public function defineFormBuilderPreviewSchema(): array
     {
-        // Force purify for email content
-        $this->purifyContent = true;
+        return [
+            SchemaHelper::previewHtml(),
+        ];
+    }
 
-        return $this->getRenderedHtmlContent();
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    {
+        return false;
     }
 
     public function getSettingGqlTypes(): array
@@ -122,21 +133,21 @@ class Html extends CosmeticField
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textareaField([
                 'label' => Craft::t('formie', 'HTML Content'),
-                'help' => Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.'),
+                'instructions' => Craft::t('formie', 'Enter HTML or Twig content to be rendered for this field.'),
                 'name' => 'htmlContent',
                 'rows' => '10',
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -146,7 +157,7 @@ class Html extends CosmeticField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -154,13 +165,13 @@ class Html extends CosmeticField
             SchemaHelper::containerAttributesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Purify Content'),
-                'help' => Craft::t('formie', 'Whether to run [HTML Purifier](http://htmlpurifier.org) over the content to prevent malicious or invalid code being included.'),
+                'instructions' => Craft::t('formie', 'Whether to run [HTML Purifier](http://htmlpurifier.org) over the content to prevent malicious or invalid code being included.'),
                 'name' => 'purifyContent',
             ]),
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -168,35 +179,39 @@ class Html extends CosmeticField
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
         if ($key === 'fieldLabel') {
-            $labelPosition = $context['labelPosition'] ?? null;
+            $labelPosition = $context->get('labelPosition');
 
             // In this case, we don't need the label hidden from screen readers as there's no control to be accessible for
             if ($labelPosition instanceof HiddenPosition) {
                 return null;
             }
 
-            return new HtmlTag('label', [
-                'class' => [
-                    'fui-label'
-                ],
-                'data' => [
-                    'field-label' => true,
-                ],
-                // Exclude the `for` attribute, as it's invalid (there's no form control to refer to)
-            ]);
+            return SlotTag::make('label')
+                ->core([
+                    'data-formie-label' => true,
+                    'data-formie-field-label' => true,
+                    'data-formie-html-field-label' => true,
+                    // Exclude the `for` attribute, as it's invalid (there's no form control to refer to),,,,,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-label',
+                        'formie-field-label',
+                        'formie-html-field-label',
+                    ],
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/html/input', [
             'name' => $this->handle,

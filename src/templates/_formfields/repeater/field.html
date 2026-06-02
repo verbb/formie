@@ -1,6 +1,6 @@
 {% from '_includes/forms' import field %}
 
-{% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
-{% set errors = element.getErrors(field.fieldKey) ?? [] %}
+{% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
+{% set errors = element.getErrors(field.valueKey()) ?? [] %}
 
-{{ field.getCpInputHtml(value, element) }}
+{{ field.getSubmissionHtml(value, element) }}

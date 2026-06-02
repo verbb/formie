@@ -67,7 +67,7 @@ class FieldOptionGenerator implements GeneratorInterface, SingleGeneratorInterfa
                     'description' => 'Whether this option has been marked as a default.',
                     'resolve' => function($source) {
                         // Optgroups are handled differently, so normalize
-                        return isset($source['optgroup']) ? false : ($source['isDefault'] ?? false);
+                        return isset($source['optgroup']) ? false : ($source['default'] ?? false);
                     },
                 ],
 

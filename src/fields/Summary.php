@@ -2,11 +2,17 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\CosmeticField;
+use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -36,27 +42,34 @@ class Summary extends CosmeticField
     // Public Methods
     // =========================================================================
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewSummary(),
+        ];
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function getFieldAccessToken(?Submission $submission): ?string
     {
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/summary.js'),
-            'module' => 'FormieSummary',
-            'settings' => [
-                'fieldId' => $this->id,
-            ],
-        ];
+        if (!$submission) {
+            return null;
+        }
+
+        return FieldAccess::issueAccessToken($submission, (int)$this->id);
+    }
+
+    public function getInputTemplateVariables(Form $form, mixed $value): array
+    {
+        $variables = parent::getInputTemplateVariables($form, $value);
+        $submission = $variables['submission'] ?? null;
+        $variables['fieldAccessToken'] = $submission instanceof Submission ? $this->getFieldAccessToken($submission) : null;
+
+        return $variables;
     }
 
     public function afterCreateField(array $data): void
@@ -65,19 +78,19 @@ class Summary extends CosmeticField
         $this->handle = $this->handle ?? StringHelper::appendRandomString('summaryHandle', 15);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Description'),
-                'help' => Craft::t('formie', 'The description text shown at the top of the field.'),
+                'instructions' => Craft::t('formie', 'The description text shown at the top of the field.'),
                 'name' => 'description',
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::cssClasses(),
@@ -85,7 +98,7 @@ class Summary extends CosmeticField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -93,54 +106,117 @@ class Summary extends CosmeticField
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
+        $form = $context->form;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
+        if ($key === 'fieldSummaryContainer') {
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-summary-container' => true,
+                    'data-formie-summary-token' => $this->getFieldAccessToken($context->submission),
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-container',
+                    ],
+                ]);
+        }
+
         if ($key === 'fieldSummaryBlocks') {
-            return new HtmlTag('div', [
-                'class' => 'fui-summary-blocks',
-                'data-summary-blocks' => true,
-            ]);
+            $isLoading = $context->submission !== null;
+
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-summary-blocks' => true,
+                    'data-formie-loading' => $isLoading ? true : null,
+                    'aria-busy' => $isLoading ? 'true' : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-blocks',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldSummaryHeading') {
-            return new HtmlTag('h3', [
-                'class' => 'fui-heading-h3',
-                'text' => Craft::t('formie', $this->description),
-            ]);
+            return SlotTag::make('p')
+                ->core([
+                    'data-formie-summary-heading' => true,
+                    'text' => Craft::t('formie', $this->description),
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-heading',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldSummaryBlock') {
-            return new HtmlTag('div', [
-                'class' => 'fui-summary-block',
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-summary-block' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-block',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldSummaryLabel') {
-            return new HtmlTag('strong');
+            return SlotTag::make('strong')
+                ->core([
+                    'data-formie-summary-label' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-label',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldSummaryValue') {
-            return new HtmlTag('span');
+            return SlotTag::make('span')
+                ->core([
+                    'data-formie-summary-value' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-summary-value',
+                    ],
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/summary/input', [
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
         ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        
+        $modules[] = new ClientModule([
+            'id' => 'summary',
+            'config' => [
+                'fieldId' => (string)$this->id,
+            ],
+        ]);
+
+        return $modules;
     }
 }

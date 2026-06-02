@@ -1,20 +1,23 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyNamePrefixOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
 
 use yii\base\Event;
 
-class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
+class NamePrefix extends Dropdown implements ChildFieldInterface
 {
     // Constants
     // =========================================================================
@@ -30,12 +33,12 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Name - Prefix');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/dropdown';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/dropdown';
     }
@@ -71,53 +74,37 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $event->options;
     }
 
-    public function options(): array
-    {
-        $options = parent::options();
-        
-        foreach ($options as $key => $value) {
-            // Ensure that labels are translated at runtime, as we only translate them in `getDefaultOptions()`
-            $value['label'] = Craft::t('formie', $value['label']);
-
-            $options[$key] = $value;
-        }
-
-        return $options;
-    }
-
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Options'),
-                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
-                'validation' => '+min:1|uniqueTableCellValue',
-                'allowMultipleDefault' => false,
+                'validation' => 'min:1|uniqueTableCellValue',
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                    'isOptgroup' => false,
-                    'isDefault' => false,
+                    'default' => false,
                 ],
                 'columns' => [
                     [
-                        'type' => 'label',
+                        'type' => 'text',
+                        'name' => 'label',
                         'label' => Craft::t('formie', 'Option Label'),
-                        'class' => 'singleline-cell textual',
+                        'required' => true,
                     ],
                     [
                         'type' => 'value',
+                        'name' => 'value',
                         'label' => Craft::t('formie', 'Value'),
-                        'class' => 'code singleline-cell textual',
+                        'source' => 'label',
                     ],
                     [
-                        'type' => 'default',
+                        'type' => 'radio',
+                        'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
-                        'class' => 'thin checkbox-cell',
                     ],
                 ],
             ]),
@@ -133,9 +120,11 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->_getValueLabel($value);
+        $label = $this->_getValueLabel($value);
+
+        return $label !== '' ? [$label] : [];
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -148,21 +137,17 @@ class NamePrefix extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineValueForEmail(mixed $value, Notification $notification, ElementInterface $element = null): mixed
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        // If the value is a string, ensure we properly return the value as the Dropdown email template would expect (an option)
-        if ($value && is_string($value)) {
-            if ($prefixOption = ArrayHelper::firstWhere($this->options(), 'value', $value)) {
-                return $prefixOption;
-            }
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($tag && $key === 'fieldInput') {
+            $tag->mergeCoreAttributes([
+                'autocomplete' => 'honorific-prefix',
+            ]);
         }
 
-        return '';
-    }
-
-    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return $this->_getValueLabel($value);
+        return $tag;
     }
 
 

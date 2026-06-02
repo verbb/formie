@@ -3,13 +3,13 @@ namespace verbb\formie\models;
 
 use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\MultiNestedFieldInterface;
-use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationHelper;
 
 use Craft;
 use craft\base\Field as CraftField;
@@ -17,7 +17,6 @@ use craft\base\FieldInterface as CraftFieldInterface;
 use craft\base\SavableComponent;
 use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Json;
-use craft\models\FieldLayout as CraftFieldLayout;
 
 use yii\base\InvalidConfigException;
 
@@ -37,6 +36,8 @@ class FieldLayoutPage extends SavableComponent
     private ?FieldLayout $_layout = null;
     private ?FieldLayoutPageSettings $_pageSettings = null;
     private array $_rows = [];
+    private ?array $_cachedFields = null;
+    private ?array $_fieldsByHandle = null;
 
 
     // Public Methods
@@ -75,8 +76,8 @@ class FieldLayoutPage extends SavableComponent
 
     public function getHandle(): ?string
     {
-        // Auto-generated for the moment
-        return StringHelper::toCamelCase($this->label);
+        // Auto-generated for the moment.
+        return StringHelper::toHandle((string)$this->label);
     }
 
     public function getSettings(): array
@@ -126,6 +127,8 @@ class FieldLayoutPage extends SavableComponent
     public function setRows(array $rows): void
     {
         $this->_rows = [];
+        $this->_cachedFields = null;
+        $this->_fieldsByHandle = null;
 
         foreach ($rows as $row) {
             $this->_rows[] = (!($row instanceof FieldLayoutRow)) ? new FieldLayoutRow($row) : $row;
@@ -134,35 +137,38 @@ class FieldLayoutPage extends SavableComponent
 
     public function getFields(bool $includeDisabled = true): array
     {
-        $fields = [];
+        if ($includeDisabled) {
+            if ($this->_cachedFields === null) {
+                $fields = [];
 
-        foreach ($this->getRows($includeDisabled) as $row) {
-            foreach ($row->getFields($includeDisabled) as $field) {
-                $fields[] = $field;
+                foreach ($this->getRows() as $row) {
+                    foreach ($row->getFields() as $field) {
+                        $fields[] = $field;
+                    }
+                }
+
+                $this->_cachedFields = $fields;
             }
+
+            return $this->_cachedFields;
         }
 
-        return $fields;
+        return array_values(array_filter($this->getFields(), static function(FieldInterface $field): bool {
+            return !$field->getIsDisabled();
+        }));
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        $foundField = null;
+        if ($this->_fieldsByHandle === null) {
+            $this->_fieldsByHandle = [];
 
-        foreach ($this->getFields() as $field) {
-            if ($field->handle === $handle) {
-                $foundField = $field;
+            foreach ($this->getFields() as $field) {
+                $this->_fieldsByHandle[$field->handle] = $field;
             }
         }
 
-        return $foundField;
-    }
-
-    public function getCustomFields(): array
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Page’s `getCustomFields()` method has been deprecated. Use `getFields()` instead.');
-
-        return $this->getFields();
+        return $this->_fieldsByHandle[$handle] ?? null;
     }
 
     public function getFormBuilderConfig(): array
@@ -171,12 +177,64 @@ class FieldLayoutPage extends SavableComponent
             'id' => $this->id,
             'layoutId' => $this->layoutId,
             'label' => $this->label,
+            '_handle' => $this->getHandle(),
             'settings' => $this->getPageSettings()?->toArray(),
             'sortOrder' => $this->sortOrder,
             'errors' => $this->getErrors(),
             'rows' => array_map(function($row) {
                 return $row->getFormBuilderConfig();
             }, $this->getRows()),
+        ];
+    }
+
+    public function getClientConfig(): array
+    {
+        return [
+            'id' => (string)$this->id,
+            'uid' => (string)$this->uid,
+            'label' => $this->label,
+            'settings' => $this->getSettings(),
+            'fields' => array_map(static function(FieldInterface $field) {
+                return $field->getClientConfig();
+            }, $this->getFields(false)),
+        ];
+    }
+
+    public function getClientPayload(Form $form, int $index): array
+    {
+        $pageSettings = $this->getPageSettings();
+        $isLastPage = $form->isLastPage($this);
+        $secondaryActions = [];
+
+        if ($index > 0 && $pageSettings->showBackButton) {
+            $secondaryActions[] = [
+                'type' => 'back',
+                'label' => $pageSettings->backButtonLabel,
+            ];
+        }
+
+        if ($pageSettings->showSaveButton) {
+            $secondaryActions[] = [
+                'type' => 'save',
+                'label' => $pageSettings->saveButtonLabel,
+            ];
+        }
+
+        return [
+            'id' => (string)$this->id,
+            'key' => 'page-' . ($index + 1),
+            'label' => $this->label,
+            'condition' => ConditionsHelper::toComponentConditionDefinition($this->getClientConditions()),
+            'rows' => array_values(array_map(static function(FieldLayoutRow $row) {
+                return $row->getClientPayload();
+            }, $this->getRows())),
+            'actions' => [
+                'primary' => [
+                    'type' => $isLastPage ? 'submit' : 'next',
+                    'label' => $pageSettings->submitButtonLabel,
+                ],
+                'secondary' => $secondaryActions,
+            ],
         ];
     }
 
@@ -191,9 +249,9 @@ class FieldLayoutPage extends SavableComponent
 
     public function validateRows(): void
     {
-        foreach ($this->getRows() as $row) {
+        foreach ($this->getRows() as $rowKey => $row) {
             if (!$row->validate()) {
-                $this->addError('rows', $row->getErrors());
+                ValidationHelper::addPrefixedErrors($this, $row->getErrors(), "rows.$rowKey");
             }
         }
     }
@@ -240,19 +298,36 @@ class FieldLayoutPage extends SavableComponent
         return $conditions;
     }
 
-    public function getConditionsJson(): ?string
+    public function getClientConditions(): array
     {
-        if ($this->hasConditions()) {
-            $conditionSettings = $this->getConditions();
-            $conditions = $conditionSettings['conditions'] ?? [];
+        $conditions = $this->getConditions();
 
-            // Prep the conditions for JS
-            $conditionSettings['conditions'] = ConditionsHelper::prepConditionsForJs($conditions);
-
-            return Json::encode($conditionSettings);
+        if (!$conditions) {
+            return [];
         }
 
-        return null;
+        if ($form = $this->getForm()) {
+            $conditions = ConditionsHelper::normalizeClientConditions($conditions, $form);
+        }
+
+        $conditions['clearOnHide'] = true;
+
+        return $conditions;
+    }
+
+    public function getConditionsJson(): ?string
+    {
+        if (!$this->getPageSettings()->enablePageConditions) {
+            return null;
+        }
+
+        $conditions = $this->getClientConditions();
+
+        if (!$conditions) {
+            return null;
+        }
+
+        return Json::encode($conditions);
     }
 
     public function getFieldErrors(?Submission $submission): array
@@ -262,52 +337,9 @@ class FieldLayoutPage extends SavableComponent
         // Ensure that we recursively check for nested/subfields for errors
         $getFieldErrors = function(array $fields) use ($submission, &$errors, &$getFieldErrors) {
             foreach ($fields as $field) {
-                if ($field instanceof MultiNestedFieldInterface) {
-                    // Repeater errors use row indexes in the key (`repeater.0.text`), but layout field
-                    // instances only get `setParentField($repeater)` without a row, so `fieldKey` is wrong
-                    // until we set the row here (mirrors validation in MultiNestedField::validateBlocks()).
-                    $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
+                $errors[$field->valueKey()] = $submission->getErrors()[$field->valueKey()] ?? null;
 
-                    $rowKeys = [];
-
-                    $value = $submission->getFieldValue($field->handle);
-                    if (is_array($value)) {
-                        $rowKeys = array_keys($value);
-                    }
-
-                    $prefix = $field->handle . '.';
-                    foreach (array_keys($submission->getErrors()) as $errorFieldKey) {
-                        if (!str_starts_with($errorFieldKey, $prefix)) {
-                            continue;
-                        }
-
-                        $rest = substr($errorFieldKey, strlen($prefix));
-                        $rowCandidate = strstr($rest, '.', true);
-
-                        if ($rowCandidate === false) {
-                            $rowCandidate = $rest;
-                        }
-
-                        if ($rowCandidate !== '') {
-                            $rowKeys[] = $rowCandidate;
-                        }
-                    }
-
-                    $rowKeys = array_values(array_unique($rowKeys));
-
-                    foreach ($rowKeys as $rowKey) {
-                        foreach ($field->getFields() as $nestedField) {
-                            $nestedField->setParentField($field, (string)$rowKey);
-                            $getFieldErrors([$nestedField]);
-                        }
-                    }
-
-                    continue;
-                }
-
-                $errors[$field->fieldKey] = $submission->getErrors()[$field->fieldKey] ?? null;
-
-                if ($field instanceof NestedFieldInterface) {
+                if ($field instanceof ParentFieldInterface) {
                     $getFieldErrors($field->getFields());
                 }
             }
@@ -334,4 +366,5 @@ class FieldLayoutPage extends SavableComponent
 
         return $rules;
     }
+
 }

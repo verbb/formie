@@ -2,7 +2,7 @@
 namespace verbb\formie\migrations;
 
 use verbb\formie\elements\Form;
-use verbb\formie\fields\formfields\Date;
+use verbb\formie\fields\Date;
 
 use Craft;
 use craft\db\Migration;

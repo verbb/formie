@@ -1,8 +1,9 @@
 <?php
 namespace verbb\formie\gql\types\input;
 
+use verbb\formie\Formie;
 use verbb\formie\fields\Name as NameField;
-use verbb\formie\models\Name as NameModel;
+use verbb\formie\fields\values\NameFieldValue;
 
 use craft\gql\GqlEntityRegistry;
 
@@ -50,18 +51,61 @@ class NameInputType extends InputObjectType
         ]));
     }
 
+    public static function getTypeFromConfig(array $config): mixed
+    {
+        $fieldsService = Formie::$plugin->getFields();
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'NameInput');
+
+        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
+            return $inputType;
+        }
+
+        $fields = [];
+        $settings = $fieldsService->getFieldConfigSettings($config);
+
+        if (!empty($settings['useMultipleFields'])) {
+            foreach ($fieldsService->getNestedFieldConfigs($config) as $subFieldConfig) {
+                if (($subFieldConfig['enabled'] ?? true) === false) {
+                    continue;
+                }
+
+                $handle = $subFieldConfig['handle'] ?? null;
+
+                if (!$handle) {
+                    continue;
+                }
+
+                $fields[$handle] = [
+                    'name' => $handle,
+                    'type' => !empty($subFieldConfig['required']) ? Type::nonNull(Type::string()) : Type::string(),
+                ];
+            }
+        } else {
+            $fields['name'] = [
+                'name' => 'name',
+                'type' => !empty($config['required']) ? Type::nonNull(Type::string()) : Type::string(),
+            ];
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => $fields,
+            'normalizeValue' => [self::class, 'normalizeValue'],
+        ]));
+    }
+
     public static function normalizeValue($value): mixed
     {
         if (!empty($value['name'])) {
             return $value['name'];
         }
 
-        $nameModel = new NameModel();
-        $nameModel->prefix = $value['prefix'] ?? null;
-        $nameModel->firstName = $value['firstName'] ?? null;
-        $nameModel->middleName = $value['middleName'] ?? null;
-        $nameModel->lastName = $value['lastName'] ?? null;
+        $nameValue = new NameFieldValue();
+        $nameValue->prefix = $value['prefix'] ?? null;
+        $nameValue->firstName = $value['firstName'] ?? null;
+        $nameValue->middleName = $value['middleName'] ?? null;
+        $nameValue->lastName = $value['lastName'] ?? null;
 
-        return $nameModel;
+        return $nameValue;
     }
 }

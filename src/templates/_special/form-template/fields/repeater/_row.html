@@ -1,20 +1,10 @@
-{# Keep track of the outer repeater field #}
-{% set repeaterField = field %}
-
 {% fieldtag 'nestedField' %}
     {% fieldtag 'nestedFieldWrapper' %}
         {% fieldtag 'nestedFieldRows' %}
-            {% for row in field.getRows() %}
+            {% for row in field.getRows(true, index) %}
                 {% fieldtag 'nestedFieldRow' %}
                     {% for field in row.getFields() %}
-                        {# Update the namespace for the field, to include the specific block index #}
-                        {% do field.setParentField(repeaterField, index) %}
-
-                        {# Pass in the raw value from this parent field #}
-                        {{ craft.formie.renderField(form, field, {
-                            ...(renderOptions ?? {}),
-                            value: block[field.handle] ?? null,
-                        }) }}
+                        {{ craft.formie.renderField(form, field) }}
                     {% endfor %}
                 {% endfieldtag %}
             {% endfor %}

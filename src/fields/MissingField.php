@@ -4,6 +4,7 @@ namespace verbb\formie\fields;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\Notification;
 
 use Craft;
@@ -29,7 +30,7 @@ class MissingField extends Field implements MissingComponentInterface
         return Craft::t('formie', 'Missing Field');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return '';
     }
@@ -37,10 +38,14 @@ class MissingField extends Field implements MissingComponentInterface
     public function getFormBuilderSettings(): array
     {
         $settings = [];
+        $settings['isMissing'] = true;
+        $settings['expectedType'] = $this->expectedType ?? null;
+        $settings['errorMessage'] = $this->errorMessage ?? null;
+        $settings['fieldId'] = $this->fieldId;
         $settings['layoutId'] = $this->layoutId;
         $settings['pageId'] = $this->pageId;
         $settings['rowId'] = $this->rowId;
-        $settings['syncId'] = $this->syncId;
+        $settings['syncId'] = $this->getIsSynced() ? ($this->fieldId ?? $this->syncId) : null;
         $settings['label'] = $this->label;
         $settings['handle'] = $this->handle;
         $settings['sortOrder'] = $this->sortOrder;
@@ -67,14 +72,14 @@ class MissingField extends Field implements MissingComponentInterface
         }
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/missing/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewMessage(Craft::t('formie', 'Unable to find component class')),
+        ];
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return false;
     }
@@ -83,7 +88,7 @@ class MissingField extends Field implements MissingComponentInterface
     // Protected Methods
     // =========================================================================
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $error = $this->errorMessage ?? "Unable to find component class '{$this->expectedType}'.";
 

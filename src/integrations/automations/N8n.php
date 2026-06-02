@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -63,7 +65,7 @@ class N8n extends Automation
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -75,7 +77,7 @@ class N8n extends Automation
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'payload' => Json::encode($payload),
@@ -96,7 +98,7 @@ class N8n extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->webhook, $submission), $payload);
 
             if ($response === false) {
                 return true;
@@ -104,7 +106,7 @@ class N8n extends Automation
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'payload' => Json::encode($payload),
@@ -137,5 +139,18 @@ class N8n extends Automation
         $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Webhook URL'),
+            'instructions' => Craft::t('formie', 'Enter the {name} webhook URL that will be triggered when a submission is made.', ['name' => $this->displayName()]),
+            'name' => 'webhook',
+            'required' => true,
+        ]);
+
+        return $schema;
     }
 }

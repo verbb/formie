@@ -4,8 +4,6 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\models\Settings;
-use verbb\formie\web\assets\cp\CpAsset;
-
 use Craft;
 use craft\mail\Message;
 use craft\web\Controller;
@@ -23,7 +21,7 @@ class SentNotificationsController extends Controller
 
     public function actionIndex(): Response
     {
-        $this->getView()->registerAssetBundle(CpAsset::class);
+        Formie::$plugin->registerCpSentNotificationsAssets();
 
         $this->requirePermission('formie-accessSentNotifications');
 
@@ -72,13 +70,23 @@ class SentNotificationsController extends Controller
     public function actionGetResendModalContent(): Response
     {
         $this->requireAcceptsJson();
+        $this->requirePermission('formie-accessSentNotifications');
 
         $request = $this->request;
         $view = $this->getView();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
         $sentNotification = SentNotification::find()
-            ->id($request->getParam('id'))
+            ->id($request->getRequiredParam('id'))
             ->one();
+
+        if (!$sentNotification) {
+            throw new NotFoundHttpException('Sent Notification not found.');
+        }
+
+        if (!$currentUser || !$sentNotification->canView($currentUser)) {
+            throw new ForbiddenHttpException('User is not permitted to perform this action');
+        }
 
         $modalHtml = $view->renderTemplate('formie/sent-notifications/_includes/resend-modal', [
             'sentNotification' => $sentNotification,

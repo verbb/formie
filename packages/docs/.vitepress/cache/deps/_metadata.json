@@ -1,0 +1,76 @@
+{
+  "hash": "e2b28665",
+  "configHash": "f7138108",
+  "lockfileHash": "9c6aafad",
+  "browserHash": "5a656c44",
+  "optimized": {
+    "vue": {
+      "src": "../../../../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "file": "vue.js",
+      "fileHash": "68851686",
+      "needsInterop": false
+    },
+    "vitepress > @vue/devtools-api": {
+      "src": "../../../../../node_modules/@vue/devtools-api/dist/index.js",
+      "file": "vitepress___@vue_devtools-api.js",
+      "fileHash": "894640a4",
+      "needsInterop": false
+    },
+    "vitepress > @vueuse/core": {
+      "src": "../../../../../node_modules/@vueuse/core/index.mjs",
+      "file": "vitepress___@vueuse_core.js",
+      "fileHash": "b6abebcd",
+      "needsInterop": false
+    },
+    "vitepress > @vueuse/integrations/useFocusTrap": {
+      "src": "../../../../../node_modules/@vueuse/integrations/useFocusTrap.mjs",
+      "file": "vitepress___@vueuse_integrations_useFocusTrap.js",
+      "fileHash": "04d80afe",
+      "needsInterop": false
+    },
+    "vitepress > mark.js/src/vanilla.js": {
+      "src": "../../../../../node_modules/mark.js/dist/mark.es6.js",
+      "file": "vitepress___mark__js_src_vanilla__js.js",
+      "fileHash": "afe7a94f",
+      "needsInterop": true
+    },
+    "vitepress > minisearch": {
+      "src": "../../../../../node_modules/minisearch/dist/es/index.js",
+      "file": "vitepress___minisearch.js",
+      "fileHash": "15564876",
+      "needsInterop": false
+    },
+    "mark.js/src/vanilla.js": {
+      "src": "../../../../../node_modules/mark.js/dist/mark.es6.js",
+      "file": "mark__js_src_vanilla__js.js",
+      "fileHash": "33be2509",
+      "needsInterop": true
+    },
+    "flatpickr": {
+      "src": "../../../../../node_modules/flatpickr/dist/esm/index.js",
+      "file": "flatpickr.js",
+      "fileHash": "2df954dc",
+      "needsInterop": false
+    },
+    "flatpickr/dist/l10n/index.js": {
+      "src": "../../../../../node_modules/flatpickr/dist/l10n/index.js",
+      "file": "flatpickr_dist_l10n_index__js.js",
+      "fileHash": "d28f15e4",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-APM3YBJQ": {
+      "file": "chunk-APM3YBJQ.js"
+    },
+    "chunk-2PMMW6PM": {
+      "file": "chunk-2PMMW6PM.js"
+    },
+    "chunk-GYQ6PBQT": {
+      "file": "chunk-GYQ6PBQT.js"
+    },
+    "chunk-BUSYA2B4": {
+      "file": "chunk-BUSYA2B4.js"
+    }
+  }
+}

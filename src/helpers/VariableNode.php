@@ -5,7 +5,7 @@ use verbb\formie\prosemirror\tohtml\Nodes\Node;
 
 class VariableNode extends Node
 {
-    // Static Methods
+    // Public Methods
     // =========================================================================
 
     public function matching(): bool

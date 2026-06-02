@@ -1,0 +1,7 @@
+{% formtag 'formNavigation' %}
+    {% if form.settings.progressPosition == 'start' %}
+        {{ formieInclude('form/progress') }}
+    {% endif %}
+
+    {{ formieInclude('form/tabs') }}
+{% endformtag %}

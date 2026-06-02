@@ -1,43 +1,43 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
+use verbb\formie\fields\values\OptionValue;
 use verbb\formie\fields\Dropdown;
-use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 
-use DateTime;
-
-class DateDropdown extends Dropdown implements SubFieldInnerFieldInterface
+class DateDropdown extends Dropdown implements ChildFieldInterface
 {
     // Public Methods
     // =========================================================================
 
     public function validateDateRange(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
 
         $range = [];
 
         foreach ($this->options() as $option) {
             if (!isset($option['optgroup'])) {
                 // Cast the option value to a string in case it is an integer
-                $range[] = strtolower((string)$option['value']);
+                $range[] = (string)$option['value'];
             }
         }
 
-        if ($range && !in_array((string)$value, $range)) {
-            $element->addError($this->fieldKey, Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+        $valueToValidate = $value instanceof OptionValue ? $value->value : $value;
+
+        if ($valueToValidate === null || $valueToValidate === '' || !in_array((string)$valueToValidate, $range, true)) {
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
         }
     }
 
     public function getElementValidationRules(): array
     {
-        // Remove any parent rules
+        // Child date dropdown fields validate only their own selected option value.
         $rules = [];
-        $rules[] = ['validateDateRange'];
+        $rules[] = [$this->handle, 'validateDateRange'];
 
         return $rules;
     }

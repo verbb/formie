@@ -1,18 +1,12 @@
-{# Keep track of the outer group field #}
-{% set groupField = field %}
-
 {% if value %}
     <div style="margin: 1em 0;">
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
             <tbody>
                 {% for field in field.getFields() %}
                     {% if not field.isConditionallyHidden(submission) %}
-                        {# Update the namespace for the field #}
-                        {% do field.setParentField(groupField) %}
+                        {% set fieldValue = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
-                        {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
-
-                        {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
+                        {% set html = field.getReferenceBlockHtml(submission, notification, fieldValue) %}
 
                         {% if html %}
                             <tr>

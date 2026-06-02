@@ -1,12 +1,17 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\cache\FieldGqlCache;
+use verbb\formie\cache\FieldLookupCache;
+use verbb\formie\cache\FieldRegistryCache;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\SubFieldInterface;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\ModifyExistingFieldsEvent;
 use verbb\formie\events\ModifyFieldConfigEvent;
 use verbb\formie\events\ModifyFieldRowConfigEvent;
@@ -15,7 +20,9 @@ use verbb\formie\events\RegisterFieldOptionsEvent;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\integrations\feedme\elementfields as FeedMeElementField;
 use verbb\formie\integrations\feedme\fields as FeedMeField;
 use verbb\formie\models\FieldLayout;
@@ -30,6 +37,8 @@ use verbb\formie\records\FieldLayout as FieldLayoutRecord;
 use verbb\formie\records\FieldLayoutPage as FieldLayoutPageRecord;
 use verbb\formie\records\FieldLayoutRow as FieldLayoutRowRecord;
 use verbb\formie\records\Field as FieldRecord;
+use verbb\formie\records\FormField as FormFieldRecord;
+use verbb\formie\validators\LayoutHandleUniqueValidator;
 
 use Craft;
 use craft\base\Component;
@@ -41,39 +50,21 @@ use craft\fields\BaseRelationField;
 use craft\fields\PlainText;
 use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
+use craft\helpers\Json;
+use craft\models\GqlSchema;
 use craft\validators\HandleValidator;
 
 use Exception;
+use GraphQL\Type\Definition\Type;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionProperty;
 use Throwable;
 
 use yii\base\InvalidConfigException;
 
 class Fields extends Component
 {
-    // Static Methods
-    // =========================================================================
-
-    public static function getFieldHandles(): array
-    {
-        // Just in case this fires too early in another plugin migration
-        if (!Craft::$app->getDb()->tableExists(Table::FORMIE_FIELDS)) {
-            return [];
-        }
-
-        // Maintain a cache of all Formie field handles, because we can't rely on Craft's customFields behaviour.
-        return Craft::$app->getCache()->getOrSet('formie:fieldHandles', function() {
-            return (new Query())->select(['handle', 'uid'])->from(Table::FORMIE_FIELDS)->indexBy('uid')->column();
-        });
-    }
-
-    public static function resetFieldHandles(): void
-    {
-        Craft::$app->getCache()->delete('formie:fieldHandles');
-    }
-
-
     // Constants
     // =========================================================================
 
@@ -91,21 +82,22 @@ class Fields extends Component
     // Properties
     // =========================================================================
 
-    private array $_layouts = [];
-    private array $_fields = [];
-    private array $_fieldsForForm = [];
-    private array $_registeredFields = [];
-    private array $_registeredFieldTypes = [];
-    private array $_existingFields = [];
-
+    private ?FieldLookupCache $_fieldLookupCache = null;
+    private ?FieldRegistryCache $_fieldRegistryCache = null;
+    private ?FieldGqlCache $_fieldGqlCache = null;
+    private ?array $_reservedHandles = null;
+    private array $_definitionIdsBeingDeleted = [];
+    
 
     // Public Methods
     // =========================================================================
 
     public function getRegisteredFieldTypes(bool $excludeDisabled = true): array
     {
-        if (count($this->_registeredFieldTypes)) {
-            return $this->_registeredFieldTypes;
+        $cacheKey = $excludeDisabled ? 'exclude-disabled' : 'include-disabled';
+
+        if (isset($this->_getFieldRegistryCache()->registeredFieldTypes[$cacheKey])) {
+            return $this->_getFieldRegistryCache()->registeredFieldTypes[$cacheKey];
         }
 
         $fieldTypes = [
@@ -146,11 +138,11 @@ class Fields extends Component
             formiefields\subfields\Address2::class,
             formiefields\subfields\Address3::class,
             formiefields\subfields\AddressCity::class,
+            formiefields\subfields\DateDate::class,
+            formiefields\subfields\DateTime::class,
             formiefields\subfields\AddressZip::class,
             formiefields\subfields\AddressState::class,
             formiefields\subfields\AddressCountry::class,
-            formiefields\subfields\DateDate::class,
-            formiefields\subfields\DateTime::class,
             formiefields\subfields\DateYearDropdown::class,
             formiefields\subfields\DateMonthDropdown::class,
             formiefields\subfields\DateDayDropdown::class,
@@ -184,40 +176,28 @@ class Fields extends Component
             ]);
         }
 
-        return $this->_registeredFieldTypes = $fieldTypes;
+        $this->_getFieldRegistryCache()->registeredFieldTypes[$cacheKey] = $fieldTypes;
+
+        return $this->_getFieldRegistryCache()->registeredFieldTypes[$cacheKey];
     }
 
     public function getRegisteredFields(bool $excludeDisabled = true): array
     {
-        if (count($this->_registeredFields)) {
-            return $this->_registeredFields;
+        $cacheKey = $excludeDisabled ? 'exclude-disabled' : 'include-disabled';
+
+        if (isset($this->_getFieldRegistryCache()->registeredFields[$cacheKey])) {
+            return $this->_getFieldRegistryCache()->registeredFields[$cacheKey];
         }
 
-        $settings = Formie::$plugin->getSettings();
-        $disabledFields = $settings->disabledFields;
+        $registeredFields = [];
 
-        $fieldTypes = $this->getRegisteredFieldTypes($excludeDisabled);
-
-        $event = new RegisterFieldsEvent([
-            'fields' => $fieldTypes,
-        ]);
-
-        $this->trigger(self::EVENT_REGISTER_FIELDS, $event);
-
-        // Missing Field cannot be removed
-        $event->fields[] = formiefields\MissingField::class;
-        $event->fields = array_unique($event->fields);
-
-        foreach ($event->fields as $class) {
-            // Check against plugin settings whether to exclude or not
-            if ($excludeDisabled && in_array($class, $disabledFields)) {
-                continue;
-            }
-
-            $this->_registeredFields[$class] = new $class;
+        foreach ($this->_getResolvedRegisteredFieldTypes($excludeDisabled) as $class) {
+            $registeredFields[$class] = $this->_getRegisteredFieldInstance($class);
         }
 
-        return $this->_registeredFields;
+        $this->_getFieldRegistryCache()->registeredFields[$cacheKey] = $registeredFields;
+
+        return $this->_getFieldRegistryCache()->registeredFields[$cacheKey];
     }
 
     public function getFieldsByType(string $typeClass): array
@@ -229,148 +209,53 @@ class Fields extends Component
         }));
     }
 
-    public function getFormBuilderFieldTypes(): array
+    public function getResolvedRegisteredFieldTypes(bool $excludeDisabled = true): array
     {
-        $registeredFields = $this->getRegisteredFields();
+        return $this->_getResolvedRegisteredFieldTypes($excludeDisabled);
+    }
 
-        $internalFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\MissingField::class),
-        ]);
+    public function getRegisteredFieldByType(string $type, bool $excludeDisabled = true): ?FieldInterface
+    {
+        $registeredFieldTypes = $this->_getResolvedRegisteredFieldTypes($excludeDisabled);
 
-        $basicFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\SingleLineText::class),
-            ArrayHelper::remove($registeredFields, formiefields\MultiLineText::class),
-            ArrayHelper::remove($registeredFields, formiefields\Name::class),
-            ArrayHelper::remove($registeredFields, formiefields\Email::class),
-            ArrayHelper::remove($registeredFields, formiefields\Phone::class),
-            ArrayHelper::remove($registeredFields, formiefields\Number::class),
-        ]);
-
-        $optionFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\Radio::class),
-            ArrayHelper::remove($registeredFields, formiefields\Checkboxes::class),
-            ArrayHelper::remove($registeredFields, formiefields\Dropdown::class),
-            ArrayHelper::remove($registeredFields, formiefields\Agree::class),
-        ]);
-
-        $advancedFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\Date::class),
-            ArrayHelper::remove($registeredFields, formiefields\Address::class),
-            ArrayHelper::remove($registeredFields, formiefields\FileUpload::class),
-            ArrayHelper::remove($registeredFields, formiefields\Password::class),
-            ArrayHelper::remove($registeredFields, formiefields\Hidden::class),
-            ArrayHelper::remove($registeredFields, formiefields\Recipients::class),
-            ArrayHelper::remove($registeredFields, formiefields\Signature::class),
-            ArrayHelper::remove($registeredFields, formiefields\Calculations::class),
-            ArrayHelper::remove($registeredFields, formiefields\Payment::class),
-        ]);
-
-        $dynamicFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\Repeater::class),
-            ArrayHelper::remove($registeredFields, formiefields\Group::class),
-            ArrayHelper::remove($registeredFields, formiefields\Table::class),
-        ]);
-
-        $cosmeticFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\Heading::class),
-            ArrayHelper::remove($registeredFields, formiefields\Section::class),
-            ArrayHelper::remove($registeredFields, formiefields\Html::class),
-            ArrayHelper::remove($registeredFields, formiefields\Summary::class),
-        ]);
-
-        $elementFields = array_filter([
-            ArrayHelper::remove($registeredFields, formiefields\Entries::class),
-            ArrayHelper::remove($registeredFields, formiefields\Categories::class),
-            ArrayHelper::remove($registeredFields, formiefields\Tags::class),
-        ]);
-
-        if (Craft::$app->getEdition() === Craft::Pro) {
-            $elementFields = array_merge($elementFields, array_filter([
-                ArrayHelper::remove($registeredFields, formiefields\Users::class),
-            ]));
+        if (!in_array($type, $registeredFieldTypes, true)) {
+            return null;
         }
 
-        if (Plugin::isPluginInstalledAndEnabled('commerce')) {
-            $elementFields = array_merge($elementFields, array_filter([
-                ArrayHelper::remove($registeredFields, formiefields\Products::class),
-                ArrayHelper::remove($registeredFields, formiefields\Variants::class),
-            ]));
-        }
+        return $this->_getRegisteredFieldInstance($type);
+    }
 
-        $groupedFields = [];
-
-        if ($internalFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Internal'),
-                'handle' => 'internal',
-                'fields' => array_values($internalFields),
-            ];
-        }
-
-        if ($basicFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Basic Fields'),
-                'handle' => 'basic',
-                'fields' => array_values($basicFields),
-            ];
-        }
-
-        if ($optionFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Option Fields'),
-                'handle' => 'option',
-                'fields' => array_values($optionFields),
-            ];
-        }
-
-        if ($advancedFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Advanced Fields'),
-                'handle' => 'advanced',
-                'fields' => array_values($advancedFields),
-            ];
-        }
-
-        if ($dynamicFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Dynamic Fields'),
-                'handle' => 'dynamic',
-                'fields' => array_values($dynamicFields),
-            ];
-        }
-
-        if ($cosmeticFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Cosmetic Fields'),
-                'handle' => 'cosmetic',
-                'fields' => array_values($cosmeticFields),
-            ];
-        }
-
-        if ($elementFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Element Fields'),
-                'handle' => 'element',
-                'fields' => array_values($elementFields),
-            ];
-        }
-
-        // Any custom fields
-        if ($registeredFields) {
-            $groupedFields[] = [
-                'label' => Craft::t('formie', 'Custom Fields'),
-                'handle' => 'custom',
-                'fields' => array_values($registeredFields),
-            ];
-        }
+    public function getFormBuilderFieldTypes(array $fullConfigTypes = []): array
+    {
+        $registeredFieldTypes = $this->_getResolvedRegisteredFieldTypes();
+        $groupedFields = $this->getGroupedFieldTypeDefinitions($registeredFieldTypes);
 
         foreach ($groupedFields as $groupKey => $group) {
-            foreach ($group['fields'] as $fieldKey => $class) {
-                $groupedFields[$groupKey]['fields'][$fieldKey] = $class->getFieldTypeConfig();
+            foreach ($group['fields'] as $fieldKey => $fieldTypeDefinition) {
+                $type = $fieldTypeDefinition['type'];
+                $field = $this->_getRegisteredFieldInstance($type);
+                $fieldConfig = $field->getFieldTypeConfig(true);
+
+                $groupedFields[$groupKey]['fields'][$fieldKey] = $fieldConfig;
             }
         }
 
         return $groupedFields;
+    }
+
+    public function getFieldTypeDefinition(string $fieldClass): array
+    {
+        return Formie::$plugin->getFieldTypeDefinitions()->getDefinition($fieldClass);
+    }
+
+    public function getFieldTypeDefinitions(array $fieldClasses): array
+    {
+        return Formie::$plugin->getFieldTypeDefinitions()->getDefinitions($fieldClasses);
+    }
+
+    public function getGroupedFieldTypeDefinitions(array $fieldClasses): array
+    {
+        return Formie::$plugin->getFieldTypeDefinitions()->getGroupedDefinitions($fieldClasses);
     }
 
     public function getRegisteredFormieFields(): array
@@ -416,8 +301,10 @@ class Fields extends Component
 
     public function getExistingFields(Form $excludeForm = null): array
     {
-        if ($this->_existingFields) {
-            return $this->_existingFields;
+        $cacheKey = $excludeForm?->id ?: 'all';
+
+        if (array_key_exists($cacheKey, $this->_getFieldLookupCache()->existingFieldsByExcludeFormId)) {
+            return $this->_getFieldLookupCache()->existingFieldsByExcludeFormId[$cacheKey];
         }
 
         $query = Form::find()->orderBy('title ASC');
@@ -431,6 +318,7 @@ class Fields extends Component
         $forms = $query->all();
 
         $allFields = [];
+        $syncedDefinitionIds = [];
         $existingFields = [];
 
         foreach ($forms as $form) {
@@ -444,8 +332,12 @@ class Fields extends Component
 
                 foreach ($fields as $field) {
                     // Only include one instance of a synced field.
-                    if ($field->isSynced && ArrayHelper::contains($allFields, 'id', $field->id)) {
+                    if ($field->isSynced && $field->fieldId && in_array($field->fieldId, $syncedDefinitionIds, true)) {
                         continue;
+                    }
+
+                    if ($field->isSynced && $field->fieldId) {
+                        $syncedDefinitionIds[] = $field->fieldId;
                     }
 
                     $pageFields[] = $allFields[] = $field->getFormBuilderConfig();
@@ -483,7 +375,265 @@ class Fields extends Component
         ]);
         $this->trigger(self::EVENT_MODIFY_EXISTING_FIELDS, $event);
 
-        return $this->_existingFields = $event->fields;
+        return $this->_getFieldLookupCache()->existingFieldsByExcludeFormId[$cacheKey] = $event->fields;
+    }
+
+    public function getExistingFieldFormOptions(Form $excludeForm = null): array
+    {
+        $query = Form::find()->orderBy('title ASC');
+
+        // Exclude the current form.
+        if ($excludeForm) {
+            $query = $query->id("not {$excludeForm->id}");
+        }
+
+        /* @var Form[] $forms */
+        $forms = $query->all();
+
+        $options = [[
+            'key' => '*',
+            'label' => Craft::t('formie', 'All forms'),
+            'pages' => [],
+        ]];
+
+        foreach ($forms as $form) {
+            if (!$form->layoutId) {
+                continue;
+            }
+
+            $options[] = [
+                'key' => $form->handle,
+                'label' => $form->title,
+                'pages' => [],
+            ];
+        }
+
+        return $options;
+    }
+
+    public function getExistingFieldSummaries(Form $excludeForm = null, ?string $formKey = null, string $search = ''): array
+    {
+        $query = Form::find()->orderBy('title ASC');
+
+        // Exclude the current form.
+        if ($excludeForm) {
+            $query = $query->id("not {$excludeForm->id}");
+        }
+
+        /* @var Form[] $forms */
+        $forms = $query->all();
+
+        if (!$forms) {
+            return [];
+        }
+
+        $layoutIds = [];
+        $formsByLayoutId = [];
+        $existingFields = [];
+
+        $trimmedSearch = trim($search);
+
+        foreach ($forms as $form) {
+            if ($formKey && $formKey !== '*' && $form->handle !== $formKey) {
+                continue;
+            }
+
+            $layoutId = (int)$form->layoutId;
+
+            if (!$layoutId) {
+                continue;
+            }
+
+            $layoutIds[] = $layoutId;
+            $formsByLayoutId[$layoutId] = [
+                'key' => $form->handle,
+                'label' => $form->title,
+                'pages' => [],
+            ];
+        }
+
+        $layoutIds = array_values(array_unique($layoutIds));
+
+        if (!$layoutIds) {
+            return [];
+        }
+
+        $pageRecords = (new Query())
+            ->select(['id', 'layoutId', 'label', 'sortOrder'])
+            ->from(Table::FORMIE_FIELD_LAYOUT_PAGES)
+            ->where(['layoutId' => $layoutIds])
+            ->orderBy(['layoutId' => SORT_ASC, 'sortOrder' => SORT_ASC])
+            ->all();
+
+        $pagesById = [];
+
+        foreach ($pageRecords as $pageRecord) {
+            $pageId = (int)$pageRecord['id'];
+            $layoutId = (int)$pageRecord['layoutId'];
+
+            if (!isset($formsByLayoutId[$layoutId])) {
+                continue;
+            }
+
+            $pageData = [
+                'id' => $pageId,
+                'label' => (string)$pageRecord['label'],
+                'fields' => [],
+            ];
+
+            $formsByLayoutId[$layoutId]['pages'][] = $pageData;
+            $pagesById[$pageId] = $pageData;
+        }
+
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
+
+        $fieldQuery = (new Query())
+            ->select([
+                'ff.id',
+                'ff.fieldId',
+                'ff.pageId',
+                'ff.reference',
+                'f.label',
+                'f.handle',
+                'f.type',
+                'COALESCE(usage.count, 1) as usageCount',
+            ])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
+            ->where(['ff.layoutId' => $layoutIds]);
+
+        if ($trimmedSearch !== '') {
+            $fieldQuery->andWhere([
+                'or',
+                ['like', 'f.label', $trimmedSearch],
+                ['like', 'f.handle', $trimmedSearch],
+            ]);
+        }
+
+        $fieldRecords = $fieldQuery->all();
+
+        foreach ($fieldRecords as $fieldRecord) {
+            $pageId = (int)$fieldRecord['pageId'];
+
+            $summary = [
+                'id' => (int)$fieldRecord['id'],
+                'fieldId' => (int)$fieldRecord['fieldId'],
+                'syncId' => ((int)($fieldRecord['usageCount'] ?? 1) > 1) ? (int)$fieldRecord['fieldId'] : null,
+                'isSynced' => (int)($fieldRecord['usageCount'] ?? 1) > 1,
+                'label' => (string)$fieldRecord['label'],
+                'handle' => (string)$fieldRecord['handle'],
+                'type' => (string)$fieldRecord['type'],
+                'reference' => $fieldRecord['reference'] ?: null,
+            ];
+
+            if (isset($pagesById[$pageId])) {
+                $pagesById[$pageId]['fields'][] = $summary;
+            }
+        }
+
+        foreach ($formsByLayoutId as $formData) {
+            $pages = [];
+
+            foreach ($formData['pages'] as $pageData) {
+                $resolvedPage = $pagesById[$pageData['id']] ?? $pageData;
+                ArrayHelper::multisort($resolvedPage['fields'], 'label', SORT_ASC, SORT_STRING);
+
+                $pages[] = [
+                    'label' => $resolvedPage['label'],
+                    'fields' => $resolvedPage['fields'],
+                ];
+            }
+
+            $existingFields[] = [
+                'key' => $formData['key'],
+                'label' => $formData['label'],
+                'pages' => $pages,
+            ];
+        }
+
+        if ($formKey === '*') {
+            $allFields = [];
+            $syncedDefinitions = [];
+
+            foreach ($existingFields as $formData) {
+                foreach ($formData['pages'] as $pageData) {
+                    foreach ($pageData['fields'] as $fieldData) {
+                        $definitionId = (int)($fieldData['fieldId'] ?? 0);
+
+                        if (!empty($fieldData['isSynced']) && $definitionId && in_array($definitionId, $syncedDefinitions, true)) {
+                            continue;
+                        }
+
+                        if (!empty($fieldData['isSynced']) && $definitionId) {
+                            $syncedDefinitions[] = $definitionId;
+                        }
+
+                        $allFields[] = $fieldData;
+                    }
+                }
+            }
+
+            ArrayHelper::multisort($allFields, 'label', SORT_ASC, SORT_STRING);
+
+            return [[
+                'key' => '*',
+                'label' => Craft::t('formie', 'All forms'),
+                'pages' => [[
+                    'label' => Craft::t('formie', 'All fields'),
+                    'fields' => $allFields,
+                ]],
+            ]];
+        }
+
+        return $existingFields;
+    }
+
+    public function getExistingFieldConfigs(array $fieldIds, Form $excludeForm = null): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $fieldIds))));
+
+        if (!$ids) {
+            return [];
+        }
+
+        $query = $this->_createFormFieldConfigQuery()
+            ->where(['ff.id' => $ids]);
+
+        if ($excludeForm && $excludeForm->layoutId) {
+            $query->andWhere(['not', ['ff.layoutId' => $excludeForm->layoutId]]);
+        }
+
+        $records = $query->all();
+        $recordsById = [];
+
+        foreach ($records as $record) {
+            $normalizedRecord = $this->_normalizeFormFieldConfig($record);
+            $recordsById[(int)$normalizedRecord['id']] = $normalizedRecord;
+        }
+
+        $fields = [];
+
+        foreach ($ids as $id) {
+            if (!isset($recordsById[$id])) {
+                continue;
+            }
+
+            $field = Formie::$plugin->getFields()->createField($recordsById[$id]);
+
+            $fields[] = [
+                'id' => $id,
+                'field' => $field->getFormBuilderConfig(),
+            ];
+        }
+
+        return $fields;
     }
 
     public function createField(array $config = []): FieldInterface
@@ -498,6 +648,22 @@ class Fields extends Component
                 'type' => $config['settings']['expectedType'],
                 'settings' => $config['settings']['settings'] ?? [],
             ];
+        }
+
+        // `expectedType` is MissingField recovery metadata, not a concrete field
+        // setting. Drop it before hydrating real field classes from cached/project config.
+        if (isset($config['expectedType'])) {
+            unset($config['expectedType']);
+        }
+
+        $settings = Json::decodeIfJson($config['settings'] ?? null);
+
+        if (is_array($settings) && isset($settings['expectedType'])) {
+            unset($settings['expectedType']);
+            unset($settings['settings']);
+            $config['settings'] = $settings;
+        } else if ($settings === null && array_key_exists('settings', $config)) {
+            unset($config['settings']);
         }
 
         try {
@@ -517,90 +683,391 @@ class Fields extends Component
 
     public function getAllLayouts(): array
     {
-        if ($this->_layouts) {
-            return $this->_layouts;
+        if ($this->_getFieldLookupCache()->layouts) {
+            return $this->_getFieldLookupCache()->layouts;
         }
-
-        $layouts = [];
 
         $layoutIds = (new Query())
             ->select(['id'])
             ->from(Table::FORMIE_FIELD_LAYOUTS)
             ->column();
 
-        foreach ($layoutIds as $layoutId) {
-            $layouts[] = $this->getLayoutById($layoutId);
-        }
-
-        return $this->_layouts = $layouts;
+        return $this->_getFieldLookupCache()->layouts = array_values($this->getLayoutsByIds($layoutIds));
     }
 
     public function getAllFields(): array
     {
-        if ($this->_fields) {
-            return $this->_fields;
+        if ($this->_getFieldLookupCache()->fields === null) {
+            // Keep raw field-definition rows cached until a caller actually asks for hydrated field
+            // instances. Many requests only need layout/config metadata, so eagerly creating every
+            // field object up front recreates the same broad bootstrap cost Craft hit in #13992.
+            $this->_getFieldLookupCache()->fields = (new Query())->from(Table::FORMIE_FIELDS)->all();
         }
 
-        $fields = [];
-
-        $fieldRecords = (new Query())->from(Table::FORMIE_FIELDS)->all();
-
-        foreach ($fieldRecords as $fieldRecord) {
-            $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
-        }
-
-        return $this->_fields = $fields;
+        return $this->_hydrateCachedFields($this->_getFieldLookupCache()->fields);
     }
 
     public function getAllFieldsForForm(int $formId): array
     {
-        if (isset($this->_fieldsForForm[$formId])) {
-            return $this->_fieldsForForm[$formId];
+        return $this->getAllFieldsForForms([$formId])[$formId] ?? [];
+    }
+
+    public function getAllFieldConfigsForForms(array $formIds): array
+    {
+        $resolvedFormIds = array_values(array_unique(array_filter(array_map('intval', $formIds))));
+
+        if (!$resolvedFormIds) {
+            return [];
         }
 
-        $fields = [];
+        $fieldConfigsByForm = [];
+        $missingFormIds = [];
 
-        $fieldRecords = (new Query())
-            ->select(['f.*'])
-            ->from(['f' => Table::FORMIE_FIELDS])
-            ->innerJoin(['ff' => Table::FORMIE_FORMS], '[[f.layoutId]] = [[ff.layoutId]]')
-            ->where(['ff.id' => $formId])
-            ->all();
-
-        foreach ($fieldRecords as $fieldRecord) {
-            $fields[] = Formie::$plugin->getFields()->createField($fieldRecord);
+        foreach ($resolvedFormIds as $formId) {
+            if (isset($this->_getFieldLookupCache()->fieldsForForm[$formId])) {
+                $fieldConfigsByForm[$formId] = $this->_getFieldLookupCache()->fieldsForForm[$formId];
+            } else {
+                $missingFormIds[] = $formId;
+            }
         }
 
-        return $this->_fieldsForForm[$formId] = $fields;
+        if ($missingFormIds) {
+            $fieldRecords = $this->_createFormFieldConfigQuery()
+                ->select([
+                    'ff.id',
+                    'ff.fieldId',
+                    'ff.layoutId',
+                    'ff.pageId',
+                    'ff.rowId',
+                    'ff.reference',
+                    'ff.sortOrder',
+                    'ff.dateCreated',
+                    'ff.dateUpdated',
+                    'ff.uid',
+                    'ff.settings as formFieldSettings',
+                    'f.label',
+                    'f.handle',
+                    'f.type',
+                    'f.settings',
+                    'COALESCE(usage.count, 1) as usageCount',
+                    'fo.id as formId',
+                ])
+                ->innerJoin(['fo' => Table::FORMIE_FORMS], '[[ff.layoutId]] = [[fo.layoutId]]')
+                ->where(['fo.id' => $missingFormIds])
+                ->all();
+
+            foreach ($missingFormIds as $formId) {
+                $this->_getFieldLookupCache()->fieldsForForm[$formId] = [];
+            }
+
+            foreach ($fieldRecords as $fieldRecord) {
+                $formId = (int)($fieldRecord['formId'] ?? 0);
+
+                if (!$formId) {
+                    continue;
+                }
+
+                // Keep GraphQL and other metadata-only consumers on the normalized config path so
+                // they can inspect field structure without paying the full `createField()` cost.
+                $this->_getFieldLookupCache()->fieldsForForm[$formId][] = $this->_normalizeFormFieldConfig($fieldRecord);
+            }
+        }
+
+        foreach ($resolvedFormIds as $formId) {
+            $fieldConfigsByForm[$formId] = $this->_getFieldLookupCache()->fieldsForForm[$formId] ?? [];
+        }
+
+        return $fieldConfigsByForm;
+    }
+
+    public function getAllFieldsForForms(array $formIds): array
+    {
+        $fieldsByForm = [];
+        foreach ($this->getAllFieldConfigsForForms($formIds) as $formId => $_fieldConfigs) {
+            $fieldsByForm[$formId] = isset($this->_getFieldLookupCache()->fieldsForForm[$formId])
+                ? $this->_hydrateCachedFields($this->_getFieldLookupCache()->fieldsForForm[$formId])
+                : [];
+        }
+
+        return $fieldsByForm;
+    }
+
+    public function getFieldConfigSettings(array $fieldConfig): array
+    {
+        $cacheKey = $this->_getFieldConfigSettingsCacheKey($fieldConfig);
+
+        if (array_key_exists($cacheKey, $this->_getFieldLookupCache()->decodedFieldSettings)) {
+            return $this->_getFieldLookupCache()->decodedFieldSettings[$cacheKey];
+        }
+
+        $settings = Json::decodeIfJson($fieldConfig['settings'] ?? null);
+
+        return $this->_getFieldLookupCache()->decodedFieldSettings[$cacheKey] = (is_array($settings) ? $settings : []);
+    }
+
+    public function getNestedFieldConfigs(array $fieldConfig): array
+    {
+        $settings = $this->getFieldConfigSettings($fieldConfig);
+        $rows = $fieldConfig['rows'] ?? $settings['rows'] ?? [];
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $nestedFieldConfigs = [];
+
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            foreach (($row['fields'] ?? []) as $nestedFieldConfig) {
+                if (!is_array($nestedFieldConfig)) {
+                    continue;
+                }
+
+                $nestedFieldConfigs[] = $this->_normalizeNestedFieldConfig($nestedFieldConfig);
+            }
+        }
+
+        return $nestedFieldConfigs;
+    }
+
+    public function getFieldConfigGqlTypeName(array $fieldConfig, string $suffix): string
+    {
+        $handle = preg_replace('/[^A-Za-z0-9_]+/', '_', (string)($fieldConfig['handle'] ?? 'Field'));
+        $handle = trim((string)$handle, '_');
+        $handle = $handle !== '' ? $handle : 'Field';
+        $identifier = $this->_getGqlFieldConfigCacheKey($fieldConfig);
+        $identifier = preg_replace('/[^A-Za-z0-9_]+/', '_', $identifier);
+        $identifier = trim((string)$identifier, '_');
+
+        return "Formie_{$handle}_{$identifier}_{$suffix}";
     }
 
     public function getLayoutById(int $id): ?FieldLayout
     {
-        return $this->_getLayout(['l.id' => $id]);
+        return $this->getLayoutsByIds([$id])[$id] ?? null;
+    }
+
+    public function getLayoutsByIds(array $ids): array
+    {
+        $resolvedIds = array_values(array_unique(array_filter(array_map('intval', $ids))));
+
+        if (!$resolvedIds) {
+            return [];
+        }
+
+        $layouts = [];
+        $missingIds = [];
+
+        foreach ($resolvedIds as $id) {
+            if (array_key_exists($id, $this->_getFieldLookupCache()->layoutsById)) {
+                if ($this->_getFieldLookupCache()->layoutsById[$id] !== null) {
+                    $layouts[$id] = $this->_getFieldLookupCache()->layoutsById[$id];
+                }
+            } else {
+                $missingIds[] = $id;
+            }
+        }
+
+        if ($missingIds) {
+            // Resolve all missing layouts in one query/build pass so callers that iterate many forms
+            // do not pay the nested layout hydration cost once per layout.
+            foreach ($this->_getLayouts(['l.id' => $missingIds]) as $layoutId => $layout) {
+                $this->_getFieldLookupCache()->layoutsById[$layoutId] = $layout;
+                $layouts[$layoutId] = $layout;
+            }
+
+            foreach ($missingIds as $missingId) {
+                if (!array_key_exists($missingId, $this->_getFieldLookupCache()->layoutsById)) {
+                    // Cache misses too, otherwise repeated lookups for unknown IDs keep requerying.
+                    $this->_getFieldLookupCache()->layoutsById[$missingId] = null;
+                }
+            }
+        }
+
+        return $layouts;
     }
 
     public function getPageById(int $id): ?FieldLayoutPage
     {
-        return $this->_getPage(['p.id' => $id]);
+        if (!$id) {
+            return null;
+        }
+
+        if (array_key_exists($id, $this->_getFieldLookupCache()->pagesById)) {
+            return $this->_getFieldLookupCache()->pagesById[$id];
+        }
+
+        return $this->_getFieldLookupCache()->pagesById[$id] = $this->_getPage(['p.id' => $id]);
     }
 
     public function getRowById(int $id): ?FieldLayoutRow
     {
-        return $this->_getRow(['r.id' => $id]);
+        if (!$id) {
+            return null;
+        }
+
+        if (array_key_exists($id, $this->_getFieldLookupCache()->rowsById)) {
+            return $this->_getFieldLookupCache()->rowsById[$id];
+        }
+
+        return $this->_getFieldLookupCache()->rowsById[$id] = $this->_getRow(['r.id' => $id]);
     }
 
     public function getFieldById(int $id): ?FieldInterface
     {
-        $fieldRecord = FieldRecord::findOne(['id' => $id])?->attributes ?? [];
+        $fieldRecord = $this->_getFieldConfigById($id);
 
         return $fieldRecord ? $this->createField($fieldRecord) : null;
     }
 
-    public function getFieldByHandle(string $handle): ?FieldInterface
+    public function getFieldDefinitionById(int $id): ?FieldInterface
     {
-        $fieldRecord = FieldRecord::findOne(['handle' => $handle])?->attributes ?? [];
+        if (!$id) {
+            return null;
+        }
+
+        $fieldRecord = (new Query())
+            ->from(Table::FORMIE_FIELDS)
+            ->where(['id' => $id])
+            ->one();
 
         return $fieldRecord ? $this->createField($fieldRecord) : null;
+    }
+
+    public function getFieldByReference(string $reference): ?FieldInterface
+    {
+        $fieldRecord = $this->_getFieldConfigByReference($reference);
+
+        return $fieldRecord ? $this->createField($fieldRecord) : null;
+    }
+
+    public function fieldIncludedInGqlSchema(FieldInterface $field, GqlSchema $schema): bool
+    {
+        $fieldCacheKey = $this->_getGqlFieldCacheKey($field);
+        $schemaCacheKey = spl_object_id($schema);
+        $cachedValue = $this->_getFieldGqlCache()->getFieldIncludeInSchema($fieldCacheKey, $schemaCacheKey);
+
+        if ($cachedValue === null) {
+            $cachedValue = $field->includeInGqlSchema($schema);
+            $this->_getFieldGqlCache()->setFieldIncludeInSchema($fieldCacheKey, $schemaCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldContentGqlType(FieldInterface $field): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldCacheKey($field);
+        $cachedValue = $this->_getFieldGqlCache()->getFieldContentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $cachedValue = $field->getContentGqlType();
+            $this->_getFieldGqlCache()->setFieldContentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldContentGqlQueryArgumentType(FieldInterface $field): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldCacheKey($field);
+        $cachedValue = $this->_getFieldGqlCache()->getFieldQueryArgumentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $cachedValue = $field->getContentGqlQueryArgumentType();
+            $this->_getFieldGqlCache()->setFieldQueryArgumentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldContentGqlMutationArgumentType(FieldInterface $field): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldCacheKey($field);
+        $cachedValue = $this->_getFieldGqlCache()->getFieldMutationArgumentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $cachedValue = $field->getContentGqlMutationArgumentType();
+            $this->_getFieldGqlCache()->setFieldMutationArgumentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function fieldConfigIncludedInGqlSchema(array $fieldConfig, GqlSchema $schema): bool
+    {
+        $fieldCacheKey = $this->_getGqlFieldConfigCacheKey($fieldConfig);
+        $schemaCacheKey = spl_object_id($schema);
+        $cachedValue = $this->_getFieldGqlCache()->getConfigIncludeInSchema($fieldCacheKey, $schemaCacheKey);
+
+        if ($cachedValue === null) {
+            $provider = $this->_getGqlFieldConfigProvider($fieldConfig);
+
+            $cachedValue = $provider
+                ? $provider::gqlIncludeInSchemaFromConfig($fieldConfig, $schema)
+                : $this->fieldIncludedInGqlSchema($this->createField($fieldConfig), $schema);
+
+            $this->_getFieldGqlCache()->setConfigIncludeInSchema($fieldCacheKey, $schemaCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldConfigContentGqlType(array $fieldConfig): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldConfigCacheKey($fieldConfig);
+        $cachedValue = $this->_getFieldGqlCache()->getConfigContentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $provider = $this->_getGqlFieldConfigProvider($fieldConfig);
+
+            $cachedValue = $provider
+                ? $provider::gqlContentTypeFromConfig($fieldConfig)
+                : $this->getFieldContentGqlType($this->createField($fieldConfig));
+
+            $this->_getFieldGqlCache()->setConfigContentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldConfigContentGqlQueryArgumentType(array $fieldConfig): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldConfigCacheKey($fieldConfig);
+        $cachedValue = $this->_getFieldGqlCache()->getConfigQueryArgumentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $provider = $this->_getGqlFieldConfigProvider($fieldConfig);
+
+            $cachedValue = $provider
+                ? $provider::gqlContentQueryArgumentTypeFromConfig($fieldConfig)
+                : $this->getFieldContentGqlQueryArgumentType($this->createField($fieldConfig));
+
+            $this->_getFieldGqlCache()->setConfigQueryArgumentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
+    }
+
+    public function getFieldConfigContentGqlMutationArgumentType(array $fieldConfig): Type|array
+    {
+        $fieldCacheKey = $this->_getGqlFieldConfigCacheKey($fieldConfig);
+        $cachedValue = $this->_getFieldGqlCache()->getConfigMutationArgumentType($fieldCacheKey);
+
+        if ($cachedValue === null) {
+            $provider = $this->_getGqlFieldConfigProvider($fieldConfig);
+
+            $cachedValue = $provider
+                ? $provider::gqlContentMutationArgumentTypeFromConfig($fieldConfig)
+                : $this->getFieldContentGqlMutationArgumentType($this->createField($fieldConfig));
+
+            $this->_getFieldGqlCache()->setConfigMutationArgumentType($fieldCacheKey, $cachedValue);
+        }
+
+        return $cachedValue;
     }
 
     public function saveLayout(FieldLayout $layout): bool
@@ -615,122 +1082,59 @@ class Fields extends Component
             return false;
         }
 
-        if (!$isNewLayout) {
-            $layoutRecord = FieldLayoutRecord::find()
-                ->andWhere(['id' => $layout->id])
-                ->one();
+        // Use a transaction to ensure we don't have any records unless the entire layout succeeds
+        $transaction = Craft::$app->getDb()->beginTransaction();
+        $layoutId = null;
+
+        try {
+            $layoutRecord = $isNewLayout ? new FieldLayoutRecord() : FieldLayoutRecord::findOne($layout->id);
 
             if (!$layoutRecord) {
                 throw new Exception('Invalid field layout ID: ' . $layout->id);
             }
-        } else {
-            $layoutRecord = new FieldLayoutRecord();
-        }
 
-        $layoutRecord->id = $layout->id;
+            $layoutRecord->save(false);
+            $layout->id = $layoutRecord->id;
+            $layoutId = $layout->id;
+            LayoutHandleUniqueValidator::beginLayoutSaveScope($layout);
 
-        $layoutRecord->save(false);
+            foreach ($layout->getPages() as $pageKey => $page) {
+                $page->layoutId = $layout->id;
+                $page->sortOrder = $pageKey;
 
-        $layout->id = $layoutRecord->id;
+                if (!$this->savePage($page)) {
+                    // Bubble-up the page errors with stable page/row/field paths.
+                    ValidationHelper::addPrefixedErrors($layout, $page->getErrors(), "pages.$pageKey");
 
-        $layout->afterSave($isNewLayout);
-
-        // Use a transaction to ensure we don't have any records unless the entire layout succeeds
-        $transaction = Craft::$app->getDb()->beginTransaction();
-
-        // Use `unserialize/serialize` instead of `clone()` to deeply clone objects.
-        // Fallback to model re-instantiation if some field state includes closures.
-        try {
-            $previousPages = unserialize(serialize($layout->getPages()));
-        } catch (Throwable $e) {
-            $pagesConfig = $this->_stripErrorsFromConfig($layout->getFormBuilderConfig());
-            $previousPages = array_map(fn(array $page) => new FieldLayoutPage($page), $pagesConfig);
-        }
-
-        foreach ($layout->getPages() as $pageKey => $page) {
-            $page->layoutId = $layout->id;
-            $page->sortOrder = $pageKey;
-            
-            if (!$this->savePage($page)) {
-                $transaction->rollBack();
-
-                // We also need to reset attributes on modules back to what they were. For example, one row and field
-                // might validate and save correctly, but another fails. The transaction will prevent the records from saving
-                // being all-or-nothing, but the IDs on the models will be updated. They will not reflect saved records anymore.
-                // We then need to pluck any errors set on each model and insert back into the previous models
-                foreach ($previousPages as $pageKey => $page) {
-                    $currentPage = $layout->getPages()[$pageKey] ?? null;
-                    $currentPageErrors = $currentPage->errors ?? [];
-
-                    if ($currentPageErrors) {
-                        $page->addErrors($currentPageErrors);
-                    }
-
-                    foreach ($page->getRows() as $rowKey => $row) {
-                        $currentRow = $currentPage->getRows()[$rowKey] ?? null;
-                        $currentRowErrors = $currentRow->errors ?? [];
-
-                        if ($currentPageErrors) {
-                            $row->addErrors($currentRowErrors);
-
-                            // Bubble-up the validation errors
-                            $page->addError('rows', $currentRowErrors);
-                        }
-
-                        foreach ($row->getFields() as $fieldKey => $field) {
-                            $currentField = $currentRow->getFields()[$fieldKey] ?? null;
-                            $currentFieldErrors = $currentField->errors ?? [];
-
-                            if ($currentFieldErrors) {
-                                $field->addErrors($currentFieldErrors);
-
-                                // Bubble-up the validation errors
-                                $row->addError('fields', $currentFieldErrors);
-                                $page->addError('rows', $currentFieldErrors);
-                            }
-                        }
-                    }
+                    throw new Exception('Failed to save field layout page.');
                 }
-
-                $layout->setPages($previousPages);
-
-                return false;
             }
 
-            $newPageIds[] = $page->id;
+            // Cleanup any deleted pages/rows/fields by diffing against payload.
+            $this->_cleanupDeletedLayoutItems($layout);
+
+            $transaction->commit();
+            
+            $layout->afterSave($isNewLayout);
+
+            return true;
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            Formie::error('Failed to save field layout: “{message}” {file}:{line}', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'exception' => $e,
+            ]);
+
+            if (!$layout->hasErrors()) {
+                $layout->addError('layout', $e->getMessage() ?: Craft::t('formie', 'An error occurred.'));
+            }
+        } finally {
+            LayoutHandleUniqueValidator::endLayoutSaveScope($layoutId);
         }
 
-        $transaction->commit();
-
-        // Cleanup any deleted pages/rows/fields. Done here as we need to wait until everything is processed.
-        if ($deletedItems = $layout->getDeletedItems()) {
-            foreach (($deletedItems['fields'] ?? []) as $id) {
-                $this->deleteFieldById($id);
-            }
-
-            foreach (($deletedItems['rows'] ?? []) as $id) {
-                $this->deleteRowById($id);
-            }
-
-            foreach (($deletedItems['pages'] ?? []) as $id) {
-                $this->deletePageById($id);
-            }
-        }
-
-        return true;
-    }
-
-    private function _stripErrorsFromConfig(mixed $value): mixed
-    {
-        if (is_array($value)) {
-            unset($value['errors']);
-
-            foreach ($value as $key => $item) {
-                $value[$key] = $this->_stripErrorsFromConfig($item);
-            }
-        }
-
-        return $value;
+        return false;
     }
     
     public function deleteLayoutById(int $id): bool
@@ -751,6 +1155,8 @@ class Fields extends Component
         }
 
         Db::delete(Table::FORMIE_FIELD_LAYOUTS, ['id' => $layout->id]);
+        $this->_deleteUnusedFieldDefinitions();
+        $this->_resetFieldCaches();
 
         $layout->afterDelete();
 
@@ -769,16 +1175,10 @@ class Fields extends Component
             return false;
         }
 
-        if (!$isNewPage) {
-            $pageRecord = FieldLayoutPageRecord::find()
-                ->andWhere(['id' => $page->id])
-                ->one();
+        $pageRecord = $isNewPage ? new FieldLayoutPageRecord() : FieldLayoutPageRecord::findOne($page->id);
 
-            if (!$pageRecord) {
-                throw new Exception('Invalid field page ID: ' . $page->id);
-            }
-        } else {
-            $pageRecord = new FieldLayoutPageRecord();
+        if (!$pageRecord) {
+            throw new Exception('Invalid field page ID: ' . $page->id);
         }
 
         $pageRecord->id = $page->id;
@@ -799,6 +1199,9 @@ class Fields extends Component
             $row->sortOrder = $rowKey;
 
             if (!$this->saveRow($row)) {
+                // Bubble-up the row errors with stable row/field paths.
+                ValidationHelper::addPrefixedErrors($page, $row->getErrors(), "rows.$rowKey");
+
                 return false;
             }
         }
@@ -842,16 +1245,10 @@ class Fields extends Component
             return false;
         }
 
-        if (!$isNewRow) {
-            $rowRecord = FieldLayoutRowRecord::find()
-                ->andWhere(['id' => $row->id])
-                ->one();
+        $rowRecord = $isNewRow ? new FieldLayoutRowRecord() : FieldLayoutRowRecord::findOne($row->id);
 
-            if (!$rowRecord) {
-                throw new Exception('Invalid field row ID: ' . $row->id);
-            }
-        } else {
-            $rowRecord = new FieldLayoutRowRecord();
+        if (!$rowRecord) {
+            throw new Exception('Invalid field row ID: ' . $row->id);
         }
 
         $rowRecord->id = $row->id;
@@ -872,6 +1269,9 @@ class Fields extends Component
             $field->sortOrder = $fieldKey;
 
             if (!$this->saveField($field)) {
+                // Bubble-up field errors with a deterministic field index path.
+                ValidationHelper::addPrefixedErrors($row, $field->getErrors(), "fields.$fieldKey");
+
                 return false;
             }
         }
@@ -915,28 +1315,26 @@ class Fields extends Component
             return false;
         }
 
-        if (!$isNewField) {
-            $fieldRecord = FieldRecord::find()
-                ->andWhere(['id' => $field->id])
-                ->one();
+        $definitionId = $field->fieldId ?: $field->syncId;
+        $fieldRecord = $definitionId ? FieldRecord::findOne($definitionId) : new FieldRecord();
+        $existingDefinitionUsageCount = $definitionId ? (int)((new Query())
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['fieldId' => $definitionId])
+            ->count() ?: 0) : 0;
 
-            if (!$fieldRecord) {
-                throw new Exception('Invalid field ID: ' . $field->id);
-            }
-        } else {
-            $fieldRecord = new FieldRecord();
+        if (!$fieldRecord) {
+            throw new Exception('Invalid field definition ID: ' . $definitionId);
         }
 
-        $fieldRecord->id = $field->id;
-        $fieldRecord->layoutId = $field->layoutId;
-        $fieldRecord->pageId = $field->pageId;
-        $fieldRecord->rowId = $field->rowId;
-        $fieldRecord->syncId = $field->syncId;
+        if ($definitionId && $existingDefinitionUsageCount > 1) {
+            $field->handle = $fieldRecord->handle;
+        }
+
+        $fieldRecord->id = $definitionId;
         $fieldRecord->label = $field->label;
         $fieldRecord->handle = $field->handle;
         $fieldRecord->type = $field->type;
-        $fieldRecord->sortOrder = $field->sortOrder;
-        $fieldRecord->settings = $field->settings;
+        $fieldRecord->settings = Json::encode($field->getDefinitionSettings());
 
         // Check if this is a missing field, and swap back its type. 
         // This can commonly happen during a migration, not really from normal use.
@@ -946,18 +1344,35 @@ class Fields extends Component
 
         $fieldRecord->save(false);
 
-        $field->id = $fieldRecord->id;
-        $field->uid = $fieldRecord->uid;
+        $formFieldRecord = $isNewField ? new FormFieldRecord() : FormFieldRecord::findOne($field->id);
+
+        if (!$formFieldRecord) {
+            throw new Exception('Invalid form field ID: ' . $field->id);
+        }
+
+        $formFieldRecord->id = $field->id;
+        $formFieldRecord->fieldId = $fieldRecord->id;
+        $formFieldRecord->layoutId = $field->layoutId;
+        $formFieldRecord->pageId = $field->pageId;
+        $formFieldRecord->rowId = $field->rowId;
+        $formFieldRecord->sortOrder = $field->sortOrder;
+        $formFieldRecord->reference = $field->reference ?: StringHelper::UUID();
+        $formFieldRecord->settings = Json::encode($field->getFormFieldSettings());
+        $formFieldRecord->save(false);
+
+        $field->id = $formFieldRecord->id;
+        $field->fieldId = $fieldRecord->id;
+        $field->uid = $formFieldRecord->uid;
+        $field->reference = $formFieldRecord->reference;
+        $field->usageCount = (int)((new Query())
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['fieldId' => $fieldRecord->id])
+            ->count() ?: 0);
+        $field->isSynced = $field->usageCount > 1;
 
         $field->afterSave($isNewField);
 
-        // For any synced fields, we should update them all. Add behind a flag to ensure when we call `saveField()`
-        // again for the synced fields, we don't end up in a loop.
-        if ($updateSyncedFields && $field->getIsSynced()) {
-            $this->updateSyncedFields($field);
-        }
-
-        Fields::resetFieldHandles();
+        $this->_resetFieldCaches();
 
         return true;
     }
@@ -979,54 +1394,25 @@ class Fields extends Component
             return false;
         }
 
-        Db::delete(Table::FORMIE_FIELDS, ['id' => $field->id]);
+        Db::delete(Table::FORMIE_FORM_FIELDS, ['id' => $field->id]);
 
-        $field->afterDelete();
+        if ($field->fieldId && !(new Query())->from(Table::FORMIE_FORM_FIELDS)->where(['fieldId' => $field->fieldId])->exists()) {
+            $definitionField = $this->getFieldDefinitionById($field->fieldId);
+
+            if ($definitionField) {
+                $definitionField->afterDelete();
+            }
+
+            Db::delete(Table::FORMIE_FIELDS, ['id' => $field->fieldId]);
+        }
+
+        $this->_resetFieldCaches();
 
         return true;
     }
 
     public function updateSyncedFields(Field $field): bool
     {
-        // Do a direct update on the source field for this sync, to ensure it's synced too
-        Db::update(Table::FORMIE_FIELDS, ['syncId' => $field->syncId], ['id' => $field->syncId]);
-
-        // Get all instances of the syncs, whether the source or destination
-        $fieldIds = (new Query())
-            ->select('id')
-            ->from(Table::FORMIE_FIELDS)
-            ->where(['syncId' => $field->syncId])
-            ->column();
-
-        // Exclude _this_ field, as we've just saved it already
-        unset($fieldIds[array_search($field->id, $fieldIds)]);
-
-        foreach ($fieldIds as $fieldId) {
-            // Update the settings from this field to be synced
-            $syncedField = $this->getFieldById($fieldId);
-
-            if ($syncedField) {
-                $settings = [
-                    'label' => $field->label,
-                    'handle' => $field->handle,
-                    ...$field->getSettings(),
-                ];
-
-                // Remove some attributes that shouldn't be synced
-                unset($settings['required']);
-
-                // Each field row has its own nested layout; submission content stores nested
-                // values keyed by those sub-field UIDs. Copying nestedLayoutId/contentTable from
-                // another synced instance deserializes old submissions as empty (see #2794).
-                unset($settings['nestedLayoutId'], $settings['contentTable']);
-
-                $syncedField->setAttributes($settings, false);
-
-                // Saved the synced field, but be careful not to case a loop
-                $this->saveField($syncedField, false);
-            }
-        }
-
         return true;
     }
 
@@ -1154,7 +1540,22 @@ class Fields extends Component
 
     public function getReservedHandles(): array
     {
-        return (new formiefields\SingleLineText())->getReservedHandles();
+        if ($this->_reservedHandles !== null) {
+            return $this->_reservedHandles;
+        }
+
+        try {
+            // Submission public properties are reserved field handles.
+            $reflection = new ReflectionClass(Submission::class);
+
+            $this->_reservedHandles = array_map(function($prop) {
+                return $prop->name;
+            }, $reflection->getProperties(ReflectionProperty::IS_PUBLIC));
+        } catch (Throwable) {
+            $this->_reservedHandles = [];
+        }
+
+        return $this->_reservedHandles;
     }
 
 
@@ -1201,19 +1602,24 @@ class Fields extends Component
     private function _getFieldQuerySelect(): array
     {
         return [
-            'f.id as fieldId',
-            'f.layoutId as fieldLayoutId',
-            'f.pageId as fieldPageId',
-            'f.rowId as fieldRowId',
-            'f.syncId as fieldSyncId',
+            'ff.id as formFieldId',
+            'ff.fieldId as fieldDefinitionId',
+            'ff.layoutId as fieldLayoutId',
+            'ff.pageId as fieldPageId',
+            'ff.rowId as fieldRowId',
+            'ff.settings as fieldFormSettings',
+            'ff.reference as fieldReference',
+            'ff.sortOrder as fieldSortOrder',
+            'ff.dateCreated as fieldDateCreated',
+            'ff.dateUpdated as fieldDateUpdated',
+            'ff.uid as fieldUid',
             'f.label as fieldLabel',
             'f.handle as fieldHandle',
             'f.type as fieldType',
-            'f.sortOrder as fieldSortOrder',
             'f.settings as fieldSettings',
-            'f.dateCreated as fieldDateCreated',
-            'f.dateUpdated as fieldDateUpdated',
-            'f.uid as fieldUid',
+            // Pull usage count into the main layout/row/page hydration query so we do not need a
+            // second pass/query just to derive sync metadata for every populated field config.
+            'COALESCE(usage.count, 1) as fieldUsageCount',
         ];
     }
 
@@ -1248,16 +1654,26 @@ class Fields extends Component
 
     private function _getPopulatedField(array $item): array
     {
+        $usageCount = max((int)($item['fieldUsageCount'] ?? 1), 1);
+        $formFieldSettings = Json::decodeIfJson($item['fieldFormSettings'] ?? null);
+
         return [
-            'id' => $item['fieldId'],
+            'id' => $item['formFieldId'],
+            'fieldId' => $item['fieldDefinitionId'],
             'layoutId' => $item['fieldLayoutId'],
             'pageId' => $item['fieldPageId'],
             'rowId' => $item['fieldRowId'],
-            'syncId' => $item['fieldSyncId'],
             'label' => $item['fieldLabel'],
             'handle' => $item['fieldHandle'],
+            'reference' => $item['fieldReference'],
             'type' => $item['fieldType'],
             'settings' => $item['fieldSettings'],
+            'required' => is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)
+                ? (bool)$formFieldSettings['required']
+                : null,
+            'usageCount' => $usageCount,
+            'isSynced' => $usageCount > 1,
+            'syncId' => $usageCount > 1 ? (int)$item['fieldDefinitionId'] : null,
             'sortOrder' => $item['fieldSortOrder'],
             'dateCreated' => $item['fieldDateCreated'],
             'dateUpdated' => $item['fieldDateUpdated'],
@@ -1267,10 +1683,23 @@ class Fields extends Component
 
     private function _getLayout(array $params): ?FieldLayout
     {
-        $layoutData = [];
+        return array_values($this->_getLayouts($params))[0] ?? null;
+    }
 
-        // Do a single query here for everything, for performance, then cleanup due to lack of
-        // MySQL being able to prefix tables nicely and get a nested structure.
+    private function _getLayouts(array $params): array
+    {
+        $layouts = [];
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
+
+        // Load the full layout/page/row/field graph in one flat result set, then rebuild the nested
+        // model structure in PHP. This keeps the expensive hydration work batched even when the caller
+        // needs many layouts at once.
         $dataItems = (new Query())
             ->select([
                 ...$this->_getLayoutQuerySelect(),
@@ -1281,71 +1710,100 @@ class Fields extends Component
             ->from(['l' => Table::FORMIE_FIELD_LAYOUTS])
             ->leftJoin(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES], '[[p.layoutId]] = [[l.id]]')
             ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.pageId]] = [[p.id]]')
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
+            ->leftJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.rowId]] = [[r.id]]')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
                 'r.sortOrder' => SORT_ASC,
-                'f.sortOrder' => SORT_ASC,
+                'ff.sortOrder' => SORT_ASC,
             ])
             ->all();
-
-        $pages = [];
-        $rows = [];
-        $fields = [];
 
         // While we could use the `sortOrder` for things, we don't want to rely on it. If something goes
         // wrong with it, we end up overwriting pages/rows/fields due to the same `sortOrder` value.
         if ($dataItems) {
             foreach ($dataItems as $item) {
-                $layoutData['id'] = $item['layoutId'];
-                $layoutData['dateCreated'] = $item['layoutDateCreated'];
-                $layoutData['dateUpdated'] = $item['layoutDateUpdated'];
-                $layoutData['uid'] = $item['layoutUid'];
+                $layoutId = (int)($item['layoutId'] ?? 0);
+
+                if (!$layoutId) {
+                    continue;
+                }
+
+                if (!isset($layouts[$layoutId])) {
+                    $layouts[$layoutId] = [
+                        'layoutData' => [
+                            'id' => $layoutId,
+                            'dateCreated' => $item['layoutDateCreated'],
+                            'dateUpdated' => $item['layoutDateUpdated'],
+                            'uid' => $item['layoutUid'],
+                        ],
+                        'pages' => [],
+                        'rows' => [],
+                        'fields' => [],
+                    ];
+                }
 
                 $pageId = $item['pageId'];
                 $rowId = $item['rowId'];
-                $fieldId = $item['fieldId'];
+                $fieldId = $item['formFieldId'];
 
-                if ($pageId && !isset($pages[$pageId])) {
-                    $pages[$pageId] = $this->_getPopulatedPage($item);
+                if ($pageId && !isset($layouts[$layoutId]['pages'][$pageId])) {
+                    $layouts[$layoutId]['pages'][$pageId] = $this->_getPopulatedPage($item);
                 }
 
-                if ($rowId && !isset($rows[$rowId])) {
-                    $rows[$rowId] = $this->_getPopulatedRow($item);
+                if ($rowId && !isset($layouts[$layoutId]['rows'][$rowId])) {
+                    $layouts[$layoutId]['rows'][$rowId] = $this->_getPopulatedRow($item);
                 }
 
-                if ($fieldId && !isset($fields[$fieldId])) {
-                    $fields[$fieldId] = $this->_getPopulatedField($item);
+                if ($fieldId && !isset($layouts[$layoutId]['fields'][$fieldId])) {
+                    $layouts[$layoutId]['fields'][$fieldId] = $this->_getPopulatedField($item);
                 }
             }
         }
 
-        // Stitch pages/rows/fields together into a single nested array
-        foreach ($fields as $field) {
-            $rowId = $field['rowId'];
+        foreach ($layouts as $layoutId => $layoutParts) {
+            $fields = $layoutParts['fields'];
+            $rows = $layoutParts['rows'];
+            $pages = $layoutParts['pages'];
 
-            if (isset($rows[$rowId])) {
-                $rows[$rowId]['fields'][] = $field;
+            // Stitch pages/rows/fields together into a single nested array
+            foreach ($fields as $field) {
+                $rowId = $field['rowId'];
+
+                if (isset($rows[$rowId])) {
+                    $rows[$rowId]['fields'][] = $field;
+                }
             }
+
+            foreach ($rows as $row) {
+                $pageId = $row['pageId'];
+
+                if (isset($pages[$pageId])) {
+                    $pages[$pageId]['rows'][] = $row;
+                }
+            }
+
+            $layoutData = $layoutParts['layoutData'];
+            $layoutData['pages'] = array_values($pages);
+
+            $layouts[$layoutId] = new FieldLayout($layoutData);
         }
 
-        foreach ($rows as $row) {
-            $pageId = $row['pageId'];
-
-            if (isset($pages[$pageId])) {
-                $pages[$pageId]['rows'][] = $row;
-            }
-        }
-
-        $layoutData['pages'] = array_values($pages);
-
-        return $layoutData ? new FieldLayout($layoutData) : null;
+        return $layouts;
     }
 
     private function _getPage(array $params): ?FieldLayoutPage
     {
         $layoutData = [];
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
 
         // Do a single query here for everything, for performance, then cleanup due to lack of
         // MySQL being able to prefix tables nicely and get a nested structure.
@@ -1357,12 +1815,14 @@ class Fields extends Component
             ])
             ->from(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES])
             ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.pageId]] = [[p.id]]')
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
+            ->leftJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.rowId]] = [[r.id]]')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
             ->where($params)
             ->orderBy([
                 'p.sortOrder' => SORT_ASC,
                 'r.sortOrder' => SORT_ASC,
-                'f.sortOrder' => SORT_ASC,
+                'ff.sortOrder' => SORT_ASC,
             ])
             ->all();
 
@@ -1376,7 +1836,7 @@ class Fields extends Component
                 $layoutData = $this->_getPopulatedPage($item);
 
                 $rowId = $item['rowId'];
-                $fieldId = $item['fieldId'];
+                $fieldId = $item['formFieldId'];
 
                 if ($rowId && !isset($rows[$rowId])) {
                     $rows[$rowId] = $this->_getPopulatedRow($item);
@@ -1405,6 +1865,13 @@ class Fields extends Component
     private function _getRow(array $params): ?FieldLayoutRow
     {
         $layoutData = [];
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
 
         // Do a single query here for everything, for performance, then cleanup due to lack of
         // MySQL being able to prefix tables nicely and get a nested structure.
@@ -1414,11 +1881,13 @@ class Fields extends Component
                 ...$this->_getFieldQuerySelect(),
             ])
             ->from(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS])
-            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.rowId]] = [[r.id]]')
+            ->leftJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.rowId]] = [[r.id]]')
+            ->leftJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]')
             ->where($params)
             ->orderBy([
                 'r.sortOrder' => SORT_ASC,
-                'f.sortOrder' => SORT_ASC,
+                'ff.sortOrder' => SORT_ASC,
             ])
             ->all();
 
@@ -1430,7 +1899,7 @@ class Fields extends Component
             foreach ($dataItems as $item) {
                 $layoutData = $this->_getPopulatedRow($item);
 
-                $fieldId = $item['fieldId'];
+                $fieldId = $item['formFieldId'];
 
                 if ($fieldId && !isset($fields[$fieldId])) {
                     $fields[$fieldId] = $this->_getPopulatedField($item);
@@ -1442,4 +1911,406 @@ class Fields extends Component
 
         return $layoutData ? new FieldLayoutRow($layoutData) : null;
     }
+
+    private function _deleteUnusedFieldDefinitions(): void
+    {
+        $unusedDefinitionIds = array_values(array_unique(array_filter(array_map('intval', (new Query())
+            ->select(['f.id'])
+            ->from(['f' => Table::FORMIE_FIELDS])
+            ->leftJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.fieldId]] = [[f.id]]')
+            ->where(['ff.id' => null])
+            ->column()))));
+
+        if (!$unusedDefinitionIds) {
+            return;
+        }
+
+        $definitionIdsToDelete = array_values(array_filter($unusedDefinitionIds, function(int $definitionId) {
+            return !isset($this->_definitionIdsBeingDeleted[$definitionId]);
+        }));
+
+        if (!$definitionIdsToDelete) {
+            return;
+        }
+
+        foreach ($definitionIdsToDelete as $definitionId) {
+            $this->_definitionIdsBeingDeleted[$definitionId] = true;
+        }
+
+        try {
+            foreach ($definitionIdsToDelete as $definitionId) {
+                $definitionField = $this->getFieldDefinitionById($definitionId);
+
+                if ($definitionField) {
+                    $definitionField->afterDelete();
+                }
+            }
+
+            Db::delete(Table::FORMIE_FIELDS, ['id' => $definitionIdsToDelete]);
+        } finally {
+            foreach ($definitionIdsToDelete as $definitionId) {
+                unset($this->_definitionIdsBeingDeleted[$definitionId]);
+            }
+        }
+    }
+
+    private function _cleanupDeletedLayoutItems(FieldLayout $layout): void
+    {
+        $layoutId = $layout->id;
+
+        if (!$layoutId) {
+            return;
+        }
+
+        $keptPageIds = [];
+        $keptRowIds = [];
+        $keptFieldIds = [];
+
+        foreach ($layout->getPages() as $page) {
+            if ($page->id) {
+                $keptPageIds[] = $page->id;
+            }
+
+            foreach ($page->getRows() as $row) {
+                if ($row->id) {
+                    $keptRowIds[] = $row->id;
+                }
+
+                foreach ($row->getFields() as $field) {
+                    if ($field->id) {
+                        $keptFieldIds[] = $field->id;
+                    }
+                }
+            }
+        }
+
+        $existingPageIds = [];
+        $existingRowIds = [];
+        $existingFieldIds = [];
+
+        $rows = (new Query())
+            ->select([
+                'pageId' => 'p.id',
+                'rowId' => 'r.id',
+                'fieldId' => 'ff.id',
+            ])
+            ->from(['p' => Table::FORMIE_FIELD_LAYOUT_PAGES])
+            ->leftJoin(['r' => Table::FORMIE_FIELD_LAYOUT_ROWS], '[[r.pageId]] = [[p.id]]')
+            ->leftJoin(['ff' => Table::FORMIE_FORM_FIELDS], '[[ff.rowId]] = [[r.id]]')
+            ->where(['p.layoutId' => $layoutId])
+            ->all();
+
+        foreach ($rows as $row) {
+            if (!empty($row['pageId'])) {
+                $existingPageIds[] = $row['pageId'];
+            }
+
+            if (!empty($row['rowId'])) {
+                $existingRowIds[] = $row['rowId'];
+            }
+
+            if (!empty($row['fieldId'])) {
+                $existingFieldIds[] = $row['fieldId'];
+            }
+        }
+
+        $deletedFieldIds = array_values(array_filter(array_diff($existingFieldIds, $keptFieldIds)));
+        $deletedRowIds = array_values(array_filter(array_diff($existingRowIds, $keptRowIds)));
+        $deletedPageIds = array_values(array_filter(array_diff($existingPageIds, $keptPageIds)));
+
+        foreach ($deletedFieldIds as $id) {
+            if (!$this->deleteFieldById((int)$id)) {
+                throw new Exception('Failed to delete field ID: ' . $id);
+            }
+        }
+
+        foreach ($deletedRowIds as $id) {
+            if (!$this->deleteRowById((int)$id)) {
+                throw new Exception('Failed to delete row ID: ' . $id);
+            }
+        }
+
+        foreach ($deletedPageIds as $id) {
+            if (!$this->deletePageById((int)$id)) {
+                throw new Exception('Failed to delete page ID: ' . $id);
+            }
+        }
+    }
+
+    private function _getResolvedRegisteredFieldTypes(bool $excludeDisabled = true): array
+    {
+        $cacheKey = $excludeDisabled ? 'exclude-disabled' : 'include-disabled';
+
+        if (isset($this->_getFieldRegistryCache()->resolvedRegisteredFieldTypes[$cacheKey])) {
+            return $this->_getFieldRegistryCache()->resolvedRegisteredFieldTypes[$cacheKey];
+        }
+
+        $fieldTypes = $this->getRegisteredFieldTypes(false);
+        $event = new RegisterFieldsEvent([
+            'fields' => $fieldTypes,
+        ]);
+
+        $this->trigger(self::EVENT_REGISTER_FIELDS, $event);
+
+        // Missing Field cannot be removed
+        $event->fields[] = formiefields\MissingField::class;
+        $resolvedFieldTypes = array_values(array_unique($event->fields));
+
+        if ($excludeDisabled) {
+            $disabledFields = Formie::$plugin->getSettings()->disabledFields;
+            $resolvedFieldTypes = array_values(array_filter($resolvedFieldTypes, function(string $class) use ($disabledFields) {
+                return !in_array($class, $disabledFields, true);
+            }));
+        }
+
+        $this->_getFieldRegistryCache()->resolvedRegisteredFieldTypes[$cacheKey] = $resolvedFieldTypes;
+
+        return $this->_getFieldRegistryCache()->resolvedRegisteredFieldTypes[$cacheKey];
+    }
+
+    private function _getRegisteredFieldInstance(string $fieldClass): FieldInterface
+    {
+        if (!isset($this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass])) {
+            $this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass] = new $fieldClass;
+        }
+
+        return $this->_getFieldRegistryCache()->registeredFieldInstancesByType[$fieldClass];
+    }
+
+    private function _resetFieldCaches(): void
+    {
+        $this->_fieldLookupCache?->reset();
+        $this->_fieldRegistryCache?->reset();
+        $this->_fieldGqlCache?->reset();
+        SubmissionQuery::invalidateStaticCaches();
+    }
+
+    private function _getFieldConfigById(int $id): array
+    {
+        if (!$id) {
+            return [];
+        }
+
+        if (!isset($this->_getFieldLookupCache()->fieldConfigById[$id])) {
+            $this->_getFieldLookupCache()->fieldConfigById[$id] = $this->_normalizeFormFieldConfig($this->_createFormFieldConfigQuery()
+                ->where(['ff.id' => $id])
+                ->one() ?: []);
+        }
+
+        return $this->_getFieldLookupCache()->fieldConfigById[$id];
+    }
+
+    private function _getFieldConfigByReference(string $reference): array
+    {
+        if ($reference === '') {
+            return [];
+        }
+
+        if (!isset($this->_getFieldLookupCache()->fieldConfigByReference[$reference])) {
+            $fieldConfig = $this->_normalizeFormFieldConfig($this->_createFormFieldConfigQuery()
+                ->where(['ff.reference' => $reference])
+                ->one() ?: []);
+
+            $this->_getFieldLookupCache()->fieldConfigByReference[$reference] = $fieldConfig;
+
+            if ($fieldId = (int)($fieldConfig['id'] ?? 0)) {
+                $this->_getFieldLookupCache()->fieldConfigById[$fieldId] = $fieldConfig;
+            }
+        }
+
+        return $this->_getFieldLookupCache()->fieldConfigByReference[$reference];
+    }
+
+    private function _createFormFieldConfigQuery(): Query
+    {
+        $usageQuery = (new Query())
+            ->select([
+                'fieldId',
+                'count' => 'COUNT(*)',
+            ])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->groupBy(['fieldId']);
+
+        return (new Query())
+            ->select([
+                'ff.id',
+                'ff.fieldId',
+                'ff.layoutId',
+                'ff.pageId',
+                'ff.rowId',
+                'ff.reference',
+                'ff.sortOrder',
+                'ff.dateCreated',
+                'ff.dateUpdated',
+                'ff.uid',
+                'ff.settings as formFieldSettings',
+                'f.label',
+                'f.handle',
+                'f.type',
+                'f.settings',
+                'COALESCE(usage.count, 1) as usageCount',
+            ])
+            ->from(['ff' => Table::FORMIE_FORM_FIELDS])
+            ->innerJoin(['f' => Table::FORMIE_FIELDS], '[[f.id]] = [[ff.fieldId]]')
+            ->leftJoin(['usage' => $usageQuery], '[[usage.fieldId]] = [[ff.fieldId]]');
+    }
+
+    private function _normalizeFormFieldConfig(array $fieldConfig): array
+    {
+        if (!$fieldConfig) {
+            return [];
+        }
+
+        $formFieldSettings = Json::decodeIfJson($fieldConfig['formFieldSettings'] ?? null);
+
+        if (is_array($formFieldSettings) && array_key_exists('required', $formFieldSettings)) {
+            $fieldConfig['required'] = (bool)$formFieldSettings['required'];
+        }
+
+        $usageCount = max((int)($fieldConfig['usageCount'] ?? 1), 1);
+        $fieldConfig['usageCount'] = $usageCount;
+        $fieldConfig['isSynced'] = $usageCount > 1;
+        $fieldConfig['syncId'] = $fieldConfig['isSynced'] ? (int)($fieldConfig['fieldId'] ?? 0) : null;
+
+        unset($fieldConfig['formFieldSettings']);
+
+        return $fieldConfig;
+    }
+
+    private function _normalizeNestedFieldConfig(array $fieldConfig): array
+    {
+        if (!$fieldConfig) {
+            return [];
+        }
+
+        $settings = $fieldConfig['settings'] ?? [];
+        $settings = Json::decodeIfJson($settings);
+        $settings = is_array($settings) ? $settings : [];
+
+        if (isset($fieldConfig['rows']) && !isset($settings['rows'])) {
+            $settings['rows'] = $fieldConfig['rows'];
+        }
+
+        $fieldConfig['settings'] = $settings;
+
+        if (array_key_exists('required', $fieldConfig)) {
+            $fieldConfig['required'] = (bool)$fieldConfig['required'];
+        }
+
+        if (array_key_exists('enabled', $fieldConfig)) {
+            $fieldConfig['enabled'] = (bool)$fieldConfig['enabled'];
+        }
+
+        return $fieldConfig;
+    }
+
+    private function _hydrateCachedFields(array &$fields): array
+    {
+        foreach ($fields as $index => $field) {
+            if ($field instanceof FieldInterface) {
+                continue;
+            }
+
+            $fields[$index] = $this->createField($field);
+        }
+
+        return $fields;
+    }
+
+    private function _getGqlFieldCacheKey(FieldInterface $field): string
+    {
+        $fieldId = (int)($field->id ?? 0);
+
+        if ($fieldId) {
+            return get_class($field) . ':' . $fieldId;
+        }
+
+        return get_class($field) . ':obj:' . spl_object_id($field);
+    }
+
+    private function _getGqlFieldConfigCacheKey(array $fieldConfig): string
+    {
+        $fieldId = (int)($fieldConfig['id'] ?? 0);
+        $fieldType = (string)($fieldConfig['type'] ?? '');
+
+        if ($fieldId) {
+            return $fieldType . ':' . $fieldId;
+        }
+
+        $reference = (string)($fieldConfig['reference'] ?? '');
+
+        if ($reference !== '') {
+            return $fieldType . ':ref:' . $reference;
+        }
+
+        return $fieldType . ':cfg:' . hash('sha256', Json::encode([
+            'handle' => $fieldConfig['handle'] ?? '',
+            'instructions' => $fieldConfig['instructions'] ?? '',
+            'settings' => $fieldConfig['settings'] ?? null,
+        ]));
+    }
+
+    private function _getFieldConfigSettingsCacheKey(array $fieldConfig): string
+    {
+        $fieldId = (int)($fieldConfig['id'] ?? 0);
+
+        if ($fieldId) {
+            return 'id:' . $fieldId;
+        }
+
+        $reference = (string)($fieldConfig['reference'] ?? '');
+
+        if ($reference !== '') {
+            return 'ref:' . $reference;
+        }
+
+        return 'cfg:' . hash('sha256', Json::encode([
+            'type' => $fieldConfig['type'] ?? '',
+            'handle' => $fieldConfig['handle'] ?? '',
+            'settings' => $fieldConfig['settings'] ?? null,
+        ]));
+    }
+
+    private function _getGqlFieldConfigProvider(array $fieldConfig): ?string
+    {
+        $fieldType = $fieldConfig['type'] ?? null;
+
+        if (!is_string($fieldType) || $fieldType === '' || !class_exists($fieldType)) {
+            return null;
+        }
+
+        if (!is_subclass_of($fieldType, Field::class)) {
+            return null;
+        }
+
+        return $fieldType::supportsGqlConfigProvider() ? $fieldType : null;
+    }
+
+    private function _getFieldLookupCache(): FieldLookupCache
+    {
+        if ($this->_fieldLookupCache === null) {
+            $this->_fieldLookupCache = new FieldLookupCache();
+        }
+
+        return $this->_fieldLookupCache;
+    }
+
+    private function _getFieldRegistryCache(): FieldRegistryCache
+    {
+        if ($this->_fieldRegistryCache === null) {
+            $this->_fieldRegistryCache = new FieldRegistryCache();
+        }
+
+        return $this->_fieldRegistryCache;
+    }
+
+    private function _getFieldGqlCache(): FieldGqlCache
+    {
+        if ($this->_fieldGqlCache === null) {
+            $this->_fieldGqlCache = new FieldGqlCache();
+        }
+
+        return $this->_fieldGqlCache;
+    }
+
 }

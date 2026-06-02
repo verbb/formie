@@ -1,5 +1,5 @@
 {{ fieldtag('tableColorInput', {
     id: rowId,
-    value: row[colId] ?? '',
+    value: row[colId] ?? false,
     name: field.getHtmlName("#{index}[#{colId}]"),
 }) }}

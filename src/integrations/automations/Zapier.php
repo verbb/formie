@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -62,7 +64,7 @@ class Zapier extends Automation
             $webhook = $form->settings->integrations[$this->handle]['webhook'] ?? $this->webhook;
 
             $payload = $this->generatePayloadValues($submission);
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($webhook, $submission), $payload);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($webhook, $submission), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -108,5 +110,18 @@ class Zapier extends Automation
         $rules[] = [['webhook'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Webhook URL'),
+            'instructions' => Craft::t('formie', 'Enter the {name} webhook URL that will be triggered when a submission is made.', ['name' => $this->displayName()]),
+            'name' => 'webhook',
+            'required' => true,
+        ]);
+
+        return $schema;
     }
 }

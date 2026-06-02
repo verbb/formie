@@ -4,9 +4,11 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Password;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -52,7 +54,7 @@ class User extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
@@ -392,7 +394,7 @@ class User extends Element
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
-                'error' => $e->getMessage(),
+                'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
@@ -434,12 +436,100 @@ class User extends Element
         $rules[] = [
             ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
                 return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::checkboxSelectField([
+            'name' => 'groupUids',
+            'label' => Craft::t('formie', 'User Group'),
+            'instructions' => Craft::t('formie', 'Select user groups to assign this new user to.'),
+            'options' => $this->getGroupOptions(),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'activateUser',
+            'label' => Craft::t('formie', 'Activate User'),
+            'instructions' => Craft::t('formie', 'Whether to activate the user automatically.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'sendActivationEmail',
+            'label' => Craft::t('formie', 'Send Activation Email'),
+            'instructions' => Craft::t('formie', 'Whether to send the activation email for the user automatically.'),
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'attributeMapping',
+            'label' => Craft::t('formie', 'User Attribute Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} attributes.', ['label' => 'User']),
+            'integrationLabel' => Craft::t('formie', 'Element Field'),
+            'showRefreshButton' => false,
+            'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+            'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
+        ]);
+
+        $elements = $this->getFormSettingValue('elements');
+        $userFields = [];
+        if (is_array($elements) && isset($elements[0])) {
+            $userFields = is_array($elements[0]) ? ($elements[0]['fields'] ?? []) : ($elements[0]->fields ?? []);
+        }
+
+        $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($userFields);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'User Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} fields.', ['label' => 'User']),
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $fieldMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'overwriteValues',
+            'label' => Craft::t('formie', 'Overwrite Content'),
+            'instructions' => Craft::t('formie', 'Whether to overwrite existing content, even if empty values are provided.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateElement',
+            'label' => Craft::t('formie', 'Update Users'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing user if found, or always create a new user.'),
+        ]);
+
+        $updateMappingSchema = $this->convertIntegrationFieldsToSchema($this->getUpdateAttributes()['users'] ?? []);
+        if ($updateMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'updateElementMapping',
+                'label' => Craft::t('formie', 'Update Element Mapping'),
+                'instructions' => Craft::t('formie', 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.'),
+                'if' => 'updateElement',
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $updateMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mergeUserGroups',
+            'label' => Craft::t('formie', 'Merge User Groups'),
+            'instructions' => Craft::t('formie', 'Whether existing user groups should be merged with any set above. Otherwise, any existing user groups will be overwritten.'),
+            'if' => 'updateElement',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateSearchIndexes',
+            'label' => Craft::t('formie', 'Update Search Index'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update the search indexes to include content for this element.'),
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

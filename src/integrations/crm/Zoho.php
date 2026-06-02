@@ -3,7 +3,9 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\base\OAuthIntegrationTrait;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
@@ -113,29 +115,28 @@ class Zoho extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $settings['contact'] = $this->_getModuleFields('Contacts');
             }
 
-            if ($this->mapToDeal) {
+            if ($this->mapToDeal && $this->settingsContext->dataKey === 'deal') {
                 $settings['deal'] = $this->_getModuleFields('Deals');
             }
 
-            if ($this->mapToLead) {
+            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
                 $settings['lead'] = $this->_getModuleFields('Leads');
             }
 
-            if ($this->mapToAccount) {
+            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
                 $settings['account'] = $this->_getModuleFields('Accounts');
             }
 
-            if ($this->mapToQuote) {
+            if ($this->mapToQuote && $this->settingsContext->dataKey === 'quote') {
                 $settings['quote'] = $this->_getModuleFields('Quotes');
             }
         } catch (Throwable $e) {
@@ -315,34 +316,96 @@ class Zoho extends Crm implements OAuthProviderInterface
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
                 return $model->enabled && $model->mapToDeal;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
                 return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
                 return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['quoteFieldMapping'], 'validateFieldMapping', 'params' => $quote, 'when' => function($model) {
                 return $model->enabled && $model->mapToQuote;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToDeal',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'dealFieldMapping',
+            'if' => 'mapToDeal',
+            'dataLabel' => 'Deal',
+            'dataKey' => 'deal',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLead',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'leadFieldMapping',
+            'if' => 'mapToLead',
+            'dataLabel' => 'Lead',
+            'dataKey' => 'lead',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToAccount',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'accountFieldMapping',
+            'if' => 'mapToAccount',
+            'dataLabel' => 'Account',
+            'dataKey' => 'account',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToQuote',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Quote']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Quotes']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'quoteFieldMapping',
+            'if' => 'mapToQuote',
+            'dataLabel' => 'Quote',
+            'dataKey' => 'quote',
+        ]);
+
+        return $schema;
     }
 
 

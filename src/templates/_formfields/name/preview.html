@@ -1,24 +1,38 @@
-<div v-if="field.settings.useMultipleFields">
-    <div class="fui-row" v-for="(row, rowIndex) in field.settings.rows">
-        <template v-for="(field, fieldIndex) in row.fields">
-            <div v-if="field.settings.enabled && field.settings.handle == 'prefix'" class="fui-col-2">
-                <label class="fui-field-label">${ field.settings.label } <span v-if="field.settings.required" class="error">*</span></label>
 
-                <select class="fui-field-select" :value="field.settings.defaultValue">
-                    <option value="" disabled selected>${ field.settings.placeholder }</option>
-                    <option v-for="prefix in fieldType.data.prefixOptions" :value="prefix.value">${ prefix.label }</option>
-                </select>
-            </div>
+{field.useMultipleFields ? (
+    (Array.isArray(field.rows) && field.rows.length > 0) ? (
+        <div className="formie-field-preview-layout-parent">
+            {(field.rows || []).map((row, rowIndex) => {
+                const visibleFields = (row?.fields || []).filter((subField) => subField?.enabled !== false);
 
-            <div v-else-if="field.settings.enabled" class="fui-col-auto">
-                <label class="fui-field-label">${ field.settings.label } <span v-if="field.settings.required" class="error">*</span></label>
-                <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
-            </div>
-        </template>
+                if (!visibleFields.length) {
+                    return null;
+                }
+
+                return (
+                    <div key={rowIndex} className="formie-field-preview-layout-child-row">
+                        {visibleFields.map((subField, fieldIndex) => (
+                            <div key={fieldIndex} className="formie-field-preview-layout-child">
+                                <div className="formie-field-preview-sub-label">{subField.label}</div>
+                                <Components.ChildFieldPreview field={subField} />
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
+        </div>
+    ) : (
+        <Components.SubFieldPreviewControl field={field} />
+    )
+) : (
+    <div className="formie-field-preview-control">
+        <input
+            type="text"
+            className="formie-field-preview-input"
+            placeholder={field.placeholder}
+            value={field.defaultValue || ''}
+            readOnly
+        />
+        <span className="formie-field-preview-icon" dangerouslySetInnerHTML={{ __html: fieldType.icon || '' }} />
     </div>
-</div>
-
-<div v-else>
-    <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
-    <span class="fui-field-icon">{{ field.getSvgIcon() | raw }}</span>
-</div>
+)}

@@ -2,6 +2,7 @@
 namespace verbb\formie\gql\types\input;
 
 use verbb\formie\fields\Group as GroupField;
+use verbb\formie\Formie;
 
 use craft\gql\GqlEntityRegistry;
 
@@ -22,9 +23,10 @@ class GroupInputType extends InputObjectType
         }
 
         $groupFields = [];
+        $fieldsService = Formie::$plugin->getFields();
 
         foreach ($context->getFields() as $field) {
-            $groupFields[$field->handle] = $field->getContentGqlMutationArgumentType();
+            $groupFields[$field->handle] = $fieldsService->getFieldContentGqlMutationArgumentType($field);
         }
 
         return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
@@ -32,6 +34,33 @@ class GroupInputType extends InputObjectType
             'fields' => function() use ($groupFields) {
                 return $groupFields;
             },
+        ]));
+    }
+
+    public static function getTypeFromConfig(array $config): mixed
+    {
+        $fieldsService = Formie::$plugin->getFields();
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'GroupInput');
+
+        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
+            return $inputType;
+        }
+
+        $groupFields = [];
+
+        foreach ($fieldsService->getNestedFieldConfigs($config) as $fieldConfig) {
+            $handle = $fieldConfig['handle'] ?? null;
+
+            if (!$handle) {
+                continue;
+            }
+
+            $groupFields[$handle] = $fieldsService->getFieldConfigContentGqlMutationArgumentType($fieldConfig);
+        }
+
+        return GqlEntityRegistry::createEntity($typeName, new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => $groupFields,
         ]));
     }
 }

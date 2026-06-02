@@ -3,8 +3,10 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -34,7 +36,6 @@ class Brevo extends EmailMarketing
     public ?string $templateId = null;
     public ?string $redirectionUrl = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -42,7 +43,7 @@ class Brevo extends EmailMarketing
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -143,18 +144,6 @@ class Brevo extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.brevo.com/v3/',
-            'headers' => ['api-key' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -164,6 +153,45 @@ class Brevo extends EmailMarketing
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.brevo.com/v3/',
+            'headers' => ['api-key' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
+
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'label' => Craft::t('formie', 'Use Double Opt in'),
+            'instructions' => Craft::t('formie', 'Whether to use double opt-in, which will send the user a confirmation email before they‘re added to the list.'),
+            'name' => 'useDoubleOptIn',
+        ]);
+
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Template ID'),
+            'instructions' => Craft::t('formie', 'ID of the Double opt-in (DOI) template.'),
+            'name' => 'templateId',
+            'if' => 'useDoubleOptIn',
+            'required' => true,
+        ]);
+
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Redirection URL'),
+            'instructions' => Craft::t('formie', 'URL of the web page that user will be redirected to after clicking on the double opt in URL.'),
+            'name' => 'redirectionUrl',
+            'if' => 'useDoubleOptIn',
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

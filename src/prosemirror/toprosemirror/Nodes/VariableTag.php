@@ -16,6 +16,7 @@ class VariableTag extends Node
             'attrs' => [
                 'value' => $this->DOMNode->getAttribute('value'),
                 'label' => $this->DOMNode->getAttribute('label'),
+                'default' => $this->DOMNode->getAttribute('default'),
             ],
         ];
     }

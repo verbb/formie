@@ -1,16 +1,16 @@
 {% apply spaceless %}
     {% if value and field.settings.useMultipleFields %}
         {% for field in field.getFields(false) %}
-            {% set value = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
+            {% set value = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
-            {% if field.hasEmailLabel() %}
+            {% if field.hasReferenceBlockLabel() %}
                 <strong>{{ field.label | t('formie') }}:</strong>
             {% endif %}
 
-            {% if field.isValueEmpty(value, submission) and field.hasEmailPlaceholder() %}
+            {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}
                 {{ notification.getPlaceholder() }}
             {% else %}
-                {{ field.getEmailHtml(submission, notification, value) | raw }}
+                {{ field.getReferenceBlockHtml(submission, notification, value) | raw }}
             {% endif %}
 
             <br>

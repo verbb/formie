@@ -1,0 +1,39 @@
+@layer formie-theme {
+    [data-formie-field-type="signature"] .formie-field-control {
+        position: relative;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    [data-formie-field-type="signature"] .formie-field-control:focus-within .formie-signature-canvas {
+        border-color: var(--formie-focus-ring-border-color);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error[data-formie-field-type="signature"] .formie-signature-canvas {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error[data-formie-field-type="signature"] .formie-field-control:focus-within .formie-signature-canvas {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    [data-formie-field-type="signature"] .formie-signature-canvas {
+        display: block;
+        width: var(--formie-signature-width);
+        height: var(--formie-signature-height);
+        border: var(--formie-signature-border);
+        background: var(--formie-signature-background);
+        border-radius: var(--formie-signature-border-radius);
+        touch-action: none;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    [data-formie-field-type="signature"] .formie-signature-remove-button {
+        position: absolute;
+        top: var(--formie-signature-remove-button-top);
+        right: var(--formie-signature-remove-button-right);
+        transform: var(--formie-signature-remove-button-transform);
+        font-size: 0;
+        line-height: 0;
+    }
+}

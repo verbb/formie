@@ -26,4 +26,14 @@
     errors: integration.getErrors('useSandbox'),
 }) }}
 
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Webhook Signing Secret' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'webhookSecretKey',
+    suggestEnvVars: true,
+    value: integration.settings.webhookSecretKey ?? '',
+    warning: macros.configWarning('webhookSecretKey', 'formie'),
+    errors: integration.getErrors('webhookSecretKey'),
+}) }}
+
 {% endblock %}

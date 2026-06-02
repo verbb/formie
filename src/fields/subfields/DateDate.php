@@ -2,14 +2,16 @@
 namespace verbb\formie\fields\subfields;
 
 use verbb\formie\Formie;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateDate extends SingleLineText implements SubFieldInnerFieldInterface
+class DateDate extends SingleLineText implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -19,13 +21,38 @@ class DateDate extends SingleLineText implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Date - Date');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($key === 'fieldInput' && $this->getParentField()->getDisplayType() === 'datePicker') {
+            $tag?->mergeInstanceAttributes([
+                'data-formie-date-datepicker-input' => true,
+            ]);
+        }
+
+        return $tag;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'inputType' => 'date',
+        ]);
+    }
+
 }

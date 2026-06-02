@@ -27,8 +27,8 @@ class FieldLayoutPageSettings extends Model
     public array $nextButtonConditions = [];
     public bool $enablePageConditions = false;
     public array $pageConditions = [];
-    public bool $enableJsEvents = false;
-    public array $jsGtmEventOptions = [];
+    public bool $enableClientEvents = false;
+    public array $clientEventFields = [];
 
 
     // Public Methods
@@ -37,6 +37,21 @@ class FieldLayoutPageSettings extends Model
     public function __construct($config = [])
     {
         unset($config['label']);
+
+        if (is_array($config)) {
+            if (array_key_exists('enableJsEvents', $config) && !array_key_exists('enableClientEvents', $config)) {
+                $config['enableClientEvents'] = (bool)$config['enableJsEvents'];
+            }
+
+            unset($config['enableJsEvents']);
+
+            if (array_key_exists('jsGtmEventOptions', $config) && !array_key_exists('clientEventFields', $config)) {
+                $legacy = $config['jsGtmEventOptions'];
+                $config['clientEventFields'] = is_array($legacy) ? $legacy : [];
+            }
+            
+            unset($config['jsGtmEventOptions']);
+        }
 
         parent::__construct($config);
     }
@@ -98,16 +113,18 @@ class FieldLayoutPageSettings extends Model
 
     public function getConditionsJson(): ?string
     {
-        if ($this->hasConditions()) {
-            $conditionSettings = $this->getConditions();
-            $conditions = $conditionSettings['conditions'] ?? [];
-
-            // Prep the conditions for JS
-            $conditionSettings['conditions'] = ConditionsHelper::prepConditionsForJs($conditions);
-
-            return Json::encode($conditionSettings);
+        if (!$this->enableNextButtonConditions) {
+            return null;
         }
 
-        return null;
+        $conditions = $this->getConditions();
+
+        if (!$conditions) {
+            return null;
+        }
+
+        $conditions['clearOnHide'] = true;
+
+        return Json::encode($conditions);
     }
 }

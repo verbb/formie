@@ -1,25 +1,8 @@
-{# Keep track of the outer field #}
-{% set addressField = field %}
-
 {% fieldtag 'subFieldRows' %}
     {% for row in field.getRows(false) %}
         {% fieldtag 'subFieldRow' %}
             {% for field in row.getFields(false) %}
-                {# Update the namespace for the field #}
-                {% do field.setParentField(addressField) %}
-
-                {% set labelExtraContent = null %}
-
-                {% if addressField.hasCurrentLocation() and field.handle == 'autocomplete' %}
-                    {% set labelExtraContent = fieldtag('locationLink') %}
-                {% endif %}
-
-                {# Pass in the raw value from this parent field #}
-                {{ craft.formie.renderField(form, field, {
-                    ...(renderOptions ?? {}),
-                    value: value[field.handle] ?? null,
-                    labelExtraContent: labelExtraContent,
-                }) }}
+                {{ craft.formie.renderField(form, field) }}
             {% endfor %}
         {% endfieldtag %}
     {% endfor %}

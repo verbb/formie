@@ -1,0 +1,24 @@
+@layer formie-theme {
+
+    /* Stripe placeholder while Payment Element SDK initializes. */
+    .formie-stripe-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--formie-space-2);
+        min-height: 12rem;
+        width: 100%;
+        padding: var(--formie-space-4);
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        color: var(--formie-color-text-muted);
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .formie-stripe-placeholder[hidden] {
+        display: none;
+    }
+}

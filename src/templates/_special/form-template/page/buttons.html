@@ -1,0 +1,22 @@
+{% set prevPage = form.getPreviousPage(page) %}
+
+{% formtag 'pageButtons' %}
+    {# Next button goes first. https://stackoverflow.com/a/1963285 #}
+    {% formtag 'buttonContainer' %}
+        {% formtag 'submitButton' %}
+            {{ page.settings.submitButtonLabel | t('formie') }}
+        {% endformtag %}
+
+        {% if page.settings.showBackButton and prevPage %}
+            {% formtag 'backButton' %}
+                {{ page.settings.backButtonLabel | t('formie') }}
+            {% endformtag %}
+        {% endif %}
+
+        {% if page.settings.showSaveButton %}
+            {% formtag 'saveButton' %}
+                {{ page.settings.saveButtonLabel | t('formie') }}
+            {% endformtag %}
+        {% endif %}
+    {% endformtag %}
+{% endformtag %}

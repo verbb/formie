@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\gql\interfaces;
 
+use verbb\formie\compatibility\gql\PageSettingsCompatibility;
 use verbb\formie\gql\types\Json as JsonType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\generators\PageSettingsGenerator;
@@ -9,7 +10,6 @@ use verbb\formie\models\FieldLayoutPageSettings;
 use Craft;
 use craft\gql\base\InterfaceType as BaseInterfaceType;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Json;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
@@ -117,17 +117,19 @@ class PageSettingsInterface extends BaseInterfaceType
                 'type' => JsonType::getType(),
                 'description' => 'The page’s conditions for whether to show the next button, for multi-page forms as a JSON string.',
             ],
-            'enableJsEvents' => [
-                'name' => 'enableJsEvents',
+            'enableClientEvents' => [
+                'name' => 'enableClientEvents',
                 'type' => Type::boolean(),
-                'description' => 'Whether the page’s button has JS events enabled.',
+                'description' => 'Whether client event payload emission is enabled for this page’s submit.',
             ],
-            'jsGtmEventOptions' => [
-                'name' => 'jsGtmEventOptions',
+            'clientEventFields' => [
+                'name' => 'clientEventFields',
                 'type' => JsonType::getType(),
-                'description' => 'The page’s JS event options (GTM) as a JSON string.',
+                'description' => 'Key/value rows for the client event payload as a JSON string.',
             ],
         ];
+
+        $fields = PageSettingsCompatibility::applyLegacyFieldAliases($fields);
 
         return Craft::$app->getGql()->prepareFieldDefinitions($fields, self::getName());
     }

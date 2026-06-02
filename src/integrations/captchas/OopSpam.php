@@ -11,6 +11,8 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
 
+use Throwable;
+
 class OopSpam extends Captcha
 {
     // Properties
@@ -18,6 +20,7 @@ class OopSpam extends Captcha
 
     public ?string $handle = 'OopSpam';
     public ?string $apiKey = null;
+    public int $spamThreshold = 3;
 
 
     // Public Methods
@@ -46,27 +49,53 @@ class OopSpam extends Captcha
         $ip = Craft::$app->getRequest()->getUserIP();
         $userAgent = Craft::$app->getRequest()->getUserAgent();
         $referrer = Craft::$app->getRequest()->getReferrer();
+        $source = $referrer ? parse_url($referrer, PHP_URL_HOST) : null;
 
         $message = ArrayHelper::recursiveImplode($submission->getValuesAsString(), ' ');
 
-        $payload = [
+        $payload = array_filter([
             'content' => $message,
-            'ip' => $ip,
+            'senderIP' => $ip,
             'userAgent' => $userAgent,
             'referrer' => $referrer,
-        ];
+            'source' => $source,
+        ], static function($value) {
+            return $value !== null && $value !== '';
+        });
 
         try {
             $response = $this->request('POST', 'https://api.oopspam.com/v1/spamdetection', [
                 'json' => $payload,
                 'headers' => [
-                    'Authorization' => "Bearer $apiKey",
+                    'X-Api-Key' => $apiKey,
                     'Content-Type' => 'application/json',
                 ],
             ]);
 
-            if (!($response['success'] ?? false)) {
+            if (isset($response['Score'])) {
+                $score = (int)$response['Score'];
+                $details = $response['Details'] ?? [];
+
+                if ($score >= $this->spamThreshold) {
+                    $this->spamReason = 'OOPSpam flagged this submission as spam.';
+
+                    if ($details) {
+                        $this->spamReason .= ' ' . Json::encode($details);
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Fallback for any legacy/alternate response shapes.
+            if (($response['success'] ?? true) === false) {
                 $this->spamReason = 'OOPSpam validation failed.';
+
+                if (isset($response['error'])) {
+                    $this->spamReason .= ' ' . Json::encode($response['error']);
+                }
 
                 return false;
             }
@@ -77,9 +106,7 @@ class OopSpam extends Captcha
                 return false;
             }
         } catch (Throwable $e) {
-            $this->spamReason = 'OOPSpam error: ' . $e->getMessage();
-
-            return false;
+            return $this->handleValidationException($submission, $e);
         }
 
         return true;

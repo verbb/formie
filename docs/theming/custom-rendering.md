@@ -2,8 +2,24 @@
 Rendering your forms in a custom manner means not relying on Formie's render methods, and constructing forms how you like. You can use as much or as little of Formie's helpers as you require. Ultimately, the maintenance of these templates will be up to you, and you'll want to keep an eye on Formie's own changes to ensure you're staying up to date.
 
 :::warning
-We recommend reading the [theming overview](docs:theming/overview) docs before getting started, for an explanation of custom rendering forms compared to other methods of theming forms.
+Read [Theming Overview](/theming/overview) first if you want to compare custom rendering with the other theming options.
 :::
+
+Custom rendering is the most flexible option, but it also comes with the most responsibility. If you go down this path, you are taking over the form markup and the front-end behavior requirements that come with it.
+
+For many projects, [Theme Config](/theming/theme-config) or [Template Overrides](/theming/template-overrides) will give you enough control with far less maintenance. Custom rendering is best reserved for cases where you really do need to take over the entire output.
+
+## What You Need To Keep
+Even when you render everything yourself, there are a few pieces you still need to keep in place for Formie to work properly:
+
+- the browser-facing form attributes and `data-formie-*` settings on the `<form>`
+- the required hidden inputs such as `handle`, `renderId`, and `requestToken`
+- the current submission state, so values and validation errors can be carried across requests
+- Formie's CSS and JavaScript assets, unless you are intentionally taking over that part too
+- captcha output, if the form uses captchas
+- `multipart/form-data` for file uploads
+
+Features like multi-page forms, save and continue later, payments, conditions, and different submit actions all build on those basics.
 
 ## Example
 The below is the most bare-bone form rendering for a Formie form. We'll use this as a base template to add more functionality.
@@ -16,14 +32,35 @@ This guide serves as a starter. There are several aspects of templating that sho
 {% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {% set attributes = {
+    id: form.getRenderId(),
     method: 'post',
-    'data-fui-form': form.configJson,
+    enctype: 'multipart/form-data',
+    'accept-charset': 'utf-8',
+    'data-formie': true,
+    'data-formie-form': true,
+    'data-formie-handle': form.handle,
+    'data-formie-submit-method': form.settings.submitMethod,
+    'data-formie-submit-action': form.settings.submitAction,
+    'data-formie-submit-action-form-hide': form.settings.submitActionFormHide ? true : false,
+    'data-formie-automatic-submission-state': form.settings.automaticSubmissionState ? true : false,
+    'data-formie-error-message': form.getFrontendErrorMessage(),
+    'data-formie-error-message-position': form.settings.errorMessagePosition,
+    'data-formie-loading-indicator': form.settings.loadingIndicator,
+    'data-formie-loading-indicator-text': form.settings.loadingIndicatorText,
+    'data-formie-progress-calculation': form.settings.progressCalculation,
+    'data-formie-validation-on-focus': form.settings.validationOnFocus ? true : false,
+    'data-formie-validation-on-submit': form.settings.validationOnSubmit ? true : false,
+    'data-formie-scroll-to-top': form.settings.scrollToTop ? true : false,
 } %}
 
 <form {{ attr(attributes) }}>
-    {{ actionInput('formie/submissions/submit') }}
+    {{ csrfInput({ autocomplete: 'off' }) }}
+    {{ actionInput(form.getActionUrl()) }}
+    {{ hiddenInput('submitAction', 'submit') }}
     {{ hiddenInput('handle', form.handle) }}
-    {{ csrfInput() }}
+    {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
+    {{ hiddenInput('renderId', form.getRenderId()) }}
+    {{ hiddenInput('requestToken', form.getRequestToken()) }}
 
     {% if form.getRedirectUrl() %}
         {{ redirectInput(form.getRedirectUrl()) }}
@@ -42,18 +79,20 @@ This guide serves as a starter. There are several aspects of templating that sho
 Stepping through the above, we prepare an array of HTML attributes, for the `<form>` element, and use Craft's `attr()` Twig function to apply them - it's a little easier than all those attributes!
 
 :::warning
-Make sure to include the `data-fui-form` attribute with JSON configuration from the form. Without this attribute, Formie's JavaScript will fail to initialise, meaning client-side validation, captchas and more will not work.
+Make sure the form keeps Formie's browser attributes such as `data-formie`, `data-formie-form`, and the related `data-formie-*` settings. Without them, Formie's JavaScript will not initialize correctly, and features like client-side validation, conditions, payments, and captchas can break.
 :::
+
+If you are intentionally deferring startup for a specific form, mirror `initJs: false` with `data-formie-init="false"` on the form root so Formie's automatic startup skips that form until your own bundle mounts it.
 
 We're then including the `actionInput`, `hiddenInput` and `csrfInput` to the form - all requirements and should not be changed. If the form has a redirect URL, we're also setting that with a `redirectInput`.
 
-Finally, we're looping through all fields defined in the form. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but we'd highly recommend you use the [Template Overrides](docs:theming/template-overrides) to override individual field HTML. The reason is simple - you're keeping field HTML modular, so it's easily reusable across multiple forms.
+Finally, we're looping through all fields defined in the form. We're also using `getFrontEndInputHtml` to output the HTML for the field. You could write the individual `<input>` elements, but using [Template Overrides](/theming/template-overrides) for field-level changes keeps that markup modular and easier to maintain.
 
 Next, let's add some error-handling for good UX.
 
 ```twig
-{% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
-{% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
+{% set flashNotice = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'notice') %}
+{% set flashError = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'error') %}
 
 {% if flashNotice %}
     <div role="alert">
@@ -78,15 +117,19 @@ Then, we want to add information about the submission. This is important if the 
 
 ```twig
 {% set submission = form.getCurrentSubmission() %}
-{% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
+{% set submitted = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'submitted') %}
 
 <form {{ attr(attributes) }}>
-    {{ actionInput('formie/submissions/submit') }}
+    {{ csrfInput({ autocomplete: 'off' }) }}
+    {{ actionInput(form.getActionUrl()) }}
+    {{ hiddenInput('submitAction', 'submit') }}
     {{ hiddenInput('handle', form.handle) }}
-    {{ csrfInput() }}
+    {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
+    {{ hiddenInput('renderId', form.getRenderId()) }}
+    {{ hiddenInput('requestToken', form.getRequestToken()) }}
 
-    {% if submission and submission.id %}
-        {{ hiddenInput('submissionId', submission.id) }}
+    {% if submission and submission.uid %}
+        {{ hiddenInput('submissionUid', submission.uid) }}
     {% endif %}
 
     {% set errors = submission.getErrors('form') ?? null %}
@@ -115,40 +158,48 @@ Then, we want to add information about the submission. This is important if the 
 
 We're fetching the `submission` based on the current submission for this form. For a brand-new form, this will be `null`, but if the page has reloaded with validation errors, this will be populated. For multi-page forms, this is particularly useful. We can also check the `flash` for whether the form has been submitted, to show the success message.
 
-We also add the `submissionId` as a `hiddenInput` if we're trying to submit the form again. We also check if there are any validation errors on the `submission` element for the form, as well as for each individual field.
+We also add the current submission identifier back to the form so the same in-progress submission can continue through validation and multi-page flow. We also check if there are any validation errors on the `submission` element for the form, as well as for each individual field.
 
 Then, for each field, we're fetching the field value from the `submission` element, if it doesn't exist, we use the `defaultValue`. We're also checking for validation errors for the specific field.
 
-Last, but not least - we'll want to include Formie's CSS and JS. If you'd rather include your own, either exclude this, or turn these off in your [Form Template](docs:feature-tour/form-templates).
+### Assets
+You'll usually want to include Formie's CSS and JS. If you prefer to control that separately, you can adjust the output settings in your form template or render options.
 
 ```twig
 {% set form = craft.formie.forms.handle('contactUs').one() %}
 
-{% do craft.formie.registerAssets(form.handle) %}
+{{ craft.formie.formAssets(form) }}
 
 <form {{ attr(attributes) }}>
 
 ...
 ```
 
-It's important to include this `registerAssets` before the `<form>` rendering tag. You could also include them separately as below:
+If you need more control, you can output CSS and JS separately:
 
 ```twig
 {% set form = craft.formie.forms.handle('contactUs').one() %}
 
-{% do craft.formie.renderFormCss(form.handle) %}
-{% do craft.formie.renderFormJs(form.handle) %}
+{{ craft.formie.formAssets(form, {
+    includeJs: false,
+}) }}
+
+{{ craft.formie.formAssets(form, {
+    includeCss: false,
+}) }}
 
 <form {{ attr(attributes) }}>
 
 ...
 ```
+
+When Formie outputs its browser JavaScript for you, it also outputs the startup script configuration and the inline JSON translations seed that front-end validation and UI messages rely on. If you replace Formie's asset output entirely, your own bundle needs to take over both startup and translations.
 
 ### Captchas
-If your form uses captchas, it's important that you include a template hook to tell the form where to inject required HTML generated by the captcha. Be sure your form includes the following hook to ensure captchas work:
+If your form uses captchas, make sure you render them explicitly where you want them to appear:
 
-```
-{% hook 'formie.buttons.before' %}
+```twig
+{{ craft.formie.renderCaptchas(form, form.getCurrentPage()) }}
 ```
 
 That should provide us with a working example to continue building. Here's the template combined:
@@ -158,15 +209,15 @@ That should provide us with a working example to continue building. Here's the t
 {% set form = craft.formie.forms.handle('contactUs').one() %}
 
 {# Ensure the CSS/JS is rendered, according to the Form Template location #}
-{% do craft.formie.registerAssets(form.handle) %}
+{{ craft.formie.formAssets(form) }}
 
 {# Fetch the current submission - if there is one #}
 {% set submission = form.getCurrentSubmission() %}
-{% set submitted = craft.formie.plugin.service.getFlash(form.id, 'submitted') %}
+{% set submitted = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'submitted') %}
 
 {# Show any error or success messages for the submission #}
-{% set flashNotice = craft.formie.plugin.service.getFlash(form.id, 'notice') %}
-{% set flashError = craft.formie.plugin.service.getFlash(form.id, 'error') %}
+{% set flashNotice = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'notice') %}
+{% set flashError = craft.formie.plugin.service.getFlash(form.getFlashNamespace(), 'error') %}
 
 {% if flashNotice %}
     <div role="alert">
@@ -182,18 +233,39 @@ That should provide us with a working example to continue building. Here's the t
 
 {# Generate required attributes for the `<form>` element #}
 {% set attributes = {
+    id: form.getRenderId(),
     method: 'post',
-    'data-fui-form': form.configJson,
+    enctype: 'multipart/form-data',
+    'accept-charset': 'utf-8',
+    'data-formie': true,
+    'data-formie-form': true,
+    'data-formie-handle': form.handle,
+    'data-formie-submit-method': form.settings.submitMethod,
+    'data-formie-submit-action': form.settings.submitAction,
+    'data-formie-submit-action-form-hide': form.settings.submitActionFormHide ? true : false,
+    'data-formie-automatic-submission-state': form.settings.automaticSubmissionState ? true : false,
+    'data-formie-error-message': form.getFrontendErrorMessage(),
+    'data-formie-error-message-position': form.settings.errorMessagePosition,
+    'data-formie-loading-indicator': form.settings.loadingIndicator,
+    'data-formie-loading-indicator-text': form.settings.loadingIndicatorText,
+    'data-formie-progress-calculation': form.settings.progressCalculation,
+    'data-formie-validation-on-focus': form.settings.validationOnFocus ? true : false,
+    'data-formie-validation-on-submit': form.settings.validationOnSubmit ? true : false,
+    'data-formie-scroll-to-top': form.settings.scrollToTop ? true : false,
 } %}
 
 <form {{ attr(attributes) }}>
-    {{ actionInput('formie/submissions/submit') }}
+    {{ csrfInput({ autocomplete: 'off' }) }}
+    {{ actionInput(form.getActionUrl()) }}
+    {{ hiddenInput('submitAction', 'submit') }}
     {{ hiddenInput('handle', form.handle) }}
-    {{ csrfInput() }}
+    {{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
+    {{ hiddenInput('renderId', form.getRenderId()) }}
+    {{ hiddenInput('requestToken', form.getRequestToken()) }}
 
     {# Ensure we update the same submission on subsequent saves (if validation fails) #}
-    {% if submission and submission.id %}
-        {{ hiddenInput('submissionId', submission.id) }}
+    {% if submission and submission.uid %}
+        {{ hiddenInput('submissionUid', submission.uid) }}
     {% endif %}
 
     {# Show any validation errors for the form #}
@@ -220,7 +292,7 @@ That should provide us with a working example to continue building. Here's the t
         {% endif %}
     {% endfor %}
 
-    {% hook 'formie.buttons.before' %}
+    {{ craft.formie.renderCaptchas(form, form.getCurrentPage()) }}
     
     <button type="submit" data-submit-action="submit">Submit</button>
 </form>
@@ -233,7 +305,9 @@ If your form contains File Upload fields, you'll need to set the `<form>` elemen
 {% set attributes = {
     method: 'post',
     enctype: 'multipart/form-data',
-    'data-fui-form': form.configJson,
+    'data-formie': true,
+    'data-formie-form': true,
+    'data-formie-init': 'false',
 } %}
 
 <form {{ attr(attributes) }}>
@@ -242,12 +316,17 @@ If your form contains File Upload fields, you'll need to set the `<form>` elemen
 
 Without this, file uploads will not work.
 
-### What's Not Covered
-Whilst we've covered the basics, there's still plenty of things left to address, such as handling the different forms of submission (redirecting the user away, hiding the form, only showing a message), and multi-page forms. That's beyond the scope of this guide, and we'd encourage you to consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special).
+## Common Things People Miss
 
-### Next Steps
-The above is a quick guide to the basics, but be warned that you'll be required to keep an eye on Formie's templates and development, in order to keep up with any core changes for your templates. We highly recommend you test your template code to ensure Formie's JavaScript works with your HTML markup as well, particularly for things like Captchas.
+- Leaving out Formie's browser attributes on the `<form>`, which stops the front-end behavior from initializing correctly.
+- Using outdated hidden inputs, or forgetting to pass the current submission back through after validation fails.
+- Forgetting to render captchas at all.
+- Not using `multipart/form-data` when the form includes file uploads.
+- Assuming a one-page form is the whole story. Multi-page forms, payments, save and continue later, and conditional behavior all add more moving parts.
+
+### What's Not Covered
+Whilst we've covered the basics, there's still plenty left to address, such as different submit actions, multi-page navigation, save-and-resume flows, and payment-specific behavior. For more complete examples, consult the templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template).
 
 :::tip
-Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) - they'll be the most up to date. This example serves as a brief, cut-down version of what Formie does under the hood, to use these templates as further inspiration for your own templates.
+Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) for the most up to date reference.
 :::

@@ -90,7 +90,7 @@ class Payments extends Component
 
         $this->trigger(self::EVENT_DEFINE_PAYMENT_SUCCESS_REDIRECT_URL, $event);
 
-        return $event->redirectUrl;
+        return StringHelper::sanitizeRedirectUrl($event->redirectUrl);
     }
 
     public function savePayment(Payment $payment, bool $runValidation = true): bool

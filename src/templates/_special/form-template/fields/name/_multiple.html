@@ -1,18 +1,8 @@
-{# Keep track of the outer field #}
-{% set nameField = field %}
-
 {% fieldtag 'subFieldRows' %}
     {% for row in field.getRows(false) %}
         {% fieldtag 'subFieldRow' %}
             {% for field in row.getFields(false) %}
-                {# Update the namespace for the field #}
-                {% do field.setParentField(nameField) %}
-
-                {# Pass in the raw value from this parent field #}
-                {{ craft.formie.renderField(form, field, {
-                    ...(renderOptions ?? {}),
-                    value: value[field.handle] ?? null,
-                }) }}
+                {{ craft.formie.renderField(form, field) }}
             {% endfor %}
         {% endfieldtag %}
     {% endfor %}

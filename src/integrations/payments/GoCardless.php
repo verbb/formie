@@ -9,10 +9,15 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\helpers\References;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentAction;
+use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\Plan;
 
 use Craft;
 use craft\helpers\App;
@@ -26,7 +31,6 @@ use Money\Currency;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 use Exception;
@@ -37,7 +41,6 @@ class GoCardless extends Payment
     // =========================================================================
 
     public const EVENT_MODIFY_PAYLOAD = 'modifyPayload';
-    public const EVENT_RECEIVE_WEBHOOK = 'receiveWebhook';
 
 
     // Static Methods
@@ -53,6 +56,7 @@ class GoCardless extends Payment
     // =========================================================================
 
     public ?string $accessToken = null;
+    public ?string $webhookSecretKey = null;
     public bool|string $useSandbox = false;
 
 
@@ -92,21 +96,24 @@ class GoCardless extends Payment
         return $url;
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/go-cardless.js'),
-            'module' => 'FormieGoCardless',
-        ];
+        return new ClientModule([
+            'id' => 'go-cardless',
+            'config' => [
+                'requiredInputSuffixes' => [],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
@@ -126,7 +133,7 @@ class GoCardless extends Payment
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         try {
@@ -141,7 +148,7 @@ class GoCardless extends Payment
             $payload = [
                 'session_token' => $sessionToken,
                 'success_redirect_url' => $this->getReturnUrl([
-                    'paymentUid' => $payment->uid,
+                    'statusToken' => PaymentAccess::issueStatusToken($payment),
                 ]),
                 'metadata' => [
                     'formiePaymentId' => (string)$payment->id,
@@ -170,25 +177,29 @@ class GoCardless extends Payment
             Formie::$plugin->getPayments()->savePayment($payment);
 
             $submission->getForm()->addSubmitData([
-                'event' => 'FormiePaymentGoCardlessRedirect',
+                'event' => 'formie:payment:go-cardless:redirect',
                 'data' => [
                     'redirectUrl' => $flow['redirect_url'] ?? '',
                 ],
             ]);
 
-            // Add an error to the form to ensure it doesn't proceed and redirects
-            $this->addFieldError($submission, Craft::t('formie', 'Please wait while you are redirected to GoCardless.'));
-
             // Allow events to say the response is invalid
             if (!$this->afterProcessPayment($submission, $result)) {
-                return true;
+                return PaymentDecision::succeeded($this->handle);
             }
 
-            return false;
+            return PaymentDecision::requiresAction(
+                $payment->reference,
+                PaymentAction::redirectEvent('formie:payment:go-cardless:redirect', $flow['redirect_url'] ?? null)
+                    ->forProvider($this->handle)
+                    ->withMessage(Craft::t('formie', 'Please wait while you are redirected to GoCardless.'))
+                    ->withPayload(['redirectUrl' => $flow['redirect_url'] ?? ''])
+                    ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
+            );
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -196,27 +207,47 @@ class GoCardless extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+            $userMessage = Craft::t('formie', 'Unable to process your payment right now. Please try again.');
+            $this->addFieldError($submission, $userMessage);
 
             // Update the payment if one has already been made
             $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->response = ['message' => $e->getMessage()];
+            $payment->response = ['message' => $userMessage];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($userMessage, $this->handle, $payment->reference);
         }
 
-        return true;
+        return PaymentDecision::succeeded($this->handle);
     }
 
     public function processWebhook(): Response
     {
+        $rawBody = Craft::$app->getRequest()->getRawBody();
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
+        $secret = trim((string)App::parseEnv($this->webhookSecretKey));
+        $signature = trim((string)(Craft::$app->getRequest()->getHeaders()->get('Webhook-Signature') ?? ''));
+
+        if (!$secret || !$signature) {
+            Integration::error($this, 'Webhook not signed or signing secret not set.');
+            $response->data = 'success';
+
+            return $response;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $rawBody, $secret);
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            Integration::error($this, 'Webhook signature check failed.');
+            $response->data = 'success';
+
+            return $response;
+        }
 
         try {
-            $payload = Json::decode(Craft::$app->getRequest()->getRawBody());
+            $payload = Json::decode($rawBody);
             $events = $payload['events'] ?? [];
 
             foreach ($events as $event) {
@@ -246,7 +277,25 @@ class GoCardless extends Payment
                     continue;
                 }
 
-                $this->_syncFormiePaymentFromGoCardlessPayment($payment, $gcPayment);
+                // Update status based on GoCardless payment status
+                $status = $gcPayment['status'] ?? '';
+
+                switch ($status) {
+                    case 'confirmed':
+                        $payment->status = PaymentModel::STATUS_SUCCESS;
+                        break;
+                    case 'failed':
+                    case 'cancelled':
+                        $payment->status = PaymentModel::STATUS_FAILED;
+                        break;
+                    case 'pending_submission':
+                    case 'submitted':
+                    default:
+                        $payment->status = PaymentModel::STATUS_PENDING;
+                        break;
+                }
+
+                $this->_updatePaymentStatus($payment, $gcPayment);
             }
 
             if ($this->hasEventHandlers(self::EVENT_RECEIVE_WEBHOOK)) {
@@ -255,10 +304,10 @@ class GoCardless extends Payment
                 ]));
             }
 
-            $response->data = 'ok';
+            $response->data = 'success';
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
-            $response->data = 'Webhook error: ' . $e->getMessage();
+            $response->data = 'error';
         }
 
         return $response;
@@ -267,7 +316,7 @@ class GoCardless extends Payment
     public function getTransaction(PaymentModel $payment): void
     {
         if (!$payment->reference) {
-            throw new Exception(Craft::t('formie', 'Missing GoCardless payment reference.'));
+            throw new Exception('Missing GoCardless payment reference.');
         }
 
         if (
@@ -280,10 +329,10 @@ class GoCardless extends Payment
         $gcPayment = $this->request('GET', "payments/{$payment->reference}")['payments'] ?? [];
 
         if (!$gcPayment) {
-            throw new Exception(Craft::t('formie', 'Unable to load GoCardless payment.'));
+            throw new Exception('Unable to resolve GoCardless payment.');
         }
 
-        $this->_syncFormiePaymentFromGoCardlessPayment($payment, $gcPayment);
+        $this->_updatePaymentStatus($payment, $gcPayment);
     }
 
     public function getTransactionStatus(PaymentModel $payment): void
@@ -292,77 +341,11 @@ class GoCardless extends Payment
         $request = Craft::$app->getRequest();
 
         // GoCardless payment already created — refresh from API and let the status page poll.
-        if (is_string($payment->reference) && str_starts_with($payment->reference, 'PM')) {
-            try {
-                $this->getTransaction($payment);
-            } catch (Throwable $e) {
-                Integration::error($this, Craft::t('formie', 'Unable to refresh GoCardless payment: “{message}”.', [
-                    'message' => $e->getMessage(),
-                ]));
-            }
-
+        if (in_array($payment->status, [PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED], true)) {
             return;
         }
 
-        $redirectFlowId = $request->getQueryParam('redirect_flow_id');
-        $sessionToken = is_array($payment->response) ? ($payment->response['sessionToken'] ?? null) : null;
-
-        if (!$submission) {
-            Integration::error($this, 'GoCardless return URL missing submission for payment.');
-
-            return;
-        }
-
-        $this->setField($payment->getField());
-
-        if (!$redirectFlowId || !$sessionToken) {
-            $this->_failGoCardlessReturn(
-                $payment,
-                $submission,
-                Craft::t('formie', 'Your payment could not be confirmed. Please return to the form and try again.')
-            );
-
-            return;
-        }
-
-        $mandateId = null;
-
-        try {
-            $completedFlow = $this->_completeGoCardlessRedirectFlow($payment, $redirectFlowId, $sessionToken);
-            $mandateId = $completedFlow['links']['mandate'] ?? null;
-
-            if (!$mandateId) {
-                throw new Exception(Craft::t('formie', 'GoCardless did not return a mandate for this payment.'));
-            }
-
-            $this->_persistMandateAfterRedirectFlowComplete($payment, $completedFlow, $mandateId);
-
-            $gcPayment = $this->_createGoCardlessPaymentForMandate($payment, $submission, $mandateId);
-            $this->_syncFormiePaymentFromGoCardlessPayment($payment, $gcPayment);
-        } catch (Throwable $e) {
-            Integration::error($this, Craft::t('formie', 'GoCardless payment error: “{message}” {file}:{line}. Context: “{context}”. Response: “{response}”.', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'context' => Json::encode([
-                    'paymentId' => $payment->id,
-                    'paymentUid' => $payment->uid,
-                    'submissionId' => $submission->id,
-                    'amount' => $payment->amount,
-                    'currency' => $payment->currency,
-                    'redirectFlowId' => $redirectFlowId,
-                    'mandateId' => $mandateId,
-                    'statusCode' => $this->_getGoCardlessExceptionStatusCode($e),
-                ]),
-                'response' => $this->_getGoCardlessExceptionResponse($e),
-            ]));
-
-            $this->_failGoCardlessReturn(
-                $payment,
-                $submission,
-                Craft::t('formie', 'We could not complete your Direct Debit payment. Please try again or contact support.')
-            );
-        }
+        $this->getTransaction($payment);
     }
 
     public function fetchConnection(): bool
@@ -378,86 +361,80 @@ class GoCardless extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Payment Description'),
-                'help' => Craft::t('formie', 'Enter a description for this payment, to appear against the transaction in your GoCardless account, and on the customer bank statement where supported.'),
+                'instructions' => Craft::t('formie', 'Enter a description for this payment, to appear against the transaction in your Mollie account, and on the payment receipt sent to the customer.'),
                 'name' => 'paymentDescription',
                 'variables' => 'plainTextVariables',
             ]),
-            [
-                '$formkit' => 'staticTable',
+            SchemaHelper::staticTableField([
                 'label' => Craft::t('formie', 'Billing Details'),
-                'help' => Craft::t('formie', 'Whether to send billing details alongside the payment.'),
+                'instructions' => Craft::t('formie', 'Whether to send billing details alongside the payment.'),
                 'name' => 'billingDetails',
                 'columns' => [
                     'heading' => [
                         'type' => 'heading',
                         'heading' => Craft::t('formie', 'Billing Info'),
-                        'class' => 'heading-cell thin',
                     ],
                     'value' => [
                         'type' => 'fieldSelect',
                         'label' => Craft::t('formie', 'Field'),
-                        'class' => 'select-cell',
                     ],
                 ],
                 'rows' => [
@@ -478,29 +455,23 @@ class GoCardless extends Payment
                         'value' => '',
                     ],
                 ],
-            ],
+            ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Metadata'),
-                'help' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
-                'validation' => 'min:0',
-                'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                ],
-                'generateValue' => false,
+                'instructions' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
+                'name' => 'metadata',
                 'columns' => [
                     [
+                        'name' => 'label',
                         'type' => 'label',
                         'label' => Craft::t('formie', 'Option'),
-                        'class' => 'singleline-cell textual',
                     ],
                     [
+                        'name' => 'value',
                         'type' => 'value',
                         'label' => Craft::t('formie', 'Value'),
-                        'class' => 'singleline-cell textual',
                     ],
                 ],
-                'name' => 'metadata',
             ]),
         ];
     }
@@ -533,10 +504,45 @@ class GoCardless extends Payment
             ],
         ]);
     }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
+    }
     
 
     // Private Methods
     // =========================================================================
+
+    private function _updatePaymentStatus(PaymentModel $payment, array $gcPayment): void
+    {
+        $status = $gcPayment['status'] ?? '';
+
+        switch ($status) {
+            case 'confirmed':
+                $payment->status = PaymentModel::STATUS_SUCCESS;
+                break;
+            case 'failed':
+            case 'cancelled':
+                $payment->status = PaymentModel::STATUS_FAILED;
+                break;
+            case 'pending_submission':
+            case 'submitted':
+            default:
+                $payment->status = PaymentModel::STATUS_PENDING;
+                break;
+        }
+
+        $payment->reference = $gcPayment['id'] ?? $payment->reference;
+        $payment->response = $gcPayment;
+
+        Formie::$plugin->getPayments()->savePayment($payment);
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
 
     private function _setPayloadDetails(array &$payload, Submission $submission): void
     {
@@ -545,7 +551,7 @@ class GoCardless extends Payment
         $metadata = $this->getFieldSetting('metadata', []);
 
         if ($paymentDescription) {
-            $payload['description'] = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
+            $payload['description'] = References::parseContent($paymentDescription, $submission);
         }
 
         // Add a few other things about the customer from mapping (in field settings)
@@ -554,33 +560,26 @@ class GoCardless extends Payment
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
         $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
 
-        if ($billingFirstName) {
-            $payload['prefilled_customer']['given_name'] = $this->getMappedFieldValue($billingFirstName, $submission, new IntegrationField());
+        if ($billingFirstName && ($billingFirstNameValue = $submission->getFieldValueAsString($billingFirstName))) {
+            $payload['prefilled_customer']['given_name'] = $billingFirstNameValue;
         }
 
-        if ($billingLastName) {
-            $payload['prefilled_customer']['family_name'] = $this->getMappedFieldValue($billingLastName, $submission, new IntegrationField());
+        if ($billingLastName && ($billingLastNameValue = $submission->getFieldValueAsString($billingLastName))) {
+            $payload['prefilled_customer']['family_name'] = $billingLastNameValue;
         }
 
-        if ($billingAddress) {
-            $integrationField = new IntegrationField();
-            $integrationField->type = IntegrationField::TYPE_ARRAY;
-
-            $address = $this->getMappedFieldValue($billingAddress, $submission, $integrationField);
-
-            if ($address) {
-                $payload['prefilled_customer']['address_line1'] = ArrayHelper::remove($address, 'address1');
-                $payload['prefilled_customer']['address_line2'] = ArrayHelper::remove($address, 'address2');
-                $payload['prefilled_customer']['address_line3'] = ArrayHelper::remove($address, 'address3');
-                $payload['prefilled_customer']['city'] = ArrayHelper::remove($address, 'city');
-                $payload['prefilled_customer']['postal_code'] = ArrayHelper::remove($address, 'zip');
-                $payload['prefilled_customer']['region'] = ArrayHelper::remove($address, 'state');
-                $payload['prefilled_customer']['country_code'] = ArrayHelper::remove($address, 'country');
-            }
+        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
+            $payload['prefilled_customer']['address_line1'] = ArrayHelper::remove($address, 'address1');
+            $payload['prefilled_customer']['address_line2'] = ArrayHelper::remove($address, 'address2');
+            $payload['prefilled_customer']['address_line3'] = ArrayHelper::remove($address, 'address3');
+            $payload['prefilled_customer']['city'] = ArrayHelper::remove($address, 'city');
+            $payload['prefilled_customer']['postal_code'] = ArrayHelper::remove($address, 'zip');
+            $payload['prefilled_customer']['region'] = ArrayHelper::remove($address, 'state');
+            $payload['prefilled_customer']['country_code'] = ArrayHelper::remove($address, 'country');
         }
 
-        if ($billingEmail) {
-            $payload['prefilled_customer']['email'] = $this->getMappedFieldValue($billingEmail, $submission, new IntegrationField());
+        if ($billingEmail && ($billingEmailValue = $submission->getFieldValueAsString($billingEmail))) {
+            $payload['prefilled_customer']['email'] = $billingEmailValue;
         }
 
         // Note API limit of 4 total
@@ -590,7 +589,7 @@ class GoCardless extends Payment
                 $value = trim($option['value']);
 
                 if ($label && $value) {
-                    $payload['metadata'][$label] = Variables::getParsedValue($value, $submission, $submission->getForm());
+                    $payload['metadata'][$label] = References::parseContent($value, $submission);
                 }
             }
         }
@@ -681,7 +680,7 @@ class GoCardless extends Payment
         }
 
         try {
-            $body = Json::decode((string)$e->getResponse()->getBody());
+            $body = Json::decode($e->getResponse()->getBody()->getContents());
             $errors = $body['error']['errors'] ?? [];
 
             foreach ($errors as $error) {
@@ -717,6 +716,15 @@ class GoCardless extends Payment
             throw new Exception(Craft::t('formie', 'The payment amount is too small for GoCardless.'));
         }
 
+        $paymentDescription = $this->getFieldSetting('paymentDescription') ?? "Formie Submission #{$submission->id}";
+        $referenceBase = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
+        $reference = strtoupper(substr(preg_replace('/[^A-Za-z0-9\-]/', '-', (string)$referenceBase), 0, 18));
+
+        if ($reference === '' || $reference === '-') {
+            $reference = 'F' . $submission->id;
+            $reference = strtoupper(substr($reference, 0, 18));
+        }
+
         $payload = [
             'amount' => $amountMinor,
             'currency' => strtoupper($currency),
@@ -726,6 +734,7 @@ class GoCardless extends Payment
             'links' => [
                 'mandate' => $mandateId,
             ],
+            'reference' => $reference,
         ];
 
         $apiResponse = $this->request('POST', 'payments', [
@@ -757,24 +766,6 @@ class GoCardless extends Payment
         $url = $payment->redirectUrl ?: UrlHelper::siteUrl();
 
         Craft::$app->getResponse()->redirect($url)->send();
-    }
-
-    private function _getGoCardlessExceptionStatusCode(Throwable $e): ?int
-    {
-        if ($e instanceof RequestException && $e->hasResponse()) {
-            return $e->getResponse()->getStatusCode();
-        }
-
-        return null;
-    }
-
-    private function _getGoCardlessExceptionResponse(Throwable $e): ?string
-    {
-        if ($e instanceof RequestException && $e->hasResponse()) {
-            return (string)$e->getResponse()->getBody();
-        }
-
-        return null;
     }
 
     private function _amountToMinorUnits(float $amount, string $currencyCode): int

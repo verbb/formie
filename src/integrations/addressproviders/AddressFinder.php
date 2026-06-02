@@ -2,7 +2,8 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\base\FieldInterface;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -42,23 +43,20 @@ class AddressFinder extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest Australian and New Zealand addresses, for address fields.', ['link' => '[Address Finder](https://addressfinder.com.au/)']);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $settings = [
-            'apiKey' => App::parseEnv($this->apiKey),
-            'countryCode' => $this->countryCode,
-            'widgetOptions' => $this->_getOptions(),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/address-providers/address-finder.js'),
-            'module' => 'FormieAddressFinder',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'address-finder',
+            'config' => [
+                'apiKey' => App::parseEnv($this->apiKey),
+                'countryCode' => $this->countryCode,
+                'widgetOptions' => $this->_getOptions(),
+            ],
+        ]);
     }
 
     public function hasValidSettings(): bool

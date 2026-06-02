@@ -34,7 +34,6 @@ class Ortto extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $dataCenter = 'INT';
 
-
     // Public Methods
     // =========================================================================
 
@@ -212,7 +211,7 @@ class Ortto extends EmailMarketing
             'headers' => ['X-Api-Key' => App::parseEnv($this->apiKey)],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

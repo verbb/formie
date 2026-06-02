@@ -3,14 +3,17 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\SlotTag;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\SortableFieldInterface;
 use craft\helpers\Localization;
 use craft\i18n\Locale;
 use craft\validators\ArrayValidator;
@@ -32,7 +35,6 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     {
         return 'formie/_formfields/dropdown/icon.svg';
     }
-
 
     // Properties
     // =========================================================================
@@ -64,8 +66,8 @@ class Dropdown extends OptionsField implements SortableFieldInterface
             [
                 'label' => Craft::t('formie', 'Select an option'),
                 'value' => '',
-                'isOptgroup' => false,
-                'isDefault' => true,
+                'optgroup' => false,
+                'default' => true,
             ],
         ];
     }
@@ -114,19 +116,19 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                 'skipOnEmpty' => false,
             ]);
 
-            $value = $element->getFieldValue($this->fieldKey);
+            $value = $element->getFieldValue($this->valueKey());
 
             if (!$arrayValidator->validate($value, $error)) {
-                $element->addError($this->fieldKey, $error);
+                $element->addError($this->valueKey(), $error);
             }
         }
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewSelect(),
+        ];
     }
 
     public function getFormBuilderSettings(): array
@@ -135,95 +137,95 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
         foreach ($settings['options'] as &$option) {
             if (isset($option['optgroup']) && $option['optgroup']) {
-                $option['isOptgroup'] = true;
+                $option['optgroup'] = true;
                 $option['label'] = ArrayHelper::remove($option, 'optgroup');
             } else {
-                $option['isOptgroup'] = false;
+                $option['optgroup'] = false;
             }
         }
 
         return $settings;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
-                'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
+                'instructions' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
                 'name' => 'multi',
             ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Options'),
-                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
-                'allowMultipleDefault' => false,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                    'isOptgroup' => false,
-                    'isDefault' => false,
+                    'optgroup' => false,
+                    'default' => false,
                 ],
                 'columns' => [
                     [
-                        'type' => 'optgroup',
+                        'type' => 'checkbox',
+                        'name' => 'optgroup',
                         'label' => Craft::t('formie', 'Optgroup?'),
-                        'class' => 'thin checkbox-cell',
                     ],
                     [
-                        'type' => 'label',
+                        'type' => 'text',
+                        'name' => 'label',
                         'label' => Craft::t('formie', 'Option Label'),
-                        'class' => 'singleline-cell textual',
+                        'required' => true,
                     ],
                     [
                         'type' => 'value',
+                        'name' => 'value',
                         'label' => Craft::t('formie', 'Value'),
-                        'class' => 'code singleline-cell textual',
+                        'source' => 'label',
                     ],
                     [
-                        'type' => 'default',
+                        'type' => $this->multi ? 'checkbox' : 'radio',
+                        'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
-                        'class' => 'thin checkbox-cell',
+                        'allowUnselect' => !$this->multi,
                     ],
                     [
-                        'type' => 'disabled',
+                        'type' => 'checkbox',
+                        'name' => 'disabled',
                         'label' => Craft::t('formie', 'Disabled'),
-                        'class' => 'thin checkbox-cell',
                     ],
                 ],
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Options'),
-                'help' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
+                'instructions' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
                 'name' => 'limitOptions',
-                'if' => '$get(multiple).value',
+                'if' => 'multiple',
             ]),
             [
                 '$el' => 'div',
                 'attrs' => [
                     'class' => 'fui-row',
                 ],
-                'if' => '$get(limitOptions).value',
+                'if' => 'limitOptions',
                 'children' => [
                     [
                         '$el' => 'div',
@@ -233,7 +235,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Min Value'),
-                                'help' => Craft::t('formie', 'Set the minimum options that users must select.'),
+                                'instructions' => Craft::t('formie', 'Set the minimum options that users must select.'),
                                 'name' => 'min',
                             ]),
                         ],
@@ -246,7 +248,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Max Value'),
-                                'help' => Craft::t('formie', 'Set the maximum options that users must select.'),
+                                'instructions' => Craft::t('formie', 'Set the maximum options that users must select.'),
                                 'name' => 'max',
                             ]),
                         ],
@@ -254,8 +256,8 @@ class Dropdown extends OptionsField implements SortableFieldInterface
                 ],
             ],
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue([
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue([
                 'options' => [
                     ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
                     ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
@@ -264,7 +266,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -274,7 +276,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -284,44 +286,51 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
     }
-
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
-
-        if ($key === 'fieldInput') {
-            $optionValue = $this->getFieldInputOptionValue($context);
-
-            return new HtmlTag('select', [
-                'id' => $this->getHtmlId($form, $optionValue),
-                'class' => [
-                    'fui-select',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
-                'multiple' => $this->multi ? true : null,
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $this->getHtmlDataId($form, $optionValue),
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ], $this->getInputAttributes());
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
+    
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
+        $errors = $context->errors;
+
+        if ($key === 'fieldInput') {
+            $optionValue = $this->getFieldInputOptionValue($context->toArray());
+
+            return SlotTag::make('select')
+                ->core([
+                    'id' => $this->getHtmlId($form, $optionValue),
+                    'name' => $this->getHtmlName(($this->multi || $this->hasMultiNamespace ? '[]' : null)),
+                    'multiple' => $this->multi ? true : null,
+                    'required' => $this->required ? true : null,
+                    'data-formie-select' => true,
+                    'data-formie-dropdown-input' => true,
+                    'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
+                    'data-formie-input-type' => 'select',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-select',
+                        'formie-dropdown-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
 
     protected function defineRules(): array
     {
@@ -333,7 +342,15 @@ class Dropdown extends OptionsField implements SortableFieldInterface
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'min' => $this->min,
+            'max' => $this->max,
+        ]);
+    }
+
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/dropdown/input', [
             'name' => $this->handle,
@@ -345,7 +362,7 @@ class Dropdown extends OptionsField implements SortableFieldInterface
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        $values = $faker->randomElement($this->options())['value'] ?? '';
+        $values = $faker->randomElement($this->options)['value'] ?? '';
 
         if ($this->multi) {
             $values = [$values];
@@ -357,5 +374,12 @@ class Dropdown extends OptionsField implements SortableFieldInterface
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Dropdown Options');
+    }
+
+    protected function definePrimaryOptionVariableSourceTypes(): array
+    {
+        return $this->multi
+            ? [Variables::TYPE_TEXT, Variables::TYPE_CALCULATIONS, Variables::TYPE_BOOLEAN]
+            : [Variables::TYPE_TEXT];
     }
 }

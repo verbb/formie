@@ -1,29 +1,30 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\RecipientsFieldValue;
 use verbb\formie\fields\Hidden as HiddenField;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
-use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\IntegrationField;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
+use verbb\formie\theme\context\RenderContext;
+
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\helpers\Component;
 use craft\helpers\Json;
 
 use Faker\Generator as FakerFactory;
@@ -48,36 +49,50 @@ class Recipients extends Field implements PreviewableFieldInterface
         return 'formie/_formfields/recipients/icon.svg';
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        $settings = Formie::$plugin->getFields()->getFieldConfigSettings($config);
+
+        return ($settings['displayType'] ?? null) === 'checkboxes'
+            ? Type::listOf(Type::string())
+            : Type::string();
+    }
+
 
     // Properties
     // =========================================================================
 
+    public ?string $emailFieldSummaryValue = 'value';
     public string $displayType = 'hidden';
-    public ?string $emailValue = 'label';
+    public ?string $layout = 'vertical';
     public array $options = [];
-    public bool $multi = false;
+    public ?bool $multiple = null;
 
 
     // Public Methods
     // =========================================================================
 
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
-        // Normalize the options
-        if (array_key_exists('multiple', $config)) {
-            $config['multi'] = ArrayHelper::remove($config, 'multiple');
-        }
+        // Setuo defaults for some values which can't in in the property definition
+        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
 
         parent::__construct($config);
     }
 
-    public function getFieldTypeDefaults(): array
+    public function fieldKind(): string
     {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['labelPosition'] = HiddenPosition::class;
-
-        return $settings;
+        return match ($this->displayType) {
+            'dropdown' => self::KIND_SELECT,
+            'checkboxes' => self::KIND_CHECKBOX_GROUP,
+            'radio' => self::KIND_RADIO_GROUP,
+            default => self::KIND_HIDDEN,
+        };
     }
 
     public function getIsHidden(): bool
@@ -89,7 +104,7 @@ class Recipients extends Field implements PreviewableFieldInterface
     {
         $value = parent::normalizeValue($value, $element);
 
-        if ($value instanceof MultiOptionsFieldData || $value instanceof SingleOptionFieldData) {
+        if ($value instanceof RecipientsFieldValue) {
             return $value;
         }
 
@@ -104,16 +119,7 @@ class Recipients extends Field implements PreviewableFieldInterface
 
         // For non-hidden fields, ensure we cast to option field data
         if ($this->displayType !== 'hidden') {
-            // Normalize to an array of strings
-            $selectedValues = [];
-
-            foreach ((array)$value as $val) {
-                if (is_array($val) && isset($val['value'])) {
-                    $selectedValues[] = $val['value'];
-                } else {
-                    $selectedValues[] = (string)$val;
-                }
-            }
+            $selectedValues = $this->_normalizeSelectedValues($value);
 
             $options = [];
             $optionValues = [];
@@ -121,33 +127,31 @@ class Recipients extends Field implements PreviewableFieldInterface
 
             foreach ($this->options() as $option) {
                 $selected = in_array($option['value'], $selectedValues, true);
-                $options[] = new OptionData($option['label'], $option['value'], $selected, true);
+                $options[] = new OptionValue($option['label'], $option['value'], $selected, true);
                 $optionValues[] = (string)$option['value'];
                 $optionLabels[] = (string)$option['label'];
             }
 
             if (in_array($this->displayType, ['dropdown', 'radio'])) {
-                // Convert the value to a SingleOptionFieldData object
                 $selectedValue = reset($selectedValues);
                 $index = array_search($selectedValue, $optionValues, true);
                 $valid = $index !== false;
                 $label = $valid ? $optionLabels[$index] : null;
-                $value = new SingleOptionFieldData($label, $selectedValue, true, $valid);
+                $value = new RecipientsFieldValue($this->displayType, $selectedValue, $label, $valid, [], $options);
             } else if ($this->displayType === 'checkboxes') {
-                // Convert the value to a MultiOptionsFieldData object
                 $selectedOptions = [];
 
                 foreach ($selectedValues as $selectedValue) {
                     $index = array_search($selectedValue, $optionValues, true);
                     $valid = $index !== false;
                     $label = $valid ? $optionLabels[$index] : null;
-                    $selectedOptions[] = new OptionData($label, $selectedValue, true, $valid);
+                    $selectedOptions[] = new OptionValue($label, $selectedValue, true, $valid);
                 }
 
-                $value = new MultiOptionsFieldData($selectedOptions);
+                $value = new RecipientsFieldValue($this->displayType, null, null, true, $selectedOptions, $options);
             }
-
-            $value->setOptions($options);
+        } else if ($value !== null) {
+            $value = new RecipientsFieldValue($this->displayType, $value);
         }
 
         return $value;
@@ -155,33 +159,22 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        // If the values are being saved as option field data, save them instead as "plain" values.
-        // These will also be normalised already, so dealing with real values.
-        if ($value instanceof SingleOptionFieldData) {
-            $value = (string)$value;
+        if ($value instanceof RecipientsFieldValue) {
+            $value = match ($value->displayType()) {
+                'checkboxes' => $value->values(),
+                'hidden' => is_array($value->rawValue()) ? Json::encode($value->rawValue()) : $value->rawValue(),
+                default => $value->rawValue(),
+            };
         }
-
-        if ($value instanceof MultiOptionsFieldData) {
-            $value = array_map(function($item) {
-                return (string)$item;
-            }, (array)$value);
-        }
-
 
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    public function defineFormBuilderPreviewSchema(): array
     {
-        // Recipients fields should use encoded values, because they can't be exposed in HTML source
-        return $this->getValueAsString($this->getFakeValue($value), $submission);
-    }
-
-    public function getPreviewInputHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewRecipients(),
+        ];
     }
 
     public function options(): array
@@ -206,9 +199,9 @@ class Recipients extends Field implements PreviewableFieldInterface
         return $options;
     }
 
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
+    public function getInputTemplateVariables(Form $form, mixed $value): array
     {
-        $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
+        $inputOptions = parent::getInputTemplateVariables($form, $value);
 
         // When rendering the value **always** swap out the real values with obscured ones
         $inputOptions['value'] = $this->getFakeValue($value);
@@ -225,11 +218,9 @@ class Recipients extends Field implements PreviewableFieldInterface
             'options' => $this->getFieldOptions(),
         ];
 
-        // Set the parent field and namespace, but in a specific way due to nested field handling.
+        // Carry across the existing nested-field context, but preserve the namespace already applied to this field clone.
         if ($this->getParentField()) {
-            // Note the order here is important, due to Repeaters (and other nested fields)
-            // can set the namespace with `setParentField()`, but we want to specifically use the
-            // namespace value we already have, which has already neen set anyway.
+            // Note the order here is important for repeaters and other nested fields.
             $config['parentField'] = $this->getParentField();
         }
 
@@ -272,7 +263,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             $value = [];
 
             foreach ($this->options() as $option) {
-                if (!empty($option['isDefault'])) {
+                if (!empty($option['default'])) {
                     $value[] = $option['value'];
                 }
             }
@@ -322,43 +313,10 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     public function getFakeValue($value)
     {
-        if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            foreach ($this->options() as $key => $option) {
-                $id = 'id:' . $key;
+        $normalized = $this->normalizeValue($value, null);
 
-                if ((string)$option['value'] === (string)$value) {
-                    $value = new SingleOptionFieldData($option['label'], $id, true);
-
-                    break;
-                }
-            }
-        } else if ($this->displayType === 'checkboxes') {
-            // Swap out the values with fake values
-            $selectedValues = [];
-
-            foreach ((array)$value as $val) {
-                $selectedValues[] = (string)$val;
-            }
-
-            $options = [];
-
-            foreach ($this->options() as $key => $option) {
-                $id = 'id:' . $key;
-
-                if (in_array((string)$option['value'], $selectedValues, true)) {
-                    $options[] = new OptionData($option['label'], $id, true);
-                }
-
-            }
-            $value = new MultiOptionsFieldData($options);
-        } else if ($this->displayType === 'hidden') {
-            // For a hidden field, there's no CP defined options, so encode the provided value
-            // Also - support arrays of recipients in a hidden field
-            if (is_array($value)) {
-                $value = Json::encode($value);
-            }
-
-            $value = StringHelper::encenc((string)$value);
+        if ($normalized instanceof RecipientsFieldValue) {
+            return $normalized->toClientValue();
         }
 
         return $value;
@@ -366,18 +324,8 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
-        if (in_array($this->displayType, ['dropdown', 'radio'])) {
-            return $value->value ? Craft::t('site', (string)$value->label) : '';
-        } else if ($this->displayType === 'checkboxes') {
-            $labels = [];
-
-            foreach ($value as $option) {
-                if ($option->value) {
-                    $labels[] = Craft::t('site', $option->label);
-                }
-            }
-
-            return implode(', ', $labels);
+        if ($value instanceof RecipientsFieldValue) {
+            return $this->renderPreviewText(implode(', ', array_map(static fn(string $label): string => Craft::t('site', $label), $value->labels())));
         }
 
         return parent::getPreviewHtml($value, $element);
@@ -392,13 +340,6 @@ class Recipients extends Field implements PreviewableFieldInterface
             ],
             'multiple' => [
                 'name' => 'multiple',
-                'type' => Type::boolean(),
-                'resolve' => function($field) {
-                    return $field->multi;
-                },
-            ],
-            'multi' => [
-                'name' => 'multi',
                 'type' => Type::boolean(),
             ],
             'options' => [
@@ -417,13 +358,13 @@ class Recipients extends Field implements PreviewableFieldInterface
         return Type::string();
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
-                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
                     ['label' => Craft::t('formie', 'Hidden'), 'value' => 'hidden'],
@@ -434,54 +375,55 @@ class Recipients extends Field implements PreviewableFieldInterface
             ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Options'),
-                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
                 'validation' => 'required|uniqueTableCellLabel|requiredTableCellLabel',
-                'if' => '$get(displayType).value != hidden',
+                'if' => 'displayType != "hidden"',
                 'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                    'isDefault' => false,
+                    'default' => false,
                 ],
                 'columns' => [
                     [
-                        'type' => 'label',
+                        'type' => 'text',
+                        'name' => 'label',
                         'label' => Craft::t('formie', 'Option Label'),
-                        'class' => 'singleline-cell textual',
+                        'required' => true,
                     ],
                     [
                         'type' => 'value',
+                        'name' => 'value',
                         'label' => Craft::t('formie', 'Email'),
-                        'class' => 'singleline-cell textual',
+                        'source' => 'label',
                     ],
                     [
-                        'type' => 'default',
+                        'type' => 'radio',
+                        'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
-                        'class' => 'thin checkbox-cell',
+                        'allowUnselect' => true,
                     ],
                 ],
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue([
-                'if' => '$get(displayType).value != hidden',
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue([
+                'if' => 'displayType != "hidden"',
                 'options' => [
                     ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
                     ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
@@ -490,7 +432,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -500,7 +442,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -511,7 +453,7 @@ class Recipients extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -519,47 +461,79 @@ class Recipients extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
-
-        $id = $this->getHtmlId($form);
-
-        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
-            if ($key === 'fieldContainer') {
-                return new HtmlTag('fieldset', [
-                    'class' => 'fui-fieldset',
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ]);
-            }
-
-            if ($key === 'fieldLabel') {
-                $labelPosition = $context['labelPosition'] ?? null;
-
-                return new HtmlTag('legend', [
-                    'class' => [
-                        'fui-legend',
-                    ],
-                    'data' => [
-                        'field-label' => true,
-                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
-                    ],
-                ]);
-            }
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
-
     // Protected Methods
     // =========================================================================
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
+        $form = $context->form;
+        $id = $this->getHtmlId($form);
+        $labelPosition = is_object($this->labelPosition) ? get_class($this->labelPosition) : (string)$this->labelPosition;
+        $labelPosition = strtolower($labelPosition);
+        $resolvedLabelPosition = str_contains($labelPosition, 'left') ? 'left' : (str_contains($labelPosition, 'right') ? 'right' : (str_contains($labelPosition, 'hidden') ? 'hidden' : 'above'));
+        $isHiddenLabel = $context->get('labelPosition') instanceof HiddenPosition || $resolvedLabelPosition === 'hidden';
+
+        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
+            if ($key === 'fieldLayout') {
+                return SlotTag::make('fieldset')
+                    ->core([
+                        'data-formie-field-layout' => true,
+                        'data-formie-recipients-field-layout' => true,
+                        'data-formie-layout' => $this->layout ?? 'vertical',
+                        'data-formie-label-position' => $resolvedLabelPosition,
+                        'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    ])
+                    ->theme([
+                        'class' => [
+                            'formie-field-layout',
+                            'formie-recipients-field-layout',
+                            'formie-layout-' . ($this->layout ?? 'vertical'),
+                            "formie-field-layout-label-{$resolvedLabelPosition}",
+                        ],
+                    ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                return SlotTag::make('legend')
+                    ->core([
+                        'data-formie-label' => true,
+                        'data-formie-field-label' => true,
+                        'data-formie-recipients-field-label' => true,
+                        'data-formie-label-position' => $resolvedLabelPosition,
+                        'data-formie-sr-only' => $isHiddenLabel ? true : false,
+                    ])
+                    ->theme([
+                        'class' => [
+                            'formie-label',
+                            'formie-field-label',
+                            'formie-recipients-field-label',
+                            $isHiddenLabel ? 'formie-sr-only' : false,
+                        ],
+                    ]);
+            }
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
+
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    {
+        // CP field partials expect plain scalars/arrays: Craft's `select` and `text` macros cast `value` to string;
+        // `checkboxGroup` expects an iterable list of selected option values (not a field value object).
+        $templateValue = $value;
+        if ($value instanceof RecipientsFieldValue) {
+            $templateValue = match ($this->displayType) {
+                'checkboxes' => $value->values(),
+                'hidden' => is_array($value->rawValue())
+                    ? Json::encode($value->rawValue())
+                    : (string)($value->rawValue() ?? ''),
+                default => $value->rawValue() ?? '',
+            };
+        }
+
         return Craft::$app->getView()->renderTemplate('formie/_formfields/recipients/input', [
             'name' => $this->handle,
-            'value' => $value,
+            'value' => $templateValue,
             'field' => $this,
             'options' => $this->options(),
         ]);
@@ -567,32 +541,22 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        if ($value instanceof MultiOptionsFieldData) {
-            return implode(', ', array_map(function($item) {
-                return $item->value;
-            }, (array)$value));
+        if ($value instanceof RecipientsFieldValue) {
+            return $value->toValueString();
         }
 
-        // For hidden fields can have a plain array
         if (is_array($value)) {
             return implode(', ', $value);
         }
 
-        if (is_string($value)) {
-            return $value;
-        }
-
-        return $value->value ?? '';
+        return (string)$value;
     }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
-        // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            if ($value instanceof MultiOptionsFieldData) {
-                return array_map(function($item) {
-                    return $item->value;
-                }, (array)$value);
+            if ($value instanceof RecipientsFieldValue) {
+                return $value->values();
             }
 
             // For hidden fields can have a plain array
@@ -604,7 +568,7 @@ class Recipients extends Field implements PreviewableFieldInterface
                 return [$value];
             }
 
-            return [$value->value];
+            return [(string)$value];
         }
 
         // Fetch the default handling
@@ -613,10 +577,8 @@ class Recipients extends Field implements PreviewableFieldInterface
 
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
-        if ($value instanceof MultiOptionsFieldData) {
-            return implode(', ', array_map(function($item) {
-                return $item->label;
-            }, (array)$value));
+        if ($value instanceof RecipientsFieldValue) {
+            return implode(', ', $value->labels());
         }
 
         // For hidden fields can have a plain array
@@ -624,7 +586,7 @@ class Recipients extends Field implements PreviewableFieldInterface
             return implode(', ', $value);
         }
 
-        return $value->label ?? '';
+        return '';
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
@@ -640,20 +602,56 @@ class Recipients extends Field implements PreviewableFieldInterface
         }
     }
 
-    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        // Respect the format picker for "Email Notification Value" 
-        if ($value instanceof SingleOptionFieldData) {
-            return $this->emailValue === 'label' ? $value->label : $value->value;
-        }
-
-        return parent::defineValueForVariable($value, $submission, $notification);
+        // Recipients fields should use encoded values, because they can't be exposed in HTML source
+        return $this->getValueAsString($this->getFakeValue($value), $submission);
     }
 
-    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
+    protected function defineValueClass(): ?string
     {
-        // TODO: add handling to be able to determine if this is raw or formatted values
-        return $this->getValueAsString($value, $submission, $notification);
+        return RecipientsFieldValue::class;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => $this->displayType === 'checkboxes'
+                    ? [Variables::TYPE_EMAIL, Variables::TYPE_CALCULATIONS, Variables::TYPE_BOOLEAN]
+                    : [Variables::TYPE_EMAIL],
+            ]),
+        ];
+    }
+
+    protected function defineClientInput(): array
+    {
+        $clientInput = [
+            'obfuscated' => true,
+            'multiple' => $this->displayType === 'checkboxes',
+        ];
+
+        if ($this->displayType === 'dropdown') {
+            $clientInput['options'] = $this->getFieldOptions();
+        }
+
+        if (in_array($this->displayType, ['checkboxes', 'radio'], true)) {
+            $clientInput['options'] = $this->getFieldOptions();
+            $clientInput['layout'] = $this->layout ?? 'vertical';
+        }
+
+        if ($this->displayType === 'checkboxes') {
+            $clientInput['multiple'] = true;
+        }
+
+        if ($this->displayType !== 'hidden') {
+            return array_merge(parent::defineClientInput(), $clientInput);
+        }
+
+        return array_merge(parent::defineClientInput(), $clientInput, [
+            'privateValues' => true,
+            'inputType' => 'hidden',
+        ]);
     }
 
     protected function setPrePopulatedValue(mixed $value): mixed
@@ -668,5 +666,41 @@ class Recipients extends Field implements PreviewableFieldInterface
         }
 
         return parent::setPrePopulatedValue($value);
+    }
+
+    private function _normalizeSelectedValues(mixed $value): array
+    {
+        $selectedValues = [];
+
+        if ($value instanceof MultiOptionFieldValue) {
+            $selectedValues = $value->values();
+        } else if ($value instanceof SingleOptionFieldValue) {
+            $selectedValues = [$value->value ?? ''];
+        } else if ($value instanceof OptionValue) {
+            $selectedValues = [$value->value ?? ''];
+        } else if (is_array($value)) {
+            foreach ($value as $val) {
+                if ($val instanceof OptionValue) {
+                    $selectedValues[] = (string)($val->value ?? '');
+                    continue;
+                }
+
+                if (is_array($val) && array_key_exists('value', $val)) {
+                    $selectedValues[] = (string)$val['value'];
+                    continue;
+                }
+
+                if (is_scalar($val) || $val === null) {
+                    $selectedValues[] = (string)$val;
+                }
+            }
+        } else if (is_scalar($value) || $value === null) {
+            $selectedValues[] = (string)$value;
+        }
+
+        return array_values(array_filter(
+            array_map(static fn($item) => (string)$item, $selectedValues),
+            static fn(string $item) => $item !== ''
+        ));
     }
 }

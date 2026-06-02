@@ -4,12 +4,13 @@ namespace verbb\formie\variables;
 use verbb\formie\Formie as FormiePlugin;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\PositionInterface;
+use verbb\formie\deprecations\FormieVariableDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\db\FormQuery;
 use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\helpers\Plugin;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\References;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FieldLayoutRow;
 use verbb\formie\models\Notification;
@@ -18,6 +19,7 @@ use verbb\formie\positions\AboveInput;
 use Craft;
 use craft\base\ElementInterface;
 use craft\errors\MissingComponentException;
+use craft\helpers\Template as TemplateHelper;
 
 use yii\base\InvalidConfigException;
 
@@ -31,6 +33,12 @@ use Throwable;
 
 class Formie
 {
+    // Traits
+    // =========================================================================
+
+    use FormieVariableDeprecations;
+    
+
     // Public Methods
     // =========================================================================
 
@@ -86,34 +94,36 @@ class Formie
         return FormiePlugin::$plugin->getRendering()->renderPage($form, $page, $renderOptions);
     }
 
-    public function renderField(Form|string|null $form, FieldInterface|string $field, array $renderOptions = []): ?Markup
+    public function renderField(Form|string|null $form, FieldInterface|string $field, array $fieldOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $renderOptions);
+        return FormiePlugin::$plugin->getRendering()->renderField($form, $field, $fieldOptions);
     }
 
-    public function registerAssets(Form|string|null $form, array $renderOptions = []): void
+    public function renderCaptchas(Form|string|null $form, FieldLayoutPage $page = null): ?Markup
     {
-        FormiePlugin::$plugin->getRendering()->registerAssets($form, $renderOptions);
+        if (!$form) {
+            return null;
+        }
+
+        if (is_string($form)) {
+            $form = FormiePlugin::$plugin->getForms()->getFormByHandle($form);
+        }
+
+        if (!$form) {
+            return null;
+        }
+
+        return TemplateHelper::raw(FormiePlugin::$plugin->getIntegrations()->getCaptchasHtmlForForm($form, $page));
     }
 
-    public function renderFormCss(Form|string|null $form, array $renderOptions = []): ?Markup
+    public function formAssets(Form|string|null $form, array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormCss($form, $renderOptions);
+        return FormiePlugin::$plugin->getRendering()->formAssets($form, $renderOptions);
     }
 
-    public function renderFormJs(Form|string|null $form, array $renderOptions = []): ?Markup
+    public function frontendAssets(array $renderOptions = []): ?Markup
     {
-        return FormiePlugin::$plugin->getRendering()->renderFormJs($form, $renderOptions);
-    }
-
-    public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
-    {
-        return FormiePlugin::$plugin->getRendering()->renderCss($inline, $renderOptions);
-    }
-
-    public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
-    {
-        return FormiePlugin::$plugin->getRendering()->renderJs($inline, $renderOptions);
+        return FormiePlugin::$plugin->getRendering()->frontendAssets($renderOptions);
     }
 
     public function getFieldOptions(FieldInterface $field, array $renderOptions = []): array
@@ -123,7 +133,9 @@ class Formie
 
     public function getLabelPosition(FieldInterface $field, Form $form, bool $subField = false): PositionInterface
     {
-        // A hard error will be thrown if the position class doesn't exist
+        // Theme/layout configs can reference custom position classes. Degrade to
+        // a safe default in Twig rather than letting one bad class break form
+        // rendering for the whole request.
         try {
             /* @var PositionInterface $position */
             $position = $subField && $field->hasSubFields() ? $field->subFieldLabelPosition : $field->labelPosition;
@@ -141,7 +153,8 @@ class Formie
 
     public function getInstructionsPosition(FieldInterface $field, Form $form): PositionInterface
     {
-        // A hard error will be thrown if the position class doesn't exist
+        // Mirror the label-position fallback so authoring mistakes in per-field
+        // instruction positions do not take down the rendered form.
         try {
             $position = $field->instructionsPosition ?: $form->settings->defaultInstructionsPosition;
 
@@ -151,9 +164,14 @@ class Formie
         }
     }
 
-    public function getParsedValue(string $value, Submission $submission, Form $form = null, Notification $notification = null): ?string
+    public function parseValue(mixed $value, Submission $submission, array $options = []): mixed
     {
-        return Variables::getParsedValue($value, $submission, $form, $notification);
+        return References::parseValue($value, $submission, $options);
+    }
+
+    public function parseContent(string $content, Submission $submission, array $options = []): string
+    {
+        return References::parseContent($content, $submission, $options);
     }
 
     public function populateFormValues(Form $element, $values, $force = false): void
@@ -196,8 +214,6 @@ class Formie
                 'statuses' => ['title' => Craft::t('formie', 'Statuses')],
                 'submissions' => ['title' => Craft::t('formie', 'Submissions')],
                 'spam' => ['title' => Craft::t('formie', 'Spam')],
-                // 'security' => ['title' => Craft::t('formie', 'Security')],
-                // 'privacy' => ['title' => Craft::t('formie', 'Privacy & Data')],
 
                 'appearance-heading' => ['heading' => Craft::t('formie', 'Appearance')],
                 'stencils' => ['title' => Craft::t('formie', 'Stencils')],
@@ -266,18 +282,4 @@ class Formie
         return FormiePlugin::$plugin->getService()->getFieldNamespaceForScript($field);
     }
 
-    public function getVisibleFields(FieldLayoutRow $row): array
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, '`craft.formie.getVisibleFields()` has been deprecated. Use `row.getIsHidden()` instead.');
-
-        $fields = [];
-
-        foreach ($row->getFields(false) as $field) {
-            if (!$field->getIsHidden()) {
-                $fields[] = $field;
-            }
-        }
-
-        return $fields;
-    }
 }

@@ -1,16 +1,16 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\Formie;
-use verbb\formie\base\Integration;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Html;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
 
-class AddressZip extends SingleLineText implements SubFieldInnerFieldInterface
+class AddressZip extends SingleLineText implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -20,17 +20,17 @@ class AddressZip extends SingleLineText implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Address - ZIP / Postal Code');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
 
-    
+
     // Public Methods
     // =========================================================================
 
@@ -44,13 +44,31 @@ class AddressZip extends SingleLineText implements SubFieldInnerFieldInterface
 
     public function validateZip(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
 
         if (strlen($value) > 10) {
-            $element->addError($this->fieldKey, Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
+            $element->addError($this->valueKey(), Craft::t('formie', '"{label}" should contain at most {max, number} {max, plural, one{character} other{characters}}.', [
                 'label' => $this->label,
                 'max' => 10,
             ]));
         }
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($tag && $key === 'fieldInput') {
+            $tag->mergeCoreAttributes([
+                'autocomplete' => 'postal-code',
+                'data-zip' => true,
+            ]);
+        }
+
+        return $tag;
     }
 }

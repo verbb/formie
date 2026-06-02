@@ -2,10 +2,11 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
-use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -45,42 +46,9 @@ class WebRequest extends Automation
     // Public Methods
     // =========================================================================
 
-    public function __construct($config = [])
-    {
-        // Config normalization
-        $config = $this->_normalizeConfig($config);
-
-        parent::__construct($config);
-    }
-    
-    public function setAttributes($values, $safeOnly = true): void
-    {
-        // Handle legacy webhook from the form settings, which won't be via `__construct`
-        $values = $this->_normalizeConfig($values);
-
-        parent::setAttributes($values, $safeOnly);
-    }
-
     public function getDescription(): string
     {
         return Craft::t('formie', 'Send your form content to any URL you provide.');
-    }
-
-    public function getFormSettingsHtml($form): string
-    {
-        $view = Craft::$app->getView();
-
-        $view->startJsBuffer();
-        $bodyHtml = parent::getFormSettingsHtml($form);
-        $footHtml = $view->clearJsBuffer(false);
-
-        // Hack around using Craft jQuery in Vue app.
-        $footHtml = str_replace(['\u002D', '\u005B', '\u005D'], ['-', '[', ']'], $footHtml);
-        $footHtml = '$(document).one("formie:integration-tab-' . $this->handle . '", function() {' . $footHtml . '});';
-
-        $view->js[] = [$footHtml];
-
-        return $bodyHtml;
     }
 
     public function fetchFormSettings(): IntegrationFormSettings
@@ -101,7 +69,7 @@ class WebRequest extends Automation
 
             $url = $form->settings->integrations[$this->handle]['url'] ?? $this->url;
 
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($url, $submission), $payload, $this->method, $this->requestType);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($url, $submission), $payload, $this->method, $this->requestType);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -113,7 +81,7 @@ class WebRequest extends Automation
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'payload' => Json::encode($payload),
@@ -134,7 +102,7 @@ class WebRequest extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
+            $response = $this->deliverPayload($submission, $this->getEndpointUrl($this->url, $submission), $payload, $this->method, $this->requestType);
 
             if ($response === false) {
                 return true;
@@ -142,7 +110,7 @@ class WebRequest extends Automation
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'API error: “{message}” {file}:{line}. Payload: “{payload}”. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'payload' => Json::encode($payload),
@@ -160,15 +128,8 @@ class WebRequest extends Automation
     public function allowedGqlSettings(): array
     {
         return [
-            // Alias for backward compatibility. Remove at the next breakpoint
-            'webhook' => $this->url,
             'url' => $this->url,
         ];
-    }
-
-    public function beforeSaveForm(array $settings): void
-    {
-        unset($settings['webhook']);
     }
 
 
@@ -204,23 +165,65 @@ class WebRequest extends Automation
         }
 
         return Craft::createGuzzleClient($config);
-    } 
+    }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private function _normalizeConfig(array $config): array
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        // Remove the legacy `webhook` key, and use the `url` key instead
-        $legacyUrl = ArrayHelper::remove($config, 'webhook');
-        $url = $config['url'] ?? null;
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'URL'),
+            'instructions' => Craft::t('formie', 'Enter the URL that will be triggered when a submission is made.'),
+            'name' => 'url',
+            'required' => true,
+        ]);
+        $schema[] = SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'HTTP Method'),
+            'instructions' => Craft::t('formie', 'Select the HTTP Method used to send data.'),
+            'name' => 'method',
+            'required' => true,
+            'defaultValue' => $this->method ?: 'POST',
+            'options' => [
+                ['label' => Craft::t('formie', 'GET'), 'value' => 'GET'],
+                ['label' => Craft::t('formie', 'POST'), 'value' => 'POST'],
+                ['label' => Craft::t('formie', 'PUT'), 'value' => 'PUT'],
+                ['label' => Craft::t('formie', 'PATCH'), 'value' => 'PATCH'],
+                ['label' => Craft::t('formie', 'DELETE'), 'value' => 'DELETE'],
+            ],
+        ]);
+        $schema[] = SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Request Type'),
+            'instructions' => Craft::t('formie', 'Select the Request Type used to send data.'),
+            'name' => 'requestType',
+            'required' => true,
+            'defaultValue' => $this->requestType ?: 'json',
+            'options' => [
+                ['label' => Craft::t('formie', 'JSON Body'), 'value' => 'json'],
+                ['label' => Craft::t('formie', 'Raw Body'), 'value' => 'body'],
+                ['label' => Craft::t('formie', 'Query String'), 'value' => 'query'],
+                ['label' => Craft::t('formie', 'Form Params'), 'value' => 'form_params'],
+                ['label' => Craft::t('formie', 'Multipart'), 'value' => 'multipart'],
+            ],
+        ]);
+        $schema[] = SchemaHelper::tableField([
+            'label' => Craft::t('formie', 'Headers'),
+            'instructions' => Craft::t('formie', 'Provide any parameters for the request header.'),
+            'name' => 'headers',
+            'columns' => [
+                ['name' => 'key', 'label' => Craft::t('formie', 'Key'), 'type' => 'text'],
+                ['name' => 'value', 'label' => Craft::t('formie', 'Value'), 'type' => 'text'],
+            ],
+        ]);
+        $schema[] = SchemaHelper::tableField([
+            'label' => Craft::t('formie', 'HTTP Authentication'),
+            'instructions' => Craft::t('formie', 'If using Basic HTTP Authentication, provide the Username and Password for the provider.'),
+            'name' => 'httpAuth',
+            'columns' => [
+                ['name' => 'username', 'label' => Craft::t('formie', 'Username'), 'type' => 'text'],
+                ['name' => 'password', 'label' => Craft::t('formie', 'Password'), 'type' => 'text'],
+            ],
+        ]);
 
-        if ($legacyUrl && !$url) {
-            $config['url'] = $legacyUrl;
-        }
-        
-        return $config;
+        return $schema;
     }
 
 }

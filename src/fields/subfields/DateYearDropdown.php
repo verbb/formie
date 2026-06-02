@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
 
@@ -9,8 +9,9 @@ use Craft;
 use craft\base\ElementInterface;
 
 use DateTime;
+use verbb\formie\fields\values\DateFieldValue;
 
-class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterface
+class DateYearDropdown extends DateDropdown implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -20,12 +21,12 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
         return Craft::t('formie', 'Date - Year');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/dropdown';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/dropdown';
     }
@@ -46,67 +47,54 @@ class DateYearDropdown extends DateDropdown implements SubFieldInnerFieldInterfa
     {
         $options = [['value' => '', 'label' => null, 'disabled' => true]];
 
-        $date = $this->parentField?->defaultValue ?: new DateTime();
+        $date = DateFieldValue::toDateTime($this->parentField->getInitialValue()) ?: new DateTime();
         $year = (int)$date->format('Y');
-        $minYear = $year + $this->minYearRange;
+        $minYear = $year - $this->minYearRange;
         $maxYear = $year + $this->maxYearRange;
 
-        for ($y = $minYear; $y <= $maxYear; $y++) {
+        for ($y = $minYear; $y < $maxYear; $y++) {
             $options[] = ['value' => $y, 'label' => $y];
         }
 
         return $options;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Year Range'),
-                'help' => Craft::t('formie', 'Set the range of years relative to this year that are available to select. Use negative values for start to offset into the past from the current year.'),
-                'if' => '$get(displayType).value == dropdowns',
+                'instructions' => Craft::t('formie', 'Set the range of years relative to this year that are available to select.'),
+                'if' => 'displayType == "dropdowns"',
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::numberField([
+                        'name' => 'minYearRange',
+                        'sections-schema' => [
+                            'prefix' => [
+                                '$el' => 'span',
+                                'attrs' => ['class' => 'fui-prefix-text'],
+                                'children' => Craft::t('formie', 'Start'),
+                            ],
                         ],
-                        'children' => [
-                            SchemaHelper::numberField([
-                                'name' => 'minYearRange',
-                                'inputClass' => 'text flex-grow',
-                                'validation' => 'number',
-                                'sections-schema' => [
-                                    'prefix' => [
-                                        '$el' => 'span',
-                                        'attrs' => ['class' => 'fui-prefix-text'],
-                                        'children' => Craft::t('formie', 'Start'),
-                                    ],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'maxYearRange',
-                                'inputClass' => 'text flex-grow',
-                                'validation' => 'number',
-                                'sections-schema' => [
-                                    'prefix' => [
-                                        '$el' => 'span',
-                                        'attrs' => ['class' => 'fui-prefix-text'],
-                                        'children' => Craft::t('formie', 'End'),
-                                    ],
-                                ],
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'maxYearRange',
+                        'sections-schema' => [
+                            'prefix' => [
+                                '$el' => 'span',
+                                'attrs' => ['class' => 'fui-prefix-text'],
+                                'children' => Craft::t('formie', 'End'),
+                            ],
                         ],
-                    ],
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 }

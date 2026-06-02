@@ -6,7 +6,6 @@ use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\Payment as PaymentField;
 
-use Craft;
 use craft\base\Model;
 use craft\helpers\UrlHelper;
 
@@ -77,7 +76,7 @@ class Subscription extends Model
     public function getField(): ?PaymentField
     {
         if (!isset($this->_field)) {
-            $this->_field = Craft::$app->getFields()->getFieldById($this->fieldId);
+            $this->_field = Formie::$plugin->getFields()->getFieldById($this->fieldId);
         }
 
         return $this->_field;

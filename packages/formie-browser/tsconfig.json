@@ -1,0 +1,36 @@
+{
+  // Keep `paths` in sync with `package.json` `"imports"`. TypeScript still rejects some
+  // valid `imports` wildcard targets when resolving without `paths` (Bundler resolution).
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2021"],
+    "paths": {
+      "#theme/*": ["./src/css/theme/*"],
+      "#theme-base/*": ["./src/css/theme-base/*"],
+      "#icons/*": ["./src/icons/*"],
+      "#contracts/*": ["./src/js/contracts/*"],
+      "#compatibility/*": ["./src/js/compatibility/*"],
+      "#core/*": ["./src/js/core/*"],
+      "#events/*": ["./src/js/events/*"],
+      "#modules/*": ["./src/js/modules/*"],
+      "#theme/*": ["./src/js/theme/*"],
+      "#submit/*": ["./src/js/submit/*"],
+      "#transport/*": ["./src/js/transport/*"],
+      "#utils/*": ["./src/js/utils/*"],
+      "#validation/*": ["./src/js/validation/*"]
+    },
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmitOnError": true
+  },
+  "files": ["src/index.ts", "src/vite-env.d.ts", "src/vendor.d.ts"]
+}

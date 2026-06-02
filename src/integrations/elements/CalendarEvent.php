@@ -4,10 +4,12 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -71,14 +73,13 @@ class CalendarEvent extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
 
         if (class_exists(Calendar::class)) {
             $calendars = Calendar::getInstance()->calendars->getAllAllowedCalendars();
-
             foreach ($calendars as $calendar) {
                 $fields = $this->getFieldLayoutFields($calendar->getFieldLayout());
 
@@ -307,7 +308,7 @@ class CalendarEvent extends Element
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
+                'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id,
@@ -351,11 +352,90 @@ class CalendarEvent extends Element
 
         $rules[] = [['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
             return $model->enabled;
-        }, 'on' => [Integration::SCENARIO_FORM]];
+        }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false];
 
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedCalendarId = (string)($this->calendarId ?? '');
+        if ($selectedCalendarId === '') {
+            $selectedCalendarId = $this->_getFirstCalendarId();
+        }
+
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'calendarId',
+            'label' => Craft::t('formie', 'Calendar'),
+            'instructions' => Craft::t('formie', 'Select a calendar to map content to. This will reflect the available fields to map to.'),
+            'required' => true,
+            'options' => $this->_getCalendarOptions(),
+        ]);
+        $schema[] = SchemaHelper::elementSelectField([
+            'name' => 'defaultAuthorId',
+            'label' => Craft::t('formie', 'Default Event Author'),
+            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created event. An event must always have an author.'),
+            'required' => true,
+            'selectionLabel' => Craft::t('formie', 'Choose a User'),
+            'config' => [
+                'jsClass' => 'Craft.ElementSelectInput',
+                'elementType' => User::class,
+                'limit' => 1,
+            ],
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'attributeMapping',
+            'label' => Craft::t('formie', 'Event Attribute Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} attributes.', ['label' => 'Event']),
+            'integrationLabel' => Craft::t('formie', 'Element Field'),
+            'showRefreshButton' => false,
+            'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+            'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
+        ]);
+
+        $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($this->_getCalendarSettings($selectedCalendarId)->fields ?? []);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Event Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} fields.', ['label' => 'Event']),
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $fieldMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'overwriteValues',
+            'label' => Craft::t('formie', 'Overwrite Content'),
+            'instructions' => Craft::t('formie', 'Whether to overwrite existing content, even if empty values are provided.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateElement',
+            'label' => Craft::t('formie', 'Update Events'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing event if found, or always create a new event.'),
+        ]);
+
+        $updateAttributes = $this->getUpdateAttributes();
+        $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedCalendarId] ?? []);
+        if ($updateMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'updateElementMapping',
+                'label' => Craft::t('formie', 'Update Element Mapping'),
+                'instructions' => Craft::t('formie', 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.'),
+                'if' => 'updateElement',
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $updateMappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -41,13 +43,12 @@ class VCita extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToClient) {
+            if ($this->mapToClient && $this->settingsContext->dataKey === 'client') {
                 $response = $this->request('GET', 'fields');
                 $fields = $response['data'] ?? [];
 
@@ -174,21 +175,6 @@ class VCita extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.vcita.biz/platform/v1/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -201,10 +187,39 @@ class VCita extends Crm
         $rules[] = [
             ['clientFieldMapping'], 'validateFieldMapping', 'params' => $client, 'when' => function($model) {
                 return $model->enabled && $model->mapToClient;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.vcita.biz/platform/v1/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToClient',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Client']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Clients']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'clientFieldMapping',
+            'if' => 'mapToClient',
+            'dataLabel' => 'Client',
+            'dataKey' => 'client',
+        ]);
+
+        return $schema;
     }
 
 

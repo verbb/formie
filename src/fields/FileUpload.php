@@ -9,16 +9,23 @@ use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\fields\Repeater;
+use verbb\formie\fields\values\FileUploadFieldValue;
 use verbb\formie\gql\types\input\FileUploadInputType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Submission as SubmissionRecord;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -42,6 +49,7 @@ use craft\helpers\Gql as GqlHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Template;
+use craft\helpers\UrlHelper;
 use craft\models\Volume;
 use craft\models\VolumeFolder;
 use craft\services\Gql as GqlService;
@@ -81,6 +89,32 @@ class FileUpload extends ElementField
         return sprintf('\\%s|\\%s<\\%s>', AssetQuery::class, ElementCollection::class, Asset::class);
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return self::gqlElementContentTypeDefinitionFromConfig(
+            $config,
+            AssetInterface::getType(),
+            AssetArguments::getArguments(),
+            AssetResolver::class,
+        );
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        return FileUploadInputType::getType(null);
+    }
+
+
+    // Constants
+    // =========================================================================
+
+    private const ACTIVE_CONTENT_EXTENSIONS = ['svg', 'svgz', 'html', 'htm', 'xhtml', 'xml'];
+    
 
     // Properties
     // =========================================================================
@@ -123,6 +157,11 @@ class FileUpload extends ElementField
         parent::__construct($config);
     }
 
+    public function fieldKind(): string
+    {
+        return self::KIND_FILE;
+    }
+
     public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();
@@ -132,11 +171,11 @@ class FileUpload extends ElementField
         ];
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/file-upload/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewFileInput(),
+        ];
     }
 
     public function getSourceOptions(): array
@@ -148,6 +187,38 @@ class FileUpload extends ElementField
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        if (is_array($value) && !isset($value['mutationData']) && array_is_list($value)) {
+            $hasCanonicalUploadPayload = false;
+            $assetIds = [];
+
+            foreach ($value as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                if (isset($item['assetId'])) {
+                    $assetId = (int)$item['assetId'];
+
+                    if ($assetId) {
+                        $assetIds[] = $assetId;
+                        $hasCanonicalUploadPayload = true;
+                    }
+
+                    continue;
+                }
+
+                if (!empty($item['fileData'])) {
+                    $hasCanonicalUploadPayload = true;
+                }
+            }
+
+            if ($hasCanonicalUploadPayload) {
+                $value = $assetIds && count($assetIds) === count($value)
+                    ? $assetIds
+                    : ['mutationData' => $value];
+            }
+        }
+
         // For GQL mutations, we need a little extra handling here, because the Assets field doesn't support multiple data-encoded items
         // and there's issues when using Repeater > File fields (https://github.com/verbb/formie/issues/1419) we handle things ourselves.
         if (is_array($value) && isset($value['mutationData'])) {
@@ -171,22 +242,22 @@ class FileUpload extends ElementField
     {
         $rules = parent::getElementValidationRules();
 
-        $rules[] = 'validateFileType';
+        $rules[] = [$this->handle, 'validateFileType'];
 
         if ($this->restrictFiles) {
-            $rules[] = 'validateFileType';
+            $rules[] = [$this->handle, 'validateFileType'];
         }
 
         if ($this->limitFiles) {
-            $rules[] = 'validateFileLimit';
+            $rules[] = [$this->handle, 'validateFileLimit'];
         }
 
         if ($this->sizeMinLimit) {
-            $rules[] = 'validateMinFileSize';
+            $rules[] = [$this->handle, 'validateMinFileSize'];
         }
 
         if ($this->sizeLimit) {
-            $rules[] = 'validateMaxFileSize';
+            $rules[] = [$this->handle, 'validateMaxFileSize'];
         }
 
         return $rules;
@@ -194,30 +265,25 @@ class FileUpload extends ElementField
 
     public function validateFileType(ElementInterface $element): void
     {
-        $filenames = [];
-
         // Get all the value's assets' filenames
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
 
         foreach ($value->all() as $asset) {
-            $filenames[] = $asset->getFilename();
+            foreach ($this->getUploadTypeValidationErrors($asset->getFilename()) as $message) {
+                $element->addError($this->valueKey(), $message);
+            }
         }
 
         // Get any uploaded filenames
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         foreach ($uploadedFiles as $file) {
-            $filenames[] = $file['filename'];
-        }
-
-        // Now make sure that they all check out
-        $allowedExtensions = $this->_getAllowedExtensions();
-
-        foreach ($filenames as $filename) {
-            if (!in_array(mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION)), $allowedExtensions, true)) {
-                $element->addError($this->fieldKey, Craft::t('app', '“{filename}” is not allowed in this field.', [
-                    'filename' => $filename,
-                ]));
+            foreach ($this->getUploadTypeValidationErrors(
+                (string)($file['filename'] ?? ''),
+                $file['path'] ?? null,
+                $file['mimeType'] ?? null,
+            ) as $message) {
+                $element->addError($this->valueKey(), $message);
             }
         }
     }
@@ -230,7 +296,7 @@ class FileUpload extends ElementField
         $uploadedFiles = $this->_getUploadedFiles($element);
 
         if (count($uploadedFiles) > $fileLimit) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'Choose up to {files} files.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'Choose up to {files} files.', [
                 'files' => $fileLimit,
             ]));
         }
@@ -255,7 +321,7 @@ class FileUpload extends ElementField
         }
 
         if ($filenames) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'File must be larger than {filesize} MB.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'File must be larger than {filesize} MB.', [
                 'filesize' => $this->sizeMinLimit,
             ]));
         }
@@ -280,7 +346,7 @@ class FileUpload extends ElementField
         }
 
         if ($filenames) {
-            $element->addError($this->fieldKey, Craft::t('formie', 'File must be smaller than {filesize} MB.', [
+            $element->addError($this->valueKey(), Craft::t('formie', 'File must be smaller than {filesize} MB.', [
                 'filesize' => $this->sizeLimit,
             ]));
         }
@@ -301,13 +367,72 @@ class FileUpload extends ElementField
             $kind = $allKinds[$allowedKind];
 
             foreach ($kind['extensions'] as $extension) {
-                if (in_array($extension, $allowedFileExtensions)) {
+                if (in_array($extension, $allowedFileExtensions, true) && !in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
                     $extensions[] = ".$extension";
                 }
             }
         }
 
         return implode(', ', $extensions);
+    }
+
+    public function sanitizeUploadedFilename(string $filename): string
+    {
+        $filename = basename(trim($filename));
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+
+        return FileHelper::sanitizeFilename($filename, [
+            'asciiOnly' => $generalConfig->convertFilenamesToAscii,
+        ]);
+    }
+
+    public function getAllowedExtensions(): array
+    {
+        return $this->_getAllowedExtensions();
+    }
+
+    public function exceedsMaxUploadSize(int $size): bool
+    {
+        if (!$this->sizeLimit) {
+            return false;
+        }
+
+        return $size > ((float)$this->sizeLimit * 1000 * 1000);
+    }
+
+    public function getUploadTypeValidationErrors(string $filename, ?string $path = null, ?string $mimeType = null): array
+    {
+        $filename = $this->sanitizeUploadedFilename($filename);
+
+        if ($filename === '') {
+            return [Craft::t('formie', 'Invalid upload filename.')];
+        }
+
+        $extension = mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $errors = [];
+
+        if ($extension === '' || in_array($extension, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+            $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
+                'filename' => $filename,
+            ]);
+        }
+
+        if ($this->restrictFiles && !in_array($extension, $this->_getAllowedExtensions(), true)) {
+            $errors[] = Craft::t('app', '“{filename}” is not allowed in this field.', [
+                'filename' => $filename,
+            ]);
+        }
+
+        $declaredKind = Assets::getFileKindByExtension($filename);
+        $detectedKind = $this->_resolveDetectedFileKind($path, $mimeType);
+
+        if ($declaredKind !== Asset::KIND_UNKNOWN && $detectedKind !== null && $detectedKind !== Asset::KIND_UNKNOWN && $declaredKind !== $detectedKind) {
+            $errors[] = Craft::t('formie', '“{filename}” does not match its detected file type.', [
+                'filename' => $filename,
+            ]);
+        }
+
+        return array_values(array_unique($errors));
     }
 
     public function getVolumeOptions(): array
@@ -324,11 +449,6 @@ class FileUpload extends ElementField
         return $volumes;
     }
 
-    public function getInputSources(?ElementInterface $element = null): array|string|null
-    {
-        return [$this->uploadLocationSource];
-    }
-
     public function getFileKindOptions(): array
     {
         $fileKindOptions = [];
@@ -340,53 +460,30 @@ class FileUpload extends ElementField
         return $fileKindOptions;
     }
 
-    public function resolveDynamicPathToFolderId(?ElementInterface $element = null): int
-    {
-        return $this->_uploadFolder($element)->id;
-    }
-
-    public function getFrontEndJsModules(): ?array
-    {
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/file-upload.js'),
-            'module' => 'FormieFileUpload',
-        ];
-    }
-
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
-            [
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Upload Location'),
-                'help' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
-                '$formkit' => 'fieldWrap',
-                'required' => true,
+                'instructions' => Craft::t('formie', 'Note that the subfolder path can contain variables like {myFieldHandle}.'),
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex flex-nowrap',
-                        ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'uploadLocationSource',
-                                'options' => $this->getSourceOptions(),
-                            ]),
-                            SchemaHelper::textField([
-                                'name' => 'uploadLocationSubpath',
-                                'class' => 'text flex-grow fullwidth',
-                                'outerClass' => 'flex-grow',
-                                'placeholder' => 'path/to/subfolder',
-                            ]),
-                        ],
-                    ],
+                    SchemaHelper::selectField([
+                        'name' => 'uploadLocationSource',
+                        'options' => $this->getSourceOptions(),
+                    ]),
+                    SchemaHelper::textField([
+                        'name' => 'uploadLocationSubpath',
+                        'class' => 'text flex-grow fullwidth',
+                        'outerClass' => 'flex-grow',
+                        'placeholder' => 'path/to/subfolder',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         $configLimit = Craft::$app->getConfig()->getGeneral()->maxUploadFileSize;
         $phpLimit = (max((int)ini_get('post_max_size'), (int)ini_get('upload_max_filesize'))) * 1048576;
@@ -396,17 +493,17 @@ class FileUpload extends ElementField
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue([
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue([
                 'options' => array_values(array_filter([
                     $allowPublicVolumes ? ['label' => Craft::t('formie', 'Public URL'), 'value' => 'publicUrl'] : null,
                     ['label' => Craft::t('formie', 'Control Panel URL'), 'value' => 'cpUrl'],
@@ -414,53 +511,69 @@ class FileUpload extends ElementField
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Number of Files'),
-                'help' => Craft::t('formie', 'Limit the number of files a user can upload.'),
+                'instructions' => Craft::t('formie', 'Limit the number of files a user can upload.'),
                 'name' => 'limitFiles',
             ]),
-            SchemaHelper::numberField([
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Min File Size'),
-                'help' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
-                'name' => 'sizeMinLimit',
-                'sections-schema' => [
-                    'suffix' => [
+                'instructions' => Craft::t('formie', 'Set the minimum size of the files a user can upload.'),
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'sizeMinLimit',
+                    ]),
+                    [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'fui-suffix-text'],
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
                         'children' => Craft::t('formie', 'MB'),
                     ],
                 ],
             ]),
-            SchemaHelper::numberField([
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Max File Size'),
-                'help' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
-                'name' => 'sizeLimit',
+                'instructions' => Craft::t('formie', 'Set the maximum size of the files a user can upload.'),
                 'warning' => Craft::t('formie', 'Maximum allowed upload size is {size}.', ['size' => $maxUpload]),
-                'sections-schema' => [
-                    'suffix' => [
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'sizeLimit',
+                    ]),
+                    [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'fui-suffix-text'],
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
                         'children' => Craft::t('formie', 'MB'),
                     ],
                 ],
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Filename Format'),
-                'help' => Craft::t('formie', 'Enter the format for uploaded files to be renamed as. Do not include the extension.'),
+                'instructions' => Craft::t('formie', 'Enter the format for uploaded files to be renamed as. Do not include the extension.'),
                 'name' => 'filenameFormat',
-                'variables' => 'plainTextVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
-            SchemaHelper::checkboxField([
-                'label' => Craft::t('formie', 'Restrict allowed file types?'),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Restrict File Types'),
+                'instructions' => Craft::t('formie', 'Whether to restrict the allowed types of files a user can upload.'),
                 'name' => 'restrictFiles',
             ]),
-            SchemaHelper::checkboxField([
+            SchemaHelper::checkboxSelectField([
+                'label' => Craft::t('formie', 'Allowed File Types'),
+                'instructions' => Craft::t('formie', 'Select the allowed file types.'),
                 'name' => 'allowedKinds',
                 'options' => $this->getFileKindOptions(),
-                'if' => '$get(restrictFiles).value',
+                'if' => 'restrictFiles',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -470,7 +583,7 @@ class FileUpload extends ElementField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -480,7 +593,7 @@ class FileUpload extends ElementField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -505,7 +618,7 @@ class FileUpload extends ElementField
 
         if ($uploadedFiles) {
             // Get any already saved assets to delete later
-            $value = $element->getFieldValue($this->fieldKey);
+            $value = $element->getFieldValue($this->valueKey());
 
             $this->_assetsToDelete = $value->ids();
         }
@@ -514,7 +627,7 @@ class FileUpload extends ElementField
         // data has come in as ['JrFVNoLBCicUTAOn'] instead of a empty value (for new assets) or an ID.
         // This is only usually done by malicious actors manipulating POST data.
         // Note that this is set on the AssetQuery itself.
-        $assetIds = $element->getFieldValue($this->fieldKey)->id ?? false;
+        $assetIds = $element->getFieldValue($this->valueKey())->id ?? false;
 
         if ($assetIds && is_array($assetIds)) {
             foreach ($assetIds as $assetId) {
@@ -545,8 +658,8 @@ class FileUpload extends ElementField
 
         // Rename files, if enabled
         if ($this->filenameFormat) {
-            if ($filenameFormat = Variables::getParsedValue($this->filenameFormat, $element)) {
-                $assets = $element->getFieldValue($this->fieldKey)->all();
+            if ($filenameFormat = References::parseContent($this->filenameFormat, $element)) {
+                $assets = $element->getFieldValue($this->valueKey())->all();
 
                 foreach ($assets as $key => $asset) {
                     $suffix = ($key > 0) ? '_' . $key : '';
@@ -558,11 +671,9 @@ class FileUpload extends ElementField
                     //     }
                     // }
 
-                    // Strip any path components - filenameFormat can contain user input via tokens (SEC-001)
-                    $baseFilename = basename($filenameFormat . $suffix);
-                    $filename = $baseFilename . '.' . $asset->getExtension();
-                    $asset->newFilename = Assets::prepareAssetName($filename);
-                    $asset->title = Assets::filename2Title($baseFilename);
+                    $filename = $filenameFormat . $suffix;
+                    $asset->newFilename = Assets::prepareAssetName($filename . '.' . $asset->getExtension());
+                    $asset->title = Assets::filename2Title($filename);
 
                     $elementService->saveElement($asset);
                 }
@@ -586,57 +697,6 @@ class FileUpload extends ElementField
             'resolve' => AssetResolver::class . '::resolve',
             'complexity' => GqlHelper::relatedArgumentComplexity(GqlService::GRAPHQL_COMPLEXITY_EAGER_LOAD),
         ];
-    }
-
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
-
-        $id = $this->getHtmlId($form);
-        $dataId = $this->getHtmlDataId($form);
-
-        $sizeMaxLimit = $this->sizeLimit ?? 0;
-        $sizeMinLimit = $this->sizeMinLimit ?? 0;
-        $limitFiles = $this->limitFiles ?? 0;
-
-        if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'file',
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName('[]'),
-                'multiple' => $limitFiles != 1,
-                'accept' => $this->getAccept(),
-                'data' => [
-                    'fui-id' => $dataId,
-                    'size-min-limit' => $sizeMinLimit,
-                    'size-max-limit' => $sizeMaxLimit,
-                    'file-limit' => $limitFiles,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
-        }
-
-        if ($key === 'fieldSummary') {
-            return new HtmlTag('div', [
-                'class' => 'fui-file-summary',
-            ]);
-        }
-
-        if ($key === 'fieldSummaryContainer') {
-            return new HtmlTag('ul');
-        }
-
-        if ($key === 'fieldSummaryItem') {
-            return new HtmlTag('li');
-        }
-
-        return parent::defineHtmlTag($key, $context);
     }
 
     public function getSettingGqlTypes(): array
@@ -672,30 +732,92 @@ class FileUpload extends ElementField
             ],
         ]);
     }
-
+    
 
     // Protected Methods
     // =========================================================================
 
-    protected function availableSources(): array
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        // Index by key so it'll be easier to potentially remove
-        $sources = ArrayHelper::index(parent::availableSources(), 'key');
+        $form = $context->form;
+        $errors = $context->errors;
 
-        $settings = Formie::$plugin->getSettings();
+        $id = $this->getHtmlId($form);
+        $dataId = $this->getHtmlDataId($form);
 
-        // Ensure that only return volumes that are allowed
-        if (!$settings->allowPublicVolumes) {
-            $volumesByKey = [];
+        $sizeMaxLimit = $this->sizeLimit ?? 0;
+        $sizeMinLimit = $this->sizeMinLimit ?? 0;
+        $limitFiles = $this->limitFiles ?? 0;
 
-            foreach (Craft::$app->getVolumes()->getAllVolumes() as $volume) {
-                if ($volume->fs->hasUrls) {
-                    unset($sources["volume:{$volume->uid}"]);
-                }
-            }
+        if ($key === 'fieldInput') {
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'file',
+                    'id' => $id,
+                    'name' => $this->getHtmlName('[]'),
+                    'multiple' => $limitFiles != 1,
+                    'accept' => $this->getAccept(),
+                    'data-formie-input' => true,
+                    'data-formie-file-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'file',
+                    'data-formie-file-upload-key' => $id,
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-size-min-limit' => $sizeMinLimit,
+                    'data-formie-size-max-limit' => $sizeMaxLimit,
+                    'data-formie-file-limit' => $limitFiles,
+                    'data-formie-file-upload-hydrate-endpoint' => UrlHelper::actionUrl('formie/file-upload/hydrate'),
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-file-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return array_values($sources);
+        if ($key === 'fieldSummary') {
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-file-summary' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-note',
+                        'formie-file-summary',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldSummaryContainer') {
+            return SlotTag::make('ul')
+                ->core([
+                    'data-formie-file-summary-container' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-file-summary-container',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldSummaryItem') {
+            return SlotTag::make('li')
+                ->core([
+                    'data-formie-file-summary-item' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-file-summary-item',
+                    ],
+                ]);
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
     }
 
     protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
@@ -709,7 +831,7 @@ class FileUpload extends ElementField
         $variables['showFolders'] = true;
         $variables['defaultFieldLayoutId'] = $uploadVolume->fieldLayoutId ?? null;
         $variables['limit'] = $this->limitFiles;
-        $variables['showSourcePath'] = true;
+        $variables['showSourcePath'] = false;
 
         // The outer "Upload" button only supports a true Assets field. Uploads within the element select are fine.
         $variables['canUpload'] = false;
@@ -733,7 +855,7 @@ class FileUpload extends ElementField
                 return $value->ids();
             }
 
-            $value = $this->getValueAsJson($value, $element);
+            $value = $this->getValueAsArray($value, $element);
 
             return array_map(function($item) {
                 // Handle when volumes don't have a public URL
@@ -745,13 +867,15 @@ class FileUpload extends ElementField
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
     {
         $html = '';
 
         foreach ($value->all() as $asset) {
-            if ($asset->url) {
-                $html .= Html::tag('a', $asset->filename, ['href' => $asset->url]);
+            $url = $this->getSafeElementUrl($asset);
+
+            if ($url) {
+                $html .= Html::tag('a', $asset->filename, ['href' => $url]);
             } else {
                 $html .= Html::tag('p', $asset->filename);
             }
@@ -765,13 +889,85 @@ class FileUpload extends ElementField
         return Asset::find()->limit(1);
     }
 
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'multiple' => (int)($this->limitFiles ?? 0) !== 1,
+            'limitFiles' => $this->limitFiles !== null ? (int)$this->limitFiles : null,
+            'allowedKinds' => array_values($this->allowedKinds ?? []),
+            'restrictFiles' => (bool)$this->restrictFiles,
+            'sizeMinLimit' => $this->sizeMinLimit !== null ? (float)$this->sizeMinLimit : null,
+            'sizeLimit' => $this->sizeLimit !== null ? (float)$this->sizeLimit : null,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        $modules[] = new ClientModule([
+            'id' => 'file-upload',
+            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+        ]);
+
+        return $modules;
+    }
+
+    protected function defineInputTemplatePath(): string
+    {
+        return 'fields/' . static::kebabClassName();
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [
+                    Variables::TYPE_TEXT,
+                    Variables::TYPE_URL,
+                    Variables::TYPE_BOOLEAN,
+                ],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'url',
+                'label' => Craft::t('formie', 'URL'),
+                'variableTypes' => [
+                    Variables::TYPE_TEXT,
+                    Variables::TYPE_URL,
+                ],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'filename',
+                'label' => Craft::t('formie', 'Filename'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'extension',
+                'label' => Craft::t('formie', 'Extension'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'size',
+                'label' => Craft::t('formie', 'Size'),
+                'variableTypes' => [
+                    Variables::TYPE_NUMBER,
+                    Variables::TYPE_TEXT,
+                ],
+            ]),
+        ];
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return FileUploadFieldValue::class;
+    }
+
 
     // Private Methods
     // =========================================================================
 
     private function _processAssets(ElementInterface $element): void
     {
-        $query = $element->getFieldValue($this->fieldKey);
+        $query = $element->getFieldValue($this->valueKey());
         $assetsService = Craft::$app->getAssets();
 
         $getUploadFolderId = function() use ($element, &$_targetFolderId): int {
@@ -802,14 +998,10 @@ class FileUpload extends ElementField
                         break;
                 }
 
-                // Sanitize filename to prevent path traversal - user-provided filenames must never
-                // be used directly as they can contain ../../../ or other path injection (SEC-001)
-                $filename = Assets::prepareAssetName($file['filename'], true, true);
-
                 $uploadFolder = $assetsService->getFolderById($uploadFolderId);
                 $asset = new Asset();
                 $asset->tempFilePath = $tempPath;
-                $asset->setFilename($filename);
+                $asset->setFilename($file['filename']);
                 $asset->newFolderId = $uploadFolderId;
                 $asset->setVolumeId($uploadFolder->volumeId);
                 $asset->uploaderId = Craft::$app->getUser()->getId();
@@ -818,6 +1010,7 @@ class FileUpload extends ElementField
 
                 if (Craft::$app->getElements()->saveElement($asset)) {
                     $assetIds[] = $asset->id;
+                    Formie::$plugin->getFileUploads()->trackFromFieldAsset($asset, $this, $element);
                 } else {
                     Formie::info('Couldn’t save uploaded asset due to validation errors: ' . implode(', ', $asset->getFirstErrors()));
                 }
@@ -831,18 +1024,25 @@ class FileUpload extends ElementField
                     $query = $this->normalizeValue($assetIds, $element);
                 }
 
-                $element->setFieldValue($this->fieldKey, $query);
+                $element->setFieldValue($this->valueKey(), $query);
 
                 // Unset the GQL data, but only for this field. If in a repeater, there's more to process
                 if ($paramName = $this->requestParamName($element)) {
                     unset($this->_uploadedDataFiles[$paramName]);
                 }
 
-                // Save against the submission, so we can populate on the front-end.
-                $element->getForm()->addSubmitData([
-                    'event' => 'FormieFileUpload',
+                // Tell the ajax frontend which persisted asset ids now belong to
+                // this field so it can replace pending file names with real assets.
+                $form = $element->getForm();
+                $inputName = $this->getHtmlName('[]');
+                $inputKey = $this->getHtmlId($form);
+
+                $form->addSubmitData([
+                    'event' => 'formie:file-upload:uploaded',
                     'data' => [
-                        $this->fieldKey => $assetIds,
+                        'inputKey' => $inputKey,
+                        'inputName' => $inputName,
+                        'assetIds' => $assetIds,
                     ],
                 ]);
             }
@@ -1010,9 +1210,9 @@ class FileUpload extends ElementField
                 throw new InvalidSubpathException($subpath);
             }
 
-            // Sanitize the subpath - filter out path traversal attempts (SEC-001)
+            // Sanitize the subpath
             $segments = array_filter(explode('/', $renderedSubpath), function(string $segment): bool {
-                return $segment !== ':ignore:' && $segment !== '.' && $segment !== '..' && $segment !== '';
+                return $segment !== ':ignore:';
             });
 
             $generalConfig = Craft::$app->getConfig()->getGeneral();
@@ -1077,10 +1277,84 @@ class FileUpload extends ElementField
 
         foreach ($this->allowedKinds as $allowedKind) {
             foreach ($allKinds[$allowedKind]['extensions'] as $ext) {
-                $extensions[] = $ext;
+                if (!in_array($ext, self::ACTIVE_CONTENT_EXTENSIONS, true)) {
+                    $extensions[] = $ext;
+                }
             }
         }
 
         return $extensions;
     }
+
+    private function _resolveDetectedFileKind(?string $path = null, ?string $mimeType = null): ?string
+    {
+        $mimeType = $this->_resolveDetectedMimeType($path, $mimeType);
+
+        if (!$mimeType) {
+            return null;
+        }
+
+        foreach ((array)FileHelper::getExtensionsByMimeType($mimeType) as $extension) {
+            $extension = trim((string)$extension);
+
+            if ($extension === '') {
+                continue;
+            }
+
+            $kind = Assets::getFileKindByExtension("upload.{$extension}");
+
+            if ($kind !== Asset::KIND_UNKNOWN) {
+                return $kind;
+            }
+        }
+
+        return match (true) {
+            str_starts_with($mimeType, 'image/') => Asset::KIND_IMAGE,
+            str_starts_with($mimeType, 'audio/') => Asset::KIND_AUDIO,
+            str_starts_with($mimeType, 'video/') => Asset::KIND_VIDEO,
+            str_starts_with($mimeType, 'text/') => Asset::KIND_TEXT,
+            $mimeType === 'application/pdf' => Asset::KIND_PDF,
+            $mimeType === 'application/json' => Asset::KIND_JSON,
+            $mimeType === 'application/xml',
+            $mimeType === 'text/xml' => Asset::KIND_XML,
+            $mimeType === 'text/html',
+            $mimeType === 'application/xhtml+xml' => Asset::KIND_HTML,
+            $mimeType === 'application/javascript',
+            $mimeType === 'text/javascript' => Asset::KIND_JAVASCRIPT,
+            default => null,
+        };
+    }
+
+    private function _resolveDetectedMimeType(?string $path = null, ?string $mimeType = null): ?string
+    {
+        if ($path && is_file($path) && function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+
+            if ($finfo !== false) {
+                $resolvedMimeType = finfo_file($finfo, $path);
+                finfo_close($finfo);
+
+                if (is_string($resolvedMimeType)) {
+                    $resolvedMimeType = mb_strtolower(trim($resolvedMimeType));
+
+                    if ($resolvedMimeType !== '') {
+                        return $resolvedMimeType;
+                    }
+                }
+            }
+        }
+
+        if (!is_string($mimeType)) {
+            return null;
+        }
+
+        $mimeType = mb_strtolower(trim($mimeType));
+
+        if ($mimeType === '' || $mimeType === 'application/octet-stream') {
+            return null;
+        }
+
+        return $mimeType;
+    }
+
 }

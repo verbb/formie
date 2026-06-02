@@ -1,3 +1,38 @@
+{% set errors = errors ?? [] %}
+{% set value = answerValue ?? '' %}
+{% set labelPosition = craft.formie.getLabelPosition(field, form) %}
+{% set instructionsPosition = craft.formie.getInstructionsPosition(field, form) %}
+
 {% formtag 'captcha' %}
-    {{ craft.formie.renderField(form, field) }}
+    {% fieldtag 'field' %}
+        {% fieldtag 'fieldLayout' %}
+            {{ formieInclude('field/label', { position: 'above' }) }}
+            {{ formieInclude('field/label', { position: 'left' }) }}
+
+            {% fieldtag 'fieldContent' %}
+                {{ formieInclude('field/instructions', { position: 'above' }) }}
+
+                {% fieldtag 'fieldControl' %}
+                    <input type="hidden" name="formieCaptchaQuestion[index]" value="{{ questionIndex }}">
+
+                    {{ fieldtag('fieldInput', {
+                        id: field.getHtmlId(form),
+                        name: 'formieCaptchaQuestion[answer]',
+                        value: value,
+                        required: true,
+                        'data-formie-question-input': true,
+                    }) }}
+                {% endfieldtag %}
+
+                {{ formieInclude('field/instructions', { position: 'below' }) }}
+
+                {% if errors %}
+                    {{ formieInclude('field/errors') }}
+                {% endif %}
+            {% endfieldtag %}
+
+            {{ formieInclude('field/label', { position: 'right' }) }}
+            {{ formieInclude('field/label', { position: 'below' }) }}
+        {% endfieldtag %}
+    {% endfieldtag %}
 {% endformtag %}

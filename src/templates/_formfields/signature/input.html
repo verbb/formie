@@ -1,1 +1,23 @@
-<img src="{{ value }}" />
+<div class="fui-signature">
+    <canvas
+        class="formie-signature-canvas"
+        data-formie-signature-canvas
+        width="640"
+        height="180"
+        style="display: block; width: 100%; height: 180px;"
+    >
+        {{- 'Your browser does not support the Signature field' | t('formie') -}}
+    </canvas>
+
+    <input type="hidden" name="{{ field.handle }}" value="{{ value ?? '' }}" data-formie-signature-input>
+
+    <button
+        type="button"
+        class="btn"
+        data-formie-signature-clear
+        aria-label="{{ 'Clear signature' | t('formie') }}"
+        title="{{ 'Clear signature' | t('formie') }}"
+    >
+        {{- 'Clear' | t('formie') -}}
+    </button>
+</div>

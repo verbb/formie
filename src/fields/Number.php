@@ -2,14 +2,18 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\base\Field;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\values\NumberFieldValue;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\SlotTag;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
 use craft\gql\types\Number as NumberType;
 use craft\helpers\Db;
 use craft\helpers\Localization;
@@ -23,7 +27,7 @@ use yii\db\Schema;
 
 use Throwable;
 
-class Number extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
+class Number extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Constants
     // =========================================================================
@@ -50,6 +54,25 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         return Schema::TYPE_JSON;
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return NumberType::getType();
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => NumberType::getType(),
+            'description' => $config['instructions'] ?? null,
+        ];
+    }
+
 
     // Properties
     // =========================================================================
@@ -74,6 +97,11 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         }
 
         parent::__construct($config);
+    }
+
+    public function fieldKind(): string
+    {
+        return self::KIND_TEXT;
     }
 
     public function init(): void
@@ -116,56 +144,58 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = ['number', 'min' => $this->min, 'max' => $this->max];
+        $rules[] = [$this->handle, 'number', 'min' => $this->min, 'max' => $this->max];
 
         if ($this->uniqueValue) {
-            $rules[] = 'validateUniqueValue';
+            $rules[] = [$this->handle, 'validateUniqueValue'];
         }
 
         return $rules;
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/number/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewInput([
+                'type' => 'number',
+            ]),
+        ];
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Numbers'),
-                'help' => Craft::t('formie', 'Whether to limit the numbers for this field.'),
+                'instructions' => Craft::t('formie', 'Whether to limit the numbers for this field.'),
                 'name' => 'limit',
             ]),
             [
@@ -173,7 +203,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
                 'attrs' => [
                     'class' => 'fui-row',
                 ],
-                'if' => '$get(limit).value',
+                'if' => 'limit',
                 'children' => [
                     [
                         '$el' => 'div',
@@ -183,7 +213,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Min Value'),
-                                'help' => Craft::t('formie', 'Set a minimum value that users must enter.'),
+                                'instructions' => Craft::t('formie', 'Set a minimum value that users must enter.'),
                                 'name' => 'min',
                             ]),
                         ],
@@ -196,7 +226,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Max Value'),
-                                'help' => Craft::t('formie', 'Set a maximum value that users must enter.'),
+                                'instructions' => Craft::t('formie', 'Set a maximum value that users must enter.'),
                                 'name' => 'max',
                             ]),
                         ],
@@ -205,23 +235,23 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
             ],
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Decimal Points'),
-                'help' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
+                'instructions' => Craft::t('formie', 'Set the number of decimal points to format the field value.'),
                 'name' => 'decimals',
             ]),
             SchemaHelper::matchField([
-                'fieldTypes' => [self::class],
+                'includedTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
-                'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
                 'name' => 'uniqueValue',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -231,7 +261,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -241,7 +271,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -307,41 +337,47 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         ]);
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
+        $form = $context->form;
+        $errors = $context->errors;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'number',
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'required' => $this->required ? true : null,
-                'min' => $this->limit ? $this->min : false,
-                'max' => $this->limit ? $this->max : false,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'number',
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'required' => $this->required ? true : null,
+                    'min' => $this->limit ? $this->min : false,
+                    'max' => $this->limit ? $this->max : false,
+                    'data-formie-input' => true,
+                    'data-formie-number-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'number',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-number-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -358,7 +394,7 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // If decimals is 0 (or null, empty for whatever reason), don't run this
         if ($value !== null && $this->decimals) {
@@ -381,5 +417,43 @@ class Number extends Field implements InlineEditableFieldInterface, PreviewableF
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
         return $faker->randomDigit;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [
+                    Variables::TYPE_NUMBER,
+                    Variables::TYPE_TEXT,
+                ],
+            ]),
+        ];
+    }
+
+    protected function defineValidationRules(): array
+    {
+        $validators = parent::defineValidationRules();
+        $validators[] = [
+            'type' => 'number',
+            'min' => $this->min,
+            'max' => $this->max,
+        ];
+
+        return $validators;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'min' => $this->min,
+            'max' => $this->max,
+            'inputType' => 'number',
+        ]);
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return NumberFieldValue::class;
     }
 }

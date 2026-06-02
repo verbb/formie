@@ -1,11 +1,11 @@
 <?php
 namespace verbb\formie\widgets;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\web\assets\cp\WidgetsAsset;
 
 use Craft;
 use craft\base\Widget;
@@ -138,7 +138,7 @@ class RecentSubmissions extends Widget
     public function getBodyHtml(): ?string
     {
         $view = Craft::$app->getView();
-        $view->registerAssetBundle(WidgetsAsset::class);
+        Formie::$plugin->registerCpWidgetsAssets();
 
         $id = 'recent-submissions' . StringHelper::randomString();
         $namespaceId = Craft::$app->getView()->namespaceInputId($id);

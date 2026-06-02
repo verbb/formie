@@ -3,18 +3,18 @@
 {% block field %}
     
     {% namespace field.handle %}
-        {% for row in field.getRows(false) %}
-            <div class="fui-row">
-                {% for field in row.getFields(false) %}
-                    <div class="fui-col-auto">
-                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
-                        {% set errors = element.getErrors(field.fieldKey) ?? [] %}
+        <div class="formie-subfield-rows" data-formie-subfield-rows>
+            {% for row in field.getRows(false) %}
+                <div class="formie-subfield-row" data-formie-subfield-row>
+                    {% for field in row.getFields(false) %}
+                        {% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
+                        {% set errors = element.getErrors(field.valueKey()) ?? [] %}
 
-                        {{ field.getCpInputHtml(value, element) }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+                        {{ field.getSubmissionHtml(value, element) }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
     {% endnamespace %}
 
 {% endblock %}

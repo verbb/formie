@@ -3,9 +3,12 @@ namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -23,6 +26,9 @@ class Recaptcha extends Captcha
     public const RECAPTCHA_TYPE_V2_INVISIBLE = 'v2_invisible';
     public const RECAPTCHA_TYPE_V3 = 'v3';
     public const RECAPTCHA_TYPE_ENTERPRISE = 'enterprise';
+    public const ENTERPRISE_MODE_SCORE = 'score';
+    public const ENTERPRISE_MODE_CHECKBOX = 'checkbox';
+    public const ENTERPRISE_MODE_POLICY = 'policy';
 
 
     // Properties
@@ -37,6 +43,7 @@ class Recaptcha extends Captcha
     public string $badge = 'bottomright';
     public string $language = 'en';
     public float $minScore = 0.5;
+    public string $action = 'submit';
     public string $scriptLoadingMethod = 'asyncDefer';
     public ?string $enterpriseType = 'score';
     public ?string $projectId = null;
@@ -73,76 +80,56 @@ class Recaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/recaptcha/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'fui-captcha formie-recaptcha-placeholder',
+            'class' => 'formie-captcha formie-recaptcha-placeholder',
             'data-recaptcha-placeholder' => true,
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
-        $settings = [
-            'siteKey' => App::parseEnv($this->siteKey),
-            'formId' => $form->getFormId(),
-            'theme' => $this->theme,
-            'size' => $this->size,
-            'badge' => $this->badge,
-            'language' => $this->_getMatchedLanguageId() ?? 'en',
-            'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
-            'hasMultiplePages' => $form->hasMultiplePages() ?? false,
-            'loadingMethod' => $this->scriptLoadingMethod,
-            'enterpriseType' => $this->enterpriseType,
-        ];
-
-        if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/recaptcha-enterprise.js');
-
-            return [
-                'src' => $src,
-                'module' => 'FormieRecaptchaEnterprise',
-                'settings' => $settings,
-            ];
+        if (!$context->form) {
+            return null;
         }
 
-        if ($this->type === self::RECAPTCHA_TYPE_V3) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/recaptcha-v3.js');
+        $moduleId = match ($this->type) {
+            self::RECAPTCHA_TYPE_ENTERPRISE => 'recaptcha-enterprise',
+            self::RECAPTCHA_TYPE_V2_CHECKBOX => 'recaptcha-v2-checkbox',
+            self::RECAPTCHA_TYPE_V2_INVISIBLE => 'recaptcha-v2-invisible',
+            self::RECAPTCHA_TYPE_V3 => 'recaptcha-v3',
+            default => null,
+        };
 
-            return [
-                'src' => $src,
-                'module' => 'FormieRecaptchaV3',
-                'settings' => $settings,
-            ];
+        if (!$moduleId) {
+            return null;
         }
 
-        if ($this->type === self::RECAPTCHA_TYPE_V2_CHECKBOX) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/recaptcha-v2-checkbox.js');
-
-            return [
-                'src' => $src,
-                'module' => 'FormieRecaptchaV2Checkbox',
-                'settings' => $settings,
-            ];
-        }
-
-        if ($this->type === self::RECAPTCHA_TYPE_V2_INVISIBLE) {
-            $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/recaptcha-v2-invisible.js');
-
-            return [
-                'src' => $src,
-                'module' => 'FormieRecaptchaV2Invisible',
-                'settings' => $settings,
-            ];
-        }
-
-        return null;
+        return new ClientModule([
+            'id' => $moduleId,
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-recaptcha-placeholder]',
+                'siteKey' => App::parseEnv($this->siteKey),
+                'formId' => $context->form->getRenderId(),
+                'theme' => $this->theme,
+                'size' => $this->size,
+                'badge' => $this->badge,
+                'language' => $this->_getMatchedLanguageId() ?? 'en',
+                'submitMethod' => $context->form->settings->submitMethod ?? 'page-reload',
+                'hasMultiplePages' => $context->form->hasMultiplePages() ?? false,
+                'action' => $this->_getRecaptchaAction(),
+                'loadingMethod' => $this->scriptLoadingMethod,
+                'enterpriseType' => $this->_getEnterpriseMode(),
+            ],
+        ]);
     }
 
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
-            'formId' => $form->getFormId(),
+            'formId' => $form->getRenderId(),
             'sessionKey' => 'siteKey',
             'value' => App::parseEnv($this->siteKey),
         ];
@@ -170,6 +157,7 @@ class Recaptcha extends Captcha
         $projectId = App::parseEnv($this->projectId);
 
         if ($this->type === self::RECAPTCHA_TYPE_ENTERPRISE) {
+            $enterpriseMode = $this->_getEnterpriseMode();
             $response = $client->post('https://recaptchaenterprise.googleapis.com/v1/projects/' . $projectId . '/assessments?key=' . $secretKey, [
                 'json' => [
                     'event' => [
@@ -189,6 +177,8 @@ class Recaptcha extends Captcha
 
             $isValid = $result['tokenProperties']['valid'] ?? false;
             $reason = $result['tokenProperties']['invalidReason'] ?? 'UNKNOWN_INVALID_REASON';
+            $actualAction = $result['tokenProperties']['action'] ?? null;
+            $expectedAction = $this->_getRecaptchaAction();
 
             if (!$isValid) {
                 $this->spamReason = 'Invalid token (' . $reason . ').';
@@ -196,10 +186,16 @@ class Recaptcha extends Captcha
                 return false;
             }
 
-            $score = $result['riskAnalysis']['score'] ?? $result['score'] ?? null;
-            $reasons = $risk['riskAnalysis']['reasons'] ?? $result['reasons'] ?? [];
+            if ($enterpriseMode !== self::ENTERPRISE_MODE_CHECKBOX && $actualAction && $actualAction !== $expectedAction) {
+                $this->spamReason = 'Token action "' . $actualAction . '" did not match expected action "' . $expectedAction . '".';
 
-            if ($score !== null) {
+                return false;
+            }
+
+            $score = $result['riskAnalysis']['score'] ?? $result['score'] ?? null;
+            $reasons = $result['riskAnalysis']['reasons'] ?? $result['reasons'] ?? [];
+
+            if ($enterpriseMode === self::ENTERPRISE_MODE_SCORE && $score !== null) {
                 $scoreRating = ($score >= $this->minScore);
 
                 if (!$scoreRating) {
@@ -266,14 +262,32 @@ class Recaptcha extends Captcha
             'badge' => $this->badge,
             'language' => $this->language,
             'scriptLoadingMethod' => $this->scriptLoadingMethod,
+            'action' => $this->action,
+            'enterpriseType' => $this->_getEnterpriseMode(),
+            'projectId' => $this->projectId,
         ];
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        if (!$this->hasValidSettings()) {
+            return [
+                $this->getMissingSettingsWarningSchema('ReCAPTCHA', 'recaptcha'),
+            ];
+        }
+
+        return parent::defineFormSettingsSchema($form);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    public function _getMatchedLanguageId()
+    private function _getMatchedLanguageId()
     {
         if ($this->language && $this->language != 'auto') {
             return $this->language;
@@ -395,6 +409,34 @@ class Recaptcha extends Captcha
         }
 
         return $languageOptions;
+    }
+
+    private function _getEnterpriseMode(): string
+    {
+        $enterpriseMode = trim((string)$this->enterpriseType);
+
+        // Older saved configs used "invisible" for the submit-triggered Enterprise
+        // challenge flow. Keep normalizing that value to the current policy-based key.
+        if ($enterpriseMode === 'invisible') {
+            return self::ENTERPRISE_MODE_POLICY;
+        }
+
+        if (in_array($enterpriseMode, [
+            self::ENTERPRISE_MODE_SCORE,
+            self::ENTERPRISE_MODE_CHECKBOX,
+            self::ENTERPRISE_MODE_POLICY,
+        ], true)) {
+            return $enterpriseMode;
+        }
+
+        return self::ENTERPRISE_MODE_SCORE;
+    }
+
+    private function _getRecaptchaAction(): string
+    {
+        $action = trim((string)$this->action);
+
+        return $action !== '' ? $action : 'submit';
     }
 
 }

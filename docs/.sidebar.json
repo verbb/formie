@@ -7,50 +7,90 @@
             "get-started/requirements",
             "get-started/configuration",
             "get-started/troubleshooting",
-            "get-started/upgrading-from-v2"
+            "get-started/get-form-support",
+            "get-started/upgrading-from-v3"
         ]
     },
     {
-        "title": "Feature Tour",
+        "title": "Forms",
         "collapsable": false,
         "children": [
-            "feature-tour/forms",
-            "feature-tour/multi-page-forms",
-            "feature-tour/fields",
-            "feature-tour/conditions",
-            "feature-tour/synced-fields",
-            "feature-tour/existing-fields",
-            "feature-tour/submissions",
-            "feature-tour/email-notifications",
-            "feature-tour/sent-notifications",
-            "feature-tour/integrations",
-            "feature-tour/stencils",
-            "feature-tour/spam-protection",
-            "feature-tour/form-templates",
-            "feature-tour/email-templates",
-            "feature-tour/data-retention",
-            "feature-tour/import-export",
-            "feature-tour/support",
-            "feature-tour/headless"
+            "forms/form-builder",
+            {
+                "title": "Fields",
+                "collapsable": true,
+                "children": [
+                    "fields/address",
+                    "fields/agree",
+                    "fields/calculations",
+                    "fields/categories",
+                    "fields/checkboxes",
+                    "fields/date-time",
+                    "fields/dropdown",
+                    "fields/email-address",
+                    "fields/entries",
+                    "fields/file-upload",
+                    "fields/group",
+                    "fields/heading",
+                    "fields/hidden",
+                    "fields/html",
+                    "fields/multi-line-text",
+                    "fields/name",
+                    "fields/number",
+                    "fields/password",
+                    "fields/payment",
+                    "fields/phone",
+                    "fields/products",
+                    "fields/radio",
+                    "fields/recipients",
+                    "fields/repeater",
+                    "fields/section",
+                    "fields/signature",
+                    "fields/single-line-text",
+                    "fields/summary",
+                    "fields/table",
+                    "fields/tags",
+                    "fields/users",
+                    "fields/variants"
+                ]
+            },
+            "forms/email-notifications",
+            "forms/sent-notifications",
+            "forms/save-continue-later",
+            "forms/conditions",
+            "forms/synced-fields",
+            "forms/spam-protection",
+            "forms/submission-screening",
+            "forms/stencils",
+            "forms/import-export",
+            "forms/element-field"
         ]
     },
     {
-        "title": "Template Guides",
+        "title": "Submissions",
         "collapsable": false,
         "children": [
-            "template-guides/available-variables",
-            "template-guides/rendering-forms",
-            "template-guides/rendering-pages",
-            "template-guides/rendering-fields",
-            "template-guides/email-templates",
-            "template-guides/pdf-templates",
-            "template-guides/cached-forms",
-            "template-guides/editing-submissions",
-            "template-guides/populating-forms",
-            "template-guides/selecting-forms",
-            "template-guides/relations",
-            "template-guides/google-tag-manager",
-            "template-guides/craft-forms"
+            "submissions/overview",
+            "submissions/statuses",
+            "submissions/exporting",
+            "submissions/relations",
+            "submissions/element-field"
+        ]
+    },
+    {
+        "title": "Templates",
+        "collapsable": false,
+        "children": [
+            "templates/rendering-forms",
+            "templates/rendering-pages",
+            "templates/rendering-fields",
+            "templates/render-options",
+            "templates/overriding-settings",
+            "templates/assets",
+            "templates/populating-forms",
+            "templates/editing-submissions",
+            "templates/craft-forms",
+            "templates/pdf-templates"
         ]
     },
     {
@@ -60,8 +100,26 @@
             "theming/overview",
             "theming/theme-config",
             "theming/template-overrides",
-            "theming/custom-rendering",
-            "theming/render-options"
+            "theming/custom-rendering"
+        ]
+    },
+    {
+        "title": "Frontend",
+        "collapsable": false,
+        "children": [
+            "frontend/frontend-assets",
+            "frontend/cached-forms",
+            "frontend/tracking-and-analytics"
+        ]
+    },
+    {
+        "title": "GraphQL",
+        "collapsable": false,
+        "children": [
+            "graphql/query-forms",
+            "graphql/query-submissions",
+            "graphql/rendering-forms",
+            "graphql/create-submissions"
         ]
     },
     {
@@ -76,45 +134,243 @@
         "title": "Integrations",
         "collapsable": false,
         "children": [
-            "integrations/address-providers",
-            "integrations/automations",
-            "integrations/captchas",
-            "integrations/elements",
-            "integrations/email-marketing",
-            "integrations/crm",
-            "integrations/help-desk",
-            "integrations/messaging",
-            "integrations/payments",
-            "integrations/miscellaneous"
+            {
+                "title": "Address Providers",
+                "collapsable": true,
+                "children": [
+                    "integrations/address-providers/addressfinder",
+                    "integrations/address-providers/google-places",
+                    "integrations/address-providers/loqate",
+                    "integrations/address-providers/placekit"
+                ]
+            },
+            {
+                "title": "Automations",
+                "collapsable": true,
+                "children": [
+                    "integrations/automations/ifttt",
+                    "integrations/automations/make",
+                    "integrations/automations/n8n",
+                    "integrations/automations/web-request",
+                    "integrations/automations/zapier"
+                ]
+            },
+            {
+                "title": "Captchas",
+                "collapsable": true,
+                "children": [
+                    "integrations/captchas/akismet",
+                    "integrations/captchas/captcha-eu",
+                    "integrations/captchas/cleantalk",
+                    "integrations/captchas/cloudflare-turnstile",
+                    "integrations/captchas/friendly-captcha",
+                    "integrations/captchas/hcaptcha",
+                    "integrations/captchas/oopspam",
+                    "integrations/captchas/question",
+                    "integrations/captchas/recaptcha",
+                    "integrations/captchas/snaptcha"
+                ]
+            },
+            {
+                "title": "CRM",
+                "collapsable": true,
+                "children": [
+                    "integrations/crm/1crm",
+                    "integrations/crm/activecampaign",
+                    "integrations/crm/agile-crm",
+                    "integrations/crm/attio",
+                    "integrations/crm/avochato",
+                    "integrations/crm/capsule-crm",
+                    "integrations/crm/civicrm",
+                    "integrations/crm/copper",
+                    "integrations/crm/dotdigital",
+                    "integrations/crm/flowlu",
+                    "integrations/crm/freshsales",
+                    "integrations/crm/hubspot",
+                    "integrations/crm/infusionsoft",
+                    "integrations/crm/insightly",
+                    "integrations/crm/iterable",
+                    "integrations/crm/klaviyo",
+                    "integrations/crm/marketo",
+                    "integrations/crm/maximizer",
+                    "integrations/crm/mercury",
+                    "integrations/crm/microsoft-dynamics-365",
+                    "integrations/crm/nocrm",
+                    "integrations/crm/outseta",
+                    "integrations/crm/pardot",
+                    "integrations/crm/pipedrive",
+                    "integrations/crm/pipeliner",
+                    "integrations/crm/procurios",
+                    "integrations/crm/salesflare",
+                    "integrations/crm/salesforce",
+                    "integrations/crm/salesmate",
+                    "integrations/crm/scoro",
+                    "integrations/crm/sharpspring",
+                    "integrations/crm/sugarcrm",
+                    "integrations/crm/suitecrm",
+                    "integrations/crm/vcita",
+                    "integrations/crm/xero",
+                    "integrations/crm/zoho"
+                ]
+            },
+            {
+                "title": "Elements",
+                "collapsable": true,
+                "children": [
+                    "integrations/elements/calendar-event",
+                    "integrations/elements/entry",
+                    "integrations/elements/events-event",
+                    "integrations/elements/product",
+                    "integrations/elements/user"
+                ]
+            },
+            {
+                "title": "Email Marketing",
+                "collapsable": true,
+                "children": [
+                    "integrations/email-marketing/activecampaign",
+                    "integrations/email-marketing/adestra",
+                    "integrations/email-marketing/aweber",
+                    "integrations/email-marketing/beehiiv",
+                    "integrations/email-marketing/benchmark",
+                    "integrations/email-marketing/brevo",
+                    "integrations/email-marketing/campaign-monitor",
+                    "integrations/email-marketing/campaign",
+                    "integrations/email-marketing/cleverreach",
+                    "integrations/email-marketing/constant-contact",
+                    "integrations/email-marketing/convertkit",
+                    "integrations/email-marketing/customer-io",
+                    "integrations/email-marketing/drip",
+                    "integrations/email-marketing/ecomail",
+                    "integrations/email-marketing/emailoctopus",
+                    "integrations/email-marketing/getresponse",
+                    "integrations/email-marketing/icontact",
+                    "integrations/email-marketing/iterable",
+                    "integrations/email-marketing/klaviyo",
+                    "integrations/email-marketing/mailchimp",
+                    "integrations/email-marketing/mailcoach",
+                    "integrations/email-marketing/mailerlite",
+                    "integrations/email-marketing/mailjet",
+                    "integrations/email-marketing/moosend",
+                    "integrations/email-marketing/omnisend",
+                    "integrations/email-marketing/ontraport",
+                    "integrations/email-marketing/ortto",
+                    "integrations/email-marketing/sender",
+                    "integrations/email-marketing/vero"
+                ]
+            },
+            {
+                "title": "Help Desk",
+                "collapsable": true,
+                "children": [
+                    "integrations/help-desk/freshdesk",
+                    "integrations/help-desk/front",
+                    "integrations/help-desk/gorgias",
+                    "integrations/help-desk/help-scout",
+                    "integrations/help-desk/intercom",
+                    "integrations/help-desk/livechat",
+                    "integrations/help-desk/zendesk"
+                ]
+            },
+            {
+                "title": "Messaging",
+                "collapsable": true,
+                "children": [
+                    "integrations/messaging/discord",
+                    "integrations/messaging/plivo",
+                    "integrations/messaging/slack",
+                    "integrations/messaging/telegram",
+                    "integrations/messaging/twilio"
+                ]
+            },
+            {
+                "title": "Miscellaneous",
+                "collapsable": true,
+                "children": [
+                    "integrations/miscellaneous/clickup",
+                    "integrations/miscellaneous/google-sheets",
+                    "integrations/miscellaneous/monday",
+                    "integrations/miscellaneous/recruitee",
+                    "integrations/miscellaneous/trello"
+                ]
+            },
+            {
+                "title": "Payments",
+                "collapsable": true,
+                "children": [
+                    "integrations/payments/bpoint",
+                    "integrations/payments/eway",
+                    "integrations/payments/gocardless",
+                    "integrations/payments/mollie",
+                    "integrations/payments/moneris",
+                    "integrations/payments/opayo",
+                    "integrations/payments/paddle",
+                    "integrations/payments/paypal",
+                    "integrations/payments/square",
+                    "integrations/payments/stripe",
+                    "integrations/payments/payway"
+                ]
+            }
         ]
     },
     {
         "title": "Developers",
         "collapsable": false,
         "children": [
-            "developers/events",
-            "developers/hooks",
-            "developers/form",
-            "developers/page",
-            "developers/row",
-            "developers/field",
-            "developers/submission",
-            "developers/notification",
+            {
+                "title": "Events",
+                "collapsable": true,
+                "children": [
+                    "developers/events/form-events",
+                    "developers/events/submission-events",
+                    "developers/events/field-events",
+                    "developers/events/notification-events",
+                    "developers/events/integration-events",
+                    "developers/events/utility-events"
+                ]
+            },
+            "developers/submission-workflow",
+            "developers/submission-content",
+            "developers/schema",
             "developers/custom-field",
-            "developers/custom-integration",
-            "developers/front-end-css",
-            "developers/front-end-js",
-            "developers/javascript-api",
-            "developers/graphql",
+            {
+                "title": "Custom Integration",
+                "collapsable": true,
+                "children": [
+                    "developers/custom-integration/overview",
+                    "developers/custom-integration/address-provider-integration",
+                    "developers/custom-integration/automation-integration",
+                    "developers/custom-integration/captcha-integration",
+                    "developers/custom-integration/crm-integration",
+                    "developers/custom-integration/element-integration",
+                    "developers/custom-integration/email-marketing-integration",
+                    "developers/custom-integration/help-desk-integration",
+                    "developers/custom-integration/messaging-integration",
+                    "developers/custom-integration/miscellaneous-integration",
+                    "developers/custom-integration/oauth-integration",
+                    "developers/custom-integration/payment-integration"
+                ]
+            },
             "developers/console-commands"
         ]
     },
     {
-        "title": "Guides",
+        "title": "Reference",
         "collapsable": false,
         "children": [
-            "guides/migrating-from-freeform",
-            "guides/migrating-from-sprout-forms"
+            "reference/form",
+            "reference/page",
+            "reference/field",
+            "reference/submission",
+            "reference/notification"
+        ]
+    },
+    {
+        "title": "Migrations",
+        "collapsable": false,
+        "children": [
+            "migrations/migrating-from-freeform",
+            "migrations/migrating-from-sprout-forms"
         ]
     }
 ]

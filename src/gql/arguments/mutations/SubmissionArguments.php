@@ -33,6 +33,11 @@ class SubmissionArguments extends ElementMutationArguments
                 'type' => Type::boolean(),
                 'description' => 'The submission’s incomplete state.',
             ],
+            'requestToken' => [
+                'name' => 'requestToken',
+                'type' => Type::string(),
+                'description' => 'Optional request token for duplicate-submit/replay protection.',
+            ],
             'isNewSubmission' => [
                 'name' => 'isNewSubmission',
                 'type' => Type::boolean(),

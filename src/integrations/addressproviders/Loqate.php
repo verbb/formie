@@ -2,8 +2,9 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\AddressProvider;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -42,23 +43,20 @@ class Loqate extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Loqate](https://www.loqate.com/)']);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $settings = [
-            'apiKey' => App::parseEnv($this->apiKey),
-            'namespace' => $field ? Formie::$plugin->getService()->getFieldNamespaceForScript($field) : '',
-            'reconfigurableOptions' => $this->_getOptions(),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/address-providers/loqate.js'),
-            'module' => 'FormieLoqate',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'loqate',
+            'config' => [
+                'apiKey' => App::parseEnv($this->apiKey),
+                'namespace' => $context->field ? Formie::$plugin->getService()->getFieldNamespaceForScript($context->field) : '',
+                'reconfigurableOptions' => $this->_getOptions(),
+            ],
+        ]);
     }
 
     public function hasValidSettings(): bool

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
 
@@ -45,7 +46,7 @@ abstract class HelpDesk extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/helpdesk/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/helpdesk/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -54,19 +55,6 @@ abstract class HelpDesk extends Integration
         $variables = $this->getSettingsHtmlVariables();
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/help-desk/{$handle}/_plugin-settings", $variables);
-    }
-
-    public function getFormSettingsHtml($form): string
-    {
-        $handle = $this->getClassHandle();
-        $variables = $this->getFormSettingsHtmlVariables($form);
-
-        return Craft::$app->getView()->renderTemplate("formie/integrations/help-desk/{$handle}/_form-settings", $variables);
-    }
-
-    public function getFrontEndJsVariables($field = null): ?array
-    {
-        return null;
     }
 
     public function getFieldMappingValues(Submission $submission, $fieldMapping, $fieldSettings = [])

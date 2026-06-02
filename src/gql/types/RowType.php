@@ -27,23 +27,20 @@ class RowType extends ObjectType
     {
         $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
 
-        $fields = $source['fields'] ?? [];
-        $includeDisabled = $arguments['includeDisabled'] ?? false;
-
-        $fields = array_filter($fields, function($field) {
-            return !($field instanceof MissingField);
-        });
-
-        // Don't include disabled fields by default for GQL
-        if (!$includeDisabled) {
-            $fields = array_filter($fields, function($field) {
-                return $field->visibility !== 'disabled';
-            });
-        }
-
         return match ($fieldName) {
-            'rowFields' => $fields,
+            'rowFields' => $this->_resolveFields($source['fields'] ?? [], $arguments['includeDisabled'] ?? false),
             default => $source[$resolveInfo->fieldName],
         };
+    }
+
+    private function _resolveFields(array $fields, bool $includeDisabled): array
+    {
+        $fields = array_filter($fields, fn($field) => !($field instanceof MissingField));
+
+        if (!$includeDisabled) {
+            $fields = array_filter($fields, fn($field) => $field->visibility !== 'disabled');
+        }
+
+        return $fields;
     }
 }

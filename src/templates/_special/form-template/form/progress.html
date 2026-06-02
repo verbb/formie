@@ -1,0 +1,27 @@
+{% if form.settings.displayPageProgress and form.hasMultiplePages %}
+    {% set progress = form.getPageProgressPercent() %}
+
+    {% set progressHtml %}
+        {% formtag 'progressValue' %}
+            {{- progress | round ~ '%' -}}
+        {% endformtag %}
+    {% endset %}
+
+    {% formtag 'progressWrapper' %}
+        {% if form.settings.progressValuePosition == 'left' %}
+            {{ progressHtml | raw }}
+        {% endif %}
+
+        {% formtag 'progress' %}
+            {% formtag 'progressContainer' %}
+                {% if form.settings.progressValuePosition != 'left' and form.settings.progressValuePosition != 'right' %}
+                    {{ progressHtml | raw }}
+                {% endif %}
+            {% endformtag %}
+        {% endformtag %}
+
+        {% if form.settings.progressValuePosition == 'right' %}
+            {{ progressHtml | raw }}
+        {% endif %}
+    {% endformtag %}
+{% endif %}

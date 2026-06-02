@@ -60,11 +60,11 @@ class UpdateSubmissionContent extends BaseJob
             $content = Json::decode($submission['content']);
 
             foreach ($groupFields as $groupField) {
-                $groupFieldUid = Db::uidById(Table::FORMIE_FIELDS, $groupField->id);
+                $groupFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $groupField->id);
 
                 // Was the content for a grouped field found at the top level?
                 foreach ($groupField->getFields() as $nestedField) {
-                    $nestedFieldUid = Db::uidById(Table::FORMIE_FIELDS, $nestedField->id);
+                    $nestedFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nestedField->id);
 
                     if ($foundValue = ArrayHelper::remove($content, $nestedFieldUid)) {
                         // Move it to the Group field content
@@ -75,7 +75,7 @@ class UpdateSubmissionContent extends BaseJob
 
                 // Was the content for a non-grouped field found within the group field?
                 foreach ($nonGroupFields as $nonGroupField) {
-                    $nonGroupFieldUid = Db::uidById(Table::FORMIE_FIELDS, $nonGroupField->id);
+                    $nonGroupFieldUid = Db::uidById(Table::FORMIE_FORM_FIELDS, $nonGroupField->id);
 
                     if ($foundValue = ArrayHelper::getValue($content, $groupFieldUid . '.' . $nonGroupFieldUid)) {
                         // Move it out of the Group field content

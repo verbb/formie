@@ -5,26 +5,31 @@ use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\MultiNestedFieldInterface;
-use verbb\formie\base\MultiNestedField;
+use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\base\RepeatableParentField;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferences;
+use verbb\formie\fields\values\RepeaterFieldValue;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\types\input\RepeaterInputType;
 use verbb\formie\gql\types\RowType;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\ClientModule;
 use verbb\formie\models\DynamicModel;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Element;
 use craft\base\ElementInterface;
+use craft\errors\GqlException;
 use craft\gql\GqlEntityRegistry;
-use craft\helpers\Json;
 use craft\helpers\Template;
 use craft\validators\ArrayValidator;
 
@@ -35,7 +40,7 @@ use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-class Repeater extends MultiNestedField
+class Repeater extends RepeatableParentField
 {
     // Static Methods
     // =========================================================================
@@ -50,6 +55,77 @@ class Repeater extends MultiNestedField
         return 'formie/_formfields/repeater/icon.svg';
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        return RepeaterInputType::getTypeFromConfig($config);
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): array|Type
+    {
+        $fieldsService = Formie::$plugin->getFields();
+        $typeName = $fieldsService->getFieldConfigGqlTypeName($config, 'RepeaterField');
+
+        if ($inputType = GqlEntityRegistry::getEntity($typeName)) {
+            return $inputType;
+        }
+
+        $rowTypeName = $fieldsService->getFieldConfigGqlTypeName($config, 'RepeaterRow');
+        $repeaterFields = RowInterface::getFieldDefinitions();
+        $schema = null;
+
+        try {
+            $schema = Craft::$app->getGql()->getActiveSchema();
+        } catch (GqlException $e) {
+            Craft::warning("Could not get the active GraphQL schema: {$e->getMessage()}", __METHOD__);
+            Craft::$app->getErrorHandler()->logException($e);
+        }
+
+        foreach ($fieldsService->getNestedFieldConfigs($config) as $fieldConfig) {
+            $handle = $fieldConfig['handle'] ?? null;
+
+            if (!$handle) {
+                continue;
+            }
+
+            if (!$schema || $fieldsService->fieldConfigIncludedInGqlSchema($fieldConfig, $schema)) {
+                $repeaterFields[$handle] = $fieldsService->getFieldConfigContentGqlType($fieldConfig);
+            }
+        }
+
+        $rowType = GqlEntityRegistry::createEntity($rowTypeName, new RowType([
+            'name' => $rowTypeName,
+            'fields' => function() use ($repeaterFields, $rowTypeName) {
+                return Craft::$app->getGql()->prepareFieldDefinitions($repeaterFields, $rowTypeName);
+            },
+        ]));
+
+        return GqlEntityRegistry::createEntity($typeName, new ObjectType([
+            'name' => $typeName,
+            'fields' => [
+                'rows' => [
+                    'name' => 'rows',
+                    'type' => Type::listOf($rowType),
+                    'resolve' => function($rootValue) {
+                        $values = [];
+
+                        if (is_array($rootValue)) {
+                            foreach ($rootValue as $rowValue) {
+                                $values[] = new DynamicModel($rowValue);
+                            }
+                        }
+
+                        return $values;
+                    },
+                ],
+            ],
+        ]));
+    }
+    
 
     // Properties
     // =========================================================================
@@ -62,42 +138,24 @@ class Repeater extends MultiNestedField
     // Public Methods
     // =========================================================================
 
-    public function getFieldTypeDefaults(): array
+    public function __construct(array $config = [])
     {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['addLabel'] = Craft::t('formie', 'Add another row');
+        // Setuo defaults for some values which can't in in the property definition
+        $config['addLabel'] = $config['addLabel'] ?? Craft::t('formie', 'Add another row');
 
-        return $settings;
+        parent::__construct($config);
     }
 
-    public function getPreviewInputHtml(): string
+    public function fieldKind(): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/repeater/preview', [
-            'field' => $this,
-        ]);
+        return self::KIND_REPEATER;
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function defineFormBuilderPreviewSchema(): array
     {
-        $modules = parent::getFrontEndJsModules();
-
-        $modules[] = [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/repeater.js'),
-            'module' => 'FormieRepeater',
+        return [
+            SchemaHelper::previewRepeater(),
         ];
-
-        // Ensure we also load any JS in nested fields
-        return $modules;
-    }
-
-    public function getConfigJson(): ?string
-    {
-        // Override `getConfigJson` as we don't want to initialise any inner fields immediately.
-        // Even if there are min-rows, JS is the one to create the blocks, and initialise inner field JS.
-        return Json::encode([
-            'module' => 'FormieRepeater',
-        ]);
     }
 
     public function getSettingGqlTypes(): array
@@ -118,13 +176,13 @@ class Repeater extends MultiNestedField
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Add Label'),
-                'help' => Craft::t('formie', 'The label for the button that adds another instance.'),
+                'instructions' => Craft::t('formie', 'The label for the button that adds another instance.'),
                 'name' => 'addLabel',
                 'validation' => 'required',
                 'required' => true,
@@ -132,24 +190,24 @@ class Repeater extends MultiNestedField
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Minimum instances'),
-                'help' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),
+                'instructions' => Craft::t('formie', 'The minimum required number of instances of this repeater‘s fields that must be completed.'),
                 'name' => 'minRows',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Maximum instances'),
-                'help' => Craft::t('formie', 'The maximum required number of instances of this repeater‘s fields that must be completed.'),
+                'instructions' => Craft::t('formie', 'The maximum required number of instances of this repeater‘s fields that must be completed.'),
                 'name' => 'maxRows',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -159,7 +217,7 @@ class Repeater extends MultiNestedField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -168,7 +226,7 @@ class Repeater extends MultiNestedField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -191,9 +249,10 @@ class Repeater extends MultiNestedField
 
         $rowTypeName = $typeName . 'Row';
         $repeaterFields = RowInterface::getFieldDefinitions();
+        $fieldsService = Formie::$plugin->getFields();
 
         foreach ($this->getFields() as $field) {
-            $repeaterFields[$field->handle] = $field->getContentGqlType();
+            $repeaterFields[$field->handle] = $fieldsService->getFieldContentGqlType($field);
         }
 
         $rowType = GqlEntityRegistry::createEntity($rowTypeName, new RowType([
@@ -227,52 +286,90 @@ class Repeater extends MultiNestedField
         ]));
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-
+        $form = $context->form;
         $id = $this->getHtmlId($form);
+        $templateId = "{$id}-template";
+        $labelPosition = $context->get('labelPosition');
 
-        if ($key === 'fieldContainer') {
-            return new HtmlTag('fieldset', [
-                'class' => 'fui-fieldset',
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ]);
+        if ($key === 'fieldLayout') {
+            return SlotTag::make('fieldset')
+                ->core([
+                    'data-formie-field-layout' => true,
+                    'data-formie-repeater-field-layout' => true,
+                    'data-formie-template-id' => $templateId,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-layout',
+                        'formie-repeater-field-layout',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldLabel') {
-            $labelPosition = $context['labelPosition'] ?? null;
-
-            return new HtmlTag('legend', [
-                'class' => [
-                    'fui-legend',
-                ],
-                'data' => [
-                    'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
-                ],
-            ]);
+            return SlotTag::make('legend')
+                ->core([
+                    'data-formie-label' => true,
+                    'data-formie-field-label' => true,
+                    'data-formie-repeater-field-label' => true,
+                    'data-formie-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-label',
+                        'formie-field-label',
+                        'formie-repeater-field-label',
+                        $labelPosition instanceof HiddenPosition ? 'formie-sr-only' : false,
+                    ],
+                ]);
         }
 
         if ($key === 'nestedFieldContainer') {
-            return new HtmlTag('div', [
-                'class' => 'fui-repeater-rows',
-                'data-repeater-rows' => true,
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-nested-field-container' => true,
+                    'data-formie-repeater-container' => true,
+                    'data-formie-template-id' => $templateId,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-nested-field-container',
+                        'formie-repeater-container',
+                    ],
+                ]);
         }
 
         if ($key === 'nestedField') {
-            return new HtmlTag('div', [
-                'class' => 'fui-repeater-row',
-                'data-repeater-row' => '__ROW__',
-                'data-repeater-row-id' => '__ROW__',
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-nested-field' => true,
+                    'data-formie-repeater-item' => '__ROW__',
+                    'data-formie-repeater-item-id' => '__ROW__',
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-nested-field',
+                        'formie-repeater-item',
+                    ],
+                ]);
         }
 
         if ($key === 'nestedFieldWrapper') {
-            return new HtmlTag('fieldset', [
-                'class' => 'fui-fieldset',
-            ]);
+            return SlotTag::make('fieldset')
+                ->core([
+                    'data-formie-repeater-item-wrapper' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-repeater-item-wrapper',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldAddButton') {
@@ -283,39 +380,47 @@ class Repeater extends MultiNestedField
                 $isStatic = true;
             }
 
-            return new HtmlTag('button', [
-                'class' => [
-                    'fui-btn fui-repeater-add-btn',
-                    $isStatic ? 'fui-disabled' : false,
-                ],
-                'type' => 'button',
-                'text' => Craft::t('formie', $this->addLabel),
-                'disabled' => $isStatic,
-                'data' => [
-                    'min-rows' => $this->minRows,
-                    'max-rows' => $this->maxRows,
-                    'add-repeater-row' => $this->handle,
-                ],
-            ]);
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'text' => Craft::t('formie', $this->addLabel),
+                    'disabled' => $isStatic,
+                    'data-formie-add-button' => true,
+                    'data-formie-repeater-add' => $this->handle,
+                    'data-formie-template-id' => $templateId,
+                    'data-formie-min-rows' => $this->minRows,
+                    'data-formie-max-rows' => $this->maxRows,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-repeater-add-button',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldRemoveButton') {
-            return new HtmlTag('button', [
-                'class' => 'fui-btn fui-repeater-remove-btn',
-                'type' => 'button',
-                'text' => Craft::t('formie', 'Remove'),
-                'data' => [
-                    'remove-repeater-row' => $this->handle,
-                ],
-            ]);
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'text' => Craft::t('formie', 'Remove'),
+                    'aria-label' => Craft::t('formie', 'Remove row'),
+                    'title' => Craft::t('formie', 'Remove row'),
+                    'data-formie-remove-button' => true,
+                    'data-formie-icon' => 'close',
+                    'data-formie-repeater-remove' => $this->handle,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-button-icon',
+                        'formie-repeater-remove-button',
+                    ],
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -325,7 +430,7 @@ class Repeater extends MultiNestedField
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         $view = Craft::$app->getView();
 
@@ -355,5 +460,42 @@ class Repeater extends MultiNestedField
             Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields()),
             Formie::$plugin->getSubmissions()->getFakeFieldContent($this->getFields()),
         ];
+    }
+
+    protected function getNestedLayoutBuilderDisallowedFieldTypes(): array
+    {
+        return [
+            self::class,
+            Group::class,
+        ];
+    }
+
+    protected function defineAllowPrimaryReference(): bool
+    {
+        return false;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'minRows' => $this->minRows,
+            'maxRows' => $this->maxRows,
+            'addLabel' => $this->addLabel,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        $modules[] = new ClientModule([
+            'id' => 'repeater',
+        ]);
+
+        return $modules;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return RepeaterFieldValue::class;
     }
 }

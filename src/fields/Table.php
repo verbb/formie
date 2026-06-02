@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\fields;
 
+use verbb\formie\Formie;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
@@ -9,14 +10,19 @@ use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\fields\data\ColorData;
+use verbb\formie\fields\values\ColorFieldValue;
+use verbb\formie\fields\values\TableFieldValue;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\TableRowType;
 use verbb\formie\gql\types\generators\KeyValueGenerator;
 use verbb\formie\gql\types\generators\TableRowTypeGenerator;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\Element;
@@ -68,6 +74,47 @@ class Table extends Field
         return Schema::TYPE_JSON;
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        $typeName = Formie::$plugin->getFields()->getFieldConfigGqlTypeName($config, 'TableRow');
+
+        $type = GqlEntityRegistry::getOrCreate($typeName, function() use ($config, $typeName) {
+            $contentFields = TableRowType::prepareRowFieldDefinitionFromColumns(self::_getColumnsFromConfig($config));
+
+            return new TableRowType([
+                'name' => $typeName,
+                'fields' => function() use ($contentFields, $typeName) {
+                    return Craft::$app->getGql()->prepareFieldDefinitions($contentFields, $typeName);
+                },
+            ]);
+        });
+
+        return Type::listOf($type);
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        $typeName = Formie::$plugin->getFields()->getFieldConfigGqlTypeName($config, 'TableRowInput');
+
+        return Type::listOf(GqlEntityRegistry::getOrCreate($typeName, fn() => new InputObjectType([
+            'name' => $typeName,
+            'fields' => fn() => TableRowType::prepareRowFieldDefinitionFromColumns(self::_getColumnsFromConfig($config)),
+        ])));
+    }
+
+    private static function _getColumnsFromConfig(array $config): array
+    {
+        $settings = Formie::$plugin->getFields()->getFieldConfigSettings($config);
+        $columns = $settings['columns'] ?? [];
+
+        return is_array($columns) ? $columns : [];
+    }
+
 
     // Properties
     // =========================================================================
@@ -94,13 +141,7 @@ class Table extends Field
 
     public function __construct(array $config = [])
     {
-        // TODO: fixes an issue with dropdown options and FormKit nested form.
-        // Can be removed once we implement proper FormKit repeater.
-        if (array_key_exists('tableDropdownOptions', $config)) {
-            unset($config['tableDropdownOptions']);
-        }
-
-        // Setup defaults for some values which can't be set in the property definition
+        // Setuo defaults for some values which can't in in the property definition
         $config['addRowLabel'] = $config['addRowLabel'] ?? Craft::t('formie', 'Add a row');
 
         // Config normalization
@@ -154,6 +195,11 @@ class Table extends Field
         parent::__construct($config);
     }
 
+    public function fieldKind(): string
+    {
+        return self::KIND_TABLE;
+    }
+
     public function init(): void
     {
         parent::init();
@@ -162,29 +208,6 @@ class Table extends Field
             $this->minRows = null;
             $this->maxRows = null;
         }
-    }
-
-    public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
-    {
-        if (!is_array($value) || empty($this->columns)) {
-            return true;
-        }
-
-        foreach ($value as $row) {
-            foreach ($this->columns as $colId => $col) {
-                if (($col['type'] ?? null) === 'heading') {
-                    continue;
-                }
-
-                $cellValue = $row[$colId] ?? null;
-
-                if (!$this->_isCellEmpty($cellValue)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     public function validateColumns(): void
@@ -225,47 +248,22 @@ class Table extends Field
         return (bool)$this->maxRows;
     }
 
-    public function getPreviewInputHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/table/preview', [
-            'field' => $this,
-        ]);
-    }
-
-    public function getFrontEndJsModules(): ?array
+    public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/table.js'),
-            'module' => 'FormieTable',
-            'settings' => [
-                'static' => $this->static,
-            ],
+            SchemaHelper::previewTable(),
         ];
-    }
-
-    public function getValidationConfigString(array $context = []): string
-    {
-        $validators = array_filter(explode('|', parent::getValidationConfigString($context)));
-
-        foreach ($validators as &$validator) {
-            if ($validator === 'required') {
-                $validator = 'tableRequired';
-            }
-        }
-
-        unset($validator);
-
-        return implode('|', $validators);
     }
 
     public function getFormBuilderSettings(): array
     {
         $settings = parent::getFormBuilderSettings();
 
-        // Translate the columns options into an array of objects, rather than just a collection of objects
-        // Vue can't really deal with that, but let's keep it the same as Craft's Table field
+        // The CP builder edits table columns as an ordered row array with explicit IDs,
+        // while Craft stores them as an associative config object keyed by column ID.
 
-        // But - DON'T do this if there are field errors! We want to keep it in a Vue-format to continue editing before a save.
+        // When validation has already reshaped some values, preserve the editable row shape
+        // so the builder can continue editing the in-memory data cleanly.
         if (!$this->hasErrors()) {
             foreach ($settings['columns'] as $key => &$column) {
                 $column['id'] = $key;
@@ -275,28 +273,13 @@ class Table extends Field
 
             $settings['columns'] = array_values($settings['columns']);
         } else {
-            // If there are errors though, Craft's table field validation may very likely return an array
-            // for some attributes. We don't want that, so remove them back to single values.
+            // Validation can sometimes hand values back in an array-like wrapper shape.
+            // Collapse those back to scalars so the builder row editor receives clean cell values.
             foreach ($settings['columns'] as $colId => $column) {
                 foreach ($column as $key => $col) {
                     if (is_array($col)) {
                         $settings['columns'][$colId][$key] = $col['value'] ?? '';
                     }
-                }
-            }
-        }
-
-        // Normalize defaults, which might cause reactivity issues
-        // https://github.com/verbb/formie/issues/2584
-        if (isset($settings['defaults']) && is_array($settings['defaults'])) {
-            foreach ($settings['defaults'] as $key => $row) {
-                unset($settings['defaults'][$key]['id']);
-
-                // If the default row is empty, ensure we cast it as an object for proper
-                // reactivity with Vue. Otherwise empty rows are cast to arrays.
-                // i.e. { "defaults": [[], [], []] } becomes { "defaults": [{}, {}, {}] }
-                if (!$row) {
-                    $settings['defaults'][$key] = new \stdClass();
                 }
             }
         }
@@ -307,14 +290,14 @@ class Table extends Field
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
-        $rules[] = ['validateTableData'];
+        $rules[] = [$this->handle, 'validateTableData'];
 
         return $rules;
     }
 
     public function validateTableData(ElementInterface $element): void
     {
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
 
         if (!empty($value) && !empty($this->columns)) {
             foreach ($value as &$row) {
@@ -325,7 +308,7 @@ class Table extends Field
                     }
 
                     if (!$this->_validateCellValue($col['type'], $row[$colId], $error)) {
-                        $element->addError($this->fieldKey, $error);
+                        $element->addError($this->valueKey(), $error);
                     }
                 }
             }
@@ -359,13 +342,17 @@ class Table extends Field
                     continue;
                 }
 
-                $value = $row[$colId];
+                // Accept both persisted column IDs and client handle keys so
+                // edited builder payloads and normalized row values round-trip
+                // through the same serializer.
+                $value = $row[$colId] ?? (($column['handle'] && array_key_exists($column['handle'], $row)) ? $row[$column['handle']] : null);
+                $value = $this->_serializeCellValue($column['type'], $value);
 
                 if (is_string($value) && !$supportsMb4) {
                     $value = StringHelper::emojiToShortcodes(StringHelper::escapeShortcodes($value));
                 }
 
-                $serializedRow[$colId] = parent::serializeValue($value ?? null, null);
+                $serializedRow[$colId] = parent::serializeValue($value ?? null, $element);
             }
 
             $serialized[] = $serializedRow;
@@ -413,13 +400,53 @@ class Table extends Field
         ]);
     }
 
+    public function populateValue(mixed $value, ?Submission $submission): void
+    {
+        // In case tables have the older format before `col*` indexes
+        $columns = [];
+
+        foreach ($this->columns as $key => $col) {
+            $columns[$col['handle']] = $key;
+        }
+
+        // Allow population via either `col1` or the handle of the column
+        if (is_array($value)) {
+            foreach ($value as $rowKey => $row) {
+                foreach ($row as $colKey => $colValue) {
+                    if (!str_starts_with($colKey, 'col')) {
+                        $col = $columns[$colKey] ?? null;
+
+                        if ($col) {
+                            $value[$rowKey][$col] = $colValue;
+                            $value[$rowKey]['col' . $col] = $colValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        parent::populateValue($value, $submission);
+    }
+
+    public function getInitialValue(?ElementInterface $element = null): mixed
+    {
+        $value = parent::getInitialValue($element);
+
+        if ($value instanceof TableFieldValue) {
+            return $value;
+        }
+
+        return new TableFieldValue($value, $this->columns);
+    }
+
     public function beforeSave(bool $isNew): bool
     {
         $settings = $this->getSettings();
 
         $columns = [];
 
-        // We've got a regular array from Vue, but we need to translate that back to an object.
+        // The CP builder posts columns as an ordered row array, but persistence keeps them
+        // keyed by column ID for stable storage and lookups.
         foreach ($settings['columns'] as $colId => $column) {
             $id = ArrayHelper::remove($column, 'id', $colId);
 
@@ -431,59 +458,71 @@ class Table extends Field
         return parent::beforeSave($isNew);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::tableField([
+                '$field' => 'formieTableColumns',
                 'label' => Craft::t('formie', 'Table Columns'),
-                'help' => Craft::t('formie', 'Define the columns your table should have.'),
+                'instructions' => Craft::t('formie', 'Define the columns your table should have.'),
                 'name' => 'columns',
-                'generateHandle' => 'heading:handle',
-                'useColumnIds' => true,
                 'newRowDefaults' => [
-                    'heading' => '',
-                    'handle' => '',
-                    'width' => '',
                     'type' => 'singleline',
                 ],
                 'columns' => [
                     [
-                        'type' => 'label',
+                        'type' => 'text',
                         'name' => 'heading',
                         'label' => Craft::t('formie', 'Column Heading'),
-                        'class' => 'singleline-cell textual',
                     ],
                     [
-                        'type' => 'value',
+                        'type' => 'handle',
                         'name' => 'handle',
                         'label' => Craft::t('formie', 'Handle'),
-                        'class' => 'code singleline-cell textual',
+                        'variant' => 'code',
+                        'source' => 'heading',
                     ],
                     [
-                        'type' => 'width',
+                        'type' => 'text',
+                        'name' => 'width',
                         'label' => Craft::t('formie', 'Width'),
-                        'class' => 'code singleline-cell textual',
-                        'width' => 50,
+                        'thin' => true,
                     ],
                     [
-                        'type' => 'type',
+                        'type' => 'select',
+                        'name' => 'type',
                         'label' => Craft::t('formie', 'Type'),
-                        'class' => 'thin select-cell',
+                        'thin' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Checkbox'), 'value' => 'checkbox'],
+                            ['label' => Craft::t('formie', 'Color'), 'value' => 'color'],
+                            ['label' => Craft::t('formie', 'Date'), 'value' => 'date'],
+                            ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'select'],
+                            ['label' => Craft::t('formie', 'Email'), 'value' => 'email'],
+                            ['label' => Craft::t('formie', 'Heading'), 'value' => 'heading'],
+                            ['label' => Craft::t('formie', 'Multi-line Text'), 'value' => 'multiline'],
+                            ['label' => Craft::t('formie', 'Number'), 'value' => 'number'],
+                            ['label' => Craft::t('formie', 'Time'), 'value' => 'time'],
+                            ['label' => Craft::t('formie', 'Single-line Text'), 'value' => 'singleline'],
+                            ['label' => Craft::t('formie', 'URL'), 'value' => 'url'],
+                        ],
                     ],
                 ],
             ]),
             SchemaHelper::tableField([
+                '$field' => 'formieTableDefaults',
                 'label' => Craft::t('formie', 'Default Values'),
-                'help' => Craft::t('formie', 'Define the default values for the field.'),
+                'instructions' => Craft::t('formie', 'Define the default values for the field.'),
                 'name' => 'defaults',
-                'validation' => '',
-                'useColumnIds' => true,
-                'columns' => 'settings.columns',
+                'columnsSource' => 'columns',
+                'columns' => [],
+                // 'useColumnIds' => true,
+                // 'columns' => 'settings.columns',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Add Row Label'),
-                'help' => Craft::t('formie', 'The label for the button that adds another row.'),
+                'instructions' => Craft::t('formie', 'The label for the button that adds another row.'),
                 'name' => 'addRowLabel',
                 'validation' => 'required',
                 'required' => true,
@@ -491,42 +530,42 @@ class Table extends Field
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Static'),
-                'help' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),
+                'instructions' => Craft::t('formie', 'Whether this field should disallow adding more rows, showing only the default rows.'),
                 'name' => 'static',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Minimum instances'),
-                'help' => Craft::t('formie', 'The minimum required number of rows in this table that must be completed.'),
+                'instructions' => Craft::t('formie', 'The minimum required number of rows in this table that must be completed.'),
                 'name' => 'minRows',
-                'if' => '$get(static).value != true',
+                'if' => 'static != true',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Maximum instances'),
-                'help' => Craft::t('formie', 'The maximum required number of rows in this table that must be completed.'),
+                'instructions' => Craft::t('formie', 'The maximum required number of rows in this table that must be completed.'),
                 'name' => 'maxRows',
-                'if' => '$get(static).value != true',
+                'if' => 'static != true',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -536,7 +575,7 @@ class Table extends Field
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -545,7 +584,7 @@ class Table extends Field
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -553,76 +592,176 @@ class Table extends Field
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-
+        $form = $context->form;
         $id = $this->getHtmlId($form);
+        $templateId = "{$id}-template";
 
-        if ($key === 'fieldContainer') {
-            return new HtmlTag('fieldset', [
-                'class' => 'fui-fieldset',
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ]);
+        if ($key === 'fieldLayout') {
+            return SlotTag::make('fieldset')
+                ->core([
+                    'data-formie-field-layout' => true,
+                    'data-formie-table-field-layout' => true,
+                    'data-formie-template-id' => $templateId,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-layout',
+                        'formie-table-field-layout',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldLabel') {
-            $labelPosition = $context['labelPosition'] ?? null;
+            $labelPosition = $context->get('labelPosition');
 
-            return new HtmlTag('legend', [
-                'class' => [
-                    'fui-legend',
-                ],
-                'data' => [
-                    'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
-                ],
-            ]);
+            return SlotTag::make('legend')
+                ->core([
+                    'data-formie-label' => true,
+                    'data-formie-field-label' => true,
+                    'data-formie-table-field-label' => true,
+                    'data-formie-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-label',
+                        'formie-field-label',
+                        'formie-table-field-label',
+                        $labelPosition instanceof HiddenPosition ? 'formie-sr-only' : false,
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldTableWrapper') {
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-table-wrapper' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-wrapper',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTable') {
-            return new HtmlTag('table', [
-                'class' => 'fui-table',
-            ]);
+            return SlotTag::make('table')
+                ->core([
+                    'data-formie-table' => true,
+                    'data-formie-template-id' => $templateId,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableHeader') {
-            return new HtmlTag('thead');
+            return SlotTag::make('thead')
+                ->core([
+                    'data-formie-table-header' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-header',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableHeaderRow') {
-            return new HtmlTag('tr');
+            return SlotTag::make('tr')
+                ->core([
+                    'data-formie-table-header-row' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-header-row',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableHeaderColumn') {
-            $col = $context['col'] ?? [];
+            $col = $context->get('col', []);
             $width = $col['width'] ?? false;
+            $type = $col['type'] ?? false;
 
-            return new HtmlTag('th', [
-                'data-handle' => $col['handle'],
-                'data-type' => $col['type'],
-                'width' => $width,
-            ]);
+            return SlotTag::make('th')
+                ->core([
+                    'data-formie-table-header-column' => true,
+                    'data-formie-table-column-handle' => $col['handle'] ?? false,
+                    'data-formie-table-column-type' => $type,
+                    'width' => $width,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-header-column',
+                        $type ? "formie-table-header-column-{$type}" : false,
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableBody') {
-            return new HtmlTag('tbody', [
-                'class' => 'fui-table-rows',
-            ]);
+            return SlotTag::make('tbody')
+                ->core([
+                    'data-formie-table-body' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-body',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableBodyRow') {
-            return new HtmlTag('tr', [
-                'class' => 'fui-table-row',
-                'data-table-row' => true,
-            ]);
+            return SlotTag::make('tr')
+                ->core([
+                    'data-formie-table-row' => true,
+                    'data-formie-table-row-id' => $context->get('index', null),
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-row',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldTableBodyColumn') {
-            return new HtmlTag('td', [
-                'data-col' => $context['colId'] ?? false,
-                'data-col-handle' => $context['col']['handle'] ?? false,
-            ]);
+            $col = $context->get('col', []);
+            $type = $col['type'] ?? false;
+
+            return SlotTag::make('td')
+                ->core([
+                    'data-formie-table-body-column' => true,
+                    'data-formie-table-column-id' => $context->get('colId', false),
+                    'data-formie-table-column-handle' => $col['handle'] ?? false,
+                    'data-formie-table-column-type' => $type,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-body-column',
+                        $type ? "formie-table-body-column-{$type}" : false,
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldTableRemoveColumn') {
+            return SlotTag::make('td')
+                ->core([
+                    'data-formie-table-remove-column' => true,
+                    'data-col-remove' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-table-remove-column',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldAddButton') {
@@ -637,143 +776,177 @@ class Table extends Field
                 return null;
             }
 
-            return new HtmlTag('button', [
-                'class' => [
-                    'fui-btn fui-table-add-btn',
-                    $isStatic ? 'fui-disabled' : false,
-                ],
-                'type' => 'button',
-                'text' => Craft::t('formie', $this->addRowLabel),
-                'disabled' => $isStatic,
-                'data' => [
-                    'min-rows' => $this->minRows,
-                    'max-rows' => $this->maxRows,
-                    'add-table-row' => $this->handle,
-                ],
-            ]);
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'text' => Craft::t('formie', $this->addRowLabel),
+                    'disabled' => $isStatic,
+                    'data-formie-add-button' => true,
+                    'data-formie-table-add' => $this->handle,
+                    'data-formie-template-id' => $templateId,
+                    'data-formie-min-rows' => $this->minRows,
+                    'data-formie-max-rows' => $this->maxRows,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-table-add-button',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldRemoveButton') {
-            return new HtmlTag('button', [
-                'class' => 'fui-btn fui-table-remove-btn',
-                'type' => 'button',
-                'text' => Craft::t('formie', 'Remove'),
-                'data' => [
-                    'remove-table-row' => $this->handle,
-                ],
-            ]);
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'text' => Craft::t('formie', 'Remove'),
+                    'aria-label' => Craft::t('formie', 'Remove row'),
+                    'title' => Craft::t('formie', 'Remove row'),
+                    'data-formie-remove-button' => true,
+                    'data-formie-icon' => 'close',
+                    'data-formie-table-remove' => $this->handle,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-button-icon',
+                        'formie-table-remove-button',
+                    ],
+                ]);
         }
 
         if ($key === 'tableCheckboxInput') {
-            return new HtmlTag('input', [
-                'type' => 'checkbox',
-                'class' => 'fui-input fui-checkbox-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'checkbox',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'checkbox',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('checkbox'),
+                ]);
         }
 
         if ($key === 'tableColorInput') {
-            return new HtmlTag('input', [
-                'type' => 'color',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'color',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'color',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('color'),
+                ]);
         }
 
         if ($key === 'tableDateInput') {
-            return new HtmlTag('input', [
-                'type' => 'date',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'date',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'date',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('date'),
+                ]);
         }
 
         if ($key === 'tableEmailInput') {
-            return new HtmlTag('input', [
-                'type' => 'email',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'email',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'email',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('email'),
+                ]);
         }
 
         if ($key === 'tableHeadingInput') {
-            return new HtmlTag('input', [
-                'type' => 'hidden',
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'hidden',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'heading',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('heading'),
+                ]);
         }
 
         if ($key === 'tableMultilineInput') {
-            return new HtmlTag('textarea', [
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('textarea')
+                ->core([
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'multiline',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('multiline'),
+                ]);
         }
 
         if ($key === 'tableNumberInput') {
-            return new HtmlTag('input', [
-                'type' => 'number',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'number',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'number',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('number'),
+                ]);
         }
 
         if ($key === 'tableSelectInput') {
-            return new HtmlTag('select', [
-                'class' => 'fui-select',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('select')
+                ->core([
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'select',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('select'),
+                ]);
         }
 
         if ($key === 'tableSinglelineInput') {
-            return new HtmlTag('input', [
-                'type' => 'text',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'text',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'singleline',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('singleline'),
+                ]);
         }
 
         if ($key === 'tableTimeInput') {
-            return new HtmlTag('input', [
-                'type' => 'time',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'time',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'time',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('time'),
+                ]);
         }
 
         if ($key === 'tableUrlInput') {
-            return new HtmlTag('input', [
-                'type' => 'url',
-                'class' => 'fui-input',
-                'data' => [
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ]);
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'url',
+                    'data-formie-table-input' => true,
+                    'data-formie-table-input-type' => 'url',
+                ])
+                ->theme([
+                    'class' => $this->_getTableInputClasses('url'),
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -786,7 +959,7 @@ class Table extends Field
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         Craft::$app->getView()->registerAssetBundle(TimepickerAsset::class);
 
@@ -838,7 +1011,7 @@ class Table extends Field
         }
 
         return Craft::$app->getView()->renderTemplate('_includes/forms/editableTable', [
-            'id' => $this->getInputId(),
+            'id' => Html::id($this->handle),
             'name' => $this->handle,
             'cols' => $this->columns,
             'rows' => $value,
@@ -895,7 +1068,7 @@ class Table extends Field
         return $values;
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
     {
         $headValues = '';
         $bodyValues = '';
@@ -929,32 +1102,38 @@ class Table extends Field
         return Template::raw(Html::tag('table', $thead . $tbody));
     }
 
-    public function populateValue(mixed $value, ?Submission $submission): void
+    protected function defineClientInput(): array
     {
-        // In case tables have the older format before `col*` indexes
-        $columns = [];
+        return array_merge(parent::defineClientInput(), [
+            'staticRows' => $this->staticRows,
+            'static' => $this->static,
+            'addRowLabel' => $this->addRowLabel,
+            'minRows' => $this->minRows,
+            'maxRows' => $this->maxRows,
+            'columns' => array_values(array_map(static function(string $id, array $column) {
+                return array_merge(['id' => $id], $column);
+            }, array_keys($this->columns), $this->columns)),
+        ]);
+    }
 
-        foreach ($this->columns as $key => $col) {
-            $columns[$col['handle']] = $key;
-        }
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        
+        $modules[] = new ClientModule([
+            'id' => 'table',
+            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+            'config' => [
+                'static' => $this->static,
+            ],
+        ]);
 
-        // Allow population via either `col1` or the handle of the column
-        if (is_array($value)) {
-            foreach ($value as $rowKey => $row) {
-                foreach ($row as $colKey => $colValue) {
-                    if (!str_starts_with($colKey, 'col')) {
-                        $col = $columns[$colKey] ?? null;
+        return $modules;
+    }
 
-                        if ($col) {
-                            $value[$rowKey][$col] = $colValue;
-                            $value[$rowKey]['col' . $col] = $colValue;
-                        }
-                    }
-                }
-            }
-        }
-
-        $this->defaultValue = $value;
+    protected function defineValueClass(): ?string
+    {
+        return TableFieldValue::class;
     }
 
 
@@ -988,7 +1167,9 @@ class Table extends Field
             $value = [];
         }
 
-        // Normalize the values and make them accessible from both the col IDs and the handles
+        // Keep each cell addressable by both the internal column ID and the
+        // authored handle. Builder/editor paths prefer handles, while persisted
+        // data and schema definitions still key by column ID.
         $value = array_values($value);
 
         if ($this->staticRows) {
@@ -1028,8 +1209,8 @@ class Table extends Field
             }
         }
 
-        // Because we have to have our row template as HTML due to Vue3 support (not in a `script` tag)
-        // it unfortunately gets submitted as content for the field. We need to filter out - its invalid.
+        // The editable table UI carries a placeholder/template row keyed by `__ROW__`.
+        // If that leaks into the posted payload, drop it before normalizing persisted rows.
         if (is_array($value)) {
             foreach ($value as $k => $v) {
                 if ($k === '__ROW__') {
@@ -1049,8 +1230,10 @@ class Table extends Field
 
         switch ($type) {
             case 'color':
-                /** @var ColorData $value */
-                $value = $value->getHex();
+                if ($value instanceof ColorFieldValue) {
+                    $value = $value->getHex();
+                }
+
                 $validator = new ColorValidator();
                 break;
             case 'url':
@@ -1068,41 +1251,29 @@ class Table extends Field
         return $validator->validate($value, $error);
     }
 
-    private function _isCellEmpty(mixed $value): bool
-    {
-        if (is_string($value)) {
-            return trim($value) === '';
-        }
-
-        if ($value instanceof ColorData) {
-            return $value->getHex() === '';
-        }
-
-        if ($value instanceof \DateTimeInterface) {
-            return false;
-        }
-
-        if (is_array($value)) {
-            return $value === [];
-        }
-
-        return $value === null || $value === false;
-    }
-
     private function _normalizeCellValueAsString(string $type, mixed $value): mixed
     {
         return match ($type) {
-            'color' => $value->getHex(),
+            'color' => $value instanceof ColorFieldValue ? $value->getHex() : ($value ?? ''),
             'date', 'time' => null,
             default => $value,
         };
+    }
+
+    private function _serializeCellValue(string $type, mixed $value): mixed
+    {
+        if ($type === 'color' && $value instanceof ColorFieldValue) {
+            return $value->getHex();
+        }
+
+        return $value;
     }
 
     private function _normalizeCellValue(string $type, mixed $value, bool $fromRequest): mixed
     {
         switch ($type) {
             case 'color':
-                if ($value instanceof ColorData) {
+                if ($value instanceof ColorFieldValue) {
                     return $value;
                 }
 
@@ -1120,7 +1291,7 @@ class Table extends Field
                     $value = '#' . $value[1] . $value[1] . $value[2] . $value[2] . $value[3] . $value[3];
                 }
 
-                return new ColorData($value);
+                return new ColorFieldValue($value);
 
             case 'multiline':
             case 'singleline':
@@ -1138,5 +1309,32 @@ class Table extends Field
         }
 
         return $value;
+    }
+
+    private function _getTableInputClasses(string $type): array
+    {
+        $classes = [
+            'formie-table-input',
+            "formie-table-{$type}-input",
+        ];
+
+        if ($type === 'checkbox') {
+            $classes[] = 'formie-input';
+            $classes[] = 'formie-checkbox-input';
+        }
+
+        if (in_array($type, ['singleline', 'email', 'number', 'color', 'date', 'time', 'url'], true)) {
+            $classes[] = 'formie-input';
+        }
+
+        if ($type === 'multiline') {
+            $classes[] = 'formie-textarea';
+        }
+
+        if ($type === 'select') {
+            $classes[] = 'formie-select';
+        }
+
+        return $classes;
     }
 }

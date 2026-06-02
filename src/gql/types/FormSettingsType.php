@@ -96,6 +96,11 @@ class FormSettingsType extends ObjectType
                     'type' => Type::boolean(),
                     'description' => 'Whether to hide the form’s success message.',
                 ],
+                'automaticSubmissionState' => [
+                    'name' => 'automaticSubmissionState',
+                    'type' => Type::boolean(),
+                    'description' => 'Whether to automatically restore an in-progress submission when the visitor returns to the form.',
+                ],
                 'submitActionMessageHtml' => [
                     'name' => 'submitActionMessageHtml',
                     'type' => Type::string(),

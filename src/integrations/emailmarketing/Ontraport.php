@@ -32,7 +32,6 @@ class Ontraport extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $appId = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -181,6 +180,15 @@ class Ontraport extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'appId'], 'required'];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
@@ -192,16 +200,4 @@ class Ontraport extends EmailMarketing
         ]);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'appId'], 'required'];
-
-        return $rules;
-    }
 }

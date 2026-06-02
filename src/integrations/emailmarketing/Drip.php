@@ -40,7 +40,6 @@ class Drip extends EmailMarketing implements OAuthProviderInterface
         return Craft::t('formie', 'Drip');
     }
 
-
     // Public Methods
     // =========================================================================
 

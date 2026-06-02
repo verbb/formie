@@ -3,6 +3,8 @@ namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
@@ -41,33 +43,12 @@ class Snaptcha extends Captcha
         return Craft::t('formie', 'Snaptcha is an invisible CAPTCHA that automatically validates forms and prevents spam bots from submitting to your Craft CMS site. Find out more via [Snaptcha Plugin](https://plugins.craftcms.com/snaptcha).');
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
             'class' => 'formie-snaptcha-captcha-placeholder',
             'data-snaptcha-captcha-placeholder' => true,
         ]);
-    }
-
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
-    {
-        $model = new SnaptchaModel();
-        $fieldName = SnaptchaPlugin::$plugin->settings->fieldName;
-        $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
-
-        $settings = [
-            'formId' => $form->getFormId(),
-            'sessionKey' => $fieldName,
-            'value' => $fieldValue,
-        ];
-
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/snaptcha.js');
-
-        return [
-            'src' => $src,
-            'module' => 'FormieSnaptchaCaptcha',
-            'settings' => $settings,
-        ];
     }
 
     public function getRefreshJsVariables(Form $form, FieldLayoutPage $page = null): array
@@ -77,10 +58,30 @@ class Snaptcha extends Captcha
         $fieldValue = SnaptchaPlugin::$plugin->snaptcha->getFieldValue($model) ?? '';
 
         return [
-            'formId' => $form->getFormId(),
+            'formId' => $form->getRenderId(),
             'sessionKey' => $fieldName,
             'value' => $fieldValue,
         ];
+    }
+
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    {
+        if (!$context->form) {
+            return null;
+        }
+
+        $refresh = $this->getRefreshJsVariables($context->form, $context->page);
+
+        return new ClientModule([
+            'id' => 'snaptcha',
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-snaptcha-captcha-placeholder]',
+                'sessionKey' => $refresh['sessionKey'] ?? null,
+                'value' => $refresh['value'] ?? null,
+                'formId' => $refresh['formId'] ?? null,
+            ],
+        ]);
     }
     
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array

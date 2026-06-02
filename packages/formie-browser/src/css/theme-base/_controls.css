@@ -1,0 +1,41 @@
+@layer formie-theme-base {
+    .formie-button {
+        appearance: none;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .formie-input,
+    .formie-textarea,
+    .formie-select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: var(--formie-control-padding-y) var(--formie-control-padding-x);
+        font-size: var(--formie-control-font-size);
+        line-height: var(--formie-line-height-tight);
+        min-height: var(--formie-control-height);
+    }
+
+    .formie-textarea {
+        min-height: var(--formie-textarea-min-height);
+        resize: vertical;
+    }
+
+    /* Prevent Mobile Safari auto-zoom on focus for input/select controls. */
+    @supports (-webkit-touch-callout: none) {
+
+        .formie-input,
+        .formie-select {
+            font-size: 16px;
+        }
+    }
+
+    .formie-checkbox-input,
+    .formie-radio-input {
+        width: var(--formie-font-size-base);
+        height: var(--formie-font-size-base);
+        margin: calc(var(--formie-space-1) * 0.8) 0 0;
+        padding: 0;
+        flex: 0 0 auto;
+    }
+}

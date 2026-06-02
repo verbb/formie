@@ -1,0 +1,15 @@
+{% formtag 'formMessagesBottom' %}
+    {% if submission is defined %}
+        {% if flashNotice and form.settings.submitActionMessagePosition == 'bottom-form' %}
+            {{ formieInclude('form/message-success') }}
+        {% endif %}
+
+        {% if flashError and form.settings.errorMessagePosition == 'bottom-form' %}
+            {{ formieInclude('form/message-error') }}
+        {% endif %}
+    {% endif %}
+
+    {% if errors and not flashError and form.settings.errorMessagePosition == 'bottom-form' %}
+        {{ formieInclude('form/errors') }}
+    {% endif %}
+{% endformtag %}

@@ -1,0 +1,37 @@
+@layer formie-theme {
+    .formie-loading {
+        position: relative;
+        pointer-events: none;
+        color: transparent !important;
+    }
+
+    .formie-loading::after {
+        position: absolute;
+        display: block;
+        height: var(--formie-loading-size);
+        width: var(--formie-loading-size);
+        margin-top: var(--formie-loading-margin-top);
+        margin-left: var(--formie-loading-margin-left);
+        border-width: var(--formie-loading-border-width);
+        border-style: solid;
+        border-radius: 9999px;
+        border-color: var(--formie-loading-color, var(--formie-color-primary));
+        animation: var(--formie-loading-animation);
+        border-right-color: transparent;
+        border-top-color: transparent;
+        content: "";
+        left: var(--formie-loading-left);
+        top: var(--formie-loading-top);
+        z-index: var(--formie-loading-z-index);
+    }
+
+    @keyframes loading {
+        0% {
+            transform: rotate(0)
+        }
+
+        100% {
+            transform: rotate(360deg)
+        }
+    }
+}

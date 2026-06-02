@@ -1,72 +1,248 @@
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { defineConfig, loadEnv } from 'vite';
 
 // Vite Plugins
-import VuePlugin from '@vitejs/plugin-vue';
-import EslintPlugin from 'vite-plugin-eslint';
+import ReactPlugin from '@vitejs/plugin-react';
+import TailwindPlugin from '@tailwindcss/vite';
+import TailwindShadowDOM from 'vite-plugin-tailwind-shadowdom';
 
-// Rollup Plugins
-// import AnalyzePlugin from 'rollup-plugin-analyzer';
+const cpBundleDirectories = {
+    'formie-widgets': 'widgets',
+    'formie-submissions': 'submissions',
+    'formie-sent-notifications': 'sent-notifications',
+    'formie-plugin-settings': 'plugin-settings',
+};
 
-// Custom (for the moment)
-import ImageminCopy from './src/vite-plugins/imagemin-copy';
-import StaticCopy from './src/vite-plugins/static-copy';
+const widgetVendorFiles = [
+    'Chart.bundle.min.js',
+    'moment-with-locales.min.js',
+    'chartjs-adapter-moment.min.js',
+    'deepmerge.min.js',
+];
 
-export default ({ command }) => ({
-    build: {
-        outDir: './dist',
-        emptyOutDir: true,
-        manifest: false,
-        sourcemap: true,
-        rollupOptions: {
-            input: {
-                'formie-cp': 'src/js/formie-cp.js',
-                'formie-widgets': 'src/js/formie-widgets.js',
-            },
-            output: {
-                entryFileNames: 'js/[name].js',
-                chunkFileNames: 'js/[name].js',
-                assetFileNames: 'css/[name].[ext]',
+const getCpBundleDirectory = (bundleName) => {
+    return cpBundleDirectories[bundleName] ?? null;
+};
+
+const copyWidgetsVendorFiles = () => ({
+    name: 'copy-widgets-vendor-files',
+    apply: 'build',
+    async closeBundle() {
+        const sourceDir = path.resolve('./src/widgets/js/vendor');
+        const destinationDir = path.resolve('./dist/widgets/js/vendor');
+
+        await fs.mkdir(destinationDir, { recursive: true });
+
+        await Promise.all(widgetVendorFiles.map((fileName) => {
+            return fs.copyFile(path.join(sourceDir, fileName), path.join(destinationDir, fileName));
+        }));
+    },
+});
+
+const parseServerPort = (value, fallback) => {
+    const port = Number.parseInt(value || '', 10);
+
+    return Number.isInteger(port) ? port : fallback;
+};
+
+const createManualChunkName = (id) => {
+    if (!id.includes('node_modules')) {
+        return null;
+    }
+
+    if (id.includes('/node_modules/@verbb/formie-browser/')) {
+        return 'formie-browser';
+    }
+
+    if (id.includes('/node_modules/@verbb/plugin-kit-react/')) {
+        return 'plugin-kit-react';
+    }
+
+    if (id.includes('/node_modules/@verbb/plugin-kit/')) {
+        return 'plugin-kit';
+    }
+
+    if (id.includes('/node_modules/@fortawesome/')) {
+        return 'fontawesome';
+    }
+
+    if (
+        id.includes('/node_modules/@dnd-kit/') ||
+        id.includes('/node_modules/@preact/signals-core/')
+    ) {
+        return 'dndkit';
+    }
+
+    if (
+        id.includes('/node_modules/react/') ||
+        id.includes('/node_modules/react-dom/')
+    ) {
+        return 'react-vendor';
+    }
+
+    if (
+        id.includes('/node_modules/lodash-es/') ||
+        id.includes('/node_modules/jexl/') ||
+        id.includes('/node_modules/flat/')
+    ) {
+        return 'data-utils';
+    }
+
+    return null;
+};
+
+export default defineConfig(async ({ command, mode }) => {
+    const env = loadEnv(mode, process.cwd(), '');
+    const devServerPublicUrl = (env.FORMIE_CP_DEV_SERVER_PUBLIC || 'http://localhost:3900/').replace(/\/$/, '');
+    const devServerHost = env.FORMIE_CP_DEV_SERVER_HOST || 'localhost';
+    const devServerPort = parseServerPort(env.FORMIE_CP_DEV_SERVER_PORT, 3900);
+    const previewServerPort = parseServerPort(env.FORMIE_CP_PREVIEW_PORT, 4390);
+    const hmrProtocol = env.FORMIE_CP_DEV_SERVER_HMR_PROTOCOL || 'ws';
+
+    let pluginKitReactDevAliases = [];
+    const usePluginKitReactSource = command === 'serve' && mode === 'development';
+
+    if (usePluginKitReactSource) {
+        try {
+            const { getPluginKitReactViteDevAliases } = await import('@verbb/plugin-kit-react/vite-dev');
+            pluginKitReactDevAliases = getPluginKitReactViteDevAliases();
+        } catch {
+            // Older installs without `./vite-dev` in the published package
+        }
+    }
+
+    const optimizeDepsInclude = [
+        'lodash-es',
+        'react',
+        'react-dom',
+        '@verbb/plugin-kit',
+        'jexl',
+    ];
+    if (!pluginKitReactDevAliases.length) {
+        optimizeDepsInclude.push('@verbb/plugin-kit-react');
+    }
+
+    return {
+        // CP production bundles are published under Craft's cpresources path, so
+        // build with a relative base to keep lazy chunks resolving beside the
+        // published entrypoint instead of hard-coding `/dist/...`.
+        base: '',
+
+        build: {
+            outDir: './dist',
+            emptyOutDir: true,
+            manifest: 'manifest.json',
+            sourcemap: false,
+            chunkSizeWarningLimit: 3500,
+            rollupOptions: {
+                input: {
+                    'formie-form-builder': path.resolve('./src/form-builder/formie-form-builder.js'),
+                    'formie-new-form': path.resolve('./src/new-form/formie-new-form.js'),
+                    'formie-integration-connect': path.resolve('./src/integration-connect/formie-integration-connect.js'),
+                    'formie-widgets': path.resolve('./src/widgets/js/formie-widgets.js'),
+                    'formie-submissions': path.resolve('./src/submissions/js/formie-submissions.js'),
+                    'formie-sent-notifications': path.resolve('./src/sent-notifications/js/formie-sent-notifications.js'),
+                    'formie-plugin-settings': path.resolve('./src/plugin-settings/js/formie-plugin-settings.js'),
+                },
+                output: {
+                    entryFileNames: (chunkInfo) => {
+                        const bundleDirectory = getCpBundleDirectory(chunkInfo.name);
+
+                        if (bundleDirectory) {
+                            return `${bundleDirectory}/js/[name].js`;
+                        }
+
+                        return 'assets/[name]-[hash].js';
+                    },
+                    chunkFileNames: 'assets/[name]-[hash].js',
+                    assetFileNames: (assetInfo) => {
+                        const assetFileName = assetInfo.names?.[0] ?? assetInfo.name ?? '';
+                        const assetBaseName = path.basename(assetFileName, path.extname(assetFileName));
+                        const bundleDirectory = getCpBundleDirectory(assetBaseName);
+
+                        if (bundleDirectory) {
+                            return `${bundleDirectory}/css/[name][extname]`;
+                        }
+
+                        return 'assets/[name]-[hash][extname]';
+                    },
+                    sourcemapExcludeSources: true,
+                    manualChunks: createManualChunkName,
+                },
             },
         },
-    },
 
-    plugins: [
-        // Custom plugins (for the moment)
-        ImageminCopy,
-        StaticCopy,
-
-        // Keep JS looking good with eslint
-        // https://github.com/gxmari007/vite-plugin-eslint
-        EslintPlugin({
-            cache: false,
-            fix: true,
-            include: './src/web/assets/**/*.{js,vue}',
-            exclude: './src/web/assets/field/src/js/vendor/**/*.{js,vue}',
-        }),
-
-        // Vue 3 support
-        // https://github.com/vitejs/vite/tree/main/packages/plugin-vue
-        VuePlugin(),
-
-        // Analyze bundle size
-        // https://github.com/doesdev/rollup-plugin-analyzer
-        // AnalyzePlugin({
-        //     summaryOnly: true,
-        //     limit: 15,
-        // }),
-    ],
-
-    resolve: {
-        alias: {
-            // Vue 3 doesn't support the template compiler out of the box
-            'vue': 'vue/dist/vue.esm-bundler.js',
+        server: {
+            origin: devServerPublicUrl,
+            host: devServerHost,
+            port: devServerPort,
+            strictPort: true,
+            cors: true,
+            hmr: {
+                // The CP can run behind local HTTPS proxies, so keep HMR explicit.
+                protocol: hmrProtocol,
+            },
         },
-    },
 
-    // Add in any components to optimise them early.
-    optimizeDeps: {
-        include: [
-            'vue',
+        preview: {
+            host: devServerHost,
+            port: previewServerPort,
+            strictPort: true,
+            cors: true,
+        },
+
+        plugins: [
+            // React support
+            // https://github.com/vitejs/vite-plugin-react
+            ReactPlugin(),
+
+            // Copy legacy vendor files expected by the widgets asset bundle.
+            copyWidgetsVendorFiles(),
+
+            // Tailwind CSS
+            // https://github.com/tailwindlabs/tailwindcss-vite
+            TailwindPlugin(),
+
+            // Fix Tailwind in ShadowRoot
+            // https://github.com/Alletkla/vite-plugin-tailwind-shadowdom
+            TailwindShadowDOM(),
         ],
-    },
+
+        resolve: {
+            alias: [
+                ...pluginKitReactDevAliases,
+                // Allow shortcuts in JS, CSS and Twig for ease of development.
+                { find: '@form-builder', replacement: path.resolve('./src/form-builder') },
+                { find: '@new-form', replacement: path.resolve('./src/new-form') },
+                { find: '@integration-connect', replacement: path.resolve('./src/integration-connect') },
+                { find: '@utils', replacement: path.resolve('./src/utils') },
+
+                // React 19 already provides useSyncExternalStore. Some linked package dependencies
+                // still import the legacy shim entry, which Vite resolves to CJS files during dev.
+                { find: /^use-sync-external-store\/shim(?:\/index\.js)?$/, replacement: path.resolve('./src/shims/use-sync-external-store-shim.js') },
+                { find: /^use-sync-external-store\/shim\/with-selector(?:\.js)?$/, replacement: path.resolve('./src/shims/use-sync-external-store-with-selector.js') },
+            ],
+            // Keep linked workspace packages on the consumer app's singleton copies for
+            // React/runtime-sensitive libraries during local development.
+            dedupe: [
+                'react',
+                'react-dom',
+                'zustand',
+                '@dnd-kit/abstract',
+                '@dnd-kit/dom',
+                '@dnd-kit/react',
+                '@fortawesome/fontawesome-svg-core',
+                '@fortawesome/pro-regular-svg-icons',
+                '@fortawesome/pro-solid-svg-icons',
+                '@fortawesome/react-fontawesome',
+            ],
+            preserveSymlinks: true,
+        },
+
+        optimizeDeps: {
+            include: optimizeDepsInclude,
+            ...(pluginKitReactDevAliases.length ? { exclude: ['@verbb/plugin-kit-react'] } : {}),
+        },
+    };
 });

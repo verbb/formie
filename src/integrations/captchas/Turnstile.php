@@ -2,9 +2,12 @@
 namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -25,6 +28,7 @@ class Turnstile extends Captcha
     public string $theme = 'auto';
     public string $size = 'normal';
     public string $appearance = 'always';
+    public string $execution = '';
 
 
     // Public Methods
@@ -47,38 +51,40 @@ class Turnstile extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/turnstile/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'fui-captcha formie-turnstile-placeholder',
+            'class' => 'formie-captcha formie-turnstile-placeholder',
             'data-turnstile-placeholder' => true,
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
-        $settings = [
-            'siteKey' => App::parseEnv($this->siteKey),
-            'formId' => $form->getFormId(),
-            'loadingMethod' => $this->scriptLoadingMethod,
-            'theme' => $this->theme,
-            'size' => $this->size,
-            'appearance' => $this->appearance,
-        ];
+        if (!$context->form) {
+            return null;
+        }
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/turnstile.js');
-
-        return [
-            'src' => $src,
-            'module' => 'FormieTurnstile',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'turnstile',
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-turnstile-placeholder]',
+                'siteKey' => App::parseEnv($this->siteKey),
+                'formId' => $context->form->getRenderId(),
+                'loadingMethod' => $this->scriptLoadingMethod,
+                'theme' => $this->theme,
+                'size' => $this->size,
+                'appearance' => $this->appearance,
+                'execution' => $this->_getExecutionSetting(),
+            ],
+        ]);
     }
 
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
-            'formId' => $form->getFormId(),
+            'formId' => $form->getRenderId(),
             'sessionKey' => 'siteKey',
             'value' => App::parseEnv($this->siteKey),
         ];
@@ -122,6 +128,32 @@ class Turnstile extends Captcha
             'theme' => $this->theme,
             'size' => $this->size,
             'appearance' => $this->appearance,
+            'execution' => $this->_getExecutionSetting(),
         ];
-    }    
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        if (!$this->hasValidSettings()) {
+            return [
+                $this->getMissingSettingsWarningSchema('Cloudflare Turnstile', 'turnstile'),
+            ];
+        }
+
+        return parent::defineFormSettingsSchema($form);
+    }
+
+    private function _getExecutionSetting(): string
+    {
+        if ($this->execution) {
+            return $this->execution;
+        }
+
+        return $this->appearance === 'execute' ? 'execute' : 'render';
+    }
+
 }

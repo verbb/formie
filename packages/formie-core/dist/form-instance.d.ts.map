@@ -1,0 +1,1 @@
+{"version":3,"file":"form-instance.d.ts","sourceRoot":"","sources":["../src/form-instance.ts"],"names":[],"mappings":"AAmBA,OAAO,KAAK,EAER,oBAAoB,EACpB,oBAAoB,EAIpB,iBAAiB,EACpB,MAAM,SAAS,CAAC;AAEjB,KAAK,iCAAiC,GAAG;IACrC,QAAQ,EAAE,oBAAoB,CAAC;IAC/B,SAAS,EAAE,iBAAiB,CAAC;CAChC,CAAC;AA+bF,wBAAgB,0BAA0B,CAAC,EAAE,QAAQ,EAAE,SAAS,EAAE,EAAE,iCAAiC,GAAG,oBAAoB,CA8R3H"}

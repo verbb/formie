@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -47,14 +49,13 @@ class ActiveCampaign extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
             // Get Contacts fields
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $fields = $this->_getPaginated('fields');
 
                 $settings['contact'] = array_merge([
@@ -109,7 +110,7 @@ class ActiveCampaign extends Crm
             }
 
             // Get Deals fields
-            if ($this->mapToDeal) {
+            if ($this->mapToDeal && $this->settingsContext->dataKey === 'deal') {
                 $fields = $this->_getPaginated('dealCustomFieldMeta');
 
                 $settings['deal'] = array_merge([
@@ -194,7 +195,7 @@ class ActiveCampaign extends Crm
             }
 
             // Get Account fields
-            if ($this->mapToAccount) {
+            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
                 $fields = $this->_getPaginated('accountCustomFieldMeta');
 
                 $settings['account'] = array_merge([
@@ -446,18 +447,6 @@ class ActiveCampaign extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
-            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -472,22 +461,70 @@ class ActiveCampaign extends Crm
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
                 return $model->enabled && $model->mapToDeal;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
                 return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => trim(App::parseEnv($this->apiUrl), '/') . '/api/3/',
+            'headers' => ['Api-Token' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToDeal',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'dealFieldMapping',
+            'if' => 'mapToDeal',
+            'dataLabel' => 'Deal',
+            'dataKey' => 'deal',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToAccount',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'accountFieldMapping',
+            'if' => 'mapToAccount',
+            'dataLabel' => 'Account',
+            'dataKey' => 'account',
+        ]);
+
+        return $schema;
     }
 
 

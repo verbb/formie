@@ -1,0 +1,15 @@
+@import "@verbb/plugin-kit-react/style.css";
+
+.integration-connect-dialog [data-slot="dialog-overlay"] {
+    z-index: 2147483000;
+}
+
+.integration-connect-dialog .integration-connect-dialog__content[data-slot="dialog-content"] {
+    z-index: 2147483001;
+}
+
+.formie-integration-connect.integration-connect-modal-open {
+    position: relative;
+    z-index: 2147482999;
+    isolation: isolate;
+}

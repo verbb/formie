@@ -32,7 +32,6 @@ class MailerLite extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -131,18 +130,6 @@ class MailerLite extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.mailerlite.com/api/v2/',
-            'headers' => ['X-MailerLite-ApiKey' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -152,6 +139,14 @@ class MailerLite extends EmailMarketing
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.mailerlite.com/api/v2/',
+            'headers' => ['X-MailerLite-ApiKey' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+    
 
     // Private Methods
     // =========================================================================

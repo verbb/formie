@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -50,7 +52,6 @@ class Copper extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -59,7 +60,7 @@ class Copper extends Crm
             $fields = $this->request('GET', 'custom_field_definitions');
 
             // Get People fields
-            if ($this->mapToPeople) {
+            if ($this->mapToPeople && $this->settingsContext->dataKey === 'people') {
                 $settings['people'] = array_merge([
                     new IntegrationField([
                         'handle' => 'name',
@@ -119,7 +120,7 @@ class Copper extends Crm
             }
 
             // Get Lead fields
-            if ($this->mapToLead) {
+            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
                 $settings['lead'] = array_merge([
                     new IntegrationField([
                         'handle' => 'name',
@@ -200,7 +201,7 @@ class Copper extends Crm
             }
 
             // Get Opportunity fields
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $settings['opportunity'] = array_merge([
                     new IntegrationField([
                         'handle' => 'name',
@@ -340,7 +341,7 @@ class Copper extends Crm
                 ], $this->_getCustomFields($fields, 'opportunity'));
             }
 
-            if ($this->mapToTask) {
+            if ($this->mapToTask && $this->settingsContext->dataKey === 'task') {
                 $settings['task'] = array_merge([
                     new IntegrationField([
                         'handle' => 'name',
@@ -565,23 +566,6 @@ class Copper extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.copper.com/developer_api/v1/',
-            'headers' => [
-                'X-PW-AccessToken' => App::parseEnv($this->apiKey),
-                'X-PW-Application' => 'developer_api',
-                'X-PW-UserEmail' => App::parseEnv($this->apiEmail),
-                'Content-Type' => 'application/json',
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -597,28 +581,92 @@ class Copper extends Crm
         $rules[] = [
             ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
                 return $model->enabled && $model->mapToPeople;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
                 return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
                 return $model->enabled && $model->mapToTask;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.copper.com/developer_api/v1/',
+            'headers' => [
+                'X-PW-AccessToken' => App::parseEnv($this->apiKey),
+                'X-PW-Application' => 'developer_api',
+                'X-PW-UserEmail' => App::parseEnv($this->apiEmail),
+                'Content-Type' => 'application/json',
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToPeople',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'People']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'peopleFieldMapping',
+            'if' => 'mapToPeople',
+            'dataLabel' => 'People',
+            'dataKey' => 'people',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLead',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'leadFieldMapping',
+            'if' => 'mapToLead',
+            'dataLabel' => 'Lead',
+            'dataKey' => 'lead',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToTask',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Task']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tasks']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'taskFieldMapping',
+            'if' => 'mapToTask',
+            'dataLabel' => 'Task',
+            'dataKey' => 'task',
+        ]);
+
+        return $schema;
     }
 
 

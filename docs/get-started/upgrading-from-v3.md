@@ -1,0 +1,1179 @@
+# Upgrading from v3
+
+Formie 4 changes a lot behind the scenes, especially around form-builder schema, submission handling, front-end assets, and field values.
+
+We have also worked to keep as much as possible backward-compatible through Compatibility Mode to make the upgrade easier.
+
+## Compatibility Mode
+
+Formie includes a compatibility layer to make Formie 3 projects easier to update. It is enabled by default.
+
+```php
+// config/formie.php
+return [
+    'compatibilityMode' => true,
+];
+```
+
+Compatibility mode currently covers three areas:
+
+- A small set of legacy class aliases that were already deprecated in earlier releases.
+- A small PHP event bridge for notification and integration events that moved to more specific services.
+- Custom field compatibility bridges for older schema methods, field config normalization, and legacy Theme Config field tags.
+
+Leave compatibility mode enabled while you update the site. Once the project has no Formie deprecation warnings and any custom code has been updated, you can disable it:
+
+```php
+// config/formie.php
+return [
+    'compatibilityMode' => false,
+];
+```
+
+## Breaking Changes
+
+Although this is a major release, we have tried to keep existing Formie 3 projects working where we reasonably can. These are the main Formie 3 to 4 breaking changes that can require real code updates.
+
+Jump directly to the sections most likely to need attention:
+
+- [Custom Fields](#custom-fields) if the project defines custom Formie fields.
+- [Custom Integrations](#custom-integrations) if the project defines custom integrations, captchas, address providers, or payment providers.
+- [Removed legacy captchas](#removed-legacy-captchas) if the site relied on Formie’s built-in Duplicate, JavaScript, or Honeypot captcha types.
+- [Submission Workflow](#submission-workflow) if custom code calls Formie’s payment-processing step directly.
+
+## Changes at a Glance
+
+Not every important change in Formie 4 is a breaking change. Some parts of the plugin now work quite differently, and they are worth understanding before you update custom code or plan new work.
+
+### Integration Settings
+
+Custom integrations no longer build their form settings UI with templates. They now define schema for the form builder.
+
+This changes how integration settings are built and maintained. If you have custom integrations, it is worth thinking of their settings in the same way as field schema: structured, reusable, and easier for Formie to normalize and extend.
+
+### Submission Workflow
+
+Submission processing is no longer one large save step. Formie now runs submissions through a clearer staged workflow.
+
+That makes custom submission handling more predictable. If you need to run your own logic during processing, it is a better fit to add a workflow task or hook into the workflow events than to try to replace the whole pipeline.
+
+### Front-end Browser Package
+
+Formie’s front-end JavaScript and CSS are now part of the browser package and related front-end packages.
+
+If your project needs custom validation, DOM event listeners, front-end theming, or a more app-driven setup with React, Vue, Barba, Sprig, or similar tooling, it is worth getting familiar with that package-based front-end model.
+
+Learn more in [Custom Integration](/developers/custom-integration/overview), [Submission Workflow](/developers/submission-workflow), and [Frontend Assets](/frontend/frontend-assets).
+
+### Field References
+
+Formie now uses a more consistent field reference concept across places like notifications, calculations, conditions, and integration mapping.
+
+Instead of relying on a field handle as the token value, Formie uses a stable field reference. That makes these links more reliable as forms evolve over time.
+
+### Database Submission State
+
+Formie 3 relied much more heavily on session-based submission state. That could be fragile, especially across devices, longer sessions, or more complex front-end flows.
+
+Formie 4 stores temporary, incomplete, and saved draft submission state in the database instead. That gives automatic submission state, save-and-continue, retention, and resume tokens a much more reliable foundation.
+
+### Static Caching
+
+Formie can now handle static-cache token refresh more directly, instead of relying on extra custom snippets to keep cached forms usable.
+
+If your site uses static caching, it is worth understanding the new refresh-on-load handling and the related config settings, especially if you previously added your own refresh logic.
+
+## Custom Fields
+
+### Field Schema Methods
+
+> [!IMPORTANT]
+> Compatibility mode will handle these changes automatically.
+
+Form builder settings use `defineFormBuilder*Schema()` methods.
+
+::: code-group
+```php [Formie 3]
+public function defineGeneralSchema(): array
+{
+    return [
+        SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Placeholder'),
+            'help' => Craft::t('formie', 'The text that will be shown if the field does not have a value.'),
+            'name' => 'placeholder',
+        ]),
+    ];
+}
+```
+
+```php [Formie 4]
+public function defineFormBuilderGeneralSchema(): array
+{
+    return [
+        SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Placeholder'),
+            'instructions' => Craft::t('formie', 'The text that will be shown if the field does not have a value.'),
+            'name' => 'placeholder',
+        ]),
+    ];
+}
+```
+:::
+
+Schema method changes:
+
+Formie 3 | Formie 4
+--- | ---
+`defineGeneralSchema()` | `defineFormBuilderGeneralSchema()`
+`defineSettingsSchema()` | `defineFormBuilderSettingsSchema()`
+`defineAppearanceSchema()` | `defineFormBuilderAppearanceSchema()`
+`defineAdvancedSchema()` | `defineFormBuilderAdvancedSchema()`
+`defineConditionsSchema()` | `defineFormBuilderConditionsSchema()`
+
+The schema node format also changed. If you were already using `SchemaHelper`, keep using it. If you built schema arrays manually, update FormKit-style nodes such as `$formkit` to the current `$field` format.
+
+::: code-group
+```php [Formie 3]
+[
+    '$formkit' => 'text',
+    'label' => Craft::t('formie', 'Placeholder'),
+    'help' => Craft::t('formie', 'Shown when the field has no value.'),
+    'name' => 'placeholder',
+]
+```
+
+```php [Formie 4]
+[
+    '$field' => 'text',
+    'label' => Craft::t('formie', 'Placeholder'),
+    'instructions' => Craft::t('formie', 'Shown when the field has no value.'),
+    'name' => 'placeholder',
+]
+```
+:::
+
+Even when using `SchemaHelper`, check these schema changes:
+
+- `help` is now `instructions`
+- old `if` expressions such as `$get(required).value` should be updated to the current expression format
+
+See [Schema](/developers/schema) for the current schema syntax.
+
+### Field Preview
+
+Field previews should now use preview schema, rather than a HTML template.
+
+::: code-group
+```php [Formie 3]
+public function getFormBuilderPreviewHtml(): string
+{
+    return Craft::$app->getView()->renderTemplate('my-module/my-field/preview', [
+        'field' => $this,
+    ]);
+}
+```
+
+```php [Formie 4]
+public function defineFormBuilderPreviewSchema(): array
+{
+    return [
+        SchemaHelper::previewInput(),
+    ];
+}
+```
+:::
+
+### Field Templates
+
+Use `getInputTemplatePath()` in place of the old front-end input template path method.
+
+::: code-group
+```php [Formie 3]
+public static function getFrontEndInputTemplatePath(): string
+{
+    return 'my-module/my-field/input';
+}
+```
+
+```php [Formie 4]
+public static function getInputTemplatePath(): string
+{
+    return 'my-module/my-field/input';
+}
+```
+:::
+
+Reference-block templates replace the old field-level email template hook.
+
+:::: code-group
+```php [Formie 3]
+public static function getEmailTemplatePath(): string
+{
+    return 'my-module/my-field/email';
+}
+```
+
+```php [Formie 4]
+public static function getReferenceBlockTemplatePath(): string
+{
+    return 'my-module/my-field/email';
+}
+```
+::::
+
+`getEmailTemplatePath()` still exists as a deprecated compatibility alias, but new code should use `getReferenceBlockTemplatePath()`.
+
+If the field needs template variables, extend `getInputTemplateVariables()`.
+
+```php
+use verbb\formie\elements\Form;
+
+public function getInputTemplateVariables(Form $form, mixed $value): array
+{
+    return array_merge(parent::getInputTemplateVariables($form, $value), [
+        'placeholder' => $this->placeholder,
+    ]);
+}
+```
+
+Avoid overriding `renderInput()` unless the field cannot be handled with templates and template variables.
+
+### Field Values
+
+The public methods trigger Formie events after the value has been defined.
+
+Value method changes:
+
+Formie 3 | Formie 4
+--- | ---
+`defineValueAsJson()` | `defineValueAsArray()`
+`getValueAsJson()` | `getValueAsArray()`
+`defineValueForVariable()` | `defineValueForReference()`
+`getValueForVariable()` | `getValueForReference()`
+`defineValueForVariableRaw()` | `defineValueForReference()`
+`getValueForVariableRaw()` | `getValueForReference()`
+`defineValueForEmail()` | `defineValueForReferenceBlock()`
+`getValueForEmail()` | `getValueForReferenceBlock()`
+
+Formie 4 splits field values into two concepts:
+
+- **Reference**: the singular, string-like value used for variable chips, subject lines, and other single-value contexts.
+- **Reference block**: the richer block value used when Formie renders looped field content in notification bodies and similar “all fields” output.
+
+Deprecated aliases remain available while you upgrade, but new field code should target the `reference` / `reference block` names directly.
+
+### Field Paths
+
+Several field path helpers have clearer names.
+
+Formie 3 | Formie 4
+--- | ---
+`getFieldKey()` | `valueKey()`
+`getErrorKey()` | `errorKey()`
+`getFullHandle()` | `handlePath()`
+`getFullNamespace()` | `namespacePath()`
+`getReservedHandles()` | `Formie::$plugin->getFields()->getReservedHandles()`
+
+::: code-group
+```php [Formie 3]
+$key = $field->getFieldKey();
+$errors = $submission->getErrors($field->getErrorKey());
+```
+
+```php [Formie 4]
+$key = $field->valueKey();
+$errors = $submission->getErrors($field->errorKey());
+```
+:::
+
+### Theme Config
+
+> [!IMPORTANT]
+> Compatibility mode will handle these changes automatically.
+
+If your custom field supports Theme Config, update `defineHtmlTag()` usage to `defineFieldSlotTag()`, and return a `SlotTag`.
+
+::: code-group
+```php [Formie 3]
+protected function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+{
+    if ($key === 'fieldInput') {
+        return new HtmlTag('input', [
+            'class' => ['fui-input'],
+        ]);
+    }
+
+    return parent::defineHtmlTag($key, $context);
+}
+```
+
+```php [Formie 4]
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
+
+protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+{
+    if ($key === 'fieldInput') {
+        return SlotTag::make('input')
+            ->core([
+                'type' => 'text',
+                'name' => $this->getHtmlName(),
+                'data-formie-input' => true,
+            ])
+            ->theme([
+                'class' => ['formie-input'],
+            ]);
+    }
+
+    return parent::defineFieldSlotTag($key, $context);
+}
+```
+:::
+
+The default CSS class prefix is now `formie`, not `fui`, for Formie 4's default theme.
+
+See [Custom Field](/developers/custom-field) for the current custom field guide.
+
+## Custom Integrations
+
+### Form Integration Settings
+
+> [!CAUTION]
+> Integrations that add settings to a form's Integrations tab need to move those settings to `defineFormSettingsSchema()`.
+
+Integrations that provide a UI for the form builder's Integrations tab now define their controls with a schema, as opposed to Twig/Vue/HTML templates.
+
+This aims to provide a more solid, consistent and performant approach to configuring these screens, rather than flaky templates tied to a framework.
+
+::: code-group
+```php [Formie 3]
+public function getFormSettingsHtml($form): string
+{
+    $variables = $this->getFormSettingsHtmlVariables($form);
+
+    return Craft::$app->getView()->renderTemplate('my-module/integration/form-settings', $variables);
+}
+```
+
+```php [Formie 4]
+use verbb\formie\base\FormInterface;
+use verbb\formie\helpers\SchemaHelper;
+
+protected function defineFormSettingsSchema(FormInterface $form): array
+{
+    $schema = parent::defineFormSettingsSchema($form);
+
+    $schema[] = SchemaHelper::textField([
+        'label' => Craft::t('formie', 'Endpoint URL'),
+        'instructions' => Craft::t('formie', 'Enter the URL this integration should send submissions to.'),
+        'name' => 'endpointUrl',
+        'required' => true,
+    ]);
+
+    return $schema;
+}
+```
+:::
+
+Always start with `parent::defineFormSettingsSchema($form)` unless you have a specific reason not to. The parent schema includes the standard Enabled setting.
+
+### Captchas and Address Providers
+
+> [!CAUTION]
+> Custom captchas and address providers need to move to client modules, and any front-end behavior for them needs to be adapted to Formie's browser module system.
+
+Captchas and address providers now use client modules instead of ad-hoc JavaScript variables. In practice, that means moving both the PHP side and the front-end side of the integration to the current browser module approach.
+
+::: code-group
+```php [Formie 3]
+public function getFrontEndJsVariables(Form $form, $page = null)
+{
+    return [
+        'src' => $src,
+        'onload' => 'new MyCaptcha();',
+    ];
+}
+```
+
+```php [Formie 4]
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
+
+public function getClientModule(ClientModuleContext $context): ?ClientModule
+{
+    return new ClientModule([
+        'id' => 'my-captcha',
+        'src' => $this->scriptUrl,
+        'config' => [
+            'siteKey' => $this->siteKey,
+        ],
+    ]);
+}
+```
+:::
+
+See [Captcha Integration](/developers/custom-integration/captcha-integration) and [Address Provider Integration](/developers/custom-integration/address-provider-integration) for the fuller flow.
+
+## Removed legacy captchas
+
+Formie 4 no longer ships the **Duplicate**, **JavaScript**, or **Honeypot** captcha integrations that existed in earlier major versions.
+
+### What they were
+
+- **Duplicate** attempted to block repeat submissions by comparing new requests to recent activity. In practice it was sensitive to caching, multi-page flows, and Ajax reloads, which produced hard-to-debug false positives and noisy support tickets.
+- **JavaScript** was a lightweight “prove the browser ran our script” check. It duplicated behaviour that modern browsers, privacy tools, and static caching already interfere with, and it was a poor accessibility story compared to provider-backed challenges.
+- **Honeypot** relied on a hidden field that legitimate users were expected to leave empty. Browser autofill, password managers, accessibility tools, and static or edge-cached HTML often touched that field anyway, which caused false positives; determined bots could also learn to avoid a known pattern.
+
+Those approaches did not match how serious abuse is handled today: explicit provider verification, clearer spam reasons, and a single **screening** stage in the submission workflow.
+
+### What to use instead
+
+Enable one or more of the supported [Captcha integrations](/integrations/captchas/akismet) (for example Cloudflare Turnstile, hCaptcha, or reCAPTCHA) and combine them with [Spam Protection](/forms/spam-protection) rules where appropriate.
+
+Formie 4 evaluates captchas and spam rules together in a predictable pipeline. See [Submission screening](/forms/submission-screening) for how the `screen` stage orders checks and how that relates to validation and saves.
+
+If you had custom code or front-end automation that targeted the old Duplicate, JavaScript, or Honeypot captcha handles, switch to the integration handles exposed by your replacement captchas and update any GraphQL mutation arguments accordingly.
+
+## Front-End JavaScript Events
+
+Formie 4 uses namespaced DOM event names. If you listen for old Formie event names, switch them to the new event names.
+
+::: code-group
+```js [Formie 3]
+const form = document.querySelector('#formie-form');
+
+form.addEventListener('onAfterFormieSubmit', (event) => {
+  console.log(event.detail);
+});
+```
+
+```js [Formie 4]
+const form = document.querySelector('#formie-form');
+
+form.addEventListener('formie:submit:result', (event) => {
+  console.log(event.detail);
+});
+```
+:::
+
+Common event changes are:
+
+Formie 3 event | Formie 4 event
+--- | ---
+`onFormieLoaded` | `formie:mount:after`
+`onFormieInit` | `formie:mount:after`
+`onFormieReady` | `formie:mount:after`
+`onBeforeFormieSubmit` | `formie:submit:before`
+`onFormieSubmit` | `formie:submit:after`
+`onAfterFormieSubmit` | `formie:submit:result`
+`onFormieSubmitError` | `formie:submit:result`
+`onFormiePageToggle` | `formie:page:navigate:after`
+`onFormieValidate` | `formie:stage:validate:before`
+`onAfterFormieValidate` | `formie:stage:validate:after`
+
+Some mappings are approximate because the front-end submission flow has changed. Use the new event that matches the point in the form lifecycle you need.
+
+The browser package includes an opt-in compatibility bridge for older event names. If you mount Formie yourself, you can enable it while you migrate listeners:
+
+```ts
+import { createFormieClient } from '@verbb/formie-browser';
+
+const formie = createFormieClient();
+const form = document.querySelector('[data-formie-form]');
+
+if (form instanceof HTMLElement) {
+    await formie.mount(form, {
+        mode: 'html',
+        compatibility: true,
+    });
+}
+```
+
+You can also enable only part of the bridge:
+
+```ts
+await formie.mount(form, {
+    mode: 'html',
+    compatibility: {
+        legacyDomEvents: true,
+        legacyValidatorEvents: false,
+    },
+});
+```
+
+For rendered HTML, the bridge can be enabled with a data attribute:
+
+```html
+<form data-formie data-formie-form data-formie-compatibility="true">
+    <!-- ... -->
+</form>
+```
+
+Prefer updating to the new event names instead of leaving the bridge enabled permanently.
+
+Learn more in [Frontend Assets](/frontend/frontend-assets).
+
+## Custom Front-End Validation
+
+Custom validator registration should now use the validator exposed by `formie:validator:ready`.
+
+::: code-group
+```js [Formie 3]
+const form = document.querySelector('#formie-form');
+
+form.addEventListener('onFormieThemeReady', (event) => {
+  event.detail.addValidator('businessEmail', ({ input }) => {
+    return !input.value.endsWith('@example.com');
+  }, () => {
+    return 'Please use your business email address.';
+  });
+});
+```
+
+```js [Formie 4]
+const form = document.querySelector('#formie-form');
+
+form?.addEventListener('formie:validator:ready', (event) => {
+  const { validator } = event.detail;
+
+  validator.addValidator(
+    'businessEmail',
+    ({ input }) => !input.value.endsWith('@example.com'),
+    () => 'Please use your business email address.'
+  );
+});
+```
+:::
+
+Validator events have also been renamed:
+
+Formie 3 event | Formie 4 event
+--- | ---
+`formieValidatorInitialized` | `formie:validator:ready`
+`formieValidatorDestroyed` | `formie:validator:destroy`
+`formieValidatorShowError` | `formie:validator:show-error`
+`formieValidatorClearError` | `formie:validator:clear-error`
+
+Learn more in [Frontend Assets](/frontend/frontend-assets).
+
+## GraphQL
+
+> [!IMPORTANT]
+> Compatibility mode will handle these changes automatically.
+
+If you query form page settings, update the renamed client event fields:
+
+::: code-group
+```graphql [Formie 3]
+settings {
+  enableJsEvents
+  jsGtmEventOptions
+}
+```
+
+```graphql [Formie 4]
+settings {
+  enableClientEvents
+  clientEventFields
+}
+```
+:::
+
+If you were loading rendered HTML over GraphQL, switch from the old form query to the dedicated HTML query.
+
+::: code-group
+```graphql [Formie 3]
+query FormHtml($handle: String!) {
+  formieForm(handle: $handle) {
+    templateHtml
+  }
+}
+```
+
+```graphql [Formie 4]
+query FormHtml($handle: String!, $input: ServerRenderPayloadInput) {
+  formieHtmlForm(handle: $handle, input: $input) {
+    html
+  }
+}
+```
+:::
+
+This is the same HTML-mode flow used by the starter examples. GraphQL loads the HTML payload, and the rendered form still submits through its normal form action.
+
+If you submit forms through GraphQL, review the current GraphQL docs. Formie now has separate docs for querying forms, querying submissions, rendering forms, and creating submissions:
+
+- [Query Forms](/graphql/query-forms)
+- [Query Submissions](/graphql/query-submissions)
+- [Rendering Forms](/graphql/rendering-forms)
+- [Create Submissions](/graphql/create-submissions)
+
+## Submission Workflow
+
+> [!CAUTION]
+> Custom code that calls Formie’s payment-processing step directly should be updated to let the submission workflow run instead.
+
+Formie now processes submissions through a staged workflow. This affects custom code that expected submission processing to happen as one large save step.
+
+Most integrations and notifications should keep working. If you previously called the payment processing step directly, update that code to let Formie's submission workflow run instead.
+
+::: code-group
+```php [Formie 3]
+$success = Formie::$plugin->getSubmissions()->processPayments($submission);
+```
+
+```php [Formie 4]
+// Let Formie process the submission through the normal workflow.
+```
+:::
+
+`processPayments()` still exists as a compatibility shim, but standalone payment processing is no longer the main workflow path.
+
+If you need to add custom work during submission handling, add a workflow task or listen to the workflow events instead of replacing the whole submission pipeline. See [Submission Workflow](/developers/submission-workflow).
+
+
+## Form Rendering and Assets
+
+Formie 4 has a cleaner rendering API for form assets. 
+
+### Render Form Assets
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderFormAssets(form) }}
+{{ craft.formie.registerFormAssets(form) }}
+```
+
+```twig [Formie 4]
+{{ craft.formie.formAssets(form) }}
+```
+:::
+
+### Render CSS or JavaScript
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderFormCss(form) }}
+{{ craft.formie.renderFormJs(form) }}
+```
+
+```twig [Formie 4]
+{{ craft.formie.formAssets(form, {
+    includeJs: false,
+}) }}
+
+{{ craft.formie.formAssets(form, {
+    includeCss: false,
+}) }}
+```
+:::
+
+### Render Shared Assets
+
+If you are not rendering assets for a specific form, use `frontendAssets()`.
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderRuntimeAssets() }}
+{{ craft.formie.renderCss() }}
+{{ craft.formie.renderJs() }}
+```
+
+```twig [Formie 4]
+{{ craft.formie.frontendAssets() }}
+
+{{ craft.formie.frontendAssets({
+    includeJs: false,
+}) }}
+
+{{ craft.formie.frontendAssets({
+    includeCss: false,
+}) }}
+```
+:::
+
+The same method names apply if you are calling `Formie::$plugin->getRendering()` in PHP:
+
+::: code-group
+```php [Formie 3]
+Formie::$plugin->getRendering()->renderFormAssets($form);
+```
+
+```php [Formie 4]
+Formie::$plugin->getRendering()->formAssets($form);
+```
+:::
+
+See [Frontend Assets](/frontend/frontend-assets) and [Render Options](/templates/render-options) for the full rendering options.
+
+## Render Options
+
+Some render options have been renamed.
+
+### Include CSS and JavaScript
+
+Use `includeCss` and `includeJs` in place of `renderCss` and `renderJs`.
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderForm('contact', {
+    renderCss: false,
+    renderJs: true,
+}) }}
+```
+
+```twig [Formie 4]
+{{ craft.formie.renderForm('contact', {
+    includeCss: false,
+    includeJs: true,
+}) }}
+```
+:::
+
+### Output CSS and JavaScript
+
+Form template asset flags are now consolidated.
+
+::: code-group
+```twig [Formie 3]
+{{ craft.formie.renderForm('contact', {
+    outputCssLayout: true,
+    outputCssTheme: true,
+    outputJsBase: true,
+    outputJsTheme: true,
+}) }}
+```
+
+```twig [Formie 4]
+{{ craft.formie.renderForm('contact', {
+    outputCss: true,
+    outputJs: true,
+}) }}
+```
+:::
+
+Formie still normalizes the old render option keys, but update templates to use the new keys.
+
+### Output Location
+
+Use `outputCssLocation` and `outputJsLocation` when you need to control where assets are output.
+
+```twig
+{{ craft.formie.renderForm('contact', {
+    outputCssLocation: 'page-header',
+    outputJsLocation: 'page-footer',
+}) }}
+```
+
+Available values are:
+
+Value | Meaning
+--- | ---
+`page-header` | Register output for the document head.
+`page-footer` | Register output near the end of the page.
+`inside-form` | Output assets near the rendered form.
+`manual` | Do not output that asset automatically.
+
+Learn more in [Render Options](/templates/render-options).
+
+## Form Templates
+
+Form Templates now use single CSS and JavaScript output flags.
+
+::: code-group
+```php [Formie 3]
+[
+    'outputCssLayout' => true,
+    'outputCssTheme' => true,
+    'outputJsBase' => true,
+    'outputJsTheme' => true,
+]
+```
+
+```php [Formie 4]
+[
+    'outputCss' => true,
+    'outputJs' => true,
+    'outputCssLocation' => 'page-header',
+    'outputJsLocation' => 'page-footer',
+]
+```
+:::
+
+Learn more in [Template Overrides](/theming/template-overrides) and [Theme Config](/theming/theme-config).
+
+## Form Render IDs
+
+Use `getRenderId()` and `setRenderId()` in place of `getFormId()` and `setFormId()`.
+
+::: code-group
+```twig [Formie 3]
+{% set id = form.getFormId() %}
+```
+
+```twig [Formie 4]
+{% set id = form.getRenderId() %}
+```
+:::
+
+::: code-group
+```php [Formie 3]
+$form->setFormId('contact-form');
+```
+
+```php [Formie 4]
+$form->setRenderId('contact-form');
+```
+:::
+
+Learn more in [Rendering Forms](/templates/rendering-forms).
+
+## PHP Events
+
+Most PHP events keep the same names and owners. A small number of events moved to more specific services.
+
+### Notifications
+
+> [!IMPORTANT]
+> Compatibility mode will handle these changes automatically.
+
+`beforeSendNotification` now belongs on the `Notifications` service.
+
+::: code-group
+```php [Formie 3]
+use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_SEND_NOTIFICATION, function(SendNotificationEvent $event) {
+    // ...
+});
+```
+
+```php [Formie 4]
+use verbb\formie\events\SendNotificationEvent;
+use verbb\formie\services\Notifications;
+use yii\base\Event;
+
+Event::on(Notifications::class, Notifications::EVENT_BEFORE_SEND_NOTIFICATION, function(SendNotificationEvent $event) {
+    // ...
+});
+```
+:::
+
+### Integrations
+
+> [!IMPORTANT]
+> Compatibility mode will handle these changes automatically.
+
+`beforeTriggerIntegration` now belongs on the `Integrations` service.
+
+::: code-group
+```php [Formie 3]
+use verbb\formie\events\TriggerIntegrationEvent;
+use verbb\formie\services\Submissions;
+use yii\base\Event;
+
+Event::on(Submissions::class, Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION, function(TriggerIntegrationEvent $event) {
+    // ...
+});
+```
+
+```php [Formie 4]
+use verbb\formie\events\TriggerIntegrationEvent;
+use verbb\formie\services\Integrations;
+use yii\base\Event;
+
+Event::on(Integrations::class, Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION, function(TriggerIntegrationEvent $event) {
+    // ...
+});
+```
+:::
+
+### Field and Form Slot Tag Events
+
+If your project listens for field or form tag-mutation events, switch from the old `htmlTag` names to the canonical `slotTag` names.
+
+The old constants and event classes still exist as deprecated aliases, but new code should use the slot-tag names.
+
+Formie 3 | Formie 4
+--- | ---
+`Field::EVENT_MODIFY_HTML_TAG` | `Field::EVENT_MODIFY_SLOT_TAG`
+`ModifyFieldHtmlTagEvent` | `ModifyFieldSlotTagEvent`
+`Form::EVENT_MODIFY_HTML_TAG` | `Form::EVENT_MODIFY_SLOT_TAG`
+`ModifyFormHtmlTagEvent` | `ModifyFormSlotTagEvent`
+
+:::: code-group
+```php [Formie 3]
+use verbb\formie\base\Field;
+use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyFieldHtmlTagEvent;
+use verbb\formie\events\ModifyFormHtmlTagEvent;
+use yii\base\Event;
+
+Event::on(Field::class, Field::EVENT_MODIFY_HTML_TAG, function(ModifyFieldHtmlTagEvent $event) {
+    // ...
+});
+
+Event::on(Form::class, Form::EVENT_MODIFY_HTML_TAG, function(ModifyFormHtmlTagEvent $event) {
+    // ...
+});
+```
+
+```php [Formie 4]
+use verbb\formie\base\Field;
+use verbb\formie\elements\Form;
+use verbb\formie\events\ModifyFieldSlotTagEvent;
+use verbb\formie\events\ModifyFormSlotTagEvent;
+use yii\base\Event;
+
+Event::on(Field::class, Field::EVENT_MODIFY_SLOT_TAG, function(ModifyFieldSlotTagEvent $event) {
+    // ...
+});
+
+Event::on(Form::class, Form::EVENT_MODIFY_SLOT_TAG, function(ModifyFormSlotTagEvent $event) {
+    // ...
+});
+```
+::::
+
+See [Field Events](/developers/events/field-events) and [Form Events](/developers/events/form-events) for the current event reference.
+
+## Submission Values
+
+Submission value helpers have been renamed to make the format explicit.
+
+### Single Field Values
+
+Use the `getFieldValue*()` methods in place of the older `getValue*()` methods.
+
+::: code-group
+```twig [Formie 3]
+{{ submission.getValueAsString('fullName') }}
+{% set address = submission.getValueAsJson('billingAddress') %}
+{% set exportValue = submission.getValueForExport('payment') %}
+{% set summaryValue = submission.getValueForSummary('billingAddress') %}
+```
+
+```twig [Formie 4]
+{{ submission.getFieldValueAsString('fullName') }}
+{% set address = submission.getFieldValueAsArray('billingAddress') %}
+{% set exportValue = submission.getFieldValueForExport('payment') %}
+{% set summaryValue = submission.getFieldValueForSummary('billingAddress') %}
+```
+:::
+
+### Submission Values
+
+Use array terminology instead of JSON terminology.
+
+::: code-group
+```twig [Formie 3]
+{% set values = submission.getValuesAsJson() %}
+```
+
+```twig [Formie 4]
+{% set values = submission.getValuesAsArray() %}
+```
+:::
+
+The same change applies in PHP:
+
+::: code-group
+```php [Formie 3]
+$values = $submission->getValuesAsJson();
+```
+
+```php [Formie 4]
+$values = $submission->getValuesAsArray();
+```
+:::
+
+### Value Types
+
+Use the helper that matches the job you are doing.
+
+```twig
+{# Normal value. Good when you want the field's natural shape. #}
+{% set value = submission.getFieldValue('billingAddress') %}
+
+{# String value. Good for text output, logs, and simple display. #}
+{% set value = submission.getFieldValueAsString('billingAddress') %}
+
+{# Array value. Good when a field has meaningful structure. #}
+{% set value = submission.getFieldValueAsArray('billingAddress') %}
+
+{# Export value. Good for CSVs, spreadsheets, and reports. #}
+{% set value = submission.getFieldValueForExport('billingAddress') %}
+
+{# Summary value. Good for review screens and summary output. #}
+{% set value = submission.getFieldValueForSummary('billingAddress') %}
+```
+
+See [Submission Content](/developers/submission-content) for a fuller explanation of the different value formats.
+
+## Text limits
+
+Single-line and multi-line text fields now use `maxType` and `max` instead of `limitType` and `limitAmount`.
+
+::: code-group
+```php [Formie 3]
+[
+    'limitType' => 'characters',
+    'limitAmount' => 120,
+]
+```
+
+```php [Formie 4]
+[
+    'maxType' => 'characters',
+    'max' => 120,
+]
+```
+:::
+
+Learn more in [Single-Line Text](/fields/single-line-text) and [Multi-Line Text](/fields/multi-line-text).
+
+## Sub-field Label Position
+
+The setting key now uses `subField` casing.
+
+::: code-group
+```php [Formie 3]
+[
+    'subfieldLabelPosition' => \verbb\formie\positions\AboveInput::class,
+]
+```
+
+```php [Formie 4]
+[
+    'subFieldLabelPosition' => \verbb\formie\positions\AboveInput::class,
+]
+```
+:::
+
+Learn more in [Address](/fields/address), [Name](/fields/name), and [Date/Time](/fields/date-time).
+
+## Instruction Positions
+
+The old fieldset-specific instruction positions are normalized to regular positions.
+
+::: code-group
+```php [Formie 3]
+[
+    'instructionsPosition' => 'verbb\\formie\\positions\\FieldsetStart',
+]
+```
+
+```php [Formie 4]
+[
+    'instructionsPosition' => \verbb\formie\positions\AboveInput::class,
+]
+```
+:::
+
+`FieldsetEnd` maps to `BelowInput`.
+
+Learn more in [Form Builder](/forms/form-builder).
+
+## Static Caches
+
+Static-cache handling has changed. Formie can refresh request-specific tokens for statically cached forms when the `staticCacheRefreshOnLoad` plugin setting is enabled, and it assumes static-cache handling is needed when [Blitz](http://) is installed and enabled.
+
+```php
+// config/formie.php
+return [
+    'staticCacheRefreshOnLoad' => true,
+];
+```
+
+You no longer need to include a JavaScript snippet to refresh the tokens.
+
+See [Cached Forms](/frontend/cached-forms) and [Configuration](/get-started/configuration).
+
+## Save and Continue Later
+
+Formie 4 has proper save-and-continue handling with saved drafts and resume tokens.
+
+In Formie 3, incomplete submission state relied much more on the session. In Formie 4, temporary, incomplete, and saved draft submission state is stored in the database, and resume links are tied to stored draft state and token records.
+
+For normal forms, this should not require template changes. If you customize save buttons, draft handling, or submission retention, review [Save & Continue Later](/forms/save-continue-later).
+
+Related settings include:
+
+Setting | Use
+--- | ---
+`submissionStateRetentionDays` | How long stored submission state is retained.
+`saveResumeTokenTtlDays` | How long resume links remain valid.
+`maxSavedDraftsPerSession` | How many saved drafts can be kept for a session.
+
+Learn more in [Save & Continue Later](/forms/save-continue-later) and [Configuration](/get-started/configuration).
+
+## New and Renamed Settings
+
+Review `config/formie.php` if your project keeps a full config file.
+
+The most upgrade-relevant settings are:
+
+Setting | Use
+--- | ---
+`compatibilityMode` | Enables Formie 3 compatibility shims. Defaults to `true`.
+`staticCacheRefreshOnLoad` | Enables token refresh support for static-cache setups that are not auto-detected.
+`submissionStateRetentionDays` | Controls retention for stored submission state.
+`saveResumeTokenTtlDays` | Controls resume link lifetime.
+`maxSavedDraftsPerSession` | Controls saved draft count per session.
+`setOnlyCurrentPagePayload` | Limits front-end page payload behavior to the current page.
+`anonymousClientBootstrapRateLimit` | Rate limit for anonymous form bootstrap requests.
+`anonymousClientRefreshRateLimit` | Rate limit for anonymous token refresh requests.
+`anonymousClientRateWindowSeconds` | Rate-limit window used by the anonymous request limits.
+`useCssLayers` | Outputs Formie's CSS using CSS layers when enabled.
+
+Removed settings are ignored during settings normalization:
+
+Removed setting | What to do
+--- | ---
+`enableGatsbyCompatibility` | Remove it.
+`submissionStateMode` | Remove it.
+`submissionStore` | Remove it.
+
+See [Configuration](/get-started/configuration) for the current config shape.
+
+## Replacement Reference
+
+Old | New
+--- | ---
+`form.getFormId()` | `form.getRenderId()`
+`form.setFormId()` | `form.setRenderId()`
+`submission.getValueAsString()` | `submission.getFieldValueAsString()`
+`submission.getValueAsJson()` | `submission.getFieldValueAsArray()`
+`submission.getValuesAsJson()` | `submission.getValuesAsArray()`
+`field.getValueAsJson()` | `field.getValueAsArray()`
+`field.defineValueAsJson()` | `field.defineValueAsArray()`
+`field.getFieldKey()` | `field.valueKey()`
+`field.getErrorKey()` | `field.errorKey()`
+`field.getFullHandle()` | `field.handlePath()`
+`field.getFullNamespace()` | `field.namespacePath()`
+`craft.formie.renderFormAssets(form)` | `craft.formie.formAssets(form)`
+`craft.formie.registerFormAssets(form)` | `craft.formie.formAssets(form)`
+`craft.formie.renderFormCss(form)` | `craft.formie.formAssets(form, { includeJs: false })`
+`craft.formie.renderFormJs(form)` | `craft.formie.formAssets(form, { includeCss: false })`
+`craft.formie.renderRuntimeAssets()` | `craft.formie.frontendAssets()`
+`craft.formie.renderCss()` | `craft.formie.frontendAssets({ includeJs: false })`
+`craft.formie.renderJs()` | `craft.formie.frontendAssets({ includeCss: false })`
+`renderCss` render option | `includeCss`
+`renderJs` render option | `includeJs`
+`outputCssLayout` / `outputCssTheme` | `outputCss`
+`outputJsBase` / `outputJsTheme` | `outputJs`
+`defineGeneralSchema()` | `defineFormBuilderGeneralSchema()`
+`defineSettingsSchema()` | `defineFormBuilderSettingsSchema()`
+`defineAppearanceSchema()` | `defineFormBuilderAppearanceSchema()`
+`defineAdvancedSchema()` | `defineFormBuilderAdvancedSchema()`
+`defineConditionsSchema()` | `defineFormBuilderConditionsSchema()`
+`getPreviewInputHtml()` | `defineFormBuilderPreviewSchema()`
+`getFrontEndInputTemplatePath()` | `getInputTemplatePath()`
+`getFormSettingsHtml()` for integration form settings | `defineFormSettingsSchema()`
+`getFrontEndJsVariables()` for captchas/providers | `getClientModule()`
+`enableJsEvents` | `enableClientEvents`
+`jsGtmEventOptions` | `clientEventFields`
+`onAfterFormieSubmit` | `formie:submit:result`
+`formieValidatorInitialized` | `formie:validator:ready`

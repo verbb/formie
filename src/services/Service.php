@@ -5,6 +5,7 @@ use Craft;
 
 use craft\helpers\Session;
 use yii\base\Component;
+use verbb\formie\helpers\StringHelper;
 
 class Service extends Component
 {
@@ -33,12 +34,12 @@ class Service extends Component
 
     public function setError(string $namespace, string $message): void
     {
-        $this->setFlash($namespace, 'error', $message);
+        $this->setFlash($namespace, 'error', StringHelper::sanitizeMessageHtml($message));
     }
 
     public function setNotice(string $namespace, string $message): void
     {
-        $this->setFlash($namespace, 'notice', $message);
+        $this->setFlash($namespace, 'notice', StringHelper::sanitizeMessageHtml($message));
     }
 
     public function getFieldNamespaceForScript($field): string

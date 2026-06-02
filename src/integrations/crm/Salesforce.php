@@ -3,6 +3,7 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
@@ -10,6 +11,7 @@ use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -213,7 +215,6 @@ class Salesforce extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -234,35 +235,35 @@ class Salesforce extends Crm implements OAuthProviderInterface
             }
 
             // Get Contact fields
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $response = $this->request('GET', 'sobjects/Contact/describe');
                 $fields = $response['fields'] ?? [];
                 $settings['contact'] = $this->_getCustomFields($fields);
             }
 
             // Get Lead fields
-            if ($this->mapToLead) {
+            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
                 $response = $this->request('GET', 'sobjects/Lead/describe');
                 $fields = $response['fields'] ?? [];
                 $settings['lead'] = $this->_getCustomFields($fields);
             }
 
             // Get Opportunity fields
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $response = $this->request('GET', 'sobjects/Opportunity/describe');
                 $fields = $response['fields'] ?? [];
                 $settings['opportunity'] = $this->_getCustomFields($fields);
             }
 
             // Get Account fields
-            if ($this->mapToAccount) {
+            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
                 $response = $this->request('GET', 'sobjects/Account/describe');
                 $fields = $response['fields'] ?? [];
                 $settings['account'] = $this->_getCustomFields($fields);
             }
 
             // Get Case fields
-            if ($this->mapToCase) {
+            if ($this->mapToCase && $this->settingsContext->dataKey === 'case') {
                 $response = $this->request('GET', 'sobjects/Case/describe');
 
                 // Debug
@@ -272,8 +273,8 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 $settings['case'] = $this->_getCustomFields($fields, ['IsClosedOnCreate']);
             }
 
+            if ($this->mapToCampaignMember && $this->settingsContext->dataKey === 'campaignMember') {
             // Get Campaign Member fields
-            if ($this->mapToCampaignMember) {
                 $response = $this->request('GET', 'sobjects/CampaignMember/describe');
                 $fields = $response['fields'] ?? [];
 
@@ -369,8 +370,10 @@ class Salesforce extends Crm implements OAuthProviderInterface
 
                 // Doesn't support upsert, so try to find the record first
                 if (isset($contactPayload['Email'])) {
+                    $email = $this->_escapeSoqlString((string)$contactPayload['Email']);
+
                     $response = $this->request('GET', 'query', [
-                        'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$contactPayload['Email']}' LIMIT 1"],
+                        'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Email = '{$email}' LIMIT 1"],
                     ]);
                 }
 
@@ -408,6 +411,8 @@ class Salesforce extends Crm implements OAuthProviderInterface
                     }
 
                     // Have to re-fetch the contact to get more values
+                    $contactId = $this->_escapeSoqlString((string)$contactId);
+
                     $response = $this->request('GET', 'query', [
                         'query' => ['q' => "SELECT ID,OwnerId FROM Contact WHERE Id = '{$contactId}' LIMIT 1"],
                     ]);
@@ -652,41 +657,157 @@ class Salesforce extends Crm implements OAuthProviderInterface
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
                 return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
                 return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['caseFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
                 return $model->enabled && $model->mapToCase;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['campaignMemberFieldMapping'], 'validateFieldMapping', 'params' => $case, 'when' => function($model) {
                 return $model->enabled && $model->mapToCampaignMember;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLead',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'leadFieldMapping',
+            'if' => 'mapToLead',
+            'dataLabel' => 'Lead',
+            'dataKey' => 'lead',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToAccount',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'accountFieldMapping',
+            'if' => 'mapToAccount',
+            'dataLabel' => 'Account',
+            'dataKey' => 'account',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToCase',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Case']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Cases']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'caseFieldMapping',
+            'if' => 'mapToCase',
+            'dataLabel' => 'Case',
+            'dataKey' => 'case',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToCampaignMember',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Campaign Member']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Campaign Members']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'campaignMemberFieldMapping',
+            'if' => 'mapToCampaignMember',
+            'dataLabel' => 'Campaign Member',
+            'dataKey' => 'campaignMember',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContactAttachments',
+            'label' => Craft::t('formie', 'Map Attachments'),
+            'instructions' => Craft::t('formie', 'Whether to map file-upload fields to attachments in Salesforce.'),
+            'if' => 'mapToContact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLeadAttachments',
+            'label' => Craft::t('formie', 'Map Attachments'),
+            'instructions' => Craft::t('formie', 'Whether to map file-upload fields to attachments in Salesforce.'),
+            'if' => 'mapToLead',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'duplicateLeadTask',
+            'label' => Craft::t('formie', 'Create Task on Duplicate Lead'),
+            'instructions' => Craft::t('formie', 'Whether to create a task on duplicate lead detected errors.'),
+            'if' => 'mapToLead',
+        ]);
+        $schema[] = SchemaHelper::textField([
+            'name' => 'duplicateLeadTaskSubject',
+            'label' => Craft::t('formie', 'Task Subject'),
+            'instructions' => Craft::t('formie', 'The task subject for duplicate lead tasks.'),
+            'if' => 'duplicateLeadTask',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunityAttachments',
+            'label' => Craft::t('formie', 'Map Attachments'),
+            'instructions' => Craft::t('formie', 'Whether to map file-upload fields to attachments in Salesforce.'),
+            'if' => 'mapToOpportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToAccountAttachments',
+            'label' => Craft::t('formie', 'Map Attachments'),
+            'instructions' => Craft::t('formie', 'Whether to map file-upload fields to attachments in Salesforce.'),
+            'if' => 'mapToAccount',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToCaseAttachments',
+            'label' => Craft::t('formie', 'Map Attachments'),
+            'instructions' => Craft::t('formie', 'Whether to map file-upload fields to attachments in Salesforce.'),
+            'if' => 'mapToCase',
+        ]);
+
+        return $schema;
+    }
+
 
     protected function processAttachments(Submission $submission, string $id): void
     {
@@ -719,6 +840,7 @@ class Salesforce extends Crm implements OAuthProviderInterface
                 }
 
                 // Step 2: Get ContentDocumentId from ContentVersion
+                $contentVersionId = $this->_escapeSoqlString((string)$contentVersionId);
                 $query = "SELECT ContentDocumentId FROM ContentVersion WHERE Id = '$contentVersionId'";
                 $response = $this->request('GET', 'query', [
                     'query' => ['q' => $query],
@@ -764,6 +886,11 @@ class Salesforce extends Crm implements OAuthProviderInterface
         ];
 
         return $fieldTypes[$fieldType] ?? IntegrationField::TYPE_STRING;
+    }
+
+    private function _escapeSoqlString(string $value): string
+    {
+        return addcslashes($value, "\\'");
     }
 
     private function _getCustomFields(array $fields, array $excludeNames = []): array

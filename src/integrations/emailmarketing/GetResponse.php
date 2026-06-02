@@ -31,7 +31,6 @@ class GetResponse extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -150,18 +149,6 @@ class GetResponse extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.getresponse.com/v3/',
-            'headers' => ['X-Auth-Token' => 'api-key ' . App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -171,6 +158,14 @@ class GetResponse extends EmailMarketing
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.getresponse.com/v3/',
+            'headers' => ['X-Auth-Token' => 'api-key ' . App::parseEnv($this->apiKey)],
+        ]);
+    }
+    
 
     // Private Methods
     // =========================================================================

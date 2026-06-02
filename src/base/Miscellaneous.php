@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
@@ -53,7 +54,7 @@ abstract class Miscellaneous extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/miscellaneous/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/miscellaneous/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -63,23 +64,18 @@ abstract class Miscellaneous extends Integration
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_plugin-settings", $variables);
     }
-
-    public function getFormSettingsHtml(Form|Stencil $form): string
-    {
-        $handle = $this->getClassHandle();
-        $variables = $this->getFormSettingsHtmlVariables($form);
-
-        return Craft::$app->getView()->renderTemplate("formie/integrations/miscellaneous/{$handle}/_form-settings", $variables);
-    }
-
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
-    {
-        return null;
-    }
-
+    
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = $this->getOptInFieldSchema();
+
+        return $schema;
+    }
 
     protected function generatePayloadValues(Submission $submission): array
     {

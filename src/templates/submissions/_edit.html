@@ -2,10 +2,7 @@
 {% import '_includes/forms' as forms %}
 {% import 'verbb-base/_macros' as macros %}
 
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
-
-{% set jsFile = view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/formie.js') %}
-{% do view.registerJsFile(jsFile) %}
+{% do craft.formie.getPlugin().registerCpSubmissionsAssets() -%}
 
 {% set isNew = submission.id ? false : true %}
 {% set form = submission.getForm() %}
@@ -33,7 +30,9 @@
 
 {% set bodyClass = 'fui-body fui-submission' %}
 {% set selectedSubnavItem = 'submissions' %}
-{% set saveShortcutRedirect = '{cpEditUrl}' %}
+{% set submissionsIndexUrl = cpUrl('formie/submissions') %}
+{% set saveShortcutRedirectParams = craft.app.getIsMultiSite() ? { site: submission.getSite().handle } : {} %}
+{% set saveShortcutRedirect = submission.id ? submission.getCpEditUrl() : cpUrl('formie/submissions/' ~ form.handle ~ '/{id}', saveShortcutRedirectParams) %}
 
 {% hook 'formie.cp.submissions.edit' %}
 
@@ -63,7 +62,7 @@
             {% if submission.id and submission.canDelete(currentUser) %}
                 <hr>
                 <ul>
-                    <li><a class="formsubmit error" data-action="formie/submissions/delete-submission" data-confirm="{{ 'Are you sure you want to delete this submission?' | t('formie') }}" data-redirect="{{ 'formie/submissions' | hash }}">{{ 'Delete' | t('app') }}</a></li>
+                    <li><a class="formsubmit error" data-action="formie/submissions/delete-submission" data-confirm="{{ 'Are you sure you want to delete this submission?' | t('formie') }}" data-redirect="{{ submissionsIndexUrl | hash }}">{{ 'Delete' | t('app') }}</a></li>
                 </ul>
             {% endif %}
         </div>
@@ -75,7 +74,8 @@
 {% block content %}
 
 {% set attributes = {
-    id: form.formId,
+    id: form.getRenderId(),
+    class: 'formie-form',
     'data-fui-form': formConfigJson,
 } %}
 
@@ -83,7 +83,7 @@
     <div class="fui-i">
         <input type="hidden" name="action" value="formie/submissions/save-submission">
         <input type="hidden" name="handle" value="{{ submission.form.handle }}">
-        {{ redirectInput('formie/submissions') }}
+        {{ redirectInput(submissionsIndexUrl) }}
         {{ csrfInput() }}
 
         {% if not isNew %}
@@ -98,13 +98,17 @@
             {% for page in submission.getPages() %}
                 <div id="page-{{ page.id }}"{% if not loop.first %} class="hidden"{% endif %}>
                     {% namespace 'fields' %}
-                        {% for row in page.getRows() %}
-                            {% for field in row.getFields() %}
-                                {% set value = submission.getFieldValue(field.fieldKey) %}
+                        <div class="formie-rows" data-formie-rows>
+                            {% for row in page.getRows() %}
+                                <div class="formie-row" data-formie-row data-formie-field-count="{{ row.getFields() | length }}">
+                                    {% for field in row.getFields() %}
+                                        {% set value = submission.getFieldValue(field.valueKey()) %}
 
-                                {{ field.getCpInputHtml(value, submission) }}
+                                        {{ field.getSubmissionHtml(value, submission) }}
+                                    {% endfor %}
+                                </div>
                             {% endfor %}
-                        {% endfor %}
+                        </div>
                     {% endnamespace %}
                 </div>
             {% endfor %}

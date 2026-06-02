@@ -1,0 +1,6 @@
+.formie-preview-frame {
+    width: 100%;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 12px;
+    background: #fff;
+}

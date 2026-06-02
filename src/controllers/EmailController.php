@@ -4,6 +4,7 @@ namespace verbb\formie\controllers;
 use verbb\formie\Formie;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\RichTextHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\Notification;
 
@@ -92,9 +93,11 @@ class EmailController extends Controller
         $request = $this->request;
         $formId = $request->getParam('formId');
         $handle = $request->getParam('handle');
+        $isStencil = StringHelper::toBoolean((string)$request->getParam('isStencil'));
 
-        // Create a new Notification model from this - it'll be a serialized array from Vue
+        // Create a new Notification model from this - it'll be a serialized array from React
         if ($notificationParams = $request->getParam('notification')) {
+            $notificationParams = $this->_normalizeNotificationParams($notificationParams);
             $notification->setAttributes($notificationParams, false);
         }
 
@@ -104,20 +107,48 @@ class EmailController extends Controller
         $notification->attachPdf = StringHelper::toBoolean((string)$notification->attachPdf);
         $notification->enableConditions = StringHelper::toBoolean((string)$notification->enableConditions);
 
-        // If a stencil, create a fake form
-        if (!$formId) {
-            $form = new Form();
-            $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
-
-            $stencil->applyStencilToForm($form);
-        } else {
+        // Prefer an explicit form ID when provided.
+        if ($formId) {
             $form = Formie::$plugin->getForms()->getFormById($formId);
+        } else {
+            $form = null;
+
+            // For stencil previews, hydrate a throwaway Form from the stencil.
+            if ($isStencil && $handle) {
+                $stencil = Formie::$plugin->getStencils()->getStencilByHandle($handle);
+
+                if ($stencil) {
+                    $form = new Form();
+                    $stencil->applyStencilToForm($form);
+                }
+            }
+
+            // Fallback for non-stencil previews/tests that only provide a handle.
+            if (!$form && $handle) {
+                $form = Formie::$plugin->getForms()->getFormByHandle($handle);
+            }
         }
 
-        // Create a fake submission for this form.
+        // Keep preview/test resilient when form context cannot be resolved.
+        if (!$form) {
+            $form = new Form();
+        }
+
+        // Always hydrate a fake submission so preview rendering can resolve the
+        // same field references and sample values as a real send.
         $submission->setForm($form);
 
         // Populate all fields with fake content
         Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+    }
+
+    private function _normalizeNotificationParams(array $notificationParams): array
+    {
+        // React form state can post rich-text content as node arrays, but Notification::$content is typed string.
+        if (array_key_exists('content', $notificationParams) && is_array($notificationParams['content'])) {
+            $notificationParams['content'] = RichTextHelper::getHtmlContent($notificationParams['content'], null, false);
+        }
+
+        return $notificationParams;
     }
 }

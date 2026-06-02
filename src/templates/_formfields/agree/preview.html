@@ -1,6 +1,6 @@
-<div class="fui-field-checkbox">
-    <input type="checkbox" :checked="field.settings.defaultValue" />
+<div className="formie-field-preview-checkbox">
+    <input type="checkbox" defaultChecked={field.defaultValue} />
     <label>
-        <html-blocks :content="field.settings.description" />
+        <Components.TiptapContent value={field.description || ''} />
     </label>
 </div>

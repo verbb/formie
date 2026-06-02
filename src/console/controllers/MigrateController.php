@@ -1,9 +1,9 @@
 <?php
 namespace verbb\formie\console\controllers;
 
-use verbb\formie\migrations\MigrateFreeform4;
-use verbb\formie\migrations\MigrateFreeform5;
-use verbb\formie\migrations\MigrateSproutForms;
+use verbb\formie\migrations\plugins\MigrateFreeform4;
+use verbb\formie\migrations\plugins\MigrateFreeform5;
+use verbb\formie\migrations\plugins\MigrateSproutForms;
 
 use craft\console\Controller;
 use craft\helpers\Console;
@@ -41,7 +41,7 @@ class MigrateController extends Controller
     /**
      * Migrates Sprout Forms forms to Formie forms.
      */
-    public function actionMigrateSproutForms(): int
+    public function actionSproutForms(): int
     {
         $formIds = SproutFormsForm::find()->ids();
 
@@ -55,8 +55,8 @@ class MigrateController extends Controller
             $this->stderr('Migrating Sprout Forms form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
             $migration = new MigrateSproutForms(['formId' => $formId]);
-            $migration->setConsoleRequest($this);
-            $migration->up();
+            $result = $migration->run();
+            $this->renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
@@ -65,7 +65,7 @@ class MigrateController extends Controller
     /**
      * Migrates Solspace Freeform 4 forms to Formie forms.
      */
-    public function actionMigrateFreeform4(): int
+    public function actionFreeform4(): int
     {
         $formIds = Freeform::getInstance()->forms->getAllFormIds();
 
@@ -83,8 +83,8 @@ class MigrateController extends Controller
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
             $migration = new MigrateFreeform4(['formId' => $formId]);
-            $migration->setConsoleRequest($this);
-            $migration->up();
+            $result = $migration->run();
+            $this->renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
@@ -93,7 +93,7 @@ class MigrateController extends Controller
     /**
      * Migrates Solspace Freeform 5 forms to Formie forms.
      */
-    public function actionMigrateFreeform5(): int
+    public function actionFreeform5(): int
     {
         $formIds = Freeform::getInstance()->forms->getAllFormIds();
 
@@ -111,10 +111,30 @@ class MigrateController extends Controller
             $this->stderr('Migrating Freeform form #' . $formId . PHP_EOL, Console::FG_GREEN);
 
             $migration = new MigrateFreeform5(['formId' => $formId]);
-            $migration->setConsoleRequest($this);
-            $migration->up();
+            $result = $migration->run();
+            $this->renderMigrationLines($result->lines);
         }
 
         return ExitCode::OK;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function renderMigrationLines(array $lines): void
+    {
+        foreach ($lines as $line) {
+            $color = match ($line->level ?? 'info') {
+                'success' => Console::FG_GREEN,
+                'warning' => Console::FG_YELLOW,
+                'error' => Console::FG_RED,
+                default => Console::FG_GREY,
+            };
+
+            $prefix = ($line->depth ?? 0) > 0 ? '> ' : '';
+
+            $this->stdout($prefix . (string)($line->message ?? '') . PHP_EOL, $color);
+        }
     }
 }

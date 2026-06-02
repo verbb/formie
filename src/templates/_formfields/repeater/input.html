@@ -1,36 +1,58 @@
 {% extends 'formie/_formfields/field' %}
 
 {% set id = 'formie-repeater-' ~ random() %}
+{% set templateId = id ~ '-template' %}
 
 {% block field %}
 
 {% namespace field.handle %}
-    <div id="{{ id }}" class="fui-repeater-rows" data-repeater-rows>
-        {% for row in value %}
-            {% include 'formie/_formfields/repeater/fields' with {
-                index: loop.index0,
-                value: row,
-            } %}
-        {% endfor %}
+    <div
+        class="formie-field-layout formie-repeater-field-layout"
+        data-formie-repeater-field-layout
+        data-formie-template-id="{{ templateId }}"
+    >
+        <div
+            id="{{ id }}"
+            class="formie-repeater-container"
+            data-repeater-rows
+            data-formie-repeater-container
+        >
+            {% for row in value %}
+                {% include 'formie/_formfields/repeater/fields' with {
+                    index: loop.index0,
+                    value: row,
+                } %}
+            {% endfor %}
+        </div>
+
+        {% set buttonAttributes = {
+            class: 'btn formie-button formie-repeater-add-button',
+            type: 'button',
+            data: {
+                'min-rows': field.minRows,
+                'max-rows': field.maxRows,
+                'add-repeater-row': field.handle,
+                'formie-min-rows': field.minRows,
+                'formie-max-rows': field.maxRows,
+                'formie-repeater-add': field.handle,
+                'formie-template-id': templateId,
+            }
+        } %}
+
+        <button {{ attr(buttonAttributes) }}>
+            {{ field.addLabel }}
+        </button>
+
+        <script
+            id="{{ templateId }}"
+            type="text/template"
+            data-repeater-template="{{ field.handle }}"
+            data-formie-repeater-template
+            data-formie-template-id="{{ templateId }}"
+        >
+            {% include 'formie/_formfields/repeater/fields' %}
+        </script>
     </div>
-
-    {% set buttonAttributes = {
-        class: 'btn add icon',
-        type: 'button',
-        data: {
-            'min-rows': field.minRows,
-            'max-rows': field.maxRows,
-            'add-repeater-row': field.handle,
-        }
-    } %}
-
-    <button {{ attr(buttonAttributes) }}>
-        {{ field.addLabel }}
-    </button>
-
-    <script type="text/template" data-repeater-template="{{ field.handle }}">
-        {% include 'formie/_formfields/repeater/fields' %}
-    </script>
 {% endnamespace %}
 
 {% endblock %}
@@ -45,8 +67,10 @@
         var $repeaterField = $repeaterRows.parentNode;
 
         if ($repeaterField) {
-            $repeaterField.addEventListener('append', function(e) {
-                var id = 'new' + e.detail.repeater.getNumRows();
+            $repeaterField.addEventListener('formie:field:repeater:append', function(e) {
+                var repeaterField = e.detail.repeater;
+                var rowCount = repeaterField ? repeaterField.querySelectorAll('[data-formie-repeater-item]').length : 0;
+                var id = 'new' + rowCount;
                 var js = '{{ footHtml | e('js') }}'.replace(/__ROW__/g, id);
                 
                 Craft.appendBodyHtml(js);

@@ -33,7 +33,6 @@ class Omnisend extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -140,18 +139,6 @@ class Omnisend extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.omnisend.com/v3/',
-            'headers' => ['X-API-KEY' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -160,4 +147,13 @@ class Omnisend extends EmailMarketing
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.omnisend.com/v3/',
+            'headers' => ['X-API-KEY' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
 }

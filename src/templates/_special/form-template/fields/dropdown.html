@@ -1,7 +1,10 @@
 {% set hasOptgroups = false %}
 
+{# Allow passing in a set list of options #}
+{% set fieldOptions = fieldOptions ?? field.getFieldOptions() %}
+
 {% fieldtag 'fieldInput' %}
-    {% for option in field.getFieldOptions() %}
+    {% for option in fieldOptions %}
         {% if option.optgroup is defined %}
             {% if hasOptgroups %}
                 </optgroup>

@@ -2,15 +2,19 @@
 namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\Json;
+
+use League\HTMLToMarkdown\HtmlConverter;
 
 use Throwable;
 
@@ -159,7 +163,45 @@ class Trello extends Miscellaneous implements OAuthProviderInterface
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedBoardId = (string)($this->boardId ?? '');
+        if ($selectedBoardId === '') {
+            $selectedBoardId = $this->_getFirstBoardId();
+        }
 
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'boardId',
+            'label' => Craft::t('formie', 'Board'),
+            'instructions' => Craft::t('formie', 'Select which {name} board to add a card to.', ['name' => $this->displayName()]),
+            'required' => true,
+            'options' => $this->_getBoardOptions(),
+        ]);
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'listId',
+            'label' => Craft::t('formie', 'List'),
+            'instructions' => Craft::t('formie', 'Select which {name} list to add a card to.', ['name' => $this->displayName()]),
+            'required' => true,
+            'options' => $this->_getListOptions($selectedBoardId),
+        ]);
+        $schema[] = SchemaHelper::textField([
+            'name' => 'cardName',
+            'label' => Craft::t('formie', 'Card Name'),
+            'instructions' => Craft::t('formie', 'This text will be sent to {name}.', ['name' => $this->displayName()]),
+            'required' => true,
+        ]);
+        $schema[] = SchemaHelper::richTextField([
+            'name' => 'cardDescription',
+            'label' => Craft::t('formie', 'Card Description'),
+            'instructions' => Craft::t('formie', 'This text will be sent to {name}.', ['name' => $this->displayName()]),
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+
+    
     // Private Methods
     // =========================================================================
 

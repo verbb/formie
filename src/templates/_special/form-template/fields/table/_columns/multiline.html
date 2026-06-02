@@ -1,5 +1,6 @@
-{{ fieldtag('tableMultilineInput', {
+{% fieldtag 'tableMultilineInput' with {
     id: rowId,
-    text: row[colId] ?? '',
     name: field.getHtmlName("#{index}[#{colId}]"),
-}) }}
+} %}
+    {{- row[colId] ?? '' -}}
+{% endfieldtag %}

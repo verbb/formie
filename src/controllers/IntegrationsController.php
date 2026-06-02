@@ -2,8 +2,11 @@
 namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\elements\Form;
 use verbb\formie\errors\IntegrationException;
+use verbb\formie\models\IntegrationSettingsContext;
 
 use Craft;
 use craft\helpers\Json;
@@ -133,23 +136,74 @@ class IntegrationsController extends Controller
     {
         $this->requirePostRequest();
 
-        $request = $this->request;
-        $handle = $request->getParam('integration');
-        $settings = $request->getParam('settings');
+        try {
+            $request = $this->request;
+            $handle = $request->getParam('integration');
+            $settings = $request->getParam('settings');
 
-        if (!$handle) {
-            return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+            if (!$handle) {
+                return $this->asFailure(Craft::t('formie', 'Unknown integration: “{handle}”', ['handle' => $handle]));
+            }
+
+            $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+
+            // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
+            if ($settings) {
+                $integration->setAttributes($settings, false);
+            }
+
+            // Apply any extra settings to the integration, useful when fetching specific data objects
+            $integration->settingsContext = new IntegrationSettingsContext([
+                'dataKey' => $request->getParam('dataKey'),
+            ]);
+
+            // Handball to the integration class to deal with the return.
+            return $this->asJson($integration->getFormSettings(false)->getSettings());
+        } catch (Throwable $e) {
+            throw $e;
         }
+    }
 
-        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle);
+    public function actionGetIntegrationFormSettingsConfig(): Response
+    {
+        $this->requireAcceptsJson();
 
-        // Apply any settings provided by the payload. Particularly if we're enabling/disabling objects to fetch for.
-        if ($settings) {
-            $integration->setAttributes($settings, false);
+        try {
+            $handle = (string)($this->request->getBodyParam('handle') ?? $this->request->getQueryParam('handle') ?? '');
+            $formId = (int)($this->request->getBodyParam('formId') ?? $this->request->getQueryParam('formId') ?? 0);
+
+            $handle = trim($handle);
+
+            if ($handle === '') {
+                throw new BadRequestHttpException('Missing required param: handle.');
+            }
+            if ($formId <= 0) {
+                throw new BadRequestHttpException('Missing or invalid param: formId.');
+            }
+
+            $form = Craft::$app->getElements()->getElementById($formId, Form::class);
+
+            if (!$form) {
+                $form = Formie::$plugin->getStencils()->getStencilById($formId);
+            }
+
+            if (!($form instanceof FormInterface)) {
+                throw new BadRequestHttpException('Form or stencil not found.');
+            }
+
+            $config = Formie::$plugin->getIntegrations()->getIntegrationFormSettingsConfig($handle, $form);
+
+            if ($config === null) {
+                return $this->asJson([
+                    'success' => false,
+                    'message' => Craft::t('formie', 'Unknown integration: “{handle}”.', ['handle' => $handle]),
+                ]);
+            }
+
+            return $this->asJson($config);
+        } catch (Throwable $e) {
+            throw $e;
         }
-
-        // Handball to the integration class to deal with the return
-        return $this->asJson($integration->getFormSettings(false)->getSettings());
     }
 
     public function actionCheckConnection(): Response
@@ -157,14 +211,35 @@ class IntegrationsController extends Controller
         $this->requirePostRequest();
 
         $request = $this->request;
-        $type = $request->getParam('type');
-        $integrationId = $request->getParam('id');
+        $type = (string)$request->getParam('type');
+        $integrationId = (int)$request->getParam('id');
 
         if (!$integrationId) {
             return $this->asFailure(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
         }
 
         $integration = Formie::$plugin->getIntegrations()->getIntegrationById($integrationId);
+        if (!$integration) {
+            return $this->asFailure(Craft::t('formie', 'Unknown integration: “{id}”', ['id' => $integrationId]));
+        }
+
+        // Build a temporary integration instance with the currently posted settings
+        // so connection checks reflect unsaved values.
+        $settings = $request->getParam('types.' . $type, []);
+        if ($type && is_array($settings)) {
+            $integrationData = [
+                'id' => $integration->id,
+                'name' => $request->getParam('name', $integration->name),
+                'handle' => $request->getParam('handle', $integration->handle),
+                'type' => $type,
+                'sortOrder' => $integration->sortOrder,
+                'enabled' => (bool)$request->getParam('enabled', $integration->enabled),
+                'settings' => array_merge($integration->settings ?? [], $settings),
+                'uid' => $integration->uid,
+            ];
+
+            $integration = Formie::$plugin->getIntegrations()->createIntegration($integrationData);
+        }
 
         if (!$integration::supportsConnection()) {
             return $this->asFailure(Craft::t('formie', '“{id}” does not support connection.', ['id' => $integrationId]));
@@ -175,8 +250,8 @@ class IntegrationsController extends Controller
             return $this->asJson([
                 'success' => $integration->checkConnection(false),
             ]);
-        } catch (IntegrationException $e) {
-            return $this->asFailure($e->getMessage());
+        } catch (Throwable $e) {
+            throw $e;
         }
     }
 

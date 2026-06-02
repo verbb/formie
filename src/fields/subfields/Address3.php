@@ -1,15 +1,15 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\Formie;
-use verbb\formie\base\Integration;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\SingleLineText;
-use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Html;
+use verbb\formie\models\SlotTag;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 
-class Address3 extends SingleLineText implements SubFieldInnerFieldInterface
+class Address3 extends SingleLineText implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -19,13 +19,31 @@ class Address3 extends SingleLineText implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Address 3');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/single-line-text';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/single-line-text';
+    }
+
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($tag && $key === 'fieldInput') {
+            $tag->mergeCoreAttributes([
+                'autocomplete' => 'address-line3',
+                'data-address3' => true,
+            ]);
+        }
+
+        return $tag;
     }
 }

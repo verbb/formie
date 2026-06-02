@@ -1,0 +1,2 @@
+export declare const FRONTEND_CLIENT_EVENT_NAMES: readonly ["formie:client:ready", "formie:submit:result", "formie:page:navigate", "formie:page:navigate:error", "formie:session:refreshed", "formie:session:refresh:error", "formie:state:reset"];
+//# sourceMappingURL=event-names.d.ts.map

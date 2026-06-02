@@ -16,20 +16,6 @@
         Craft.Formie = {};
     }
 
-    {% set editableForms = [] %}
-
-    {% for form in craft.formie.forms.all() %}
-        {% if currentUser.can('formie-createSubmissions') or currentUser.can('formie-createSubmissions:' ~ form.uid) %}
-            {% set editableForms = editableForms | merge([{
-                id: form.id,
-                handle: form.handle,
-                name: form.title,
-                sites: craft.app.sites.allSiteIds(),
-                uid: form.uid,
-            }]) %}
-        {% endif %}
-    {% endfor %}
-
     Craft.Formie.editableForms = {{ editableForms | json_encode() | raw }};
     Craft.Formie.defaultState = {{ defaultState | json_encode() | raw }};
 
@@ -37,3 +23,34 @@
         window.defaultFormieFormHandle = '{{ formHandle }}';
     {% endif %}
 {% endjs %}
+
+{% block initJs %}
+    (() => {
+        const initSubmissionIndex = (attempt = 0) => {
+            // The submissions asset is loaded as a module, so wait for it before
+            // creating the index instead of booting Craft's stock element index.
+            if (!Craft.Formie?.SubmissionIndex) {
+                if (attempt < 100) {
+                    setTimeout(() => initSubmissionIndex(attempt + 1), 25);
+                }
+
+                return;
+            }
+
+            Craft.elementIndex = Craft.createElementIndex('{{ elementType|e("js") }}', $('#page-container'), {
+                canHaveDrafts: {{ canHaveDrafts ? 'true' : 'false' }},
+                context: '{{ context }}',
+                criteria: Craft.defaultIndexCriteria,
+                defaultSource: {{ (defaultSource ?? null)|json_encode|raw }},
+                defaultSourcePath: {{ (defaultSourcePath ?? null)|json_encode|raw }},
+                elementTypeName: '{{ elementDisplayName|e("js") }}',
+                elementTypePluralName: '{{ elementPluralDisplayName|e("js") }}',
+                page: {{ (page ?? null)|json_encode|raw }},
+                storageKey: 'elementindex.{{ elementType|e("js") }}',
+                toolbarSelector: '#toolbar',
+            });
+        };
+
+        initSubmissionIndex();
+    })();
+{% endblock %}

@@ -6,33 +6,35 @@ use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\fields\conditions\OptionsFieldConditionRule;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\gql\arguments\OptionFieldArguments;
 use verbb\formie\gql\resolvers\OptionFieldResolver;
 use verbb\formie\gql\types\generators\FieldOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables as FormieVariables;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
 
 use Craft;
-use craft\base\InlineEditableFieldInterface;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\db\QueryParam;
 use craft\helpers\Json;
 
+use yii\db\ExpressionInterface;
 use yii\db\Schema;
 
 use GraphQL\Type\Definition\Type;
 
 use Throwable;
 
-abstract class OptionsField extends Field implements InlineEditableFieldInterface, OptionsFieldInterface, PreviewableFieldInterface
+abstract class OptionsField extends Field implements OptionsFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -42,36 +44,240 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         return Schema::TYPE_STRING;
     }
 
-    public static function queryCondition(array $instances, mixed $value, array &$params): ?array
+    public static function supportsGqlConfigProvider(): bool
     {
-        $field = $instances[0] ?? null;
+        return true;
+    }
 
-        if ($field && $field->multi) {
-            $param = QueryParam::parse($value);
+    public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
+    {
+        $firstInstance = $instances[0] ?? null;
 
-            if (empty($param->values)) {
-                return null;
-            }
-
-            if ($param->operator === QueryParam::NOT) {
-                $param->operator = QueryParam::OR;
-                $negate = true;
-            } else {
-                $negate = false;
-            }
-
-            $condition = [$param->operator];
-            $qb = Craft::$app->getDb()->getQueryBuilder();
-            $valueSql = static::valueSql($instances);
-
-            foreach ($param->values as $value) {
-                $condition[] = $qb->jsonContains($valueSql, $value);
-            }
-
-            return $negate ? ['not', $condition] : $condition;
+        if (!$firstInstance instanceof self) {
+            return parent::queryCondition($instances, $value, $params);
         }
 
-        return parent::queryCondition($instances, $value, $params);
+        if ($firstInstance->multi) {
+            $condition = self::_buildMultiOptionQueryCondition($instances, $value);
+
+            if ($condition !== null) {
+                return $condition;
+            }
+
+            return parent::queryCondition($instances, $value, $params);
+        }
+
+        $resolvedValue = self::_resolveSingleOptionCriteriaValue($instances, $value);
+
+        if ($resolvedValue === false) {
+            return false;
+        }
+
+        return parent::queryCondition($instances, $resolvedValue, $params);
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        $settings = self::_getOptionsFieldConfigSettings($config);
+
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => !empty($settings['multi']) ? Type::listOf(Type::string()) : Type::string(),
+            'args' => OptionFieldArguments::getArguments(),
+            'resolve' => OptionFieldResolver::class . '::resolve',
+        ];
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        $settings = self::_getOptionsFieldConfigSettings($config);
+
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => !empty($settings['multi']) ? Type::listOf(Type::string()) : Type::string(),
+            'description' => Craft::t('app', 'The allowed values are [{values}]', [
+                'values' => implode(', ', self::_getOptionConfigLabels($settings)),
+            ]),
+        ];
+    }
+
+    private static function _resolveSingleOptionCriteriaValue(array $instances, mixed $value): mixed
+    {
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        if (array_key_exists('value', $value)) {
+            $resolvedValue = $value['value'];
+
+            if (array_key_exists('caseInsensitive', $value)) {
+                return [
+                    'value' => $resolvedValue,
+                    'caseInsensitive' => (bool)$value['caseInsensitive'],
+                ];
+            }
+
+            return $resolvedValue;
+        }
+
+        if (!array_key_exists('label', $value)) {
+            return $value;
+        }
+
+        $labels = array_values(array_filter(array_map(static fn($label) => (string)$label, (array)$value['label']), static fn(string $label) => $label !== ''));
+        $caseInsensitive = (bool)($value['caseInsensitive'] ?? false);
+
+        if (!$labels) {
+            return false;
+        }
+
+        $matchedValues = self::_resolveOptionValuesByLabels($instances, $labels, $caseInsensitive);
+
+        if (!$matchedValues) {
+            return false;
+        }
+
+        $resolvedValue = count($matchedValues) === 1 ? $matchedValues[0] : $matchedValues;
+
+        if ($caseInsensitive) {
+            return [
+                'value' => $resolvedValue,
+                'caseInsensitive' => true,
+            ];
+        }
+
+        return $resolvedValue;
+    }
+
+    private static function _resolveOptionValuesByLabels(array $instances, array $labels, bool $caseInsensitive): array
+    {
+        $labelsLookup = [];
+
+        foreach ($labels as $label) {
+            $labelsLookup[$caseInsensitive ? StringHelper::toLowerCase($label) : $label] = true;
+        }
+
+        $matchedValues = [];
+
+        foreach ($instances as $instance) {
+            if (!$instance instanceof self) {
+                continue;
+            }
+
+            foreach ($instance->options() as $option) {
+                if (isset($option['optgroup'])) {
+                    continue;
+                }
+
+                $optionLabel = (string)($option['label'] ?? '');
+                $lookupLabel = $caseInsensitive ? StringHelper::toLowerCase($optionLabel) : $optionLabel;
+
+                if (!isset($labelsLookup[$lookupLabel])) {
+                    continue;
+                }
+
+                $matchedValues[] = (string)($option['value'] ?? '');
+            }
+        }
+
+        return array_values(array_unique($matchedValues));
+    }
+
+    private static function _getOptionsFieldConfigSettings(array $config): array
+    {
+        $settings = Json::decodeIfJson($config['settings'] ?? null);
+
+        return is_array($settings) ? $settings : [];
+    }
+
+    private static function _getOptionConfigLabels(array $settings): array
+    {
+        $values = [];
+
+        // Schema generation only needs the option metadata, so pull that directly from the
+        // normalized config payload instead of creating a field instance just to iterate options().
+        foreach ($settings['options'] ?? [] as $option) {
+            if (!is_array($option) || isset($option['optgroup'])) {
+                continue;
+            }
+
+            $values[] = '“' . ($option['value'] ?? '') . '”';
+        }
+
+        return $values;
+    }
+
+    private static function _buildMultiOptionQueryCondition(array $instances, mixed $value): array|string|ExpressionInterface|false|null
+    {
+        $valueSql = self::valueSql($instances);
+
+        if ($valueSql === null) {
+            return false;
+        }
+
+        $resolvedValues = self::_resolveMultiOptionCriteriaValues($instances, $value);
+
+        if ($resolvedValues === false) {
+            return false;
+        }
+
+        if ($resolvedValues === null) {
+            return null;
+        }
+
+        if (!$resolvedValues) {
+            return false;
+        }
+
+        $qb = Craft::$app->getDb()->getQueryBuilder();
+
+        if (count($resolvedValues) === 1) {
+            return $qb->jsonContains($valueSql, reset($resolvedValues));
+        }
+
+        // Multi-value criteria means "submission includes all of these options".
+        return [
+            'and',
+            ...array_map(static fn(string $resolvedValue) => $qb->jsonContains($valueSql, $resolvedValue), $resolvedValues),
+        ];
+    }
+
+    private static function _resolveMultiOptionCriteriaValues(array $instances, mixed $value): array|false|null
+    {
+        if (!is_array($value)) {
+            if (is_object($value) || is_resource($value) || $value === null) {
+                return false;
+            }
+
+            $scalar = (string)$value;
+
+            if ($scalar === '') {
+                return false;
+            }
+
+            return [(string)$scalar];
+        }
+
+        if (array_key_exists('value', $value)) {
+            $values = array_values(array_filter(array_map(static fn($item) => (string)$item, (array)$value['value']), static fn(string $item) => $item !== ''));
+
+            return $values ?: false;
+        }
+
+        if (array_key_exists('label', $value)) {
+            $labels = array_values(array_filter(array_map(static fn($label) => (string)$label, (array)$value['label']), static fn(string $label) => $label !== ''));
+            $caseInsensitive = (bool)($value['caseInsensitive'] ?? false);
+
+            if (!$labels) {
+                return false;
+            }
+
+            $resolvedValues = self::_resolveOptionValuesByLabels($instances, $labels, $caseInsensitive);
+
+            return $resolvedValues ?: false;
+        }
+
+        return null;
     }
 
 
@@ -82,8 +288,8 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
     public ?string $layout = null;
     public array $options = [];
     public bool $optgroups = false;
+    public ?string $emailFieldSummaryValue = 'label';
     public bool $hasMultiNamespace = false;
-    public ?string $emailValue = 'label';
 
 
     // Public Methods
@@ -106,15 +312,15 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
                     $options[] = [
                         'label' => $option,
                         'value' => $key,
-                        'isDefault' => '',
+                        'default' => '',
                     ];
-                } elseif (!empty($option['isOptgroup'])) {
-                    // isOptgroup will be set if this is a settings request
+                } elseif (!empty($option['optgroup'])) {
+                    // optgroup will be set if this is a settings request
                     $options[] = [
-                        'optgroup' => $option['label'],
+                        'optgroup' => $option['label'] ?? $option['optgroup'],
                     ];
                 } else {
-                    unset($option['isOptgroup']);
+                    unset($option['optgroup']);
                     $options[] = $option;
                 }
             }
@@ -206,19 +412,9 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         }
     }
 
-    public function normalizeValueFromRequest(mixed $value, ?ElementInterface $element = null): mixed
-    {
-        return $this->_normalizeOptionValue($value, $element, false);
-    }
-
     public function normalizeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        return $this->_normalizeOptionValue($value, $element, true);
-    }
-
-    protected function _normalizeOptionValue(mixed $value, ?ElementInterface $element = null, bool $applyFreshDefault = true): mixed
-    {
-        if ($value instanceof MultiOptionsFieldData || $value instanceof SingleOptionFieldData) {
+        if ($value instanceof MultiOptionFieldValue || $value instanceof SingleOptionFieldValue) {
             return $value;
         }
 
@@ -231,71 +427,98 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
             $value = Json::decodeIfJson($value);
         } else if (is_string($value) && strtolower($value) === '__blank__') {
             $value = '';
-        } else if ($applyFreshDefault && empty($value) && $this->isFresh($element)) {
+        } elseif ($value === null && $this->isFresh($element)) {
             $value = $this->defaultValue();
         }
 
-        // Normalize to an array of strings
+        // Normalize incoming value(s) to a list of selected scalar values.
         $selectedValues = [];
 
-        foreach ((array)$value as $val) {
-            $selectedValues[] = (string)$val;
+        if ($value instanceof MultiOptionFieldValue) {
+            $selectedValues = $value->values();
+        } else if ($value instanceof SingleOptionFieldValue) {
+            $selectedValues = [$value->value ?? ''];
+        } else if ($value instanceof OptionValue) {
+            $selectedValues = [$value->value ?? ''];
+        } else if (is_array($value)) {
+            foreach ($value as $val) {
+                if ($val instanceof OptionValue) {
+                    $selectedValues[] = (string)($val->value ?? '');
+                    continue;
+                }
+
+                if (is_array($val) && array_key_exists('value', $val)) {
+                    $selectedValues[] = (string)$val['value'];
+                    continue;
+                }
+
+                if (is_scalar($val) || $val === null) {
+                    $selectedValues[] = (string)$val;
+                }
+            }
+        } else if (is_scalar($value) || $value === null) {
+            $selectedValues[] = (string)$value;
         }
 
-        $selectedBlankOption = false;
+        // Treat blank selections as no selection for option fields.
+        $selectedValues = array_values(array_filter(
+            array_map(static fn($item) => (string)$item, $selectedValues),
+            static fn(string $item) => $item !== ''
+        ));
+
         $options = [];
-        $optionValues = [];
-        $optionLabels = [];
+        $optionLabelsByValue = [];
 
         foreach ($this->options() as $option) {
-            if (!isset($option['optgroup'])) {
-                $selected = $this->isOptionSelected($option, $value, $selectedValues, $selectedBlankOption);
-                $options[] = new OptionData($option['label'], (string)$option['value'], $selected, true);
-                $optionValues[] = (string)$option['value'];
-                $optionLabels[] = (string)$option['label'];
+            if (isset($option['optgroup'])) {
+                continue;
+            }
+
+            $optionValue = (string)($option['value'] ?? '');
+            $optionLabel = (string)($option['label'] ?? '');
+            $selected = in_array($optionValue, $selectedValues, true);
+
+            $options[] = new OptionValue($optionLabel, $optionValue, $selected, true);
+
+            if (!array_key_exists($optionValue, $optionLabelsByValue)) {
+                $optionLabelsByValue[$optionValue] = $optionLabel;
             }
         }
 
-        if ($this->multi) {
-            // Convert the value to a MultiOptionsFieldData object
+        if ($this->multi && !empty($selectedValues)) {
             $selectedOptions = [];
 
             foreach ($selectedValues as $selectedValue) {
-                $index = array_search($selectedValue, $optionValues, true);
-                $valid = $index !== false;
-                $label = $valid ? $optionLabels[$index] : null;
-                $selectedOptions[] = new OptionData($label, $selectedValue, true, $valid);
+                $selectedValue = (string)$selectedValue;
+                $valid = array_key_exists($selectedValue, $optionLabelsByValue);
+                $label = $valid ? $optionLabelsByValue[$selectedValue] : null;
+
+                $selectedOptions[] = new OptionValue($label, $selectedValue, true, $valid);
             }
 
-            $value = new MultiOptionsFieldData($selectedOptions);
+            $normalizedValue = new MultiOptionFieldValue($selectedOptions);
         } else if (!empty($selectedValues)) {
-            // Convert the value to a SingleOptionFieldData object
-            $selectedValue = reset($selectedValues);
-            $index = array_search($selectedValue, $optionValues, false);
-            $valid = $index !== false;
-            $label = $valid ? $optionLabels[$index] : null;
-            $value = new SingleOptionFieldData($label, $selectedValue, true, $valid);
+            $selectedValue = (string)reset($selectedValues);
+            $valid = array_key_exists($selectedValue, $optionLabelsByValue);
+            $label = $valid ? $optionLabelsByValue[$selectedValue] : null;
+
+            $normalizedValue = new SingleOptionFieldValue($label, $selectedValue, true, $valid);
         } else {
-            $value = new SingleOptionFieldData(null, null, true, false);
+            $normalizedValue = null;
         }
 
-        $value->setOptions($options);
+        if ($normalizedValue) {
+            $normalizedValue->setOptions($options);
+        }
 
-        return $value;
+        return $normalizedValue;
     }
 
     public function serializeValue(mixed $value, ?ElementInterface $element = null): mixed
     {
-        if ($value instanceof MultiOptionsFieldData) {
-            $serialized = [];
-
-            foreach ($value as $selectedValue) {
-                /** @var OptionData $selectedValue */
-                $serialized[] = $selectedValue->value;
-            }
-
-            return $serialized;
-        } else if ($value instanceof SingleOptionFieldData) {
+        if ($value instanceof MultiOptionFieldValue) {
+            return $value->values();
+        } else if ($value instanceof SingleOptionFieldValue) {
             return $value->value;
         }
 
@@ -319,20 +542,19 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
             }
         }
 
-        $rules[] = ['in', 'range' => $range, 'allowArray' => $this->multi];
+        $rules[] = [$this->handle, 'in', 'range' => $range, 'allowArray' => $this->multi];
 
         return $rules;
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        /** @var MultiOptionsFieldData|SingleOptionFieldData $value */
-        if ($value instanceof SingleOptionFieldData) {
-            return $value->value === null || $value->value === '';
+        if ($value === null) {
+            return true;
         }
 
-        if ($value instanceof MultiOptionsFieldData) {
-            return count($value) === 0;
+        if ($value instanceof MultiOptionFieldValue || $value instanceof SingleOptionFieldValue) {
+            return $value->isEmpty();
         }
 
         return parent::isValueEmpty($value, $element);
@@ -341,21 +563,28 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
     public function getPreviewHtml(mixed $value, ElementInterface $element): string
     {
         if ($this->multi) {
-            /** @var MultiOptionsFieldData $value */
+            if (!($value instanceof MultiOptionFieldValue)) {
+                return '';
+            }
+
+            /** @var MultiOptionFieldValue $value */
             $labels = [];
 
             foreach ($value as $option) {
-                /** @var OptionData $option */
+                /** @var OptionValue $option */
                 if ($option->value) {
                     $labels[] = Craft::t('site', $option->label);
                 }
             }
 
-            return implode(', ', $labels);
+            return $this->renderPreviewText(implode(', ', $labels));
         }
 
-        /** @var SingleOptionFieldData $value */
-        return $value->value ? Craft::t('site', (string)$value->label) : '';
+        if (!($value instanceof SingleOptionFieldValue)) {
+            return '';
+        }
+
+        return $value->value ? $this->renderPreviewText(Craft::t('site', (string)$value->label)) : '';
     }
 
     public function getIsMultiOptionsField(): bool
@@ -427,56 +656,135 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
-        if ($value instanceof MultiOptionsFieldData) {
-            return implode(', ', array_map(function($item) {
-                return $item->value;
-            }, (array)$value));
+        if ($value instanceof MultiOptionFieldValue) {
+            return implode(', ', $value->values());
         }
 
-        return $value->value ?? '';
+        if ($value instanceof SingleOptionFieldValue) {
+            return $value->value ?? '';
+        }
+
+        return '';
+    }
+
+    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
+    {
+        if ($value instanceof MultiOptionFieldValue) {
+            return $value->values();
+        }
+
+        if ($value instanceof SingleOptionFieldValue) {
+            return ($value->value !== null && $value->value !== '') ? [$value->value] : [];
+        }
+
+        return [];
     }
 
     protected function defineValueForIntegration(mixed $value, IntegrationField $integrationField, IntegrationInterface $integration, ElementInterface $element = null, string $fieldKey = ''): mixed
     {
         // If mapping to an array, extract just the values
         if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            if ($value instanceof MultiOptionsFieldData) {
-                return array_map(function($item) {
-                    return $item->value;
-                }, (array)$value);
+            if ($value instanceof MultiOptionFieldValue) {
+                return $value->values();
             }
 
-            return [$value->value];
+            if ($value instanceof SingleOptionFieldValue) {
+                return [$value->value];
+            }
+
+            return [];
         }
 
         // Fetch the default handling
         return parent::defineValueForIntegration($value, $integrationField, $integration, $element);
     }
 
+    protected function defineReferenceValues(): array
+    {
+        $primaryTypes = $this->definePrimaryOptionVariableSourceTypes();
+
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => $primaryTypes,
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'label',
+                'label' => Craft::t('formie', 'Label'),
+                'supportsClient' => false,
+                'variableTypes' => [FormieVariables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'value',
+                'label' => Craft::t('formie', 'Value'),
+                'supportsClient' => false,
+                'variableTypes' => $primaryTypes,
+            ]),
+        ];
+    }
+
+    protected function definePrimaryOptionVariableSourceTypes(): array
+    {
+        return [FormieVariables::TYPE_TEXT];
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return $this->multi ? MultiOptionFieldValue::class : SingleOptionFieldValue::class;
+    }
+
+    public function fieldKind(): string
+    {
+        $displayType = (string)($this->displayType ?? 'dropdown');
+
+        return match ($displayType) {
+            'radio' => self::KIND_RADIO_GROUP,
+            'checkboxes' => self::KIND_CHECKBOX_GROUP,
+            default => self::KIND_SELECT,
+        };
+    }
+
+    protected function defineClientInput(): array
+    {
+        $displayType = (string)($this->displayType ?? 'dropdown');
+        $contract = [
+            'multiple' => (bool)$this->multi,
+            'options' => array_values(array_map(static function(array $option) {
+                return [
+                    'label' => $option['label'] ?? '',
+                    'value' => $option['value'] ?? '',
+                    'selected' => (bool)($option['default'] ?? false),
+                    'disabled' => (bool)($option['disabled'] ?? false),
+                ];
+            }, $this->getFieldOptions())),
+        ];
+
+        if ($displayType === 'dropdown' && property_exists($this, 'placeholder')) {
+            $contract['placeholder'] = $this->placeholder;
+        }
+
+        if (in_array($displayType, ['radio', 'checkboxes'], true)) {
+            $contract['layout'] = $this->layout ?? 'vertical';
+        }
+
+        if ($displayType === 'checkboxes') {
+            $contract['min'] = $this->min ?? null;
+            $contract['max'] = $this->max ?? null;
+        }
+
+        return array_merge(parent::defineClientInput(), $contract);
+    }
+
     protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
     {
-        if ($value instanceof MultiOptionsFieldData) {
-            return implode(', ', array_map(function($item) {
-                return $item->label;
-            }, (array)$value));
+        if ($value instanceof MultiOptionFieldValue) {
+            return implode(', ', $value->labels());
         }
 
-        return $value->label ?? '';
-    }
-
-    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        // Respect the format picker for "Email Notification Value" 
-        if ($value instanceof SingleOptionFieldData) {
-            return $this->emailValue === 'label' ? $value->label : $value->value;
+        if ($value instanceof SingleOptionFieldValue) {
+            return $value->label ?? '';
         }
 
-        return parent::defineValueForVariable($value, $submission, $notification);
-    }
-
-    protected function defineValueForVariableRaw(mixed $value, Submission $submission, Notification $notification): mixed
-    {
-        return $this->getValueAsString($value, $submission, $notification);
+        return '';
     }
 
     protected function getPredefinedOptions(): array
@@ -491,11 +799,6 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         }
 
         return parent::setPrePopulatedValue($value);
-    }
-
-    protected function isOptionSelected(array $option, mixed $value, array &$selectedValues, bool &$selectedBlankOption): bool
-    {
-        return in_array((string)$option['value'], $selectedValues, true);
     }
 
     protected function translatedOptions(): array
@@ -524,7 +827,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
             $defaultValues = [];
 
             foreach ($this->options() as $option) {
-                if (!empty($option['isDefault'])) {
+                if (!empty($option['default'])) {
                     $defaultValues[] = (string)$option['value'];
                 }
             }
@@ -533,7 +836,7 @@ abstract class OptionsField extends Field implements InlineEditableFieldInterfac
         }
 
         foreach ($this->options() as $option) {
-            if (!empty($option['isDefault'])) {
+            if (!empty($option['default'])) {
                 return (string)$option['value'];
             }
         }

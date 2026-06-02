@@ -1,0 +1,11 @@
+{% formtag 'pageBody' %}
+    {% formtag 'rows' %}
+        {% for row in page.getRows(false) %}
+            {% formtag 'row' %}
+                {% for field in row.getFields(false) %}
+                    {{ craft.formie.renderField(form, field) }}
+                {% endfor %}
+            {% endformtag %}
+        {% endfor %}
+    {% endformtag %}
+{% endformtag %}

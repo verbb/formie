@@ -3,11 +3,16 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\FieldInterface;
 use verbb\formie\base\OptionsField;
-use verbb\formie\fields\data\MultiOptionsFieldData;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\definitions\FieldClientModules;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
-use verbb\formie\positions;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
+use verbb\formie\positions\Hidden as HiddenPosition;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -28,7 +33,7 @@ class Checkboxes extends OptionsField
 
     public static function phpType(): string
     {
-        return sprintf('\\%s', MultiOptionsFieldData::class);
+        return sprintf('\\%s', MultiOptionFieldValue::class);
     }
 
     public static function dbType(): string
@@ -117,26 +122,18 @@ class Checkboxes extends OptionsField
                 'skipOnEmpty' => false,
             ]);
 
-            $value = $element->getFieldValue($this->fieldKey);
+            $value = $element->getFieldValue($this->valueKey());
 
             if (!$arrayValidator->validate($value, $error)) {
-                $element->addError($this->fieldKey, $error);
+                $element->addError($this->valueKey(), $error);
             }
         }
     }
 
-    public function getPreviewInputHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/preview', [
-            'field' => $this,
-        ]);
-    }
-
-    public function getFrontEndJsModules(): ?array
+    public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/checkbox-radio.js'),
-            'module' => 'FormieCheckboxRadio',
+            SchemaHelper::previewChoiceList('checkbox'),
         ];
     }
 
@@ -166,96 +163,86 @@ class Checkboxes extends OptionsField
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Options'),
-                'help' => Craft::t('formie', 'Define the available options for users to select from.'),
+                'instructions' => Craft::t('formie', 'Define the available options for users to select from.'),
                 'name' => 'options',
-                'allowMultipleDefault' => true,
                 'enableBulkOptions' => true,
                 'predefinedOptions' => $this->getPredefinedOptions(),
                 'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                    'isDefault' => false,
+                    'default' => false,
                 ],
                 'columns' => [
                     [
-                        'type' => 'label',
+                        'type' => 'text',
+                        'name' => 'label',
                         'label' => Craft::t('formie', 'Option Label'),
-                        'class' => 'singleline-cell textual',
+                        'required' => true,
                     ],
                     [
                         'type' => 'value',
+                        'name' => 'value',
                         'label' => Craft::t('formie', 'Value'),
-                        'class' => 'code singleline-cell textual',
+                        'source' => 'label',
                     ],
                     [
-                        'type' => 'default',
+                        'type' => 'checkbox',
+                        'name' => 'default',
                         'label' => Craft::t('formie', 'Default'),
-                        'class' => 'thin checkbox-cell',
                     ],
                     [
-                        'type' => 'disabled',
+                        'type' => 'checkbox',
+                        'name' => 'disabled',
                         'label' => Craft::t('formie', 'Disabled'),
-                        'class' => 'thin checkbox-cell',
                     ],
                 ],
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Limit Options'),
-                'help' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
+                'instructions' => Craft::t('formie', 'Whether to limit the options users can choose for this field.'),
                 'name' => 'limitOptions',
             ]),
             [
                 '$el' => 'div',
-                'attrs' => [
-                    'class' => 'fui-row',
-                ],
-                'if' => '$get(limitOptions).value',
+                'if' => 'limitOptions',
                 'children' => [
                     [
                         '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'fui-col-6',
-                        ],
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Min Value'),
-                                'help' => Craft::t('formie', 'Set the minimum options that users must select.'),
+                                'instructions' => Craft::t('formie', 'Set the minimum options that users must select.'),
                                 'name' => 'min',
                             ]),
                         ],
                     ],
                     [
                         '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'fui-col-6',
-                        ],
                         'children' => [
                             SchemaHelper::numberField([
                                 'label' => Craft::t('formie', 'Max Value'),
-                                'help' => Craft::t('formie', 'Set the maximum options that users must select.'),
+                                'instructions' => Craft::t('formie', 'Set the maximum options that users must select.'),
                                 'name' => 'max',
                             ]),
                         ],
@@ -263,8 +250,8 @@ class Checkboxes extends OptionsField
                 ],
             ],
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue([
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue([
                 'options' => [
                     ['label' => Craft::t('formie', 'Label'), 'value' => 'label'],
                     ['label' => Craft::t('formie', 'Value'), 'value' => 'value'],
@@ -272,7 +259,7 @@ class Checkboxes extends OptionsField
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Add Toggle Checkbox'),
-                'help' => Craft::t('formie', 'Whether to add an additional checkbox to toggle all checkboxes in this field by.'),
+                'instructions' => Craft::t('formie', 'Whether to add an additional checkbox to toggle all checkboxes in this field by.'),
                 'name' => 'toggleCheckbox',
                 'options' => [
                     ['label' => Craft::t('formie', 'None'), 'value' => ''],
@@ -282,20 +269,20 @@ class Checkboxes extends OptionsField
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Toggle Checkbox Label'),
-                'help' => Craft::t('formie', 'Enter the label for the toggle checkbox field.'),
+                'instructions' => Craft::t('formie', 'Enter the label for the toggle checkbox field.'),
                 'name' => 'toggleCheckboxLabel',
-                'if' => '$get(toggleCheckbox).value',
+                'if' => 'toggleCheckbox',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Layout'),
-                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
+                'instructions' => Craft::t('formie', 'Select which layout to use for these fields.'),
                 'name' => 'layout',
                 'options' => [
                     ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
@@ -308,19 +295,19 @@ class Checkboxes extends OptionsField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
             SchemaHelper::inputAttributesField([
-                'help' => Craft::t('formie', 'Add attributes to be outputted on this field’s input. Note that these attributes will be added to every checkbox option.'),
+                'instructions' => Craft::t('formie', 'Add attributes to be outputted on this field’s input. Note that these attributes will be added to every checkbox option.'),
             ]),
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -328,87 +315,140 @@ class Checkboxes extends OptionsField
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
+    // Protected Methods
+    // =========================================================================
 
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
         $id = $this->getHtmlId($form);
+        $labelPosition = is_object($this->labelPosition) ? get_class($this->labelPosition) : (string)$this->labelPosition;
+        $labelPosition = strtolower($labelPosition);
+        $resolvedLabelPosition = str_contains($labelPosition, 'left') ? 'left' : (str_contains($labelPosition, 'right') ? 'right' : (str_contains($labelPosition, 'hidden') ? 'hidden' : 'above'));
+        $isHiddenLabel = $context->get('labelPosition') instanceof HiddenPosition || $resolvedLabelPosition === 'hidden';
 
         if ($key === 'field') {
-            $tag = parent::defineHtmlTag($key, $context);
-            $tag->attributes['data']['min-options'] = ($this->limitOptions && $this->min) ? $this->min : null;
-            $tag->attributes['data']['max-options'] = ($this->limitOptions && $this->max) ? $this->max : null;
+            $tag = parent::defineFieldSlotTag($key, $context);
+
+            if ($tag && $this->limitOptions) {
+                $tag->attributes['data-formie-min-options'] = $this->min ?: null;
+                $tag->attributes['data-formie-max-options'] = $this->max ?: null;
+            }
 
             return $tag;
         }
 
-        if ($key === 'fieldContainer') {
-            return new HtmlTag('fieldset', [
-                'class' => [
-                    'fui-fieldset',
-                    'fui-layout-' . $this->layout ?? 'vertical',
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ]);
+        if ($key === 'fieldLayout') {
+            return SlotTag::make('fieldset')
+                ->core([
+                    'data-formie-field-layout' => true,
+                    'data-formie-checkboxes-field-layout' => true,
+                    'data-formie-layout' => $this->layout ?? 'vertical',
+                    'data-formie-label-position' => $resolvedLabelPosition,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-layout',
+                        'formie-checkboxes-field-layout',
+                        'formie-layout-' . ($this->layout ?? 'vertical'),
+                        "formie-field-layout-label-{$resolvedLabelPosition}",
+                    ],
+                ]);
         }
 
         if ($key === 'fieldLabel') {
-            $labelPosition = $context['labelPosition'] ?? null;
-
-            return new HtmlTag('legend', [
-                'class' => [
-                    'fui-legend',
-                ],
-                'data' => [
-                    'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof positions\Hidden ? true : false,
-                ],
-            ]);
+            return SlotTag::make('legend')
+                ->core([
+                    'data-formie-label' => true,
+                    'data-formie-field-label' => true,
+                    'data-formie-checkboxes-field-label' => true,
+                    'data-formie-label-position' => $resolvedLabelPosition,
+                    'data-formie-sr-only' => $isHiddenLabel ? true : false,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-label',
+                        'formie-field-label',
+                        'formie-checkboxes-field-label',
+                        $isHiddenLabel ? 'formie-sr-only' : false,
+                    ],
+                ]);
         }
 
         if ($key === 'fieldOptions') {
-            return new HtmlTag('div', [
-                'class' => 'fui-layout-wrap',
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-field-options' => true,
+                    'data-formie-checkboxes-options' => true,
+                    'data-formie-layout' => $this->layout ?? 'vertical',
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-options',
+                        'formie-checkboxes-options',
+                        'formie-layout-' . ($this->layout ?? 'vertical'),
+                    ],
+                ]);
         }
 
         if ($key === 'fieldOption') {
-            return new HtmlTag('div', [
-                'class' => 'fui-checkbox',
-            ]);
+            return SlotTag::make('div')
+                ->core([
+                    'data-formie-field-option' => true,
+                    'data-formie-checkbox-option' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-option',
+                        'formie-checkbox-option',
+                    ],
+                ]);
         }
 
         if ($key === 'fieldInput') {
-            $optionValue = $this->getFieldInputOptionValue($context);
+            $optionValue = $this->getFieldInputOptionValue($context->toArray());
 
-            return new HtmlTag('input', [
-                'type' => 'checkbox',
-                'id' => $this->getHtmlId($form, $optionValue),
-                'class' => 'fui-input fui-checkbox-input',
-                'name' => $this->getHtmlName('[]'),
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $this->getHtmlDataId($form, $optionValue),
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'checkbox',
+                    'id' => $this->getHtmlId($form, $optionValue),
+                    'name' => $this->getHtmlName('[]'),
+                    'required' => $this->required ? true : null,
+                    'data-formie-input' => true,
+                    'data-formie-checkbox-input' => true,
+                    'data-formie-input-id' => $this->getHtmlDataId($form, $optionValue),
+                    'data-formie-input-type' => 'checkbox',
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-checkbox-input',
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
         if ($key === 'fieldOptionLabel') {
-            $optionValue = $this->getFieldInputOptionValue($context);
+            $optionValue = $this->getFieldInputOptionValue($context->toArray());
 
-            return new HtmlTag('label', [
-                'class' => 'fui-checkbox-label',
-                'for' => $this->getHtmlId($form, $optionValue),
-            ]);
+            return SlotTag::make('label')
+                ->core([
+                    'data-formie-field-option-label' => true,
+                    'data-formie-checkbox-option-label' => true,
+                    'for' => $this->getHtmlId($form, $optionValue),
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-option-label',
+                        'formie-checkbox-option-label',
+                    ],
+                ]);
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
-
-
-    // Protected Methods
-    // =========================================================================
 
     protected function defineRules(): array
     {
@@ -420,7 +460,7 @@ class Checkboxes extends OptionsField
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/checkboxes/input', [
             'name' => $this->handle,
@@ -439,5 +479,48 @@ class Checkboxes extends OptionsField
     protected function optionsSettingLabel(): string
     {
         return Craft::t('app', 'Checkbox Options');
+    }
+
+    protected function definePrimaryOptionVariableSourceTypes(): array
+    {
+        return [
+            Variables::TYPE_TEXT,
+            Variables::TYPE_CALCULATIONS,
+            Variables::TYPE_BOOLEAN,
+        ];
+    }
+
+    protected function defineValidationRules(): array
+    {
+        $validators = parent::defineValidationRules();
+
+        if ($this->limitOptions) {
+            $validators[] = [
+                'type' => 'minmaxOptions',
+                'min' => $this->min ?: null,
+                'max' => $this->max ?: null,
+            ];
+        }
+
+        return $validators;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'min' => $this->min,
+            'max' => $this->max,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        $modules[] = new ClientModule([
+            'id' => 'checkbox-radio',
+            'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+        ]);
+
+        return $modules;
     }
 }

@@ -2,21 +2,27 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\FixedParentFieldInterface;
 use verbb\formie\base\Field;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\generators\CountryOptionGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
-use verbb\formie\models\Phone as PhoneModel;
+use verbb\formie\helpers\Variables;
+use verbb\formie\fields\values\PhoneFieldValue;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
 use craft\helpers\Html;
 use craft\helpers\Json;
 
@@ -31,7 +37,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Phone extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
+class Phone extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -103,29 +109,6 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         return Schema::TYPE_JSON;
     }
 
-    public static function getFieldSelectOptions(): array
-    {
-        return [
-            [
-                'label' => Craft::t('formie', 'Country (ISO)'),
-                'handle' => 'country',
-            ],
-            [
-                'label' => Craft::t('formie', 'Country (Full)'),
-                'handle' => 'countryName',
-            ],
-            [
-                'label' => Craft::t('formie', 'Country Code'),
-                'handle' => 'countryCode',
-            ],
-            [
-                'label' => Craft::t('formie', 'Number'),
-                'handle' => 'number',
-            ],
-        ];
-    }
-
-
     // Properties
     // =========================================================================
 
@@ -151,32 +134,39 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         parent::__construct($config);
     }
 
-    public function hasSubFields(): bool
+    public function fieldKind(): string
     {
-        if ($this->countryEnabled) {
-            return true;
-        }
+        return self::KIND_PHONE;
+    }
 
-        return false;
+    public function themeConfigKey(): string
+    {
+        return 'phoneNumber';
     }
 
     public function getErrorKey(): string
     {
+        // Deprecated: use errorKey().
+        return $this->errorKey();
+    }
+
+    public function errorKey(): string
+    {
         // Ensure that we use the proper sub-field for validation errors
-        return parent::getErrorKey() . '.number';
+        return parent::errorKey() . '.number';
     }
 
     public function modifyAttributeLabels(array &$labels): void
     {
         // Because Phone fields aren't technically sub-fields, but they act like one with nested
         // field content, we want to ensure field validation picks up the correct field label
-        $labels[$this->fieldKey . '.number'] = $this->label;
+        $labels[$this->valueKey() . '.number'] = $this->label;
     }
 
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
-        if ($value instanceof PhoneModel) {
-            return $value->isEmpty();
+        if ($value instanceof PhoneFieldValue && !$value->number) {
+            return true;
         }
 
         return parent::isValueEmpty($value, $element);
@@ -184,44 +174,32 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
+        $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
-        if ($value instanceof PhoneModel) {
-            $phone = $value;
-        } else if (is_array($value)) {
-            $phone = new PhoneModel($value);
+        if ($value instanceof PhoneFieldValue) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            $phone = new PhoneFieldValue($value);
             $phone->hasCountryCode = isset($value['country']);
-        } else {
-            $phone = new PhoneModel();
-            $phone->number = $value;
-            $phone->hasCountryCode = false;
+
+            return $phone;
         }
 
-        return parent::normalizeValue($phone, $element);
+        $phone = new PhoneFieldValue();
+        $phone->number = $value;
+        $phone->hasCountryCode = false;
+
+        return $phone;
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function defineFormBuilderPreviewSchema(): array
     {
-        if ($this->countryEnabled) {
-            return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/phone-country.js'),
-                'module' => 'FormiePhoneCountry',
-                'settings' => [
-                    'countryDefaultValue' => $this->countryDefaultValue,
-                    'countryAllowed' => $this->getAllowedCountries(),
-                    'language' => $this->_getMatchedLanguageId() ?? 'en',
-                ],
-            ];
-        }
-
-        return null;
-    }
-
-    public function getPreviewInputHtml(): string
-    {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewPhone(),
+        ];
     }
 
     public function getCountryOptions(): array
@@ -259,55 +237,53 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
                 'name' => 'countryAllowed',
                 'type' => Type::string(),
                 'resolve' => function($field) {
-                    return Json::encode($field->getAllowedCountries());
+                    return Json::encode($field->countryAllowed);
                 },
             ],
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Country Enabled'),
-                'help' => Craft::t('formie', 'Whether to show the dial code on the country dropdown.'),
+                'instructions' => Craft::t('formie', 'Whether to show the dial code on the country dropdown.'),
                 'name' => 'countryEnabled',
             ]),
-            SchemaHelper::multiSelectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Allowed Countries'),
-                'help' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
+                'instructions' => Craft::t('formie', 'Select which countries should be available to pick from. By default, all countries are available.'),
                 'name' => 'countryAllowed',
-                'if' => '$get(countryEnabled).value',
+                'if' => 'countryEnabled',
                 'placeholder' => Craft::t('formie', 'Select an option'),
                 'options' => $this->getCountryOptions(),
+                'multiple' => true,
             ]),
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Country Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'countryDefaultValue',
-                'if' => '$get(countryEnabled).value',
-                'options' => array_merge(
-                    [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    $this->getCountryOptions()
-                ),
+                'if' => 'countryEnabled',
+                'options' => $this->getCountryOptions(),
             ]),
             // TODO: https://github.com/verbb/formie/issues/2042
             // SchemaHelper::selectField([
             //     'label' => Craft::t('formie', 'Language'),
-            //     'help' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
+            //     'instructions' => Craft::t('formie', 'Choose a specific language for countries to be translated with. Choose "Auto" for Formie to automatically match your site’s language.'),
             //     'name' => 'countryLanguage',
-            //     'if' => '$get(countryEnabled).value',
+            //     'if' => 'countryEnabled',
             //     'options' => array_merge(
             //         static::getCountryLanguageOptions()
             //     ),
@@ -315,26 +291,26 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -344,7 +320,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -355,7 +331,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -363,54 +339,69 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
+        $form = $context->form;
+        $errors = $context->errors;
 
         if ($key === 'fieldInput') {
             $id = $this->getHtmlId($form, '');
             $dataId = $this->getHtmlDataId($form, 'number');
 
-            return new HtmlTag('input', [
-                'type' => 'tel',
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName('number'),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'tel',
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'tel',
+                    'id' => $id,
+                    'name' => $this->getHtmlName('number'),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'autocomplete' => 'tel',
+                    'required' => $this->required ? true : null,
+                    'data-formie-input' => true,
+                    'data-formie-phone-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'tel',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-phone-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
         if ($key === 'fieldCountryInput') {
-            return new HtmlTag('input', [
-                'type' => 'hidden',
-                'id' => $this->getHtmlId($form, 'country'),
-                'name' => $this->getHtmlName('country'),
-                'data' => [
-                    'fui-id' => $this->getHtmlDataId($form, 'country'),
-                    'country' => true,
-                ],
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'hidden',
+                    'id' => $this->getHtmlId($form, 'country'),
+                    'name' => $this->getHtmlName('country'),
+                    'data-formie-input' => true,
+                    'data-formie-phone-country-input' => true,
+                    'data-formie-input-id' => $this->getHtmlDataId($form, 'country'),
+                    'data-formie-input-type' => 'hidden',
+                    'data-formie-country' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-phone-country-input',
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
         
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/phone/input', [
             'name' => $this->handle,
@@ -428,7 +419,7 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
             $phoneUtil = PhoneNumberUtil::getInstance();
             $numberProto = $phoneUtil->parse($number);
 
-            return new PhoneModel([
+            return new PhoneFieldValue([
                 'number' => $number,
                 'country' => $phoneUtil->getRegionCodeForNumber($numberProto),
             ]);
@@ -440,6 +431,66 @@ class Phone extends Field implements InlineEditableFieldInterface, PreviewableFi
 
     // Private Methods
     // =========================================================================
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'countryEnabled' => $this->countryEnabled,
+            'countryDefaultValue' => $this->countryDefaultValue,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+
+        if ($this->countryEnabled) {
+            $modules[] = new ClientModule([
+                'id' => 'phone-country',
+                'config' => [
+                    'countryDefaultValue' => $this->countryDefaultValue,
+                    'countryAllowed' => $this->countryAllowed,
+                    'language' => $this->_getMatchedLanguageId() ?? 'en',
+                ],
+            ]);
+        }
+
+        return $modules;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return PhoneFieldValue::class;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'country',
+                'label' => Craft::t('formie', 'Country (ISO)'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'countryName',
+                'label' => Craft::t('formie', 'Country (Full)'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'countryCode',
+                'label' => Craft::t('formie', 'Country Code'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'number',
+                'label' => Craft::t('formie', 'Number'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+        ];
+    }
 
     private function _getMatchedLanguageId()
     {

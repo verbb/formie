@@ -2,9 +2,12 @@
 namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -47,38 +50,40 @@ class FriendlyCaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/friendly-captcha/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'fui-captcha formie-friendly-captcha-placeholder',
+            'class' => 'formie-captcha formie-friendly-captcha-placeholder',
             'data-friendly-captcha-placeholder' => true,
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
-        $settings = [
-            'siteKey' => App::parseEnv($this->siteKey),
-            'formId' => $form->getFormId(),
-            'language' => $this->_getMatchedLanguageId() ?? 'en',
-            'startMode' => $this->startMode ?? 'none',
-            'apiVersion' => $this->apiVersion,
-        ];
+        if (!$context->form) {
+            return null;
+        }
 
-        $scriptName = $this->apiVersion === 'v2' ? 'friendly-captcha-v2.js' : 'friendly-captcha-v1.js';
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/' . $scriptName);
+        $moduleId = $this->apiVersion === 'v2' ? 'friendly-captcha-v2' : 'friendly-captcha-v1';
 
-        return [
-            'src' => $src,
-            'module' => 'FormieFriendlyCaptcha',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => $moduleId,
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-friendly-captcha-placeholder]',
+                'siteKey' => App::parseEnv($this->siteKey),
+                'formId' => $context->form->getRenderId(),
+                'language' => $this->_getMatchedLanguageId() ?? 'en',
+                'startMode' => $this->startMode ?? 'none',
+                'apiVersion' => $this->apiVersion,
+            ],
+        ]);
     }
 
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
-            'formId' => $form->getFormId(),
+            'formId' => $form->getRenderId(),
             'sessionKey' => 'siteKey',
             'value' => App::parseEnv($this->siteKey),
         ];
@@ -91,64 +96,6 @@ class FriendlyCaptcha extends Captcha
         }
 
         return $this->_validateV1($submission);
-    }
-
-    private function _validateV1(Submission $submission): bool
-    {
-        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-solution');
-
-        if (!$responseToken) {
-            $this->spamReason = 'Missing Friendly Captcha token.';
-
-            return false;
-        }
-
-        $response = $this->request('POST', 'https://api.friendlycaptcha.com/api/v1/siteverify', [
-            'json' => [
-                'secret' => App::parseEnv($this->secretKey),
-                'sitekey' => App::parseEnv($this->siteKey),
-                'solution' => $responseToken,
-            ],
-        ]);
-
-        $success = $response['success'] ?? false;
-
-        if (!$success) {
-            $this->spamReason = Json::encode($response);
-        }
-
-        return $success;
-    }
-
-    private function _validateV2(Submission $submission): bool
-    {
-        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-response');
-
-        if (!$responseToken) {
-            $this->spamReason = 'Missing Friendly Captcha response.';
-
-            return false;
-        }
-
-        $response = $this->request('POST', 'https://global.frcapi.com/api/v2/captcha/siteverify', [
-            'headers' => [
-                'X-API-Key' => App::parseEnv($this->secretKey),
-            ],
-            'json' => [
-                'sitekey' => App::parseEnv($this->siteKey),
-                'response' => $responseToken,
-            ],
-        ]);
-
-        $success = $response['success'] ?? false;
-
-        if (!$success) {
-            $errorDetail = $response['error']['detail'] ?? null;
-            $errorCode = $response['error']['error_code'] ?? null;
-            $this->spamReason = $errorDetail ?? $errorCode ?? Json::encode($response);
-        }
-
-        return $success;
     }
 
     public function hasValidSettings(): bool
@@ -171,10 +118,25 @@ class FriendlyCaptcha extends Captcha
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        if (!$this->hasValidSettings()) {
+            return [
+                $this->getMissingSettingsWarningSchema('Friendly Captcha', 'friendly-captcha'),
+            ];
+        }
+
+        return parent::defineFormSettingsSchema($form);
+    }
+
+
     // Private Methods
     // =========================================================================
 
-    public function _getMatchedLanguageId()
+    private function _getMatchedLanguageId()
     {
         if ($this->language && $this->language != 'auto') {
             return $this->language;
@@ -259,5 +221,63 @@ class FriendlyCaptcha extends Captcha
         }
 
         return $languageOptions;
+    }
+
+    private function _validateV1(Submission $submission): bool
+    {
+        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-solution');
+
+        if (!$responseToken) {
+            $this->spamReason = 'Missing Friendly Captcha token.';
+
+            return false;
+        }
+
+        $response = $this->request('POST', 'https://api.friendlycaptcha.com/api/v1/siteverify', [
+            'json' => [
+                'secret' => App::parseEnv($this->secretKey),
+                'sitekey' => App::parseEnv($this->siteKey),
+                'solution' => $responseToken,
+            ],
+        ]);
+
+        $success = $response['success'] ?? false;
+
+        if (!$success) {
+            $this->spamReason = Json::encode($response);
+        }
+
+        return $success;
+    }
+
+    private function _validateV2(Submission $submission): bool
+    {
+        $responseToken = $this->getCaptchaValue($submission, 'frc-captcha-response');
+
+        if (!$responseToken) {
+            $this->spamReason = 'Missing Friendly Captcha response.';
+
+            return false;
+        }
+
+        $response = $this->request('POST', 'https://global.frcapi.com/api/v2/captcha/siteverify', [
+            'headers' => [
+                'X-API-Key' => App::parseEnv($this->secretKey),
+            ],
+            'json' => [
+                'sitekey' => App::parseEnv($this->siteKey),
+                'response' => $responseToken,
+            ],
+        ]);
+
+        $success = $response['success'] ?? false;
+
+        if (!$success) {
+            $errorDetail = $response['error']['detail'] ?? null;
+            $errorCode = $response['error']['error_code'] ?? null;
+            $this->spamReason = $errorDetail ?? $errorCode ?? Json::encode($response);
+        }
+
+        return $success;
     }
 }

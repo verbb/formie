@@ -3,10 +3,12 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPayloadEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -97,7 +99,6 @@ class Pardot extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function getAuthorizationUrlOptions(): array
     {
         $options = parent::getAuthorizationUrlOptions();
@@ -123,7 +124,7 @@ class Pardot extends Crm implements OAuthProviderInterface
         $settings = [];
 
         try {
-            if ($this->mapToProspect) {
+            if ($this->mapToProspect && $this->settingsContext->dataKey === 'prospect') {
                 $response = $this->request('GET', 'customField/version/4/do/query');
                 $fields = $response['result']['customField'] ?? [];
 
@@ -342,7 +343,7 @@ class Pardot extends Crm implements OAuthProviderInterface
                 ], $this->_getCustomFields($fields));
             }
 
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $settings['opportunity'] = [
                     new IntegrationField([
                         'handle' => 'name',
@@ -527,23 +528,65 @@ class Pardot extends Crm implements OAuthProviderInterface
         $rules[] = [
             ['prospectFieldMapping'], 'validateFieldMapping', 'params' => $prospect, 'when' => function($model) {
                 return $model->enabled && $model->mapToProspect;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['endpointUrl'], 'required', 'when' => function($model) {
                 return $model->enabled && $model->enableFormHandler;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToProspect',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Prospect']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Prospects']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'prospectFieldMapping',
+            'if' => 'mapToProspect',
+            'dataLabel' => 'Prospect',
+            'dataKey' => 'prospect',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'enableFormHandler',
+            'label' => Craft::t('formie', 'Enable Form Handler'),
+            'instructions' => Craft::t('formie', 'Whether to submit this form data to your Pardot form handler endpoint.'),
+        ]);
+        $schema[] = SchemaHelper::textField([
+            'name' => 'endpointUrl',
+            'label' => Craft::t('formie', 'Form Handler URL'),
+            'instructions' => Craft::t('formie', 'The Pardot form handler endpoint URL to post payloads to.'),
+            'if' => 'enableFormHandler',
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+
 
     protected function generatePayloadValues(Submission $submission): array
     {

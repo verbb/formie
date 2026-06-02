@@ -3,6 +3,8 @@
 
 {% set displayName = integration.displayName() %}
 {% set type = integration.settings.type ?? 'v3' %}
+{% set rawEnterpriseType = integration.settings.enterpriseType ?? 'score' %}
+{% set enterpriseType = rawEnterpriseType == 'invisible' ? 'policy' : rawEnterpriseType %}
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'reCAPTCHA Type' | t('formie'),
@@ -35,6 +37,7 @@
 
 {{ macros.proxyField(fieldVariables, 'autosuggestField', {
     label: 'reCAPTCHA Site Key' | t('formie'),
+    instructions: 'Enter the website key for the selected reCAPTCHA mode. For reCAPTCHA Enterprise, this must be a website key whose type matches the selected Enterprise Key Type.' | t('formie'),
     name: 'siteKey',
     required: true,
     suggestEnvVars: true,
@@ -52,26 +55,24 @@
 }) }}
 
 <div id="settings-enterprise"{% if type != 'enterprise' %} class="hidden"{% endif %}>
-    {% set enterpriseType = integration.settings.enterpriseType ?? 'score' %}
-
     {{ macros.proxyField(fieldVariables, 'selectField', {
-        label: 'Type' | t('formie'),
-        instructions: 'Select the type of captcha to use.' | t('formie'),
+        label: 'Enterprise Key Type' | t('formie'),
+        instructions: 'Select the reCAPTCHA Enterprise website key type to use. Google Enterprise website keys are mode-specific, so each type needs its own matching website key.' | t('formie'),
         name: 'enterpriseType',
         required: true,
         value: enterpriseType,
         options: [
             {
                 value: 'score',
-                label: 'Score Based (v3)' | t('formie'),
+                label: 'Score-based' | t('formie'),
             },
             {
                 value: 'checkbox',
-                label: 'Challenge - Checkbox (v2)' | t('formie'),
+                label: 'Checkbox' | t('formie'),
             },
             {
-                value: 'invisible',
-                label: 'Challenge - Invisible (v2)' | t('formie'),
+                value: 'policy',
+                label: 'Policy-based Challenge' | t('formie'),
             },
         ],
         warning: macros.configWarning('enterpriseType', 'formie'),
@@ -87,9 +88,23 @@
     }) }}
 
     <br>
+
+    <p class="warning with-icon">
+        {{ 'Use a website key that matches the selected Enterprise Key Type. Keep using your Google Cloud API key and Project ID for server-side assessment requests.' | t('formie') }}
+    </p>
 </div>
 
-<div id="settings-v2_checkbox"{% if type != 'v2_checkbox' %} class="hidden"{% endif %}>
+<div id="settings-enterprise-action"{% if type != 'enterprise' or enterpriseType not in ['score', 'policy'] %} class="hidden"{% endif %}>
+    {{ macros.proxyField(fieldVariables, 'textField', {
+        label: 'Action' | t('formie'),
+        instructions: 'Provide a meaningful action name sent with Enterprise score and policy-based challenge requests. This should match the action thresholds or reporting you want to use in Google Cloud.' | t('formie'),
+        name: 'action',
+        value: integration.settings.action ?? 'submit',
+        warning: macros.configWarning('action', 'formie'),
+    }) }}
+</div>
+
+<div id="settings-recaptcha-checkbox"{% if type != 'v2_checkbox' and not (type == 'enterprise' and enterpriseType == 'checkbox') %} class="hidden"{% endif %}>
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Theme' | t('formie'),
         instructions: 'Select the theme for reCAPTCHA to use.' | t('formie'),
@@ -121,27 +136,7 @@
     }) }}
 </div>
 
-<div id="settings-v2_invisible"{% if type != 'v2_invisible' %} class="hidden"{% endif %}>
-    {{ macros.proxyField(fieldVariables, 'selectField', {
-        label: 'Badge Type' | t('formie'),
-        instructions: 'Select the type of badge to display.' | t('formie'),
-        name: 'badge',
-        value: integration.settings.badge ?? 'bottomright',
-        options: [{
-            value: 'bottomright',
-            label: 'Bottom-right' | t('formie'),
-        }, {
-            value: 'bottomleft',
-            label: 'Bottom-left' | t('formie'),
-        }, {
-            value: 'inline',
-            label: 'Inline' | t('formie'),
-        }],
-        warning: macros.configWarning('badge', 'formie'),
-    }) }}
-</div>
-
-<div id="settings-v3"{% if type != 'v3' and type != 'enterprise' %} class="hidden"{% endif %}>
+<div id="settings-recaptcha-score"{% if type != 'v3' and not (type == 'enterprise' and enterpriseType == 'score') %} class="hidden"{% endif %}>
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Minimum Score' | t('formie'),
         instructions: 'Enter the minimum score needed to pass the reCAPTCHA test.' | t('formie'),
@@ -162,7 +157,9 @@
         },
         warning: macros.configWarning('minScore', 'formie'),
     }) }}
+</div>
 
+<div id="settings-recaptcha-badge"{% if type != 'v2_invisible' and type != 'v3' and not (type == 'enterprise' and enterpriseType in ['score', 'policy']) %} class="hidden"{% endif %}>
     {{ macros.proxyField(fieldVariables, 'selectField', {
         label: 'Badge Type' | t('formie'),
         instructions: 'Select the type of badge to display.' | t('formie'),
@@ -182,8 +179,12 @@
     }) }}
 </div>
 
-<div id="settings-v3" class="field {% if type != 'v3' %}hidden{% endif %}">
+<div id="settings-recaptcha-badge-warning" class="field {% if type != 'v3' and not (type == 'enterprise' and enterpriseType in ['score', 'policy']) %}hidden{% endif %}">
     <p class="warning with-icon">{{ 'Looking to hide the badge? Refer to the [reCAPTCHA FAQ](https://developers.google.com/recaptcha/docs/faq#id-like-to-hide-the-recaptcha-badge.-what-is-allowed) to achieve this.' | t('formie') | md(inlineOnly=true) }}</p>
+</div>
+
+<div id="settings-enterprise-policy-note" class="field {% if type != 'enterprise' or enterpriseType != 'policy' %}hidden{% endif %}">
+    <p class="warning with-icon">{{ 'Policy-based challenge keys are the web Enterprise challenge flow for deterministic CAPTCHA prompts. Configure threshold and challenge difficulty in Google Cloud.' | t('formie') }}</p>
 </div>
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
@@ -224,46 +225,32 @@
 {% js %}
 
 {% set secretKey = 'reCAPTCHA Secret Key' | t('formie') %}
-{% set secretKeyAlt = 'Google Console API Key' | t('formie') %}
+{% set secretKeyAlt = 'Google Cloud API Key' | t('formie') %}
 
-// Change the "Secret Key" for Enterprise, for clarity
-$('[name="integrations[recaptcha][settings][type]"]').on('change', function(e) {
-    const type = $(this).val();
-    const $input = $('[name="integrations[recaptcha][settings][secretKey]"]')
+const updateRecaptchaSettingsUi = function() {
+    const type = $('[name="integrations[recaptcha][settings][type]"]').val();
+    const enterpriseType = $('[name="integrations[recaptcha][settings][enterpriseType]"]').val();
+    const $input = $('[name="integrations[recaptcha][settings][secretKey]"]');
     const $field = $input.parents('.field');
     const $label = $field.find('label');
     const required = '<span class="visually-hidden">{{ 'Required' | t('app') | e('js') }}</span><span class="required" aria-hidden="true"></span>';
+
+    $('#settings-enterprise').toggleClass('hidden', type !== 'enterprise');
+    $('#settings-enterprise-action').toggleClass('hidden', !(type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy')));
+    $('#settings-recaptcha-checkbox').toggleClass('hidden', !(type === 'v2_checkbox' || (type === 'enterprise' && enterpriseType === 'checkbox')));
+    $('#settings-recaptcha-score').toggleClass('hidden', !(type === 'v3' || (type === 'enterprise' && enterpriseType === 'score')));
+    $('#settings-recaptcha-badge').toggleClass('hidden', !(type === 'v2_invisible' || type === 'v3' || (type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy'))));
+    $('#settings-recaptcha-badge-warning').toggleClass('hidden', !(type === 'v3' || (type === 'enterprise' && (enterpriseType === 'score' || enterpriseType === 'policy'))));
+    $('#settings-enterprise-policy-note').toggleClass('hidden', !(type === 'enterprise' && enterpriseType === 'policy'));
 
     if (type === 'enterprise') {
         $label.html('{{ secretKeyAlt }}' + required);
     } else {
         $label.html('{{ secretKey }}' + required);
     }
-});
+};
 
-$('[name="integrations[recaptcha][settings][type]"]').trigger('change');
-
-// Fix some fields being the same across multiple recaptchas. Sync them!
-$('[name="integrations[recaptcha][settings][badge]"]').on('change', function(e) {
-    var $select = $(this);
-    var $selects = $('[name="integrations[recaptcha][settings][badge]"]');
-
-    $selects.each(function(index, element) {
-        if ($(element).attr('id') != $select.attr('id')) {
-            $(element).val($select.val())
-        }
-    })
-});
-
-$('[name="integrations[recaptcha][settings][language]"]').on('change', function(e) {
-    var $select = $(this);
-    var $selects = $('[name="integrations[recaptcha][settings][language]"]');
-
-    $selects.each(function(index, element) {
-        if ($(element).attr('id') != $select.attr('id')) {
-            $(element).val($select.val())
-        }
-    })
-});
+$('[name="integrations[recaptcha][settings][type]"], [name="integrations[recaptcha][settings][enterpriseType]"]').on('change', updateRecaptchaSettingsUi);
+updateRecaptchaSettingsUi();
 
 {% endjs %}

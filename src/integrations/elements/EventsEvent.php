@@ -4,10 +4,12 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -58,7 +60,7 @@ class EventsEvent extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
@@ -250,7 +252,7 @@ class EventsEvent extends Element
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
+                'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id,
@@ -299,6 +301,86 @@ class EventsEvent extends Element
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedEventTypeId = (string)($this->eventTypeId ?? '');
+        if ($selectedEventTypeId === '') {
+            $selectedEventTypeId = $this->_getFirstEventTypeId();
+        }
+
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'eventTypeId',
+            'label' => Craft::t('formie', 'Event Type'),
+            'instructions' => Craft::t('formie', 'Select an event type to map content to. This will reflect the available fields to map to.'),
+            'required' => true,
+            'options' => $this->_getEventTypeOptions(),
+        ]);
+        $schema[] = SchemaHelper::elementSelectField([
+            'name' => 'defaultAuthorId',
+            'label' => Craft::t('formie', 'Default Event Author'),
+            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created event. An event must always have an author.'),
+            'required' => true,
+            'selectionLabel' => Craft::t('formie', 'Choose a User'),
+            'config' => [
+                'jsClass' => 'Craft.ElementSelectInput',
+                'elementType' => User::class,
+                'limit' => 1,
+            ],
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'attributeMapping',
+            'label' => Craft::t('formie', 'Event Attribute Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} attributes.', ['label' => 'Event']),
+            'integrationLabel' => Craft::t('formie', 'Element Field'),
+            'showRefreshButton' => false,
+            'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+            'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
+        ]);
+
+        $eventTypeSettings = $this->_getEventTypeSettings();
+        $fieldMappingSchema = $this->convertIntegrationFieldsToSchema(is_object($eventTypeSettings) ? ($eventTypeSettings->fields ?? []) : []);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Event Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} fields.', ['label' => 'Event']),
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $fieldMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'overwriteValues',
+            'label' => Craft::t('formie', 'Overwrite Content'),
+            'instructions' => Craft::t('formie', 'Whether to overwrite existing content, even if empty values are provided.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateElement',
+            'label' => Craft::t('formie', 'Update Events'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing event if found, or always create a new event.'),
+        ]);
+
+        $updateAttributes = $this->getUpdateAttributes();
+        $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedEventTypeId] ?? []);
+        if ($updateMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'updateElementMapping',
+                'label' => Craft::t('formie', 'Update Element Mapping'),
+                'instructions' => Craft::t('formie', 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.'),
+                'if' => 'updateElement',
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $updateMappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================
@@ -308,5 +390,32 @@ class EventsEvent extends Element
         $eventTypes = $this->getFormSettingValue('elements');
 
         return ArrayHelper::firstWhere($eventTypes, 'id', $this->eventTypeId);
+    }
+
+    private function _getEventTypeOptions(): array
+    {
+        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $elements = $this->getFormSettingValue('elements');
+        if (is_array($elements)) {
+            foreach ($elements as $item) {
+                $id = $item->id ?? $item['id'] ?? null;
+                $name = $item->name ?? $item['name'] ?? null;
+                if ($id !== null && $name !== null) {
+                    $options[] = ['label' => (string)$name, 'value' => (string)$id];
+                }
+            }
+        }
+        return $options;
+    }
+
+    private function _getFirstEventTypeId(): string
+    {
+        $elements = $this->getFormSettingValue('elements');
+        if (is_array($elements) && !empty($elements)) {
+            $first = reset($elements);
+            $id = $first->id ?? $first['id'] ?? null;
+            return $id !== null ? (string)$id : '';
+        }
+        return '';
     }
 }

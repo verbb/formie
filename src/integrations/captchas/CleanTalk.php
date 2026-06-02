@@ -4,11 +4,14 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\ArrayHelper;
 
 use Craft;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\View;
+
+use Throwable;
 
 class CleanTalk extends Captcha
 {
@@ -67,9 +70,7 @@ class CleanTalk extends Captcha
                 return false;
             }
         } catch (Throwable $e) {
-            $this->spamReason = 'CleanTalk validation failed: ' . $e->getMessage();
-
-            return false;
+            return $this->handleValidationException($submission, $e);
         }
 
         return true;

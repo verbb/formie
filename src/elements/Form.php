@@ -5,31 +5,42 @@ use verbb\formie\Formie;
 use verbb\formie\base\Crm;
 use verbb\formie\base\EmailMarketing;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\StorageInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\actions\DuplicateForm;
 use verbb\formie\elements\conditions\FormCondition;
 use verbb\formie\elements\db\FormQuery;
-use verbb\formie\events\ModifyFormHtmlTagEvent;
-use verbb\formie\fields\SingleLineText;
+use verbb\formie\events\ModifyFormSlotTagEvent;
+use verbb\formie\deprecations\FormDeprecations;
+use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 use verbb\formie\gql\interfaces\FieldInterface as GqlFieldInterface;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ConditionsHelper;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\Html;
+use verbb\formie\helpers\References;
+use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\helpers\UrlHelper;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormSettings;
 use verbb\formie\models\FormTemplate;
-use verbb\formie\models\HtmlTag;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Status;
 use verbb\formie\records\Form as FormRecord;
+use verbb\formie\client\bootstrap\models\FormDefinition;
+use verbb\formie\client\models\LoadContext;
+use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\Statuses;
+use verbb\formie\state\ResumeToken;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\Element;
@@ -42,10 +53,12 @@ use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\errors\MissingComponentException;
+use craft\events\DefineElementHtmlEvent;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Session;
+use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\validators\HandleValidator;
 use craft\web\View;
@@ -56,16 +69,27 @@ use yii\validators\Validator;
 
 use Throwable;
 use DateTime;
+use DateTimeZone;
 
 use Twig\Error\SyntaxError;
 use Twig\Error\LoaderError;
 
-class Form extends Element
+class Form extends Element implements FormInterface
 {
     // Constants
     // =========================================================================
 
+    public const BUILDER_ENTITY_TYPE_FORM = 'form';
+    public const BUILDER_ENTITY_TYPE_STENCIL = 'stencil';
+
+    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
     public const EVENT_MODIFY_HTML_TAG = 'modifyHtmlTag';
+
+
+    // Traits
+    // =========================================================================
+
+    use FormDeprecations;
 
 
     // Static Methods
@@ -111,6 +135,11 @@ class Form extends Element
         return $context->handle . '_Form';
     }
 
+    public static function gqlScopesByContext(mixed $context): array
+    {
+        return ['formieForms.' . $context->uid];
+    }
+
     public static function defineSources(string $context = null): array
     {
         $sources = [
@@ -128,13 +157,7 @@ class Form extends Element
         }
 
         foreach ($templates as $template) {
-            // TODO Change at the next breakpoint
-            // https://github.com/verbb/formie/discussions/1696
-            if ($context === 'modal') {
-                $key = "template:{$template->uid}";
-            } else {
-                $key = "template:{$template->id}";
-            }
+            $key = "template:{$template->id}";
 
             $sources[] = [
                 'key' => $key,
@@ -145,6 +168,18 @@ class Form extends Element
         }
 
         return $sources;
+    }
+
+    public static function defineElementChipHtml(DefineElementHtmlEvent $event): void
+    {
+        $element = $event->element;
+
+        if (!($element instanceof self)) {
+            return;
+        }
+
+        // Remove the quik-edit ability
+        $event->html = str_replace(['data-editable'], [''], $event->html);
     }
 
     protected static function defineActions(string $source = null): array
@@ -247,8 +282,8 @@ class Form extends Element
     public string $userDeletedAction = 'retain';
     public string $fileUploadsAction = 'retain';
     public ?FormSettings $settings = null;
+    public string $builderEntityType = self::BUILDER_ENTITY_TYPE_FORM;
 
-    public bool $resetClasses = false;
     public ?int $pageCount = null;
     public bool $isApplyingStencil = false;
 
@@ -258,22 +293,28 @@ class Form extends Element
     private ?Status $_defaultStatus = null;
     private ?Entry $_submitActionEntry = null;
     private ?array $_notifications = null;
+    private ?FieldLayoutPage $_currentPage = null;
     private ?Submission $_currentSubmission = null;
     private ?Submission $_editingSubmission = null;
     private ?string $_formId = null;
+    private ?int $_renderSequence = null;
     private bool $_appliedFieldSettings = false;
     private bool $_appliedFormSettings = false;
     private array $_relations = [];
     private array $_populatedFieldValues = [];
-    private array $_submitData = [];
     private ?string $_redirectUrl = null;
     private ?string $_actionUrl = null;
-    private string $_storageBehaviour = 'session';
+    private ?string $_draftContext = null;
+    private ?string $_requestToken = null;
+    private ?string $_submissionEditToken = null;
+    private bool $_resumeTokenHydrated = false;
+    private bool $_routeContextHydrated = false;
+    private array $_submitData = [];
 
-    // Render Options
-    private array $_renderOptions = [];
     private array $_themeConfig = [];
+    private string $_frontendTheme = 'formie';
     private ?string $_sessionKey = null;
+    private static array $_renderSequenceCounters = [];
 
 
     // Public Methods
@@ -333,6 +374,11 @@ class Form extends Element
 
         return parent::getScenario();
     }
+
+    public function canSave(User $user): bool
+    {
+        return true;
+    }
     
     public function canView(User $user): bool
     {
@@ -367,19 +413,14 @@ class Form extends Element
         return array_values($actions);
     }
 
-    public function getConsolidatedErrors()
-    {
-        $errors = [
-            $this->getErrors(),
-            $this->_findErrors($this->getFormBuilderConfig()),
-        ];
-
-        return array_values(ArrayHelper::recursiveFilter(array_merge(...$errors)));
-    }
-
     public function getSettings(): ?FormSettings
     {
         return $this->settings;
+    }
+
+    public function getHandle(): ?string
+    {
+        return $this->handle;
     }
 
     public function validateFormSettings(): void
@@ -478,36 +519,34 @@ class Form extends Element
             }
         }
 
-        // Check if for whatever reason there isn't a default status — try syncing from project config.
+        // Check if for whatever reason there isn't a default status - create it
         if ($this->_defaultStatus === null) {
-            $projectConfig = Craft::$app->getProjectConfig();
+            // But check for admin changes, as it's a project config setting change to make.
+            if (Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                $projectConfig = Craft::$app->getProjectConfig();
 
-            // Maybe the project config didn't get applied? Apply existing YAML to the DB (no YAML write).
-            $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
+                // Maybe the project config didn't get applied? Check for existing values
+                // This can likely be removed later, as this fix is already in place when installing Formie
+                $statuses = $projectConfig->get(Statuses::CONFIG_STATUSES_KEY, true) ?? [];
 
-            foreach ($statuses as $statusUid => $statusData) {
-                $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
-            }
+                foreach ($statuses as $statusUid => $statusData) {
+                    $projectConfig->processConfigChanges(Statuses::CONFIG_STATUSES_KEY . '.' . $statusUid, true);
+                }
 
-            if ($this->defaultStatusId) {
-                $this->_defaultStatus = Formie::$plugin->getStatuses()->getStatusById($this->defaultStatusId);
-            }
-
-            if ($this->_defaultStatus === null) {
+                // If there's _still_ not a status, just go ahead and create it...
                 $this->_defaultStatus = Formie::$plugin->getStatuses()->getAllStatuses()[0] ?? null;
-            }
 
-            // Creating a brand-new status writes to project config — only when admin changes are allowed.
-            if ($this->_defaultStatus === null && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-                $this->_defaultStatus = new Status([
-                    'name' => 'New',
-                    'handle' => 'new',
-                    'color' => 'green',
-                    'sortOrder' => 1,
-                    'isDefault' => 1,
-                ]);
+                if ($this->_defaultStatus === null) {
+                    $this->_defaultStatus = new Status([
+                        'name' => 'New',
+                        'handle' => 'new',
+                        'color' => 'green',
+                        'sortOrder' => 1,
+                        'isDefault' => 1,
+                    ]);
 
-                Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
+                    Formie::$plugin->getStatuses()->saveStatus($this->_defaultStatus);
+                }
             }
         }
 
@@ -524,19 +563,24 @@ class Form extends Element
         }
     }
 
-    public function getFormId(bool $useCache = true): string
+    public function getDefaultSubmissionTitle(?Submission $submission = null): string
     {
-        if ($this->_formId && $useCache) {
-            return $this->_formId;
+        $format = trim((string)($this->settings->submissionTitleFormat ?? ''));
+
+        if ($submission !== null && $format !== '') {
+            $parsed = trim(References::parseContent($format, $submission, [
+                'includeSummary' => false,
+            ]));
+
+            if ($parsed !== '') {
+                return $parsed;
+            }
         }
 
-        // Provide a unique ID for this field, used as a namespace for IDs of elements in the form
-        return $this->_formId = 'fui-' . $this->handle . '-' . StringHelper::randomString(6);
-    }
+        $timeZone = Craft::$app->getTimeZone();
+        $now = new DateTime('now', new DateTimeZone($timeZone));
 
-    public function setFormId(string $value): void
-    {
-        $this->_formId = $value;
+        return $now->format('Y-m-d H:i');
     }
 
     public function getDirtyAttributes(): array
@@ -549,11 +593,6 @@ class Form extends Element
         return parent::getDirtyAttributes();
     }
 
-    public function getConfigJson(): ?string
-    {
-        return Json::encode($this->getFrontEndJsVariables());
-    }
-
     public function getFormBuilderConfig(): array
     {
         return [
@@ -562,6 +601,7 @@ class Form extends Element
             'handle' => $this->handle,
             'errors' => $this->getErrors(),
             'templateId' => $this->templateId,
+            'defaultStatusId' => $this->defaultStatusId,
             'pages' => $this->getFormLayout()->getFormBuilderConfig(),
             'settings' => $this->getSettings()->getFormBuilderConfig(),
         ];
@@ -570,6 +610,80 @@ class Form extends Element
     public function getNotificationsConfig(): array
     {
         return Formie::$plugin->getNotifications()->getNotificationsConfig($this->getNotifications());
+    }
+
+    public function getClientConfig(): array
+    {
+        return [
+            'formId' => (string)$this->id,
+            'handle' => $this->handle,
+            'pages' => array_map(static function(FieldLayoutPage $page) {
+                return $page->getClientConfig();
+            }, $this->getPages()),
+            'settings' => [
+                'currentPageId' => (string)($this->getCurrentPage()?->id ?? ''),
+                'errorMessage' => $this->getFrontendErrorMessage(),
+                'loadingIndicator' => (string)($this->settings->loadingIndicator ?? ''),
+                'loadingIndicatorText' => (string)($this->settings->loadingIndicatorText ?? ''),
+                'progressCalculation' => (string)$this->settings->progressCalculation,
+                'scrollToTop' => (bool)$this->settings->scrollToTop,
+                'submitMethod' => (string)$this->settings->submitMethod,
+                'validationOnFocus' => (bool)$this->settings->validationOnFocus,
+                'validationOnSubmit' => (bool)$this->settings->validationOnSubmit,
+            ],
+            'modules' => Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($this, ClientModule::RENDER_TARGET_CP_EDIT),
+        ];
+    }
+
+    public function getClientPayload(LoadContext $context): FormDefinition
+    {
+        $pages = array_map(function(FieldLayoutPage $page, int $index) {
+            return $page->getClientPayload($this, $index);
+        }, $this->getPages(), array_keys($this->getPages()));
+
+        return new FormDefinition([
+            'id' => (string)$this->id,
+            'handle' => (string)$this->handle,
+            'title' => $this->title,
+            'locale' => $context->locale,
+            'siteId' => $context->siteId,
+            'settings' => [
+                'initialPageId' => (string)($this->getPages()[0]->id ?? ''),
+                'submitMethod' => 'ajax',
+                'validation' => [
+                    'onBlur' => (bool)$this->settings->validationOnFocus,
+                    'onSubmit' => (bool)$this->settings->validationOnSubmit,
+                    'formErrorMessage' => $this->getFrontendErrorMessage(),
+                ],
+                'progress' => [
+                    'enabled' => $this->hasMultiplePages(),
+                    'calculation' => (string)$this->settings->progressCalculation,
+                ],
+            ],
+            'pages' => $pages,
+            'modules' => Formie::$plugin->getClientModuleManifestBuilder()->buildCanonical($this, ClientModule::RENDER_TARGET_FRONTEND),
+            'submission' => [
+                'endpoint' => UrlHelper::actionUrl('formie/client/submissions/submit'),
+                'method' => 'POST',
+                'encoding' => 'application/json',
+                'actions' => ['back', 'save', 'submit'],
+                'response' => [
+                    'successMessageMode' => 'inline',
+                    'redirectMode' => 'same-tab',
+                ],
+            ],
+        ]);
+    }
+
+    public function getFrontendErrorMessage(): string
+    {
+        $message = $this->settings->errorMessage;
+
+        if ($message->isEmpty()) {
+            return '';
+        }
+
+        return $message->toHtml(null, true);
     }
 
     public function getPages(): array
@@ -589,18 +703,12 @@ class Form extends Element
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'handle', $handle);
+        return $this->getFormLayout()->getFieldByHandle($handle);
     }
 
     public function getFieldById(int $id): ?FieldInterface
     {
-        return ArrayHelper::firstWhere($this->getFields(), 'id', $id);
-    }
-
-    public function getCustomFields(): array
-    {
-        // Required for compatibility with GQL `craft\gql\base\Generator`
-        return $this->getFields();
+        return $this->getFormLayout()->getFieldById($id);
     }
 
     public function hasFieldConditions(): bool
@@ -610,7 +718,7 @@ class Form extends Element
                 return true;
             }
 
-            if ($field instanceof NestedFieldInterface) {
+            if ($field instanceof ParentFieldInterface) {
                 foreach ($field->getFields() as $nestedField) {
                     if ($nestedField->enableConditions) {
                         return true;
@@ -656,29 +764,20 @@ class Form extends Element
 
     public function getCurrentPage(): ?FieldLayoutPage
     {
-        $currentPage = null;
-        $pages = $this->getPages();
+        $this->_hydrateCurrentSubmissionFromRouteContext();
+        $this->_hydrateCurrentSubmissionFromStorage();
 
-        if ($pages) {
-            // Check if there's a session variable
-            $pageId = $this->getStorage()->getCurrentPageId($this);
-
-            if ($pageId) {
-                $currentPage = ArrayHelper::firstWhere($pages, 'id', $pageId);
-            }
-
-            // Separate check from the above. Maybe we're trying to fetch a page that doesn't
-            // belong to this form? If so, that'll freak things out. We always need a page
-            if (!$currentPage) {
-                $currentPage = $pages[0];
-            }
+        if ($this->_currentPage) {
+            return $this->_currentPage;
         }
 
-        // TODO: Maybe blow away the session variable as soon as its fetched. What if we have tabs
-        // on the template to go directly to a specific page? It'll otherwise always go to the same
-        // page, which is not what we want. Maybe look at adding a `form->getPageUrl()` which does this
+        $pages = $this->getPages();
 
-        return $currentPage;
+        if (!$pages) {
+            return null;
+        }
+
+        return $pages[0];
     }
 
     public function getPreviousPage(FieldLayoutPage $currentPage = null, Submission $submission = null, bool $defaultToFirst = false): ?FieldLayoutPage
@@ -690,9 +789,10 @@ class Form extends Element
         }
 
         $currentKey = end($pages);
+        $currentPageId = $currentPage?->id ? (int)$currentPage->id : null;
 
         if ($currentPage) {
-            while ($currentKey !== null && $currentKey !== $currentPage) {
+            while ($currentKey !== null && (int)$currentKey->id !== $currentPageId) {
                 prev($pages);
                 $currentKey = current($pages);
             }
@@ -723,9 +823,10 @@ class Form extends Element
         }
 
         $currentKey = reset($pages);
+        $currentPageId = $currentPage?->id ? (int)$currentPage->id : null;
 
         if ($currentPage) {
-            while ($currentKey !== null && $currentKey !== $currentPage) {
+            while ($currentKey !== null && (int)$currentKey->id !== $currentPageId) {
                 next($pages);
                 $currentKey = current($pages);
             }
@@ -762,6 +863,25 @@ class Form extends Element
         return 0;
     }
 
+    public function getPageProgressPercent(FieldLayoutPage $page = null): int
+    {
+        $pages = $this->getPages();
+        $totalPages = count($pages);
+
+        if ($totalPages < 1) {
+            return 0;
+        }
+
+        $pageIndex = $this->getCurrentPageIndex($page);
+        $mode = $this->settings->progressCalculation === 'page-position' ? 'page-position' : 'completion';
+
+        if ($mode === 'page-position') {
+            return (int)round((($pageIndex + 1) / $totalPages) * 100);
+        }
+
+        return (int)round(($pageIndex / $totalPages) * 100);
+    }
+
     public function getPageIndex(FieldLayoutPage $page = null): ?int
     {
         $pages = $this->getPages();
@@ -776,14 +896,12 @@ class Form extends Element
 
     public function setCurrentPage(FieldLayoutPage $page = null): void
     {
-        if ($page) {
-            $this->getStorage()->setCurrentPageId($this, $page->id);
-        }
+        $this->_currentPage = $page;
     }
 
     public function resetCurrentPage(): void
     {
-        $this->getStorage()->resetCurrentPageId($this);
+        $this->_currentPage = null;
     }
 
     public function isLastPage(FieldLayoutPage $currentPage = null): bool
@@ -809,32 +927,12 @@ class Form extends Element
             $this->resetSnapshotData();
         }
 
+        $this->_hydrateCurrentSubmissionFromRouteContext();
+        $this->_hydrateCurrentSubmissionFromStorage();
+
         // If we have a current submission in the session, use that
         if ($this->_currentSubmission) {
             return $this->_currentSubmission;
-        }
-
-        // See if there's a submission on routeParams - an error has occurred.
-        $params = Craft::$app->getUrlManager()->getRouteParams();
-
-        // Make sure to check the right submission
-        if (isset($params['submission']) && $params['submission']->form->id == $this->id) {
-            return $params['submission'];
-        }
-
-        // Check if there's a session variable
-        $submissionId = Session::get($this->_getSessionKey('submissionId'));
-
-        if ($submissionId) {
-            /* @var Submission $submission */
-            $submission = Submission::find()->id($submissionId)->isIncomplete(true)->one();
-
-            // Ensure that the submission still exists. If it doesn't, reset
-            if (!$submission) {
-                $this->resetCurrentSubmission();
-            }
-
-            return $this->_currentSubmission = $submission;
         }
 
         // Or, if we're editing a submission
@@ -842,54 +940,168 @@ class Form extends Element
             return $this->_currentSubmission = $this->_editingSubmission;
         }
 
+        $this->_hydrateCurrentSubmissionFromResumeToken();
+
+        if ($this->_currentSubmission) {
+            return $this->_currentSubmission;
+        }
+
         return null;
     }
 
     public function setCurrentSubmission(?Submission $submission): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
+        $this->_currentSubmission = $submission;
+    }
+
+    public function setDraftContext(mixed $context): void
+    {
+        if ($context === null) {
+            $this->_draftContext = null;
             return;
         }
 
-        if (!$submission) {
-            $this->resetCurrentSubmission();
-        } else {
-            Session::set($this->_getSessionKey('submissionId'), $submission->id);
+        $value = trim((string)$context);
+        $this->_draftContext = $value !== '' ? $value : null;
+    }
+
+    public function getDraftContext(): ?string
+    {
+        if ($this->_draftContext !== null) {
+            return $this->_draftContext;
         }
 
-        $this->_currentSubmission = $submission;
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsConsoleRequest()) {
+            return null;
+        }
+
+        $siteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+        $path = trim((string)$request->getPathInfo(), '/');
+        $path = $path !== '' ? $path : '__home__';
+
+        return "url:{$siteId}:{$path}";
+    }
+
+    public function getDraftContextToken(): ?string
+    {
+        $context = $this->getDraftContext();
+
+        if ($context === null) {
+            return null;
+        }
+
+        $payload = Json::encode([
+            'context' => $context,
+            'formId' => (int)$this->id,
+            'siteId' => (int)Craft::$app->getSites()->getCurrentSite()->id,
+        ]);
+
+        $key = Formie::$plugin->getSettings()->getSecurityKey();
+        $encrypted = Craft::$app->getSecurity()->encryptByKey($payload, $key);
+
+        if (!is_string($encrypted) || $encrypted === '') {
+            return null;
+        }
+
+        return base64_encode($encrypted);
+    }
+
+    public function resolveDraftContextToken(?string $token): ?string
+    {
+        if (!is_string($token) || trim($token) === '') {
+            return null;
+        }
+
+        $decoded = base64_decode($token, true);
+
+        if (!is_string($decoded) || $decoded === '') {
+            return null;
+        }
+
+        $key = Formie::$plugin->getSettings()->getSecurityKey();
+        $decrypted = Craft::$app->getSecurity()->decryptByKey($decoded, $key);
+
+        if (!is_string($decrypted) || $decrypted === '') {
+            return null;
+        }
+
+        $payload = Json::decodeIfJson($decrypted);
+
+        if (!is_array($payload)) {
+            return null;
+        }
+
+        $context = isset($payload['context']) && is_string($payload['context']) ? trim($payload['context']) : null;
+        $formId = isset($payload['formId']) ? (int)$payload['formId'] : null;
+        $siteId = isset($payload['siteId']) ? (int)$payload['siteId'] : null;
+        $currentSiteId = (int)Craft::$app->getSites()->getCurrentSite()->id;
+
+        if ($context === null || $context === '') {
+            return null;
+        }
+
+        if ($formId !== null && (int)$this->id !== 0 && $formId !== (int)$this->id) {
+            return null;
+        }
+
+        if ($siteId !== null && $siteId !== $currentSiteId) {
+            return null;
+        }
+
+        return $context;
+    }
+
+    public function getSubmitStateIdentity(): string
+    {
+        $context = $this->getDraftContext();
+        $handle = $this->handle ?: 'form';
+
+        if (!$context) {
+            return $handle;
+        }
+
+        return "{$handle}:ctx:" . hash('sha256', $context);
+    }
+
+    public function getSubmitStateKey(): string
+    {
+        $key = $this->getSubmitStateIdentity();
+
+        if ($this->_formId) {
+            $key .= ':rid:' . hash('sha256', $this->_formId);
+        }
+
+        return $key;
+    }
+
+    public function getSubmitData(): array
+    {
+        return $this->_submitData;
+    }
+
+    public function addSubmitData(array $value): void
+    {
+        $this->_submitData[] = $value;
+    }
+
+    public function getFlashNamespace(): string
+    {
+        return 'flash:' . hash('sha256', $this->getSubmitStateKey());
     }
 
     public function resetCurrentSubmission(): void
     {
-        if (Craft::$app->getRequest()->getIsConsoleRequest() || !Session::exists()) {
-            return;
-        }
-
         $this->resetCurrentPage();
-        Session::remove($this->_getSessionKey('submissionId'));
 
         $this->_currentSubmission = null;
-    }
-
-    public function getStorageBehaviour(): string
-    {
-        return $this->_storageBehaviour;
-    }
-
-    public function setStorageBehaviour(string $behaviour): void
-    {
-        $this->_storageBehaviour = $behaviour;
-    }
-
-    public function getStorage(): StorageInterface
-    {
-        return Formie::$plugin->getStorage()->getStorage($this->getStorageBehaviour());
     }
 
     public function setSubmission(?Submission $submission): void
     {
         $this->_editingSubmission = $submission;
+        $this->_submissionEditToken = null;
     }
 
     public function isEditingSubmission(): bool
@@ -903,13 +1115,11 @@ class Form extends Element
             return null;
         }
 
-        return Craft::$app->getSecurity()->hashData(Json::encode([
-            'purpose' => 'formie-edit-submission',
-            'formId' => $this->id,
-            'formUid' => $this->uid,
-            'submissionId' => $this->_editingSubmission->id,
-            'submissionUid' => $this->_editingSubmission->uid,
-        ]));
+        if ($this->_submissionEditToken === null) {
+            $this->_submissionEditToken = Formie::$plugin->getSubmissionDrafts()->issueSubmissionEditToken($this, $this->_editingSubmission)?->token;
+        }
+
+        return $this->_submissionEditToken;
     }
 
     public function getActionUrl(): string
@@ -1006,10 +1216,10 @@ class Form extends Element
 
     public function validateNotifications(): void
     {
-        foreach ($this->getNotifications() as $notification) {
+        foreach ($this->getNotifications() as $notificationIndex => $notification) {
             if (!$notification->validate()) {
                 foreach ($notification->getErrors() as $key => $error) {
-                    $this->addError('notifications.' . $notification->id . '.' . $key, $error[0]);
+                    $this->addError("notifications.$notificationIndex.$key", $error[0]);
                 }
             }
         }
@@ -1017,7 +1227,7 @@ class Form extends Element
 
     public function setRedirectUrl(string $value): void
     {
-        $this->_redirectUrl = $value;
+        $this->_redirectUrl = StringHelper::sanitizeRedirectUrl($value);
     }
 
     public function getRedirectUrl(bool $checkLastPage = true, bool $includeQueryString = true): string
@@ -1043,8 +1253,11 @@ class Form extends Element
         } else if ($this->settings->submitAction == 'entry' && $this->getRedirectEntry()) {
             $url = $this->getRedirectEntry()->url;
         } else if ($this->settings->submitAction == 'url' && $this->settings->submitActionUrl) {
-            // Parse Twig
-            $url = Craft::$app->getView()->renderString($this->settings->submitActionUrl);
+            $url = $this->settings->submitActionUrl;
+
+            if (($submission = $this->getCurrentSubmission()) && is_string($url)) {
+                $url = References::parseContent($url, $submission);
+            }
         }
 
         // Add any query params to the URL automatically (think utm)
@@ -1060,8 +1273,9 @@ class Form extends Element
             $url = UrlHelper::url($url, $requestParams . '&' . $urlParams);
         }
 
-        // Handle any special characters defined in the URL and encode them properly
-        $url = str_replace("&amp;", "&", htmlspecialchars($url));
+        // Handle any UTF characters defined in the URL and encode them properly
+        $url = mb_convert_encoding($url, 'UTF-8', 'ISO-8859-1');
+        $url = StringHelper::sanitizeRedirectUrl($url);
 
         return $url;
     }
@@ -1150,350 +1364,53 @@ class Form extends Element
         return '';
     }
 
-    public function renderHtmlTag(string $key, array $context = []): ?HtmlTag
+    public function getRenderId(bool $useCache = true): string
     {
-        // Get the HtmlTag definition
-        $tag = $this->defineHtmlTag($key, $context);
-
-        if ($tag) {
-            // Find if there's a config option for this key, either in plugin config or template render options
-            $config = $this->getThemeConfigItem($key);
-
-            // Check if the config is falsey - then don't render
-            if ($config === false || $config === null) {
-                $tag = null;
-            } else {
-                // Are we resetting classes globally?
-                if ($this->resetClasses) {
-                    $config['resetClass'] = true;
-                }
-
-                $tag->setFromConfig($config, $context);
-            }
+        if ($this->_formId && $useCache) {
+            return $this->_formId;
         }
 
-        $event = new ModifyFormHtmlTagEvent([
+        // Keep render identity deterministic per render-slot instance (state identity + sequence),
+        // so it stays stable across redirect reloads while avoiding collisions for duplicates.
+        $handle = $this->handle ?: 'form';
+        $stateHash = substr(hash('sha256', $this->getSubmitStateIdentity()), 0, 10);
+        $this->_renderSequence = $this->_nextRenderSequence();
+
+        return $this->_formId = "formie-{$handle}-{$stateHash}-{$this->_renderSequence}";
+    }
+
+    public function setRenderId(string $value): void
+    {
+        $this->_formId = $value;
+        $this->_renderSequence = null;
+    }
+
+    public function renderSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $tag = $this->defineFieldSlotTag($key, $context);
+        $tag = Formie::$plugin->getThemeConfigService()->applyFormTagConfig($this, $key, $tag, $context);
+
+        $event = new ModifyFormSlotTagEvent([
             'form' => $this,
             'tag' => $tag,
             'key' => $key,
-            'context' => $context,
+            'context' => $context->toArray(),
         ]);
 
-        $this->trigger(static::EVENT_MODIFY_HTML_TAG, $event);
+        $this->trigger(static::EVENT_MODIFY_SLOT_TAG, $event);
+        $this->triggerDeprecatedHtmlTagEvent($event);
 
         return $event->tag;
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    public function getFrontendTheme(): string
     {
-        if ($key === 'formWrapper') {
-            return new HtmlTag('div', [
-                'class' => 'fui-i',
-            ]);
-        }
-
-        if ($key === 'form') {
-            $defaultLabelPosition = new $this->settings->defaultLabelPosition;
-
-            return new HtmlTag('form', [
-                'id' => $this->getFormId(),
-                'class' => [
-                    'fui-form',
-                    'fui-labels-' . $defaultLabelPosition,
-                    $this->settings->displayPageProgress ? "fui-progress-{$this->settings->progressPosition}" : false,
-                    $this->settings->displayPageProgress ? "fui-progress-value-{$this->settings->progressValuePosition}" : false,
-                    $this->settings->validationOnFocus ? 'fui-validate-on-focus' : false,
-                ],
-                'method' => 'post',
-                'enctype' => 'multipart/form-data',
-                'accept-charset' => 'utf-8',
-                'data' => [
-                    'fui-form' => $this->getConfigJson(),
-                    'form-handle' => $this->handle,
-                    'form-submit-method' => $this->settings->submitMethod ?: false,
-                    'form-submit-action' => $this->settings->submitAction ?: false,
-                    'loading-indicator' => $this->settings->loadingIndicator ?: false,
-                    'loading-text' => $this->settings->loadingIndicatorText ?: false,
-                    'redirect' => $this->getRedirectUrl() ?: false,
-                ],
-            ]);
-        }
-
-        if ($key === 'formContainer') {
-            return new HtmlTag('div', [
-                'class' => 'fui-form-container',
-            ]);
-        }
-
-        if ($key === 'alertError') {
-            return new HtmlTag('div', [
-                'class' => [
-                    'fui-alert fui-alert-error',
-                    'fui-alert-' . $this->settings->errorMessagePosition,
-                ],
-                'role' => 'alert',
-                'data-fui-alert' => true,
-                'data-fui-alert-error' => true,
-            ]);
-        }
-
-        if ($key === 'alertSuccess') {
-            return new HtmlTag('div', [
-                'class' => [
-                    'fui-alert fui-alert-success',
-                    'fui-alert-' . $this->settings->submitActionMessagePosition,
-                ],
-                'role' => 'alert',
-                'data-fui-alert' => true,
-                'data-fui-alert-success' => true,
-            ]);
-        }
-
-        if ($key === 'formTitle') {
-            return new HtmlTag('h2', [
-                'class' => 'fui-title',
-            ]);
-        }
-
-        if ($key === 'pageTabs') {
-            return new HtmlTag('div', [
-                'class' => 'fui-tabs',
-                'data-fui-page-tabs' => true,
-            ]);
-        }
-
-        if ($key === 'pageTab') {
-            $submission = $context['submission'] ?? null;
-            $currentPage = $context['currentPage'] ?? null;
-            $currentPageId = $currentPage->id ?? null;
-            $currentPageIndex = $this->getPageIndex($currentPage);
-            $page = $context['page'] ?? null;
-            $pageId = $page->id ?? null;
-            $pageIndex = $this->getPageIndex($page);
-
-            return new HtmlTag('div', [
-                'id' => 'fui-tab-' . $pageId,
-                'class' => [
-                    'fui-tab',
-                    ($currentPageIndex > $pageIndex) ? 'fui-tab-complete' : false,
-                    ($pageId == $currentPageId) ? 'fui-tab-active' : false,
-                    $page->getFieldErrors($submission) ? 'fui-tab-error' : false,
-                ],
-                'data-fui-page-tab' => true,
-                'data-field-conditions' => $page->getConditionsJson(),
-            ]);
-        }
-
-        if ($key === 'pageTabLink') {
-            $params = $context['params'] ?? null;
-            $page = $context['page'] ?? null;
-            $pageId = $page->id ?? null;
-            $pageIndex = $context['pageIndex'] ?? null;
-
-            return new HtmlTag('a', [
-                'href' => UrlHelper::actionUrl('formie/submissions/set-page', $params),
-                'data-fui-page-tab-anchor' => true,
-                'data-fui-page-index' => $pageIndex,
-                'data-fui-page-id' => $pageId ?? false,
-            ]);
-        }
-
-        if ($key === 'page') {
-            $page = $context['page'] ?? null;
-            $pageId = $page->id ?? null;
-            $currentPageId = $context['currentPage']->id ?? null;
-
-            return new HtmlTag('div', [
-                'id' => "{$this->getFormId()}-p-{$pageId}",
-                'class' => 'fui-page',
-                'data-field-conditions' => $page->getConditionsJson(),
-                'data' => [
-                    'index' => $page->sortOrder ?? null,
-                    'id' => $pageId,
-                    'fui-page' => true,
-                    'fui-page-hidden' => $this->hasMultiplePages() && $pageId != $currentPageId ? true : false,
-                ],
-            ]);
-        }
-
-        if ($key === 'pageContainer') {
-            $tag = $this->settings->displayCurrentPageTitle ? 'fieldset' : 'div';
-
-            return new HtmlTag($tag, [
-                'class' => [
-                    'fui-page-container',
-                    $this->settings->displayCurrentPageTitle ? 'fui-fieldset' : false,
-                ],
-            ]);
-        }
-
-        if ($key === 'pageTitle') {
-            return new HtmlTag('legend', [
-                'class' => 'fui-page-title',
-            ]);
-        }
-
-        if ($key === 'row') {
-            $row = $context['row'] ?? null;
-
-            return new HtmlTag('div', [
-                'class' => [
-                    'fui-row fui-page-row',
-                     $row->getIsHidden() ? 'fui-row-empty' : false,
-                ],
-                'data-fui-field-count' => count($row->getFields(false, false)),
-            ]);
-        }
-
-        if ($key === 'buttonWrapper') {
-            $page = $context['page'] ?? null;
-            $containerAttributes = $page->getPageSettings()->getContainerAttributes() ?? [];
-
-            return new HtmlTag('div', [
-                'class' => [
-                    'fui-btn-wrapper',
-                    "fui-btn-{$page->getPageSettings()->buttonsPosition}",
-                ],
-            ], $containerAttributes, $page->getPageSettings()->cssClasses);
-        }
-
-        if ($key === 'buttonContainer') {
-            $page = $context['page'] ?? null;
-            $showSaveButton = $page->getPageSettings()->showSaveButton ?? false;
-
-            // Don't output if no save button
-            if (!$showSaveButton) {
-                return null;
-            }
-
-            return new HtmlTag('div', [
-                'class' => 'fui-btn-container',
-            ]);
-        }
-
-        if ($key === 'submitButton') {
-            $page = $context['page'] ?? null;
-            $inputAttributes = $page->getPageSettings()->getInputAttributes() ?? [];
-            $nextPage = $this->getNextPage($page);
-
-            return new HtmlTag('button', [
-                'class' => [
-                    'fui-btn fui-submit',
-                    $nextPage ? 'fui-next' : false,
-                ],
-                'type' => 'submit',
-                'data-submit-action' => 'submit',
-                'data-field-conditions' => $page->getPageSettings()->getConditionsJson(),
-            ], $inputAttributes);
-        }
-
-        if ($key === 'saveButton') {
-            $page = $context['page'] ?? null;
-            $inputAttributes = $page->getPageSettings()->getInputAttributes() ?? [];
-            $saveButtonStyle = $page->getPageSettings()->saveButtonStyle ?? 'link';
-            
-            return new HtmlTag('button', [
-                'class' => [
-                    'fui-btn fui-save',
-                    $saveButtonStyle === 'button' ? 'fui-submit' : 'fui-btn-link',
-                ],
-                'type' => 'submit',
-                'data-submit-action' => 'save',
-            ], $inputAttributes);
-        }
-
-        if ($key === 'backButton') {
-            $page = $context['page'] ?? null;
-            $inputAttributes = $page->getPageSettings()->getInputAttributes() ?? [];
-
-            return new HtmlTag('button', [
-                'class' => 'fui-btn fui-prev',
-                'type' => 'submit',
-                'data-submit-action' => 'back',
-            ], $inputAttributes);
-        }
-
-        if ($key === 'progressWrapper') {
-            return new HtmlTag('div', [
-                'class' => 'fui-progress-container',
-                'data-fui-progress-container' => true,
-            ]);
-        }
-
-        if ($key === 'progress') {
-            return new HtmlTag('div', [
-                'class' => 'fui-progress',
-                'data-fui-progress' => true,
-            ]);
-        }
-
-        if ($key === 'progressContainer') {
-            $progress = $context['progress'] ?? null;
-
-            return new HtmlTag('div', [
-                'style' => "width: {$progress}%",
-                'class' => 'fui-progress-bar',
-                'role' => 'progressbar',
-                'data-fui-progress-bar' => true,
-                'aria' => [
-                    'valuenow' => $progress,
-                    'valuemin' => 0,
-                    'valuemax' => 100,
-                ],
-            ]);
-        }
-
-        if ($key === 'progressValue') {
-            $progress = $context['progress'] ?? null;
-
-            return new HtmlTag('span', [
-                'class' => 'fui-progress-value',
-                'data-fui-progress-value' => $progress,
-            ]);
-        }
-
-        if ($key === 'errors') {
-            return new HtmlTag('ul', [
-                'class' => 'fui-errors',
-            ]);
-        }
-
-        if ($key === 'error') {
-            return new HtmlTag('li', [
-                'class' => 'fui-error-message',
-            ]);
-        }
-
-        if ($key === 'captcha') {
-            return new HtmlTag('div', [
-                'class' => 'fui-captcha',
-            ]);
-        }
-
-        return null;
+        return $this->_frontendTheme;
     }
 
-    public function applyRenderOptions(array $renderOptions = []): void
+    public function setFrontendTheme(string $value): void
     {
-        $this->_renderOptions = $renderOptions;
-
-        // Allow a session key to be provided to scope incomplete submission content.
-        // Base64 encode it not for security, just so it's not plain text an "obvious".
-        $sessionKey = $renderOptions['sessionKey'] ?? null;
-        $this->setSessionKey(base64_encode((string)$sessionKey));
-
-        // Theme options
-        $templateConfig = $renderOptions['themeConfig'] ?? [];
-        $pluginConfig = Formie::$plugin->getSettings()->themeConfig ?? [];
-
-        // If not set at the template level, check if it's set a the plugin level.
-        // If set for both, `setThemeConfig()` will merge.
-        if ($templateConfig) {
-            $this->setThemeConfig($templateConfig);
-        } else if ($pluginConfig) {
-            // Pass in an empty array, because we already merge in plugin settings config
-            $this->setThemeConfig([]);
-        }
+        $this->_frontendTheme = $value;
     }
 
     public function getThemeConfig(): array
@@ -1506,220 +1423,25 @@ class Form extends Element
         /* @var Settings $pluginSettings */
         $pluginSettings = Formie::$plugin->getSettings();
 
-        // Merge config and template-level tags - template overrides
-        $this->_themeConfig = Html::mergeHtmlConfigs($pluginSettings->themeConfig, $value);
-
-        // Rip out the `resetClasses`, if set as this is set globally and checked on each tag-render
-        $this->resetClasses = ArrayHelper::remove($this->_themeConfig, 'resetClasses', false);
+        $this->_themeConfig = Formie::$plugin->getThemeConfigService()->mergeConfigLayers($pluginSettings->themeConfig, $value);
     }
 
     public function getThemeConfigItem(string $key): array|bool|null
     {
-        return ArrayHelper::getValue($this->_themeConfig, $key, []);
+        return ThemeConfigLegacyKeys::getMergedThemeConfigItem($this->_themeConfig, __METHOD__, $key);
     }
 
-    public function getFrontEndJsVariables(): array
+    public function getFrontendThemeClasses(): array
     {
-        /* @var Settings $pluginSettings */
-        $pluginSettings = Formie::$plugin->getSettings();
-
-        // Only provide what we need, both for security/privacy but also DOM size
-        $settings = [
-            'submitMethod' => $this->settings->submitMethod,
-            'submitActionMessage' => $this->settings->getSubmitActionMessage() ?? '',
-            'submitActionMessageTimeout' => $this->settings->submitActionMessageTimeout,
-            'submitActionMessagePosition' => $this->settings->submitActionMessagePosition,
-            'submitActionFormHide' => $this->settings->submitActionFormHide,
-            'submitAction' => $this->settings->submitAction,
-            'submitActionTab' => $this->settings->submitActionTab,
-            'errorMessage' => $this->settings->getErrorMessage() ?? '',
-            'errorMessagePosition' => $this->settings->errorMessagePosition,
-            'loadingIndicator' => $this->settings->loadingIndicator,
-            'loadingIndicatorText' => $this->settings->loadingIndicatorText,
-            'validationOnSubmit' => $this->settings->validationOnSubmit,
-            'validationOnFocus' => $this->settings->validationOnFocus,
-            'scrollToTop' => $this->settings->scrollToTop,
-            'hasMultiplePages' => $this->hasMultiplePages(),
-            'pages' => array_map(function(FieldLayoutPage $page) {
-                return [
-                    'id' => $page->id,
-                    'label' => $page->label,
-                    'settings' => $page->getSettings(),
-                ];
-            }, $this->getPages()),
-            'themeConfig' => $this->getThemeConfigAttributes(),
-            'redirectUrl' => $this->getRedirectUrl(),
-            'currentPageId' => $this->getCurrentPage()->id ?: '',
-            'outputJsTheme' => $this->getFrontEndTemplateOption('outputJsTheme'),
-            'enableUnloadWarning' => $pluginSettings->enableUnloadWarning,
-            'enableBackSubmission' => $pluginSettings->enableBackSubmission,
-            'ajaxTimeout' => $pluginSettings->ajaxTimeout,
-            'outputConsoleMessages' => $pluginSettings->outputConsoleMessages,
-            'baseActionUrl' => rtrim(UrlHelper::siteActionUrl(''), '/'),
-
-            // Generate the refresh token here to make use of `UrlHelper` generation
-            'refreshTokenUrl' => UrlHelper::siteActionUrl('formie/forms/refresh-tokens', ['form' => 'FORM_PLACEHOLDER']),
-        ];
-
-        // Render options could contain settings for script tag attributes (CSP)
-        $settings['scriptAttributes'] = $this->_renderOptions['scriptAttributes'] ?? [];
-
-        $registeredJs = [];
-
-        // Add any JS per-field
-        foreach ($this->getFields() as $field) {
-            if ($fieldJs = $this->_getFrontEndJsModules($field)) {
-                $registeredJs[] = $fieldJs;
-            }
-        }
-
-        // Add any JS for enabled captchas - force fetch because we're dealing with potential ajax forms
-        // Normally, this function returns only if the `showAllPages` property is set.
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this, null, true);
-
-        // Don't show captchas for the CP
-        if (!Craft::$app->getRequest()->getIsCpRequest()) {
-            foreach ($captchas as $captcha) {
-                if ($js = $captcha->getFrontEndJsVariables($this)) {
-                    $registeredJs[] = [$js];
-                }
-            }
-        }
-
-        // Add any JS for other integrations (that don't handle things themselves)
-        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($this);
-
-        foreach ($integrations as $integration) {
-            // Some integration types take care of front-end JS in other ways
-            if ($integration instanceof Crm || $integration instanceof EmailMarketing || $integration instanceof Miscellaneous) {
-                if ($js = $integration->getFrontEndJsVariables()) {
-                    $registeredJs[] = [$js];
-                }
-            }
-        }
-
-        // See if we have any condition's setup for the form. No need to include otherwise
-        if ($this->hasConditions()) {
-            $registeredJs[] = [[
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/conditions.js'),
-                'module' => 'FormieConditions',
-            ]];
-        }
-
-        // For performance, merge after building
-        $registeredJs = array_merge(...$registeredJs);
-
-        // Cleanup - Ensure we don't include JS multiple times
-        $registeredJs = array_values(array_unique(array_filter($registeredJs), SORT_REGULAR));
-
-        return [
-            'formHashId' => $this->getFormId(),
-            // Unique per `renderForm()` call so multiple embeds of the same form get their own script bundle.
-            'formScriptId' => StringHelper::UUID(),
-            'formId' => $this->id,
-            'formHandle' => $this->handle,
-            'registeredJs' => $registeredJs,
-            'settings' => $settings,
-        ];
+        return Formie::$plugin->getThemeConfigService()->buildFrontendClassMap($this);
     }
 
-    public function getSubmitData(): ?array
+    public function getFrontendThemeClassMap(): array
     {
-        return $this->_submitData;
+        return $this->getFrontendThemeClasses();
     }
 
-    public function addSubmitData(array $value): void
-    {
-        $this->_submitData[] = $value;
-    }
-
-    public function getFrontEndJsEvents(): ?array
-    {
-        // Deprecated, use `getSubmitData`
-        Craft::$app->getDeprecator()->log(__METHOD__, 'The `getFrontEndJsEvents` method has been deprecated. Use the `getSubmitData` method instead.');
-
-        return $this->getSubmitData();
-    }
-
-    public function addFrontEndJsEvents(array $value): void
-    {
-        // Deprecated, use `addSubmitData`
-        Craft::$app->getDeprecator()->log(__METHOD__, 'The `addFrontEndJsEvents` method has been deprecated. Use the `addSubmitData` method instead.');
-        
-        $this->addSubmitData($value);
-    }
-
-    public function getThemeConfigAttributes()
-    {
-        $allAttributes = [];
-
-        // Provide defaults to fallback on, which aren't in Theme Config
-        $configKeys = [
-            'loading' => 'fui-loading',
-            'errorMessage' => 'fui-error-message',
-            'disabled' => 'fui-disabled',
-            'tabError' => 'fui-tab-error',
-            'tabActive' => 'fui-tab-active',
-            'tabComplete' => 'fui-tab-complete',
-            'successMessage' => 'fui-alert-success',
-            'alert' => 'fui-alert',
-            'alertError' => 'fui-alert-error',
-            'alertSuccess' => 'fui-alert-success',
-            'page' => 'fui-page',
-            'progress' => 'fui-progress-bar',
-            'tab' => 'fui-tab',
-            'success' => 'fui-success',
-            'successMessage' => 'fui-success-message',
-            'error' => 'fui-error',
-            'fieldContainerError' => 'fui-error',
-            'fieldInputError' => 'fui-error',
-            'fieldErrors' => 'fui-errors',
-            'fieldError' => 'fui-error-message',
-        ];
-
-        $context = [
-            'form' => $this,
-            'page' => $this->getPages()[0] ?? null,
-            'currentPage' => $this->getCurrentPage(),
-        ];
-
-        // Create a generic field in case we want to grab some generic field theme config
-        $field = new SingleLineText();
-
-        // Get all the classes JS components require from Theme Config
-        foreach ($configKeys as $configKey => $fallback) {
-            $tag = $this->renderHtmlTag($configKey, $context);
-            $fieldTag = $field->renderHtmlTag($configKey, $context);
-
-            if ($tag) {
-                $classes = $tag->attributes['class'] ?? $fallback;
-
-                if (!is_array($classes)) {
-                    $classes = [$classes];
-                }
-
-                $allAttributes[$configKey] = Html::getTagAttributes($tag->attributes);
-                $allAttributes[$configKey]['class'] = implode(' ', $classes);
-            } else if ($fieldTag) {
-                $classes = $fieldTag->attributes['class'] ?? $fallback;
-
-                if (!is_array($classes)) {
-                    $classes = [$classes];
-                }
-
-                $allAttributes[$configKey] = Html::getTagAttributes($fieldTag->attributes);
-                $allAttributes[$configKey]['class'] = implode(' ', $classes);
-            } else {
-                if (!$this->resetClasses) {
-                    $allAttributes[$configKey]['class'] = $fallback;
-                }
-            }
-        }
-
-        return $allAttributes;
-    }
-
-    public function getFrontEndTemplateOption(string $option): bool
+    public function getFrontendTemplateOption(string $option): bool
     {
         $output = true;
 
@@ -1730,7 +1452,7 @@ class Form extends Element
         return $output;
     }
 
-    public function getFrontEndTemplateLocation(string $location)
+    public function getFrontendTemplateLocation(string $location)
     {
         $output = null;
         if ($location === 'outputCssLocation') {
@@ -1877,13 +1599,40 @@ class Form extends Element
         Session::remove($this->_getSessionKey('snapshot'));
     }
 
-    public function isAvailable(): bool
+    public function getRequestToken(): string
     {
-        // Disable for CP-based submissions
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return true;
+        if (is_string($this->_requestToken) && trim($this->_requestToken) !== '') {
+            return $this->_requestToken;
         }
 
+        $requestToken = Craft::$app->getSecurity()->generateRandomString();
+        $this->_requestToken = $requestToken;
+
+        return $requestToken;
+    }
+
+    public function setRequestToken(?string $requestToken): void
+    {
+        if (!is_string($requestToken)) {
+            return;
+        }
+
+        $requestToken = trim($requestToken);
+
+        if ($requestToken === '') {
+            return;
+        }
+
+        $this->_requestToken = $requestToken;
+    }
+
+    public function resetRequestToken(): void
+    {
+        $this->_requestToken = null;
+    }
+
+    public function isAvailable(): bool
+    {
         if ($this->settings->requireUser) {
             if (!Craft::$app->getUser()->getIdentity()) {
                 return false;
@@ -1907,21 +1656,11 @@ class Form extends Element
 
     public function isScheduleActive(): bool
     {
-        // Disable for CP-based submissions
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return false;
-        }
-
         return !$this->isBeforeSchedule() && !$this->isAfterSchedule();
     }
 
     public function isBeforeSchedule(): bool
     {
-        // Disable for CP-based submissions
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return true;
-        }
-
         if ($this->settings->scheduleForm && $this->settings->scheduleFormStart) {
             return !DateTimeHelper::isInThePast($this->settings->scheduleFormStart);
         }
@@ -1931,11 +1670,6 @@ class Form extends Element
 
     public function isAfterSchedule(): bool
     {
-        // Disable for CP-based submissions
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return true;
-        }
-
         if ($this->settings->scheduleForm && $this->settings->scheduleFormEnd) {
             return DateTimeHelper::isInThePast($this->settings->scheduleFormEnd);
         }
@@ -1945,56 +1679,43 @@ class Form extends Element
 
     public function isWithinSubmissionsLimit(): bool
     {
-        // Disable for CP-based submissions
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            return true;
-        }
-
         if ($this->settings->limitSubmissions) {
-            $query = Submission::find()->formId($this->id);
+            $limit = $this->settings->limitSubmissionsNumber;
 
-            // Get the appropriate settings for the limit type
-            if ($this->settings->limitSubmissions === 'ipAddress') {
-                $limitSubmissionsType = $this->settings->limitSubmissionsIpAddressType;
-                $limitSubmissionsNumber = $this->settings->limitSubmissionsIpAddressNumber;
-
-                // Ensure that we actually are storing IPs, otherwise nothing really to compare
-                if (!$this->settings->collectIp) {
-                    return true;
-                }
-
-                $query->ipAddress(Craft::$app->getRequest()->userIP);
-            } else {
-                $limitSubmissionsType = $this->settings->limitSubmissionsType;
-                $limitSubmissionsNumber = $this->settings->limitSubmissionsNumber;
+            if (!$limit || $limit < 1) {
+                return true;
             }
 
-            if ($limitSubmissionsType === 'day') {
+            $query = Submission::find()->formId($this->id);
+
+            if ($this->settings->limitSubmissionsType === 'total') {
+                $submissions = $query->count();
+            } else if ($this->settings->limitSubmissionsType === 'day') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('today'));
                 $endDate = DateTimeHelper::toDateTime(new DateTime('tomorrow'));
 
-                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'week') {
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'week') {
                 // PHP dates start on a Monday, but we assume to backtrack to Sunday
                 $startDate = DateTimeHelper::toDateTime(new DateTime('monday this week'))->modify('-1 day');
                 $endDate = DateTimeHelper::toDateTime(new DateTime('monday next week'))->modify('-1 day');
 
-                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'month') {
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'month') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of this month'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of next month'))->setTime(0, 0, 0);
 
-                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
-            } else if ($limitSubmissionsType === 'year') {
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else if ($this->settings->limitSubmissionsType === 'year') {
                 $startDate = DateTimeHelper::toDateTime(new DateTime('first day of January'))->setTime(0, 0, 0);
                 $endDate = DateTimeHelper::toDateTime(new DateTime('first day of January next year'))->setTime(0, 0, 0);
 
-                $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)]);
+                $submissions = $query->dateCreated(['and', '>= ' . Db::prepareDateForDb($startDate), '<= ' . Db::prepareDateForDb($endDate)])->count();
+            } else {
+                $submissions = $query->count();
             }
 
-            $submissions = $query->count();
-
-            if ($submissions >= $limitSubmissionsNumber) {
+            if ($submissions >= $limit) {
                 return false;
             }
         }
@@ -2039,28 +1760,6 @@ class Form extends Element
         ];
     }
 
-    public static function defineElementChipHtml(\craft\events\DefineElementHtmlEvent $event): void
-    {
-        $element = $event->element;
-
-        if (!($element instanceof self)) {
-            return;
-        }
-
-        // Remove the quick-edit ability
-        $event->html = str_replace(['data-editable'], [''], $event->html);
-
-        // Manually add the hyperlink. No other way to do this in the BaseRelationField class.
-        $event->html = str_replace('"hyperlink":false', '"hyperlink":true', $event->html);
-
-        $anchor = Html::tag('a', Html::tag('span', $event->element->title), [
-            'class' => 'label-link',
-            'href' => $event->element->cpEditUrl(),
-        ]);
-
-        $event->html = preg_replace('/<span class="label-link">(.+?)<\/span>/', $anchor, $event->html);
-    }
-
     public function beforeSave(bool $isNew): bool
     {
         $settings = Formie::$plugin->getSettings();
@@ -2069,6 +1768,11 @@ class Form extends Element
         // Set the default template from settings, if not already set - for new forms
         if ($isNew && !$this->templateId) {
             $this->templateId = $settings->getDefaultFormTemplateId();
+        }
+
+        // Set the default status, if not set
+        if (!$this->defaultStatusId) {
+            $this->defaultStatusId = $this->getDefaultStatus()?->id;
         }
 
         // Ensure any parent validations run first
@@ -2086,7 +1790,13 @@ class Form extends Element
         }
 
         // Save the field layout as the last step
-        return Formie::$plugin->getFields()->saveLayout($this->getFormLayout());
+        if (!Formie::$plugin->getFields()->saveLayout($this->getFormLayout())) {
+            $this->addErrors($this->getFormLayout()->getErrors());
+
+            return false;
+        }
+
+        return true;
     }
 
     public function afterSave(bool $isNew): void
@@ -2116,6 +1826,8 @@ class Form extends Element
         $record->userDeletedAction = $this->userDeletedAction;
 
         $record->save(false);
+        
+        $this->layoutId = (int)$record->layoutId;
 
         // Handle notifications
         $notificationsService = Formie::$plugin->getNotifications();
@@ -2143,6 +1855,8 @@ class Form extends Element
 
     public function afterDelete(): void
     {
+        $layoutId = $this->layoutId;
+
         // Delete any submissions made on this form.
         $submissions = Submission::find()->formId($this->id)->all();
         $elementsService = Craft::$app->getElements();
@@ -2151,6 +1865,10 @@ class Form extends Element
             if (!$elementsService->deleteElement($submission)) {
                 Formie::error("Unable to delete submission ”{$submission->id}” for form ”{$this->id}”: " . Json::encode($submission->getErrors()) . ".");
             }
+        }
+
+        if ($layoutId) {
+            Formie::$plugin->getFields()->deleteLayoutById($layoutId);
         }
     }
 
@@ -2193,9 +1911,960 @@ class Form extends Element
         parent::afterRestore();
     }
 
+    public function defineFieldsSchema(): array
+    {
+        return SchemaHelper::schemaNode([
+            [
+                '$cmp' => 'FieldBuilder',
+            ],
+        ]);
+    }
+
+    public function defineFormBuilderAppearanceSchema(): array
+    {
+        return SchemaHelper::schemaNode([
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Form Appearance'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Display Form Title'),
+                'instructions' => Craft::t('formie', 'Whether the title of this form should be included on the page when rendering the form.'),
+                'name' => 'settings.displayFormTitle',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Display Current Page Title'),
+                'instructions' => Craft::t('formie', 'Whether the title of the current page should be included when rendering the form.'),
+                'name' => 'settings.displayCurrentPageTitle',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Display Page Tabs'),
+                'instructions' => Craft::t('formie', 'Whether tabs of all pages should be included on the page when rendering the form. This is only applicable for forms with more than one page..'),
+                'name' => 'settings.displayPageTabs',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Display Page Progress'),
+                'instructions' => Craft::t('formie', 'Whether to show a progress bar of the page completion. This is only applicable for forms with more than one page.'),
+                'name' => 'settings.displayPageProgress',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Page Progress Calculation'),
+                'instructions' => Craft::t('formie', 'Choose whether the progress bar should reflect completed progress or current page position.'),
+                'name' => 'settings.progressCalculation',
+                'options' => [
+                    [
+                        'value' => 'completion',
+                        'label' => Craft::t('formie', 'Completion'),
+                    ],
+                    [
+                        'value' => 'page-position',
+                        'label' => Craft::t('formie', 'Page position'),
+                    ],
+                ],
+                'if' => 'settings.displayPageProgress',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Page Progress Position'),
+                'instructions' => Craft::t('formie', 'Select the position of the page progress indicator in the form.'),
+                'name' => 'settings.progressPosition',
+                'options' => [
+                    [
+                        'value' => 'start',
+                        'label' => Craft::t('formie', 'Start of form'),
+                    ],
+                    [
+                        'value' => 'end',
+                        'label' => Craft::t('formie', 'End of form'),
+                    ],
+                ],
+                'if' => 'settings.displayPageProgress',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Scroll To Top'),
+                'instructions' => Craft::t('formie', 'Whether for multi-page forms, the page should automatically scroll to the top of the next page after submission.'),
+                'name' => 'settings.scrollToTop',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Form Templates'),
+                'instructions' => Craft::t('formie', 'Select the templates this form should use.'),
+                'name' => 'templateId',
+                'options' => array_merge([
+                    [
+                        'value' => '',
+                        'label' => Craft::t('formie', 'Default Formie Template'),
+                    ],
+                ], array_map(function($template) {
+                    return [
+                        'value' => $template->id,
+                        'label' => $template->name,
+                    ];
+                }, Formie::$plugin->getFormTemplates()->getAllTemplates())),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Default Label Position'),
+                'instructions' => Craft::t('formie', 'Fields will by default have their label position set to this option.'),
+                'name' => 'settings.defaultLabelPosition',
+                'options' => Formie::$plugin->getFields()->getLabelPositionsOptions(),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Default Instructions Position'),
+                'instructions' => Craft::t('formie', 'Fields will by default have their instructions position set to this option.'),
+                'name' => 'settings.defaultInstructionsPosition',
+                'options' => Formie::$plugin->getFields()->getInstructionsPositionsOptions(),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Required Field Indicator'),
+                'instructions' => Craft::t('formie', 'Select how to show required fields.'),
+                'name' => 'settings.requiredIndicator',
+                'options' => [
+                    [
+                        'value' => 'asterisk',
+                        'label' => Craft::t('formie', 'Asterisk for required fields'),
+                    ],
+                    [
+                        'value' => 'optional',
+                        'label' => Craft::t('formie', 'Optional indicator for non-required fields'),
+                    ],
+                ],
+            ]),
+        ]);
+    }
+
+    public function defineBehaviourSchema(): array
+    {
+        return SchemaHelper::schemaNode([
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Form Behaviour'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Submission Method'),
+                'instructions' => Craft::t('formie', 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.'),
+                'name' => 'settings.submitMethod',
+                'options' => [
+                    [
+                        'label' => Craft::t('formie', 'Page Reload (Server-side)'),
+                        'value' => 'page-reload',
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'Ajax (Client-side)'),
+                        'value' => 'ajax',
+                    ],
+                ],
+                'if' => '!formBuilder.ajaxSubmissionForced',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Submission Method'),
+                'instructions' => Craft::t('formie', 'Whether to reload the page when this form is submitted, or use Ajax to send this form without reloading the page.'),
+                'name' => 'settings.submitMethod',
+                'options' => [
+                    [
+                        'label' => Craft::t('formie', 'Ajax (Client-side)'),
+                        'value' => 'ajax',
+                    ],
+                ],
+                'warning' => Craft::t('formie', 'You must use Ajax submissions when using some payment integrations in your form.'),
+                'if' => 'formBuilder.ajaxSubmissionForced',
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'After Submit'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::selectField([
+                'name' => 'settings.submitAction',
+                'label' => Craft::t('formie', 'Action on Submit'),
+                'instructions' => Craft::t('formie', 'When a user submits this form, I want to:'),
+                'options' => [
+                    [
+                        'label' => Craft::t('formie', 'Display a message'),
+                        'value' => 'message',
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'Redirect to an entry'),
+                        'value' => 'entry',
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'Redirect to a URL'),
+                        'value' => 'url',
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'Reload the page'),
+                        'value' => 'reload',
+                        'if' => 'settings.submitMethod == "page-reload"',
+                    ],
+                    [
+                        'label' => Craft::t('formie', 'Reset form values'),
+                        'value' => 'reset',
+                        'if' => 'settings.submitMethod == "ajax"',
+                    ],
+                ],
+            ]),
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.submitAction == "message"',
+                'children' => [
+                    SchemaHelper::lightswitchField([
+                        'label' => Craft::t('formie', 'Hide Form'),
+                        'instructions' => Craft::t('formie', 'Whether to hide the form and only show the success message.'),
+                        'name' => 'settings.submitActionFormHide',
+                    ]),
+                    SchemaHelper::richTextField(array_merge([
+                        'label' => Craft::t('formie', 'Submission Message'),
+                        'instructions' => Craft::t('formie', 'This text will be shown after submission, as a success message.'),
+                        'name' => 'settings.submitActionMessage',
+                    ], RichTextHelper::getRichTextConfig('forms.submitActionMessage'))),
+                    SchemaHelper::numberField([
+                        'label' => Craft::t('formie', 'Submission Message Timeout'),
+                        'instructions' => Craft::t('formie', 'The number of seconds to automatically hide the message. Leave empty to disable hiding.'),
+                        'name' => 'settings.submitActionMessageTimeout',
+                    ]),
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Submission Message Position'),
+                        'instructions' => Craft::t('formie', 'Where to position the success message in the form, when shown.'),
+                        'name' => 'settings.submitActionMessagePosition',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                            ['label' => Craft::t('formie', 'Top of Form'), 'value' => 'top-form'],
+                            ['label' => Craft::t('formie', 'Bottom of Form'), 'value' => 'bottom-form'],
+                        ],
+                    ]),
+                ],
+            ],
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.submitAction == "entry"',
+                'children' => [
+                    SchemaHelper::elementSelectField([
+                        'label' => Craft::t('formie', 'Redirect Entry'),
+                        'instructions' => Craft::t('formie', 'Select an entry for the user to be redirected to.'),
+                        'name' => 'submitActionEntry',
+                        'limit' => 1,
+                        'elementType' => 'craft\\elements\\Entry',
+                        'showSiteMenu' => true,
+                    ]),
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Redirect Option'),
+                        'instructions' => Craft::t('formie', 'How to redirect the user after submission, whether in the same tab, or a new tab.'),
+                        'name' => 'settings.submitActionTab',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
+                            ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],
+                        ],
+                    ]),
+                ],
+            ],
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.submitAction == "url"',
+                'children' => [
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'Redirect URL'),
+                        'instructions' => Craft::t('formie', 'The full URL that the user to be redirected to.'),
+                        'name' => 'settings.submitActionUrl',
+                    ]),
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Redirect Option'),
+                        'instructions' => Craft::t('formie', 'How to redirect the user after submission, whether in the same tab, or a new tab.'),
+                        'name' => 'settings.submitActionTab',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Redirect on the same tab'), 'value' => 'same-tab'],
+                            ['label' => Craft::t('formie', 'Redirect on a new tab'), 'value' => 'new-tab'],
+                        ],
+                    ]),
+                ],
+            ],
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.submitAction == "reload"',
+                'children' => Craft::t('formie', 'This will reload the page, clearing the form of values, and showing no success message.'),
+            ],
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.submitAction == "reset"',
+                'children' => Craft::t('formie', 'This will clear the form of values, and showing no success message.'),
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Loading Indicator'),
+                'instructions' => Craft::t('formie', 'Whether to show a loading indicator when submitting the form. This will be shown on the submit button.'),
+                'name' => 'settings.loadingIndicator',
+                'options' => [
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Spinner'), 'value' => 'spinner'],
+                    ['label' => Craft::t('formie', 'Text'), 'value' => 'text'],
+                ],
+            ]),
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Loading Indicator Text'),
+                'instructions' => Craft::t('formie', 'Text shown over the submit button, when in the loading state.'),
+                'name' => 'settings.loadingIndicatorText',
+                'if' => 'settings.loadingIndicator == "text"',
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Validation'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Validate Form on Submit'),
+                'instructions' => Craft::t('formie', 'Whether to validate the form client-side, when the user submits the form. This will show errors as soon as the submit button is pressed. Forms will also always be validated server-side.'),
+                'name' => 'settings.validationOnSubmit',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Validate When Typing'),
+                'instructions' => Craft::t('formie', 'Whether to validate each field as the user types, so that errors will appear immediately.'),
+                'name' => 'settings.validationOnFocus',
+            ]),
+            SchemaHelper::richTextField(array_merge([
+                'label' => Craft::t('formie', 'Error Message'),
+                'instructions' => Craft::t('formie', 'This text will be shown when an error on the submission occurs.'),
+                'name' => 'settings.errorMessage',
+            ], RichTextHelper::getRichTextConfig('forms.errorMessage'))),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Error Message Position'),
+                'instructions' => Craft::t('formie', 'Where to position the error message in the form, when shown.'),
+                'name' => 'settings.errorMessagePosition',
+                'options' => [
+                    ['label' => Craft::t('formie', 'None'), 'value' => ''],
+                    ['label' => Craft::t('formie', 'Top of Form'), 'value' => 'top-form'],
+                    ['label' => Craft::t('formie', 'Bottom of Form'), 'value' => 'bottom-form'],
+                ],
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Restrictions'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Require Logged-in User'),
+                'instructions' => Craft::t('formie', 'Whether this form can be viewed only by logged-in users.'),
+                'name' => 'settings.requireUser',
+            ]),
+            SchemaHelper::richTextField(array_merge([
+                'label' => Craft::t('formie', 'Message'),
+                'instructions' => Craft::t('formie', 'The message displayed to users who are not logged in.'),
+                'name' => 'settings.requireUserMessage',
+                'if' => 'settings.requireUser',
+            ], RichTextHelper::getRichTextConfig('forms.requireUserMessage'))),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Schedule Form'),
+                'instructions' => Craft::t('formie', 'Whether this form should only be available on a schedule.'),
+                'name' => 'settings.scheduleForm',
+            ]),
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.scheduleForm',
+                'children' => [
+                    SchemaHelper::dateField([
+                        'label' => Craft::t('formie', 'Schedule Start Date'),
+                        'instructions' => Craft::t('formie', 'Set when the form should be available from.'),
+                        'name' => 'settings.scheduleFormStart',
+                    ]),
+                    SchemaHelper::dateField([
+                        'label' => Craft::t('formie', 'Schedule End Date'),
+                        'instructions' => Craft::t('formie', 'Set when the form should be available until.'),
+                        'name' => 'settings.scheduleFormEnd',
+                    ]),
+                    SchemaHelper::richTextField(array_merge([
+                        'label' => Craft::t('formie', 'Pending Message'),
+                        'instructions' => Craft::t('formie', 'The message displayed when the current time is before the scheduled start date.'),
+                        'name' => 'settings.scheduleFormPendingMessage',
+                    ], RichTextHelper::getRichTextConfig('forms.scheduleFormPendingMessage'))),
+                    SchemaHelper::richTextField(array_merge([
+                        'label' => Craft::t('formie', 'Expired Message'),
+                        'instructions' => Craft::t('formie', 'The message displayed when the current time is after the scheduled start date.'),
+                        'name' => 'settings.scheduleFormExpiredMessage',
+                    ], RichTextHelper::getRichTextConfig('forms.scheduleFormExpiredMessage'))),
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Limit Submissions'),
+                'instructions' => Craft::t('formie', 'Whether submissions for this form should be limited to a number.'),
+                'name' => 'settings.limitSubmissions',
+            ]),
+            [
+                '$el' => 'div',
+                'attrs' => [
+                    'class' => 'form-builder-group',
+                ],
+                'if' => 'settings.limitSubmissions',
+                'children' => [
+                    SchemaHelper::fieldWrap([
+                        'label' => Craft::t('formie', 'Number of Submissions'),
+                        'instructions' => Craft::t('formie', 'The number of submissions to allow.'),
+                        'children' => [
+                            SchemaHelper::numberField([
+                                'name' => 'settings.limitSubmissionsNumber',
+                            ]),
+                            SchemaHelper::selectField([
+                                'name' => 'settings.limitSubmissionsType',
+                                'options' => [
+                                    ['label' => Craft::t('formie', 'total'), 'value' => 'total'],
+                                    ['label' => Craft::t('formie', 'per day'), 'value' => 'day'],
+                                    ['label' => Craft::t('formie', 'per week'), 'value' => 'week'],
+                                    ['label' => Craft::t('formie', 'per month'), 'value' => 'month'],
+                                    ['label' => Craft::t('formie', 'per year'), 'value' => 'year'],
+                                ],
+                            ]),
+                        ],
+                    ]),
+                    SchemaHelper::richTextField(array_merge([
+                        'label' => Craft::t('formie', 'Message'),
+                        'instructions' => Craft::t('formie', 'The message displayed to once the limit has been reached.'),
+                        'name' => 'settings.limitSubmissionsMessage',
+                    ], RichTextHelper::getRichTextConfig('forms.limitSubmissionsMessage'))),
+                ],
+            ],
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Advanced'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Restore In-Progress Submissions Automatically'),
+                'instructions' => Craft::t('formie', 'When enabled, visitors who return to this form can continue their in-progress submission automatically. Disable this to start fresh unless they use a resume link.'),
+                'name' => 'settings.automaticSubmissionState',
+            ]),
+        ]);
+    }
+
+    public function defineNotificationsSchema(): array
+    {
+        $notificationsSchema = Formie::$plugin->getNotifications()->getNotificationsSchema();
+        $compiledSchema = (is_array($notificationsSchema) && isset($notificationsSchema['schema']) && isset($notificationsSchema['fieldEntries']))
+            ? $notificationsSchema
+            : SchemaHelper::compileSchema($notificationsSchema);
+
+        return SchemaHelper::schemaNode([        
+            '$cmp' => 'Notifications',
+            'schema' => $compiledSchema['schema'],
+            'schemaIndex' => $compiledSchema,
+            'schemaChildPrefix' => 'notifications.*.',
+        ]);
+    }
+
+    public function defineIntegrationsSchema(): array
+    {
+        return SchemaHelper::schemaNode([        
+            [
+                '$cmp' => 'Integrations',
+            ],
+        ]);
+    }
+
+    public function defineUsageSchema(): array
+    {
+        return SchemaHelper::schemaNode([
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Form Usage'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            [
+                '$cmp' => 'FormUsage',
+            ],
+        ]);
+    }
+
+    public function defineFormBuilderSettingsSchema(): array
+    {
+        $maxFormHandleLength = HandleHelper::getMaxFormHandle();
+        $reservedFormHandles = $this->getBuilderReservedHandles();
+        $builderEntityLabel = $this->getBuilderEntityLabel();
+        $builderEntityTitle = $this->getBuilderEntityLabel(true);
+
+        return SchemaHelper::schemaNode([
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', '{entity} Settings', ['entity' => $builderEntityTitle]),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::textField([
+                'label' => Craft::t('formie', 'Name'),
+                'instructions' => Craft::t('formie', 'What this {entity} will be called in the control panel.', ['entity' => $builderEntityLabel]),
+                'name' => 'title',
+                'required' => true,
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Submissions'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Default Status'),
+                'instructions' => Craft::t('formie', 'The default status to be assigned to new submissions.'),
+                'name' => 'defaultStatusId',
+                'options' => array_map(function($status) {
+                    return [
+                        'value' => $status->id,
+                        'label' => $status->name,
+                        'status' => $status->color,
+                    ];
+                }, Formie::$plugin->getStatuses()->getAllStatuses()),
+            ]),
+            SchemaHelper::variableTextField([
+                'label' => Craft::t('formie', 'Submission Title Format'),
+                'instructions' => Craft::t('formie', 'Enter the format of the auto-generated submission titles. If left blank, the date/time of submission will be used.'),
+                'name' => 'settings.submissionTitleFormat',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FIELDS,
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Privacy'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Collect IP Addresses'),
+                'instructions' => Craft::t('formie', 'Whether this form should collect the users‘ IP address.'),
+                'name' => 'settings.collectIp',
+            ]),
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Collect User'),
+                'instructions' => Craft::t('formie', 'Whether this form should keep a record of the logged-in user.'),
+                'name' => 'settings.collectUser',
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'Data Retention'),
+                'instructions' => Craft::t('formie', 'How long to retain form submission data for.'),
+                'name' => 'dataRetention',
+                'options' => [
+                    [
+                        'value' => 'forever',
+                        'label' => Craft::t('formie', 'Forever'),
+                    ],
+                    [
+                        'value' => 'minutes',
+                        'label' => Craft::t('formie', 'Number of minutes'),
+                    ],
+                    [
+                        'value' => 'hours',
+                        'label' => Craft::t('formie', 'Number of hours'),
+                    ],
+                    [
+                        'value' => 'days',
+                        'label' => Craft::t('formie', 'Number of days'),
+                    ],
+                    [
+                        'value' => 'weeks',
+                        'label' => Craft::t('formie', 'Number of weeks'),
+                    ],
+                    [
+                        'value' => 'months',
+                        'label' => Craft::t('formie', 'Number of months'),
+                    ],
+                    [
+                        'value' => 'years',
+                        'label' => Craft::t('formie', 'Number of years'),
+                    ],
+                ],
+            ]),
+            SchemaHelper::numberField([
+                'label' => Craft::t('formie', 'Data Retention Duration'),
+                'instructions' => Craft::t('formie', 'After this duration has been met, submissions will be deleted.'),
+                'name' => 'dataRetentionValue',
+                'if' => 'dataRetention != "forever"',
+                'warning' => Craft::t('formie', 'We use Craft‘s [garbage collection]({link}) mechanism to remove submissions, so this may not always be actioned immediately.', [
+                    'link' => 'https://craftcms.com/docs/4.x/gc.html',
+                ]),
+            ]),
+            SchemaHelper::selectField([
+                'label' => Craft::t('formie', 'File Uploads'),
+                'instructions' => Craft::t('formie', 'Select how to handle file uploads when a submission is deleted.'),
+                'name' => 'fileUploadsAction',
+                'options' => [
+                    [
+                        'value' => 'retain',
+                        'label' => Craft::t('formie', 'Retain files'),
+                    ],
+                    [
+                        'value' => 'delete',
+                        'label' => Craft::t('formie', 'Delete files'),
+                    ],
+                ],
+            ]),
+            [
+                '$el' => 'hr',
+            ],
+            [
+                '$el' => 'h3',
+                'children' => Craft::t('formie', 'Advanced'),
+                'attrs' => [
+                    'class' => 'form-builder-h3',
+                ],
+            ],
+            SchemaHelper::handleField([
+                'instructions' => Craft::t('formie', 'How you‘ll refer to this {entity} in your templates. Use the refresh icon to re-generate this from your {entity} name.', ['entity' => $builderEntityLabel]),
+                'name' => 'handle',
+                'required' => true,
+                'source' => 'title',
+                'syncFromSource' => false,
+                'maxLength' => $maxFormHandleLength,
+                'reservedHandles' => $reservedFormHandles,
+                'warning' => Craft::t('formie', 'Changing this may result in your {entity} not working as expected.', ['entity' => $builderEntityLabel]),
+            ]),
+        ]);
+    }
+
+    public function getBuilderEntityType(): string
+    {
+        return $this->builderEntityType === self::BUILDER_ENTITY_TYPE_STENCIL
+            ? self::BUILDER_ENTITY_TYPE_STENCIL
+            : self::BUILDER_ENTITY_TYPE_FORM;
+    }
+
+    public function getBuilderHandleNames(): array
+    {
+        $query = (new Query())
+            ->select(['handle'])
+            ->from($this->getBuilderEntityType() === self::BUILDER_ENTITY_TYPE_STENCIL ? Table::FORMIE_STENCILS : Table::FORMIE_FORMS);
+
+        if ($this->id) {
+            $query->where(['not', ['id' => $this->id]]);
+        }
+
+        $currentHandle = strtolower((string)$this->handle);
+
+        return array_values(array_filter($query->column(), static function($handle) use ($currentHandle) {
+            return $handle && strtolower((string)$handle) !== $currentHandle;
+        }));
+    }
+
+    public function getBuilderReservedHandles(): array
+    {
+        return array_values(array_unique(array_merge($this->getBuilderHandleNames(), [
+            'id',
+            'dateCreated',
+            'dateUpdated',
+            'uid',
+            'title',
+        ])));
+    }
+
+    private function getBuilderEntityLabel(bool $titleCase = false): string
+    {
+        $label = $this->getBuilderEntityType() === self::BUILDER_ENTITY_TYPE_STENCIL
+            ? Craft::t('formie', 'stencil')
+            : Craft::t('formie', 'form');
+
+        return $titleCase ? ucfirst($label) : $label;
+    }
+
+    public function definePageSettingsSchema(): array
+    {
+        $schema = [
+            [
+                '$field' => 'list',
+                'name' => 'pages',
+                'showGroupedErrors' => false,
+                'schemaChildPrefix' => 'pages.*.',
+                'schema' => [
+                    [
+                        '$el' => 'div',
+                        'if' => 'activePage == $item._handle',
+                        'hideOnIf' => true,
+                        'attrs' => [
+                            'class' => 'space-y-4',
+                        ],
+                        'children' => [
+                            SchemaHelper::textField([
+                                'label' => Craft::t('formie', 'Page Label'),
+                                'instructions' => Craft::t('formie', 'The label for the page.'),
+                                'name' => 'label',
+                                'required' => true,
+                            ]),
+                            SchemaHelper::lightswitchField([
+                                'label' => Craft::t('formie', 'Enable Conditions'),
+                                'instructions' => Craft::t('formie', 'Whether to enable conditional logic to control how this page is shown.'),
+                                'name' => 'settings.enablePageConditions',
+                            ]),
+                            [
+                                '$field' => 'pageConditions',
+                                'name' => 'settings.pageConditions',
+                                'if' => '$item.settings.enablePageConditions',
+                                'fieldOptions' => ConditionsHelper::getConditionFieldOptions([
+                                    'includeSubmissionDate' => true,
+                                ]),
+                                'conditionOptions' => ConditionsHelper::getConditionOptions(),
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return SchemaHelper::compileSchema($schema);
+    }
+
+    public function definePageButtonSettingsSchema(): array
+    {
+        $conditionOptions = ConditionsHelper::getConditionOptions();
+
+        $fieldOptions = ConditionsHelper::getConditionFieldOptions([
+            'includeSubmissionDate' => true,
+        ]);
+
+        $tabs = [
+            [
+                'handle' => 'general',
+                'label' => Craft::t('formie', 'General'),
+                'content' => [
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'Button Label'),
+                        'instructions' => Craft::t('formie', 'The label for the submit button.'),
+                        'name' => 'settings.submitButtonLabel',
+                        'required' => true,
+                    ]),
+                    SchemaHelper::lightswitchField([
+                        'label' => Craft::t('formie', 'Show Save Button'),
+                        'instructions' => Craft::t('formie', 'Whether to show the save button, allowing users to save progress on a submission to return later.'),
+                        'name' => 'settings.showSaveButton',
+                    ]),
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'Save Button Label'),
+                        'instructions' => Craft::t('formie', 'The label for the save submit button.'),
+                        'name' => 'settings.saveButtonLabel',
+                        'if' => '$item.settings.showSaveButton',
+                        'required' => true,
+                    ]),
+                    SchemaHelper::lightswitchField([
+                        'label' => Craft::t('formie', 'Show Back Button'),
+                        'instructions' => Craft::t('formie', 'Whether to show the back button, to go back to a previous page.'),
+                        'name' => 'settings.showBackButton',
+                        'if' => '$key > 0',
+                    ]),
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'Back Button Label'),
+                        'instructions' => Craft::t('formie', 'The label for the back submit button.'),
+                        'name' => 'settings.backButtonLabel',
+                        'if' => '$key > 0 && $item.settings.showBackButton',
+                        'required' => true,
+                    ]),
+                ],
+            ],
+            [
+                'handle' => 'appearance',
+                'label' => Craft::t('formie', 'Appearance'),
+                'content' => [
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Form Buttons Position'),
+                        'instructions' => Craft::t('formie', 'How the form buttons should be positioned.'),
+                        'name' => 'settings.buttonsPosition',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Left'), 'value' => 'left'],
+                            ['label' => Craft::t('formie', 'Right'), 'value' => 'right'],
+                            ['label' => Craft::t('formie', 'Center'), 'value' => 'center'],
+                            ['label' => Craft::t('formie', 'Left & Right'), 'value' => 'left-right'],
+                            ['label' => Craft::t('formie', 'Right (Save on Left)'), 'value' => 'right-save-left'],
+                            ['label' => Craft::t('formie', 'Center (Save on Left)'), 'value' => 'center-save-left'],
+                            ['label' => Craft::t('formie', 'Center (Save on Right)'), 'value' => 'center-save-right'],
+                            ['label' => Craft::t('formie', 'Save on Right'), 'value' => 'save-right'],
+                            ['label' => Craft::t('formie', 'Save on Left'), 'value' => 'save-left'],
+                        ],
+                    ]),
+                    SchemaHelper::selectField([
+                        'label' => Craft::t('formie', 'Save Button Style'),
+                        'instructions' => Craft::t('formie', 'Select the style for the save button.'),
+                        'name' => 'settings.saveButtonStyle',
+                        'if' => '$item.settings.showSaveButton',
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Link'), 'value' => 'link'],
+                            ['label' => Craft::t('formie', 'Button'), 'value' => 'button'],
+                        ],
+                    ]),
+                    SchemaHelper::textField([
+                        'label' => Craft::t('formie', 'CSS Classes'),
+                        'instructions' => Craft::t('formie', 'Add classes that will be output on the form buttons container.'),
+                        'name' => 'settings.cssClasses',
+                    ]),
+                    SchemaHelper::tableField([
+                        'label' => Craft::t('formie', 'Container Attributes'),
+                        'instructions' => Craft::t('formie', 'Add attributes to be output on the form buttons container.'),
+                        'name' => 'settings.containerAttributes',
+                        'schemaChildPrefix' => 'settings.containerAttributes.*.',
+                        'columns' => [
+                            [
+                                'type' => 'text',
+                                'name' => 'label',
+                                'label' => Craft::t('formie', 'Name'),
+                                'required' => true,
+                            ],
+                            [
+                                'type' => 'value',
+                                'name' => 'value',
+                                'label' => Craft::t('formie', 'Value'),
+                                'source' => 'label',
+                            ],
+                        ],
+                    ]),
+                    SchemaHelper::tableField([
+                        'label' => Craft::t('formie', 'Input Attributes'),
+                        'instructions' => Craft::t('formie', 'Add attributes to be output on the form buttons `input` elements.'),
+                        'name' => 'settings.inputAttributes',
+                        'schemaChildPrefix' => 'settings.inputAttributes.*.',
+                        'columns' => [
+                            [
+                                'type' => 'text',
+                                'name' => 'label',
+                                'label' => Craft::t('formie', 'Name'),
+                                'required' => true,
+                            ],
+                            [
+                                'type' => 'value',
+                                'name' => 'value',
+                                'label' => Craft::t('formie', 'Value'),
+                                'source' => 'label',
+                            ],
+                        ],
+                    ]),
+                ],
+            ],
+            [
+                'handle' => 'conditions',
+                'label' => Craft::t('formie', 'Conditions'),
+                'content' => [
+                    SchemaHelper::lightswitchField([
+                        'labelPosition' => 'before',
+                        'label' => Craft::t('formie', 'Enable Conditions'),
+                        'instructions' => Craft::t('formie', 'Whether to enable conditional logic to control how the next button is shown.'),
+                        'name' => 'settings.enableNextButtonConditions',
+                    ]),
+                    [
+                        '$field' => 'nextButtonConditions',
+                        'name' => 'settings.nextButtonConditions',
+                        'if' => '$item.settings.enableNextButtonConditions',
+                        'fieldOptions' => $fieldOptions,
+                        'conditionOptions' => $conditionOptions,
+                    ],
+                ],
+            ],
+            [
+                'handle' => 'advanced',
+                'label' => Craft::t('formie', 'Advanced'),
+                'content' => [
+                    SchemaHelper::lightswitchField([
+                        'labelPosition' => 'before',
+                        'label' => Craft::t('formie', 'Enable Client Events'),
+                        'instructions' => Craft::t('formie', 'When enabled, a payload will be emitted in the browser after this page submits successfully.'),
+                        'name' => 'settings.enableClientEvents',
+                    ]),
+                    SchemaHelper::tableField([
+                        'label' => Craft::t('formie', 'Client Event Data'),
+                        'instructions' => Craft::t('formie', 'Each option name becomes a property on the payload object. Include an `event` key when using Google Tag Manager or similar tools.'),
+                        'name' => 'settings.clientEventFields',
+                        'if' => '$item.settings.enableClientEvents',
+                        'schemaChildPrefix' => 'settings.clientEventFields.*.',
+                        'columns' => [
+                            [
+                                'type' => 'text',
+                                'name' => 'label',
+                                'label' => Craft::t('formie', 'Option'),
+                            ],
+                            [
+                                'type' => 'text',
+                                'name' => 'value',
+                                'label' => Craft::t('formie', 'Value'),
+                            ],
+                        ],
+                    ]),
+                ],
+            ],
+        ];
+
+        $schema = [
+            [
+                '$field' => 'list',
+                'name' => 'pages',
+                'schemaChildPrefix' => 'pages.*.',
+                'schema' => [
+                    [
+                        '$el' => 'div',
+                        'if' => 'activePage == $item._handle',
+                        'hideOnIf' => true,
+                        'children' => [
+                            SchemaHelper::modalTabs($tabs),
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return SchemaHelper::compileSchema($schema);
+    }
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        return Formie::$plugin->getFormSlotRegistry()->resolve($key, $context);
+    }
 
     protected function defineRules(): array
     {
@@ -2227,7 +2896,7 @@ class Form extends Element
 
                 if ($query->exists()) {
                     $error = Craft::t('formie', '{attribute} "{value}" has already been taken.', [
-                        'attribute' => $attribute,
+                        'attribute' => $this->getAttributeLabel($attribute),
                         'value' => $this->$attribute,
                     ]);
 
@@ -2280,25 +2949,214 @@ class Form extends Element
         return implode(':', array_filter($keys));
     }
 
-    private function _getFrontEndJsModules(FieldInterface $field): array
+    private function _hydrateCurrentSubmissionFromStorage(): void
     {
-        // Rip out any settings for clarity. These are output directly by the individual fields
-        // all we want here is the module src and name to supply the form rendering with what additional
-        // JS classes/modules we actually need - no config!
-        if ($js = $field->getFrontEndJsModules()) {
-            // Normalise for processing. Fields can have multiple modules
-            if (!isset($js[0])) {
-                $js = [$js];
-            }
-
-            foreach ($js as &$config) {
-                ArrayHelper::remove($config, 'settings');
-            }
-
-            return $js;
+        if ($this->_currentSubmission) {
+            return;
         }
 
-        return [];
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            return;
+        }
+
+        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
+        $draftState = $submissionDrafts->getProgressState($this);
+
+        if (!$draftState) {
+            return;
+        }
+
+        if ($draftState->currentPageId) {
+            foreach ($this->getPages() as $page) {
+                if ((int)$page->id === (int)$draftState->currentPageId) {
+                    $this->setCurrentPage($page);
+                    break;
+                }
+            }
+        }
+
+        if (!$draftState->submissionId) {
+            return;
+        }
+
+        $submission = Submission::find()
+            ->id((int)$draftState->submissionId)
+            ->isIncomplete(true)
+            ->status(null)
+            ->one();
+
+        if (!$submission || (int)$submission->formId !== (int)$this->id) {
+            return;
+        }
+
+        if (is_array($draftState->content) && $draftState->content) {
+            $submission->getContentManager()->normalizeFromDb($submission, $draftState->content);
+        }
+
+        $this->_currentSubmission = $submission;
+    }
+
+    private function _hydrateCurrentSubmissionFromRouteContext(): void
+    {
+        if ($this->_routeContextHydrated) {
+            return;
+        }
+
+        $this->_routeContextHydrated = true;
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsConsoleRequest()) {
+            return;
+        }
+
+        $params = Craft::$app->getUrlManager()->getRouteParams();
+        $routeForm = $params['form'] ?? null;
+        $routeSubmission = $params['submission'] ?? null;
+        $routeRenderId = isset($params['renderId']) && is_string($params['renderId']) ? trim($params['renderId']) : '';
+        $currentRenderId = $this->_formId ?: $this->getRenderId(false);
+
+        $matchesRouteForm = $routeForm instanceof self && (int)$routeForm->id === (int)$this->id;
+        $matchesRouteSubmission = $routeSubmission instanceof Submission && (int)$routeSubmission->formId === (int)$this->id;
+
+        if (!$matchesRouteForm && !$matchesRouteSubmission) {
+            return;
+        }
+
+        // On pages with duplicate form renders, only hydrate the submitted render instance.
+        if ($routeRenderId !== '') {
+            if ($currentRenderId !== $routeRenderId) {
+                return;
+            }
+        }
+
+        if ($matchesRouteForm && $routeForm !== $this) {
+            if ($routeCurrentPage = $routeForm->getCurrentPage()) {
+                $this->setCurrentPage($routeCurrentPage);
+            }
+
+            $this->setRequestToken($routeForm->getRequestToken());
+
+            $routeDraftContext = $routeForm->getDraftContext();
+            if (is_string($routeDraftContext) && trim($routeDraftContext) !== '') {
+                $this->setDraftContext($routeDraftContext);
+            }
+        }
+
+        $routePageId = $params['pageId'] ?? null;
+        if (is_numeric($routePageId)) {
+            $routePageId = (int)$routePageId;
+
+            foreach ($this->getPages() as $page) {
+                if ((int)$page->id === $routePageId) {
+                    $this->setCurrentPage($page);
+                    break;
+                }
+            }
+        }
+
+        if ($matchesRouteSubmission) {
+            $this->_currentSubmission = $routeSubmission;
+        }
+    }
+
+    private function _hydrateCurrentSubmissionFromResumeToken(): void
+    {
+        if ($this->_resumeTokenHydrated) {
+            return;
+        }
+
+        $this->_resumeTokenHydrated = true;
+
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsConsoleRequest()) {
+            return;
+        }
+
+        $resumeToken = trim((string)$request->getParam('resumeToken', ''));
+
+        if ($resumeToken !== '') {
+            $this->_markStatefulResponseNoCache();
+        }
+
+        if ($resumeToken === '') {
+            return;
+        }
+
+        $submissionDrafts = Formie::$plugin->getSubmissionDrafts();
+        $verifiedResumeToken = $submissionDrafts->verifyResumeToken($resumeToken, [
+            SubmissionDrafts::RESUME_CAPABILITY_UPDATE,
+        ]);
+
+        if (!$verifiedResumeToken || (int)$verifiedResumeToken->formId !== (int)$this->id || !$verifiedResumeToken->submissionId) {
+            return;
+        }
+
+        $submission = Submission::find()
+            ->id((int)$verifiedResumeToken->submissionId)
+            ->isIncomplete(true)
+            ->status(null)
+            ->one();
+
+        if (!$submission || (int)$submission->formId !== (int)$this->id) {
+            return;
+        }
+
+        $draftState = $submissionDrafts->loadDraftState(new ResumeToken([
+            'token' => $resumeToken,
+        ]));
+
+        if ($draftState && $draftState->formInstanceKey) {
+            $previousState = clone $draftState;
+            $previousStorageKey = $previousState->formInstanceKey->toStorageKey();
+            $nextFormInstanceKey = $submissionDrafts->resolveFormInstanceKey($this, null, [
+                'scope' => 'submit',
+                'instance' => $this->getSubmitStateKey(),
+            ]);
+
+            // Resume links can be opened in a different render/session context
+            // than the one that originally created the draft. Rebind the draft to
+            // the active form-instance key so later page navigation and autosave
+            // requests continue on the caller's current continuity stream.
+            $draftState->formInstanceKey = $nextFormInstanceKey;
+            $draftState->submissionId = (int)$submission->id;
+            $submissionDrafts->saveDraftState($draftState);
+
+            if ($previousStorageKey !== $nextFormInstanceKey->toStorageKey()) {
+                $submissionDrafts->deleteDraftState($previousState);
+            }
+
+            if ($draftState->currentPageId) {
+                foreach ($this->getPages() as $page) {
+                    if ((int)$page->id === (int)$draftState->currentPageId) {
+                        $this->setCurrentPage($page);
+                        break;
+                    }
+                }
+            }
+        }
+
+        $this->_currentSubmission = $submission;
+    }
+
+    private function _markStatefulResponseNoCache(): void
+    {
+        $response = Craft::$app->getResponse();
+        $headers = $response->getHeaders();
+
+        $headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+        $headers->set('Pragma', 'no-cache');
+        $headers->set('Expires', '0');
+    }
+
+    private function _nextRenderSequence(): int
+    {
+        $counterKey = hash('sha256', $this->getSubmitStateIdentity());
+        $current = self::$_renderSequenceCounters[$counterKey] ?? 0;
+        $next = $current + 1;
+        self::$_renderSequenceCounters[$counterKey] = $next;
+
+        return $next;
     }
 
     private function _findErrors($array, &$errors = [])
@@ -2337,9 +3195,10 @@ class Form extends Element
                     $field->layoutId = null;
                     $field->pageId = null;
                     $field->rowId = null;
+                    $field->reference = null;
                     $field->uid = '';
 
-                    if ($field instanceof NestedFieldInterface) {
+                    if ($field instanceof ParentFieldInterface) {
                         $this->_clearLayoutIdentifiers($field->getFieldLayout());
 
                         // Set after processing

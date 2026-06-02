@@ -1,26 +1,28 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\Formie;
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\elements\Submission;
-use verbb\formie\events\ModifyAddressCountryOptionsEvent;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\Html;
 use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
 
-class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
+use CommerceGuys\Addressing\Country\CountryRepository;
+
+class AddressCountry extends Dropdown implements ChildFieldInterface
 {
-    // Constants
+    // Properties
     // =========================================================================
 
-    // Deprecated - remove at next breakpoint
-    public const EVENT_MODIFY_COUNTRY_OPTIONS = 'modifyCountryOptions';
-
+    private static array $_countryOptionsByLocale = [];
+    
 
     // Static Methods
     // =========================================================================
@@ -30,14 +32,35 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return Craft::t('formie', 'Address - Country');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/dropdown';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/dropdown';
+    }
+
+    public static function getCountryOptions(): array
+    {
+        $locale = Craft::$app->getLocale()->getLanguageID();
+
+        if (isset(self::$_countryOptionsByLocale[$locale])) {
+            return self::$_countryOptionsByLocale[$locale];
+        }
+
+        $repo = new CountryRepository($locale);
+
+        $countries = [];
+        
+        foreach ($repo->getList() as $value => $label) {
+            $countries[] = compact('value', 'label');
+        }
+
+        self::$_countryOptionsByLocale[$locale] = $countries;
+
+        return self::$_countryOptionsByLocale[$locale];
     }
 
 
@@ -61,16 +84,11 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $settings;
     }
 
-    public function getCountryOptions(): array
-    {
-        return Formie::$plugin->getCountries()->getAddressCountries($this);
-    }
-
     public function options(): array
     {
         $options = [];
-        
-        foreach ($this->getCountryOptions() as $country) {
+
+        foreach (static::getCountryOptions() as $country) {
             $label = ($this->optionLabel === 'short') ? $country['value'] : $country['label'];
             $value = ($this->optionValue === 'short') ? $country['value'] : $country['label'];
 
@@ -80,27 +98,22 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $options;
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
-    {
-        return $this->_getValueLabel($value);
-    }
-
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
-                    $this->getCountryOptions()
+                    static::getCountryOptions()
                 ),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Option Label'),
-                'help' => Craft::t('formie', 'Select the format for the dropdown option label.'),
+                'instructions' => Craft::t('formie', 'Select the format for the dropdown option label.'),
                 'name' => 'optionLabel',
                 'options' => [
                     ['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full'],
@@ -109,7 +122,7 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Option Value'),
-                'help' => Craft::t('formie', 'Select the format for the dropdown option value.'),
+                'instructions' => Craft::t('formie', 'Select the format for the dropdown option value.'),
                 'name' => 'optionValue',
                 'options' => [
                     ['label' => Craft::t('formie', 'Full Country Name (e.g. United States)'), 'value' => 'full'],
@@ -128,9 +141,11 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): string
+    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
     {
-        return $this->_getValueLabel($value);
+        $label = $this->_getValueLabel($value);
+
+        return $label !== '' ? [$label] : [];
     }
 
     protected function defineValueForExport(mixed $value, ElementInterface $element = null): mixed
@@ -143,9 +158,18 @@ class AddressCountry extends Dropdown implements SubFieldInnerFieldInterface
         return $this->_getValueLabel($value);
     }
 
-    protected function defineValueForVariable(mixed $value, Submission $submission, Notification $notification): mixed
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        return $this->_getValueLabel($value);
+        $tag = parent::defineFieldSlotTag($key, $context);
+
+        if ($tag && $key === 'fieldInput') {
+            $tag->mergeCoreAttributes([
+                'autocomplete' => 'country',
+                'data-country' => true,
+            ]);
+        }
+
+        return $tag;
     }
 
 

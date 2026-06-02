@@ -5,8 +5,10 @@ use verbb\formie\base\CosmeticField;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -41,14 +43,14 @@ class Section extends CosmeticField
     // Public Methods
     // =========================================================================
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/section/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewSection(),
+        ];
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, array $renderOptions = []): string|null|bool
     {
         return Html::tag('hr');
     }
@@ -77,13 +79,13 @@ class Section extends CosmeticField
         ]);
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Border'),
-                'help' => Craft::t('formie', 'Add a border to this section.'),
+                'instructions' => Craft::t('formie', 'Add a border to this section.'),
                 'name' => 'borderStyle',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'None'), 'value' => '']],
@@ -91,74 +93,80 @@ class Section extends CosmeticField
                     [['label' => Craft::t('formie', 'Dashed'), 'value' => 'dashed']]
                 ),
             ]),
-            SchemaHelper::numberField([
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Border Width'),
-                'help' => Craft::t('formie', 'Set the border width (in pixels).'),
-                'name' => 'borderWidth',
-                'if' => '$get(borderStyle).value',
-                'sections-schema' => [
-                    'suffix' => [
+                'instructions' => Craft::t('formie', 'Set the border width (in pixels).'),
+                'if' => 'borderStyle',
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'borderWidth',
+                    ]),
+                    [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'fui-suffix-text'],
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
                         'children' => Craft::t('formie', 'px'),
                     ],
                 ],
             ]),
-            SchemaHelper::textField([
-                '$formkit' => 'color',
+            SchemaHelper::colorField([
                 'label' => Craft::t('formie', 'Border Color'),
-                'help' => Craft::t('formie', 'Set the border color.'),
+                'instructions' => Craft::t('formie', 'Set the border color.'),
                 'name' => 'borderColor',
-                'size' => '4',
-                'inputClass' => 'text fui-color-field',
-                'if' => '$get(borderStyle).value',
+                'if' => 'borderStyle',
             ]),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::cssClasses(),
             SchemaHelper::containerAttributesField(),
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
         ];
     }
+    
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
+        $form = $context->form;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldSection') {
-            return new HtmlTag('hr', [
-                'class' => 'fui-hr',
-                'style' => [
-                    'border-top-style' => $this->borderStyle ? $this->borderStyle : false,
-                    'border-top-width' => $this->borderWidth ? $this->borderWidth . 'px' : false,
-                    'border-top-color' => $this->borderColor ? $this->borderColor : false,
-                ],
-            ], $this->getInputAttributes());
+            return SlotTag::make('hr')
+                ->core([
+                    'data-formie-section' => true,
+                    'style' => [
+                        'border-top-style' => $this->borderStyle ? $this->borderStyle : false,
+                        'border-top-width' => $this->borderWidth ? $this->borderWidth . 'px' : false,
+                        'border-top-color' => $this->borderColor ? $this->borderColor : false,
+                    ],
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-section',
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/section/input', [
             'name' => $this->handle,

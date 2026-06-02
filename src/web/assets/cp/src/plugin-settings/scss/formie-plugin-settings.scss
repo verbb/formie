@@ -1,0 +1,129 @@
+// ==========================================================================
+
+// Formie for Craft CMS
+// Author: Verbb - https://verbb.io/
+
+// ==========================================================================
+
+
+// ==========================================================================
+// Migration Settings
+// ==========================================================================
+
+.log-label {
+    white-space: pre-wrap;
+}
+
+.log-label code {
+    white-space: normal;
+    font-size: 11px !important;
+    line-height: 18px;
+}
+
+.log-label.color-32 {
+    color: #27AE60;
+}
+
+.log-label.color-31 {
+    color: #D0021B;
+}
+
+.log-label.color-33 {
+    color: #F2842D;
+}
+
+
+// ==========================================================================
+// Captcha Settings
+// ==========================================================================
+
+.fui-integrations-pane {
+    display: flex;
+    margin: -24px;
+    position: relative;
+
+    .sidebar {
+        padding: 0 0 14px;
+    }
+
+    .sidebar .heading span {
+        padding: 14px 10px 5px;
+
+    }
+
+    .sidebar nav li a {
+        padding: 7px 10px !important;
+    }
+
+    .sidebar .status {
+        margin: 0 !important;
+    }
+}
+
+.fui-integrations-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    h2 {
+        margin: 0;
+    }
+}
+
+// .fui-integrations-check-wrap {
+//     display: flex;
+//     align-items: center;
+
+//     .btn {
+//         margin-left: 10px;
+//     }
+// }
+
+.fui-integrations-sidebar-wrapper {
+    position: relative;
+    background-color: #f3f7fc;
+    border-radius: 0 6px 6px 0;
+    border-left: 1px solid rgba(51, 64, 77, 0.1);
+    overflow: auto;
+}
+
+.fui-integrations-tabs li {
+    width: 100%;
+    max-width: 100% !important;
+}
+
+.fui-integrations-tabs .formie-integration-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.fui-form-integrations-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: auto;
+    height: 100%;
+}
+
+.fui-form-integrations-inner-wrapper {
+    padding: 24px;
+    overflow: hidden;
+}
+
+.fui-settings-block {
+    padding: 16px;
+    background: #f3f7fc;
+    border-radius: 3px;
+    border: 1px solid #cbd6e2;
+    margin-bottom: 24px;
+
+    ul {
+        list-style-type: disc;
+    }
+
+    ol,
+    ul {
+        padding-left: 20px !important;
+    }
+}

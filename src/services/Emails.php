@@ -2,7 +2,7 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\NestedFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MailEvent;
 use verbb\formie\events\MailRenderEvent;
@@ -11,7 +11,7 @@ use verbb\formie\fields\Group;
 use verbb\formie\fields\Repeater;
 use verbb\formie\helpers\Assets;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\References;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
@@ -83,11 +83,11 @@ class Emails extends Component
         $newEmail = $event->email;
 
         // Don't fall back on Craft settings here, that'll be site-resolved in `Craft::$app->getMailer()->send()`
-        $fromEmail = Variables::getParsedValue((string)$notification->from, $submission, $form, $notification, false, true);
-        $fromName = Variables::getParsedValue((string)$notification->fromName, $submission, $form, $notification, false, true);
+        $fromEmail = $this->_parseNotificationEmailSetting($notification->from, $submission, $notification);
+        $fromName = $this->_parseNotificationTextSetting($notification->fromName, $submission, $notification);
 
-        $fromEmail = $this->_getParsedEmails($fromEmail)[0] ?? null;
-        $fromName = $this->_getFilteredString($fromName);
+        $fromEmail = $this->_getParsedEmails($fromEmail, false)[0] ?? null;
+        $fromName = $this->_getFilteredString($fromName, false);
 
         if ($fromEmail) {
             if ($fromName) {
@@ -99,8 +99,8 @@ class Emails extends Component
 
         // To:
         try {
-            $to = Variables::getParsedValue($notification->getToEmail($submission), $submission, $form, $notification, false, true);
-            $to = $this->_getParsedEmails($to);
+            $to = $this->_parseNotificationEmailSetting($notification->getToEmail($submission), $submission, $notification);
+            $to = $this->_getParsedEmails($to, false);
 
             if ($to) {
                 $newEmail->setTo($to);
@@ -127,8 +127,8 @@ class Emails extends Component
         // Sender: 
         if ($notification->sender) {
             try {
-                $sender = Variables::getParsedValue((string)$notification->sender, $submission, $form, $notification, false, true);
-                $sender = $this->_getParsedEmails($sender)[0] ?? null;
+                $sender = $this->_parseNotificationEmailSetting($notification->sender, $submission, $notification);
+                $sender = $this->_getParsedEmails($sender, false)[0] ?? null;
 
                 if ($sender) {
                     $newEmail->setSender($sender);
@@ -150,8 +150,8 @@ class Emails extends Component
         // BCC:
         if ($notification->bcc) {
             try {
-                $bcc = Variables::getParsedValue((string)$notification->bcc, $submission, $form, $notification, false, true);
-                $bcc = $this->_getParsedEmails($bcc);
+                $bcc = $this->_parseNotificationEmailSetting($notification->bcc, $submission, $notification);
+                $bcc = $this->_getParsedEmails($bcc, false);
 
                 if ($bcc) {
                     $newEmail->setBcc($bcc);
@@ -173,8 +173,8 @@ class Emails extends Component
         // CC:
         if ($notification->cc) {
             try {
-                $cc = Variables::getParsedValue((string)$notification->cc, $submission, $form, $notification, false, true);
-                $cc = $this->_getParsedEmails($cc);
+                $cc = $this->_parseNotificationEmailSetting($notification->cc, $submission, $notification);
+                $cc = $this->_getParsedEmails($cc, false);
 
                 if ($cc) {
                     $newEmail->setCc($cc);
@@ -196,10 +196,11 @@ class Emails extends Component
         // Reply To:
         if ($notification->replyTo) {
             try {
-                $replyTo = Variables::getParsedValue((string)$notification->replyTo, $submission, $form, $notification, false, true);
-                $replyTo = $this->_getParsedEmails($replyTo);
+                $replyTo = $this->_parseNotificationEmailSetting($notification->replyTo, $submission, $notification);
+                $replyTo = $this->_getParsedEmails($replyTo, false);
 
-                $replyToName = Variables::getParsedValue((string)$notification->replyToName, $submission, $form, $notification, false, true);
+                $replyToName = $this->_parseNotificationTextSetting($notification->replyToName, $submission, $notification);
+                $replyToName = $this->_getFilteredString($replyToName, false);
 
                 if ($replyTo) {
                     if ($replyToName) {
@@ -224,8 +225,8 @@ class Emails extends Component
 
         // Subject:
         try {
-            $subject = Variables::getParsedValue((string)$notification->subject, $submission, $form, $notification, false, true);
-            $subject = $this->_getFilteredString($subject);
+            $subject = $this->_parseNotificationTextSetting($notification->subject, $submission, $notification);
+            $subject = $this->_getFilteredString($subject, false);
 
             $newEmail->setSubject($subject);
         } catch (Throwable $e) {
@@ -265,7 +266,11 @@ class Emails extends Component
         // Render HTML body
         try {
             // Render the body content for the notification
-            $parsedContent = Variables::getParsedValue($notification->getParsedContent(), $submission, $form, $notification, true);
+            $parsedContent = References::parseContent($notification->getParsedContent(), $submission, [
+                'notification' => $notification,
+                'includeSummary' => true,
+                'parseEnvValues' => false,
+            ]);
 
             // Add it to our render variables
             $renderVariables['contentHtml'] = Template::raw(StringHelper::cleanString($parsedContent));
@@ -543,9 +548,49 @@ class Emails extends Component
         return $html->getText();
     }
 
-    private function _getFilteredString(string $string): string
+    private function _parseNotificationTextSetting(?string $string, Submission $submission, Notification $notification): string
     {
-        $string = trim(App::parseEnv(trim($string)));
+        $string = (string)$string;
+        $string = (string)App::parseEnv($string);
+
+        return References::parseContent($string, $submission, [
+            'notification' => $notification,
+            'parseEnvValues' => false,
+        ]);
+    }
+
+    private function _parseNotificationEmailSetting(?string $emails, Submission $submission, Notification $notification): string
+    {
+        $emails = $this->_parseAuthoredEmailEnvTokens((string)$emails);
+
+        return References::parseContent($emails, $submission, [
+            'notification' => $notification,
+            'parseEnvValues' => false,
+        ]);
+    }
+
+    private function _parseAuthoredEmailEnvTokens(string $emails): string
+    {
+        $tokens = preg_split('/([\s,;]+)/', $emails, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        if (!is_array($tokens)) {
+            return $emails;
+        }
+
+        foreach ($tokens as $key => $token) {
+            if ($token === '' || preg_match('/^[\s,;]+$/', $token) || str_contains($token, '{')) {
+                continue;
+            }
+
+            $tokens[$key] = (string)App::parseEnv($token);
+        }
+
+        return implode('', $tokens);
+    }
+
+    private function _getFilteredString(string $string, bool $parseEnv = true): string
+    {
+        $string = trim($parseEnv ? App::parseEnv(trim($string)) : trim($string));
 
         // Strip out any emoji's
         $string = trim(StringHelper::replaceMb4($string, ''));
@@ -555,11 +600,15 @@ class Emails extends Component
 
         // Some entities aren't decoded like `&amp;`, `&gt;` and `&lt;`
         $string = html_entity_decode($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $string = strip_tags($string);
+        $string = preg_replace('/[\r\n\t]+/', ' ', $string) ?: '';
+        $string = preg_replace('/\s{2,}/', ' ', $string) ?: '';
+        $string = trim($string);
 
         return $string;
     }
 
-    private function _getParsedEmails(string $emails): array
+    private function _getParsedEmails(string $emails, bool $parseEnv = true): array
     {
         $emailsEnv = [];
 
@@ -581,8 +630,8 @@ class Emails extends Component
             // Strip out any emoji's
             $email = trim(StringHelper::replaceMb4($email, ''));
 
-            // Handle .env variables
-            $email = App::parseEnv(trim($email));
+            // Handle .env variables only for values that have not already resolved user-controlled references.
+            $email = $parseEnv ? App::parseEnv(trim($email)) : trim($email);
 
             // Lowercase emails, just in case
             $email = strtolower(trim($email));

@@ -11,6 +11,7 @@ use verbb\formie\records\Notification as NotificationRecord;
 use Craft;
 use craft\base\Model;
 use craft\elements\Asset;
+use craft\helpers\Json;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 use craft\web\View;
@@ -18,6 +19,7 @@ use craft\web\View;
 use Twig\Error\LoaderError;
 
 use Exception;
+use Throwable;
 
 class Notification extends Model
 {
@@ -67,8 +69,19 @@ class Notification extends Model
 
     public function __construct($config = [])
     {
+        if (is_object($config)) {
+            $config = (array)$config;
+        }
+
         // Normalize the options
-        unset($config['attachAssetsHtml']);
+        if (is_array($config)) {
+            // Rich-text content can be posted as ProseMirror arrays/objects from React.
+            // Persist as JSON string to satisfy typed model properties.
+            if (array_key_exists('content', $config) && (is_array($config['content']) || is_object($config['content']))) {
+                $normalizedContent = is_object($config['content']) ? (array)$config['content'] : $config['content'];
+                $config['content'] = Json::encode(RichTextHelper::normalizeNodes($normalizedContent));
+            }
+        }
 
         parent::__construct($config);
     }
@@ -80,7 +93,28 @@ class Notification extends Model
 
     public function getParsedContent(): string
     {
-        return RichTextHelper::getHtmlContent($this->content, null, false);
+        if ($this->content === null || $this->content === '') {
+            return '';
+        }
+
+        try {
+            $content = $this->content;
+
+            if (is_string($content)) {
+                $decodedContent = Json::decodeIfJson($content);
+
+                // If the content is already plain text/HTML, use it directly.
+                if (!is_array($decodedContent)) {
+                    return $content;
+                }
+
+                $content = $decodedContent;
+            }
+
+            return RichTextHelper::getHtmlContent($content, null, false);
+        } catch (Throwable $e) {
+            return (string)$this->content;
+        }
     }
 
     public function getToEmail(Submission $submission): ?string
@@ -98,7 +132,9 @@ class Notification extends Model
                 // Normalize conditions for emails (just the emails, not the matching string)
                 if ($toRecipients && is_array($toRecipients)) {
                     foreach ($toRecipients as $key => $toRecipient) {
-                        // Only normalize if a static email (.env variables and field refs should stay)
+                        // Normalize only literal emails. Reference tokens and
+                        // env expressions need to keep their authored casing and
+                        // syntax so they can still be resolved later.
                         if (str_contains($toRecipient['email'], '@')) {
                             $toRecipients[$key]['email'] = strtolower($toRecipient['email']);
                         }
@@ -160,9 +196,9 @@ class Notification extends Model
         foreach ($components as $component) {
             $templatePath = 'formie/_special/email-template' . DIRECTORY_SEPARATOR . $component;
 
-            // Note we need to include `.html` for default templates, because of users potentially setting `defaultTemplateExtensions`
-            // which would be unable to find our templates if they disallow `.html`.
-            // Check for `form.html` or `form/index.html` because we have to try resolving on our own...
+            // Resolve bundled templates explicitly because site template config
+            // can remove `.html` from the default extension list, while Formie's
+            // shipped email templates still live at fixed HTML paths.
             $paths = [
                 $templatePath . '.html',
                 $templatePath . DIRECTORY_SEPARATOR . 'index.html',

@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -42,13 +44,12 @@ class Klaviyo extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToProfile) {
+            if ($this->mapToProfile && $this->settingsContext->dataKey === 'profile') {
                 $settings['profile'] = [
                     new IntegrationField([
                         'handle' => 'first_name',
@@ -165,21 +166,6 @@ class Klaviyo extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://a.klaviyo.com/api/',
-            'headers' => [
-                'Authorization' => 'Klaviyo-API-Key ' . App::parseEnv($this->privateApiKey),
-                'revision' => '2024-05-15',
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -192,9 +178,40 @@ class Klaviyo extends Crm
         $rules[] = [
             ['profileFieldMapping'], 'validateFieldMapping', 'params' => $profile, 'when' => function($model) {
                 return $model->enabled && $model->mapToProfile;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://a.klaviyo.com/api/',
+            'headers' => [
+                'Authorization' => 'Klaviyo-API-Key ' . App::parseEnv($this->privateApiKey),
+                'revision' => '2024-05-15',
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToProfile',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Profile']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Profiles']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'profileFieldMapping',
+            'if' => 'mapToProfile',
+            'dataLabel' => 'Profile',
+            'dataKey' => 'profile',
+        ]);
+
+        return $schema;
+    }
+
+
 }

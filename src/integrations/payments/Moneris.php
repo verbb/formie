@@ -2,7 +2,6 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -13,8 +12,11 @@ use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -72,7 +74,7 @@ class Moneris extends Payment
         return App::parseEnv($this->storeId) && App::parseEnv($this->apiToken);
     }
 
-    public function getFrontEndHtmlVariables(): array
+    public function getFieldHtmlVariables(): array
     {
         return [
             'endpointUrl' => $this->getBaseUrl() . 'HPPtoken/index.php',
@@ -80,33 +82,32 @@ class Moneris extends Payment
         ];
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        $settings = [
-            'endpointUrl' => $this->getBaseUrl() . 'HPPtoken/index.php',
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/moneris.js'),
-            'module' => 'FormieMoneris',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'moneris',
+            'config' => [
+                'endpointUrl' => $this->getBaseUrl() . 'HPPtoken/index.php',
+                'requiredInputSuffixes' => ['monerisTokenId'],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         // Get the amount from the field, which handles dynamic fields
@@ -116,10 +117,10 @@ class Moneris extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $this->getPaymentFieldValue($submission);
-            $monerisTokenId = $fieldValue['monerisTokenId'] ?? null;
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $monerisTokenId = $paymentPayload->string('monerisTokenId') ?? '';
 
-            if (!$monerisTokenId || !is_string($monerisTokenId)) {
+            if (!$monerisTokenId) {
                 throw new Exception("Missing `monerisTokenId` from payload: {$monerisTokenId}.");
             }
 
@@ -131,18 +132,10 @@ class Moneris extends Payment
                 throw new Exception("Missing `currency` from payload: {$currency}.");
             }
 
-            $monerisToken = Json::decodeIfJson($monerisTokenId);
-
-            if (!isset($monerisToken['dataKey'])) {
-                throw new Exception('Invalid Moneris token data.');
-            }
-
             $orderId = 'submission-' . $submission->id . '-' . date("dmy-G:i:s");
             $formattedAmount = number_format($amount, 2, '.', '');
             $storeId = App::parseEnv($this->storeId);
             $apiToken = App::parseEnv($this->apiToken);
-            $dataKey = $monerisToken['dataKey'] ?? null;
-
             $payload = [
                 'xml' => <<<XML
                     <?xml version="1.0" encoding="UTF-8"?>
@@ -152,7 +145,7 @@ class Moneris extends Payment
                         <res_purchase_cc>
                             <order_id>{$orderId}</order_id>
                             <amount>{$formattedAmount}</amount>
-                            <data_key>{$dataKey}</data_key>
+                            <data_key>{$monerisTokenId}</data_key>
                             <crypt_type>7</crypt_type>
                         </res_purchase_cc>
                     </request>
@@ -207,7 +200,7 @@ class Moneris extends Payment
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -229,15 +222,15 @@ class Moneris extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
-            return true;
+            return PaymentDecision::succeeded($this->handle);
         }
 
-        return $result;
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -271,59 +264,56 @@ class Moneris extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
     
@@ -346,6 +336,15 @@ class Moneris extends Payment
             'base_uri' => $this->getBaseUrl(),
             'headers' => ['Content-Type' => 'text/xml'],
         ]);
+    }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
     }
 
     protected function getBaseUrl(): string

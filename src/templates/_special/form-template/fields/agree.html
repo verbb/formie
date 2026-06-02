@@ -1,14 +1,16 @@
-{{ hiddenInput(field.getHtmlName(), '', {
-    'data-fui-input-type': 'agree',
-}) }}
-
-{% fieldtag 'fieldOption' %}
-    {{ fieldtag('fieldInput', {
-        value: '1',
-        checked: value ? true : false,
+{% fieldtag 'fieldOptions' %}
+    {{ hiddenInput(field.getHtmlName(), '', {
+        'data-formie-input-type': 'agree',
     }) }}
 
-    {{ fieldtag('fieldOptionLabel', {
-        text: field.getDescriptionHtml(),
-    }) }}
+    {% fieldtag 'fieldOption' %}
+        {{ fieldtag('fieldInput', {
+            value: '1',
+            checked: value ? true : false,
+        }) }}
+
+        {% fieldtag 'fieldOptionLabel' %}
+            {{- field.getDescriptionHtml() | raw -}}
+        {% endfieldtag %}
+    {% endfieldtag %}
 {% endfieldtag %}

@@ -2,6 +2,8 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -34,22 +36,19 @@ class PlaceKit extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses for Address fields using a fast, privacy-friendly autocomplete service.', ['link' => '[PlaceKit](https://placekit.io)']);
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $settings = [
-            'apiKey' => App::parseEnv($this->apiKey),
-            'options' => $this->_getOptions(),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/address-providers/place-kit.js'),
-            'module' => 'FormiePlaceKit',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'place-kit',
+            'config' => [
+                'apiKey' => App::parseEnv($this->apiKey),
+                'options' => $this->_getOptions(),
+            ],
+        ]);
     }
 
     public function hasValidSettings(): bool

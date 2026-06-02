@@ -15,8 +15,11 @@ use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -48,6 +51,18 @@ class PayWay extends Payment
     {
         return Craft::t('formie', 'Westpac PayWay');
     }
+
+    public static function getCurrencyOptions(): array
+    {
+        $event = new ModifyPaymentCurrencyOptionsEvent([
+            'currencies' => [
+                ['label' => 'AUD', 'value' => 'AUD'],
+            ],
+        ]);
+        Event::trigger(static::class, self::EVENT_MODIFY_CURRENCY_OPTIONS, $event);
+
+        return $event->currencies;
+    }
     
 
     // Properties
@@ -68,40 +83,40 @@ class PayWay extends Payment
 
     public function hasValidSettings(): bool
     {
-        return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey);
+        return App::parseEnv($this->publishableKey) && App::parseEnv($this->secretKey) && App::parseEnv($this->merchantId);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        $settings = [
-            'publishableKey' => App::parseEnv($this->publishableKey),
-            'currency' => $this->getFieldSetting('currency'),
-            'amountType' => $this->getFieldSetting('amountType'),
-            'amountFixed' => $this->getFieldSetting('amountFixed'),
-            'amountVariable' => $this->getFieldSetting('amountVariable'),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/payway.js'),
-            'module' => 'FormiePayWay',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'payway',
+            'config' => [
+                'publishableKey' => App::parseEnv($this->publishableKey),
+                'currency' => $this->getFieldSetting('currency'),
+                'amountType' => $this->getFieldSetting('amountType'),
+                'amountFixed' => $this->getFieldSetting('amountFixed'),
+                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'requiredInputSuffixes' => ['paywayTokenId'],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
+        $status = null;
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         // Get the amount from the field, which handles dynamic fields
@@ -111,8 +126,8 @@ class PayWay extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $this->getPaymentFieldValue($submission);
-            $paywayTokenId = $fieldValue['paywayTokenId'] ?? null;
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $paywayTokenId = $paymentPayload->string('paywayTokenId');
 
             if (!$paywayTokenId || !is_string($paywayTokenId)) {
                 throw new Exception("Missing `paywayTokenId` from payload: {$paywayTokenId}.");
@@ -126,10 +141,16 @@ class PayWay extends Payment
                 throw new Exception("Missing `currency` from payload: {$currency}.");
             }
 
+            $requestCurrency = strtolower(trim((string)$currency));
+
+            if ($requestCurrency !== 'aud') {
+                throw new Exception('PayWay supports AUD currency only.');
+            }
+
             $payload = [
                 'singleUseTokenId' => $paywayTokenId,
                 'principalAmount' => $amount,
-                'currency' => 'aud',
+                'currency' => $requestCurrency,
                 'transactionType' => 'payment',
                 'customerNumber' => $submission->id,
                 'orderNumber' => $submission->id,
@@ -147,7 +168,7 @@ class PayWay extends Payment
 
             $response = $this->request('POST', 'transactions', ['form_params' => $event->payload]);
 
-            $status = $response['status'] ?? null;
+            $status = strtolower((string)($response['status'] ?? ''));
             $responseText = $response['responseText'] ?? null;
 
             if ($status !== 'approved' && $status !== 'approved*' && $status !== 'pending') {
@@ -173,11 +194,11 @@ class PayWay extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            $result = true;
+            $result = $status === 'approved' || $status === 'approved*';
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -186,7 +207,7 @@ class PayWay extends Payment
             Integration::apiError($this, $e, $this->throwApiError);
 
             // Provide a client-friendly error, rather than expose the full error
-            $message = (strlen($e->getMessage()) > 30) ? substr($e->getMessage(), 0, 30) . '...' : '';
+            $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
             
             $payment = new PaymentModel();
@@ -201,15 +222,19 @@ class PayWay extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($e->getMessage(), $this->handle);
         }
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
-            return true;
+            return PaymentDecision::succeeded($this->handle);
         }
 
-        return $result;
+        if ($status === 'pending') {
+            return PaymentDecision::pending(null, $this->handle);
+        }
+
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function fetchConnection(): bool
@@ -237,59 +262,56 @@ class PayWay extends Payment
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
     
@@ -306,7 +328,7 @@ class PayWay extends Payment
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['clientId', 'clientSecret'], 'required', 'on' => [Integration::SCENARIO_FORM]];
+        $rules[] = [['publishableKey', 'secretKey', 'merchantId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
     }
@@ -317,5 +339,14 @@ class PayWay extends Payment
             'base_uri' => 'https://api.payway.com.au/rest/v1/',
             'auth' => [App::parseEnv($this->secretKey), ''],
         ]);
+    }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
     }
 }

@@ -1,23 +1,17 @@
 {% set element = element ?? null %}
 
-{# Keep track of the outer repeater field #}
-{% set repeaterField = field %}
-
 {% set html %}
-    <fieldset class="fui-fieldset">
+    <fieldset class="formie-repeater-item-wrapper" data-formie-repeater-item-wrapper>
         {% set index = index ?? '__ROW__' %}
 
         {# Namespace tag can't handle `0`, which is what our indexes start at, being arrays #}
         {% set namespace = index != '__ROW__' ? 'row' ~ (index + 1) : index %}
         
         {% namespace namespace %}
-            <div class="fui-field-rows">
-                {% for row in field.getRows() %}
-                    <div class="fui-row fui-page-row">
+            <div class="formie-nested-field-rows" data-formie-nested-field-rows>
+                {% for row in field.getRows(true, index) %}
+                    <div class="formie-nested-field-row" data-formie-nested-field-row>
                         {% for field in row.getFields() %}
-                            {# Update the namespace for the field, to include the specific block index #}
-                            {% do field.setParentField(repeaterField, index) %}
-
                             {% include 'formie/_formfields/repeater/field' with {
                                 field: field,
                                 element: element,
@@ -30,9 +24,13 @@
         {% endnamespace %}
 
         {% set buttonAttributes = {
-            class: 'btn fui-repeater-remove-btn',
+            class: 'btn formie-button formie-button-icon formie-repeater-remove-button',
             type: 'button',
             'data-remove-repeater-row': field.handle,
+            'data-formie-repeater-remove': true,
+            'data-formie-icon': 'close',
+            'aria-label': 'Remove row' | t('formie'),
+            'title': 'Remove row' | t('formie'),
         } %}
 
         <button {{ attr(buttonAttributes) }}>
@@ -42,7 +40,9 @@
 {% endset %}
 
 {{ tag('div', {
-    class: 'fui-repeater-row',
+    class: 'formie-nested-field formie-repeater-item',
     'data-repeater-row': true,
+    'data-formie-repeater-item': true,
+    'data-formie-repeater-item-id': index,
     html: html,
 }) }}

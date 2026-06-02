@@ -13,6 +13,7 @@ abstract class Table extends CraftTable
     public const FORMIE_FIELD_LAYOUT_ROWS = '{{%formie_fieldlayout_rows}}';
     public const FORMIE_FIELD_LAYOUTS = '{{%formie_fieldlayouts}}';
     public const FORMIE_FIELDS = '{{%formie_fields}}';
+    public const FORMIE_FORM_FIELDS = '{{%formie_form_fields}}';
     public const FORMIE_FORMS = '{{%formie_forms}}';
     public const FORMIE_FORM_TEMPLATES = '{{%formie_formtemplates}}';
     public const FORMIE_INTEGRATIONS = '{{%formie_integrations}}';
@@ -25,5 +26,9 @@ abstract class Table extends CraftTable
     public const FORMIE_SENT_NOTIFICATIONS = '{{%formie_sentnotifications}}';
     public const FORMIE_STATUSES = '{{%formie_statuses}}';
     public const FORMIE_STENCILS = '{{%formie_stencils}}';
+    public const FORMIE_PENDING_UPLOADS = '{{%formie_pending_uploads}}';
+    public const FORMIE_SUBMISSION_RESUME_TOKENS = '{{%formie_submission_resume_tokens}}';
+    public const FORMIE_SUBMISSION_WORKFLOW = '{{%formie_submission_workflow}}';
     public const FORMIE_SUBMISSIONS = '{{%formie_submissions}}';
+    public const FORMIE_SUBMISSION_DRAFTS = '{{%formie_submission_drafts}}';
 }

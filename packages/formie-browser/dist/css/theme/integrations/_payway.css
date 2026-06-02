@@ -1,0 +1,10 @@
+@layer formie-theme {
+    .formie-payway-button {
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        box-sizing: border-box;
+        min-height: var(--formie-control-height);
+        padding: var(--formie-space-2);
+    }
+}

@@ -2,7 +2,6 @@
 namespace verbb\formie\integrations\payments;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FormField;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Payment;
 use verbb\formie\elements\Submission;
@@ -10,10 +9,15 @@ use verbb\formie\events\ModifyPaymentPayloadEvent;
 use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\References;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentAction;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -27,6 +31,7 @@ use craft\web\Response;
 use yii\base\Event;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
 use Throwable;
 use Exception;
@@ -68,6 +73,11 @@ class Mollie extends Payment
         return true;
     }
 
+    public function requiresAjaxSubmission(): bool
+    {
+        return true;
+    }
+
     public function hasValidSettings(): bool
     {
         return App::parseEnv($this->apiKey);
@@ -91,21 +101,24 @@ class Mollie extends Payment
         return $url;
     }
 
-    public function getFrontEndJsVariables($field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/mollie.js'),
-            'module' => 'FormieMollie',
-        ];
+        return new ClientModule([
+            'id' => 'mollie',
+            'config' => [
+                'requiredInputSuffixes' => [],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $response = null;
         $result = false;
@@ -125,7 +138,7 @@ class Mollie extends Payment
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }
 
         try {
@@ -141,7 +154,7 @@ class Mollie extends Payment
                     'value' => number_format($amount, 2, '.', ''),
                 ],
                 'redirectUrl' => $this->getReturnUrl([
-                    'paymentUid' => $payment->uid,
+                    'statusToken' => PaymentAccess::issueStatusToken($payment),
                 ]),
                 'webhookUrl' => $this->getRedirectUri(),
                 'metadata' => [
@@ -173,25 +186,31 @@ class Mollie extends Payment
 
             // Redirect via the front-end for a nicer UX than just a sudden redirect away.
             $submission->getForm()->addSubmitData([
-                'event' => 'FormiePaymentMollieRedirect',
+                'event' => 'formie:payment:mollie:redirect',
                 'data' => [
                     'checkoutUrl' => $checkoutUrl,
                 ],
             ]);
 
-            // Add an error to the form to ensure it doesn't proceed and redirects
-            $this->addFieldError($submission, Craft::t('formie', 'Please wait while you are redirected to complete payment.'));
-
             // Allow events to say the response is invalid
             if (!$this->afterProcessPayment($submission, $result)) {
-                return true;
+                return PaymentDecision::succeeded($this->handle);
             }
 
-            return false;
+            return PaymentDecision::requiresAction(
+                $payment->reference,
+                PaymentAction::redirectEvent('formie:payment:mollie:redirect', $checkoutUrl)
+                    ->forProvider($this->handle)
+                    ->withMessage(Craft::t('formie', 'Please wait while you are redirected to complete payment.'))
+                    ->withPayload(['checkoutUrl' => $checkoutUrl])
+                    ->resumeMode(PaymentAction::RESUME_MODE_WEBHOOK, $this->getRedirectUri())
+            );
         } catch (Throwable $e) {
+            $gatewayErrorMessage = $this->_extractMollieErrorMessage($e, $response, $currency, $amount);
+
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”', [
-                'message' => $e->getMessage(),
+                'message' => $gatewayErrorMessage,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -199,23 +218,26 @@ class Mollie extends Payment
 
             Integration::apiError($this, $e, $this->throwApiError);
 
-            $this->addFieldError($submission, Craft::t('formie', $e->getMessage()));
+            $this->addFieldError($submission, Craft::t('formie', $gatewayErrorMessage));
 
             // Update the payment if one has already been made
             $payment->status = PaymentModel::STATUS_FAILED;
-            $payment->response = ['message' => $e->getMessage()];
+            $payment->message = $gatewayErrorMessage;
+            $payment->response = [
+                'message' => $gatewayErrorMessage,
+                'rawResponse' => $response,
+            ];
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($gatewayErrorMessage, $this->handle, $payment->reference);
         }
 
-        return true;
+        return PaymentDecision::succeeded($this->handle);
     }
 
     public function processWebhook(): Response
     {
-        $rawData = Craft::$app->getRequest()->getRawBody();
         $request = Craft::$app->getRequest();
         $response = Craft::$app->getResponse();
         $response->format = Response::FORMAT_RAW;
@@ -224,7 +246,16 @@ class Mollie extends Payment
 
         if (!$paymentId) {
             Integration::error($this, 'Mollie webhook triggered with no payment ID.');
-            $response->data = 'Missing payment ID.';
+            $response->data = 'error';
+
+            return $response;
+        }
+
+        $payment = Formie::$plugin->getPayments()->getPaymentByReference($paymentId);
+
+        if (!$payment || (int)$payment->integrationId !== (int)$this->id) {
+            Integration::info($this, 'Mollie webhook ignored for unknown local payment reference.');
+            $response->data = 'success';
 
             return $response;
         }
@@ -236,18 +267,9 @@ class Mollie extends Payment
             $metadata = $molliePayment['metadata'] ?? [];
             $formiePaymentId = $metadata['formiePaymentId'] ?? null;
 
-            if (!$formiePaymentId) {
-                Integration::error($this, "Mollie webhook missing Formie payment ID in metadata.");
-                $response->data = 'Missing Formie payment ID.';
-
-                return $response;
-            }
-
-            $payment = Formie::$plugin->getPayments()->getPaymentById($formiePaymentId);
-
-            if (!$payment) {
-                Integration::error($this, "Formie payment not found for ID {$formiePaymentId}.");
-                $response->data = 'Payment not found.';
+            if (!$formiePaymentId || (string)$formiePaymentId !== (string)$payment->id) {
+                Integration::error($this, 'Mollie webhook metadata did not match the stored Formie payment.');
+                $response->data = 'success';
 
                 return $response;
             }
@@ -263,11 +285,11 @@ class Mollie extends Payment
                 ]));
             }
 
-            $response->data = 'ok';
+            $response->data = 'success';
         } catch (Throwable $e) {
             Integration::apiError($this, $e, false);
 
-            $response->data = 'Error: ' . $e->getMessage();
+            $response->data = 'error';
         }
 
         return $response;
@@ -317,93 +339,84 @@ class Mollie extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Payment Description'),
-                'help' => Craft::t('formie', 'Enter a description for this payment, to appear against the transaction in your Mollie account, and on the payment receipt sent to the customer.'),
+                'instructions' => Craft::t('formie', 'Enter a description for this payment, to appear against the transaction in your Mollie account, and on the payment receipt sent to the customer.'),
                 'name' => 'paymentDescription',
                 'variables' => 'plainTextVariables',
             ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Metadata'),
-                'help' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
-                'validation' => 'min:0',
-                'newRowDefaults' => [
-                    'label' => '',
-                    'value' => '',
-                ],
-                'generateValue' => false,
+                'instructions' => Craft::t('formie', 'Add any additional metadata to store against a transaction.'),
+                'name' => 'metadata',
                 'columns' => [
                     [
+                        'name' => 'label',
                         'type' => 'label',
                         'label' => Craft::t('formie', 'Option'),
-                        'class' => 'singleline-cell textual',
                     ],
                     [
+                        'name' => 'value',
                         'type' => 'value',
                         'label' => Craft::t('formie', 'Value'),
-                        'class' => 'singleline-cell textual',
                     ],
                 ],
-                'name' => 'metadata',
             ]),
         ];
     }
@@ -432,6 +445,15 @@ class Mollie extends Payment
             ],
         ]);
     }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
+    }
     
 
     // Private Methods
@@ -444,7 +466,7 @@ class Mollie extends Payment
         $metadata = $this->getFieldSetting('metadata', []);
 
         if ($paymentDescription) {
-            $payload['description'] = Variables::getParsedValue($paymentDescription, $submission, $submission->getForm());
+            $payload['description'] = References::parseContent($paymentDescription, $submission);
         }
 
         // Add in some metadata by default
@@ -458,7 +480,7 @@ class Mollie extends Payment
                 $value = trim($option['value']);
 
                 if ($label && $value) {
-                    $payload['metadata'][$label] = Variables::getParsedValue($value, $submission, $submission->getForm());
+                    $payload['metadata'][$label] = References::parseContent($value, $submission);
                 }
             }
         }
@@ -488,5 +510,44 @@ class Mollie extends Payment
         }
 
         Formie::$plugin->getPayments()->savePayment($payment);
+        Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
+    }
+
+    private function _extractMollieErrorMessage(Throwable $e, mixed $response, mixed $currency, mixed $amount): string
+    {
+        $detail = '';
+
+        if (is_array($response)) {
+            $detail = trim((string)($response['detail'] ?? ''));
+        }
+
+        if ($detail === '' && $e instanceof RequestException && $e->getResponse()) {
+            $body = (string)$e->getResponse()->getBody()->getContents();
+
+            if (Json::isJsonObject($body)) {
+                $decoded = Json::decode($body);
+                $detail = trim((string)($decoded['detail'] ?? ''));
+            }
+        }
+
+        if ($detail === '') {
+            $detail = trim((string)$e->getMessage());
+        }
+
+        if ($detail === '') {
+            $detail = 'Unknown Mollie error.';
+        }
+
+        if (str_contains(strtolower($detail), 'no suitable payment methods found')) {
+            $currencyValue = strtoupper(trim((string)$currency));
+            $amountValue = number_format((float)$amount, 2, '.', '');
+
+            return Craft::t('formie', 'No suitable payment methods found in Mollie for {currency} {amount}. Check your Mollie profile payment methods and currency support.', [
+                'currency' => $currencyValue ?: 'configured currency',
+                'amount' => $amountValue,
+            ]);
+        }
+
+        return $detail;
     }
 }

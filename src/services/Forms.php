@@ -1,17 +1,22 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\cache\FormLookupCache;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
-use verbb\formie\base\NestedFieldInterface;
-use verbb\formie\base\Field;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\HandleHelper;
+use verbb\formie\helpers\References;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\helpers\Variables;
 use verbb\formie\models\FormLayout;
 use verbb\formie\models\FormSettings;
+use verbb\formie\models\FormTemplate;
 use verbb\formie\records\Form as FormRecord;
 
 use Craft;
@@ -26,6 +31,7 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\ElementHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
@@ -38,8 +44,7 @@ class Forms extends Component
     // Properties
     // =========================================================================
 
-    private array $_cachedElements = [];
-    private array $_cachedFields = [];
+    private ?FormLookupCache $_formLookupCache = null;
 
 
     // Public Methods
@@ -47,33 +52,177 @@ class Forms extends Component
 
     public function getFormById(int $id, int $siteId = null): ?Form
     {
-        return Form::find()->id($id)->siteId($siteId)->one();
+        if (!$id) {
+            return null;
+        }
+
+        $cacheKey = $this->_getFormLookupKey($id, $siteId);
+        $cache = $this->_getFormLookupCache();
+
+        if (array_key_exists($cacheKey, $cache->formsById)) {
+            return $cache->formsById[$cacheKey];
+        }
+
+        $form = Form::find()->id($id)->siteId($siteId)->one();
+
+        if (!$form) {
+            return $cache->formsById[$cacheKey] = null;
+        }
+
+        return $this->_cacheFormLookup($form, $siteId);
     }
 
     public function getFormByHandle(string $handle, int $siteId = null): ?Form
     {
-        return Form::find()->handle($handle)->siteId($siteId)->one();
+        if ($handle === '') {
+            return null;
+        }
+
+        $normalizedHandle = strtolower($handle);
+        $cacheKey = $this->_getFormLookupKey($normalizedHandle, $siteId);
+        $cache = $this->_getFormLookupCache();
+
+        if (array_key_exists($cacheKey, $cache->formsByHandle)) {
+            return $cache->formsByHandle[$cacheKey];
+        }
+
+        $form = Form::find()->handle($handle)->siteId($siteId)->one();
+
+        if (!$form) {
+            return $cache->formsByHandle[$cacheKey] = null;
+        }
+
+        return $this->_cacheFormLookup($form, $siteId);
     }
 
     public function getFormByUid(string $uid, int $siteId = null): ?Form
     {
-        return Form::find()->uid($uid)->siteId($siteId)->one();
+        if ($uid === '') {
+            return null;
+        }
+
+        $normalizedUid = strtolower($uid);
+        $cacheKey = $this->_getFormLookupKey($normalizedUid, $siteId);
+        $cache = $this->_getFormLookupCache();
+
+        if (array_key_exists($cacheKey, $cache->formsByUid)) {
+            return $cache->formsByUid[$cacheKey];
+        }
+
+        $form = Form::find()->uid($uid)->siteId($siteId)->one();
+
+        if (!$form) {
+            return $cache->formsByUid[$cacheKey] = null;
+        }
+
+        return $this->_cacheFormLookup($form, $siteId);
     }
 
     public function getFormByLayoutId(int $layoutId, int $siteId = null): ?Form
     {
-        return Form::find()->layoutId($layoutId)->siteId($siteId)->one();
+        if (!$layoutId) {
+            return null;
+        }
+
+        $cacheKey = $this->_getFormLayoutCacheKey($layoutId, $siteId);
+        $cache = $this->_getFormLookupCache();
+
+        if (array_key_exists($cacheKey, $cache->formsByLayoutId)) {
+            return $cache->formsByLayoutId[$cacheKey];
+        }
+
+        $formId = FormRecord::find()
+            ->select(['id'])
+            ->where(['layoutId' => $layoutId])
+            ->scalar();
+
+        if ($formId) {
+            $form = $this->getFormById((int)$formId, $siteId);
+
+            if ($form) {
+                return $cache->formsByLayoutId[$cacheKey] = $form;
+            }
+        }
+
+        foreach ($this->getAllForms() as $form) {
+            $formLayoutId = (int)($form->layoutId ?? 0);
+
+            if (!$formLayoutId) {
+                $formLayoutId = (int)($form->getFormLayout()->id ?? 0);
+            }
+
+            if ($formLayoutId !== $layoutId) {
+                continue;
+            }
+
+            if ($siteId !== null && (int)$form->siteId !== $siteId) {
+                continue;
+            }
+
+            return $cache->formsByLayoutId[$cacheKey] = $form;
+        }
+
+        return $cache->formsByLayoutId[$cacheKey] = null;
     }
 
     public function getAllForms(): array
     {
-        return Form::find()->all();
+        $cache = $this->_getFormLookupCache();
+
+        if ($cache->allForms !== null) {
+            return $cache->allForms;
+        }
+
+        if ($cache->allFormsWithLayouts !== null) {
+            return $cache->allForms = $cache->allFormsWithLayouts;
+        }
+
+        $forms = Form::find()->all();
+        $this->_primeForms($forms);
+
+        return $cache->allForms = $forms;
+    }
+
+    public function getAllFormsWithLayouts(): array
+    {
+        $cache = $this->_getFormLookupCache();
+
+        if ($cache->allFormsWithLayouts !== null) {
+            return $cache->allFormsWithLayouts;
+        }
+
+        $forms = $cache->allForms ?? Form::find()->all();
+        $this->_primeForms($forms);
+        $cache->allForms = $forms;
+
+        // This variant exists for callers that need the full form + layout graph. Hydrating layouts in
+        // one pass keeps repeated form->getFormLayout()/getFields() access on a shared request-local graph
+        // instead of lazy-loading each layout separately.
+        $layoutIds = array_values(array_unique(array_filter(array_map(static fn(Form $form): int => (int)$form->layoutId, $forms))));
+        $layoutsById = $layoutIds ? Formie::$plugin->getFields()->getLayoutsByIds($layoutIds) : [];
+
+        foreach ($forms as $form) {
+            $layoutId = (int)$form->layoutId;
+
+            if ($layoutId && isset($layoutsById[$layoutId])) {
+                // Attach the hydrated layout to the element so later callers reuse the shared
+                // request-local object graph instead of lazy-loading the same layout again.
+                $form->setFormLayout($layoutsById[$layoutId]);
+            }
+        }
+
+        return $cache->allFormsWithLayouts = $forms;
+    }
+
+    public function invalidateFormCaches(): void
+    {
+        $this->_formLookupCache?->reset();
     }
 
     public function buildFormFromPost(): Form
     {
         $request = Craft::$app->getRequest();
-        $formId = $request->getParam('formId');
+        $formId = $request->getParam('id');
         $siteId = $request->getParam('siteId');
 
         if ($formId) {
@@ -82,143 +231,182 @@ class Forms extends Component
             if (!$form) {
                 throw new Exception("No form found for ID: $formId");
             }
-        } else {
-            $form = new Form();
+
+            return $this->_populateFormFromPost($form);
         }
 
-        $form->title = $request->getParam('title', $form->title);
-        $form->handle = $request->getParam('handle', $form->handle);
-        $form->templateId = StringHelper::toId($request->getParam('templateId', $form->templateId));
-        $form->defaultStatusId = StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));
-        $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
-        $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
-        $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
-        $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
-        $form->submitActionEntryId = $request->getParam('submitActionEntryId.id');
-        $form->submitActionEntrySiteId = $request->getParam('submitActionEntryId.siteId');
-
-        // Populate the form builder layout (pages/rows/fields)
-        if ($pages = $request->getParam('pages')) {
-            $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
-        }
-
-        // Deleted pages/rows/fields are sent separately for convenience, but add them to the field layout for processing
-        if ($deleted = $request->getParam('deleted')) {
-            $form->getFormLayout()->setDeletedItems(Json::decodeIfJson($deleted));
-        }
-
-        // Merge in any new settings, while retaining existing ones. Important for users with permissions.
-        if ($newSettings = $request->getParam('settings')) {
-            // Retain any integration form settings before wiping them
-            $oldIntegrationSettings = $form->settings->integrations ?? [];
-            $newIntegrationSettings = $newSettings['integrations'] ?? [];
-            $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
-
-            $form->settings->setAttributes($newSettings, false);
-        }
-
-        // Set the notifications
-        $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
-
-        // Set custom field values
-        $form->setFieldValuesFromRequest('fields');
-
-        // Apply a chosen stencil, which will override a few things above
-        if ($stencilId = $request->getParam('applyStencilId')) {
-            if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
-                $stencil->applyStencilToForm($form);
-            }
-        }
-
-        return $form;
+        return $this->_populateFormFromPost(new Form());
     }
 
-    public function handleBeforeSubmitHook($context): string
+    public function buildStencilFormFromPost(): Form
     {
-        $form = $context['form'] ?? null;
-        $page = $context['page'] ?? null;
-
-        return Formie::$plugin->getIntegrations()->getCaptchasHtmlForForm($form, $page);
+        return $this->_populateFormFromPost(new Form());
     }
 
-    public function getFormBuilderTabs(Form $form = null, array $variables = []): array
+    public function getFormBuilderVariables(Form $form): array
     {
         $user = Craft::$app->getUser();
+        $suffix = ':' . $form->uid;
+        $notifications = Formie::$plugin->getNotifications()->getFormNotifications($form);
+        $notificationsConfig = Formie::$plugin->getNotifications()->getNotificationsConfig($notifications);
 
-        $tabs = [];
+        $viewSubmissionsUrl = null;
+        $submissions = Submission::find()->formId($form->id)->limit(1)->exists();
 
-        $tabs[] = [
-            'label' => Craft::t('formie', 'Fields'),
-            'value' => 'fields',
-            'url' => '#tab-fields',
-        ];
-
-        if ($form && $fieldLayout = $form->getFieldLayout()) {
-            foreach ($fieldLayout->getTabs() as $tab) {
-                $tabSlug = StringHelper::toKebabCase($tab->name);
-
-                $tabs[] = [
-                    'label' => $tab->name,
-                    'value' => "form-fields-$tabSlug",
-                    'url' => "#tab-form-fields-$tabSlug",
-                    'tab' => $tab,
-                ];
-            }
+        if ($submissions && (Craft::$app->getUser()->checkPermission('formie-viewSubmissions') || Craft::$app->getUser()->checkPermission('formie-viewSubmissions:' . $form->uid))) {
+            $viewSubmissionsUrl = UrlHelper::cpUrl('formie/submissions/' . $form->handle, [
+                'source' => 'form:' . $form->id,
+            ]);
         }
 
-        $suffix = ':' . ($form->uid ?? '');
+        $tabs = [
+            [
+                'handle' => 'fields',
+                'label' => Craft::t('formie', 'Fields'),
+                'content' => $form->defineFieldsSchema(),
+                'props' => [
+                    'padded' => false,
+                ],
+            ],
+        ];
 
         if ($user->checkPermission('formie-showFormAppearance') || $user->checkPermission("formie-showFormAppearance{$suffix}")) {
             $tabs[] = [
+                'handle' => 'appearance',
                 'label' => Craft::t('formie', 'Appearance'),
-                'value' => 'appearance',
-                'url' => '#tab-appearance',
+                'content' => $form->defineFormBuilderAppearanceSchema(),
             ];
         }
 
         if ($user->checkPermission('formie-showFormBehavior') || $user->checkPermission("formie-showFormBehavior{$suffix}")) {
             $tabs[] = [
+                'handle' => 'behaviour',
                 'label' => Craft::t('formie', 'Behaviour'),
-                'value' => 'behaviour',
-                'url' => '#tab-behaviour',
+                'content' => $form->defineBehaviourSchema(),
             ];
         }
 
         if ($user->checkPermission('formie-showNotifications') || $user->checkPermission("formie-showNotifications{$suffix}")) {
             $tabs[] = [
+                'handle' => 'notifications',
                 'label' => Craft::t('formie', 'Email Notifications'),
-                'value' => 'notifications',
-                'url' => '#tab-notifications',
+                'content' => $form->defineNotificationsSchema(),
             ];
         }
 
         if ($user->checkPermission('formie-showFormIntegrations') || $user->checkPermission("formie-showFormIntegrations{$suffix}")) {
             $tabs[] = [
+                'handle' => 'integrations',
                 'label' => Craft::t('formie', 'Integrations'),
-                'value' => 'integrations',
-                'url' => '#tab-integrations',
+                'content' => $form->defineIntegrationsSchema(),
+                'props' => [
+                    'padded' => false,
+                ],
             ];
         }
 
-        $formUsage = $variables['formUsage'] ?? [];
-
-        if ($formUsage && ($user->checkPermission('formie-showFormUsage') || $user->checkPermission("formie-showFormUsage{$suffix}"))) {
+        if ($user->checkPermission('formie-showFormUsage') || $user->checkPermission("formie-showFormUsage{$suffix}")) {
             $tabs[] = [
+                'handle' => 'usage',
                 'label' => Craft::t('formie', 'Usage'),
-                'value' => 'usage',
-                'url' => '#tab-usage',
+                'content' => $form->defineUsageSchema(),
             ];
         }
 
         if ($user->checkPermission('formie-showFormSettings') || $user->checkPermission("formie-showFormSettings{$suffix}")) {
             $tabs[] = [
+                'handle' => 'settings',
                 'label' => Craft::t('formie', 'Settings'),
-                'value' => 'settings',
-                'url' => '#tab-settings',
+                'content' => $form->defineFormBuilderSettingsSchema(),
             ];
         }
 
-        return $tabs;
+        $tabSchema = array_merge(...array_map(function($tab) {
+            $content = $tab['content'] ?? [];
+            if (!is_array($content)) {
+                return [];
+            }
+            if (array_is_list($content)) {
+                return $content;
+            }
+            return [$content];
+        }, $tabs));
+
+        $compiledSchema = SchemaHelper::compileSchema([
+            [
+                '$cmp' => 'FormBuilderTabs',
+                'schema' => $tabSchema,
+                'children' => [
+                    [
+                        '$cmp' => 'FormBuilderTabList',
+                        'children' => array_map(function($tab) {
+                            return [
+                                '$cmp' => 'FormBuilderTabTrigger',
+                                'props' => [
+                                    'value' => $tab['handle'],
+                                ],
+                                'children' => $tab['label'],
+                            ];
+                        }, $tabs),
+                    ],
+                    ...array_map(function($tab) {
+                        return [
+                            '$cmp' => 'FormBuilderTabContent',
+                            'props' => array_merge([
+                                'value' => $tab['handle'],
+                            ], $tab['props'] ?? []),
+                            'children' => $tab['content'],
+                        ];
+                    }, $tabs),
+                ],
+            ],
+        ]);
+
+        return [
+            'activeTab' => 'fields',
+            'allowAdminChanges' => (bool)Craft::$app->getConfig()->getGeneral()->allowAdminChanges,
+            'baseUrl' => $form->getCpEditUrl(),
+            'tabLabels' => array_column($tabs, 'label', 'handle'),
+            'paymentIntegrations' => $this->_getPaymentIntegrationMetadata(),
+            'templateFieldLayoutInfo' => $this->_getTemplateFieldLayoutInfo(),
+            'fieldTypeGroups' => Formie::$plugin->getFields()->getFormBuilderFieldTypes(),
+            'viewSubmissionsUrl' => $viewSubmissionsUrl,
+            ...Variables::getFormBuilderVariableConfig(),
+            'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
+            'formHandles' => $form->getBuilderHandleNames(),
+            'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
+            'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
+            'data' => [
+                'id' => $form->id,
+                'uid' => $form->uid,
+                'title' => $form->title,
+                'handle' => $form->handle,
+                'isStencil' => false,
+                'layoutId' => $form->layoutId,
+                'templateId' => $form->templateId,
+                'submitActionEntry' =>  array_filter([
+                    array_filter([
+                        'id' => $form->submitActionEntryId,
+                        'siteId' => $form->submitActionEntrySiteId,
+                    ]),
+                ]),
+                'defaultStatusId' => $form->defaultStatusId,
+                'dataRetention' => $form->dataRetention,
+                'dataRetentionValue' => $form->dataRetentionValue,
+                'userDeletedAction' => $form->userDeletedAction,
+                'fileUploadsAction' => $form->fileUploadsAction,
+                'dateCreated' => $form->dateCreated->format('Y-m-d H:i:s'),
+                'dateUpdated' => $form->dateUpdated->format('Y-m-d H:i:s'),
+                'settings' => $form->settings,
+                'notifications' => $notificationsConfig,
+                'integrations' => Formie::$plugin->getIntegrations()->getIntegrationSummariesForForm(),
+                'pages' => $form->getFormLayout()->getFormBuilderConfig(),
+            ],
+            'pageSettingsSchema' => $form->definePageSettingsSchema(),
+            'pageButtonSettingsSchema' => $form->definePageButtonSettingsSchema(),
+            'schema' => $compiledSchema['schema'],
+            'schemaIndex' => $compiledSchema,
+        ];
     }
 
     public function getFormUsage(Form $form): array
@@ -252,51 +440,47 @@ class Forms extends Component
         }
 
         foreach ($query->all() as $info) {
-            try {
-                // Use the combined element cache, keyed solely by element id.
-                $cacheKey = $info['id'] . '_' . $info['siteId'];
-                $elementId = $info['id'];
-                $siteId = $info['siteId'];
-                
-                if (isset($this->_cachedElements[$cacheKey])) {
-                    $element = $this->_cachedElements[$cacheKey];
-                } else {
-                    $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
-                    $this->_cachedElements[$cacheKey] = $element;
-                }
+            // Use the combined element cache, keyed solely by element id.
+            $cacheKey = $info['id'] . '_' . $info['siteId'];
+            $elementId = $info['id'];
+            $siteId = $info['siteId'];
+            
+            if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey])) {
+                $element = $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey];
+            } else {
+                $element = Craft::$app->getElements()->getElementById($elementId, $info['type'], $siteId);
+                $this->_getFormLookupCache()->elementsByIdAndSite[$cacheKey] = $element;
+            }
 
-                // Use the combined field cache.
-                $fieldId = $info['fieldId'];
-                
-                if (isset($this->_cachedFields[$fieldId])) {
-                    $field = $this->_cachedFields[$fieldId];
-                } else {
-                    $field = Craft::$app->getFields()->getFieldById($fieldId);
-                    $this->_cachedFields[$fieldId] = $field;
-                }
+            // Use the combined field cache.
+            $fieldId = $info['fieldId'];
+            
+            if (isset($this->_getFormLookupCache()->fieldsById[$fieldId])) {
+                $field = $this->_getFormLookupCache()->fieldsById[$fieldId];
+            } else {
+                $field = Craft::$app->getFields()->getFieldById($fieldId);
+                $this->_getFormLookupCache()->fieldsById[$fieldId] = $field;
+            }
 
-                if (!$element) {
-                    continue;
-                }
+            if (!$element) {
+                continue;
+            }
 
-                if (isset($elements[$element->id . '_' . $element->siteId])) {
-                    continue;
-                }
+            if (isset($elements[$element->id . '_' . $element->siteId])) {
+                continue;
+            }
 
-                $nestedElements = [];
-                $this->_handleNestedElement($element, $field, 0, $nestedElements);
+            $nestedElements = [];
+            $this->_handleNestedElement($element, $field, 0, $nestedElements);
 
-                // Sort descending by level and reassign levels.
-                usort($nestedElements, function ($a, $b) {
-                    return $b['level'] <=> $a['level'];
-                });
+            // Sort descending by level and reassign levels.
+            usort($nestedElements, function ($a, $b) {
+                return $b['level'] <=> $a['level'];
+            });
 
-                foreach ($nestedElements as $i => $nestedElement) {
-                    $nestedElement['level'] = $i;
-                    $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
-                }
-            } catch (Throwable $e) {
-                // Just ignore any errors
+            foreach ($nestedElements as $i => $nestedElement) {
+                $nestedElement['level'] = $i;
+                $elements[$nestedElement['element']->id . '_' . $nestedElement['site']->id] = $nestedElement;
             }
         }
 
@@ -307,6 +491,244 @@ class Forms extends Component
     // Private Methods
     // =========================================================================
 
+    private function _populateFormFromPost(Form $form): Form
+    {
+        $request = Craft::$app->getRequest();
+        $bodyParams = $request->getBodyParams();
+
+        if ($bodyParams) {
+            $this->_normalizeBuilderFieldReferences($bodyParams);
+            $request->setBodyParams($bodyParams);
+        }
+
+        $form->title = $request->getParam('title', $form->title);
+        $form->handle = $request->getParam('handle', $form->handle);
+        $form->templateId = StringHelper::toId($request->getParam('templateId', $form->templateId));
+        $form->defaultStatusId = StringHelper::toId($request->getParam('defaultStatusId', $form->defaultStatusId));
+        $form->userDeletedAction = $request->getParam('userDeletedAction', $form->userDeletedAction);
+        $form->fileUploadsAction = $request->getParam('fileUploadsAction', $form->fileUploadsAction);
+        $form->dataRetention = $request->getParam('dataRetention', $form->dataRetention);
+        $form->dataRetentionValue = $request->getParam('dataRetentionValue', $form->dataRetentionValue);
+        $form->submitActionEntryId = $request->getParam('submitActionEntryId.id');
+        $form->submitActionEntrySiteId = $request->getParam('submitActionEntryId.siteId');
+
+        // Populate the form builder layout (pages/rows/fields)
+        if ($pages = $request->getParam('pages')) {
+            $form->getFormLayout()->setPages(Json::decodeIfJson($pages));
+        }
+
+        // Merge in any new settings, while retaining existing ones. Important for users with permissions.
+        if ($newSettings = $request->getParam('settings')) {
+            // Retain any integration form settings before wiping them
+            $oldIntegrationSettings = $form->settings->integrations ?? [];
+            $newIntegrationSettings = $newSettings['integrations'] ?? [];
+            $newSettings['integrations'] = array_merge($oldIntegrationSettings, $newIntegrationSettings);
+
+            $form->settings->setAttributes($newSettings, false);
+        }
+
+        // Set the notifications
+        $form->setNotifications(Formie::$plugin->getNotifications()->buildNotificationsFromPost());
+
+        // Set custom field values
+        $form->setFieldValuesFromRequest('fields');
+
+        // Apply a chosen stencil, which will override a few things above
+        if ($stencilId = $request->getParam('applyStencilId')) {
+            if ($stencil = Formie::$plugin->getStencils()->getStencilById($stencilId)) {
+                $stencil->applyStencilToForm($form, true);
+            }
+        }
+
+        return $form;
+    }
+
+    private function _normalizeBuilderFieldReferences(array &$bodyParams): void
+    {
+        if (!array_key_exists('pages', $bodyParams)) {
+            return;
+        }
+
+        $pages = Json::decodeIfJson($bodyParams['pages']);
+        if (!is_array($pages)) {
+            return;
+        }
+
+        $existingReferences = $this->_getExistingFieldReferenceIndex();
+        $assignedReferences = [];
+        $referenceMap = [];
+        $newFieldCounter = 0;
+
+        foreach ($pages as &$page) {
+            if (is_array($page) && isset($page['rows'])) {
+                $this->_normalizeBuilderRowReferences($page['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
+            }
+        }
+        unset($page);
+
+        $bodyParams['pages'] = $pages;
+
+        if ($referenceMap !== []) {
+            $this->_remapBuilderFieldReferenceTokens($bodyParams, $referenceMap);
+        }
+    }
+
+    private function _normalizeBuilderRowReferences(mixed &$rows, array $existingReferences, array &$assignedReferences, array &$referenceMap, int &$newFieldCounter): void
+    {
+        if (!is_array($rows)) {
+            return;
+        }
+
+        foreach ($rows as &$row) {
+            if (!is_array($row) || !isset($row['fields']) || !is_array($row['fields'])) {
+                continue;
+            }
+
+            foreach ($row['fields'] as &$field) {
+                if (!is_array($field)) {
+                    continue;
+                }
+
+                $fieldId = (int)($field['id'] ?? 0);
+                $fieldKey = $fieldId ? 'id:' . $fieldId : 'new:' . ++$newFieldCounter;
+                $originalReference = trim((string)($field['reference'] ?? ''));
+                $reference = $originalReference ?: StringHelper::UUID();
+
+                while ($this->_fieldReferenceConflicts($reference, $fieldId, $fieldKey, $existingReferences, $assignedReferences)) {
+                    $reference = StringHelper::UUID();
+                }
+
+                $field['reference'] = $reference;
+                $assignedReferences[$reference] = $fieldKey;
+
+                if ($originalReference !== '' && $originalReference !== $reference) {
+                    $referenceMap[$originalReference] = $reference;
+                }
+
+                if (isset($field['rows'])) {
+                    $this->_normalizeBuilderRowReferences($field['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
+
+                    if (isset($field['settings']) && is_array($field['settings'])) {
+                        $field['settings']['rows'] = $field['rows'];
+                    }
+                } else if (isset($field['settings']['rows'])) {
+                    $this->_normalizeBuilderRowReferences($field['settings']['rows'], $existingReferences, $assignedReferences, $referenceMap, $newFieldCounter);
+                }
+            }
+            unset($field);
+        }
+        unset($row);
+    }
+
+    private function _fieldReferenceConflicts(string $reference, int $fieldId, string $fieldKey, array $existingReferences, array $assignedReferences): bool
+    {
+        if ($reference === '') {
+            return true;
+        }
+
+        $existingFieldId = (int)($existingReferences[$reference] ?? 0);
+        if ($existingFieldId && (!$fieldId || $existingFieldId !== $fieldId)) {
+            return true;
+        }
+
+        return isset($assignedReferences[$reference]) && $assignedReferences[$reference] !== $fieldKey;
+    }
+
+    private function _getExistingFieldReferenceIndex(): array
+    {
+        $rows = (new Query())
+            ->select(['id', 'reference'])
+            ->from(Table::FORMIE_FORM_FIELDS)
+            ->where(['not', ['reference' => null]])
+            ->all();
+
+        $references = [];
+        foreach ($rows as $row) {
+            $reference = trim((string)($row['reference'] ?? ''));
+            if ($reference !== '') {
+                $references[$reference] = (int)($row['id'] ?? 0);
+            }
+        }
+
+        return $references;
+    }
+
+    private function _remapBuilderFieldReferenceTokens(mixed &$value, array $referenceMap): void
+    {
+        if (is_string($value)) {
+            $value = preg_replace_callback('/\{field:[^}]+\}/', function(array $matches) use ($referenceMap) {
+                return References::remapFieldReferenceToken($matches[0], $referenceMap);
+            }, $value);
+            return;
+        }
+
+        if (!is_array($value)) {
+            return;
+        }
+
+        foreach ($value as &$nestedValue) {
+            $this->_remapBuilderFieldReferenceTokens($nestedValue, $referenceMap);
+        }
+        unset($nestedValue);
+    }
+
+    private function _getPaymentIntegrationMetadata(): array
+    {
+        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
+        $metadata = [];
+
+        foreach ($integrations as $integration) {
+            if (!($integration instanceof PaymentIntegration)) {
+                continue;
+            }
+
+            if (!$integration->getEnabled()) {
+                continue;
+            }
+
+            $handle = trim((string)$integration->getHandle());
+            if ($handle !== '') {
+                $metadata[] = [
+                    'handle' => $handle,
+                    'requiresAjaxSubmission' => (bool)$integration->requiresAjaxSubmission(),
+                ];
+            }
+        }
+
+        return $metadata;
+    }
+
+    private function _getTemplateFieldLayoutInfo(): array
+    {
+        $info = [];
+        $templates = Formie::$plugin->getFormTemplates()->getAllTemplates();
+
+        foreach ($templates as $template) {
+            $templateId = (int)($template->id ?? 0);
+
+            if (!$templateId) {
+                continue;
+            }
+
+            $info[$templateId] = [
+                'hasFields' => $this->_templateHasCustomFields($template),
+            ];
+        }
+
+        return $info;
+    }
+
+    private function _templateHasCustomFields(FormTemplate $template): bool
+    {
+        $fieldLayout = $template->getFieldLayout();
+
+        if (!$fieldLayout) {
+            return false;
+        }
+        
+        return count($fieldLayout->getCustomFields()) > 0;
+    }
+
     private function _handleNestedElement(ElementInterface $element, ?FieldInterface $field, int $level, array &$accumulator = []): void
     {
         try {
@@ -315,6 +737,10 @@ class Forms extends Component
                 'site' => $element->site,
                 'field' => $field,
                 'level' => $level,
+                'elementType' => $element::displayName(),
+                'status' => StringHelper::toTitleCase($element->getStatus()),
+                'isRevision' => $element->getIsRevision(),
+                'isDraft' => $element->getIsDraft(),
             ];
 
             if ($element instanceof NestedElementInterface && $element->ownerId) {
@@ -323,21 +749,21 @@ class Forms extends Component
                     $ownerId = $element->ownerId;
                     $ownerCacheKey = $ownerId . '_' . $element->siteId;
 
-                    if (isset($this->_cachedElements[$ownerCacheKey])) {
-                        $ownerElement = $this->_cachedElements[$ownerCacheKey];
+                    if (isset($this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey])) {
+                        $ownerElement = $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey];
                     } else {
                         $ownerElement = Craft::$app->getElements()->getElementById($ownerId, null, $element->siteId);
-                        $this->_cachedElements[$ownerCacheKey] = $ownerElement;
+                        $this->_getFormLookupCache()->elementsByIdAndSite[$ownerCacheKey] = $ownerElement;
                     }
 
                     // Retrieve (or cache) the owner field using its id.
                     $fieldId = $element->fieldId;
 
-                    if (isset($this->_cachedFields[$fieldId])) {
-                        $ownerField = $this->_cachedFields[$fieldId];
+                    if (isset($this->_getFormLookupCache()->fieldsById[$fieldId])) {
+                        $ownerField = $this->_getFormLookupCache()->fieldsById[$fieldId];
                     } else {
                         $ownerField = Craft::$app->getFields()->getFieldById($fieldId);
-                        $this->_cachedFields[$fieldId] = $ownerField;
+                        $this->_getFormLookupCache()->fieldsById[$fieldId] = $ownerField;
                     }
 
                     if ($ownerElement) {
@@ -349,6 +775,76 @@ class Forms extends Component
             }
         } catch (Throwable $e) {
             // Skip over
+        }
+    }
+
+    private function _getFormLookupCache(): FormLookupCache
+    {
+        if ($this->_formLookupCache === null) {
+            $this->_formLookupCache = new FormLookupCache();
+        }
+
+        return $this->_formLookupCache;
+    }
+
+    private function _getFormLayoutCacheKey(int $layoutId, ?int $siteId): string
+    {
+        return $layoutId . ':' . ($siteId ?? 'default');
+    }
+
+    private function _getFormLookupKey(string|int $value, ?int $siteId): string
+    {
+        return $value . ':' . ($siteId ?? 'default');
+    }
+
+    private function _cacheFormLookup(?Form $form, ?int $siteId = null): ?Form
+    {
+        if (!$form) {
+            return null;
+        }
+
+        $cache = $this->_getFormLookupCache();
+        $id = (int)$form->id;
+        $handle = strtolower((string)$form->handle);
+        $uid = strtolower((string)$form->uid);
+        $resolvedSiteId = $siteId ?? ($form->siteId ? (int)$form->siteId : null);
+
+        $cache->formsById[$this->_getFormLookupKey($id, null)] ??= $form;
+        $cache->formsByHandle[$this->_getFormLookupKey($handle, null)] ??= $form;
+        $cache->formsByUid[$this->_getFormLookupKey($uid, null)] ??= $form;
+
+        if ($resolvedSiteId !== null) {
+            $cache->formsById[$this->_getFormLookupKey($id, $resolvedSiteId)] ??= $form;
+            $cache->formsByHandle[$this->_getFormLookupKey($handle, $resolvedSiteId)] ??= $form;
+            $cache->formsByUid[$this->_getFormLookupKey($uid, $resolvedSiteId)] ??= $form;
+        }
+
+        return $form;
+    }
+
+    private function _primeForms(array $forms): void
+    {
+        $cache = $this->_getFormLookupCache();
+
+        foreach ($forms as $form) {
+            if (!$form instanceof Form) {
+                continue;
+            }
+
+            $layoutId = (int)$form->layoutId;
+
+            if (!$layoutId) {
+                $this->_cacheFormLookup($form);
+                continue;
+            }
+
+            $this->_cacheFormLookup($form);
+
+            $defaultKey = $this->_getFormLayoutCacheKey($layoutId, null);
+            $siteKey = $this->_getFormLayoutCacheKey($layoutId, $form->siteId ? (int)$form->siteId : null);
+
+            $cache->formsByLayoutId[$defaultKey] ??= $form;
+            $cache->formsByLayoutId[$siteKey] ??= $form;
         }
     }
 }

@@ -1,0 +1,294 @@
+{
+  "timestamp": "2026-03-02T01:51:08.659Z",
+  "runId": "run-2026-03-02T01-50-58-277Z",
+  "builderUrl": "https://formie-react.test/admin/formie/forms/edit/5369/fields/page1",
+  "iterations": 2,
+  "modalOpenBudgetMs": 500,
+  "passed": false,
+  "scenarioCount": 10,
+  "failedScenarioCount": 10,
+  "scenarios": [
+    {
+      "name": "iter1-add-edit-delete-reorder",
+      "ok": false,
+      "error": "keyboard.press: Target page, context or browser has been closed",
+      "elapsedMs": 8033,
+      "steps": [
+        {
+          "step": "add Single-Line Text and apply",
+          "ok": true,
+          "elapsedMs": 7057,
+          "data": {
+            "openMs": 123
+          }
+        },
+        {
+          "step": "add Email and apply",
+          "ok": false,
+          "elapsedMs": 976,
+          "error": "keyboard.press: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-add-edit-delete-reorder-addemailandapply-1772416268652.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Email and apply",
+          "error": "keyboard.press: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-add-edit-delete-reorder-addemailandapply-1772416268652.png"
+        }
+      ]
+    },
+    {
+      "name": "iter1-nested-subfield-loops",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 1,
+      "steps": [
+        {
+          "step": "add Address and apply",
+          "ok": false,
+          "elapsedMs": 1,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-nested-subfield-loops-addaddressandapply-1772416268653.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Address and apply",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-nested-subfield-loops-addaddressandapply-1772416268653.png"
+        }
+      ]
+    },
+    {
+      "name": "iter1-payment-provider-flow",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 0,
+      "steps": [
+        {
+          "step": "add Payment and open modal quickly",
+          "ok": false,
+          "elapsedMs": 0,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-payment-provider-flow-addpaymentandopenmodalquickly-1772416268653.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Payment and open modal quickly",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-payment-provider-flow-addpaymentandopenmodalquickly-1772416268653.png"
+        }
+      ]
+    },
+    {
+      "name": "iter1-large-form-interaction-loop",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 1,
+      "steps": [
+        {
+          "step": "rapid modal open close loop",
+          "ok": false,
+          "elapsedMs": 1,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-large-form-interaction-loop-rapidmodalopencloseloop-1772416268654.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "rapid modal open close loop",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-large-form-interaction-loop-rapidmodalopencloseloop-1772416268654.png"
+        }
+      ]
+    },
+    {
+      "name": "iter1-cross-page-flow",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 1,
+      "steps": [
+        {
+          "step": "create page if possible",
+          "ok": true,
+          "elapsedMs": 0,
+          "data": {
+            "created": false,
+            "reason": "New Page button not visible."
+          }
+        },
+        {
+          "step": "add Email and apply on current page",
+          "ok": false,
+          "elapsedMs": 1,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-cross-page-flow-addemailandapplyoncurrentpage-1772416268655.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Email and apply on current page",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter1-cross-page-flow-addemailandapplyoncurrentpage-1772416268655.png"
+        }
+      ]
+    },
+    {
+      "name": "iter2-add-edit-delete-reorder",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 0,
+      "steps": [
+        {
+          "step": "add Single-Line Text and apply",
+          "ok": false,
+          "elapsedMs": 0,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-add-edit-delete-reorder-addsinglelinetextandapply-1772416268655.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Single-Line Text and apply",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-add-edit-delete-reorder-addsinglelinetextandapply-1772416268655.png"
+        }
+      ]
+    },
+    {
+      "name": "iter2-nested-subfield-loops",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 1,
+      "steps": [
+        {
+          "step": "add Address and apply",
+          "ok": false,
+          "elapsedMs": 1,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-nested-subfield-loops-addaddressandapply-1772416268656.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Address and apply",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-nested-subfield-loops-addaddressandapply-1772416268656.png"
+        }
+      ]
+    },
+    {
+      "name": "iter2-payment-provider-flow",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 1,
+      "steps": [
+        {
+          "step": "add Payment and open modal quickly",
+          "ok": false,
+          "elapsedMs": 1,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-payment-provider-flow-addpaymentandopenmodalquickly-1772416268657.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Payment and open modal quickly",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-payment-provider-flow-addpaymentandopenmodalquickly-1772416268657.png"
+        }
+      ]
+    },
+    {
+      "name": "iter2-large-form-interaction-loop",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 0,
+      "steps": [
+        {
+          "step": "rapid modal open close loop",
+          "ok": false,
+          "elapsedMs": 0,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-large-form-interaction-loop-rapidmodalopencloseloop-1772416268657.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "rapid modal open close loop",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-large-form-interaction-loop-rapidmodalopencloseloop-1772416268657.png"
+        }
+      ]
+    },
+    {
+      "name": "iter2-cross-page-flow",
+      "ok": false,
+      "error": "locator.count: Target page, context or browser has been closed",
+      "elapsedMs": 0,
+      "steps": [
+        {
+          "step": "create page if possible",
+          "ok": true,
+          "elapsedMs": 0,
+          "data": {
+            "created": false,
+            "reason": "New Page button not visible."
+          }
+        },
+        {
+          "step": "add Email and apply on current page",
+          "ok": false,
+          "elapsedMs": 0,
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-cross-page-flow-addemailandapplyoncurrentpage-1772416268658.png"
+        }
+      ],
+      "failures": [
+        {
+          "step": "add Email and apply on current page",
+          "error": "locator.count: Target page, context or browser has been closed",
+          "screenshotPath": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z/iter2-cross-page-flow-addemailandapplyoncurrentpage-1772416268658.png"
+        }
+      ]
+    }
+  ],
+  "fieldTypeRequestSummary": {
+    "get-field-type-configs": {
+      "count": 9,
+      "failures": 0,
+      "totalDurationMs": 14280,
+      "maxDurationMs": 2230,
+      "avgDurationMs": 1586.67
+    },
+    "get-field-type-new-field-configs": {
+      "count": 8,
+      "failures": 0,
+      "totalDurationMs": 15466,
+      "maxDurationMs": 2617,
+      "avgDurationMs": 1933.25
+    },
+    "get-field-type-new-field-config": {
+      "count": 1,
+      "failures": 0,
+      "totalDurationMs": 1390,
+      "maxDurationMs": 1390,
+      "avgDurationMs": 1390
+    },
+    "get-field-type-config": {
+      "count": 1,
+      "failures": 0,
+      "totalDurationMs": 1718,
+      "maxDurationMs": 1718,
+      "avgDurationMs": 1718
+    }
+  },
+  "totalRequestCount": 434,
+  "totalFieldTypeRequestCount": 19,
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "outputDir": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-02T01-50-58-277Z",
+  "videoEnabled": false
+}

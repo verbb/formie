@@ -8,9 +8,11 @@ use verbb\formie\base\RelationFieldTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
+use verbb\formie\fields\definitions\FieldReferenceValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
@@ -63,10 +65,17 @@ class Products extends ElementField
             ['handle' => 'commerce', 'version' => '4.0.0'],
         ];
     }
-    
 
     // Public Methods
     // =========================================================================
+
+    public function __construct(array $config = [])
+    {
+        // Setuo defaults for some values which can't in in the property definition
+        $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a product');
+
+        parent::__construct($config);
+    }
 
     public function init(): void
     {
@@ -78,15 +87,6 @@ class Products extends ElementField
         parent::init();
     }
 
-    public function getFieldTypeDefaults(): array
-    {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['placeholder'] = Craft::t('formie', 'Select a product');
-
-        return $settings;
-    }
-
     public function getFieldTypeConfigData(): array
     {
         $options = $this->getSourceOptions();
@@ -96,11 +96,11 @@ class Products extends ElementField
         ];
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/products/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewElementField(),
+        ];
     }
 
     public function defineLabelSourceOptions(): array
@@ -158,7 +158,7 @@ class Products extends ElementField
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
 
@@ -166,50 +166,26 @@ class Products extends ElementField
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                'instructions' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
                 'name' => 'placeholder',
                 'validation' => 'required',
                 'required' => true,
-                'if' => '$get(displayType).value == dropdown',
-            ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Source Type'),
-                'help' => Craft::t('formie', 'Select what source type to use for this field.'),
-                'name' => 'sourceType',
-                'options' => [
-                    ['value' => 'groups', 'label' => Craft::t('formie', 'Product Types')],
-                    ['value' => 'elements', 'label' => Craft::t('formie', 'Specific Elements')],
-                ],
+                'if' => 'displayType == "dropdown"',
             ]),
             SchemaHelper::checkboxSelectField([
                 'label' => Craft::t('formie', 'Sources'),
-                'help' => Craft::t('formie', 'Which source do you want to select products from?'),
+                'instructions' => Craft::t('formie', 'Which sources do you want to select products from?'),
                 'name' => 'sources',
+                'showAllOption' => true,
                 'options' => $options,
                 'validation' => 'required',
                 'required' => true,
-                'if' => '$get(sourceType).value == groups',
-                'showAllOption' => true,
                 'element-class' => count($options) < 2 ? 'hidden' : false,
                 'warning' => count($options) < 2 ? Craft::t('formie', 'No product types available. View [product type settings]({link}).', ['link' => UrlHelper::cpUrl('commerce/settings/producttypes')]) : false,
             ]),
             SchemaHelper::elementSelectField([
-                'label' => Craft::t('formie', 'Sources'),
-                'help' => Craft::t('formie', 'Which sources do you want to select products from?'),
-                'name' => 'sourceElements',
-                'validation' => 'required',
-                'required' => true,
-                'if' => '$get(sourceType).value == elements',
-                'selectionLabel' => Craft::t('formie', 'Choose'),
-                'config' => [
-                    'jsClass' => $this->cpInputJsClass,
-                    'elementType' => static::elementType(),
-                    'limit' => 999,
-                ],
-            ]),
-            SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Select a default product to be selected.'),
+                'instructions' => Craft::t('formie', 'Select a default product to be selected.'),
                 'name' => 'defaultValue',
                 'selectionLabel' => Craft::t('formie', 'Choose'),
                 'config' => [
@@ -220,55 +196,55 @@ class Products extends ElementField
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
-                'help' => Craft::t('formie', 'Limit the number of selectable products.'),
+                'instructions' => Craft::t('formie', 'Limit the number of selectable products.'),
                 'name' => 'limit',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
-                'help' => Craft::t('formie', 'Limit the number of available products.'),
+                'instructions' => Craft::t('formie', 'Limit the number of available products.'),
                 'name' => 'limitOptions',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),
-                'help' => Craft::t('formie', 'Select what to use as the label for each product.'),
+                'instructions' => Craft::t('formie', 'Select what to use as the label for each product.'),
                 'name' => 'labelSource',
                 'options' => $this->getLabelSourceOptions(),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Options Order'),
-                'help' => Craft::t('formie', 'Select what order to show products by.'),
+                'instructions' => Craft::t('formie', 'Select what order to show products by.'),
                 'name' => 'orderBy',
                 'options' => $this->getOrderByOptions(),
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
-                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
                     ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
@@ -278,19 +254,9 @@ class Products extends ElementField
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Allow Multiple'),
-                'help' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
+                'instructions' => Craft::t('formie', 'Whether this field should allow multiple options to be selected.'),
                 'name' => 'multi',
-                'if' => '$get(displayType).value == dropdown',
-            ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Layout'),
-                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
-                'name' => 'layout',
-                'if' => '$get(displayType).value != dropdown',
-                'options' => [
-                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
-                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
-                ],
+                'if' => 'displayType == "dropdown"',
             ]),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
@@ -298,7 +264,7 @@ class Products extends ElementField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -308,11 +274,50 @@ class Products extends ElementField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
             SchemaHelper::conditionsField(),
+        ];
+    }
+
+    protected function definePrimaryOptionVariableSourceTypes(): array
+    {
+        return [
+            Variables::TYPE_TEXT,
+            Variables::TYPE_NUMBER,
+        ];
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            ...parent::defineReferenceValues(),
+            FieldReferenceValue::property([
+                'handle' => 'price',
+                'label' => Craft::t('formie', 'Price'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [
+                    Variables::TYPE_NUMBER,
+                    Variables::TYPE_TEXT,
+                ],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'sku',
+                'label' => Craft::t('formie', 'SKU'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'quantity',
+                'label' => Craft::t('formie', 'Quantity'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [
+                    Variables::TYPE_NUMBER,
+                    Variables::TYPE_TEXT,
+                ],
+            ]),
         ];
     }
 }

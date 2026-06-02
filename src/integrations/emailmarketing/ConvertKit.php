@@ -33,7 +33,6 @@ class ConvertKit extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $apiSecret = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -139,18 +138,6 @@ class ConvertKit extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.convertkit.com/v3/',
-            'query' => ['api_secret' => App::parseEnv($this->apiSecret)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -159,4 +146,13 @@ class ConvertKit extends EmailMarketing
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.convertkit.com/v3/',
+            'query' => ['api_secret' => App::parseEnv($this->apiSecret)],
+        ]);
+    }
+
 }

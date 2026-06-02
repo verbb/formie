@@ -109,7 +109,7 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s full GQL input type. Useful for mutations.',
                 'resolve' => function($field) {
-                    $inputType = $field->getContentGqlMutationArgumentType();
+                    $inputType = Formie::$plugin->getFields()->getFieldContentGqlMutationArgumentType($field);
 
                     // Table fields don't seem to resolve correctly?
                     if ($field instanceof Table) {
@@ -142,15 +142,22 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::string(),
                 'description' => 'The field’s default value as a string. Some fields have different fields for their default value.',
             ],
+            'emailFieldSummaryValue' => [
+                'name' => 'emailFieldSummaryValue',
+                'type' => Type::string(),
+                'description' => 'The field value to use for email field summaries.',
+            ],
             'emailValue' => [
                 'name' => 'emailValue',
                 'type' => Type::string(),
-                'description' => 'The field’s value type to use in email notifications.',
+                'description' => 'Deprecated alias for the field value used in email field summaries.',
+                'deprecationReason' => 'Use `emailFieldSummaryValue` instead.',
+                'resolve' => static fn($field): ?string => $field->emailFieldSummaryValue,
             ],
             'prePopulate' => [
                 'name' => 'prePopulate',
                 'type' => Type::string(),
-                'description' => 'The field’s pre-populated value extracted from the query string.',
+                'description' => 'The query-string parameter name used to prefill the field’s initial value.',
             ],
             'errorMessage' => [
                 'name' => 'errorMessage',
@@ -182,10 +189,17 @@ class FieldInterface extends BaseInterfaceType
                 'type' => Type::listOf(FieldAttributeGenerator::generateType()),
                 'description' => 'The field’s input attributes.',
             ],
+            'includeInEmailFieldSummaries' => [
+                'name' => 'includeInEmailFieldSummaries',
+                'type' => Type::boolean(),
+                'description' => 'Whether the field should be included in email field summaries.',
+            ],
             'includeInEmail' => [
                 'name' => 'includeInEmail',
                 'type' => Type::boolean(),
-                'description' => 'Whether the field should be included in email content.',
+                'description' => 'Deprecated alias for whether the field should be included in email field summaries.',
+                'deprecationReason' => 'Use `includeInEmailFieldSummaries` instead.',
+                'resolve' => static fn($field): bool => (bool)$field->includeInEmailFieldSummaries,
             ],
             'enableConditions' => [
                 'name' => 'enableConditions',

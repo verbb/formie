@@ -75,9 +75,7 @@ class Akismet extends Captcha
                 return false;
             }
         } catch (Throwable $e) {
-            $this->spamReason = 'Akismet validation failed: ' . $e->getMessage();
-
-            return false;
+            return $this->handleValidationException($submission, $e);
         }
 
         return true;

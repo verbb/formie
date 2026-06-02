@@ -3,15 +3,22 @@ namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\base\Payment as PaymentIntegration;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\fields\values\PaymentFieldValue;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
-use verbb\formie\models\PaymentField as PaymentFieldModel;
 use verbb\formie\options\Currencies;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -47,27 +54,21 @@ class Payment extends Field
     public ?string $paymentIntegration = null;
     public ?string $paymentIntegrationType = null;
     public ?array $providerSettings = [];
+    private static ?array $_paymentIntegrationsCache = null;
+    private static ?array $_paymentProviderOptionsCache = null;
 
 
     // Public Methods
     // =========================================================================
 
+    public function fieldKind(): string
+    {
+        return self::KIND_PAYMENT;
+    }
+
     public function init(): void
     {
         parent::init();
-
-        // FormKit doesn't handle reactivity for nested arrays properly when empty. So ensure each providers settings
-        // are prepped if they're totally fresh.
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
-
-        foreach ($integrations as $integration) {
-            if (!isset($this->providerSettings[$integration->getHandle()])) {
-                // Just have to provide _something_ here
-                $this->providerSettings[$integration->getHandle()] = [
-                    'integration' => get_class($integration),
-                ];
-            }
-        }
     }
 
     public function modifyFieldSettings(array $settings): array
@@ -84,24 +85,40 @@ class Payment extends Field
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
-        if ($value instanceof PaymentFieldModel) {
+        if ($value instanceof PaymentFieldValue) {
             return $value;
         }
 
-        $model = ($value) ? new PaymentFieldModel($value) : new PaymentFieldModel();
-        $model->setElement($element);
+        if (!is_array($value)) {
+            $value = [];
+        }
 
-        return $model;
+        $data = new PaymentFieldValue($value);
+        $data->setElement($element);
+
+        return $data;
     }
 
-    public function getPreviewInputHtml(): string
+    public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/preview', [
-            'field' => $this,
-        ]);
+        $value = $this->normalizeValue($value, $element);
+
+        if (!$value instanceof PaymentFieldValue) {
+            return [];
+        }
+
+        // Keep persisted payload canonical as primitive array data.
+        return $value->getAttributes();
     }
 
-    public function getPaymentHtml(array $renderOptions = []): Markup
+    public function defineFormBuilderPreviewSchema(): array
+    {
+        return [
+            SchemaHelper::previewPayment(),
+        ];
+    }
+
+    public function getPaymentHtml(): Markup
     {
         $integration = $this->getPaymentIntegration();
 
@@ -109,21 +126,14 @@ class Payment extends Field
             return Template::raw('');
         }
 
-        return Template::raw($integration->getFrontEndHtml($this, $renderOptions));
+        return Template::raw($integration->renderFieldHtml($this));
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function getPaymentSubFields(): array
     {
         $integration = $this->getPaymentIntegration();
 
-        return $integration?->getFrontEndJsVariables($this);
-    }
-
-    public function getFrontEndSubFields(mixed $context): array
-    {
-        $integration = $this->getPaymentIntegration();
-
-        return $integration?->getFrontEndSubFields($this, $context);
+        return $integration?->getPaymentSubFields($this) ?? [];
     }
 
     public function getPaymentIntegration(): ?IntegrationInterface
@@ -132,7 +142,14 @@ class Payment extends Field
             return null;
         }
 
-        return Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->paymentIntegration);
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($this->paymentIntegration);
+
+        // Keep payment integrations field-aware in all contexts (CP edit, summary rendering, workflow).
+        if ($integration instanceof PaymentIntegration) {
+            $integration->setField($this);
+        }
+
+        return $integration;
     }
 
     public function beforeSave(bool $isNew): bool
@@ -141,11 +158,37 @@ class Payment extends Field
             return false;
         }
 
-        if ($this->getPaymentIntegration()) {
-            $this->paymentIntegrationType = get_class($this->getPaymentIntegration());
+        if ($this->paymentIntegration) {
+            $this->_ensureProviderSettingsDefaultsForHandle($this->paymentIntegration);
+        }
+
+        if ($integration = $this->getPaymentIntegration()) {
+            $this->paymentIntegrationType = get_class($integration);
         }
         
         return true;
+    }
+
+    public function getProviderSettingsSchemaForHandle(string $handle, string $schemaGroup): array
+    {
+        $integration = $this->_getPaymentIntegrationByHandle($handle);
+
+        if (!$integration || !method_exists($integration, $schemaGroup)) {
+            return [];
+        }
+
+        return $integration->$schemaGroup();
+    }
+
+    public function getProviderSettingsDefaultsForHandle(string $handle): array
+    {
+        $integration = $this->_getPaymentIntegrationByHandle($handle);
+
+        if (!($integration instanceof PaymentIntegration)) {
+            return [];
+        }
+
+        return $integration->getPaymentFieldSettingsDefaults();
     }
 
     public function getSettingGqlTypes(): array
@@ -169,13 +212,13 @@ class Payment extends Field
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Payment Provider'),
-                'help' => Craft::t('formie', 'Select which payment provider this field should use.'),
+                'instructions' => Craft::t('formie', 'Select which payment provider this field should use.'),
                 'name' => 'paymentIntegration',
                 'validation' => 'required',
                 'required' => true,
@@ -184,60 +227,60 @@ class Payment extends Field
                     $this->_getPaymentOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'group',
+            SchemaHelper::paymentProviderSettingsField([
                 'name' => 'providerSettings',
-                'children' => $this->_getProviderSettings('defineGeneralSchema'),
-            ],
+                'schemaGroup' => 'defineFormBuilderGeneralSchema',
+                'fieldType' => static::class,
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
-            [
-                '$formkit' => 'group',
+            SchemaHelper::paymentProviderSettingsField([
                 'name' => 'providerSettings',
-                'children' => $this->_getProviderSettings('defineSettingsSchema'),
-            ],
-            SchemaHelper::includeInEmailField(),
+                'schemaGroup' => 'defineFormBuilderSettingsSchema',
+                'fieldType' => static::class,
+            ]),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::labelPosition($this),
             SchemaHelper::instructions(),
             SchemaHelper::instructionsPosition($this),
-            [
-                '$formkit' => 'group',
+            SchemaHelper::paymentProviderSettingsField([
                 'name' => 'providerSettings',
-                'children' => $this->_getProviderSettings('defineAppearanceSchema'),
-            ],
+                'schemaGroup' => 'defineFormBuilderAppearanceSchema',
+                'fieldType' => static::class,
+            ]),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -245,22 +288,19 @@ class Payment extends Field
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $integration = $this->getPaymentIntegration();
-
-        if (!$integration) {
-            return null;
-        }
-
-        return $integration->defineHtmlTag($key, $context) ?? parent::defineHtmlTag($key, $context);
-    }
-
-
     // Protected Methods
     // =========================================================================
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        if ($integration = $this->getPaymentIntegration()) {
+            return $integration->renderSlotTag($key, $context) ?? parent::defineFieldSlotTag($key, $context);
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
+
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/payment/input', [
             'name' => $this->handle,
@@ -271,6 +311,10 @@ class Payment extends Field
 
     protected function defineValueAsString(mixed $value, ElementInterface $element = null): string
     {
+        if ($value instanceof PaymentFieldValue) {
+            return Json::encode($value->getAttributes());
+        }
+
         if (is_array($value) || is_object($value)) {
             return Json::encode($value);
         }
@@ -278,9 +322,13 @@ class Payment extends Field
         return (string)$value;
     }
 
-    public function getValueForSummary(mixed $value, ?ElementInterface $element = null): mixed
+    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
     {
-        return false;
+        if ($value instanceof PaymentFieldValue) {
+            return $value->getAttributes();
+        }
+
+        return parent::defineValueAsArray($value, $element);
     }
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
@@ -289,41 +337,128 @@ class Payment extends Field
         return [];
     }
 
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'integration' => $this->paymentIntegration,
+            'providerSettings' => $this->providerSettings,
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        $modules[] = function(ClientModuleContext $context) {
+            $integration = $this->getPaymentIntegration();
+
+            if (!$integration) {
+                return null;
+            }
+
+            $clientModule = $integration->getClientModule(new ClientModuleContext([
+                'form' => $context->form,
+                'field' => $this,
+                'integration' => $integration,
+                'renderTarget' => $context->renderTarget,
+            ]));
+
+            if (!$clientModule?->id) {
+                return null;
+            }
+
+            if (!$clientModule->type) {
+                $clientModule->type = $integration->getType();
+            }
+
+            if (!$clientModule->targets) {
+                $clientModule->targets = $context->getTargets();
+            }
+
+            if (!$clientModule->renderTargets) {
+                $clientModule->renderTargets = [ClientModule::RENDER_TARGET_FRONTEND];
+            }
+
+            return $clientModule;
+        };
+
+        return $modules;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return PaymentFieldValue::class;
+    }
+
 
     // Private Methods
     // =========================================================================
 
     private function _getPaymentOptions(): array
     {
+        if (self::$_paymentProviderOptionsCache !== null) {
+            return self::$_paymentProviderOptionsCache;
+        }
+
         $paymentProviderOptions = [];
-        $paymentProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
 
-        foreach ($paymentProviders as $paymentProvider) {
-            if ($paymentProvider->getEnabled()) {
-                $paymentProviderOptions[] = ['label' => $paymentProvider->getName(), 'value' => $paymentProvider->getHandle()];
+        foreach ($this->_getPaymentIntegrations() as $paymentProvider) {
+            if (!$paymentProvider->getEnabled()) {
+                continue;
             }
+
+            $paymentProviderOptions[] = [
+                'label' => $paymentProvider->getName(),
+                'value' => $paymentProvider->getHandle(),
+            ];
         }
 
-        return $paymentProviderOptions;
+        self::$_paymentProviderOptionsCache = $paymentProviderOptions;
+
+        return self::$_paymentProviderOptionsCache;
     }
 
-    private function _getProviderSettings($schemaGroup): array
+    private function _getPaymentIntegrations(): array
     {
-        $schemas = [];
+        if (self::$_paymentIntegrationsCache !== null) {
+            return self::$_paymentIntegrationsCache;
+        }
 
-        $integrations = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
+        self::$_paymentIntegrationsCache = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_PAYMENT);
 
-        foreach ($integrations as $integration) {
-            if (method_exists($integration, $schemaGroup)) {
-                $schemas[] = [
-                    '$formkit' => 'group',
-                    'name' => $integration->getHandle(),
-                    'children' => $integration->$schemaGroup(),
-                    'if' => '$get(paymentIntegration).value == ' . $integration->getHandle(),
-                ];
+        return self::$_paymentIntegrationsCache;
+    }
+
+    private function _getPaymentIntegrationByHandle(string $handle): ?IntegrationInterface
+    {
+        if ($handle === '') {
+            return null;
+        }
+
+        foreach ($this->_getPaymentIntegrations() as $integration) {
+            if ($integration->getHandle() === $handle) {
+                return $integration;
             }
         }
 
-        return $schemas;
+        return null;
     }
+
+    private function _ensureProviderSettingsDefaultsForHandle(string $handle): void
+    {
+        if ($handle === '') {
+            return;
+        }
+
+        $defaults = $this->getProviderSettingsDefaultsForHandle($handle);
+
+        if (!$defaults) {
+            return;
+        }
+
+        $providerSettings = is_array($this->providerSettings) ? $this->providerSettings : [];
+        $existing = is_array($providerSettings[$handle] ?? null) ? $providerSettings[$handle] : [];
+        $providerSettings[$handle] = array_merge($defaults, $existing);
+        $this->providerSettings = $providerSettings;
+    }
+
 }

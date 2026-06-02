@@ -1,0 +1,17 @@
+{% if form.hasMultiplePages and form.settings.displayPageTabs %}
+    {% formtag 'pageTabs' %}
+        {% for page in form.pages %}
+            {% formtag 'pageTab' %}
+                {%- set params = { handle: form.handle, pageId: page.id } -%}
+
+                {%- if submission and submission.id -%}
+                    {%- set params = params | merge({ submissionId: submission.id }) -%}
+                {%- endif -%}
+
+                {% formtag 'pageTabLink' %}
+                    {{- page.label | t('formie') -}}
+                {% endformtag %}
+            {% endformtag %}
+        {% endfor %}
+    {% endformtag %}
+{% endif %}

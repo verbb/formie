@@ -21,6 +21,17 @@
     warning: macros.configWarning('secretKey', 'formie'),
 }) }}
 
+{% set turnstileWidgetModeNotice %}
+    <p>{{ 'Turnstile widget mode (Managed, Non-interactive, Invisible) is configured in your Cloudflare dashboard for the selected site key, not in Formie. Choose the site key that matches the widget mode you want to use.' | t('formie') }}</p>
+{% endset %}
+{% set turnstileAppearanceValue = (integration.settings.appearance ?? 'always') == 'execute' ? 'always' : (integration.settings.appearance ?? 'always') %}
+{% set turnstileExecutionValue = integration.settings.execution ?? ((integration.settings.appearance ?? 'always') == 'execute' ? 'execute' : 'render') %}
+
+{{ forms.field({
+    label: 'Widget Mode' | t('formie'),
+    instructions: 'Configured in Cloudflare' | t('formie'),
+}, turnstileWidgetModeNotice) }}
+
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Script Loading Method' | t('formie'),
     instructions: 'Select the `defer` and `async` attributes to use in the script tag when rendering.' | t('formie'),
@@ -67,7 +78,7 @@
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Size' | t('formie'),
-    instructions: 'Select the size for Turnstile to use.' | t('formie'),
+    instructions: 'Select the size for Turnstile to use. Cloudflare only applies this to Managed and Non-interactive widgets.' | t('formie'),
     name: 'size',
     value: integration.settings.size ?? 'normal',
     options: [{
@@ -76,24 +87,39 @@
     }, {
         value: 'compact',
         label: 'Compact' | t('formie'),
+    }, {
+        value: 'flexible',
+        label: 'Flexible' | t('formie'),
     }],
     warning: macros.configWarning('size', 'formie'),
 }) }}
 
 {{ macros.proxyField(fieldVariables, 'selectField', {
     label: 'Appearance' | t('formie'),
-    instructions: 'Select the appearance for Turnstile to use.' | t('formie'),
+    instructions: 'Controls when a visible widget is shown. Some widget modes configured in Cloudflare may still remain invisible.' | t('formie'),
     name: 'appearance',
-    value: integration.settings.appearance ?? 'always',
+    value: turnstileAppearanceValue,
     options: [{
         value: 'always',
         label: 'Always' | t('formie'),
-    }, {
-        value: 'execute',
-        label: 'Execute' | t('formie'),
     }, {
         value: 'interaction-only',
         label: 'Interaction Only' | t('formie'),
     }],
     warning: macros.configWarning('appearance', 'formie'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'selectField', {
+    label: 'Execution' | t('formie'),
+    instructions: 'Choose whether Turnstile should run on page load or wait until Formie triggers it during submit. `Run On Submit` may show no visible widget until submit.' | t('formie'),
+    name: 'execution',
+    value: turnstileExecutionValue,
+    options: [{
+        value: 'render',
+        label: 'Run On Load' | t('formie'),
+    }, {
+        value: 'execute',
+        label: 'Run On Submit' | t('formie'),
+    }],
+    warning: macros.configWarning('execution', 'formie'),
 }) }}

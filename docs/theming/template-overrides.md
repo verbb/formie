@@ -2,7 +2,7 @@
 While Formie's default templates suit most needs, you can of course roll your own templates, so you have total control over the form, field, layout and more.
 
 :::warning
-We recommend reading the [theming overview](docs:theming/overview) docs before getting started, for an explanation of template overrides compared to other methods of theming forms.
+Read [Theming Overview](/theming/overview) first if you want to compare template overrides with the other theming options.
 :::
 
 The great thing about Formie's custom templates is that it doesn't have to be all-or-nothing. You can choose to override a single template, or all. For instance, you might have very specific markup needs to a Dropdown field. You can override just the template for the dropdown field, and nothing else.
@@ -11,7 +11,7 @@ The great thing about Formie's custom templates is that it doesn't have to be al
 To get started, navigate to **Formie** → **Settings** → **Form Templates** and create a new template. Enable the **Use Custom Template** setting to be able to define a template directory for your custom templates to sit. For example, if your templates exist in `templates/_forms`, you would enter `_forms`.
 
 :::tip
-Be sure to select a _directory_ when setting the template path, as there are multiple templates Formie can override. You can look at the [directory structure](https://github.com/verbb/formie/tree/craft-4/src/templates/_special/form-template) for more.
+Be sure to select a _directory_ when setting the template path, as there are multiple templates Formie can override. You can look at the [directory structure](https://github.com/verbb/formie/tree/craft-5/src/templates/_special/form-template) for more.
 :::
 
 You can also use the **Copy Templates** setting when creating, which will copy all of Formie's default templates into the directory you've specified. That way, you're starting off with the templates Formie already uses as a basis for your custom templates.
@@ -29,18 +29,46 @@ We're using the `.html` extension here for clarity. You can use `.twig` or whate
 - `form.html`
 - `field.html`
 - `page.html`
-- `_includes/`
-    - `label.html`
-    - `submit.html`
+- `form/`
+    - `body.html`
+    - `footer.html`
+    - `header.html`
+    - `hidden-inputs.html`
+    - `navigation.html`
+    - `progress.html`
+    - `tabs.html`
     - `...`
+- `page/`
+    - `body.html`
+    - `buttons.html`
+    - `captchas.html`
+    - `footer.html`
+    - `header.html`
+- `field/`
+    - `errors.html`
+    - `instructions.html`
+    - `label.html`
 - `fields/`
     - `address.html`
     - `agree.html`
     - `categories.html`
     - `date/`
         - `_calendar.html`
-        - `_datepicker.html`
+        - `_datePicker.html`
         - `...`
+    - `group/`
+        - `_row.html`
+        - `index.html`
+    - `name/`
+        - `_multiple.html`
+        - `_single.html`
+        - `index.html`
+    - `repeater/`
+        - `_row.html`
+        - `index.html`
+    - `table/`
+        - `_row.html`
+        - `index.html`
     - `...`
 
 Let's start with the top-level templates.
@@ -53,39 +81,39 @@ Check out the raw templates on [Formie's GitHub](https://github.com/verbb/formie
 To override the form template, provide a file named `form.html` in your template directory.
 
 ### Available Template Variables
-Field templates have access to the following variables:
+These templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form](docs:developers/form) object, for the form instance this template is for.
-`submission` | The current [Submission](docs:developers/submission) object this this form may or may not have.
-`renderOptions` | A collection of [Render Options](docs:theming/render-options).
+`form` | A [Form](/reference/form) object, for the form instance this template is for.
+`submission` | The current [Submission](/reference/submission) object this form may or may not have.
+`renderOptions` | A collection of [Render Options](/templates/render-options).
 
 ## Overriding Page Templates
 To override the page template, provide a file named `page.html` in your template directory.
 
 ### Available Template Variables
-Field templates have access to the following variables:
+These templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form](docs:developers/form) object that this field belongs to.
-`page` | A [Page](docs:developers/page) object, for the page instance this template is for.
-`renderOptions` | A collection of [Render Options](docs:theming/render-options).
+`form` | A [Form](/reference/form) object that this field belongs to.
+`page` | A [Page](/reference/page) object, for the page instance this template is for.
+`renderOptions` | A collection of [Render Options](/templates/render-options).
 
 ## Overriding Field Wrapper Templates
 To override the field template, provide a file named `field.html` in your template directory. This is the wrapper template around all fields. You can also override individual field types' templates, rather than changing the template for every field, regardless of type.
 
 ### Available Template Variables
-Field templates have access to the following variables:
+These templates have access to the following variables:
 
 Variable | Description
 --- | ---
-`form` | A [Form](docs:developers/form) object that this field belongs to.
-`field` | A [Field](docs:developers/field) object, for the field instance this template is for.
+`form` | A [Form](/reference/form) object that this field belongs to.
+`field` | A [Field](/reference/field) object, for the field instance this template is for.
 `handle` | The handle of the field.
-`element` | The current [Submission](docs:developers/submission) object this this form may or may not have.
-`renderOptions` | A collection of [Render Options](docs:theming/render-options).
+`element` | The current [Submission](/reference/submission) object this form may or may not have.
+`renderOptions` | A collection of [Render Options](/templates/render-options).
 
 ## Overriding Field Templates
 You'll notice the above structure includes the `fields/` directory. Inside this directory are a mixture of folders and individual files, each representing a template that you're able to override.
@@ -104,12 +132,13 @@ Class Name | Template
 `Email` | `email.html`
 `Entries` | `entries.html`
 `FileUpload` | `file-upload.html`
-`Group` | `group.html`
+`Forms` | `forms.html`
+`Group` | `group/index.html`
 `Heading` | `heading.html`
 `Hidden` | `hidden.html`
 `Html` | `html.html`
 `MultiLineText` | `multi-line-text.html`
-`Name` | `name.html`
+`Name` | `name/index.html`
 `Number` | `number.html`
 `Password` | `password.html`
 `Payment` | `payment.html`
@@ -117,12 +146,13 @@ Class Name | Template
 `Products` | `products.html`
 `Radio` | `radio.html`
 `Recipients` | `recipients.html`
-`Repeater` | `repeater.html`
+`Repeater` | `repeater/index.html`
 `Section` | `section.html`
 `Signature` | `signature.html`
 `SingleLineText` | `single-line-text.html`
+`Submissions` | `submissions.html`
 `Summary` | `summary.html`
-`Table` | `table.html`
+`Table` | `table/index.html`
 `Tags` | `tags.html`
 `Users` | `users.html`
 `Variants` | `variants.html`
@@ -148,11 +178,38 @@ For example, the Date field, has the following templates in a folder:
 This is because the date field has many display configurations. If you want to override the templates for this field, you just need to alter the `index.html` file. You can use the includes (denoted by `_`), or you don't have to.
 
 ## Overriding Partials
-You'll have noticed in our preview of the templates' directory, the inclusion of an `_includes` directory. This houses partial templates that are used throughout the templates. This helps not only with re-use, but keeps things modular, which has a flow-on effect when you want to override _just_ a partial.
+You'll have noticed in the template structure above that Formie uses partials throughout the form, page, and field templates. This helps keep the markup modular, and it also means you can override just one part of the output without replacing an entire top-level template.
 
-The `form.html` file sets up your form, but also includes other partials like `_includes/page-tabs.html`, `_includes/progress.html` and  `_includes/submit.html`. Rather than overriding the `form.html` file just to alter any one of these partials, you can override just the partial.
+For example, `form.html` includes partials like `form/navigation.html`, `form/progress.html`, and `form/tabs.html`. Rather than overriding `form.html` just to change one of those, you can override the partial directly.
 
-For example, let's say we want to override the page tabs of a multi-step form. We could create a file `_includes/page-tabs.html` and add our content to this template. There's no need to override `form.html` now!
+For example, if you want to change the page navigation for a multi-page form, you can create `form/navigation.html` in your custom template directory and leave the rest of the form templates alone.
 
 ### How it Works
-Formie's templates use a custom Twig function like `{{ formieInclude('_includes/page-tabs') }}`. This is in contrast to what you might be used to in your own templates, something like `{% include '_includes/page-tabs' %}`. The drawback with this latter approach is how Formie resolves the template partial. Using `{% include %}` it will expect to find the template partial relative to the template file you're including it from. Instead, `formieInclude()` will resolve the template partial to either your overrides' folder, or Formie's default templates.
+Formie's templates use a custom Twig function for partials:
+
+```twig
+{{ formieInclude('form/navigation') }}
+```
+
+This is different to a normal Twig include such as:
+
+```twig
+{% include 'form/navigation' %}
+```
+
+The difference is how the partial path is resolved. A regular `{% include %}` is relative to the current template. `formieInclude()` checks your override directory first, then falls back to Formie's default templates.
+
+### Example Partial Override
+For example, if you only want to change how field errors are rendered, create `field/errors.html` in your template directory:
+
+```twig
+{% if field.getErrors(element) %}
+    <ul class="my-field-errors">
+        {% for error in field.getErrors(element) %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+```
+
+That will override just the error partial, while leaving the rest of the field template structure in place.

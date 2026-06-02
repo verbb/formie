@@ -27,23 +27,20 @@ class FormType extends Element
     {
         $fieldName = Gql::getFieldNameWithAlias($resolveInfo, $source, $context);
 
-        $fields = $source->getFields();
-        $includeDisabled = $arguments['includeDisabled'] ?? false;
-
-        $fields = array_filter($fields, function($field) {
-            return !($field instanceof MissingField);
-        });
-
-        // Don't include disabled fields by default for GQL
-        if (!$includeDisabled) {
-            $fields = array_filter($fields, function($field) {
-                return $field->visibility !== 'disabled';
-            });
-        }
-
         return match ($fieldName) {
-            'formFields' => $fields,
+            'formFields' => $this->_resolveFields($source->getFields(), $arguments['includeDisabled'] ?? false),
             default => $source[$resolveInfo->fieldName],
         };
+    }
+
+    private function _resolveFields(array $fields, bool $includeDisabled): array
+    {
+        $fields = array_filter($fields, fn($field) => !($field instanceof MissingField));
+
+        if (!$includeDisabled) {
+            $fields = array_filter($fields, fn($field) => $field->visibility !== 'disabled');
+        }
+
+        return $fields;
     }
 }

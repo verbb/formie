@@ -1,46 +1,57 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Number;
-use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\base\ElementInterface;
 use craft\helpers\StringHelper;
 
-class DateNumber extends Number implements SubFieldInnerFieldInterface
+class DateNumber extends Number implements ChildFieldInterface
 {
     // Public Methods
     // =========================================================================
 
     public function validateDateNumber(ElementInterface $element): void
     {
-        $dateValue = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
+        $dateValue = $value;
 
-        if ($this->_isNotNumber($dateValue)) {
-            $element->addError($this->fieldKey, Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+        if (is_object($dateValue) && method_exists($dateValue, '__toString')) {
+            $dateValue = (string)$dateValue;
+        }
+
+        if ($dateValue === null || $dateValue === '') {
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
             return;
         }
 
+        if ($this->_isNotNumber($dateValue)) {
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            return;
+        }
+
+        $dateValue = (int)$dateValue;
+
         if (!preg_match('/^[+-]?\d+$/', StringHelper::normalizeNumber($dateValue))) {
-            $element->addError($this->fieldKey, Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} is invalid.', ['attribute' => $this->label]));
         }
 
         if ($this->min && $dateValue < $this->min) {
-            $element->addError($this->fieldKey, Craft::t('formie', '{attribute} must be no less than {min}.', ['attribute' => $this->label, 'min' => $this->min]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} must be no less than {min}.', ['attribute' => $this->label, 'min' => $this->min]));
         }
 
         if ($this->max && $dateValue > $this->max) {
-            $element->addError($this->fieldKey, Craft::t('formie', '{attribute} must be no greater than {max}.', ['attribute' => $this->label, 'max' => $this->max]));
+            $element->addError($this->valueKey(), Craft::t('formie', '{attribute} must be no greater than {max}.', ['attribute' => $this->label, 'max' => $this->max]));
         }
     }
 
     public function getElementValidationRules(): array
     {
-        // Remove any parent rules
+        // Child date number fields validate only their own scalar part value.
         $rules = [];
-        $rules[] = ['validateDateNumber'];
+        $rules[] = [$this->handle, 'validateDateNumber'];
 
         return $rules;
     }

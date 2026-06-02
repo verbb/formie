@@ -33,7 +33,6 @@ class Sender extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -136,7 +135,6 @@ class Sender extends EmailMarketing
         return true;
     }
 
-
     // Protected Methods
     // =========================================================================
 
@@ -160,7 +158,7 @@ class Sender extends EmailMarketing
             ],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

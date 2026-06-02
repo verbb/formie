@@ -8,19 +8,26 @@ use verbb\formie\models\IntegrationResponse;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\db\Query;
 use craft\helpers\Json;
+use craft\queue\BaseJob as CraftBaseJob;
 
 use Exception;
 
-class TriggerIntegration extends BaseJob
+class TriggerIntegration extends CraftBaseJob implements DebuggableJobInterface
 {
+    use DebuggableJobTrait;
+
     // Properties
     // =========================================================================
 
     public ?int $submissionId = null;
+    public ?int $integrationId = null;
+    public ?string $integrationHandle = null;
+    public array $integrationContext = [];
     public mixed $payload = null;
-    public ?Integration $integration = null;
+
+    public array $integrationData = [];
+    public array $referenceMap = [];
 
 
     // Public Methods
@@ -39,28 +46,43 @@ class TriggerIntegration extends BaseJob
 
         $this->setProgress($queue, 0.5);
 
-        if ($submission) {
-            // Pass a reference of this class to the integration, to assist with debugging.
-            // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
-            $this->integration->setQueueJob($this);
+        if (!$submission) {
+            throw new Exception('Unable to find submission: ' . $this->submissionId . '.');
+        }
 
-            // Ensure we set the correct language for a potential CLI request
-            Craft::$app->language = $submission->getSite()->language;
-            Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
-            Craft::$app->getSites()->setCurrentSite($submission->getSite());
+        $integration = $this->_resolveIntegration($submission);
 
-            $this->setProgress($queue, 0.75);
+        if (!$integration) {
+            throw new Exception('Unable to find integration: ' . ($this->integrationId ?: $this->integrationHandle ?: 'unknown') . '.');
+        }
 
-            $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($this->integration, $submission);
+        // Always reset submit-time context. Queue workers can be long-lived and
+        // the integration service may return a cached instance from an earlier job.
+        $integration->context = $this->integrationContext;
 
-            // Check if some integrations return a response object for more detail
-            if (($response instanceof IntegrationResponse) && !$response->success) {
-                throw new Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
-            }
+        $this->integrationData = $this->_getIntegrationData($integration);
+        $this->referenceMap = $this->_getReferenceMap($submission);
 
-            if (!$response) {
-                throw new Exception('Failed to trigger integration. Check the Formie log files.');
-            }
+        // Pass a reference of this class to the integration, to assist with debugging.
+        // Set with a private variable, so it doesn't appear in the queue job data which would be mayhem.
+        $integration->setQueueJob($this);
+
+        // Ensure we set the correct language for a potential CLI request
+        Craft::$app->language = $submission->getSite()->language;
+        Craft::$app->set('locale', Craft::$app->getI18n()->getLocaleById($submission->getSite()->language));
+        Craft::$app->getSites()->setCurrentSite($submission->getSite());
+
+        $this->setProgress($queue, 0.75);
+
+        $response = Formie::$plugin->getSubmissions()->sendIntegrationPayload($integration, $submission);
+
+        // Check if some integrations return a response object for more detail
+        if (($response instanceof IntegrationResponse) && !$response->success) {
+            throw new Exception('Failed to trigger integration: ' . Json::encode($response->message) . '.');
+        }
+
+        if (!$response) {
+            throw new Exception('Failed to trigger integration. Check the Formie log files.');
         }
 
         $this->setProgress($queue, 1);
@@ -72,10 +94,12 @@ class TriggerIntegration extends BaseJob
 
     protected function defaultDescription(): string
     {
-        return Craft::t('formie', 'Triggering form “{handle}” integration.', ['handle' => $this->integration->handle]);
+        return Craft::t('formie', 'Triggering form “{handle}” integration.', [
+            'handle' => $this->integrationHandle ?: ($this->integrationId ?? 'unknown'),
+        ]);
     }
 
-    protected function handleError(mixed $job, mixed $jobData): void
+    protected function updateDebugJobData(mixed $job, mixed $jobData): void
     {
         $payload = $job->payload;
 
@@ -97,5 +121,132 @@ class TriggerIntegration extends BaseJob
 
         // Set the payload attribute to be updated
         $jobData->payload = $payload;
+        $submission = Submission::find()->id($job->submissionId)->isIncomplete(null)->status(null)->one();
+        $jobData->integrationData = $job->integrationData ?: $this->_getIntegrationData($this->_resolveIntegration($submission, $job));
+
+        if ($submission) {
+            $jobData->referenceMap = $job->referenceMap ?: $this->_getReferenceMap($submission);
+        }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _resolveIntegration(?Submission $submission = null, ?self $job = null): ?Integration
+    {
+        $job ??= $this;
+
+        if (!$job->integrationId) {
+            return null;
+        }
+
+        if ($submission && $form = $submission->getForm()) {
+            foreach (Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form) as $integration) {
+                if ((int)$integration->id === (int)$job->integrationId) {
+                    return $integration instanceof Integration ? $integration : null;
+                }
+            }
+
+            return null;
+        }
+
+        $integration = Formie::$plugin->getIntegrations()->getIntegrationById($job->integrationId);
+
+        return $integration instanceof Integration ? $integration : null;
+    }
+
+    private function _getIntegrationData(?Integration $integration): array
+    {
+        if (!$integration) {
+            return [];
+        }
+
+        $integrationData = Json::decode(Json::encode($integration->toArray())) ?: [];
+        $cache = $integrationData['cache'] ?? [];
+
+        // Keep the debug context compact. The full cache can contain large provider schemas,
+        // but the summary is enough to confirm whether cached settings were involved.
+        unset($integrationData['cache']);
+        unset($integrationData['context']);
+
+        $integrationData['class'] = get_class($integration);
+        $integrationData['cacheSummary'] = $this->_getCacheSummary(is_array($cache) ? $cache : []);
+
+        return $this->_redactSensitiveValues($integrationData);
+    }
+
+    private function _getCacheSummary(array $cache): array
+    {
+        $summary = [];
+
+        if (array_key_exists('connection', $cache)) {
+            $summary['connection'] = $cache['connection'];
+        }
+
+        if (isset($cache['settings']) && is_array($cache['settings'])) {
+            $summary['settingsKeys'] = array_keys($cache['settings']);
+        }
+
+        return $summary;
+    }
+
+    private function _getReferenceMap(Submission $submission): array
+    {
+        $fields = [];
+
+        foreach ($submission->getFields() as $field) {
+            $reference = trim((string)($field->reference ?? ''));
+
+            if ($reference === '') {
+                continue;
+            }
+
+            $fields[$reference] = [
+                'fieldId' => $field->fieldId ?? null,
+                'uid' => $field->uid ?? null,
+                'handle' => $field->handle ?? null,
+                'label' => $field->label ?? null,
+                'type' => get_class($field),
+            ];
+        }
+
+        return [
+            'fields' => $fields,
+        ];
+    }
+
+    private function _redactSensitiveValues(array $data): array
+    {
+        $sensitiveKeys = ['apiKey', 'accessToken', 'refreshToken', 'clientSecret', 'password', 'secret', 'token', 'auth'];
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->_redactSensitiveValues($value);
+                continue;
+            }
+
+            foreach ($sensitiveKeys as $sensitiveKey) {
+                if (stripos((string)$key, $sensitiveKey) !== false && $value !== null && $value !== '') {
+                    $data[$key] = $this->_redactSensitiveValue($value);
+                    break;
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private function _redactSensitiveValue(mixed $value): mixed
+    {
+        if (!is_string($value)) {
+            return '[redacted]';
+        }
+
+        if (str_starts_with($value, '$')) {
+            return $value;
+        }
+
+        return '[redacted]';
     }
 }

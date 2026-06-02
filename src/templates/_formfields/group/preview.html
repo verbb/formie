@@ -1,1 +1,7 @@
-<field-group :id="field.__id"></field-group>
+<div className="formie-field-preview-container">
+    <div className="formie-field-preview-group">
+        <div className="formie-field-preview-group-content">
+            {field.label || Craft.t('formie', 'Field Group')}
+        </div>
+    </div>
+</div>

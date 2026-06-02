@@ -1,0 +1,244 @@
+@layer dnd-kit, base, components, utilities;
+
+@import "@verbb/plugin-kit-react/style.css";
+
+@import "./preview.css";
+
+/* Add form builder-specific styles below this line */
+.form-builder-h3 {
+    @apply text-base font-bold;
+}
+
+.form-builder-group {
+    @apply grid grid-cols-1 gap-4;
+}
+
+.form-builder-pane {
+    background: #f3f7fc;
+    border-radius: 4px;
+    border: 1px solid #cbd6e2;
+
+    @apply p-4;
+    @apply grid grid-cols-1 gap-4;
+}
+
+.fa-secondary {
+    opacity: 0.5;
+}
+
+/* Output these styles so they can be used in PHP and not be stripped out */
+.fui-row {
+    @apply flex gap-4;
+}
+
+.fui-col-1 {
+    @apply w-1/12;
+}
+
+.fui-col-2 {
+    @apply w-2/12;
+}
+
+.fui-col-3 {
+    @apply w-3/12;
+}
+
+.fui-col-4 {
+    @apply w-4/12;
+}
+
+.fui-col-5 {
+    @apply w-5/12;
+}
+
+.fui-col-6 {
+    @apply w-6/12;
+}
+
+.fui-col-7 {
+    @apply w-7/12;
+}
+
+.fui-col-8 {
+    @apply w-8/12;
+}
+
+.fui-col-9 {
+    @apply w-9/12;
+}
+
+.fui-col-10 {
+    @apply w-10/12;
+}
+
+.fui-col-11 {
+    @apply w-11/12;
+}
+
+.fui-col-12 {
+    @apply w-12/12;
+}
+
+.form-builder-field-builder {
+    height: calc(100dvh - 183px);
+}
+
+.form-builder-header {
+    gap: 16px;
+}
+
+.form-builder-header-title-wrap {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.form-builder-header-title {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.form-builder-header-actions {
+    flex: 0 0 auto;
+}
+
+.form-builder-header-action-label-short {
+    display: none;
+}
+
+.form-builder-submissions-icon-compact {
+    display: none;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .form-builder-field-actions {
+        opacity: 1 !important;
+    }
+}
+
+.form-builder-add-fields-action,
+.form-builder-field-type-backdrop,
+.form-builder-field-type-sidebar-header {
+    display: none;
+}
+
+@media (max-width: 1180px) {
+    .form-builder-field-builder {
+        min-height: 420px;
+    }
+
+    .form-builder-add-fields-action {
+        display: inline-flex;
+    }
+
+    .form-builder-header-action-label-full {
+        display: none;
+    }
+
+    .form-builder-header-action-label-short {
+        display: inline;
+    }
+
+    .form-builder-field-type-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgb(15 23 42 / 25%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 160ms ease;
+    }
+
+    .form-builder-field-type-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 41;
+        width: min(350px, calc(100vw - 32px));
+        max-width: calc(100vw - 32px);
+        transform: translateX(calc(100% + 16px));
+        transition: transform 180ms ease;
+        box-shadow: -12px 0 28px rgb(15 23 42 / 18%);
+    }
+
+    .form-builder-field-type-sidebar-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin: -4px 0 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--gray-150);
+    }
+
+    .form-builder-field-builder[data-field-type-sidebar-open="true"] .form-builder-field-type-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .form-builder-field-builder[data-field-type-sidebar-open="true"] .form-builder-field-type-sidebar {
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .form-builder-header {
+        gap: 10px;
+    }
+
+    .form-builder-section-tab {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .form-builder-page-tabs {
+        margin-right: 4px;
+        margin-left: 4px;
+    }
+
+    .form-builder-page-tab-button {
+        padding-right: 13px;
+        padding-left: 13px;
+    }
+
+    .form-builder-page-tab-button::after {
+        left: 13px;
+        width: calc(100% - 26px);
+    }
+
+    .form-builder-canvas-scroll {
+        padding: 6px;
+    }
+
+    .form-builder-header-actions {
+        gap: 6px;
+    }
+
+    .form-builder-header-secondary-action {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        justify-content: center;
+        padding-top: 0;
+        padding-right: 0;
+        padding-bottom: 0;
+        padding-left: 0;
+    }
+
+    .form-builder-header-action-label,
+    .form-builder-header-action-label-short {
+        display: none;
+    }
+
+    .form-builder-submissions-icon-link {
+        display: none;
+    }
+
+    .form-builder-submissions-icon-compact {
+        display: block;
+    }
+}

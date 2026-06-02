@@ -1,29 +1,37 @@
 <?php
 namespace verbb\formie\controllers;
 
+use verbb\formie\compatibility\client\RefreshTokensCompatibility;
 use verbb\formie\Formie;
+use verbb\formie\controllers\CrossOriginRequestTrait;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\helpers\HandleHelper;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
 use verbb\formie\models\Stencil;
 use verbb\formie\models\StencilData;
+use verbb\formie\models\FormTemplate;
 
 use Craft;
 use craft\db\Query;
 use craft\enums\CmsEdition;
 use craft\helpers\DateTimeHelper;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Session;
 use craft\helpers\UrlHelper;
 use craft\models\Site;
 use craft\web\Controller;
+use craft\web\Response as CraftResponse;
 
 use yii\base\Exception;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -34,11 +42,82 @@ class FormsController extends Controller
     // Properties
     // =========================================================================
 
-    protected array|bool|int $allowAnonymous = ['refresh-tokens'];
+    protected array|bool|int $allowAnonymous = [
+        'render' => self::ALLOW_ANONYMOUS_LIVE,
+        'refresh-tokens' => self::ALLOW_ANONYMOUS_LIVE,
+    ];
+
+
+    // Traits
+    // =========================================================================
+
+    use CrossOriginRequestTrait;
 
 
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        if (in_array($action->id, ['render', 'refresh-tokens'], true)) {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
+
+    public function actionRefreshTokens(): Response
+    {
+        if ($response = $this->handleCrossOriginRequest(['GET', 'OPTIONS'])) {
+            return $response;
+        }
+
+        if (!$this->request->getIsGet()) {
+            throw new MethodNotAllowedHttpException('GET request required');
+        }
+
+        $form = $this->_getClientRequestForm();
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        $renderId = trim((string)$this->request->getParam('renderId', ''));
+
+        if ($renderId !== '') {
+            $form->setRenderId($renderId);
+        }
+
+        $this->response->setNoCacheHeaders();
+
+        return $this->asJson(RefreshTokensCompatibility::applyLegacyPayload(
+            Formie::$plugin->getServerRenderPayloadBuilder()->buildRefreshTokensPayload($form)
+        ));
+    }
+
+    public function actionRender(): Response
+    {
+        if ($response = $this->handleCrossOriginRequest()) {
+            return $response;
+        }
+
+        $form = $this->_getFrontendRequestForm();
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        $renderOptions = (array)$this->request->getParam('renderOptions', []);
+        $renderOptions['includeCss'] = false;
+        $renderOptions['includeJs'] = false;
+        $renderOptions['includeScriptsInline'] = true;
+        $renderOptions['mode'] = 'html';
+        $renderOptions['endpoint'] = $renderOptions['endpoint'] ?? UrlHelper::actionUrl('formie/forms/render');
+
+        $this->response->setNoCacheHeaders();
+
+        return $this->asJson(Formie::$plugin->getServerRenderPayloadBuilder()->buildServerRenderPayload($form, $renderOptions));
+    }
 
     public function actionIndex(): Response
     {
@@ -51,69 +130,163 @@ class FormsController extends Controller
     {
         $this->requirePermission('formie-createForms');
 
-        $formHandles = ArrayHelper::getColumn(Form::find()->all(), 'handle');
-        $stencilArray = Formie::$plugin->getStencils()->getStencilArray();
-        $applyStencilId = $this->request->getParam('applyStencilId');
-
-        $variables = compact('formHandles', 'form', 'stencilArray', 'applyStencilId');
-
-        if (!$variables['form']) {
-            $variables['form'] = new Form();
-        }
-
-        $variables['reservedHandles'] = Formie::$plugin->getFields()->getReservedHandles();
-        $variables['maxFormHandleLength'] = HandleHelper::getMaxFormHandle();
-
-        Plugin::registerAsset('src/js/formie-form-new.js');
+        $form = $form ?? new Form();
 
         // Craft Team requires specific permissions
         if (Craft::$app->edition === CmsEdition::Team && !Craft::$app->getUser()->checkPermission('formie-manageForms')) {
             return $this->renderTemplate('formie/forms/_team');
         }
 
-        return $this->renderTemplate('formie/forms/_new', $variables);
+        Plugin::registerCpNewFormAssets();
+
+        $stencilOptions = array_merge([
+            [
+                'value' => '',
+                'label' => Craft::t('formie', 'Blank Form'),
+            ],
+        ], array_map(static function(array $option): array {
+            $option['value'] = (string)($option['value'] ?? '');
+
+            return $option;
+        }, Formie::$plugin->getStencils()->getStencilArray()));
+
+        $settings = [
+            'formId' => 'fui-new-form-form',
+            'name' => $form->title,
+            'handle' => $form->handle,
+            'applyStencilId' => (string)$this->request->getParam('applyStencilId', ''),
+            'stencilOptions' => $stencilOptions,
+            'formHandles' => ArrayHelper::getColumn(Form::find()->all(), 'handle'),
+            'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
+            'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
+            'nameErrors' => $form->getErrors('title'),
+            'handleErrors' => $form->getErrors('handle'),
+            'cancelUrl' => UrlHelper::cpUrl('formie/forms'),
+        ];
+
+        $this->view->registerJs('new Craft.Formie.NewForm(' . Json::encode($settings) . ');');
+
+        return $this->renderTemplate('formie/forms/_new');
     }
 
-    public function actionEdit(int $formId = null, Form $form = null): Response
+    public function actionEdit(mixed $segments = null, Form $form = null): Response
     {
-        $variables = compact('formId', 'form');
+        $formId = explode('/', $segments)[0] ?? null;
 
-        $this->_prepareVariableArray($variables);
-
-        if (!empty($variables['form']->id)) {
-            $variables['title'] = $variables['form']->title;
-
-            // User must have at least one of these permissions to edit (all, or the specific form)
-            $formsPermission = Craft::$app->getUser()->checkPermission('formie-manageForms');
-            $formPermission = Craft::$app->getUser()->checkPermission('formie-manageForms:' . $variables['form']->uid);
-
-            if (!$formsPermission && !$formPermission) {
-                throw new ForbiddenHttpException('User is not permitted to perform this action');
-            }
-        } else {
-            $variables['title'] = Craft::t('formie', 'Create a new form');
+        if (!$formId) {
+            throw new NotFoundHttpException('Form not found');
         }
 
-        // Can't just use the entry's getCpEditUrl() because that might include the site handle when we don't want it
-        $variables['baseCpEditUrl'] = 'formie/forms/edit/{id}';
+        $form = Formie::$plugin->getForms()->getFormById($formId);
 
-        // Set the "Continue Editing" URL
-        $variables['continueEditingUrl'] = $variables['baseCpEditUrl'];
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
 
-        Plugin::registerAsset('src/js/formie-form.js');
+        Plugin::registerCpFormBuilderAssets();
 
-        return $this->renderTemplate('formie/forms/_edit', $variables);
+        $variables = Formie::$plugin->getForms()->getFormBuilderVariables($form);
+
+        $encodedVariables = Json::encode($variables);
+
+        $this->view->registerJs('new Craft.Formie.FormBuilder(' . $encodedVariables . ');');
+
+        return $this->renderTemplate('formie/forms/_edit', [
+            'form' => $form,
+        ]);
+    }
+
+    public function actionTemplateFieldsSlideout(): Response
+    {
+        $this->requireCpRequest();
+        
+        $formId = $this->request->getParam('formId');
+        $templateId = $this->request->getParam('templateId');
+
+        $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
+        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
+
+        if (!$template && $form?->templateId) {
+            $template = Formie::$plugin->getFormTemplates()->getTemplateById((int)$form->templateId);
+        }
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        $form->setTemplate($template);
+
+        return $this->asCpScreen()
+            ->docTitle(Craft::t('formie', 'Template Fields'))
+            ->title(Craft::t('formie', 'Template Fields'))
+            ->action('formie/forms/template-fields-slideout-save')
+            ->prepareScreen(function(CraftResponse $response) use ($form, $template) {
+                $fieldLayout = $form->getFieldLayout();
+                $formContent = $fieldLayout->createForm($form);
+
+                $components = [];
+                $components[] = Html::hiddenInput('formId', (string)$form->id);
+                $components[] = Html::hiddenInput('templateId', (string)$template->id);
+                $components[] = Html::hiddenInput('siteId', (string)$form->siteId);
+                $components[] = $formContent->render();
+                $contentHtml = implode("\n", $components);
+
+                $response
+                    ->tabs($formContent->getTabMenu())
+                    ->contentHtml($contentHtml);
+            });
+    }
+
+    public function actionTemplateFieldsSlideoutSave(): Response
+    {
+        $this->requirePostRequest();
+        
+        $formId = $this->request->getParam('formId');
+        $templateId = $this->request->getParam('templateId');
+
+        $form = $formId ? Formie::$plugin->getForms()->getFormById((int)$formId) : null;
+        $template = $templateId ? Formie::$plugin->getFormTemplates()->getTemplateById((int)$templateId) : null;
+
+        if (!$form) {
+            throw new NotFoundHttpException('Form not found');
+        }
+
+        if (!$template) {
+            throw new NotFoundHttpException('Template not found');
+        }
+
+        $form->setTemplate($template);
+        $form->setFieldValuesFromRequest('fields');
+        
+        if (!Craft::$app->getElements()->saveElement($form)) {
+            Formie::error('Couldn\'t save form - {e}.', ['e' => Json::encode($form->getErrors())]);
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'errors' => $form->getErrors(),
+                ]);
+            }
+
+            $this->setFailFlash(Craft::t('formie', 'Couldn\'t save form.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $form,
+            ]);
+
+            return null;
+        }
+
+        return $this->asSuccess(Craft::t('formie', 'Template fields saved.'));
     }
 
     public function actionSave(): ?Response
     {
         $this->requirePostRequest();
 
-        $settings = Formie::$plugin->getSettings();
-
         $form = Formie::$plugin->getForms()->buildFormFromPost();
+        $isNewForm = !$form->id;
 
-        $duplicate = (bool)$this->request->getParam('duplicate');
+        $saveAsNew = (bool)$this->request->getParam('saveAsNew');
 
         // If the user has create permissions, but not edit permissions, we can run into issues...
         if (!$form->uid) {
@@ -128,22 +301,22 @@ class FormsController extends Controller
             }
         }
 
-        if ($duplicate) {
+        if ($saveAsNew) {
+            $this->requirePermission('formie-createForms');
+
             $duplicatedForm = Craft::$app->getElements()->duplicateElement($form, $form->getDuplicateAttributes());
 
+
             if (!$duplicatedForm) {
-                Formie::error('Couldn’t duplicate form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]);
+                Formie::error('Couldn\'t save form as new - {e}.', ['e' => Json::encode($form->getErrors())]);
 
-                // Important not to return back the duplicated form (which failed to be created). Use the original form.
                 if ($this->request->getAcceptsJson()) {
                     return $this->asJson([
-                        'success' => false,
-                        'config' => $form->getFormBuilderConfig(),
-                        'notifications' => $form->getNotificationsConfig(),
+                        'errors' => $form->getErrors(),
                     ]);
                 }
 
-                $this->setFailFlash(Craft::t('formie', 'Couldn’t duplicate form.'));
+                $this->setFailFlash(Craft::t('formie', 'Couldn\'t save form as new.'));
 
                 Craft::$app->getUrlManager()->setRouteParams([
                     'form' => $form,
@@ -151,41 +324,63 @@ class FormsController extends Controller
 
                 return null;
             }
-        } else {
-            if (!Craft::$app->getElements()->saveElement($form)) {
-                Formie::error('Couldn’t save form - {e}.', ['e' => Json::encode($form->getConsolidatedErrors())]);
 
-                if ($this->request->getAcceptsJson()) {
-                    return $this->asJson([
-                        'success' => false,
-                        'config' => $form->getFormBuilderConfig(),
-                        'notifications' => $form->getNotificationsConfig(),
-                    ]);
-                }
+            $this->_updateFormPermission($duplicatedForm);
 
-                $this->setFailFlash(Craft::t('formie', 'Couldn’t save form.'));
+            $variables = Formie::$plugin->getForms()->getFormBuilderVariables($duplicatedForm);
+            $variables['redirect'] = $duplicatedForm->getCpEditUrl();
 
-                Craft::$app->getUrlManager()->setRouteParams([
-                    'form' => $form,
-                ]);
-
-                return null;
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson($variables);
             }
+
+            $this->setSuccessFlash(Craft::t('formie', 'Form saved.'));
+
+            return $this->redirectToPostedUrl($duplicatedForm);
         }
 
-        // For some things, we'll want to use a potentially duplicated form (if we've duplicated)
-        $savedForm = ($duplicate) ? $duplicatedForm : $form;
+        if (!Craft::$app->getElements()->saveElement($form)) {
+            Formie::error('Couldn\'t save form - {e}.', ['e' => Json::encode($form->getErrors())]);
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'errors' => $form->getErrors(),
+                ]);
+            }
+
+            $this->setFailFlash(Craft::t('formie', 'Couldn\'t save form.'));
+
+            Craft::$app->getUrlManager()->setRouteParams([
+                'form' => $form,
+            ]);
+
+            return null;
+        }
+
+        // If this was a new form, redirect to the edit page
+        if ($isNewForm) {
+            $this->setSuccessFlash(Craft::t('formie', 'Form created.'));
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => true,
+                    'redirect' => $form->getCpEditUrl(),
+                ]);
+            }
+
+            return $this->redirectToPostedUrl($form);
+        }
+
+        $savedForm = $form;
 
         // Check if we need to update the permissions for this user.
         $this->_updateFormPermission($savedForm);
 
+        $variables = Formie::$plugin->getForms()->getFormBuilderVariables($savedForm);
+        $variables['redirect'] = null;
+
         if ($this->request->getAcceptsJson()) {
-            return $this->asJson([
-                'success' => true,
-                'config' => $form->getFormBuilderConfig(),
-                'notifications' => $form->getNotificationsConfig(),
-                'redirect' => ($duplicate) ? $duplicatedForm->getCpEditUrl() : null,
-            ]);
+            return $this->asJson($variables);
         }
 
         $this->setSuccessFlash(Craft::t('formie', 'Form saved.'));
@@ -196,6 +391,21 @@ class FormsController extends Controller
     public function actionSaveAsStencil(): ?Response
     {
         $this->requirePostRequest();
+
+        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $message = Craft::t('formie', 'Stencils cannot be saved when admin changes are disabled.');
+
+            if ($this->request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => false,
+                    'errors' => [
+                        'form' => [$message],
+                    ],
+                ]);
+            }
+
+            throw new ForbiddenHttpException($message);
+        }
 
         $stencils = Formie::$plugin->getStencils()->getAllStencils();
         $stencilHandles = ArrayHelper::getColumn($stencils, 'handle');
@@ -246,7 +456,7 @@ class FormsController extends Controller
                 ]);
             }
 
-            $this->setFailFlash(Craft::t('formie', 'Couldn’t save stencil.'));
+            $this->setFailFlash(Craft::t('formie', 'Couldn\'t save stencil.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $stencil,
@@ -290,7 +500,7 @@ class FormsController extends Controller
                 return $this->asJson(['success' => false]);
             }
 
-            $this->setFailFlash(Craft::t('app', 'Couldn’t delete form.'));
+            $this->setFailFlash(Craft::t('app', 'Couldn\'t delete form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
@@ -302,113 +512,106 @@ class FormsController extends Controller
         $this->setSuccessFlash(Craft::t('app', 'Form deleted.'));
 
         if ($this->request->getAcceptsJson()) {
-            $url = $this->request->getValidatedBodyParam('redirect');
-            $url = Formie::$plugin->getTemplates()->renderObjectTemplate($url, $form);
-
             return $this->asJson([
-                'success' => false,
-                'redirect' => UrlHelper::url($url),
+                'success' => true,
+                'redirect' => UrlHelper::cpUrl('formie/forms'),
             ]);
         }
 
         return $this->redirectToPostedUrl($form);
     }
 
-    public function actionRefreshTokens(): Response
-    {
-        // Ensure that the session has started, just in case
-        Craft::$app->getSession()->open();
-
-        $params = [
-            'csrf' => [
-                'param' => $this->request->csrfParam,
-                'token' => $this->request->getCsrfToken(),
-                'input' => '<input type="hidden" name="' . $this->request->csrfParam . '" value="' . $this->request->getCsrfToken() . '">',
-            ],
-        ];
-
-        // Add captchas into the payload
-        $formHandle = $this->request->getRequiredParam('form');
-        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
-
-        // Force fetch captchas because we're dealing with potential ajax forms
-        // Normally, this function returns only if the `showAllPages` property is set.
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form, null, true);
-
-        foreach ($captchas as $captcha) {
-            if ($jsVariables = $captcha->getRefreshJsVariables($form)) {
-                $params['captchas'][$captcha->handle] = $jsVariables;
-            }
-        }
-
-        // Prevent the browser from caching the response
-        $this->response->setNoCacheHeaders();
-
-        return $this->asJson($params);
-    }
-
     public function actionGetExistingFields(): Response
     {
         $formId = $this->request->getRequiredParam('formId');
+        $compact = (bool)$this->request->getParam('compact', false);
+        $includeFields = (bool)$this->request->getParam('includeFields', true);
+        $formKey = $this->request->getParam('formKey');
+        $search = trim((string)$this->request->getParam('search', ''));
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
+
+        if ($compact) {
+            if (!$includeFields) {
+                return $this->asJson(Formie::$plugin->getFields()->getExistingFieldFormOptions($form));
+            }
+
+            return $this->asJson(Formie::$plugin->getFields()->getExistingFieldSummaries($form, $formKey, $search));
+        }
+
         $existingFields = Formie::$plugin->getFields()->getExistingFields($form);
 
         return $this->asJson($existingFields);
     }
 
+    public function actionGetExistingFieldConfigs(): Response
+    {
+        $formId = $this->request->getRequiredParam('formId');
+        $fieldIds = $this->request->getParam('fieldIds', []);
+
+        $form = Formie::$plugin->getForms()->getFormById($formId);
+        $existingFieldConfigs = Formie::$plugin->getFields()->getExistingFieldConfigs($fieldIds, $form);
+
+        return $this->asJson($existingFieldConfigs);
+    }
+
     public function actionGetExistingNotifications(): Response
+    {
+        $formId = $this->request->getRequiredParam('formId');
+        $compact = (bool)$this->request->getParam('compact', false);
+        $includeNotifications = (bool)$this->request->getParam('includeNotifications', true);
+        $formKey = $this->request->getParam('formKey');
+        $search = trim((string)$this->request->getParam('search', ''));
+
+        $form = Formie::$plugin->getForms()->getFormById($formId) ?? Formie::$plugin->getStencils()->getStencilById((int)$formId);
+
+        if ($compact) {
+            if (!$includeNotifications) {
+                return $this->asJson(Formie::$plugin->getNotifications()->getExistingNotificationFormOptions($form));
+            }
+
+            return $this->asJson(Formie::$plugin->getNotifications()->getExistingNotificationSummaries($form, $formKey, $search));
+        }
+
+        $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
+
+        return $this->asJson($existingNotifications);
+    }
+
+    public function actionGetFormUsage(): Response
     {
         $formId = $this->request->getRequiredParam('formId');
 
         $form = Formie::$plugin->getForms()->getFormById($formId);
-        $existingNotifications = Formie::$plugin->getNotifications()->getExistingNotifications($form);
+        if (!$form && Formie::$plugin->getStencils()->getStencilById((int)$formId)) {
+            return $this->asJson([]);
+        }
 
-        return $this->asJson($existingNotifications);
+        $formUsage =  Formie::$plugin->getForms()->getFormUsage($form);
+
+        return $this->asJson($formUsage);
     }
 
 
     // Private Methods
     // =========================================================================
 
-    private function _prepareVariableArray(array &$variables): void
+    private function _getClientRequestForm(): ?Form
     {
-        if (!$variables['form']) {
-            $variables['form'] = Formie::$plugin->getForms()->getFormById($variables['formId']);
+        $formHandle = RefreshTokensCompatibility::resolveRequestedHandle($this->request);
 
-            if (!$variables['form']) {
-                throw new Exception('Missing form data.');
-            }
+        if ($formHandle === '') {
+            return null;
         }
 
-        $settings = Formie::$plugin->getSettings();
+        $query = Form::find()->handle($formHandle);
+        $siteId = $this->request->getParam('siteId');
 
-        /** @var Form $form */
-        $form = $variables['form'];
+        if ($siteId) {
+            $query->siteId((int)$siteId);
+        }
 
-        $variables['notificationsSchema'] = Formie::$plugin->getNotifications()->getNotificationsSchema($form);
-        $variables['groupedIntegrations'] = Formie::$plugin->getIntegrations()->getAllIntegrationsForForm();
-        $variables['formUsage'] = Formie::$plugin->getForms()->getFormUsage($form);
-
-        $variables['jsBuilderConfig'] = [
-            'config' => $form->getFormBuilderConfig(),
-            'fields' => Formie::$plugin->getFields()->getFormBuilderFieldTypes(),
-            'notifications' => $form->getNotificationsConfig(),
-            'variables' => Variables::getVariablesArray(),
-            'emailTemplates' => Formie::$plugin->getEmailTemplates()->getAllTemplates(),
-            'reservedHandles' => Formie::$plugin->getFields()->getReservedHandles(),
-            'formHandles' => $this->_getFormHandles($form->id),
-            'statuses' => Formie::$plugin->getStatuses()->getAllStatuses(),
-            'maxFormHandleLength' => HandleHelper::getMaxFormHandle(),
-            'maxFieldHandleLength' => HandleHelper::getMaxFieldHandle(),
-            'filterIntegrationMapping' => $settings->filterIntegrationMapping,
-        ];
-
-        $variables['tabs'] = Formie::$plugin->getForms()->getFormBuilderTabs($form, $variables);
-
-        // When only one tab is available (user permissions) Craft will change `tabs` to `null` for some reason.
-        // So we need to use both `tabs` and `formTabs`
-        $variables['formTabs'] = $variables['tabs'];
+        return $query->one();
     }
 
     private function _updateFormPermission(Form $form): void
@@ -474,4 +677,5 @@ class FormsController extends Controller
             ->where(['not', ['id' => $formId]])
             ->column();
     }
+
 }

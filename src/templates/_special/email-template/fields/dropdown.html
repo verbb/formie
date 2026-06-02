@@ -5,7 +5,7 @@
     {% if value | length %}
         <ul>
             {% for item in value %}
-                {% set displayValue = field.emailValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
+                {% set displayValue = field.emailFieldSummaryValue == 'value' ? (item.value ?? '') : (item.label ?? '') %}
                     
                 <li>{{ displayValue }}</li>
             {% endfor %}
@@ -14,7 +14,7 @@
         {{ notification.getPlaceholder() }}
     {% endif %}
 {% else %}
-    {% set displayValue = field.emailValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
+    {% set displayValue = field.emailFieldSummaryValue == 'value' ? (value.value ?? '') : (value.label ?? '') %}
 
     {{ displayValue }}
 {% endif %}

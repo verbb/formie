@@ -2,20 +2,22 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\values\DateFieldValue;
+use verbb\formie\fields\values\FieldValueInterface;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\Assets as AssetsHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
-use craft\base\LocalFsInterface;
-use craft\elements\Asset;
 use craft\helpers\App;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 
 use yii\base\Event;
@@ -35,26 +37,31 @@ class HubSpot extends Crm
         return Craft::t('formie', 'HubSpot');
     }
 
-    public static function convertValueForIntegration(mixed $value, IntegrationField $integrationField): mixed
+    /**
+     * Normalize a value to DateTime for HubSpot date/datetime fields.
+     * HubSpot uses millisecond timestamps; values in that range are converted from ms to seconds before parsing.
+     * All other normalization (FieldValueInterface, objects, strings) is delegated to DateFieldValue::toDateTime().
+     */
+    private static function _valueToDateTime(mixed $value): ?DateTime
     {
-        // If setting checkboxes values to a static value, ensure it's sent as a single value.
-        // This won't be picked up in `EVENT_MODIFY_FIELD_MAPPING_VALUE` because it's not mapped to a field.
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return $value;
+        if ($value instanceof DateTime) {
+            return clone $value;
         }
-
-        // Handle static values being set for dates, which should be a timestamp (submission `dateCreated`)
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            // HubSpot needs this as a timestamp value.
-            if ($value instanceof DateTime) {
-                $date = clone $value;
-
-                return (string)($date->getTimestamp() * 1000);
+        // HubSpot-specific: numeric ms timestamps (e.g. from JS or API)
+        if (is_numeric($value)) {
+            $num = (float)$value;
+            if ($num >= 1e12 && $num < 1e15) {
+                $seconds = (int)round($num / 1000);
+                $date = DateTimeHelper::toDateTime('@' . $seconds);
+                return $date ?: null;
+            }
+            if ($num < 0 || $num >= 1e15) {
+                return null;
             }
         }
-
-        return parent::convertValueForIntegration($value, $integrationField);
+        return DateFieldValue::toDateTime($value);
     }
+    
 
     // Properties
     // =========================================================================
@@ -94,45 +101,68 @@ class HubSpot extends Crm
         parent::init();
 
         Event::on(self::class, self::EVENT_MODIFY_FIELD_MAPPING_VALUE, function(ModifyFieldIntegrationValueEvent $event) {
-            // Special handling for single checkbox boolean fields for HubSpot
+            // HubSpot-specific shaping: single place for all mapping value modifications.
+
             if ($event->integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-                // HubSpot needs this as a string value (also check if already cast).
                 $event->value = ($event->value === true || $event->value === 'true') ? 'true' : 'false';
             }
 
-            // Special handling for arrays for checkboxes
             if ($event->integrationField->getType() === IntegrationField::TYPE_ARRAY) {
                 if (is_array($event->value)) {
                     $event->value = array_filter($event->value);
+
+                    $event->value = array_map(function ($v): string {
+                        if (is_scalar($v)) {
+                            return (string)$v;
+                        }
+
+                        if (is_array($v)) {
+                            return implode(';', array_map('strval', $v));
+                        }
+
+                        if ($v instanceof FieldValueInterface) {
+                            return implode(';', array_map('strval', $v->toValueArray()));
+                        }
+
+                        if (is_object($v)) {
+                            if (method_exists($v, '__toString')) {
+                                return $v->__toString();
+                            }
+
+                            return Json::encode($v);
+                        }
+
+                        return (string)$v;
+                    }, $event->value);
                     $event->value = ArrayHelper::recursiveImplode($event->value, ';');
                     $event->value = str_replace('&nbsp;', ' ', $event->value);
                 }
             }
 
-            // Special handling for dates for HubSpot
             if ($event->integrationField->getType() === IntegrationField::TYPE_DATE) {
-                // HubSpot needs this as a timestamp value.
                 if ($event->rawValue instanceof DateTime) {
                     $date = clone $event->rawValue;
                     $date->setTime(0, 0, 0);
-
                     $event->value = (string)($date->getTimestamp() * 1000);
                 } else {
-                    // Always return the raw value for all other instances. We might be passing in the timestamp
-                    $event->value = $event->rawValue;
+                    $date = self::_valueToDateTime($event->rawValue ?? $event->value);
+                    $event->value = $date ? (string)($date->getTimestamp() * 1000) : $event->rawValue;
                 }
             }
 
-            // Special handling for dates for HubSpot
             if ($event->integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-                // HubSpot needs this as a timestamp value.
+                $date = null;
+
                 if ($event->rawValue instanceof DateTime) {
                     $date = clone $event->rawValue;
-
-                    $event->value = (string)($date->getTimestamp() * 1000);
+                } elseif ($event->value instanceof DateTime) {
+                    $date = clone $event->value;
                 } else {
-                    // Always return the raw value for all other instances. We might be passing in the timestamp
-                    $event->value = $event->rawValue;
+                    $date = self::_valueToDateTime($event->value);
+                }
+
+                if ($date) {
+                    $event->value = (string)($date->getTimestamp() * 1000);
                 }
             }
 
@@ -206,7 +236,7 @@ class HubSpot extends Crm
                 });
             } else {
                 // Get Contacts fields
-                if ($this->mapToContact) {
+                if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                     $response = $this->request('GET', 'crm/v3/properties/contacts');
                     $fields = $response['results'] ?? [];
 
@@ -220,7 +250,7 @@ class HubSpot extends Crm
                 }
 
                 // Get Companies fields
-                if ($this->mapToCompany) {
+                if ($this->mapToCompany && $this->settingsContext->dataKey === 'company') {
                     $response = $this->request('GET', 'crm/v3/properties/companies');
                     $fields = $response['results'] ?? [];
 
@@ -286,7 +316,7 @@ class HubSpot extends Crm
                 }
 
                 // Get Deals fields
-                if ($this->mapToDeal) {
+                if ($this->mapToDeal && $this->settingsContext->dataKey === 'deal') {
                     $dealPipelinesOptions = [];
                     $dealStageOptions = [];
                     
@@ -355,7 +385,6 @@ class HubSpot extends Crm
 
         return new IntegrationFormSettings($settings);
     }
-
     public function sendPayload(Submission $submission): bool
     {
         try {
@@ -381,7 +410,7 @@ class HubSpot extends Crm
                 }
 
                 // Create or update the contact
-                $response = $this->deliverPayload($submission, "contacts/v1/contact/createOrUpdate/email/{$email}", $contactPayload);
+                $response = $this->deliverPayload($submission, 'contacts/v1/contact/createOrUpdate/email/' . rawurlencode((string)$email), $contactPayload);
 
                 if ($response === false) {
                     return true;
@@ -748,13 +777,13 @@ class HubSpot extends Crm
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['dealFieldMapping'], 'validateFieldMapping', 'params' => $deal, 'when' => function($model) {
                 return $model->enabled && $model->mapToDeal;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -773,7 +802,71 @@ class HubSpot extends Crm
         ]);
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToDeal',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Deal']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Deals']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'dealFieldMapping',
+            'if' => 'mapToDeal',
+            'dataLabel' => 'Deal',
+            'dataKey' => 'deal',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToCompany',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Company']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Companies']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'companyFieldMapping',
+            'if' => 'mapToCompany',
+            'dataLabel' => 'Company',
+            'dataKey' => 'company',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToForm',
+            'label' => Craft::t('formie', 'Map to Form'),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Forms']),
+        ]);
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'formId',
+            'label' => Craft::t('formie', 'Form'),
+            'instructions' => Craft::t('formie', 'Select your {name} form to create submissions on.', ['name' => $this->displayName()]),
+            'if' => 'mapToForm',
+            'required' => true,
+            'options' => $this->getCollectionOptions('forms'),
+        ]);
 
+        $mappingSchema = $this->defineFieldMappingSchema('forms', 'formId');
+        if ($mappingSchema) {
+            $schema[] = $this->getIntegrationFieldMappingField([
+                'name' => 'formFieldMapping',
+                'if' => 'mapToForm',
+                'dataLabel' => 'Form',
+                'dataKey' => 'forms',
+                'integrationFields' => $mappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+
+    
     // Private Methods
     // =========================================================================
 
@@ -977,7 +1070,6 @@ class HubSpot extends Crm
                 // Ensure that we prefix items with their correct object group
                 // While we don't need this conditional technically, removing it means all form mappings would be gone
                 // due to HubSpot treating every field as a CONTACT field by default, but we haven't included that in mapping.
-                // TODO: run a migration for all form mappings to update the `CONTACT.name` prefix.
                 if ($formField['propertyObjectType'] !== 'CONTACT') {
                     $formField['name'] = $formField['propertyObjectType'] . '.' . $formField['name'];
                 }

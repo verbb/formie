@@ -1,31 +1,78 @@
-<div v-if="field.settings.displayType == 'hidden'">
-    <input type="text" disabled class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
-</div>
+{field.displayType === 'hidden' && (
+    <div className="formie-field-preview-control formie-field-preview-control--hidden">
+        <input
+            type="text"
+            className="formie-field-preview-input"
+            placeholder={field.placeholder || Craft.t('formie', 'Recipient')}
+            value={field.defaultValue || ''}
+            readOnly
+        />
+    </div>
+)}
 
-<div v-if="field.settings.displayType == 'dropdown'">
-    <select class="fui-field-select" :multiple="field.settings.multi">
-        <option
-            v-for="(option, index) in field.settings.options"
-            :key="index"
-            :selected="option.isDefault"
-        >${ option.label }</option>
+{field.displayType === 'dropdown' && (
+    <select
+        className="formie-field-preview-select"
+        defaultValue={field.options?.find((option) => option.isDefault)?.value ?? ''}
+    >
+        {field.placeholder && (
+            <option value="" disabled>{field.placeholder}</option>
+        )}
+
+        {(field.options || []).map((option, index) => (
+            <option key={index} value={option.value}>
+                {option.label}
+            </option>
+        ))}
     </select>
-</div>
+)}
 
-<div v-if="field.settings.displayType == 'checkboxes'">
-    <div :class="'fui-field-layout-' + field.settings.layout">
-        <div v-for="(option, index) in field.settings.options" :key="index" class="fui-field-checkbox">
-            <input :value="option.value" type="checkbox" :checked="option.isDefault" />
-            <label>${ option.label }</label>
-        </div>
-    </div>
-</div>
+{field.displayType === 'checkboxes' && (
+    (() => {
+        const options = field.options || [];
+        const visibleOptions = options.slice(0, 5);
+        const hiddenCount = Math.max(options.length - visibleOptions.length, 0);
 
-<div v-if="field.settings.displayType == 'radio'">
-    <div :class="'fui-field-layout-' + field.settings.layout">
-        <div v-for="(option, index) in field.settings.options" :key="index" class="fui-field-radio">
-            <input :value="option.value" type="radio" :checked="option.isDefault" />
-            <label>${ option.label }</label>
-        </div>
-    </div>
-</div>
+        return (
+            <div className={`formie-field-preview-layout-${field.layout || 'vertical'}`}>
+                {visibleOptions.map((option, index) => (
+                    <div key={index} className="formie-field-preview-checkbox">
+                        <input type="checkbox" value={option.value} defaultChecked={option.isDefault} />
+                        <label>{option.label}</label>
+                    </div>
+                ))}
+
+                {hiddenCount > 0 && (
+                    <div className="formie-field-preview-instructions">
+                        ... {hiddenCount} {Craft.t('formie', 'more')}
+                    </div>
+                )}
+            </div>
+        );
+    })()
+)}
+
+{field.displayType === 'radio' && (
+    (() => {
+        const options = field.options || [];
+        const visibleOptions = options.slice(0, 5);
+        const hiddenCount = Math.max(options.length - visibleOptions.length, 0);
+
+        return (
+            <div className={`formie-field-preview-layout-${field.layout || 'vertical'}`}>
+                {visibleOptions.map((option, index) => (
+                    <div key={index} className="formie-field-preview-radio">
+                        <input type="radio" value={option.value} defaultChecked={option.isDefault} />
+                        <label>{option.label}</label>
+                    </div>
+                ))}
+
+                {hiddenCount > 0 && (
+                    <div className="formie-field-preview-instructions">
+                        ... {hiddenCount} {Craft.t('formie', 'more')}
+                    </div>
+                )}
+            </div>
+        );
+    })()
+)}

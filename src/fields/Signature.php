@@ -4,15 +4,22 @@ namespace verbb\formie\fields;
 use verbb\formie\base\Field;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
+use verbb\formie\base\PreviewableFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\helpers\FieldAccess;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
 use craft\db\mysql\Schema;
 use craft\helpers\App;
 use craft\helpers\Html;
@@ -41,7 +48,6 @@ class Signature extends Field implements PreviewableFieldInterface
         return Schema::TYPE_MEDIUMTEXT;
     }
 
-
     // Properties
     // =========================================================================
 
@@ -53,23 +59,15 @@ class Signature extends Field implements PreviewableFieldInterface
     // Public Methods
     // =========================================================================
 
-    public function getPreviewInputHtml(): string
+    public function fieldKind(): string
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/preview', [
-            'field' => $this,
-        ]);
+        return self::KIND_SIGNATURE;
     }
 
-    public function getFrontEndJsModules(): ?array
+    public function defineFormBuilderPreviewSchema(): array
     {
         return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/signature.js'),
-            'module' => 'FormieSignature',
-            'settings' => [
-                'backgroundColor' => $this->backgroundColor,
-                'penColor' => $this->penColor,
-                'penWeight' => $this->penWeight,
-            ],
+            SchemaHelper::previewSignature(),
         ];
     }
 
@@ -80,10 +78,15 @@ class Signature extends Field implements PreviewableFieldInterface
             return $value;
         }
 
+        $accessToken = FieldAccess::issueAccessToken($submission, (int)$this->id);
+
+        if (!$accessToken) {
+            return $value;
+        }
+
         // On non-dev sites, use a proxy to serve the "image" so web-based clients work
         return UrlHelper::actionUrl('formie/fields/get-signature-image', [
-            'submissionUid' => $submission->uid,
-            'fieldId' => $this->id,
+            'accessToken' => $accessToken,
         ]);
     }
 
@@ -105,34 +108,30 @@ class Signature extends Field implements PreviewableFieldInterface
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::textField([
-                '$formkit' => 'color',
+            SchemaHelper::colorField([
                 'label' => Craft::t('formie', 'Background Color'),
-                'help' => Craft::t('formie', 'Set the background color.'),
+                'instructions' => Craft::t('formie', 'Set the background color.'),
                 'name' => 'backgroundColor',
-                'size' => '4',
-                'inputClass' => 'text fui-color-field',
             ]),
-            SchemaHelper::textField([
-                '$formkit' => 'color',
+            SchemaHelper::colorField([
                 'label' => Craft::t('formie', 'Pen Color'),
-                'help' => Craft::t('formie', 'Set the pen color.'),
+                'instructions' => Craft::t('formie', 'Set the pen color.'),
                 'name' => 'penColor',
-                'size' => '4',
-                'inputClass' => 'text fui-color-field',
             ]),
-            SchemaHelper::numberField([
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Pen Weight'),
-                'help' => Craft::t('formie', 'Set the line thickness (weight) for the pen.'),
-                'name' => 'penWeight',
-                'sections-schema' => [
-                    'suffix' => [
+                'instructions' => Craft::t('formie', 'Set the line thickness (weight) for the pen.'),
+                'children' => [
+                    SchemaHelper::numberField([
+                        'name' => 'penWeight',
+                    ]),
+                    [
                         '$el' => 'span',
-                        'attrs' => ['class' => 'fui-suffix-text'],
+                        'attrs' => ['class' => 'text-sm text-gray-300'],
                         'children' => Craft::t('formie', 'px'),
                     ],
                 ],
@@ -140,25 +139,25 @@ class Signature extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -168,7 +167,7 @@ class Signature extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -177,7 +176,7 @@ class Signature extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -185,41 +184,105 @@ class Signature extends Field implements PreviewableFieldInterface
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'hidden',
-                'name' => $this->getHtmlName(),
-            ], $this->getInputAttributes());
-        }
-
-        if ($key === 'fieldCanvas') {
-            return new HtmlTag('canvas');
-        }
-
-        if ($key === 'fieldRemoveButton') {
-            return new HtmlTag('button', [
-                'class' => 'fui-btn fui-signature-clear-btn',
-                'data-signature-clear' => true,
-                'type' => 'button',
-            ]);
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
-
     // Protected Methods
     // =========================================================================
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        return Html::tag('img', null, ['src' => $value]);
+        if ($key === 'fieldInput') {
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'hidden',
+                    'name' => $this->getHtmlName(),
+                    'data-formie-signature-input' => true,
+                ])
+                ->instanceAttributes($this->getInputAttributes());
+        }
+
+        if ($key === 'fieldCanvas') {
+            return SlotTag::make('canvas')
+                ->core([
+                    'data-formie-signature-canvas' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-signature-canvas',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldRemoveButton') {
+            return SlotTag::make('button')
+                ->core([
+                    'type' => 'button',
+                    'aria-label' => Craft::t('formie', 'Clear signature'),
+                    'title' => Craft::t('formie', 'Clear signature'),
+                    'data-formie-icon' => 'close',
+                    'data-formie-signature-clear' => true,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-button',
+                        'formie-button-icon',
+                        'formie-signature-remove-button',
+                    ],
+                ]);
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
-        return Template::raw(Html::tag('img', null, ['src' => $value]));
+        return Craft::$app->getView()->renderTemplate('formie/_formfields/signature/input', [
+            'value' => $value,
+            'field' => $this,
+            'element' => $element,
+        ]);
+    }
+
+    protected function defineValueForSummary(mixed $value, ElementInterface $element = null): mixed
+    {
+        if (!$element instanceof Submission) {
+            return '';
+        }
+
+        $url = StringHelper::sanitizeUrlAttribute((string)$this->getImageUrl($element, $value));
+
+        if (!$url) {
+            return '';
+        }
+
+        return Template::raw(Html::tag('img', null, ['src' => $url]));
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        
+        $modules[] = new ClientModule([
+            'id' => 'signature',
+            'config' => [
+                'backgroundColor' => $this->backgroundColor,
+                'penColor' => $this->penColor,
+                'penWeight' => $this->penWeight,
+            ],
+        ]);
+
+        return $modules;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [Variables::TYPE_URL],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'url',
+                'label' => Craft::t('formie', 'Image URL'),
+                'variableTypes' => [Variables::TYPE_URL],
+            ]),
+        ];
     }
 }

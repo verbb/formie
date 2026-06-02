@@ -1,0 +1,7 @@
+{% formtag 'pageHeader' %}
+    {% if form.settings.displayCurrentPageTitle %}
+        {% formtag 'pageTitle' %}
+            {{- page.label | t('formie') -}}
+        {% endformtag %}
+    {% endif %}
+{% endformtag %}

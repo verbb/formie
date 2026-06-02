@@ -1,11 +1,9 @@
-{{ fieldtag('fieldInput', {
-    value: value ?? false,
-}) }}
+{{ fieldtag('fieldInput') }}
 
-{{ fieldtag('fieldCanvas', {
-    text: 'Your browser does not support the Signature field' | t('formie'),
-}) }}
+{% fieldtag 'fieldCanvas' %}
+    {{- 'Your browser does not support the Signature field' | t('formie') -}}
+{% endfieldtag %}
 
-{{ fieldtag('fieldRemoveButton', {
-    text: 'Clear' | t('formie'),
-}) }}
+{% fieldtag 'fieldRemoveButton' %}
+    {{- 'Clear' | t('formie') -}}
+{% endfieldtag %}

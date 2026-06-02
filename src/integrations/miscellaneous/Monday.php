@@ -3,10 +3,13 @@ namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
+use verbb\formie\fields\Address;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -48,7 +51,7 @@ class Monday extends Miscellaneous
     {
         return Craft::t('formie', 'Send your form content to Monday.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -171,9 +174,27 @@ class Monday extends Miscellaneous
         return true;
     }
 
-    
+
     // Protected Methods
     // =========================================================================
+
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        $fields = $this->_getBoardFields((string)($this->boardId ?? ''));
+
+        // Validate the following when saving form settings
+        $rules[] = [
+            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
+                return $model->enabled;
+            }, 'on' => [Integration::SCENARIO_FORM],
+        ];
+
+        return $rules;
+    }
 
     protected function defineClient(): Client
     {
@@ -186,29 +207,42 @@ class Monday extends Miscellaneous
         ]);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        $rules = parent::defineRules();
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedBoardId = (string)($this->boardId ?? '');
+        if ($selectedBoardId === '') {
+            $selectedBoardId = $this->_getFirstBoardId();
+        }
 
-        $rules[] = [['apiKey'], 'required'];
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'boardId',
+            'label' => Craft::t('formie', 'Board'),
+            'instructions' => Craft::t('formie', 'Select your {name} board to manage content on.', ['name' => $this->displayName()]),
+            'required' => true,
+            'options' => $this->_getBoardOptions(),
+        ]);
 
-        $fields = $this->_getBoardSettings()->fields ?? [];
+        $schemaFields = $this->convertIntegrationFieldsToSchema($this->_getBoardFields($selectedBoardId));
+        $fieldMappingSchema = array_map(fn(array $f) => SchemaHelper::fieldSelectField([
+            'name' => $f['handle'],
+            'label' => $f['name'],
+            'required' => $f['required'],
+            'options' => $f['options'] ?? [],
+        ]), $schemaFields);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::groupField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} fields.', ['name' => $this->displayName()]),
+                'children' => $fieldMappingSchema,
+            ]);
+        }
 
-        // Validate the following when saving form settings
-        $rules[] = [
-            ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
-                return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
-        ];
-
-        return $rules;
+        return $schema;
     }
 
-
+    
     // Private Methods
     // =========================================================================
 
@@ -323,15 +357,68 @@ class Monday extends Miscellaneous
         return Json::encode($newColumns);
     }
 
-    private function _getBoardSettings()
+    private function _getBoardSettings(?string $boardId = null): array
     {
         $boards = $this->getFormSettingValue('boards');
+        $selectedBoardId = $boardId ?? $this->boardId ?? '';
 
-        if ($board = ArrayHelper::firstWhere($boards, 'id', $this->boardId)) {
+        if (!is_array($boards)) {
+            return [];
+        }
+
+        if ($board = ArrayHelper::firstWhere($boards, 'id', $selectedBoardId)) {
             return $board;
         }
 
         return [];
+    }
+
+    private function _getBoardFields(?string $boardId = null): array
+    {
+        $board = $this->_getBoardSettings($boardId);
+        $fields = $board['fields'] ?? [];
+
+        return is_array($fields) ? $fields : [];
+    }
+
+    private function _getBoardOptions(): array
+    {
+        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $boards = $this->getFormSettingValue('boards');
+
+        if (!is_array($boards)) {
+            return $options;
+        }
+
+        foreach ($boards as $board) {
+            $id = $board['id'] ?? null;
+            $name = $board['name'] ?? null;
+
+            if ($id === null || $name === null) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => (string)$name,
+                'value' => (string)$id,
+            ];
+        }
+
+        return $options;
+    }
+
+    private function _getFirstBoardId(): string
+    {
+        $boards = $this->getFormSettingValue('boards');
+
+        if (!is_array($boards) || empty($boards)) {
+            return '';
+        }
+
+        $firstBoard = reset($boards);
+        $id = $firstBoard['id'] ?? null;
+
+        return $id !== null ? (string)$id : '';
     }
 
     private function _getPaginated($limit = 100, $page = 1, $items = [])

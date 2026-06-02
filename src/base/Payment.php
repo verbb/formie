@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyPaymentCurrencyOptionsEvent;
@@ -9,13 +10,18 @@ use verbb\formie\events\PaymentCallbackEvent;
 use verbb\formie\events\PaymentWebhookEvent;
 use verbb\formie\fields\Payment as PaymentField;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\Html;
+use verbb\formie\helpers\FieldReferenceHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\HtmlTag;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\helpers\References;
+use verbb\formie\models\Payment as PaymentRecordModel;
+use verbb\formie\models\PaymentDecision;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentFieldPayload;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\helpers\App;
@@ -71,16 +77,6 @@ abstract class Payment extends Integration
         return false;
     }
 
-    public function supportsWebhooks(): bool
-    {
-        return false;
-    }
-
-    public function supportsCallbacks(): bool
-    {
-        return false;
-    }
-
     public static function getCurrencyOptions(): array
     {
         $currencies = [];
@@ -100,6 +96,47 @@ abstract class Payment extends Integration
         Event::trigger(static::class, self::EVENT_MODIFY_CURRENCY_OPTIONS, $event);
 
         return $event->currencies;
+    }
+
+    public function supportsWebhooks(): bool
+    {
+        return false;
+    }
+
+    public function supportsCallbacks(): bool
+    {
+        return false;
+    }
+
+    public function requiresAjaxSubmission(): bool
+    {
+        return false;
+    }
+
+    public function getAjaxSubmissionRequirementMessage(): string
+    {
+        return Craft::t('formie', '{name} requires Ajax submissions.', [
+            'name' => static::displayName(),
+        ]);
+    }
+
+    public function getPaymentFieldSettingsDefaults(): array
+    {
+        $defaults = array_merge([
+            'integration' => static::class,
+        ], $this->definePaymentFieldSettingsDefaults());
+
+        return $defaults;
+    }
+
+    public function processPayment(Submission $submission): PaymentDecision
+    {
+        return PaymentDecision::notRequired();
+    }
+
+    public function resolvePaymentDecision(Submission $submission): PaymentDecision
+    {
+        return $this->processPayment($submission);
     }
 
 
@@ -133,7 +170,7 @@ abstract class Payment extends Integration
     {
         $handle = $this->getIntegrationHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/payments/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/payments/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -144,11 +181,11 @@ abstract class Payment extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/payments/{$handle}/_plugin-settings", $variables);
     }
 
-    public function getEmailHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
+    public function getReferenceBlockHtml(Submission $submission, Notification $notification, mixed $value, PaymentField $field, array $renderOptions = null): Markup
     {
         $handle = $this->getIntegrationHandle();
 
-        $inputOptions = array_merge($field->getEmailOptions($submission, $notification, $value, $renderOptions), [
+        $inputOptions = array_merge($field->getReferenceBlockOptions($submission, $notification, $value, $renderOptions), [
             'field' => $field,
             'integration' => $this,
         ]);
@@ -181,11 +218,11 @@ abstract class Payment extends Integration
         ]);
     }
 
-    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
+    public function renderFieldHtml(FieldInterface $field): string
     {
         $handle = $this->getIntegrationHandle();
-        $variables = $this->getFrontEndHtmlVariables();
-        
+        $variables = $this->getFieldHtmlVariables();
+
         if (!$this->hasValidSettings()) {
             return '';
         }
@@ -193,14 +230,19 @@ abstract class Payment extends Integration
         $this->setField($field);
 
         $variables['field'] = $field;
-        $variables['renderOptions'] = $renderOptions;
+        $variables['form'] = $field->getForm();
 
         return $field->getForm()->renderTemplate("integrations/payments/{$handle}/field", $variables);
     }
 
-    public function getFrontEndHtmlVariables(): array
+    public function getFieldHtmlVariables(): array
     {
         return [];
+    }
+
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    {
+        return null;
     }
     
     public function getRedirectUri(): string
@@ -234,9 +276,7 @@ abstract class Payment extends Integration
         if ($amountType === Payment::VALUE_TYPE_FIXED) {
             $amount = $amountFixed;
         } else if ($amountType === Payment::VALUE_TYPE_DYNAMIC) {
-            // Payment calculations should always use the submitted/raw field value, not the
-            // formatted variable output (which can be an option label for choice fields).
-            $amount = Variables::getParsedValue($amountVariable, $submission, $submission->getForm(), null, false, true);
+            $amount = References::parseValue($amountVariable, $submission);
 
             // Just in case there's a currency symbol in the value
             $symbols = ['$','€','£','¥','₣','₹','₻','₽','₾','₺','₼','₸','฿','원','₫','₱','₳','₵'];
@@ -256,7 +296,7 @@ abstract class Payment extends Integration
         if ($currencyType === Payment::VALUE_TYPE_FIXED) {
             return (string)$currencyFixed;
         } else if ($currencyType === Payment::VALUE_TYPE_DYNAMIC) {
-            return (string)Variables::getParsedValue($currencyVariable, $submission, $submission->getForm(), null, false, true);
+            return (string)References::parseValue($currencyVariable, $submission);
         }
 
         return null;
@@ -331,9 +371,9 @@ abstract class Payment extends Integration
             $response->setStatusCodeByException($e);
         }
 
-        // Fire a 'afterProcessCallback' event
-        if ($this->hasEventHandlers(self::EVENT_BEFORE_PROCESS_CALLBACK)) {
-            $this->trigger(self::EVENT_BEFORE_PROCESS_CALLBACK, new PaymentCallbackEvent([
+        // Fire an 'afterProcessCallback' event
+        if ($this->hasEventHandlers(self::EVENT_AFTER_PROCESS_CALLBACK)) {
+            $this->trigger(self::EVENT_AFTER_PROCESS_CALLBACK, new PaymentCallbackEvent([
                 'integration' => $this,
                 'response' => $response,
             ]));
@@ -342,12 +382,12 @@ abstract class Payment extends Integration
         return $response;
     }
 
-    public function getTransaction(PaymentModel $payment): void
+    public function getTransaction(PaymentRecordModel $payment): void
     {
 
     }
 
-    public function getTransactionStatus(PaymentModel $payment): void
+    public function getTransactionStatus(PaymentRecordModel $payment): void
     {
 
     }
@@ -378,14 +418,14 @@ abstract class Payment extends Integration
         return $settings;
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        return null;
-    }
-
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        return null;
+    }
     
     protected function getIntegrationHandle(): string
     {
@@ -394,32 +434,42 @@ abstract class Payment extends Integration
     
     protected function getPaymentFieldValue(Submission $submission): array
     {
-        if ($field = $this->getField()) {
-            // Find the field in the submission. Take note to check for nested fields. The format will be either `fieldHandle` or `group[fieldHandle]
-            $fieldHandle = Html::getInputNameAttribute($field->getFullHandle());
+        return $this->getPaymentFieldPayload($submission)->all();
+    }
 
-            // Lookup the field value, ensuring we return an array with what we need.
-            return $this->getMappedFieldValue($fieldHandle, $submission, new IntegrationField([
-                'type' => IntegrationField::TYPE_ARRAY,
-            ]));
+    protected function getPaymentFieldPayload(Submission $submission): PaymentFieldPayload
+    {
+        if ($field = $this->getField()) {
+            // Resolve as the field's array projection; payment integrations then
+            // interpret provider-specific keys from this canonical payload.
+            $value = $submission->getFieldValueAsArray($field->valueKey());
+
+            return new PaymentFieldPayload($this->handle ?? '', $field->valueKey(), is_array($value) ? $value : []);
         }
 
-        return [];
+        return new PaymentFieldPayload($this->handle ?? '');
     }
 
     protected function addFieldError(Submission $submission, string $message): void
     {
         if ($field = $this->getField()) {
-            $handle = [];
-
-            if ($parentField = $field->getParentField()) {
-                $handle[] = $parentField->handle . '[0]';
-            }
-
-            $handle[] = $field->handle;
-
-            $submission->addError(implode('.', $handle),  $message);
+            $submission->addError($field->errorKey(), $message);
         }
+    }
+
+    protected function getFriendlyPaymentErrorMessage(Throwable $error, int $maxLength = 120): string
+    {
+        $message = trim((string)$error->getMessage());
+
+        if ($message === '') {
+            return Craft::t('formie', 'An unexpected payment error occurred.');
+        }
+
+        if (strlen($message) > $maxLength) {
+            return substr($message, 0, $maxLength) . '...';
+        }
+
+        return $message;
     }
 
     protected function beforeProcessPayment(Submission $submission): bool
@@ -452,4 +502,31 @@ abstract class Payment extends Integration
 
         return $event->isValid;
     }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        return [];
+    }
+
+    /**
+     * Normalize a field setting that may be a canonical reference token
+     * (for example `{field:<uid>}`) into a client field handle for frontend use.
+     */
+    protected function normalizeClientFieldReference(mixed $value): ?string
+    {
+        $raw = trim((string)$value);
+
+        if ($raw === '') {
+            return null;
+        }
+
+        $expression = References::parseReferenceExpression($raw);
+
+        if ($expression->isValid && $expression->target === 'field' && $expression->identifier !== '') {
+            return FieldReferenceHelper::resolveClientFieldKey($expression->identifier);
+        }
+
+        return $raw;
+    }
+
 }

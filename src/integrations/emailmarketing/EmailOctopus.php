@@ -32,7 +32,6 @@ class EmailOctopus extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -118,7 +117,6 @@ class EmailOctopus extends EmailMarketing
         return true;
     }
 
-
     // Protected Methods
     // =========================================================================
 
@@ -140,7 +138,7 @@ class EmailOctopus extends EmailMarketing
             ],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

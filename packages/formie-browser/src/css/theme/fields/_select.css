@@ -1,0 +1,37 @@
+@layer formie-theme {
+    .formie-select {
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        appearance: none;
+    }
+
+    .formie-select:not([multiple]):not([size]),
+    .formie-select[size="1"] {
+        padding-right: calc(var(--formie-control-padding-x) * 3);
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-position: right var(--formie-space-2) center;
+        background-repeat: no-repeat;
+        background-size: var(--formie-select-indicator-size) var(--formie-select-indicator-size);
+    }
+
+    .formie-select:focus {
+        outline: 0;
+    }
+
+    .formie-select:focus-visible {
+        outline: 0;
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error .formie-select {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error .formie-select:focus-visible {
+        border-color: var(--formie-color-danger);
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+}

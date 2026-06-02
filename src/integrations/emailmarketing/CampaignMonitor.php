@@ -26,13 +26,11 @@ class CampaignMonitor extends EmailMarketing
         return Craft::t('formie', 'Campaign Monitor');
     }
 
-
     // Properties
     // =========================================================================
     
     public ?string $apiKey = null;
     public ?string $clientId = null;
-
 
     // Public Methods
     // =========================================================================
@@ -222,7 +220,7 @@ class CampaignMonitor extends EmailMarketing
             'auth' => [App::parseEnv($this->apiKey), 'formie'],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

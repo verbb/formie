@@ -1,36 +1,44 @@
+{% import '_includes/forms' as forms %}
+
 {% extends 'formie/_formfields/field' %}
 
 {% set minChars = (field.limit and field.maxType == 'characters' and field.min) ? field.min : null %}
 {% set maxChars = (field.limit and field.maxType == 'characters' and field.max) ? field.max : null %}
 {% set minWords = (field.limit and field.maxType == 'words' and field.min) ? field.min : null %}
 {% set maxWords = (field.limit and field.maxType == 'words' and field.max) ? field.max : null %}
+{% set allowOvertype = textLimitConfig.allowOvertype ?? false %}
 
 {% set textAttributes = {
+    name: name,
+    value: value,
     rows: 5,
+    minlength: minChars,
+    maxlength: allowOvertype ? null : maxChars,
     inputAttributes: {
         data: {
-            'min-chars': minChars,
-            'max-chars': maxChars,
-            'min-words': minWords,
-            'max-words': maxWords,
+            'formie-multi-line-text-input': true,
+            'formie-min-chars': minChars,
+            'formie-max-chars': maxChars,
+            'formie-min-words': minWords,
+            'formie-max-words': maxWords,
         } | filter,
     },
 } %}
 
 {% block field %}
     {% if field.useRichText %}
-        <div class="fui-rich-text" data-rich-text></div>
+        <div class="formie-rich-text" data-formie-rich-text></div>
 
         <div style="display: none !important;">
-            {% include '_includes/forms/textarea' with textAttributes %}
+            {{ forms.textarea(textAttributes) }}
         </div>
     {% else %}
-        {% include '_includes/forms/textarea' with textAttributes %}
+        {{ forms.textarea(textAttributes) }}
     {% endif %}
 
     {% if field.limit %}
         {% if maxChars %}
-            <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-chars="{{ maxChars }}">
+            <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-chars="{{ maxChars }}" data-formie-limit-text>
                 {{- '{startTag}{num}{endTag} characters left' | t('formie', {
                     num: maxChars,
                     startTag: '<span class="fui-limit-number">',
@@ -40,7 +48,7 @@
         {% endif %}
 
         {% if maxWords %}
-            <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-words="{{ maxWords }}">
+            <div class="fui-instructions fui-limit fui-limit-text" data-limit data-max-words="{{ maxWords }}" data-formie-limit-text>
                 {{- '{startTag}{num}{endTag} words left' | t('formie', {
                     num: maxWords,
                     startTag: '<span class="fui-limit-number">',

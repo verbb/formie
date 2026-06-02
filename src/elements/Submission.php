@@ -3,13 +3,14 @@ namespace verbb\formie\elements;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
-use verbb\formie\base\CosmeticField;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\FieldTrait;
-use verbb\formie\base\FieldValueInterface;
-use verbb\formie\base\MultiNestedFieldInterface;
-use verbb\formie\base\SingleNestedFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\RepeatableParentFieldInterface;
+use verbb\formie\content\SubmissionContentManager;
+use verbb\formie\content\SubmissionContentState;
+use verbb\formie\deprecations\SubmissionValueDeprecations;
 use verbb\formie\elements\actions\SetSubmissionSpam;
 use verbb\formie\elements\actions\SetSubmissionStatus;
 use verbb\formie\elements\conditions\SubmissionCondition;
@@ -19,27 +20,26 @@ use verbb\formie\events\SubmissionRulesEvent;
 use verbb\formie\fields\FileUpload;
 use verbb\formie\fields\Payment;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\References;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\ValidationHelper;
 use verbb\formie\models\FieldLayout as FormLayout;
 use verbb\formie\models\Settings;
 use verbb\formie\models\Status;
+use verbb\formie\models\ValueContext;
 use verbb\formie\records\Submission as SubmissionRecord;
-use verbb\formie\web\assets\cp\CpAsset;
-
 use Craft;
 use craft\base\Component;
 use craft\base\Element;
-use craft\base\FieldInterface as CraftFieldInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\Model;
+use craft\db\Table as CraftTable;
 use craft\db\Query;
 use craft\elements\User;
 use craft\elements\actions\Delete;
 use craft\elements\actions\Restore;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\events\DefineElementHtmlEvent;
 use craft\helpers\Cp;
 use craft\helpers\Db;
 use craft\helpers\Html;
@@ -48,27 +48,24 @@ use craft\helpers\Template;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\validators\SiteIdValidator;
-use craft\validators\StringValidator;
 
 use yii\base\Exception;
-use yii\base\InvalidConfigException;
-use yii\validators\NumberValidator;
-use yii\validators\RequiredValidator;
-use yii\validators\Validator;
+use yii\base\InvalidCallException;
+use yii\base\UnknownPropertyException;
 
-use ReflectionClass;
 use Throwable;
 
 use Twig\Markup;
 
-class Submission extends CustomElement
+class Submission extends Element
 {
+    use SubmissionValueDeprecations;
+
     // Constants
     // =========================================================================
 
     public const EVENT_DEFINE_RULES = 'defineSubmissionRules';
     public const EVENT_BEFORE_MARKED_AS_SPAM = 'beforeMarkedAsSpam';
-
 
     // Static Methods
     // =========================================================================
@@ -128,26 +125,94 @@ class Submission extends CustomElement
         return Formie::$plugin->getStatuses()->getStatusesArray();
     }
 
+    public static function defineElementChipHtml(DefineElementHtmlEvent $event): void
+    {
+        $element = $event->element;
+
+        if (!($element instanceof self)) {
+            return;
+        }
+
+        // Remove the quick-edit ability
+        $event->html = str_replace('data-editable', '', $event->html);
+
+        $icon = null;
+        $label = null;
+        
+        // Swap out the different icons for status/spam/etc
+        if ($element->isIncomplete) {
+            $icon = 'draft';
+            $label = Craft::t('formie', 'Incomplete');
+        } else if ($element->isSpam) {
+            $icon = 'bug';
+            $label = Craft::t('formie', 'Spam');
+        }
+
+        if ($icon && $label) {
+            $iconStyle = [
+                'width' => '10px',
+                'height' => '10px',
+                'margin-top' => '-12px',
+                'margin-left' => '0',
+                'font-size' => '12px',
+                'margin-right' => '3px !important',
+                'color' => 'color: #3f4d5a',
+            ];
+
+            $replacement = Html::tag('span', '', [
+                'data' => ['icon' => $icon],
+                'class' => 'icon',
+                'role' => 'img',
+                'style' => $iconStyle,
+                'aria' => ['label' => Craft::t('app', 'Status:') . ' ' . $label],
+            ]);
+
+            $event->html = preg_replace(
+                '#<span\b[^>]*\bclass\s*=\s*["\'][^"\']*\bstatus\b[^"\']*["\'][^>]*></span>#i',
+                $replacement,
+                $event->html
+            );
+        }
+    }
+
     protected static function defineSources(string $context = null): array
     {
         $currentUser = Craft::$app->getUser()->getIdentity();
-        $formQuery = Form::find();
-        $order = Formie::$plugin->getSettings()->submissionSidebarFormOrder;
+        $sitesService = Craft::$app->getSites();
+        $currentSiteId = $sitesService->getCurrentSite()->id;
+        $canViewAllSubmissions = $currentUser->can('formie-viewSubmissions');
 
-        match ($order) {
-            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_ASC => $formQuery->orderBy('title ASC'),
-            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_TITLE_DESC => $formQuery->orderBy('title DESC'),
-            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_ASC => $formQuery->orderBy('handle ASC'),
-            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_HANDLE_DESC => $formQuery->orderBy('handle DESC'),
-            Settings::SUBMISSION_SIDEBAR_FORM_ORDER_DATE_CREATED_ASC => $formQuery->orderBy('dateCreated ASC'),
-            default => null,
-        };
+        $cacheKey = implode(':', [
+            (string)($currentUser->id ?? 0),
+            (string)$currentSiteId,
+            (string)$context,
+            $canViewAllSubmissions ? '1' : '0',
+        ]);
 
-        $forms = $formQuery->all();
+        if (isset(self::$_sourcesCache[$cacheKey])) {
+            return self::$_sourcesCache[$cacheKey];
+        }
+
+        // Keep source construction lightweight by avoiding full Form element hydration.
+        $forms = (new Query())
+            ->select([
+                'f.id',
+                'f.uid',
+                'f.handle',
+                'es.title',
+            ])
+            ->from(['f' => Table::FORMIE_FORMS])
+            ->innerJoin(['e' => CraftTable::ELEMENTS], '[[e.id]] = [[f.id]]')
+            ->innerJoin(['es' => CraftTable::ELEMENTS_SITES], '[[es.elementId]] = [[f.id]] AND [[es.siteId]] = :siteId', [
+                ':siteId' => $currentSiteId,
+            ])
+            ->where(['e.dateDeleted' => null])
+            ->orderBy(['es.title' => SORT_ASC])
+            ->all();
 
         $sources = [];
 
-        if ($currentUser->can('formie-viewSubmissions')) {
+        if ($canViewAllSubmissions) {
             $sources[] = [
                 'key' => '*',
                 'label' => Craft::t('formie', 'All forms'),
@@ -158,20 +223,24 @@ class Submission extends CustomElement
         $formItems = [];
 
         foreach ($forms as $form) {
-            if (!$currentUser->can('formie-viewSubmissions') && !$currentUser->can("formie-viewSubmissions:{$form->uid}")) {
+            $formUid = (string)($form['uid'] ?? '');
+
+            if (!$canViewAllSubmissions && !$currentUser->can("formie-viewSubmissions:{$formUid}")) {
                 continue;
             }
 
-            /* @var Form $form */
-            $key = "form:{$form->id}";
+            $formId = (int)($form['id'] ?? 0);
+            $formHandle = (string)($form['handle'] ?? '');
+            $formTitle = (string)($form['title'] ?? $formHandle);
+            $key = "form:{$formId}";
 
             $formItems[$key] = [
                 'key' => $key,
-                'label' => $form->title,
+                'label' => $formTitle,
                 'data' => [
-                    'handle' => $form->handle,
+                    'handle' => $formHandle,
                 ],
-                'criteria' => ['formId' => $form->id],
+                'criteria' => ['formId' => $formId],
                 'defaultSort' => ['elements_sites.title', 'desc'],
             ];
         }
@@ -182,7 +251,7 @@ class Submission extends CustomElement
             $sources += $formItems;
         }
 
-        return $sources;
+        return self::$_sourcesCache[$cacheKey] = $sources;
     }
 
     protected static function defineActions(string $source = null): array
@@ -228,6 +297,11 @@ class Submission extends CustomElement
         return $actions;
     }
 
+    protected static function defineSearchableAttributes(): array
+    {
+        return ['title'];
+    }
+
     protected static function defineTableAttributes(): array
     {
         return [
@@ -258,32 +332,6 @@ class Submission extends CustomElement
         $attributes[] = 'dateUpdated';
 
         return $attributes;
-    }
-
-    protected static function defineSearchableElementAttributes(): array
-    {
-        return ['title'];
-    }
-
-    protected static function defineSearchableAttributes(): array
-    {
-        $cosmeticFieldTypes = Formie::$plugin->getFields()->getFieldsByType(CosmeticField::class);
-
-        $fieldIds = (new Query())
-            ->select(['id'])
-            ->from(TABLE::FORMIE_FIELDS)
-            ->where(['not in', 'type', $cosmeticFieldTypes])
-            ->column();
-
-        $fieldHandles = [];
-
-        foreach ($fieldIds as $fieldId) {
-            $fieldHandles[] = "field:$fieldId";
-        }
-
-        // Due to this being a static function, we don't have access to just _this_ submission's fields
-        // So collect them all system-wide here, and we filter later in `searchKeywords()`.
-        return array_merge(static::defineSearchableElementAttributes(), $fieldHandles);
     }
 
     protected static function defineSortOptions(): array
@@ -334,6 +382,13 @@ class Submission extends CustomElement
     private bool $_previousIsSpam = false;
     private ?int $_previousStatusId = null;
     private array $_captchaData = [];
+    private ?array $_validationAttributeNames = null;
+    private ?SubmissionContentManager $_contentManager = null;
+    private ?SubmissionContentState $_contentState = null;
+    private null|string|array $_deferredFieldContent = null;
+    private bool $_hasDeferredFieldContent = false;
+    private static array $_formByIdCache = [];
+    private static array $_sourcesCache = [];
     private bool $_updateTitle = false;
 
 
@@ -343,6 +398,73 @@ class Submission extends CustomElement
     public function __toString(): string
     {
         return (string)$this->title;
+    }
+
+    public function __isset($name): bool
+    {
+        return parent::__isset($name) || $this->getFieldByHandle($name);
+    }
+
+    public function __get($name)
+    {
+        if ($this->getFieldByHandle($name) !== null) {
+            return $this->getContentManager()->cloneValue($this, $name);
+        }
+
+        return parent::__get($name);
+    }
+
+    public function __set($name, $value)
+    {
+        try {
+            parent::__set($name, $value);
+        } catch (InvalidCallException|UnknownPropertyException $e) {
+            if ($this->getFieldByHandle($name) !== null) {
+                $this->setFieldValue($name, $value);
+            } else {
+                throw $e;
+            }
+        }
+    }
+
+    public function getFieldByHandle(string $handle): ?FieldInterface
+    {
+        return $this->getContentManager()->getFieldByHandle($this, $handle);
+    }
+
+    public function getFieldById(int $id): ?FieldInterface
+    {
+        return $this->getContentManager()->getFieldById($this, $id);
+    }
+
+    public function setFieldContent(null|string|array $content): void
+    {
+        // Defer heavy DB-content normalization until field data is actually requested.
+        // This keeps submission index/table hydration fast when field values are unused.
+        $this->_deferredFieldContent = $content;
+        $this->_hasDeferredFieldContent = true;
+        $this->_contentState = null;
+    }
+
+    public function getContentManager(): SubmissionContentManager
+    {
+        $manager = $this->_contentManager ??= new SubmissionContentManager();
+
+        if ($this->_hasDeferredFieldContent) {
+            // Clear deferred flags before normalization to prevent re-entrant recursion
+            // via manager/accessor lookups during normalizeFromDb().
+            $deferredContent = $this->_deferredFieldContent;
+            $this->_hasDeferredFieldContent = false;
+            $this->_deferredFieldContent = null;
+            $manager->normalizeFromDb($this, $deferredContent);
+        }
+
+        return $manager;
+    }
+
+    public function getContentState(): SubmissionContentState
+    {
+        return $this->_contentState ??= new SubmissionContentState();
     }
     
     public function canView(User $user): bool
@@ -445,92 +567,36 @@ class Submission extends CustomElement
 
         $processFields = function ($fields) use (&$processFields, &$labels) {
             foreach ($fields as $field) {
-                $labels[$field->fieldKey] = $field->label;
+                $labels[$field->valueKey()] = $field->label;
 
                 // Allow fields to modify the attribute labels
                 $field->modifyAttributeLabels($labels);
 
-                if ($field instanceof SingleNestedFieldInterface) {
+                if ($field instanceof ParentFieldInterface) {
                     $processFields($field->getFields());
                 }
             }
         };
 
-        foreach ($this->getRows() as $row) {
-            $processFields($row->getFields());
-        }
+        $processFields($this->getFields());
 
         return $labels;
     }
 
     public function getStatus(): ?string
     {
-        return $this->getStatusModel()->handle ?? null;
-    }
-
-    public static function defineElementChipHtml(\craft\events\DefineElementHtmlEvent $event): void
-    {
-        $element = $event->element;
-
-        if (!($element instanceof self)) {
-            return;
-        }
-
-        // Remove the quick-edit ability
-        $event->html = str_replace('data-editable', '', $event->html);
-
-        $icon = null;
-        $label = null;
-        
-        // Swap out the different icons for status/spam/etc
-        if ($element->isIncomplete) {
-            $icon = 'draft';
-            $label = Craft::t('formie', 'Incomplete');
-        } else if ($element->isSpam) {
-            $icon = 'bug';
-            $label = Craft::t('formie', 'Spam');
-        }
-
-        if ($icon && $label) {
-            $iconStyle = [
-                'width' => '10px',
-                'height' => '10px',
-                'margin-top' => '-12px',
-                'margin-left' => '0',
-                'font-size' => '12px',
-                'margin-right' => '3px !important',
-                'color' => 'color: #3f4d5a',
-            ];
-
-            $replacement = Html::tag('span', '', [
-                'data' => ['icon' => $icon],
-                'class' => 'icon',
-                'role' => 'img',
-                'style' => $iconStyle,
-                'aria' => ['label' => Craft::t('app', 'Status:') . ' ' . $label],
-            ]);
-
-            $event->html = preg_replace(
-                '#<span\b[^>]*\bclass\s*=\s*["\'][^"\']*\bstatus\b[^"\']*["\'][^>]*></span>#i',
-                $replacement,
-                $event->html
-            );
-        }
-
-        // Manually add the hyperlink. No other way to do this in the BaseRelationField class.
-        $event->html = str_replace('"hyperlink":false', '"hyperlink":true', $event->html);
-
-        $anchor = Html::tag('a', Html::tag('span', $event->element->title), [
-            'class' => 'label-link',
-            'href' => $event->element->cpEditUrl(),
-        ]);
-
-        $event->html = preg_replace('/<span class="label-link">(.+?)<\/span>/', $anchor, $event->html);
+        return $this->getStatusModel(true)->handle ?? null;
     }
 
     public function validate($attributeNames = null, $clearErrors = true): bool
     {
-        $validates = parent::validate($attributeNames, $clearErrors);
+        $this->_validationAttributeNames = $attributeNames ? array_flip((array)$attributeNames) : null;
+
+        try {
+            $validates = parent::validate($attributeNames, $clearErrors);
+        } finally {
+            $this->_validationAttributeNames = null;
+        }
 
         $form = $this->getForm();
 
@@ -567,7 +633,7 @@ class Submission extends CustomElement
     public function getSidebarHtml(bool $static): string
     {
         // For when viewing a submission in a Submissions element select field
-        Craft::$app->getView()->registerAssetBundle(CpAsset::class);
+        Formie::$plugin->registerCpSubmissionsAssets();
 
         return parent::getSidebarHtml($static);
     }
@@ -601,77 +667,24 @@ class Submission extends CustomElement
         return $this->getFormLayout()?->getFields() ?? [];
     }
 
-    public function getFieldLayout(): ?FieldLayout
+    public function setFieldValue(string $fieldKey, mixed $value): void
     {
-        // For compatibility with essential element services like search
-        return $this->getFormLayout()?->getFieldLayout() ?? null;
+        $this->getContentManager()->setRawValue($this, $fieldKey, $value);
     }
 
-    public function getCustomFields(): array
+    public function serializeFieldValues(): array
     {
-        // Backward compatibility
-        return $this->getFields();
+        return $this->getContentManager()->serializeForDb($this);
     }
 
-    public function getFieldValue(string $fieldHandle): mixed
+    public function getFieldValue(string $fieldKey, mixed $context = null): mixed
     {
-        // Add support for dot-notation lookup for field values
-        $fieldKey = explode('.', $fieldHandle);
-        $handle = array_shift($fieldKey);
-        $fieldKey = implode('.', $fieldKey);
-
-        $fieldValue = parent::getFieldValue($handle);
-
-        if ($fieldKey) {
-            if (is_array($fieldValue) || $fieldValue instanceof Model || $fieldValue instanceof FieldValueInterface) {
-                try {
-                    return ArrayHelper::getValue($fieldValue, $fieldKey);
-                } catch (Throwable $e) {
-                    // Just in case there's an issue with getting that value
-                    // (So far, only an issue with Date Dropdown + Repeater due to DateTime limitation handling)
-                }
-            }
-        }
-
-        return $fieldValue;
+        return $this->getContentManager()->getFieldValue($this, $fieldKey, $context);
     }
 
     public function getFieldValuesForField(string $type): array
     {
-        $fieldValues = [];
-
-        // Return all values for a field for a given type. Includes nested fields like Group/Repeater.
-        foreach ($this->getFields() as $field) {
-            if ($field instanceof $type) {
-                $fieldValues[$field->handle] = $this->getFieldValue($field->handle);
-            }
-
-            if ($field instanceof SingleNestedFieldInterface) {
-                foreach ($field->getFields() as $nestedField) {
-                    if ($nestedField instanceof $type) {
-                        $fieldKey = "$field->handle.$nestedField->handle";
-
-                        $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
-                    }
-                }
-            }
-
-            if ($field instanceof MultiNestedFieldInterface) {
-                $value = $this->getFieldValue($field->handle);
-
-                foreach ($value as $rowKey => $row) {
-                    foreach ($field->getFields() as $nestedField) {
-                        if ($nestedField instanceof $type) {
-                            $fieldKey = "$field->handle.$rowKey.$nestedField->handle";
-
-                            $fieldValues[$fieldKey] = $this->getFieldValue($fieldKey);
-                        }
-                    }
-                }
-            }
-        }
-
-        return $fieldValues;
+        return $this->getContentManager()->getFieldValuesForField($this, $type);
     }
 
     public function setCaptchaData(string $key, mixed $value): void
@@ -686,7 +699,7 @@ class Submission extends CustomElement
 
     public function updateTitle(Form $form): void
     {
-        if ($customTitle = Variables::getParsedValue($form->settings->submissionTitleFormat, $this, $form)) {
+        if ($customTitle = References::parseContent($form->settings->submissionTitleFormat, $this)) {
             // In case any values are encoded for HTML, we should decode them here. This is after sanitization
             $this->title = html_entity_decode($customTitle);
 
@@ -703,15 +716,19 @@ class Submission extends CustomElement
     public function getForm(): ?Form
     {
         if (!$this->_form && $this->formId) {
-            $query = Form::find()->id($this->formId);
-
-            $this->_form = $query->one();
+            if (array_key_exists($this->formId, self::$_formByIdCache)) {
+                $this->_form = self::$_formByIdCache[$this->formId];
+            } else {
+                $query = Form::find()->id($this->formId);
+                $this->_form = $query->one();
+                self::$_formByIdCache[$this->formId] = $this->_form;
+            }
 
             // If no form found yet, and the submission has been trashed, maybe the form has been trashed?
             if (!$this->_form && $this->trashed) {
-                $query->trashed(true);
-
+                $query = Form::find()->id($this->formId)->trashed(true);
                 $this->_form = $query->one();
+                self::$_formByIdCache[$this->formId] = $this->_form;
             }
         }
 
@@ -722,6 +739,7 @@ class Submission extends CustomElement
     {
         $this->_form = $form;
         $this->formId = $form->id;
+        ($this->_contentManager ??= new SubmissionContentManager())->resetFieldCollection($this);
 
         // When setting the form, see if there's an in-session snapshot, or if there's a saved
         // snapshot from the database. This will be field settings set via templates which we want
@@ -815,34 +833,16 @@ class Submission extends CustomElement
             return $this->_status;
         }
 
-        // Get the default status from the form, if defined yet
         if ($form = $this->getForm()) {
-            if ($this->_status = $form->getDefaultStatus()) {
-                return $this->_status;
-            }
+            return $this->_status = $form->getDefaultStatus();
         }
 
-        // Get the global default status
-        if ($this->_status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
-            return $this->_status;
-        }
-
-        // Get _any_ status
-        $statuses = Formie::$plugin->getStatuses()->getAllStatuses();
-        $status = reset($statuses) ?: null;
-
-        if ($status) {
+        if ($status = Formie::$plugin->getStatuses()->getDefaultStatus()) {
             return $this->_status = $status;
         }
 
-        // Create a dummy status
-        return $this->_status = new Status([
-            'name' => 'New',
-            'handle' => 'new',
-            'color' => 'green',
-            'sortOrder' => 1,
-            'isDefault' => 1,
-        ]);;
+        // Just in case there's no default status set in settings, pick the first available
+        return $this->_status = Formie::$plugin->getStatuses()->getAllStatuses()[0];
     }
 
     public function setStatus(Status|string $status): void
@@ -912,206 +912,86 @@ class Submission extends CustomElement
 
     public function setFieldValuesFromRequest(string $paramNamespace = ''): void
     {
-        // A little extra work here to handle visibly disabled fields
-        if ($form = $this->getForm()) {
-            $disabledValues = $form->getPopulatedFieldValuesFromRequest();
-
-            if ($disabledValues && is_array($disabledValues)) {
-                foreach ($disabledValues as $key => $value) {
-                    try {
-                        $this->setFieldValue($key, $value);
-                    } catch (Throwable) {
-                        continue;
-                    }
-                }
-            }
-        }
-
-        parent::setFieldValuesFromRequest($paramNamespace);
-
-        // Any conditionally hidden fields should have their content excluded when saving.
-        // But - only for incomplete forms. Not a great idea to remove content for completed forms.
-        if ($this->isIncomplete) {
-            foreach ($this->getFields() as $field) {
-                if ($field->isConditionallyHidden($this)) {
-                    // Reset the field value
-                    $this->setFieldValue($field->handle, null);
-                }
-            }
-        }
-
-        // If the final page, populate any visibly disabled fields with empty values with their default
-        if (!$this->isIncomplete) {
-            foreach ($this->getFields() as $field) {
-                if ($field->visibility === 'disabled') {
-                    $value = $this->getFieldValue($field->handle);
-
-                    if ($field->isValueEmpty($value, $this)) {
-                        $this->setFieldValue($field->handle, $field->getDefaultValue());
-                    }
-                }
-            }
-        }
+        $this->getContentManager()->setFieldValuesFromRequest($this, $paramNamespace);
     }
 
     public function setFieldValueFromRequest(string $fieldHandle, mixed $value): void
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        // Check if we only want to set the fields for the current page. This helps with large
-        // forms with lots of Repeater/Group fields not on the current page being saved.
-        if ($settings->setOnlyCurrentPagePayload) {
-            $currentPageFields = $this->getForm()->getCurrentPage()->getFields();
-            $currentPageFieldHandles = ArrayHelper::getColumn($currentPageFields, 'handle');
-
-            if (!in_array($fieldHandle, $currentPageFieldHandles)) {
-                return;
-            }
-        }
-
-        parent::setFieldValueFromRequest($fieldHandle, $value);
+        $this->getContentManager()->setFieldValueFromRequest($this, $fieldHandle, $value);
     }
 
     public function getValues($page): array
     {
-        $values = [];
-
-        $form = $this->getForm();
-
-        if ($form) {
-            $fields = $page ? $page->getFields() : $form->getFields();
-
-            foreach ($fields as $field) {
-                $values[$field->handle] = $this->getFieldValue($field->handle);
-            }
-        }
-
-        return $values;
+        return $this->getContentManager()->getValues($this, $page);
     }
 
-    public function getValueAsString(string $fieldHandle): mixed
+    public function getFieldValueAsString(string $fieldKey): mixed
     {
-        if ($field = $this->getFieldByHandle($fieldHandle)) {
-            $value = $this->getFieldValue($field->fieldKey);
-
-            return $field->getValueAsString($value, $this);
-        }
-
-        return null;
+        return $this->getFieldValue($fieldKey, ValueContext::string());
     }
 
-    public function getValueAsJson(string $fieldHandle): mixed
+    public function getFieldValueAsArray(string $fieldKey): mixed
     {
-        if ($field = $this->getFieldByHandle($fieldHandle)) {
-            $value = $this->getFieldValue($field->fieldKey);
-
-            return $field->getValueAsJson($value, $this);
-        }
-
-        return null;
+        return $this->getFieldValue($fieldKey, ValueContext::array());
     }
 
-    public function getValueForExport(string $fieldHandle): mixed
+    public function getFieldValueForExport(string $fieldKey): mixed
     {
-        if ($field = $this->getFieldByHandle($fieldHandle)) {
-            $value = $this->getFieldValue($field->fieldKey);
-
-            return $field->getValueForExport($value, $this);
-        }
-
-        return null;
+        return $this->getFieldValue($fieldKey, ValueContext::export());
     }
 
-    public function getValueForSummary(string $fieldHandle): mixed
+    public function getFieldValueForSummary(string $fieldKey): mixed
     {
-        if ($field = $this->getFieldByHandle($fieldHandle)) {
-            $value = $this->getFieldValue($field->fieldKey);
+        return $this->getFieldValue($fieldKey, ValueContext::summary());
+    }
 
-            return $field->getValueForSummary($value, $this);
-        }
+    public function getFieldValueForReference(string $fieldKey, mixed $notification = null): mixed
+    {
+        return $this->getFieldValue($fieldKey, ValueContext::reference($notification));
+    }
 
-        return null;
+    public function getFieldValueForReferenceBlock(string $fieldKey, mixed $notification): mixed
+    {
+        return $this->getFieldValue($fieldKey, ValueContext::referenceBlock($notification));
+    }
+
+    public function getFieldValueForIntegration(string $fieldKey, mixed $integrationField, mixed $integration, string $integrationFieldKey = ''): mixed
+    {
+        return $this->getFieldValue($fieldKey, ValueContext::integration($integrationField, $integration, $integrationFieldKey));
+    }
+
+    public function getFieldValueForCondition(string $fieldKey): mixed
+    {
+        // Conditions must always route through the same projection path as the
+        // standalone evaluators so builder rules, Twig checks, and workflow
+        // logic compare against one canonical representation.
+        return $this->getFieldValue($fieldKey, ValueContext::condition());
     }
 
     public function getValuesAsString(): array
     {
-        $values = [];
-
-        foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic()) {
-                continue;
-            }
-
-            $value = $this->getFieldValue($field->handle);
-            $values[$field->handle] = $field->getValueAsString($value, $this);
-        }
-
-        return $values;
+        return $this->getContentManager()->getValuesAsString($this);
     }
 
-    public function getValuesAsJson(): array
+    public function getValuesAsArray(): array
     {
-        $values = [];
-
-        foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic()) {
-                continue;
-            }
-
-            $value = $this->getFieldValue($field->handle);
-            $values[$field->handle] = $field->getValueAsJson($value, $this);
-        }
-
-        return $values;
+        return $this->getContentManager()->getValuesAsArray($this);
     }
 
     public function getValuesForExport(): array
     {
-        $values = [];
-
-        foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic()) {
-                continue;
-            }
-
-            $value = $this->getFieldValue($field->handle);
-            $valueForExport = $field->getValueForExport($value, $this);
-
-            // If an array, we merge it in. This is because some fields provide content
-            // for multiple "columns" in the export, expressed through `field_subhandle`.
-            if (is_array($valueForExport)) {
-                $values = array_merge($values, $valueForExport);
-            } else {
-                $values[$field->getExportLabel($this)] = $valueForExport;
-            }
-        }
-
-        return $values;
+        return $this->getContentManager()->getValuesForExport($this);
     }
 
     public function getValuesForSummary(): array
     {
-        $items = [];
+        $items = $this->getContentManager()->getValuesForSummary($this);
 
-        foreach ($this->getFields() as $field) {
-            if ($field->getIsCosmetic() || $field->getIsHidden() || $field->isConditionallyHidden($this)) {
-                continue;
-            }
+        foreach ($items as &$item) {
+            $summary = $item['html'] ?? null;
 
-            $value = $this->getFieldValue($field->handle);
-            $html = $field->getValueForSummary($value, $this);
-
-            // Just in case some fields want to opt-out
-            if ($html === false || $html === null) {
-                continue;
-            }
-
-            $items[] = [
-                'field' => $field,
-                'value' => $value,
-                'html' => Template::raw($html),
-            ];
+            $item['html'] = $summary instanceof Markup ? $summary : null;
+            $item['text'] = $summary instanceof Markup ? null : (string)$summary;
         }
 
         return $items;
@@ -1166,29 +1046,6 @@ class Submission extends CustomElement
         return $this->_previousIsSpam !== $this->isSpam;
     }
 
-    public function hasSearchIndexAttribute(string $attribute): bool
-    {
-        if (in_array($attribute, static::defineSearchableElementAttributes(), true)) {
-            return true;
-        }
-
-        return (bool)$this->getFieldBySearchIndex($attribute);
-    }
-
-    public function beforeValidate(): bool
-    {
-        // Some captchas need to fire early as they act like a field to prevent submission
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($this->getForm());
-
-        foreach ($captchas as $captcha) {
-            if ($captcha->hasStrictValidation()) {
-                $captcha->validateSubmission($this);
-            }
-        }
-
-        return parent::beforeValidate();
-    }
-
     public function beforeSave(bool $isNew): bool
     {
         /* @var Settings $settings */
@@ -1230,6 +1087,12 @@ class Submission extends CustomElement
             $this->_previousIsSpam = (bool)($previousSettings['isSpam'] ?? false);
         }
 
+        foreach ($this->getFields() as $field) {
+            if (!$field->beforeElementSave($this, $isNew)) {
+                return false;
+            }
+        }
+
         return parent::beforeSave($isNew);
     }
 
@@ -1247,7 +1110,9 @@ class Submission extends CustomElement
             $record->id = $this->id;
         }
 
-        $record->content = $this->serializeFieldValues();
+        // Preserve unknown/orphaned persisted keys so form schema changes don't silently
+        // drop historical submission payload data on resave.
+        $record->content = $this->_mergeSerializedContentPreservingUnknown($record->content, $this->serializeFieldValues());
         $record->formId = $this->formId;
         $record->statusId = $this->statusId;
         $record->userId = $this->userId;
@@ -1284,6 +1149,10 @@ class Submission extends CustomElement
             }
         }
 
+        foreach ($this->getFields() as $field) {
+            $field->afterElementSave($this, $isNew);
+        }
+
         if ($this->_updateTitle) {
             $this->updateTitle($this->getForm());
         }
@@ -1311,6 +1180,12 @@ class Submission extends CustomElement
             }
         }
 
+        foreach ($this->getFields() as $field) {
+            if (!$field->beforeElementDelete($this)) {
+                return false;
+            }
+        }
+
         return parent::beforeDelete();
     }
 
@@ -1327,51 +1202,87 @@ class Submission extends CustomElement
             }
         }
 
+        foreach ($this->getFields() as $field) {
+            $field->afterElementDelete($this);
+        }
+
         parent::beforeDelete();
+    }
+
+    public function beforeDeleteForSite(): bool
+    {
+        // Tell the fields about it
+        foreach ($this->getFields() as $field) {
+            if (!$field->beforeElementDeleteForSite($this)) {
+                return false;
+            }
+        }
+
+        return parent::beforeDeleteForSite();
+    }
+
+    public function afterDeleteForSite(): void
+    {
+        // Tell the fields about it
+        foreach ($this->getFields() as $field) {
+            $field->afterElementDeleteForSite($this);
+        }
+
+        parent::afterDeleteForSite();
+    }
+
+    public function beforeRestore(): bool
+    {
+        // Tell the fields about it
+        foreach ($this->getFields() as $field) {
+            if (!$field->beforeElementRestore($this)) {
+                return false;
+            }
+        }
+
+        return parent::beforeRestore();
+    }
+
+    public function afterRestore(): void
+    {
+        // Tell the fields about it
+        foreach ($this->getFields() as $field) {
+            $field->afterElementRestore($this);
+        }
+
+        parent::afterRestore();
     }
 
     public function afterValidate(): void
     {
         // Lift from `craft\base\Element::afterValidate()` all so we can modify the `RequiredValidator` message
         // for our custom error message. Might ask the Craft crew if there's a better way to access private methods
-        if (Craft::$app->getIsInstalled() && $formLayout = $this->getFormLayout()) {
-            $scenario = $this->getScenario();
-            $fields = $formLayout->getVisiblePageFields($this);
+        if ($formLayout = $this->getFormLayout()) {
+            $fields = $formLayout->getFieldsToValidate($this);
 
             foreach ($fields as $field) {
-                $attribute = 'field:' . $field->getErrorKey();
+                $attribute = $this->_getFieldValidationAttribute($field);
 
-                if ($field->getIsDisabled()) {
+                if (isset($this->_validationAttributeNames) && !isset($this->_validationAttributeNames[$attribute])) {
                     continue;
                 }
 
-                if (isset($this->_attributeNames) && !isset($this->_attributeNames[$attribute])) {
-                    continue;
-                }
-
-                $isEmpty = fn() => $field->isValueEmpty($this->getFieldValue($field->handle), $this);
-
-                // Add the required validator but with our custom message
-                if ($scenario === self::SCENARIO_LIVE && $field->required) {
-                    (new RequiredValidator(['isEmpty' => $isEmpty, 'message' => $field->errorMessage]))
-                        ->validateAttribute($this, $attribute);
-                }
-
-
-                foreach ($field->getElementValidationRules() as $rule) {
-                    $validator = $this->_callPrivateMethod('_normalizeFieldValidator', $attribute, $rule, $field, $isEmpty);
-                    if (
-                        in_array($scenario, $validator->on) ||
-                        (empty($validator->on) && !in_array($scenario, $validator->except))
-                    ) {
-                        $validator->validateAttributes($this);
-                    }
-                }
+                ValidationHelper::validateField($this, $field, $this->getFieldValue($field->handle), $attribute, $field->errorMessage);
             }
         }
 
         // Bubble up past the `Element::afterValidate()` to prevent this happening twice
         Component::afterValidate();
+    }
+
+    public function afterPropagate(bool $isNew): void
+    {
+        // Tell the fields about it
+        foreach ($this->getFields() as $field) {
+            $field->afterElementPropagate($this, $isNew);
+        }
+
+        parent::afterPropagate($isNew);
     }
 
 
@@ -1425,7 +1336,7 @@ class Submission extends CustomElement
         }
 
         if ($attribute == 'status') {
-            $status = $this->getStatusModel();
+            $status = $this->getStatusModel(true);
 
             return Html::tag('span', Html::tag('span', '', [
                     'class' => array_filter([
@@ -1476,6 +1387,27 @@ class Submission extends CustomElement
             return '';
         }
 
+        if (preg_match('/^(field):(.+)/', $attribute, $matches)) {
+            $uid = $matches[2];
+
+            if ($matches[1] === 'field') {
+                $field = $this->getContentManager()->getFieldByUid($this, $uid);
+            }
+
+            if ($field instanceof PreviewableFieldInterface) {
+                // The field might not actually belong to this element
+                try {
+                    $value = $this->getFieldValue($field->handle);
+                } catch (Throwable) {
+                    return '';
+                }
+
+                return $field->getPreviewHtml($value, $this);
+            }
+
+            return '';
+        }
+
         return parent::attributeHtml($attribute);
     }
 
@@ -1504,64 +1436,71 @@ class Submission extends CustomElement
         return UrlHelper::cpUrl($path, $params);
     }
 
-    protected function searchKeywords(string $attribute): string
-    {
-        if (in_array($attribute, static::defineSearchableElementAttributes(), true)) {
-            return parent::searchKeywords($attribute);
-        }
-
-        if ($field = $this->getFieldBySearchIndex($attribute)) {
-            $fieldValue = $this->getFieldValue($field->handle);
-
-            return $field->getSearchKeywords($fieldValue, $this);
-        }
-
-        return '';
-    }
-
     protected function inlineAttributeInputHtml(string $attribute): string
     {
         $field = null;
 
         if (preg_match('/^field:(.+)/', $attribute, $matches)) {
             try {
-                $fieldHandle = $matches[1];
-                $field = $this->getFieldByHandle($fieldHandle);
+                $uid = $matches[1];
+                $field = $this->getContentManager()->getFieldByUid($this, $uid);
             } catch (Throwable $e) {
                 // Ignore any fields that don't belong to this element
             }
         }
 
-        if ($field !== null) {
-            if ($field instanceof InlineEditableFieldInterface) {
-                try {
-                    $value = $this->getFieldValue($field->handle);
-                } catch (Throwable $e) {
-                    return '';
-                }
-
-                return $field->getInlineInputHtml($value, $this);
+        if ($field instanceof InlineEditableFieldInterface) {
+            try {
+                $value = $this->getFieldValue($field->handle);
+            } catch (Throwable $e) {
+                return '';
             }
 
-            return $this->getAttributeHtml($attribute);
+            return $field->getInlineInputHtml($value, $this);
         }
 
         return $this->attributeHtml($attribute);
     }
 
-
-    // Private Methods
-    // =========================================================================
-
-    private function _callPrivateMethod(string $methodName): mixed
+    private function _getFieldValidationAttribute(Field $field): string
     {
-        // Required to be able to call private methods in this class for `afterValidate()`.
-        $object = $this;
-        $reflectionClass = new ReflectionClass($object);
-        $reflectionMethod = $reflectionClass->getMethod($methodName);
-        $reflectionMethod->setAccessible(true);
+        return ValidationHelper::fieldValidationAttribute($field);
+    }
 
-        $params = array_slice(func_get_args(), 1);
-        return $reflectionMethod->invokeArgs($object, $params);
+    private function _mergeSerializedContentPreservingUnknown(mixed $existingContent, array $serializedContent): array
+    {
+        $existingContent = $this->_normalizeSerializedContent($existingContent);
+
+        if (!$existingContent) {
+            return $serializedContent;
+        }
+
+        foreach ($existingContent as $key => $value) {
+            if (!array_key_exists($key, $serializedContent)) {
+                $serializedContent[$key] = $value;
+            }
+        }
+
+        return $serializedContent;
+    }
+
+    private function _normalizeSerializedContent(mixed $content): array
+    {
+        if (is_array($content)) {
+            return $content;
+        }
+
+        if (is_string($content) && $content !== '') {
+            try {
+                $decoded = Json::decode($content);
+
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            } catch (Throwable) {
+            }
+        }
+
+        return [];
     }
 }

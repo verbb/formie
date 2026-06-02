@@ -8,18 +8,25 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
 use verbb\formie\fields\conditions\ElementFieldConditionRule;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueClass;
+use verbb\formie\fields\values\ElementFieldValue;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\fields\Checkboxes;
 use verbb\formie\fields\Radio;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\fields\Tags;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\StringHelper;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\Notification;
+use verbb\formie\positions\Hidden as HiddenPosition;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -42,14 +49,16 @@ use craft\events\ElementCriteriaEvent;
 use craft\fields as CraftFields;
 use craft\helpers\Cp;
 use craft\helpers\Db;
+use craft\helpers\Gql as CraftGqlHelper;
 use craft\helpers\ElementHelper;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\Queue;
-use craft\helpers\StringHelper;
 use craft\helpers\Template as TemplateHelper;
 use craft\records\EntryType as EntryTypeRecord;
 use craft\services\ElementSources;
 use craft\services\Elements;
+use craft\services\Gql as CraftGqlService;
 
 use DateTime;
 use ReflectionClass;
@@ -70,7 +79,7 @@ use yii\db\Expression;
 use yii\db\ExpressionInterface;
 use yii\validators\NumberValidator;
 
-abstract class ElementField extends Field implements ElementFieldInterface, InlineEditableFieldInterface
+abstract class ElementField extends Field implements ElementFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -79,55 +88,28 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
     public static function queryCondition(array $instances, mixed $value, array &$params): array|string|ExpressionInterface|false|null
     {
-        // Get the base JSON SQL column expression for the field
-        $valueSql = static::valueSql($instances);
-
-        if ($valueSql === null) {
-            return false;
-        }
-
-        // Determine if we're using PostgreSQL
-        $isPgsql = Craft::$app->getDb()->getIsPgsql();
-
-        // Handle :empty: and :notempty:
-        if (in_array($value, [':empty:', 'not :notempty:'], true)) {
-            if ($isPgsql) {
-                // Check if array is empty or field is null in Postgres
-                return new Expression("jsonb_array_length($valueSql) = 0 OR $valueSql IS NULL");
-            }
-
-            // MySQL / MariaDB
-            return new Expression("JSON_LENGTH($valueSql) = 0 OR $valueSql IS NULL");
-        }
-
-        if (in_array($value, [':notempty:', 'not :empty:'], true)) {
-            if ($isPgsql) {
-                // Check if array is non-empty in Postgres
-                return new Expression("jsonb_array_length($valueSql) > 0");
-            }
-
-            // MySQL / MariaDB
-            return new Expression("JSON_LENGTH($valueSql) > 0");
-        }
-
-        // Handle regular element ID matching
         $values = [];
 
         if (is_array($value)) {
             foreach ($value as $element) {
                 if ($element instanceof ElementInterface) {
                     $values[] = $element->id;
-                } elseif (is_int($element)) {
+                }
+
+                if (is_int($element)) {
                     $values[] = $element;
                 }
             }
-        } elseif ($value instanceof ElementInterface) {
+        }
+
+        if ($value instanceof ElementInterface) {
             $values[] = $value->id;
-        } elseif (is_int($value)) {
+        }
+
+        if (is_int($value)) {
             $values[] = $value;
         }
 
-        // Pass to parent implementation for actual matching
         return parent::queryCondition($instances, Json::encode($values), $params);
     }
 
@@ -192,14 +174,6 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         return $attributes;
     }
 
-    public function getFormBuilderConfig(): array
-    {
-        $config = parent::getFormBuilderConfig();
-        $config['isElementField'] = true;
-
-        return $config;
-    }
-
     public function isValueEmpty(mixed $value, ?ElementInterface $element): bool
     {
         if ($value instanceof ElementQueryInterface) {
@@ -207,6 +181,12 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         }
 
         return $value->isEmpty();
+    }
+
+    public function isSearchableField(): bool
+    {
+        // Element-backed fields can trigger expensive relation queries while indexing.
+        return false;
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -309,15 +289,21 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
             $query->id(ArrayHelper::getColumn($this->sourceElements, 'id'));
         }
 
-        // Check if a default value has been set AND we're limiting. We need to resolve the value before limiting
-        if ($this->defaultValue && $this->limitOptions) {
+        // Ensure selected initial values survive option limits for render-time prefill/default cases.
+        $initialValue = $this->getInitialValue();
+
+        if ($initialValue && $this->limitOptions) {
             $ids = [];
 
             // Handle the two ways a default value can be set
-            if ($this->defaultValue instanceof ElementQueryInterface) {
-                $ids = $this->defaultValue->id;
+            if ($initialValue instanceof ElementQueryInterface) {
+                $ids = $initialValue->id;
             } else {
-                $ids = ArrayHelper::getColumn($this->defaultValue, 'id');
+                $ids = ArrayHelper::getColumn($initialValue, 'id');
+
+                if (!$ids && is_array($initialValue)) {
+                    $ids = $initialValue;
+                }
             }
 
             if ($ids) {
@@ -350,7 +336,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
     public function getDefaultValueQuery()
     {
-        $defaultValue = $this->defaultValue ?? '';
+        $defaultValue = $this->getInitialValue() ?? '';
 
         if ($defaultValue instanceof ElementQuery) {
             $defaultValue = $defaultValue->all();
@@ -407,48 +393,9 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         return '';
     }
 
-    public function modifyFieldSettings(array $settings): array
+    public function getInputTemplateVariables(Form $form, mixed $value): array
     {
-        $defaultValue = $this->defaultValue ?? [];
-
-        // For a default value, supply extra content that can't be called directly in Vue, like it can in Twig.
-        if ($ids = ArrayHelper::getColumn($defaultValue, 'id')) {
-            $elements = static::elementType()::find()->id($ids)->all();
-
-            // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
-            $settings['defaultValueOptions'] = array_map(function($input) {
-                return ['label' => $this->getElementLabel($input), 'value' => $input->id];
-            }, $elements);
-
-            // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
-            // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
-            $settings['defaultValueHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
-        }
-
-        if ($ids = ArrayHelper::getColumn($this->sourceElements, 'id')) {
-            $elements = static::elementType()::find()->id($ids)->all();
-
-            // Maintain an options array, so we can keep track of the label in Vue, not just the saved value
-            $settings['sourceElementsOptions'] = array_map(function($input) {
-                return ['label' => $this->getElementLabel($input), 'value' => $input->id];
-            }, $elements);
-
-            // Render the HTML needed for the element select field (for default value). jQuery needs DOM manipulation
-            // so while gross, we have to supply the raw HTML, as opposed to models in the Vue-way.
-            $settings['sourceElementsHtml'] = Craft::$app->getView()->renderTemplate('formie/_includes/element-select-input-elements', ['elements' => $elements]);
-        }
-
-        // For certain display types, pre-fetch elements for use in the preview in the CP for the field. Saves an initial Ajax request
-        if ($this->displayType === 'checkboxes' || $this->displayType === 'radio' || $this->getIsMultiDropdown()) {
-            $settings['elements'] = $this->getPreviewElements();
-        }
-
-        return $settings;
-    }
-
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
-    {
-        $inputOptions = parent::getFrontendInputOptions($form, $value, $renderOptions);
+        $inputOptions = parent::getInputTemplateVariables($form, $value);
 
         $inputOptions['elementsQuery'] = $this->getElementsQuery();
 
@@ -467,7 +414,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
             // Ensure that disabled elements can be populated, just in case
             $query->status(null);
 
-            $this->defaultValue = $query;
+            parent::populateValue($query, $submission);
         }
     }
 
@@ -533,7 +480,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         return null;
     }
 
-    public function getDisplayTypeValue(?ElementQuery $value): MultiOptionsFieldData|SingleOptionFieldData|null
+    public function getDisplayTypeValue(?ElementQuery $value): MultiOptionFieldValue|SingleOptionFieldValue|null
     {
         // Setup the default value, if the value is empty
         if ($this->isValueEmpty($value, null)) {
@@ -546,15 +493,15 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
             $options = [];
 
             foreach ($value->all() as $element) {
-                $options[] = new OptionData($this->getElementLabel($element), $element->id, true);
+                $options[] = new OptionValue($this->getElementLabel($element), $element->id, true);
             }
 
-            return new MultiOptionsFieldData($options);
+            return new MultiOptionFieldValue($options);
         }
 
         if ($this->displayType === 'radio') {
             if ($element = $value->one()) {
-                return new SingleOptionFieldData($this->getElementLabel($element), $element->id, true);
+                return new SingleOptionFieldValue($this->getElementLabel($element), $element->id, true);
             }
 
             return null;
@@ -562,7 +509,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
 
         if ($this->displayType === 'dropdown') {
             if ($element = $value->one()) {
-                return new SingleOptionFieldData($this->getElementLabel($element), $element->id, true);
+                return new SingleOptionFieldValue($this->getElementLabel($element), $element->id, true);
             }
 
             return null;
@@ -668,6 +615,37 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         $this->_selectionCondition = $condition;
     }
 
+    public function fieldKind(): string
+    {
+        $displayType = (string)($this->displayType ?? 'dropdown');
+
+        return match ($displayType) {
+            'radio' => self::KIND_RADIO_GROUP,
+            'checkboxes' => self::KIND_CHECKBOX_GROUP,
+            default => self::KIND_SELECT,
+        };
+    }
+
+    public function getIsMultiOptionsField(): bool
+    {
+        return false;
+    }
+
+    public function getSafeElementUrl(object $element, bool $forCp = false): ?string
+    {
+        $url = null;
+
+        if ($forCp && method_exists($element, 'getCpEditUrl')) {
+            $url = $element->getCpEditUrl();
+        }
+
+        if (!$forCp && method_exists($element, 'getUrl')) {
+            $url = $element->getUrl();
+        }
+
+        return StringHelper::sanitizeUrlAttribute(is_string($url) ? $url : null);
+    }
+
     public function getSettingGqlTypes(): array
     {
         return array_merge(parent::getSettingGqlTypes(), [
@@ -729,49 +707,100 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
-
-        $id = $this->getHtmlId($form);
-
-        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
-            if ($key === 'fieldContainer') {
-                return new HtmlTag('fieldset', [
-                    'class' => [
-                        'fui-fieldset',
-                        'fui-layout-' . $this->layout ?? 'vertical',
-                    ],
-                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-                ]);
-            }
-
-            if ($key === 'fieldLabel') {
-                $labelPosition = $context['labelPosition'] ?? null;
-
-                return new HtmlTag('legend', [
-                    'class' => [
-                        'fui-legend',
-                    ],
-                    'data' => [
-                        'field-label' => true,
-                        'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
-                    ],
-                ]);
-            }
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
 
     // Protected Methods
     // =========================================================================
 
+    protected static function gqlElementContentTypeDefinitionFromConfig(array $config, Type $elementType, array $arguments, string $resolverClass): array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => Type::nonNull(Type::listOf($elementType)),
+            'args' => $arguments,
+            'resolve' => $resolverClass . '::resolve',
+            'complexity' => CraftGqlHelper::relatedArgumentComplexity(CraftGqlService::GRAPHQL_COMPLEXITY_EAGER_LOAD),
+        ];
+    }
+
+    protected static function gqlElementContentMutationArgumentTypeDefinitionFromConfig(array $config): array
+    {
+        return [
+            'name' => $config['handle'] ?? '',
+            'type' => Type::listOf(Type::int()),
+            'description' => $config['instructions'] ?? null,
+        ];
+    }
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
+
+        $id = $this->getHtmlId($form);
+
+        if (in_array($this->displayType, ['checkboxes', 'radio'])) {
+            if ($key === 'fieldLayout') {
+                return SlotTag::make('fieldset')
+                    ->core([
+                        'data-formie-field-layout' => true,
+                        'data-formie-element-field-layout' => true,
+                        'data-formie-layout' => $this->layout ?? 'vertical',
+                        'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                    ])
+                    ->theme([
+                        'class' => [
+                            'formie-field-layout',
+                            'formie-element-field-layout',
+                            'formie-layout-' . ($this->layout ?? 'vertical'),
+                        ],
+                    ]);
+            }
+
+            if ($key === 'fieldLabel') {
+                $labelPosition = $context->get('labelPosition');
+
+                return SlotTag::make('legend')
+                    ->core([
+                        'data-formie-label' => true,
+                        'data-formie-field-label' => true,
+                        'data-formie-element-field-label' => true,
+                        'data-formie-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                    ])
+                    ->theme([
+                        'class' => [
+                            'formie-label',
+                            'formie-field-label',
+                            'formie-element-field-label',
+                            $labelPosition instanceof HiddenPosition ? 'formie-sr-only' : false,
+                        ],
+                    ]);
+            }
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
+
+    protected function defineClientInput(): array
+    {
+        $displayType = (string)($this->displayType ?? 'dropdown');
+
+        return array_merge(parent::defineClientInput(), [
+            'multiple' => $this->getIsMultiOptionsField(),
+            'layout' => in_array($displayType, ['radio', 'checkboxes'], true) ? ($this->layout ?? 'vertical') : null,
+            'options' => array_values(array_map(static function(array $option) {
+                return [
+                    'label' => $option['label'] ?? '',
+                    'value' => $option['value'] ?? '',
+                    'selected' => (bool)($option['default'] ?? false),
+                    'disabled' => (bool)($option['disabled'] ?? false),
+                ];
+            }, $this->getFieldOptions())),
+        ]);
+    }
+
     protected function cpInputTemplateVariables(array|ElementQueryInterface $value = null, ?ElementInterface $element = null): array
     {
         return [
-            'id' => $this->getInputId(),
+            'id' => Html::id($this->handle),
             'jsClass' => $this->cpInputJsClass,
             'elementType' => static::elementType(),
             'storageKey' => 'field.' . $this->id,
@@ -793,7 +822,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         ];
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         // Ensure that the element query allows all statuses for the CP
         $value->status(null);
@@ -850,7 +879,7 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
         }, $value->all()));
     }
 
-    protected function defineValueAsJson(mixed $value, ElementInterface $element = null): mixed
+    protected function defineValueAsArray(mixed $value, ElementInterface $element = null): mixed
     {
         return array_map(function($item) {
             return $this->_elementToArray($item);
@@ -957,6 +986,41 @@ abstract class ElementField extends Field implements ElementFieldInterface, Inli
     protected function createSelectionCondition(): ?ElementConditionInterface
     {
         return null;
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::property([
+                'handle' => 'title',
+                'label' => Craft::t('formie', 'Title'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'url',
+                'label' => Craft::t('formie', 'Public URL'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [Variables::TYPE_TEXT, Variables::TYPE_URL],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'cpUrl',
+                'label' => Craft::t('formie', 'Control Panel URL'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [Variables::TYPE_TEXT, Variables::TYPE_URL],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => '__toString',
+                'label' => Craft::t('formie', 'Formatted'),
+                'supportsFieldSelect' => false,
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+        ];
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return ElementFieldValue::class;
     }
 
 

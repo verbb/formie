@@ -1,0 +1,10 @@
+@layer formie-theme {
+    .formie-limit-number {
+        font-weight: var(--formie-font-weight-semibold);
+        color: var(--formie-color-text);
+    }
+
+    .formie-limit-number-error {
+        color: var(--formie-color-danger);
+    }
+}

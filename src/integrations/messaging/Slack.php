@@ -2,10 +2,12 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -83,7 +85,7 @@ class Slack extends Messaging implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Slack.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -122,7 +124,7 @@ class Slack extends Messaging implements OAuthProviderInterface
                     'text' => $this->_renderMessage($submission),
                 ];
 
-                $response = $this->deliverPayloadRequest($submission, $this->webhook, $payload);
+                $response = $this->deliverPayload($submission, $this->webhook, $payload);
             } else {
 
                 $channel = null;
@@ -202,6 +204,52 @@ class Slack extends Messaging implements OAuthProviderInterface
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::selectField([
+            'label' => Craft::t('formie', 'Channel Type'),
+            'instructions' => Craft::t('formie', 'Select what type of channel {name} will send the message to.', ['name' => $this->displayName()]),
+            'name' => 'channelType',
+            'required' => true,
+            'options' => [
+                ['label' => Craft::t('formie', 'Select an option'), 'value' => ''],
+                ['label' => Craft::t('formie', 'Public Channel'), 'value' => self::TYPE_PUBLIC],
+                ['label' => Craft::t('formie', 'Direct Message'), 'value' => self::TYPE_DM],
+                ['label' => Craft::t('formie', 'Webhook'), 'value' => self::TYPE_WEBHOOK],
+            ],
+        ]);
+        $schema[] = SchemaHelper::comboboxField([
+            'label' => Craft::t('formie', 'Channel'),
+            'instructions' => Craft::t('formie', 'Select which {name} channel to post a message to.', ['name' => $this->displayName()]),
+            'name' => 'channelId',
+            'if' => 'channelType == "public"',
+            'options' => [], // Populated from fetchFormSettings (channels)
+        ]);
+        $schema[] = SchemaHelper::comboboxField([
+            'label' => Craft::t('app', 'User'),
+            'instructions' => Craft::t('formie', 'Select which {name} user to post a message to.', ['name' => $this->displayName()]),
+            'name' => 'userId',
+            'if' => 'channelType == "directMessage"',
+            'options' => [], // Populated from fetchFormSettings (members)
+        ]);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Webhook URL'),
+            'instructions' => Craft::t('formie', 'Enter the {name} webhook URL that will be triggered.', ['name' => $this->displayName()]),
+            'name' => 'webhook',
+            'if' => 'channelType == "webhook"',
+            'required' => true,
+        ]);
+        $schema[] = SchemaHelper::richTextField([
+            'label' => Craft::t('formie', 'Message'),
+            'instructions' => Craft::t('formie', 'This text will be sent to {name}.', ['name' => $this->displayName()]),
+            'name' => 'message',
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

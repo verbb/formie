@@ -1,0 +1,62 @@
+@layer formie-theme {
+    .formie-progress-wrapper[data-formie-progress-position="start"] {
+        padding-bottom: var(--formie-progress-padding);
+    }
+
+    .formie-progress-wrapper[data-formie-progress-position="end"] {
+        padding-top: var(--formie-progress-padding);
+    }
+
+    .formie-progress {
+        display: flex;
+        align-items: center;
+        position: relative;
+        background: var(--formie-color-surface-muted);
+        border-radius: var(--formie-radius-full);
+        min-height: var(--formie-progress-height);
+        overflow: hidden;
+    }
+
+    .formie-progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: var(--formie-color-primary);
+        color: var(--formie-color-button-text);
+        font-size: var(--formie-progress-size);
+        font-weight: var(--formie-font-weight-medium);
+        min-height: var(--formie-progress-height);
+        transition: width 0.3s ease;
+    }
+
+    .formie-progress-value {
+        line-height: 1;
+    }
+
+    .formie-progress-bar > .formie-progress-value {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translate(50%, -50%);
+        white-space: nowrap;
+        padding: 0 var(--formie-space-2);
+        min-height: var(--formie-progress-height);
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--formie-radius-full);
+        background: var(--formie-color-primary);
+        color: var(--formie-color-button-text);
+    }
+
+    .formie-progress-bar[data-formie-progress-state="start"] > .formie-progress-value {
+        left: 0;
+        right: auto;
+        transform: translate(0, -50%);
+    }
+
+    .formie-progress-bar[data-formie-progress-state="end"] > .formie-progress-value {
+        right: 0;
+        transform: translate(0, -50%);
+    }
+}

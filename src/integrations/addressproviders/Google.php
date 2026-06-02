@@ -2,7 +2,8 @@
 namespace verbb\formie\integrations\addressproviders;
 
 use verbb\formie\base\AddressProvider;
-use verbb\formie\base\FieldInterface;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 
 use Craft;
 use craft\helpers\App;
@@ -52,23 +53,19 @@ class Google extends AddressProvider
         return Craft::t('formie', 'Use {link} to suggest addresses, for address fields.', ['link' => '[Google Places Autocomplete](https://developers.google.com/maps/documentation/javascript/places-autocomplete)']);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $settings = [
-            'apiKey' => App::parseEnv($this->apiKey),
-            'geocodingApiKey' => App::parseEnv($this->geocodingApiKey),
-            'options' => $this->_getOptions(),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/address-providers/google-address.js'),
-            'module' => 'FormieGoogleAddress',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'google-address',
+            'config' => [
+                'apiKey' => App::parseEnv($this->apiKey),
+                'options' => $this->_getOptions(),
+            ],
+        ]);
     }
 
     public function hasValidSettings(): bool

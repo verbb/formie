@@ -3,22 +3,33 @@ namespace verbb\formie\controllers;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Payment;
+use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\models\Payment as PaymentModel;
 
 use Craft;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
-use craft\web\View;
 
 use Throwable;
 
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+use yii\web\TooManyRequestsHttpException;
 
 class PaymentWebhooksController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    private const STATUS_POLL_RATE_LIMIT = 120;
+    private const STATUS_GATEWAY_CHECK_RATE_LIMIT = 20;
+    private const STATUS_RATE_WINDOW_SECONDS = 60;
+    private const WEBHOOK_RATE_LIMIT = 60;
+    private const WEBHOOK_RATE_WINDOW_SECONDS = 60;
+    
+
     // Properties
     // =========================================================================
 
@@ -32,15 +43,21 @@ class PaymentWebhooksController extends Controller
 
     public function actionProcessWebhook(): Response
     {
-        $handle = $this->request->getRequiredParam('handle');
+        $handle = trim((string)$this->request->getParam('handle', ''));
+
+        if ($handle === '') {
+            throw new NotFoundHttpException('Integration not found');
+        }
 
         if (!$integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)) {
             throw new NotFoundHttpException('Integration not found');
         }
 
         if (!($integration instanceof Payment)) {
-            throw new BadRequestHttpException('Invalid integration: ' . $handle);
+            throw new NotFoundHttpException('Integration not found');
         }
+
+        $this->_enforceWebhookRateLimit($handle);
 
         return $integration->processWebhooks();
     }
@@ -48,10 +65,10 @@ class PaymentWebhooksController extends Controller
     public function actionProcessCallback(): Response
     {
         // Query string overrides body param, which we sometimes don't want
-        $handle = $this->request->getBodyParam('handle') ?: $this->request->getParam('handle');
+        $handle = trim((string)($this->request->getBodyParam('handle') ?: $this->request->getParam('handle')));
 
-        if (!$handle) {
-            throw new NotFoundHttpException('Integration ' . $handle . ' not found');
+        if ($handle === '') {
+            throw new NotFoundHttpException('Integration not found');
         }
 
         if (!$integration = Formie::$plugin->getIntegrations()->getIntegrationByHandle($handle)) {
@@ -59,7 +76,7 @@ class PaymentWebhooksController extends Controller
         }
 
         if (!($integration instanceof Payment)) {
-            throw new BadRequestHttpException('Invalid integration: ' . $handle);
+            throw new NotFoundHttpException('Integration not found');
         }
 
         return $integration->processCallbacks();
@@ -67,18 +84,10 @@ class PaymentWebhooksController extends Controller
 
     public function actionPollStatus(): Response
     {
-        Craft::$app->getResponse()->setNoCacheHeaders();
+        $payment = $this->_requirePaymentFromStatusToken();
 
         $paymentUid = $this->request->getRequiredParam('paymentUid');
         $shouldCheckGateway = (bool)$this->request->getParam('checkGateway');
-
-        if (!$paymentUid) {
-            throw new NotFoundHttpException('Payment ' . $paymentUid . ' not found');
-        }
-
-        if (!$payment = Formie::$plugin->getPayments()->getPaymentByUid($paymentUid)) {
-            throw new NotFoundHttpException('Payment not found');
-        }
 
         if (!$integration = $payment->getIntegration()) {
             throw new NotFoundHttpException('Integration not found');
@@ -127,51 +136,34 @@ class PaymentWebhooksController extends Controller
                 ]);
             }
 
-            // Has this submission already been marked as completed?
-            if (!$submission->isIncomplete) {
+            if ($submission->isIncomplete) {
                 Formie::info('Payment poll: submission already completed (paymentUid {paymentUid}, submissionId {submissionId})', [
                     'paymentUid' => $paymentUid,
                     'submissionId' => $submission->id,
                 ]);
 
-                return $this->asJson([
-                    'status' => 'failed',
-                    'message' => Craft::t('formie', 'Submission has been completed.'),
-                ]);
-            }
+                $replay = Formie::$plugin->getSubmissionProcessor()->replayPaymentIfSuccessful($payment);
 
-            $submission->isIncomplete = false;
-            Craft::$app->getElements()->saveElement($submission, false);
-
-            // Fire any notifications/integrations (must not take down the JSON response — paid customers should still redirect)
-            try {
-                Formie::$plugin->getSubmissions()->sendNotifications($submission);
-            } catch (Throwable $e) {
-                Formie::error('Payment poll: sendNotifications failed for submissionId {submissionId}: {message}', [
-                    'submissionId' => $submission->id,
-                    'message' => $e->getMessage(),
-                ]);
-            }
-            try {
-                Formie::$plugin->getSubmissions()->triggerIntegrations($submission);
-            } catch (Throwable $e) {
-                Formie::error('Payment poll: triggerIntegrations failed for submissionId {submissionId}: {message}', [
-                    'submissionId' => $submission->id,
-                    'message' => $e->getMessage(),
-                ]);
+                if ($replay && !$replay->response?->success) {
+                    return $this->asJson([
+                        'status' => 'failed',
+                        'message' => Craft::t('formie', 'We were unable to finalize your payment-backed submission. Please try again or contact support.'),
+                    ]);
+                }
             }
 
             $form = $submission->getForm();
+            $flashNamespace = $form->getFlashNamespace();
+            $submitMessage = $form->settings->getSubmitActionMessage($submission);
 
-            Formie::$plugin->getService()->setFlash($form->id, 'submitted', true);
+            Formie::$plugin->getService()->setFlash($flashNamespace, 'submitted', true);
+            if ($submitMessage) {
+                Formie::$plugin->getService()->setNotice($flashNamespace, $submitMessage);
+            }
             $url = '';
 
             // Handle heading back to the form and either redirecting to the form's redirect or show a message
             if ($form->settings->submitAction == 'message' || $form->settings->submitAction == 'reload') {
-                if ($form->settings->submitAction == 'message') {
-                    Formie::$plugin->getService()->setNotice($form->id, $form->settings->getSubmitActionMessage($submission));
-                }
-
                 // When reloading the page, provide a `submission` variable to pick up on the finalise submission
                 Craft::$app->getUrlManager()->setRouteParams([
                     'submission' => $submission,
@@ -220,45 +212,114 @@ class PaymentWebhooksController extends Controller
 
     public function actionStatus(): Response
     {
-        $paymentUid = $this->request->getRequiredParam('paymentUid');
-
-        if (!$paymentUid) {
-            throw new NotFoundHttpException('Payment ' . $paymentUid . ' not found');
-        }
-
-        if (!$payment = Formie::$plugin->getPayments()->getPaymentByUid($paymentUid)) {
-            throw new NotFoundHttpException('Payment not found');
-        }
+        $payment = $this->_requirePaymentFromStatusToken(true);
 
         if (!$integration = $payment->getIntegration()) {
             throw new NotFoundHttpException('Integration not found');
         }
 
-        $statusBefore = $payment->status;
-        $integrationHandle = $integration->handle;
-
         // Some gateways (GoCardless) take over the status state handling
         // Always poll the API in dev mode, or when explicitly requested. Webhooks likely won't be delivered locally.
         $integration->getTransactionStatus($payment);
 
-        $paymentAfter = Formie::$plugin->getPayments()->getPaymentByUid($paymentUid) ?? $payment;
-
-        Formie::info('Payment return URL: paymentUid {paymentUid}, integration {integration}, submissionId {submissionId}, status {statusBefore} to {statusAfter}', [
-            'paymentUid' => $paymentUid,
-            'integration' => $integrationHandle,
-            'submissionId' => $paymentAfter->submissionId,
-            'statusBefore' => $statusBefore,
-            'statusAfter' => $paymentAfter->status,
-        ]);
-
-        $general = Craft::$app->getConfig()->getGeneral();
-        $pollStatusUrl = $general->headlessMode
-            ? UrlHelper::actionUrl('formie/payment-webhooks/poll-status')
-            : UrlHelper::siteUrl('formie/payment-webhooks/poll-status');
-
         return $this->renderTemplate('formie/integrations/payments/status', [
-            'payment' => $paymentAfter,
-            'pollStatusUrl' => $pollStatusUrl,
-        ], View::TEMPLATE_MODE_CP);
+            'payment' => $payment,
+            'statusToken' => PaymentAccess::issueStatusToken($payment),
+        ]);
+    }
+
+    private function _requirePaymentFromStatusToken(bool $gatewayCheck = false): PaymentModel
+    {
+        $statusToken = (string)$this->request->getRequiredParam('statusToken');
+        $payload = PaymentAccess::resolveStatusToken($statusToken);
+
+        if (!$payload) {
+            throw new NotFoundHttpException('Payment not found');
+        }
+
+        $this->_enforceStatusTokenRateLimit($statusToken, $gatewayCheck || (bool)$this->request->getParam('checkGateway'));
+
+        $payment = Formie::$plugin->getPayments()->getPaymentByUid($payload['paymentUid']);
+
+        if (!$payment || (int)$payment->id !== (int)$payload['paymentId']) {
+            throw new NotFoundHttpException('Payment not found');
+        }
+
+        return $payment;
+    }
+
+    private function _enforceStatusTokenRateLimit(string $statusToken, bool $gatewayCheck): void
+    {
+        $limit = $gatewayCheck ? self::STATUS_GATEWAY_CHECK_RATE_LIMIT : self::STATUS_POLL_RATE_LIMIT;
+        $window = self::STATUS_RATE_WINDOW_SECONDS;
+        $ipAddress = Craft::$app->getRequest()->getUserIP();
+        $cacheKey = 'formie.payment-status-rate.' . md5($statusToken . '|' . ($gatewayCheck ? 'gateway' : 'poll') . '|' . $ipAddress);
+        $mutexKey = 'formie.payment-status-rate-lock.' . md5($statusToken . '|' . ($gatewayCheck ? 'gateway' : 'poll') . '|' . $ipAddress);
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get($cacheKey);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + $window,
+                ];
+            }
+
+            if ((int)$entry['count'] >= $limit) {
+                Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
+
+                throw new TooManyRequestsHttpException('Too many payment status requests. Please try again shortly.');
+            }
+
+            $entry['count'] = (int)$entry['count'] + 1;
+            $cache->set($cacheKey, $entry, max(1, (int)$entry['resetAt'] - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
+    }
+
+    private function _enforceWebhookRateLimit(string $handle): void
+    {
+        $window = self::WEBHOOK_RATE_WINDOW_SECONDS;
+        $ipAddress = Craft::$app->getRequest()->getUserIP();
+        $providerReference = (string)(Craft::$app->getRequest()->getParam('id') ?: md5(Craft::$app->getRequest()->getRawBody()));
+        $fingerprint = md5($handle . '|' . $providerReference . '|' . $ipAddress);
+        $cacheKey = 'formie.payment-webhook-rate.' . $fingerprint;
+        $mutexKey = 'formie.payment-webhook-rate-lock.' . $fingerprint;
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get($cacheKey);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + $window,
+                ];
+            }
+
+            if ((int)$entry['count'] >= self::WEBHOOK_RATE_LIMIT) {
+                Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
+
+                throw new TooManyRequestsHttpException('Too many payment webhook requests. Please try again shortly.');
+            }
+
+            $entry['count'] = (int)$entry['count'] + 1;
+            $cache->set($cacheKey, $entry, max(1, (int)$entry['resetAt'] - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
     }
 }

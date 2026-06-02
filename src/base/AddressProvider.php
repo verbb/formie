@@ -2,6 +2,8 @@
 namespace verbb\formie\base;
 
 use verbb\formie\helpers\StringHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 
 use Craft;
 use craft\helpers\UrlHelper;
@@ -59,7 +61,7 @@ abstract class AddressProvider extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/addressproviders/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/address-providers/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -70,12 +72,12 @@ abstract class AddressProvider extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/address-providers/{$handle}/_settings", $variables);
     }
 
-    public function getFrontEndHtml(FieldInterface $field, array $renderOptions = []): string
+    public function renderFieldHtml(FieldInterface $field): string
     {
         return '';
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         return null;
     }

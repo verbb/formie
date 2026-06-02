@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -60,13 +62,14 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Intercom.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            $response = $this->request('GET', 'admins');
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
+                $response = $this->request('GET', 'admins');
             $admins = $response['admins'] ?? [];
 
             $ownerOptions = [];
@@ -143,9 +146,8 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
                 ]),
             ];
 
-            $settings = [
-                'contact' => $contactFields,
-            ];
+                $settings['contact'] = $contactFields;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -240,6 +242,24 @@ class Intercom extends HelpDesk implements OAuthProviderInterface
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

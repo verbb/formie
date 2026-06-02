@@ -34,7 +34,6 @@ class Mailcoach extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $apiUrl = null;
 
-
     // Public Methods
     // =========================================================================
 

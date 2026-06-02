@@ -1,19 +1,26 @@
 <?php
 namespace verbb\formie\services;
 
+use verbb\formie\cache\IntegrationLookupCache;
 use verbb\formie\Formie;
 use verbb\formie\base\Captcha;
 use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
 use verbb\formie\elements\Form;
+use verbb\formie\elements\Submission;
 use verbb\formie\events\IntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationEvent;
 use verbb\formie\events\ModifyFormIntegrationsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\events\TriggerIntegrationEvent;
+use verbb\formie\base\FormInterface;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\Plugin;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\jobs\TriggerIntegration;
+use verbb\formie\gql\types\input\CaptchaInputType;
 use verbb\formie\integrations\addressproviders;
 use verbb\formie\integrations\captchas;
 use verbb\formie\integrations\crm;
@@ -25,6 +32,7 @@ use verbb\formie\integrations\messaging;
 use verbb\formie\integrations\payments;
 use verbb\formie\integrations\automations;
 use verbb\formie\models\FieldLayoutPage;
+use verbb\formie\models\IntegrationResponse;
 use verbb\formie\models\MissingIntegration;
 use verbb\formie\models\Settings;
 use verbb\formie\records\Integration as IntegrationRecord;
@@ -38,6 +46,7 @@ use craft\helpers\Component as ComponentHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\ProjectConfig as ProjectConfigHelper;
+use craft\helpers\Queue;
 
 use yii\base\Component;
 use yii\base\UnknownPropertyException;
@@ -60,6 +69,7 @@ class Integrations extends Component
     public const EVENT_BEFORE_DELETE_INTEGRATION = 'beforeDeleteIntegration';
     public const EVENT_BEFORE_APPLY_INTEGRATION_DELETE = 'beforeApplyIntegrationDelete';
     public const EVENT_AFTER_DELETE_INTEGRATION = 'afterDeleteIntegration';
+    public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
     public const CONFIG_INTEGRATIONS_KEY = 'formie.integrations';
 
 
@@ -67,8 +77,7 @@ class Integrations extends Component
     // =========================================================================
 
     private ?MemoizableArray $_integrations = null;
-    private array $_groupedIntegrationTypes = [];
-    private ?array $_integrationsByType = null;
+    private ?IntegrationLookupCache $_lookupCache = null;
 
 
     // Public Methods
@@ -76,13 +85,12 @@ class Integrations extends Component
 
     public function getAllIntegrationTypes(): array
     {
-        if ($this->_groupedIntegrationTypes) {
-            return $this->_groupedIntegrationTypes;
+        if ($this->_getLookupCache()->groupedIntegrationTypes) {
+            return $this->_getLookupCache()->groupedIntegrationTypes;
         }
 
         $addressProviders = [
             addressproviders\Google::class,
-            addressproviders\Algolia::class,
             addressproviders\AddressFinder::class,
             addressproviders\Loqate::class,
             addressproviders\PlaceKit::class,
@@ -93,11 +101,8 @@ class Integrations extends Component
             captchas\CaptchaEu::class,
             captchas\CleanTalk::class,
             captchas\Turnstile::class,
-            captchas\Duplicate::class,
             captchas\FriendlyCaptcha::class,
             captchas\Hcaptcha::class,
-            captchas\Honeypot::class,
-            captchas\Javascript::class,
             captchas\OopSpam::class,
             captchas\Question::class,
             captchas\Recaptcha::class,
@@ -115,7 +120,6 @@ class Integrations extends Component
         $emailMarketing = [
             emailmarketing\ActiveCampaign::class,
             emailmarketing\Adestra::class,
-            emailmarketing\Autopilot::class,
             emailmarketing\AWeber::class,
             emailmarketing\Beehiiv::class,
             emailmarketing\Benchmark::class,
@@ -133,7 +137,6 @@ class Integrations extends Component
             emailmarketing\IContact::class,
             emailmarketing\IterableIntegration::class,
             emailmarketing\Klaviyo::class,
-            emailmarketing\KlaviyoLegacy::class,
             emailmarketing\Mailchimp::class,
             emailmarketing\Mailcoach::class,
             emailmarketing\Mailjet::class,
@@ -143,7 +146,6 @@ class Integrations extends Component
             emailmarketing\Ontraport::class,
             emailmarketing\Ortto::class,
             emailmarketing\Sender::class,
-            emailmarketing\Sendinblue::class,
             emailmarketing\Vero::class,
         ];
 
@@ -159,12 +161,10 @@ class Integrations extends Component
             crm\Flowlu::class,
             crm\Freshsales::class,
             crm\HubSpot::class,
-            crm\HubSpotLegacy::class,
             crm\Infusionsoft::class,
             crm\Insightly::class,
             crm\IterableIntegration::class,
             crm\Klaviyo::class,
-            crm\KlaviyoLegacy::class,
             crm\Marketo::class,
             crm\Maximizer::class,
             crm\Mercury::class,
@@ -236,9 +236,6 @@ class Integrations extends Component
             miscellaneous\Trello::class,
         ];
 
-        // Backward-compatibility until Formie 4
-        $webhooks = [];
-
         $event = new RegisterIntegrationsEvent([
             'addressProviders' => $addressProviders,
             'captchas' => $captchas,
@@ -250,9 +247,6 @@ class Integrations extends Component
             'payments' => $payments,
             'automations' => $automations,
             'miscellaneous' => $miscellaneous,
-
-            // Backward-compatibility until Formie 4
-            'webhooks' => $webhooks,
         ]);
 
         $this->trigger(self::EVENT_REGISTER_INTEGRATIONS, $event);
@@ -267,8 +261,7 @@ class Integrations extends Component
             Integration::TYPE_MESSAGING => $event->messaging,
             Integration::TYPE_PAYMENT => $event->payments,
 
-            // Backward-compatibility until Formie 4
-            Integration::TYPE_AUTOMATION => array_merge(...[$event->automations, $event->webhooks]),
+            Integration::TYPE_AUTOMATION => $event->automations,
             
             Integration::TYPE_MISC => $event->miscellaneous,
         ];
@@ -300,7 +293,7 @@ class Integrations extends Component
             }));
         }, $groupedTypes));
 
-        return $this->_groupedIntegrationTypes = $groupedTypes;
+        return $this->_getLookupCache()->groupedIntegrationTypes = $groupedTypes;
     }
 
     public function getIntegrationTypes($type)
@@ -315,36 +308,167 @@ class Integrations extends Component
 
     public function getAllIntegrationsForType($type): array
     {
-        if (!empty($this->_integrationsByType[$type])) {
-            return $this->_integrationsByType[$type];
+        if (array_key_exists($type, $this->_getLookupCache()->integrationsByType)) {
+            return $this->_getLookupCache()->integrationsByType[$type];
         }
 
-        $this->_integrationsByType[$type] = [];
+        $this->_getLookupCache()->integrationsByType[$type] = [];
 
         $getIntegrationTypes = $this->getIntegrationTypes($type);
 
         foreach ($this->getAllIntegrations() as $integration) {
             if (in_array(get_class($integration), $getIntegrationTypes)) {
-                $this->_integrationsByType[$type][] = $integration;
+                $this->_getLookupCache()->integrationsByType[$type][] = $integration;
             }
         }
 
-        return $this->_integrationsByType[$type];
+        return $this->_getLookupCache()->integrationsByType[$type];
+    }
+
+    public function triggerIntegrations(Submission $submission): void
+    {
+        $settings = Formie::$plugin->getSettings();
+        $form = $submission->getForm();
+
+        if (!$form) {
+            return;
+        }
+
+        foreach ($this->getAllEnabledIntegrationsForForm($form) as $integration) {
+            if (!$integration->supportsPayloadSending()) {
+                continue;
+            }
+
+            $integration->populateContext();
+
+            if ($settings->useQueueForIntegrations) {
+                Queue::push(new TriggerIntegration([
+                    'submissionId' => $submission->id,
+                    'integrationId' => $integration->id,
+                    'integrationHandle' => $integration->handle,
+                    'integrationContext' => $integration->context,
+                ]), $settings->queuePriority);
+
+                continue;
+            }
+
+            $this->sendIntegrationPayload($integration, $submission);
+        }
+    }
+
+    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
+    {
+        $event = new TriggerIntegrationEvent([
+            'submission' => $submission,
+            'type' => get_class($integration),
+            'integration' => $integration,
+        ]);
+        $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
+
+        if (!$event->isValid) {
+            return true;
+        }
+
+        return $integration->sendPayLoad($event->submission);
     }
 
     public function getIntegrationById(int $integrationId): ?IntegrationInterface
     {
-        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'id', $integrationId);
+        if (!$integrationId) {
+            return null;
+        }
+
+        if (array_key_exists($integrationId, $this->_getLookupCache()->integrationsById)) {
+            return $this->_getLookupCache()->integrationsById[$integrationId];
+        }
+
+        return $this->_getLookupCache()->integrationsById[$integrationId] = ArrayHelper::firstWhere($this->getAllIntegrations(), 'id', $integrationId);
     }
 
     public function getIntegrationByUid(string $integrationUid): ?IntegrationInterface
     {
-        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'uid', $integrationUid);
+        if ($integrationUid === '') {
+            return null;
+        }
+
+        if (array_key_exists($integrationUid, $this->_getLookupCache()->integrationsByUid)) {
+            return $this->_getLookupCache()->integrationsByUid[$integrationUid];
+        }
+
+        return $this->_getLookupCache()->integrationsByUid[$integrationUid] = ArrayHelper::firstWhere($this->getAllIntegrations(), 'uid', $integrationUid);
     }
 
     public function getIntegrationByHandle(string $handle): ?IntegrationInterface
     {
-        return ArrayHelper::firstWhere($this->getAllIntegrations(), 'handle', $handle, true);
+        if ($handle === '') {
+            return null;
+        }
+
+        $normalizedHandle = mb_strtolower($handle);
+
+        if (array_key_exists($normalizedHandle, $this->_getLookupCache()->integrationsByHandle)) {
+            return $this->_getLookupCache()->integrationsByHandle[$normalizedHandle];
+        }
+
+        return $this->_getLookupCache()->integrationsByHandle[$normalizedHandle] = ArrayHelper::firstWhere($this->getAllIntegrations(), 'handle', $handle, true);
+    }
+
+    /**
+     * Returns an integration or captcha by handle from the form builder list (getAllIntegrationsForForm).
+     * Use this when resolving by handle for form settings config; getIntegrationByHandle only checks DB integrations.
+     */
+    public function getFormIntegrationByHandle(string $handle): ?IntegrationInterface
+    {
+        $grouped = $this->getAllIntegrationsForForm();
+        foreach ($grouped as $integrations) {
+            $found = ArrayHelper::firstWhere($integrations, 'handle', $handle, true);
+            if ($found !== null) {
+                return $found;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns form builder config for one integration: compiled schema and current values for settings.integrations[handle].
+     */
+    public function getIntegrationFormSettingsConfig(string $handle, FormInterface $form): ?array
+    {
+        $integration = $this->getFormIntegrationByHandle($handle);
+
+        if ($integration === null) {
+            $integration = $this->getIntegrationByHandle($handle) ?? $this->getCaptchaByHandle($handle);
+        }
+
+        if ($integration === null) {
+            return null;
+        }
+
+        $formSettings = $form->getSettings();
+        $saved = $formSettings ? ($formSettings->integrations[$handle] ?? []) : [];
+        if (is_object($saved)) {
+            if (method_exists($saved, 'getAttributes')) {
+                $saved = $saved->getAttributes() ?? [];
+            } else {
+                // Form settings can contain stdClass payloads from decoded JSON.
+                // Normalize recursively to arrays so defaults hydrate correctly.
+                $saved = Json::decode(Json::encode($saved));
+            }
+        }
+        if (!is_array($saved)) {
+            $saved = [];
+        }
+        $integration->setAttributes($saved, false);
+
+        $schema = $integration->getFormSettingsSchema($form);
+        $compiled = SchemaHelper::compileSchema($schema);
+
+        return [
+            'schema' => $compiled['schema'],
+            'schemaIndex' => $compiled,
+            'defaultValues' => $saved,
+        ];
     }
 
     public function createIntegrationConfig(IntegrationInterface $integration): array
@@ -452,7 +576,7 @@ class Integrations extends Component
         }
 
         // Clear caches
-        $this->_integrations = null;
+        $this->_resetIntegrationCaches();
 
         $integration = $this->getIntegrationById($integrationRecord->id);
         $integration->afterSave($isNewIntegration);
@@ -585,7 +709,7 @@ class Integrations extends Component
         }
 
         // Clear caches
-        $this->_integrations = null;
+        $this->_resetIntegrationCaches();
 
         // Fire an 'afterDeleteIntegration' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_INTEGRATION)) {
@@ -598,49 +722,121 @@ class Integrations extends Component
     public function getAllIntegrationsForForm(): array
     {
         $grouped = [];
+        $hasModifyFormIntegrationHandlers = $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION);
 
         foreach ($this->getAllCaptchas() as $key => $captcha) {
             if ($captcha->getEnabled() && $captcha->hasFormSettings()) {
-                // Fire a 'modifyFormIntegration' event
-                $event = new ModifyFormIntegrationEvent([
-                    'integration' => $captcha,
-                ]);
-                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                $resolvedIntegration = $captcha;
 
-                $grouped[$captcha->typeName()][] = $event->integration;
+                // Fire a 'modifyFormIntegration' event only when handlers exist.
+                if ($hasModifyFormIntegrationHandlers) {
+                    $event = new ModifyFormIntegrationEvent([
+                        'integration' => $captcha,
+                    ]);
+                    $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                    $resolvedIntegration = $event->integration;
+                }
+
+                $grouped[$resolvedIntegration->typeName()][] = $resolvedIntegration;
             }
         }
 
         foreach ($this->getAllIntegrations() as $key => $integration) {
             if ($integration->getEnabled() && $integration->hasFormSettings()) {
-                // Fire a 'modifyFormIntegration' event
-                $event = new ModifyFormIntegrationEvent([
-                    'integration' => $integration,
-                ]);
-                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                $resolvedIntegration = $integration;
 
-                $grouped[$integration->typeName()][] = $event->integration;
+                // Fire a 'modifyFormIntegration' event only when handlers exist.
+                if ($hasModifyFormIntegrationHandlers) {
+                    $event = new ModifyFormIntegrationEvent([
+                        'integration' => $integration,
+                    ]);
+                    $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                    $resolvedIntegration = $event->integration;
+                }
+
+                $grouped[$resolvedIntegration->typeName()][] = $resolvedIntegration;
             }
         }
 
         return $grouped;
     }
 
+    /**
+     * Returns a lightweight list of integrations for the form builder left panel (group, handle, name, icon, enabled).
+     * Use this in the form builder bootstrap instead of getAllIntegrationsForForm() to avoid sending full integration objects and schemas.
+     */
+    public function getIntegrationSummariesForForm(): array
+    {
+        $summaries = [];
+        $hasModifyFormIntegrationHandlers = $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION);
+        $resolveSummaryIconUrl = function(IntegrationInterface $integration): string {
+            return $integration->getCpIconUrl();
+        };
+
+        $appendSummary = function(IntegrationInterface $integration) use (&$summaries, $hasModifyFormIntegrationHandlers, $resolveSummaryIconUrl) {
+            if (!$integration->getEnabled() || !$integration->hasFormSettings()) {
+                return;
+            }
+
+            $resolvedIntegration = $integration;
+
+            if ($hasModifyFormIntegrationHandlers) {
+                $event = new ModifyFormIntegrationEvent([
+                    'integration' => $integration,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                $resolvedIntegration = $event->integration;
+            }
+
+            $groupName = $resolvedIntegration->typeName();
+            
+            $summaries[$groupName][] = [
+                'handle' => $resolvedIntegration->getHandle(),
+                'name' => $resolvedIntegration->getName(),
+                'description' => $resolvedIntegration->getDescription(),
+                'enabled' => $resolvedIntegration->getEnabled(false),
+                'icon' => $resolveSummaryIconUrl($resolvedIntegration),
+                'supportsRefresh' => method_exists($resolvedIntegration, 'supportsFormSettingsRefresh') ? $resolvedIntegration->supportsFormSettingsRefresh() : false,
+            ];
+        };
+
+        foreach ($this->getAllCaptchas() as $captcha) {
+            $appendSummary($captcha);
+        }
+
+        foreach ($this->getAllIntegrations() as $integration) {
+            $appendSummary($integration);
+        }
+
+        return $summaries;
+    }
+
     public function getAllEnabledIntegrationsForForm(Form $form): array
     {
+        $cacheKey = $this->_getFormRequestCacheKey($form);
+        $cache = $this->_getLookupCache();
+
+        if (array_key_exists($cacheKey, $cache->enabledIntegrationsByForm)) {
+            return $cache->enabledIntegrationsByForm[$cacheKey];
+        }
+
         $enabledIntegrations = [];
+        $integrationsByHandle = [];
+        $hasModifyFormIntegrationHandlers = $this->hasEventHandlers(self::EVENT_MODIFY_FORM_INTEGRATION);
 
         // Use all integrations + captchas
-        $integrations = array_merge($this->getAllIntegrations(), $this->getAllCaptchas());
+        foreach (array_merge($this->getAllIntegrations(), $this->getAllCaptchas()) as $integration) {
+            $resolvedIntegration = $integration;
 
-        foreach ($integrations as $key => $integration) {
-            // Fire a 'modifyFormIntegration' event
-            $event = new ModifyFormIntegrationEvent([
-                'integration' => $integration,
-            ]);
-            $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+            if ($hasModifyFormIntegrationHandlers) {
+                $event = new ModifyFormIntegrationEvent([
+                    'integration' => $integration,
+                ]);
+                $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATION, $event);
+                $resolvedIntegration = $event->integration;
+            }
 
-            $integrations[$key] = $event->integration;
+            $integrationsByHandle[$resolvedIntegration->handle] = $resolvedIntegration;
         }
 
         // Find all the form-enabled integrations
@@ -648,29 +844,34 @@ class Integrations extends Component
         $enabledFormSettings = ArrayHelper::where($formIntegrationSettings, 'enabled', true);
 
         foreach ($enabledFormSettings as $handle => $formSettings) {
-            $integration = ArrayHelper::firstWhere($integrations, 'handle', $handle);
+            $integration = $integrationsByHandle[$handle] ?? null;
 
             // If this disabled globally? Then don't include it, otherwise populate the settings
             if ($integration && $integration->getEnabled()) {
-                $integration->setAttributes($formSettings, false);
+                $resolvedIntegration = clone $integration;
+                $resolvedIntegration->setAttributes($formSettings, false);
 
-                $enabledIntegrations[] = $integration;
+                $enabledIntegrations[] = $resolvedIntegration;
             }
         }
 
         // Fire a 'modifyFormIntegrations' event
         $event = new ModifyFormIntegrationsEvent([
-            'allIntegrations' => $integrations,
+            'allIntegrations' => array_values($integrationsByHandle),
             'integrations' => $enabledIntegrations,
             'form' => $form,
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_INTEGRATIONS, $event);
 
-        return $event->integrations;
+        return $cache->enabledIntegrationsByForm[$cacheKey] = $event->integrations;
     }
 
     public function getAllCaptchas(): array
     {
+        if ($this->_getLookupCache()->captchas !== null) {
+            return $this->_getLookupCache()->captchas;
+        }
+
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
@@ -686,7 +887,7 @@ class Integrations extends Component
             $captchas[] = $this->createIntegration($config);
         }
 
-        return $captchas;
+        return $this->_getLookupCache()->captchas = $captchas;
     }
 
     public function getAllGroupedCaptchas(): array
@@ -704,13 +905,42 @@ class Integrations extends Component
 
     public function getCaptchaByHandle(string $handle): ?IntegrationInterface
     {
-        return ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
+        if ($handle === '') {
+            return null;
+        }
+
+        if (array_key_exists($handle, $this->_getLookupCache()->captchasByHandle)) {
+            return $this->_getLookupCache()->captchasByHandle[$handle];
+        }
+
+        return $this->_getLookupCache()->captchasByHandle[$handle] = ArrayHelper::firstWhere($this->getAllCaptchas(), 'handle', $handle, false);
+    }
+
+    public function getGqlCaptchaArgumentsForForm(Form $form): array
+    {
+        $cacheKey = $this->_getGqlCaptchaArgumentsCacheKey($form);
+
+        if (array_key_exists($cacheKey, $this->_getLookupCache()->captchaArgumentsByForm)) {
+            return $this->_getLookupCache()->captchaArgumentsByForm[$cacheKey];
+        }
+
+        $captchaArguments = [];
+
+        foreach ($this->getAllEnabledCaptchasForForm($form) as $captcha) {
+            $handle = $captcha->getGqlHandle();
+
+            $captchaArguments[$handle] = [
+                'name' => $handle,
+                'type' => CaptchaInputType::getType(),
+            ];
+        }
+
+        return $this->_getLookupCache()->captchaArgumentsByForm[$cacheKey] = $captchaArguments;
     }
 
     public function getAllEnabledCaptchasForForm(Form $form, FieldLayoutPage $page = null, bool $force = false): array
     {
         $captchas = [];
-        $integrations = $this->getAllEnabledIntegrationsForForm($form);
 
         // If we're editing a submission from the front-end, don't enable captchas
         if ($form->isEditingSubmission()) {
@@ -721,6 +951,8 @@ class Integrations extends Component
         if ($form->settings->disableCaptchas) {
             return $captchas;
         }
+
+        $integrations = $this->getAllEnabledIntegrationsForForm($form);
 
         foreach ($integrations as $integration) {
             if ($integration instanceof Captcha) {
@@ -750,7 +982,7 @@ class Integrations extends Component
         $captchas = $this->getAllEnabledCaptchasForForm($form, $page);
 
         foreach ($captchas as $captcha) {
-            $html .= $captcha->getFrontEndHtml($form, $page);
+            $html .= $captcha->renderHtml($form, $page);
         }
 
         return $html;
@@ -795,6 +1027,8 @@ class Integrations extends Component
 
         $integration->afterSave(false);
 
+        $this->_resetIntegrationCaches();
+
         return true;
     }
 
@@ -815,6 +1049,38 @@ class Integrations extends Component
         }
 
         return $this->_integrations;
+    }
+
+    private function _getLookupCache(): IntegrationLookupCache
+    {
+        if ($this->_lookupCache === null) {
+            $this->_lookupCache = new IntegrationLookupCache();
+        }
+
+        return $this->_lookupCache;
+    }
+
+    private function _resetIntegrationCaches(): void
+    {
+        $this->_integrations = null;
+        $this->_lookupCache?->reset();
+    }
+
+    private function _getGqlCaptchaArgumentsCacheKey(Form $form): string
+    {
+        return $this->_getFormRequestCacheKey($form);
+    }
+
+    private function _getFormRequestCacheKey(Form $form): string
+    {
+        $formId = (int)($form->id ?? 0);
+        $siteId = (int)($form->siteId ?? 0);
+
+        if ($formId) {
+            return 'id:' . $formId . ':site:' . $siteId;
+        }
+
+        return 'obj:' . spl_object_id($form);
     }
 
     private function _createIntegrationQuery(): Query

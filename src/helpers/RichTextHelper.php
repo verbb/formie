@@ -3,7 +3,7 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\prosemirror\tohtml\Renderer as HtmlRenderer;
+use verbb\formie\models\RichText;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -41,39 +41,12 @@ class RichTextHelper
 
     public static function getHtmlContent(mixed $content, ?Submission $submission = null, bool $nl2br = true): string
     {
-        if (is_string($content)) {
-            $content = Json::decodeIfJson($content);
-        }
-
-        $renderer = new HtmlRenderer();
-        $renderer->addNode(VariableNode::class);
-
-        $html = $renderer->render([
-            'type' => 'doc',
-            'content' => $content,
-        ]);
-
-        // Strip out paragraphs, replace with `<br>`
-        if ($nl2br) {
-            $html = str_replace(['<p>', '</p>'], ['', '<br>'], $html);
-            $html = preg_replace('/(<br>)+$/', '', $html);
-        }
-
-        if ($submission) {
-            // Ensure to translate _before_ variables are replaced
-            $html = Craft::t('formie', $html);
-
-            $html = Variables::getParsedValue($html, $submission);
-        }
-
-        // Prosemirror will use `htmlentities` for special characters, but doesn't play nice
-        // with static translations. Convert them back.
-        return html_entity_decode($html);
+        return RichText::from($content)->toHtml($submission, $nl2br);
     }
 
     public static function normalizeNodes(mixed $content): array|string
     {
-        return str_replace(['bullet_list', 'code_block', 'hard_break', 'horizontal_rule', 'list_item', 'ordered_list'], ['bulletList', 'codeBlock', 'hardBreak', 'horizontalRule', 'listItem', 'orderedList'], $content);
+        return RichText::normalizeNodes($content);
     }
 
 

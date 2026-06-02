@@ -2,39 +2,35 @@
 namespace verbb\formie\services;
 
 use verbb\formie\Formie;
-use verbb\formie\base\FieldInterface;
 use verbb\formie\base\Integration;
-use verbb\formie\base\SingleNestedFieldInterface;
-use verbb\formie\base\SubFieldInterface;
+use verbb\formie\base\FixedParentFieldInterface;
+use verbb\formie\base\ParentFieldInterface;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SearchableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\controllers\SubmissionsController;
+use verbb\formie\deprecations\SubmissionsDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
-use verbb\formie\elements\db\SubmissionQuery;
 use verbb\formie\events\PruneSubmissionEvent;
-use verbb\formie\events\SendNotificationEvent;
-use verbb\formie\events\SubmissionEvent;
-use verbb\formie\events\SubmissionSpamCheckEvent;
-use verbb\formie\events\TriggerIntegrationEvent;
-use verbb\formie\fields\data\MultiOptionsFieldData;
+use verbb\formie\fields\values\AddressFieldValue;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
-use verbb\formie\helpers\SpamHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
-use verbb\formie\jobs\SendNotification;
-use verbb\formie\jobs\TriggerIntegration;
 use verbb\formie\jobs\UpdateSubmissionContent;
-use verbb\formie\models\Address;
+use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\IntegrationResponse;
-use verbb\formie\models\Name;
 use verbb\formie\models\Notification;
 use verbb\formie\models\Settings;
 
 use Craft;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
+use craft\base\Element;
 use craft\db\Query;
+use craft\db\Table as CraftTable;
 use craft\elements\db\ElementQuery;
 use craft\elements\Asset;
 use craft\elements\User;
@@ -42,18 +38,19 @@ use craft\events\DefineSourceSortOptionsEvent;
 use craft\events\DefineSourceTableAttributesEvent;
 use craft\events\DefineUserContentSummaryEvent;
 use craft\events\IndexKeywordsEvent;
-use craft\events\SearchEvent;
-use craft\helpers\App;
 use craft\helpers\Console;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\Queue;
+use craft\helpers\Search as SearchHelper;
+use craft\helpers\Session;
 
 use yii\base\Event;
 use yii\base\Component;
 
 use DateInterval;
 use DateTime;
+use DateTimeZone;
 use Throwable;
 use Exception;
 
@@ -65,16 +62,24 @@ class Submissions extends Component
     // Constants
     // =========================================================================
 
-    public const EVENT_BEFORE_SUBMISSION = 'beforeSubmission';
-    public const EVENT_BEFORE_INCOMPLETE_SUBMISSION = 'beforeIncompleteSubmission';
-    public const EVENT_AFTER_SUBMISSION = 'afterSubmission';
-    public const EVENT_AFTER_INCOMPLETE_SUBMISSION = 'afterIncompleteSubmission';
-    public const EVENT_BEFORE_SPAM_CHECK = 'beforeSpamCheck';
-    public const EVENT_AFTER_SPAM_CHECK = 'afterSpamCheck';
-    public const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
-    public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
     public const EVENT_AFTER_PRUNE_SUBMISSION = 'afterPruneSubmission';
 
+    // Legacy - remove at next breakpoint.
+    public const EVENT_BEFORE_SEND_NOTIFICATION = 'beforeSendNotification';
+    public const EVENT_BEFORE_TRIGGER_INTEGRATION = 'beforeTriggerIntegration';
+
+
+    // Traits
+    // =========================================================================
+    
+    use SubmissionsDeprecations;
+
+
+    // Properties
+    // =========================================================================
+
+    private array $_indexedSearchRows = [];
+    
 
     // Public Methods
     // =========================================================================
@@ -88,6 +93,31 @@ class Submissions extends Component
         return Craft::$app->getElements()->getElementById($id, Submission::class, $siteId, $criteria);
     }
 
+    public function sendNotifications(Submission $submission): void
+    {
+        Formie::$plugin->getNotifications()->sendNotifications($submission);
+    }
+
+    public function sendNotification(Notification $notification, Submission $submission, ?bool $useQueue = null): void
+    {
+        Formie::$plugin->getNotifications()->sendNotification($notification, $submission, $useQueue);
+    }
+
+    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
+    {
+        return Formie::$plugin->getNotifications()->sendNotificationEmail($notification, $submission, $queueJob);
+    }
+
+    public function triggerIntegrations(Submission $submission): void
+    {
+        Formie::$plugin->getIntegrations()->triggerIntegrations($submission);
+    }
+
+    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
+    {
+        return Formie::$plugin->getIntegrations()->sendIntegrationPayload($integration, $submission);
+    }
+
     public function defineSourceTableAttributes(DefineSourceTableAttributesEvent $event): void
     {
         if ($event->elementType !== Submission::class) {
@@ -97,7 +127,7 @@ class Submissions extends Component
         if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($fields = Formie::$plugin->getFields()->getAllFieldsForForm($matches[1]))) {
             foreach ($fields as $field) {
                 if ($field instanceof PreviewableFieldInterface) {
-                    $event->attributes["field:{$field->handle}"] = ['label' => $field->label];
+                    $event->attributes["field:{$field->uid}"] = ['label' => $field->label];
                 }
             }
         }
@@ -112,7 +142,7 @@ class Submissions extends Component
         if (preg_match('/^form:(\d+)$/', $event->source, $matches) && ($fields = Formie::$plugin->getFields()->getAllFieldsForForm($matches[1]))) {
             foreach ($fields as $field) {
                 if ($field instanceof SortableFieldInterface) {
-                    $event->sortOptions["field:{$field->handle}"] = $field->getSortOption();
+                    $event->sortOptions["field:{$field->uid}"] = $field->getSortOption();
                 }
             }
         }
@@ -124,217 +154,92 @@ class Submissions extends Component
             return;
         }
 
-        if (!$event->element->hasSearchIndexAttribute($event->attribute)) {
-            $event->isValid = false;
-        }
-    }
+        $submission = $event->element;
+        $cacheKey = "{$submission->id}:{$submission->siteId}";
 
-    public function beforeSearch(SearchEvent $event)
-    {
-        if (!($event->elementQuery instanceof SubmissionQuery)) {
-            return;
-        }
-    }
-
-    public function onBeforeSubmission(Submission $submission, string $submitAction = 'submit'): void
-    {
-        $event = new SubmissionEvent([
-            'submission' => $submission,
-            'submitAction' => $submitAction,
-        ]);
-
-        if ($submission->isIncomplete) {
-            // Fire an 'beforeIncompleteSubmission' event
-            $this->trigger(self::EVENT_BEFORE_INCOMPLETE_SUBMISSION, $event);
-
-            return;
+        // Craft can index immediately or via queued jobs. Populate Formie field-index rows
+        // the first time this submission is indexed in the current request.
+        if (!isset($this->_indexedSearchRows[$cacheKey])) {
+            $this->_indexedSearchRows[$cacheKey] = true;
+            $this->indexSubmissionFieldRows($submission);
         }
 
-        // Fire an 'beforeSubmission' event
-        $this->trigger(self::EVENT_BEFORE_SUBMISSION, $event);
+        // No need to filter Craft's own element-attribute indexing here.
+        // Submission field values are indexed separately via `indexSubmissionFieldRows()`.
     }
 
-    public function onAfterSubmission(bool $success, Submission $submission, string $submitAction = 'submit'): void
+    public function clearSubmissionIndexRows(Submission $submission): void
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
+        $fieldIds = [];
 
-        // Check to see if this is an incomplete submission. Return immediately, but fire an event
-        if ($submission->isIncomplete) {
-            // Fire an 'afterIncompleteSubmission' event
-            $event = new SubmissionEvent([
-                'submission' => $submission,
-                'submitAction' => $submitAction,
-                'success' => $success,
-            ]);
-
-            // Default handled state, only for backward compatibility to return early
-            $event->handled = true;
-
-            $this->trigger(self::EVENT_AFTER_INCOMPLETE_SUBMISSION, $event);
-
-            if ($event->handled) {
-                return;
+        foreach ($submission->getFields() as $field) {
+            if ($field->id) {
+                $fieldIds[] = (int)$field->id;
             }
         }
 
-        // Check if the submission is spam
-        if ($submission->isSpam) {
-            $success = false;
-        }
-
-        // Trigger any payment integrations - but note these can fail
-        if ($success && !$this->processPayments($submission)) {
-            $success = false;
-        }
-
-        // Fire an 'afterSubmission' event
-        $event = new SubmissionEvent([
-            'submission' => $submission,
-            'submitAction' => $submitAction,
-            'success' => $success,
-        ]);
-        $this->trigger(self::EVENT_AFTER_SUBMISSION, $event);
-
-        if (!$submission->isIncomplete) {
-            if ($event->success) {
-                // Send off some emails, if all good!
-                $this->sendNotifications($event->submission);
-
-                // Trigger any integrations
-                $this->triggerIntegrations($event->submission);
-            } else if ($submission->isSpam && $settings->spamEmailNotifications) {
-                // Special-case for wanting to send emails for spam
-                $this->sendNotifications($event->submission);
-            }
-        }
-    }
-
-    public function sendNotifications(Submission $submission): void
-    {
-        // Get all enabled notifications, and push them to the queue for performance
-        $form = $submission->getForm();
-        $notifications = $form->getEnabledNotifications();
-
-        foreach ($notifications as $notification) {
-            $this->sendNotification($notification, $submission);
-        }
-    }
-
-    public function sendNotification(Notification $notification, Submission $submission): void
-    {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        // Evaluate conditions for each notification
-        if (!Formie::$plugin->getNotifications()->evaluateConditions($notification, $submission)) {
+        if (!$fieldIds) {
             return;
         }
 
-        if ($settings->useQueueForNotifications) {
-            Queue::push(new SendNotification([
-                'submissionId' => $submission->id,
-                'notificationId' => $notification->id,
-            ]), $settings->queuePriority);
-        } else {
-            $this->sendNotificationEmail($notification, $submission);
-        }
-    }
-
-    public function sendNotificationEmail(Notification $notification, Submission $submission, $queueJob = null): array|bool
-    {
-        // Fire a 'beforeSendNotification' event
-        $event = new SendNotificationEvent([
-            'submission' => $submission,
-            'notification' => $notification,
+        Db::delete(CraftTable::SEARCHINDEX, [
+            'elementId' => $submission->id,
+            'siteId' => $submission->siteId,
+            'attribute' => 'field',
+            'fieldId' => $fieldIds,
         ]);
-        $this->trigger(self::EVENT_BEFORE_SEND_NOTIFICATION, $event);
-
-        if (!$event->isValid) {
-            return true;
-        }
-
-        return Formie::$plugin->getEmails()->sendEmail($event->notification, $event->submission, $queueJob);
     }
 
-    public function triggerIntegrations(Submission $submission): void
+    public function indexSubmissionFieldRows(Submission $submission): void
     {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
+        $this->clearSubmissionIndexRows($submission);
 
-        $form = $submission->getForm();
+        $site = $submission->getSite();
+        $db = Craft::$app->getDb();
 
-        $integrations = Formie::$plugin->getIntegrations()->getAllEnabledIntegrationsForForm($form);
-
-        foreach ($integrations as $integration) {
-            if (!$integration->supportsPayloadSending()) {
+        foreach ($submission->getFields() as $field) {
+            if (!($field instanceof SearchableFieldInterface) || !$field->isSearchableField()) {
                 continue;
             }
 
-            // Allow integrations to add extra data before running
-            $integration->populateContext();
-
-            if ($settings->useQueueForIntegrations) {
-                Queue::push(new TriggerIntegration([
-                    'submissionId' => $submission->id,
-                    'integration' => $integration,
-                ]), $settings->queuePriority);
-            } else {
-                $this->sendIntegrationPayload($integration, $submission);
+            if (!$field->id || $field->getIsCosmetic()) {
+                continue;
             }
-        }
-    }
 
-    public function sendIntegrationPayload(Integration $integration, Submission $submission): bool|IntegrationResponse
-    {
-        // Fire a 'beforeTriggerIntegration' event
-        $event = new TriggerIntegrationEvent([
-            'submission' => $submission,
-            'type' => get_class($integration),
-            'integration' => $integration,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_TRIGGER_INTEGRATION, $event);
-
-        if (!$event->isValid) {
-            return true;
-        }
-
-        return $integration->sendPayLoad($event->submission);
-    }
-
-    public function processPayments(Submission $submission): bool
-    {
-        foreach ($submission->getFields() as $field) {
-            if ($field instanceof formiefields\Payment) {
-                // No need to proceed further if field is conditionally hidden or disabled
-                if ($field->isConditionallyHidden($submission) || $field->getIsDisabled()) {
-                    continue;
-                }
-                
-                if ($paymentIntegration = $field->getPaymentIntegration()) {
-                    // Set the payment field on the integration, for ease-of-use
-                    $paymentIntegration->setField($field);
-
-                    if (!$paymentIntegration->processPayment($submission)) {
-                        // Because payment processing happens after a submission has been completed, and an error has occurred,
-                        // switch the submission back to incomplete and re-save to prevent it from completing normally.
-                        $submission->isIncomplete = true;
-
-                        Craft::$app->getElements()->saveElement($submission, false);
-
-                        return false;
-                    }
-                }
+            try {
+                $fieldValue = $submission->getFieldValue($field->handle);
+                $keywords = $field->getSearchKeywords($fieldValue, $submission);
+            } catch (Throwable) {
+                continue;
             }
-        }
 
-        return true;
+            $keywords = SearchHelper::normalizeKeywords($keywords, [], true, $site->language);
+
+            if ($keywords === '') {
+                continue;
+            }
+
+            $keywords = " $keywords ";
+            $columns = [
+                'elementId' => $submission->id,
+                'attribute' => 'field',
+                'fieldId' => (int)$field->id,
+                'siteId' => $site->id,
+                'keywords' => $keywords,
+            ];
+            $updateColumns = ['keywords' => $keywords];
+
+            if ($db->getIsPgsql()) {
+                $columns['keywords_vector'] = $keywords;
+                $updateColumns['keywords_vector'] = $keywords;
+            }
+
+            $db->createCommand()->upsert(CraftTable::SEARCHINDEX, $columns, $updateColumns)->execute();
+        }
     }
 
     public function pruneIncompleteSubmissions($consoleInstance = null): void
     {
-        App::maxPowerCaptain();
-
         /* @var Settings $settings */
         $settings = Formie::$plugin->getSettings();
 
@@ -354,21 +259,9 @@ class Submissions extends Component
 
         foreach ($submissions as $submission) {
             try {
-                $success = Craft::$app->getElements()->deleteElement($submission, true);
-
-                if ($consoleInstance) {
-                    if ($success) {
-                        $consoleInstance->stdout("Pruned incomplete submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
-                    } else {
-                        throw new Exception(Json::encode($submission->getErrors()));
-                    }
-                }
+                Craft::$app->getElements()->deleteElement($submission, true);
             } catch (Throwable $e) {
-                Formie::error("Failed to prune incomplete submission with ID: #{$submission->id}." . $e->getMessage());
-
-                if ($consoleInstance) {
-                    $consoleInstance->stdout("Failed to prune incomplete submission with ID: #{$submission->id}. " . $e->getMessage() . PHP_EOL, Console::FG_RED);
-                }
+                Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
 
@@ -391,14 +284,10 @@ class Submissions extends Component
 
             foreach ($submissions as $submission) {
                 try {
-                    $success = Craft::$app->getElements()->deleteElement($submission, true);
+                    Craft::$app->getElements()->deleteElement($submission, true);
 
                     if ($consoleInstance) {
-                        if ($success) {
-                            $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
-                        } else {
-                            throw new Exception(Json::encode($submission->getErrors()));
-                        }
+                        $consoleInstance->stdout("Pruned spam submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     }
                 } catch (Throwable $e) {
                     Formie::error("Failed to prune spam submission with ID: #{$submission->id}." . $e->getMessage());
@@ -413,8 +302,6 @@ class Submissions extends Component
 
     public function pruneDataRetentionSubmissions($consoleInstance = null): void
     {
-        App::maxPowerCaptain();
-
         // Find all the forms with data retention settings
         $forms = (new Query())
             ->select(['id', 'handle', 'dataRetention', 'dataRetentionValue'])
@@ -493,7 +380,7 @@ class Submissions extends Component
 
             foreach ($submissions as $submission) {
                 try {
-                    $success = Craft::$app->getElements()->deleteElement($submission, true);
+                    Craft::$app->getElements()->deleteElement($submission, true);
 
                     $event = new PruneSubmissionEvent([
                         'submission' => $submission,
@@ -501,11 +388,7 @@ class Submissions extends Component
                     $this->trigger(self::EVENT_AFTER_PRUNE_SUBMISSION, $event);
 
                     if ($consoleInstance) {
-                        if ($success) {
-                            $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
-                        } else {
-                            throw new Exception(Json::encode($submission->getErrors()));
-                        }
+                        $consoleInstance->stdout("Pruned submission with ID: #{$submission->id}." . PHP_EOL, Console::FG_GREEN);
                     }
                 } catch (Throwable $e) {
                     Formie::error("Failed to prune submission with ID: #{$submission->id}." . $e->getMessage());
@@ -520,8 +403,6 @@ class Submissions extends Component
 
     public function defineUserSubmissions(DefineUserContentSummaryEvent $event): void
     {
-        App::maxPowerCaptain();
-
         $userIds = Craft::$app->getRequest()->getRequiredBodyParam('userId');
 
         $submissionCount = Submission::find()
@@ -538,8 +419,6 @@ class Submissions extends Component
 
     public function deleteUserSubmissions(Event $event): void
     {
-        App::maxPowerCaptain();
-
         /** @var User $user */
         $user = $event->sender;
 
@@ -564,7 +443,7 @@ class Submissions extends Component
             // We just want to delete each submission - bye!
             foreach ($submissions as $submission) {
                 try {
-                    $success = Craft::$app->getElements()->deleteElement($submission);
+                    Craft::$app->getElements()->deleteElement($submission);
                 } catch (Throwable $e) {
                     Formie::error("Failed to delete user submission with ID: #{$submission->id}." . $e->getMessage());
                 }
@@ -574,8 +453,6 @@ class Submissions extends Component
 
     public function restoreUserSubmissions(Event $event): void
     {
-        App::maxPowerCaptain();
-        
         /** @var User $user */
         $user = $event->sender;
 
@@ -594,56 +471,6 @@ class Submissions extends Component
                 Formie::error("Failed to restore user submission with ID: #{$submission->id}." . $e->getMessage());
             }
         }
-    }
-
-    public function spamChecks(Submission $submission): void
-    {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        // Fire an 'beforeSpamCheck' event
-        $event = new SubmissionSpamCheckEvent([
-            'submission' => $submission,
-        ]);
-        $this->trigger(self::EVENT_BEFORE_SPAM_CHECK, $event);
-
-        // Is it already spam?
-        if (!$submission->isSpam) {
-            // Start evaluating keyword rules
-            $fieldValues = implode(' ', $submission->getValuesAsString());
-            $spamEvaluation = SpamHelper::checkContent($fieldValues);
-
-            if ($spamEvaluation) {
-                if ($spamEvaluation['type'] === 'text') {
-                    $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned keyword: “{c}”', ['c' => $spamEvaluation['value']]);
-                }
-
-                if ($spamEvaluation['type'] === 'ip') {
-                    $submission->isSpam = true;
-                    $submission->spamReason = Craft::t('formie', 'Contains banned IP: “{c}”', ['c' => $spamEvaluation['value']]);
-                }
-            }
-        }
-
-        // Fire an 'afterSpamCheck' event
-        $event = new SubmissionSpamCheckEvent([
-            'submission' => $submission,
-        ]);
-        $this->trigger(self::EVENT_AFTER_SPAM_CHECK, $event);
-    }
-
-    public function logSpam(Submission $submission): void
-    {
-        $fieldValues = $submission->getSerializedFieldValues();
-        $fieldValues = array_filter($fieldValues);
-
-        $error = Craft::t('formie', 'Submission marked as spam - “{r}” - {j}.', [
-            'r' => $submission->spamReason,
-            'j' => Json::encode($fieldValues),
-        ]);
-
-        Formie::info($error);
     }
 
     public function populateFakeSubmission(Submission $submission): void
@@ -678,6 +505,19 @@ class Submissions extends Component
         }
     }
 
+    public function logSpam(Submission $submission): void
+    {
+        $fieldValues = $submission->getSerializedFieldValues();
+        $fieldValues = array_filter($fieldValues);
+
+        $error = Craft::t('formie', 'Submission marked as spam - “{r}” - {j}.', [
+            'r' => $submission->spamReason,
+            'j' => Json::encode($fieldValues),
+        ]);
+
+        Formie::info($error);
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -695,14 +535,4 @@ class Submissions extends Component
         return $fieldContent;
     }
 
-    private function _getArrayFromMultiline(?string $string): array
-    {
-        $array = [];
-
-        if ($string) {
-            $array = array_map('trim', explode(PHP_EOL, $string));
-        }
-
-        return array_filter($array);
-    }
 }

@@ -1,0 +1,394 @@
+{
+  "timestamp": "2026-03-01T21:48:22.484Z",
+  "runId": "run-2026-03-01T21-46-42-882Z",
+  "builderUrl": "https://formie-react.test/admin/formie/forms/edit/5369/fields/page1",
+  "iterations": 2,
+  "modalOpenBudgetMs": 500,
+  "passed": true,
+  "scenarioCount": 10,
+  "failedScenarioCount": 0,
+  "scenarios": [
+    {
+      "name": "iter1-add-edit-delete-reorder",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 31637,
+      "steps": [
+        {
+          "step": "add Single-Line Text and apply",
+          "ok": true,
+          "elapsedMs": 7066,
+          "data": {
+            "openMs": 124
+          }
+        },
+        {
+          "step": "add Email and apply",
+          "ok": true,
+          "elapsedMs": 6378,
+          "data": {
+            "openMs": 84
+          }
+        },
+        {
+          "step": "add Multi-Line Text and apply",
+          "ok": true,
+          "elapsedMs": 6420,
+          "data": {
+            "openMs": 97
+          }
+        },
+        {
+          "step": "add Dropdown and apply",
+          "ok": true,
+          "elapsedMs": 6420,
+          "data": {
+            "openMs": 110
+          }
+        },
+        {
+          "step": "drag first field to end",
+          "ok": true,
+          "elapsedMs": 3,
+          "data": {
+            "skipped": true,
+            "reason": "Not enough fields to reorder."
+          }
+        },
+        {
+          "step": "open first field and delete",
+          "ok": true,
+          "elapsedMs": 5350,
+          "data": {
+            "deleted": true
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter1-nested-subfield-loops",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 7105,
+      "steps": [
+        {
+          "step": "add Address and apply",
+          "ok": true,
+          "elapsedMs": 6438,
+          "data": {
+            "openMs": 84
+          }
+        },
+        {
+          "step": "reopen Address and apply twice",
+          "ok": true,
+          "elapsedMs": 667,
+          "data": {
+            "loops": 2
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter1-payment-provider-flow",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 732,
+      "steps": [
+        {
+          "step": "add Payment and open modal quickly",
+          "ok": true,
+          "elapsedMs": 115,
+          "data": {
+            "openMs": 88
+          }
+        },
+        {
+          "step": "set provider if possible and apply",
+          "ok": true,
+          "elapsedMs": 291,
+          "data": {
+            "switched": false,
+            "reason": "No detectable native provider selector."
+          }
+        },
+        {
+          "step": "reopen Payment and try provider switch",
+          "ok": true,
+          "elapsedMs": 326,
+          "data": {
+            "switched": false,
+            "reason": "No detectable native provider selector."
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter1-large-form-interaction-loop",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 305,
+      "steps": [
+        {
+          "step": "rapid modal open close loop",
+          "ok": true,
+          "elapsedMs": 302,
+          "data": {
+            "loops": 1
+          }
+        },
+        {
+          "step": "small reorder loop",
+          "ok": true,
+          "elapsedMs": 3,
+          "data": {
+            "skipped": true,
+            "reason": "Need at least 3 fields."
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter1-cross-page-flow",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 11944,
+      "steps": [
+        {
+          "step": "create page if possible",
+          "ok": true,
+          "elapsedMs": 5342,
+          "data": {
+            "created": true
+          }
+        },
+        {
+          "step": "add Email and apply on current page",
+          "ok": true,
+          "elapsedMs": 6602,
+          "data": {
+            "openMs": 99
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter2-add-edit-delete-reorder",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 26159,
+      "steps": [
+        {
+          "step": "add Single-Line Text and apply",
+          "ok": true,
+          "elapsedMs": 6372,
+          "data": {
+            "openMs": 78
+          }
+        },
+        {
+          "step": "add Email and apply",
+          "ok": true,
+          "elapsedMs": 6396,
+          "data": {
+            "openMs": 81
+          }
+        },
+        {
+          "step": "add Multi-Line Text and apply",
+          "ok": true,
+          "elapsedMs": 6396,
+          "data": {
+            "openMs": 91
+          }
+        },
+        {
+          "step": "add Dropdown and apply",
+          "ok": true,
+          "elapsedMs": 6428,
+          "data": {
+            "openMs": 109
+          }
+        },
+        {
+          "step": "drag first field to end",
+          "ok": true,
+          "elapsedMs": 2,
+          "data": {
+            "skipped": true,
+            "reason": "Not enough fields to reorder."
+          }
+        },
+        {
+          "step": "open first field and delete",
+          "ok": true,
+          "elapsedMs": 564,
+          "data": {
+            "deleted": true
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter2-nested-subfield-loops",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 6368,
+      "steps": [
+        {
+          "step": "add Address and apply",
+          "ok": true,
+          "elapsedMs": 6366,
+          "data": {
+            "openMs": 130
+          }
+        },
+        {
+          "step": "reopen Address and apply twice",
+          "ok": true,
+          "elapsedMs": 2,
+          "data": {
+            "skipped": true,
+            "reason": "No fields available."
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter2-payment-provider-flow",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 215,
+      "steps": [
+        {
+          "step": "add Payment and open modal quickly",
+          "ok": true,
+          "elapsedMs": 109,
+          "data": {
+            "openMs": 81
+          }
+        },
+        {
+          "step": "set provider if possible and apply",
+          "ok": true,
+          "elapsedMs": 104,
+          "data": {
+            "switched": false,
+            "reason": "No detectable native provider selector."
+          }
+        },
+        {
+          "step": "reopen Payment and try provider switch",
+          "ok": true,
+          "elapsedMs": 2,
+          "data": {
+            "skipped": true,
+            "reason": "No fields available."
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter2-large-form-interaction-loop",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 3,
+      "steps": [
+        {
+          "step": "rapid modal open close loop",
+          "ok": true,
+          "elapsedMs": 2,
+          "data": {
+            "loops": 0
+          }
+        },
+        {
+          "step": "small reorder loop",
+          "ok": true,
+          "elapsedMs": 1,
+          "data": {
+            "skipped": true,
+            "reason": "Need at least 3 fields."
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "name": "iter2-cross-page-flow",
+      "ok": true,
+      "error": null,
+      "elapsedMs": 11876,
+      "steps": [
+        {
+          "step": "create page if possible",
+          "ok": true,
+          "elapsedMs": 5269,
+          "data": {
+            "created": true
+          }
+        },
+        {
+          "step": "add Email and apply on current page",
+          "ok": true,
+          "elapsedMs": 6607,
+          "data": {
+            "openMs": 78
+          }
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "fieldTypeRequestSummary": {
+    "get-field-type-configs": {
+      "count": 10,
+      "failures": 0,
+      "totalDurationMs": 15262,
+      "maxDurationMs": 2054,
+      "avgDurationMs": 1526.2
+    },
+    "get-field-type-new-field-configs": {
+      "count": 8,
+      "failures": 0,
+      "totalDurationMs": 16167,
+      "maxDurationMs": 2670,
+      "avgDurationMs": 2020.88
+    },
+    "get-field-type-new-field-config": {
+      "count": 1,
+      "failures": 0,
+      "totalDurationMs": 1347,
+      "maxDurationMs": 1347,
+      "avgDurationMs": 1347
+    },
+    "get-field-type-config": {
+      "count": 2,
+      "failures": 0,
+      "totalDurationMs": 2513,
+      "maxDurationMs": 1695,
+      "avgDurationMs": 1256.5
+    },
+    "get-payment-provider-settings-schema": {
+      "count": 1,
+      "failures": 0,
+      "totalDurationMs": 665,
+      "maxDurationMs": 665,
+      "avgDurationMs": 665
+    }
+  },
+  "totalRequestCount": 435,
+  "totalFieldTypeRequestCount": 22,
+  "consoleErrorCount": 0,
+  "consoleErrors": [],
+  "outputDir": "/Users/joshcrawford/public_html/formie-react/formie-react-plugin/src/web/assets/cp/test-results/form-builder-stress/run-2026-03-01T21-46-42-882Z",
+  "videoEnabled": false
+}

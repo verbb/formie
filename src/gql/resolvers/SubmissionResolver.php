@@ -1,7 +1,9 @@
 <?php
 namespace verbb\formie\gql\resolvers;
 
+use verbb\formie\Formie;
 use verbb\formie\elements\Submission;
+use verbb\formie\gql\arguments\SubmissionArguments;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\Table;
 
@@ -10,6 +12,7 @@ use craft\elements\ElementCollection;
 use craft\gql\base\ElementResolver;
 use craft\helpers\Db;
 
+use GraphQL\Error\Error;
 use GraphQL\Language\AST\InlineFragmentNode;
 use GraphQL\Type\Definition\ResolveInfo;
 
@@ -29,6 +32,8 @@ class SubmissionResolver extends ElementResolver
         if (!$query instanceof ElementQuery) {
             return $query;
         }
+
+        self::validateDynamicFieldArguments($arguments);
 
         foreach ($arguments as $key => $value) {
             $query->$key($value);
@@ -65,9 +70,10 @@ class SubmissionResolver extends ElementResolver
                 foreach ($fieldNode->selectionSet->selections as $selectionNode) {
                     if ($selectionNode instanceof InlineFragmentNode) {
                         $fragmentName = $selectionNode->typeCondition->name->value ?? '';
+                        $formHandle = self::formHandleFromFragmentType($fragmentName);
 
-                        if ($fragmentName && strpos($fragmentName, '_Submission') !== false) {
-                            $query->form(explode('_', $fragmentName)[0]);
+                        if ($formHandle) {
+                            $query->form($formHandle);
                         }
                     }
                 }
@@ -77,5 +83,44 @@ class SubmissionResolver extends ElementResolver
         $value = $query instanceof ElementQuery ? $query->all() : $query;
 
         return GqlHelper::applyDirectives($source, $resolveInfo, $value);
+    }
+
+    public static function formHandleFromFragmentType(string $fragmentName): ?string
+    {
+        $suffix = '_Submission';
+
+        if (!str_ends_with($fragmentName, $suffix)) {
+            return null;
+        }
+
+        return substr($fragmentName, 0, -strlen($suffix)) ?: null;
+    }
+
+    private static function validateDynamicFieldArguments(array $arguments): void
+    {
+        $dynamicFieldHandles = SubmissionArguments::getDynamicFieldArgumentHandlesFor($arguments);
+
+        if (!$dynamicFieldHandles) {
+            return;
+        }
+
+        $formHandle = SubmissionArguments::getSingleTargetFormHandle($arguments['form'] ?? null);
+
+        if (!$formHandle) {
+            throw new Error('Field handle filters on submission queries require the `form` argument to target exactly one form.');
+        }
+
+        $form = Formie::$plugin->getForms()->getFormByHandle($formHandle);
+
+        if (!$form) {
+            return;
+        }
+
+        $fieldHandles = array_map(static fn($field) => $field->handle, $form->getFields());
+        $invalidFieldHandles = array_values(array_diff($dynamicFieldHandles, $fieldHandles));
+
+        if ($invalidFieldHandles) {
+            throw new Error('Field handle filters on submission queries must belong to the targeted form.');
+        }
     }
 }

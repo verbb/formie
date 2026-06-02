@@ -4,6 +4,8 @@ namespace verbb\formie\integrations\captchas;
 use verbb\formie\base\Captcha;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 
 use Craft;
@@ -11,6 +13,8 @@ use craft\helpers\App;
 use craft\helpers\ArrayHelper;
 use craft\helpers\Html;
 use craft\helpers\Json;
+
+use Throwable;
 
 class CaptchaEu extends Captcha
 {
@@ -43,28 +47,30 @@ class CaptchaEu extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/captcha-eu/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'fui-captcha formie-captcha-eu-placeholder',
+            'class' => 'formie-captcha formie-captcha-eu-placeholder',
             'data-captcha-eu-placeholder' => true,
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
-        $settings = [
-            'publicKey' => App::parseEnv($this->publicKey),
-            'formId' => $form->getFormId(),
-        ];
+        if (!$context->form) {
+            return null;
+        }
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/captcha-eu.js');
-
-        return [
-            'src' => $src,
-            'module' => 'FormieCaptchaEu',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'captcha-eu',
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-captcha-eu-placeholder]',
+                'publicKey' => App::parseEnv($this->publicKey),
+                'endPoint' => App::parseEnv($this->endPoint ?: 'https://www.captcha.eu'),
+                'formId' => $context->form->getRenderId(),
+            ],
+        ]);
     }
 
     public function validateSubmission(Submission $submission): bool
@@ -78,7 +84,8 @@ class CaptchaEu extends Captcha
         }
 
         try {
-            $response = $this->request('POST', 'https://w19.captcha.at/validate', [
+            $baseUrl = rtrim((string)App::parseEnv($this->endPoint ?: 'https://www.captcha.eu'), '/');
+            $response = $this->request('POST', $baseUrl . '/validate', [
                 'body' => $responseToken,
                 'headers' => [
                     'Content-Type' => 'application/json',
@@ -92,15 +99,13 @@ class CaptchaEu extends Captcha
                 return false;
             }
         } catch (Throwable $e) {
-            $this->spamReason = 'Captcha.eu error: ' . $e->getMessage();
-            
-            return false;
+            return $this->handleValidationException($submission, $e);
         }
 
         return true;
     }
 
-    public function getGqlVariables(Form $form, $page = null): ?array
+    public function getGqlVariables(Form $form, FieldLayoutPage $page = null): ?array
     {
         return $this->getFrontEndJsVariables($form, $page);
     }

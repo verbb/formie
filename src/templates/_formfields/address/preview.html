@@ -1,24 +1,24 @@
-<div v-if="field.settings.autocompleteEnabled" class="fui-row">
-    <div class="fui-col">
-        <label class="fui-field-label"></label>
-        <input type="text" class="fui-field-input" :placeholder="field.settings.autocompletePlaceholder" :value="field.settings.autocompleteDefaultValue">
-    </div>
-</div>
+<div className="formie-field-preview-layout-parent">
+    {(field.rows || []).map((row, rowIndex) => {
+        const visibleFields = (row?.fields || []).filter((subField) => subField?.enabled !== false);
 
-<div class="fui-row" v-for="(row, rowIndex) in field.settings.rows">
-    <template v-for="(field, fieldIndex) in row.fields">
-        <div v-if="field.settings.enabled && field.settings.handle == 'country'" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.label } <span v-if="field.settings.required" class="error">*</span></label>
+        if (!visibleFields.length) {
+            return null;
+        }
 
-            <select class="fui-field-select" :value="field.settings.defaultValue">
-                <option value="" disabled selected>${ field.settings.placeholder }</option>
-                <option v-for="country in fieldType.data.countries" :value="country.value">${ country.label }</option>
-            </select>
-        </div>
+        return (
+            <div key={rowIndex} className="formie-field-preview-layout-child-row">
+                {visibleFields.map((subField, fieldIndex) => (
+                    <div key={fieldIndex} className="formie-field-preview-layout-child">
+                        <div className="formie-field-preview-sub-label">{subField.label}</div>
+                        <Components.ChildFieldPreview field={subField} />
+                    </div>
+                ))}
+            </div>
+        );
+    })}
 
-        <div v-else-if="field.settings.enabled" class="fui-col-auto">
-            <label class="fui-field-label">${ field.settings.label } <span v-if="field.settings.required" class="error">*</span></label>
-            <input type="text" class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
-        </div>
-    </template>
+    {(!field.rows || field.rows.length === 0) && (
+        <Components.SubFieldPreviewControl field={field} />
+    )}
 </div>

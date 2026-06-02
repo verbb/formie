@@ -1,10 +1,12 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -60,12 +62,13 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Help Scout.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
+            if ($this->mapToConversation && $this->settingsContext->dataKey === 'conversation') {
             // Fetch mailboxes
             $response = $this->request('GET', 'mailboxes');
             $mailboxes = $response['_embedded']['mailboxes'] ?? [];
@@ -130,9 +133,8 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
                 ]),
             ];
 
-            $settings = [
-                'conversation' => $conversationFields,
-            ];
+                $settings['conversation'] = $conversationFields;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -210,6 +212,24 @@ class HelpScout extends HelpDesk implements OAuthProviderInterface
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToConversation',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Conversation']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Conversations']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'conversationFieldMapping',
+            'if' => 'mapToConversation',
+            'dataLabel' => 'Conversation',
+            'dataKey' => 'conversation',
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================

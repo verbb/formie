@@ -25,7 +25,6 @@ class Mailjet extends EmailMarketing
     public ?string $apiKey = null;
     public ?string $secretKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -131,7 +130,6 @@ class Mailjet extends EmailMarketing
         return true;
     }
 
-
     // Protected Methods
     // =========================================================================
 
@@ -151,7 +149,7 @@ class Mailjet extends EmailMarketing
             'auth' => [App::parseEnv($this->apiKey), App::parseEnv($this->secretKey)],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

@@ -19,7 +19,7 @@ Andrew Welch explains plenty of options in his article [Robust queue job handlin
 This is worth doing not just for Formie, but for all Craft installs in general. There's lots of things Craft does via the queue, from image transforms, to refreshing search indexes, to even sending Craft Commerce emails (if installed). As such, you'll get an overall better-performing site with a properly configured queue system.
 :::
 
-But you can also disable queue processing altogether, so long as you understand the implications of doing so, as per the above explanation of why this is the default behaviour for Formie. Toggle the `useQueueForNotifications` [config setting](docs:get-started/configuration), or toggle "Use Queue for Notifications" in the control panel via Formie → Settings → Submissions.
+But you can also disable queue processing altogether, so long as you understand the implications of doing so, as per the above explanation of why this is the default behaviour for Formie. Toggle the `useQueueForNotifications` [config setting](/get-started/configuration), or toggle "Use Queue for Notifications" in the control panel via Formie → Settings → Submissions.
 
 ### Integrations are only run when visiting the control panel
 For the same reason as above for email notifications, Integrations use the queue for sending information to third-parties.

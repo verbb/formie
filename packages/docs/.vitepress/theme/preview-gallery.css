@@ -1,0 +1,100 @@
+.preview-gallery-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    color: #171717;
+}
+
+.preview-gallery-stack,
+.preview-gallery-flow {
+    display: grid;
+    gap: 2rem;
+}
+
+.preview-gallery-header,
+.preview-gallery-section,
+.preview-gallery-section-title {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.preview-gallery-header h1,
+.preview-gallery-header p,
+.preview-gallery-section-title h3,
+.preview-gallery-section-title p {
+    margin: 0;
+}
+
+.preview-gallery-header h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    color: #171717;
+}
+
+.preview-gallery-header p,
+.preview-gallery-section-title p {
+    max-width: 52rem;
+    color: #44403c;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.preview-gallery-section {
+    gap: 1rem;
+}
+
+.preview-gallery-section + .preview-gallery-section {
+    padding-top: 2rem;
+    border-top: 1px solid #ece7e1;
+}
+
+.preview-gallery-section-title h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: #171717;
+}
+
+.preview-gallery-window {
+    padding: 1.75rem;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px;
+    border: 1px solid rgba(38, 74, 115, 0.15);
+}
+
+.preview-gallery-window > .formie-form,
+.preview-gallery-stack-block {
+    display: grid;
+    gap: 1rem;
+}
+
+.preview-gallery-note {
+    margin: 0;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.preview-gallery-inline-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+}
+
+.preview-gallery-card {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.preview-gallery-card > * + * {
+    margin-top: 0;
+}
+
+@media (max-width: 900px) {
+    .preview-gallery-page {
+        padding: 1.5rem 0 2rem;
+    }
+}

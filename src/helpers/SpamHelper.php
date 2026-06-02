@@ -29,7 +29,7 @@ class SpamHelper
         foreach ($lines as $key => $line) {
             if (str_contains($line, '{')) {
                 unset($lines[$key]);
-                $twigLines[] = self::_getArrayFromMultiline(Variables::getParsedValue($line));
+                $twigLines[] = self::_getArrayFromMultiline($line);
             }
         }
 

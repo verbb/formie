@@ -4,8 +4,10 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -54,7 +56,7 @@ class Entry extends Element
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $customFields = [];
@@ -328,7 +330,7 @@ class Entry extends Element
             }
         } catch (Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}. Trace: “{trace}”.', [
-                'error' => $e->getMessage(),
+                'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),
@@ -375,27 +377,181 @@ class Entry extends Element
         $rules[] = [
             ['fieldMapping'], 'validateFieldMapping', 'params' => $fields, 'when' => function($model) {
                 return $model->enabled;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedEntryTypeSection = (string)($this->entryTypeSection ?? '');
+        if ($selectedEntryTypeSection === '') {
+            $selectedEntryTypeSection = $this->_getFirstEntryTypeId();
+        }
+
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'entryTypeSection',
+            'label' => Craft::t('formie', 'Entry Type'),
+            'instructions' => Craft::t('formie', 'Select an entry type to map content to. This will reflect the available fields to map to.'),
+            'required' => true,
+            'options' => $this->_getEntryTypeOptions(),
+        ]);
+        $schema[] = SchemaHelper::elementSelectField([
+            'name' => 'defaultAuthorId',
+            'label' => Craft::t('formie', 'Default Entry Author'),
+            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created entry. An entry must always have an author.'),
+            'required' => true,
+            'selectionLabel' => Craft::t('formie', 'Choose a User'),
+            'config' => [
+                'jsClass' => 'Craft.ElementSelectInput',
+                'elementType' => User::class,
+                'limit' => 1,
+            ],
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'attributeMapping',
+            'label' => Craft::t('formie', 'Entry Attribute Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} attributes.', ['label' => 'Entry']),
+            'integrationLabel' => Craft::t('formie', 'Element Field'),
+            'showRefreshButton' => false,
+            'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+            'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
+        ]);
+
+        $fieldMappingSchema = $this->convertIntegrationFieldsToSchema($this->_getEntryTypeSettings($selectedEntryTypeSection)->fields ?? []);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Entry Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} fields.', ['label' => 'Entry']),
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $fieldMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'overwriteValues',
+            'label' => Craft::t('formie', 'Overwrite Content'),
+            'instructions' => Craft::t('formie', 'Whether to overwrite existing content, even if empty values are provided.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'createDraft',
+            'label' => Craft::t('formie', 'Create a New Draft'),
+            'instructions' => Craft::t('formie', 'Whether to create a new draft entry. If an existing entry is found, a new draft will be created on the original entry, instead of updating the existing entry.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateElement',
+            'label' => Craft::t('formie', 'Update Entries'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing entry if found, or always create a new entry.'),
+        ]);
+
+        $updateAttributes = $this->getUpdateAttributes();
+        $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedEntryTypeSection] ?? []);
+        if ($updateMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'updateElementMapping',
+                'label' => Craft::t('formie', 'Update Element Mapping'),
+                'instructions' => Craft::t('formie', 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.'),
+                'if' => 'updateElement',
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $updateMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateSearchIndexes',
+            'label' => Craft::t('formie', 'Update Search Index'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update the search indexes to include content for this element.'),
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================
 
-    private function _getEntryTypeSettings()
+    private function _getEntryTypeSettings(?string $entryTypeSection = null)
     {
         $entryTypes = $this->getFormSettingValue('elements');
+        $selectedEntryTypeSection = $entryTypeSection ?? $this->entryTypeSection ?? '';
 
-        foreach ($entryTypes as $key => $entryType) {
-            if ($collection = ArrayHelper::firstWhere($entryType, 'id', $this->entryTypeSection)) {
+        if (!is_array($entryTypes)) {
+            return [];
+        }
+
+        foreach ($entryTypes as $entryType) {
+            if (!is_array($entryType)) {
+                continue;
+            }
+
+            if ($collection = ArrayHelper::firstWhere($entryType, 'id', $selectedEntryTypeSection)) {
                 return $collection;
             }
         }
 
         return [];
+    }
+
+    private function _getEntryTypeOptions(): array
+    {
+        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $elements = $this->getFormSettingValue('elements');
+
+        if (!is_array($elements)) {
+            return $options;
+        }
+
+        foreach ($elements as $sectionName => $entryTypes) {
+            if (!is_array($entryTypes)) {
+                continue;
+            }
+
+            foreach ($entryTypes as $entryType) {
+                $id = $entryType->id ?? $entryType['id'] ?? null;
+                $name = $entryType->name ?? $entryType['name'] ?? null;
+
+                if ($id === null || $name === null) {
+                    continue;
+                }
+
+                $sectionLabel = is_string($sectionName) ? trim($sectionName) : '';
+                $label = $sectionLabel ? "{$sectionLabel}: {$name}" : (string)$name;
+                $options[] = ['label' => $label, 'value' => (string)$id];
+            }
+        }
+
+        return $options;
+    }
+
+    private function _getFirstEntryTypeId(): string
+    {
+        $elements = $this->getFormSettingValue('elements');
+
+        if (!is_array($elements)) {
+            return '';
+        }
+
+        foreach ($elements as $entryTypes) {
+            if (!is_array($entryTypes) || empty($entryTypes)) {
+                continue;
+            }
+
+            $first = reset($entryTypes);
+            $id = $first->id ?? $first['id'] ?? null;
+
+            if ($id !== null) {
+                return (string)$id;
+            }
+        }
+
+        return '';
     }
 
     private function _normalizeIds($content): array

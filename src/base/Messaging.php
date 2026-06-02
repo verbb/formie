@@ -1,8 +1,10 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyMiscellaneousPayloadEvent;
+use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 use craft\helpers\Html;
@@ -45,7 +47,7 @@ abstract class Messaging extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/messaging/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/messaging/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -55,17 +57,16 @@ abstract class Messaging extends Integration
 
         return Craft::$app->getView()->renderTemplate("formie/integrations/messaging/{$handle}/_plugin-settings", $variables);
     }
+    
 
-    public function getFormSettingsHtml($form): string
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        $handle = $this->getClassHandle();
-        $variables = $this->getFormSettingsHtmlVariables($form);
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = $this->getOptInFieldSchema();
 
-        return Craft::$app->getView()->renderTemplate("formie/integrations/messaging/{$handle}/_form-settings", $variables);
-    }
-
-    public function getFrontEndJsVariables($field = null): ?array
-    {
-        return null;
+        return $schema;
     }
 }

@@ -33,7 +33,6 @@ class Adestra extends EmailMarketing
     public ?string $coreTableId = null;
     public ?string $workspaceId = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -140,6 +139,15 @@ class Adestra extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey', 'workspaceId', 'coreTableId'], 'required'];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
@@ -150,16 +158,4 @@ class Adestra extends EmailMarketing
         ]);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['apiKey', 'workspaceId', 'coreTableId'], 'required'];
-
-        return $rules;
-    }
 }

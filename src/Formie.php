@@ -5,6 +5,7 @@ use verbb\formie\base\PluginTrait;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\SentNotification;
 use verbb\formie\elements\Submission;
+use verbb\formie\elements\db\SubmissionQuery as DbSubmissionQuery;
 use verbb\formie\elements\exporters\FormExport;
 use verbb\formie\elements\exporters\SubmissionExport;
 use verbb\formie\fields\Forms;
@@ -15,14 +16,18 @@ use verbb\formie\gql\interfaces\PageInterface;
 use verbb\formie\gql\interfaces\PageSettingsInterface;
 use verbb\formie\gql\interfaces\RowInterface;
 use verbb\formie\gql\interfaces\SubmissionInterface;
+use verbb\formie\gql\mutations\ClientFormMutation;
 use verbb\formie\gql\mutations\SubmissionMutation;
+use verbb\formie\gql\queries\ClientFormQuery;
 use verbb\formie\gql\queries\FormQuery;
+use verbb\formie\gql\queries\HtmlFormQuery;
 use verbb\formie\gql\queries\SubmissionQuery;
+use verbb\formie\helpers\CrossOriginRequestHelper;
 use verbb\formie\helpers\Gql as GqlHelper;
 use verbb\formie\helpers\ProjectConfigHelper;
 use verbb\formie\integrations\feedme\elements\Submission as FeedMeSubmission;
 use verbb\formie\integrations\link\FormLinkType;
-use verbb\formie\jobs\BaseJob;
+use verbb\formie\jobs\DebuggableJobInterface;
 use verbb\formie\models\Settings;
 use verbb\formie\services\EmailTemplates as EmailTemplatesService;
 use verbb\formie\services\FormTemplates as FormTemplatesService;
@@ -90,6 +95,7 @@ use craft\feedme\services\Fields as FeedMeFields;
 
 use yii\base\Event;
 use yii\queue\ExecEvent;
+use yii\web\Response as WebResponse;
 
 class Formie extends Plugin
 {
@@ -104,7 +110,7 @@ class Formie extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '3.4.12';
+    public string $schemaVersion = '4.0.9';
     public string $minVersionRequired = '2.1.5';
 
 
@@ -122,7 +128,9 @@ class Formie extends Plugin
         parent::init();
 
         self::$plugin = $this;
-
+        
+        $this->getCompatibility()->bootstrap();
+        
         $this->_registerTwigExtensions();
         $this->_registerFieldTypes();
         $this->_registerVariable();
@@ -130,11 +138,11 @@ class Formie extends Plugin
         $this->_registerGarbageCollection();
         $this->_registerGraphQl();
         $this->_registerEventHandlers();
+        $this->_registerClientCorsHandler();
         $this->_registerProjectConfigEventHandlers();
         $this->_registerEmailMessages();
         $this->_registerTemplateRoots();
-        $this->_registerTemplateHooks();
-
+        
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
             $this->_registerWidgets();
@@ -222,26 +230,46 @@ class Formie extends Plugin
         Craft::$app->getView()->registerTwigExtension(new Extension);
     }
 
-    public function _registerSiteRoutes(): void
+    private function _registerSiteRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['formie/integrations/callback'] = 'formie/integrations/callback';
+            $event->rules['formie/file-upload/upload'] = 'formie/file-upload/upload';
+            $event->rules['formie/file-upload/delete'] = 'formie/file-upload/delete';
+            $event->rules['formie/file-upload/hydrate'] = 'formie/file-upload/hydrate';
             $event->rules['formie/payment-webhooks/process-webhook'] = 'formie/payment-webhooks/process-webhook';
             $event->rules['formie/payment-webhooks/process-callback'] = 'formie/payment-webhooks/process-callback';
             $event->rules['formie/payment-webhooks/status'] = 'formie/payment-webhooks/status';
             $event->rules['formie/payment-webhooks/poll-status'] = 'formie/payment-webhooks/poll-status';
         });
     }
+
+    private function _registerClientCorsHandler(): void
+    {
+        Event::on(WebResponse::class, WebResponse::EVENT_BEFORE_SEND, function() {
+            $request = Craft::$app->getRequest();
+
+            if (!$request->getIsSiteRequest() || !$request->getIsOptions()) {
+                return;
+            }
+
+            if (!CrossOriginRequestHelper::isFormieActionPath($request)) {
+                return;
+            }
+
+            CrossOriginRequestHelper::applyHeaders($request, Craft::$app->getResponse());
+        });
+    }
     
-    public function _registerCpRoutes(): void
+    private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['formie'] = 'formie/base/index';
 
             $event->rules['formie/forms'] = 'formie/forms/index';
             $event->rules['formie/forms/new'] = 'formie/forms/new';
-            $event->rules['formie/forms/new/<siteHandle:{handle}>'] = 'formie/forms/new';
-            $event->rules['formie/forms/edit/<formId:\d+>'] = 'formie/forms/edit';
+            $event->rules['formie/forms/edit/<segments:.*>'] = 'formie/forms/edit';
+            $event->rules['formie/forms/template-fields-slideout'] = 'formie/forms/template-fields-slideout';
 
             $event->rules['formie/submissions'] = 'formie/submissions/index';
             $event->rules['formie/submissions/<formHandle:{handle}>'] = 'formie/submissions/index';
@@ -264,7 +292,7 @@ class Formie extends Plugin
             $event->rules['formie/settings/statuses/edit/<id:\d+>'] = 'formie/statuses/edit';
             $event->rules['formie/settings/stencils'] = 'formie/stencils/index';
             $event->rules['formie/settings/stencils/new'] = 'formie/stencils/new';
-            $event->rules['formie/settings/stencils/edit/<id:\d+>'] = 'formie/stencils/edit';
+            $event->rules['formie/settings/stencils/edit/<segments:.*>'] = 'formie/stencils/edit';
             $event->rules['formie/settings/form-templates'] = 'formie/form-templates/index';
             $event->rules['formie/settings/form-templates/new'] = 'formie/form-templates/edit';
             $event->rules['formie/settings/form-templates/edit/<id:\d+>'] = 'formie/form-templates/edit';
@@ -274,8 +302,6 @@ class Formie extends Plugin
             $event->rules['formie/settings/pdf-templates'] = 'formie/pdf-templates/index';
             $event->rules['formie/settings/pdf-templates/new'] = 'formie/pdf-templates/edit';
             $event->rules['formie/settings/pdf-templates/edit/<id:\d+>'] = 'formie/pdf-templates/edit';
-            $event->rules['formie/settings/security'] = 'formie/security/index';
-            $event->rules['formie/settings/privacy'] = 'formie/privacy/index';
             $event->rules['formie/settings/captchas'] = 'formie/integration-settings/captcha-index';
             $event->rules['formie/settings/address-providers'] = 'formie/integration-settings/address-provider-index';
             $event->rules['formie/settings/address-providers/new'] = 'formie/integration-settings/edit-address-provider';
@@ -367,7 +393,7 @@ class Formie extends Plugin
             ];
 
             if (Craft::$app->edition === CmsEdition::Pro) {
-                foreach (Form::find()->all() as $form) {
+                foreach ($this->getForms()->getAllForms() as $form) {
                     $suffix = ':' . $form->uid;
 
                     $formPermissions["formie-manageForms{$suffix}"] = [
@@ -488,6 +514,8 @@ class Formie extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_QUERIES, function(RegisterGqlQueriesEvent $event) {
             $queries = [
                 FormQuery::getQueries(),
+                HtmlFormQuery::getQueries(),
+                ClientFormQuery::getQueries(),
                 SubmissionQuery::getQueries(),
             ];
 
@@ -500,6 +528,7 @@ class Formie extends Plugin
 
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_MUTATIONS, function(RegisterGqlMutationsEvent $event) {
             $mutations = [
+                ClientFormMutation::getMutations(),
                 SubmissionMutation::getMutations(),
             ];
 
@@ -513,7 +542,7 @@ class Formie extends Plugin
         Event::on(Gql::class, Gql::EVENT_REGISTER_GQL_SCHEMA_COMPONENTS, function(RegisterGqlSchemaComponentsEvent $event) {
             $label = Craft::t('formie', 'Formie');
 
-            $forms = Form::find()->all();
+            $forms = $this->getForms()->getAllForms();
 
             $event->queries[$label]['formieForms.all:read'] = ['label' => Craft::t('formie', 'View all forms')];
 
@@ -582,6 +611,21 @@ class Formie extends Plugin
 
     private function _registerEventHandlers(): void
     {
+        Event::on(Form::class, Form::EVENT_AFTER_SAVE, function() {
+            $this->getForms()->invalidateFormCaches();
+            DbSubmissionQuery::invalidateStaticCaches();
+        });
+
+        Event::on(Form::class, Form::EVENT_AFTER_DELETE, function() {
+            $this->getForms()->invalidateFormCaches();
+            DbSubmissionQuery::invalidateStaticCaches();
+        });
+        
+        Event::on(Form::class, Form::EVENT_AFTER_RESTORE, function() {
+            $this->getForms()->invalidateFormCaches();
+            DbSubmissionQuery::invalidateStaticCaches();
+        });
+
         Event::on(UsersController::class, UsersController::EVENT_DEFINE_CONTENT_SUMMARY, [$this->getSubmissions(), 'defineUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_DELETE, [$this->getSubmissions(), 'deleteUserSubmissions']);
         Event::on(UserElement::class, UserElement::EVENT_AFTER_RESTORE, [$this->getSubmissions(), 'restoreUserSubmissions']);
@@ -594,11 +638,10 @@ class Formie extends Plugin
 
         // Fix lack of support for submission-specific fields to index
         Event::on(Search::class, Search::EVENT_BEFORE_INDEX_KEYWORDS, [$this->getSubmissions(), 'beforeIndexKeywords']);
-        Event::on(Search::class, Search::EVENT_BEFORE_SEARCH, [$this->getSubmissions(), 'beforeSearch']);
 
         // Add additional error information to queue jobs when there's an error
         Event::on(Queue::class, Queue::EVENT_AFTER_ERROR, function(ExecEvent $event) {
-            if ($event->error && $event->job instanceof BaseJob) {
+            if ($event->error && $event->job instanceof DebuggableJobInterface) {
                 $event->job->onError($event);
             }
         });
@@ -807,11 +850,4 @@ class Formie extends Plugin
         });
     }
 
-    private function _registerTemplateHooks(): void
-    {
-        // Add default captcha integrations
-        Craft::$app->getView()->hook('formie.buttons.before', static function(array $context) {
-            return Formie::$plugin->getForms()->handleBeforeSubmitHook($context);
-        });
-    }
 }

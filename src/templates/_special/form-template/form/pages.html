@@ -1,0 +1,5 @@
+{% formtag 'pages' %}
+    {% for page in form.getPages() %}
+        {{ craft.formie.renderPage(form, page) }}
+    {% endfor %}
+{% endformtag %}

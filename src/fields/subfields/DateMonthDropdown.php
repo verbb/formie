@@ -1,13 +1,13 @@
 <?php
 namespace verbb\formie\fields\subfields;
 
-use verbb\formie\base\SubFieldInnerFieldInterface;
+use verbb\formie\base\ChildFieldInterface;
 use verbb\formie\fields\Dropdown;
 use verbb\formie\helpers\SchemaHelper;
 
 use Craft;
 
-class DateMonthDropdown extends DateDropdown implements SubFieldInnerFieldInterface
+class DateMonthDropdown extends DateDropdown implements ChildFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -17,12 +17,12 @@ class DateMonthDropdown extends DateDropdown implements SubFieldInnerFieldInterf
         return Craft::t('formie', 'Date - Month');
     }
 
-    public static function getFrontEndInputTemplatePath(): string
+    public static function getInputTemplatePath(): string
     {
         return 'fields/dropdown';
     }
 
-    public static function getEmailTemplatePath(): string
+    public static function getReferenceBlockTemplatePath(): string
     {
         return 'fields/dropdown';
     }

@@ -34,7 +34,6 @@ class Beehiiv extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -170,7 +169,7 @@ class Beehiiv extends EmailMarketing
             ],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

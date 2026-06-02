@@ -1,0 +1,231 @@
+<?php
+namespace verbb\formie\compatibility\fields;
+
+use verbb\formie\fields;
+use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\positions\AboveInput;
+use verbb\formie\positions\BelowInput;
+
+class FieldConfigNormalizer
+{
+    // Static Methods
+    // =========================================================================
+
+    public static function normalize(array &$config, string $fieldClass): void
+    {
+        unset($config['columnWidth']);
+
+        self::_normalizeLegacyTextLimitConfig($config, $fieldClass);
+        self::_removeUnsupportedLimitConfig($config, $fieldClass);
+        self::_normalizeLegacyPositions($config);
+        self::_normalizeLegacyFieldConfig($config);
+        self::_normalizeLegacyComboboxConfig($config, $fieldClass);
+        self::_removeLegacyProperties($config);
+    }
+
+    private static function _normalizeLegacyTextLimitConfig(array &$config, string $fieldClass): void
+    {
+        if (!in_array($fieldClass, self::_supportedLimitConfigTypes(), true)) {
+            unset($config['limitType'], $config['limitAmount']);
+
+            return;
+        }
+
+        if (array_key_exists('limitType', $config) && !array_key_exists('maxType', $config)) {
+            $config['maxType'] = $config['limitType'];
+        }
+
+        if (array_key_exists('limitAmount', $config) && !array_key_exists('max', $config)) {
+            $config['max'] = $config['limitAmount'];
+        }
+
+        unset($config['limitType'], $config['limitAmount']);
+    }
+
+    private static function _removeUnsupportedLimitConfig(array &$config, string $fieldClass): void
+    {
+        if (array_key_exists('limit', $config) && !in_array($fieldClass, self::_supportedLimitTypes(), true)) {
+            unset($config['limit']);
+        }
+
+        if (array_key_exists('maxType', $config) && !in_array($fieldClass, self::_supportedLimitConfigTypes(), true)) {
+            unset($config['maxType']);
+        }
+    }
+
+    private static function _normalizeLegacyPositions(array &$config): void
+    {
+        if (!array_key_exists('instructionsPosition', $config)) {
+            return;
+        }
+
+        if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetStart') {
+            $config['instructionsPosition'] = AboveInput::class;
+        }
+
+        if ($config['instructionsPosition'] === 'verbb\\formie\\positions\\FieldsetEnd') {
+            $config['instructionsPosition'] = BelowInput::class;
+        }
+    }
+
+    private static function _normalizeLegacyFieldConfig(array &$config): void
+    {
+        if (array_key_exists('includeInEmail', $config) && !array_key_exists('includeInEmailFieldSummaries', $config)) {
+            $config['includeInEmailFieldSummaries'] = (bool)ArrayHelper::remove($config, 'includeInEmail');
+        }
+
+        if (array_key_exists('emailValue', $config) && !array_key_exists('emailFieldSummaryValue', $config)) {
+            $config['emailFieldSummaryValue'] = (string)ArrayHelper::remove($config, 'emailValue');
+        }
+
+        if (array_key_exists('subfieldLabelPosition', $config)) {
+            $config['subFieldLabelPosition'] = ArrayHelper::remove($config, 'subfieldLabelPosition');
+        }
+    }
+
+    private static function _normalizeLegacyComboboxConfig(array &$config, string $fieldClass): void
+    {
+        if ($fieldClass === fields\Phone::class) {
+            if (isset($config['countryAllowed']) && is_array($config['countryAllowed'])) {
+                // Vue comboboxes stored selected option payloads; React comboboxes store values.
+                $config['countryAllowed'] = self::_normalizeComboboxMultiValue($config['countryAllowed']);
+            }
+
+            if (isset($config['countryDefaultValue'])) {
+                $config['countryDefaultValue'] = self::_normalizeComboboxSingleValue($config['countryDefaultValue']);
+            }
+        }
+
+        if ($fieldClass === fields\subfields\AddressCountry::class && isset($config['defaultValue'])) {
+            $config['defaultValue'] = self::_normalizeComboboxSingleValue($config['defaultValue']);
+        }
+    }
+
+    private static function _normalizeComboboxMultiValue(array $value): array
+    {
+        $values = [];
+
+        foreach ($value as $item) {
+            $normalized = self::_normalizeComboboxSingleValue($item);
+
+            if ($normalized !== null && $normalized !== '') {
+                $values[] = $normalized;
+            }
+        }
+
+        return $values;
+    }
+
+    private static function _normalizeComboboxSingleValue(mixed $value): mixed
+    {
+        if (is_array($value) && array_key_exists('value', $value)) {
+            return $value['value'];
+        }
+
+        return $value;
+    }
+
+    private static function _removeLegacyProperties(array &$config): void
+    {
+        foreach (self::_removedProperties() as $removedProperty) {
+            unset($config[$removedProperty]);
+        }
+    }
+
+    private static function _supportedLimitConfigTypes(): array
+    {
+        return [
+            fields\MultiLineText::class,
+            fields\SingleLineText::class,
+        ];
+    }
+
+    private static function _supportedLimitTypes(): array
+    {
+        return [
+            fields\Categories::class,
+            fields\Entries::class,
+            fields\FileUpload::class,
+            fields\MultiLineText::class,
+            fields\Number::class,
+            fields\Products::class,
+            fields\SingleLineText::class,
+            fields\Tags::class,
+            fields\Users::class,
+            fields\Variants::class,
+            fields\subfields\AddressAutoComplete::class,
+            fields\subfields\Address1::class,
+            fields\subfields\Address2::class,
+            fields\subfields\Address3::class,
+            fields\subfields\AddressCity::class,
+            fields\subfields\DateDate::class,
+            fields\subfields\DateTime::class,
+            fields\subfields\AddressZip::class,
+            fields\subfields\AddressState::class,
+            fields\subfields\AddressCountry::class,
+            fields\subfields\DateYearDropdown::class,
+            fields\subfields\DateMonthDropdown::class,
+            fields\subfields\DateDayDropdown::class,
+            fields\subfields\DateHourDropdown::class,
+            fields\subfields\DateMinuteDropdown::class,
+            fields\subfields\DateSecondDropdown::class,
+            fields\subfields\DateAmPmDropdown::class,
+            fields\subfields\DateYearNumber::class,
+            fields\subfields\DateMonthNumber::class,
+            fields\subfields\DateDayNumber::class,
+            fields\subfields\DateHourNumber::class,
+            fields\subfields\DateMinuteNumber::class,
+            fields\subfields\DateSecondNumber::class,
+            fields\subfields\DateAmPmNumber::class,
+            fields\subfields\NamePrefix::class,
+            fields\subfields\NameFirst::class,
+            fields\subfields\NameMiddle::class,
+            fields\subfields\NameLast::class,
+        ];
+    }
+
+    private static function _removedProperties(): array
+    {
+        return [
+            'vid',
+            'brandNewField',
+            'hasLabel',
+            'isNested',
+            'isSynced',
+            'allowSelfRelations',
+            'localizeRelations',
+            'minRelations',
+            'maxRelations',
+            'selectionLabel',
+            'showSiteMenu',
+            'targetSiteId',
+            'validateRelatedElements',
+            'viewMode',
+            'maintainHierarchy',
+            'branchLimit',
+            'restrictedLocationSource',
+            'restrictedLocationSubpath',
+            'allowSubfolders',
+            'restrictedDefaultUploadSubpath',
+            'defaultUploadLocationSource',
+            'defaultUploadLocationSubpath',
+            'allowUploads',
+            'showUnpermittedVolumes',
+            'showUnpermittedFiles',
+            'previewMode',
+            'showCardsInGrid',
+            'useSingleFolder',
+            'singleUploadLocationSource',
+            'singleUploadLocationSubpath',
+            'allowLimit',
+            'enableAutocomplete',
+            'rowUid',
+            'formId',
+            'searchable',
+            'translationMethod',
+            'translationKeyFormat',
+            'rowsConfig',
+            'columnType',
+        ];
+    }
+}

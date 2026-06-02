@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -45,13 +47,12 @@ class Outseta extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToPeople) {
+            if ($this->mapToPeople && $this->settingsContext->dataKey === 'people') {
                 $settings['people'] = [
                     new IntegrationField([
                         'handle' => 'Email',
@@ -172,7 +173,7 @@ class Outseta extends Crm
         $rules[] = [
             ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
                 return $model->enabled && $model->mapToPeople;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -186,5 +187,23 @@ class Outseta extends Crm
             'base_uri' => "$url/api/v1/crm/",
             'headers' => ['Authorization' => 'Outseta ' . App::parseEnv($this->apiKey) . ':' . App::parseEnv($this->secretKey)],
         ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToPeople',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'People']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'peopleFieldMapping',
+            'if' => 'mapToPeople',
+            'dataLabel' => 'People',
+            'dataKey' => 'people',
+        ]);
+
+        return $schema;
     }
 }

@@ -1,0 +1,51 @@
+{
+  "name": "@verbb/formie-web-components",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/verbb/formie.git"
+  },
+  "bugs": {
+    "url": "https://github.com/verbb/formie/issues"
+  },
+  "homepage": "https://docs.verbb.io/formie/web-components",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "sideEffects": [
+    "./dist/index.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@verbb/formie-browser": "1.0.0",
+    "@verbb/formie-core": "1.0.0",
+    "lit": "^3.3.2",
+    "signature_pad": "^5.1.3"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}

@@ -3,10 +3,14 @@
 {% if elements | length %}
     <ul>
         {% for element in elements %}
-            {% set url = field.emailValue == 'cpUrl' ? element.getCpEditUrl() : element.getUrl() %}
+            {% set url = field.getSafeElementUrl(element, field.emailFieldSummaryValue == 'cpUrl') %}
                 
             <li>
-                <a href="{{ url }}">{{ element.name }}</a>
+                {% if url %}
+                    <a href="{{ url }}">{{ element.name }}</a>
+                {% else %}
+                    {{ element.name }}
+                {% endif %}
             </li>
         {% endfor %}
     </ul>

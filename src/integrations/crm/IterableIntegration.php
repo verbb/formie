@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -52,7 +54,6 @@ class IterableIntegration extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -104,7 +105,7 @@ class IterableIntegration extends Crm
                 });
             } else {
                 // Get User fields
-                if ($this->mapToUser) {
+                if ($this->mapToUser && $this->settingsContext->dataKey === 'user') {
                     $response = $this->request('GET', 'users/getFields');
                     $fields = $response['fields'] ?? [];
 
@@ -240,7 +241,7 @@ class IterableIntegration extends Crm
         $rules[] = [
             ['userFieldMapping'], 'validateFieldMapping', 'params' => $user, 'when' => function($model) {
                 return $model->enabled && $model->mapToUser;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -254,7 +255,49 @@ class IterableIntegration extends Crm
         ]);
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToUser',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'User']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Users']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'userFieldMapping',
+            'if' => 'mapToUser',
+            'dataLabel' => 'User',
+            'dataKey' => 'user',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToMessageType',
+            'label' => Craft::t('formie', 'Map to Message Type'),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Message Types']),
+        ]);
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'messageTypeId',
+            'label' => Craft::t('formie', 'Message Type'),
+            'instructions' => Craft::t('formie', 'Select your {name} message type to subscribe users to.', ['name' => $this->displayName()]),
+            'if' => 'mapToMessageType',
+            'required' => true,
+            'options' => $this->getCollectionOptions('messageTypes'),
+        ]);
 
+        $mappingSchema = $this->defineFieldMappingSchema('messageTypes', 'messageTypeId');
+        if ($mappingSchema) {
+            $schema[] = $this->getIntegrationFieldMappingField([
+                'name' => 'messageTypeFieldMapping',
+                'if' => 'mapToMessageType',
+                'dataLabel' => 'Message Type',
+                'dataKey' => 'messageTypes',
+                'integrationFields' => $mappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+
+    
     // Private Methods
     // =========================================================================
 

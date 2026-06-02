@@ -3,8 +3,8 @@ namespace verbb\formie\helpers;
 
 use verbb\formie\Formie;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\deprecations\ThemeConfigLegacyKeys;
 
-use Craft;
 use craft\helpers\Html as CraftHtmlHelper;
 
 class Html extends CraftHtmlHelper
@@ -75,30 +75,11 @@ class Html extends CraftHtmlHelper
 
     public static function getFieldClassKey(object $class): string
     {
-        $className = StringHelper::toCamelCase(StringHelper::toKebabCase($class::className()));
+        $segment = method_exists($class, 'themeConfigKey')
+            ? $class->themeConfigKey()
+            : StringHelper::toCamelCase(StringHelper::toKebabCase($class::className()));
 
-        // TODO: remove this extra handling for the next version, but will be a breaking change
-        if ($className === 'radio') {
-            return 'radioButtons';
-        }
-
-        if ($className === 'date') {
-            return 'dateTime';
-        }
-
-        if ($className === 'email') {
-            return 'emailAddress';
-        }
-
-        if ($className === 'hidden') {
-            return 'hiddenField';
-        }
-
-        if ($className === 'phone') {
-            return 'phoneNumber';
-        }
-
-        return $className;
+        return ThemeConfigLegacyKeys::resolveSegmentWithDeprecation(__METHOD__, $segment);
     }
 
     public static function getFieldClassHandles(): array
@@ -108,7 +89,7 @@ class Html extends CraftHtmlHelper
         $fields = Formie::$plugin->getFields()->getRegisteredFields(false);
 
         foreach ($fields as $field) {
-            $handles[] = self::getFieldClassKey($field);
+            $handles[] = $field->themeConfigKey();
         }
 
         return $handles;

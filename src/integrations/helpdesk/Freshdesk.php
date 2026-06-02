@@ -1,11 +1,13 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
 use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -51,14 +53,14 @@ class Freshdesk extends HelpDesk
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
             // Get Contact fields
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $fields = $this->request('GET', 'contact_fields');
 
                 $settings['contact'] = array_merge([
@@ -113,7 +115,7 @@ class Freshdesk extends HelpDesk
             }
 
             // Get Ticket fields
-            if ($this->mapToTicket) {
+            if ($this->mapToTicket && $this->settingsContext->dataKey === 'ticket') {
                 $fields = $this->request('GET', 'ticket_fields');
 
                 $settings['ticket'] = array_merge([
@@ -362,14 +364,14 @@ class Freshdesk extends HelpDesk
                                     ) {
                                         // 405 status code and disallowed PUT means user is deleted or spam; log and continue
                                         Integration::error($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                            'message' => $e->getMessage(),
+                                            'message' => Integration::getExceptionLogMessage($e),
                                             'response' => Json::encode($updateResponse),
                                             'payload' => Json::encode($contactPayload),
                                         ]), false);
                                     } elseif ($statusCode === 404 && $updateResponse === null) {
                                         // 404 status code and empty response means user is an agent; log and continue
                                         Integration::info($this, Craft::t('formie', '{message} {response}. Sent payload {payload}', [
-                                            'message' => $e->getMessage(),
+                                            'message' => Integration::getExceptionLogMessage($e),
                                             'response' => Json::encode($updateResponse),
                                             'payload' => Json::encode($contactPayload),
                                         ]), false);
@@ -562,13 +564,13 @@ class Freshdesk extends HelpDesk
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['ticketFieldMapping'], 'validateFieldMapping', 'params' => $ticket, 'when' => function($model) {
                 return $model->enabled && $model->mapToTicket;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -583,6 +585,36 @@ class Freshdesk extends HelpDesk
             'auth' => [App::parseEnv($this->apiKey), 'password'],
         ]);
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToTicket',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Ticket']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tickets']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'ticketFieldMapping',
+            'if' => 'mapToTicket',
+            'dataLabel' => 'Ticket',
+            'dataKey' => 'ticket',
+        ]);
+
+        return $schema;
+    }
+
     
 
     // Private Methods

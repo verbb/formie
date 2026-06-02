@@ -1,19 +1,23 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\base\Field;
 use verbb\formie\Formie;
+use verbb\formie\base\Field;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\values\EmailFieldValue;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\SlotTag;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
 use craft\db\Query;
 
 use Faker\Generator as FakerFactory;
@@ -22,7 +26,7 @@ use GraphQL\Type\Definition\Type;
 
 use yii\validators\EmailValidator;
 
-class Email extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
+class Email extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -35,6 +39,11 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/email/icon.svg';
+    }
+
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
     }
 
     public static function supportsIdn(): bool
@@ -55,28 +64,38 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
     // Public Methods
     // =========================================================================
 
+    public function themeConfigKey(): string
+    {
+        return 'emailAddress';
+    }
+
+    public function fieldKind(): string
+    {
+        return self::KIND_TEXT;
+    }
+
     public function getElementValidationRules(): array
     {
         $rules = parent::getElementValidationRules();
 
         // Enable base validations
-        $rules[] = ['trim'];
-        $rules[] = ['email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
+        $rules[] = [$this->handle, 'trim'];
+        $rules[] = [$this->handle, 'email', 'enableIDN' => self::supportsIdn(), 'enableLocalIDN' => false];
 
         if ($this->validateDomain) {
             $rules[] = [$this->handle, EmailValidator::class, 'skipOnEmpty' => true, 'checkDNS' => true];
         }
 
         if ($this->blockedDomains) {
-            $rules[] = 'validateDomain';
+            $rules[] = [$this->handle, 'validateDomain'];
         }
 
         if ($this->blockFreeDomains) {
-            $rules[] = 'validateFreeDomain';
+            $rules[] = [$this->handle, 'validateFreeDomain'];
         }
 
         if ($this->uniqueValue) {
-            $rules[] = 'validateUniqueValue';
+            $rules[] = [$this->handle, 'validateUniqueValue'];
         }
 
         return $rules;
@@ -85,7 +104,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
     public function validateDomain(ElementInterface $element): void
     {
         $emailDomains = Formie::$plugin->getEmailDomains();
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
         $domain = $emailDomains->extractDomainFromEmail((string)$value);
 
         if (!$domain) {
@@ -97,7 +116,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         }, ArrayHelper::getColumn($this->blockedDomains, 'value')));
 
         if (in_array($domain, $blockedDomains, true)) {
-            $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
+            $element->addError($this->valueKey(), Craft::t('formie', '“{domain}” is not allowed.', [
                 'domain' => $domain,
             ]));
         }
@@ -106,7 +125,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
     public function validateFreeDomain(ElementInterface $element): void
     {
         $emailDomains = Formie::$plugin->getEmailDomains();
-        $value = $element->getFieldValue($this->fieldKey);
+        $value = $element->getFieldValue($this->valueKey());
         $domain = $emailDomains->extractDomainFromEmail((string)$value);
 
         if (!$domain) {
@@ -114,17 +133,19 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         }
 
         if ($emailDomains->isFreeDomain($domain)) {
-            $element->addError($this->fieldKey, Craft::t('formie', '“{domain}” is not allowed.', [
+            $element->addError($this->valueKey(), Craft::t('formie', '“{domain}” is not allowed.', [
                 'domain' => $domain,
             ]));
         }
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/email/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewInput([
+                'type' => 'email',
+            ]),
+        ];
     }
 
     public function getSettingGqlTypes(): array
@@ -142,78 +163,83 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'The text that will be shown if the field doesn’t have a value.'),
                 'name' => 'placeholder',
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
-                'variables' => 'userVariables',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::matchField([
-                'fieldTypes' => [self::class],
+                'includedTypes' => [self::class],
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Unique Value'),
-                'help' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
+                'instructions' => Craft::t('formie', 'Whether to limit user input to unique values only. This will require that a value entered in this field does not already exist in a submission for this field and form.'),
                 'name' => 'uniqueValue',
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Validate Domain (DNS)'),
-                'help' => Craft::t('formie', 'Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.'),
+                'instructions' => Craft::t('formie', 'Whether to validate the domain name provided for the email via DNS record lookup. This can help ensure users enter valid email addresses.'),
                 'name' => 'validateDomain',
             ]),
             SchemaHelper::tableField([
                 'label' => Craft::t('formie', 'Blocked Domains'),
-                'help' => Craft::t('formie', 'Define a list of domain names to block. Users entering email addresses containing these domains will be blocked from using them.'),
+                'instructions' => Craft::t('formie', 'Define a list of domain names to block. Users entering email addresses containing these domains will be blocked from using them.'),
                 'name' => 'blockedDomains',
-                'validation' => '',
-                'newRowDefaults' => [
-                    'domain' => '',
-                ],
                 'columns' => [
                     [
-                        'type' => 'label',
+                        'type' => 'text',
+                        'name' => 'label',
                         'label' => Craft::t('formie', 'Domain'),
-                        'class' => 'singleline-cell textual',
+                        'required' => true,
                     ],
                 ],
             ]),
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Block Free Email Providers'),
-                'help' => Craft::t('formie', 'Whether block emails based on free email providers like `gmail.com` or `hotmail.com`.'),
+                'instructions' => Craft::t('formie', 'Whether to block email addresses from free email providers like `gmail.com` or `hotmail.com`.'),
                 'name' => 'blockFreeDomains',
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -223,7 +249,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -234,7 +260,7 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -242,42 +268,48 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        $form = $context['form'] ?? null;
-        $errors = $context['errors'] ?? null;
+        $form = $context->form;
+        $errors = $context->errors;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'email',
-                'id' => $id,
-                'class' => [
-                    'fui-input',
-                    $errors ? 'fui-error' : false,
-                ],
-                'name' => $this->getHtmlName(),
-                'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
-                'autocomplete' => 'email',
-                'required' => $this->required ? true : null,
-                'data' => [
-                    'fui-id' => $dataId,
-                    'required-message' => Craft::t('formie', $this->errorMessage) ?: null,
-                ],
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'email',
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'placeholder' => Craft::t('formie', $this->placeholder) ?: null,
+                    'autocomplete' => 'email',
+                    'required' => $this->required ? true : null,
+                    'data-formie-input' => true,
+                    'data-formie-email-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'email',
+                    'data-formie-input-error-state' => $errors ? true : false,
+                    'data-formie-required-message' => Craft::t('formie', $this->errorMessage) ?: null,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-email-input',
+                        $errors ? 'formie-input-error' : false,
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/email/input', [
             'name' => $this->handle,
@@ -291,4 +323,40 @@ class Email extends Field implements InlineEditableFieldInterface, PreviewableFi
         return $faker->email;
     }
 
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'variableTypes' => [
+                    Variables::TYPE_TEXT,
+                    Variables::TYPE_EMAIL,
+                ],
+            ]),
+        ];
+    }
+
+    protected function supportsPlainTextHtmlSanitization(): bool
+    {
+        return true;
+    }
+
+    protected function defineValidationRules(): array
+    {
+        $validators = parent::defineValidationRules();
+        $validators[] = ['type' => 'email'];
+
+        return $validators;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'inputType' => 'email',
+        ]);
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return EmailFieldValue::class;
+    }
 }

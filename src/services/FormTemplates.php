@@ -147,10 +147,8 @@ class FormTemplates extends Component
             $templateRecord->handle = $data['handle'];
             $templateRecord->template = $data['template'];
             $templateRecord->useCustomTemplates = $data['useCustomTemplates'];
-            $templateRecord->outputCssLayout = $data['outputCssLayout'];
-            $templateRecord->outputCssTheme = $data['outputCssTheme'];
-            $templateRecord->outputJsBase = $data['outputJsBase'];
-            $templateRecord->outputJsTheme = $data['outputJsTheme'];
+            $templateRecord->outputCss = $data['outputCss'] ?? (($data['outputCssLayout'] ?? false) || ($data['outputCssTheme'] ?? false));
+            $templateRecord->outputJs = $data['outputJs'] ?? (($data['outputJsBase'] ?? false) || ($data['outputJsTheme'] ?? false));
             $templateRecord->outputCssLocation = $data['outputCssLocation'];
             $templateRecord->outputJsLocation = $data['outputJsLocation'];
             $templateRecord->sortOrder = $data['sortOrder'];
@@ -304,10 +302,8 @@ class FormTemplates extends Component
                 'handle',
                 'template',
                 'useCustomTemplates',
-                'outputCssLayout',
-                'outputCssTheme',
-                'outputJsBase',
-                'outputJsTheme',
+                'outputCss',
+                'outputJs',
                 'outputCssLocation',
                 'outputJsLocation',
                 'sortOrder',

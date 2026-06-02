@@ -1,6 +1,3 @@
-{# Keep track of the outer group field #}
-{% set repeaterField = field %}
-
 {% if value %}
     <div style="margin: 1em 0;">
         <table style="width: 100%; margin: 1em 0; border-collapse: collapse;">
@@ -20,14 +17,11 @@
                 </thead>
 
                 <tbody>
-                    {% for field in field.getFields() %}
+                    {% for field in field.getFields(true, loop.index0) %}
                         {% if not field.isConditionallyHidden(submission) %}
-                            {# Update the namespace for the field, to include the specific block index #}
-                            {% do field.setParentField(repeaterField, loop.parent.loop.index0) %}
+                            {% set fieldValue = submission.getFieldValue(field.valueKey()) ?? field.getInitialValue(submission) %}
 
-                            {% set fieldValue = submission.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), null) %}
-
-                            {% set html = field.getEmailHtml(submission, notification, fieldValue) %}
+                            {% set html = field.getReferenceBlockHtml(submission, notification, fieldValue) %}
 
                             {% if html %}
                                 <tr>

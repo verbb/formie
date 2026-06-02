@@ -4,7 +4,9 @@
 {% set name = name ?? null -%}
 {% set value = value ?? null -%}
 
-{% do view.registerAssetBundle('craft\\web\\assets\\timepicker\\TimepickerAsset') -%}
+{% if field.displayType != 'datePicker' or field.getIsDateTime() %}
+    {% do view.registerAssetBundle('craft\\web\\assets\\timepicker\\TimepickerAsset') -%}
+{% endif %}
 
 <div class="timewrapper"
         {%- if block('attr') is defined %} {{ block('attr') }}{% endif %}>
@@ -13,7 +15,10 @@
         autocomplete: false,
         size: 10,
         placeholder: ' ',
-        value: (value ? value|time('short', false, false) : '')
+        value: (value ? value|time('short', false, false) : ''),
+        inputAttributes: field.displayType == 'datePicker' and not field.getIsDateTime() ? {
+            'data-formie-date-datepicker-input': true,
+        } : {},
     } -%}
     <div data-icon="time"></div>
 </div>
@@ -29,6 +34,7 @@
 {# include JSON_FORCE_OBJECT in the json_encode options #}
 {% set jsonOptions = constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_QUOT') b-or constant('JSON_FORCE_OBJECT') %}
 
+{% if field.displayType != 'datePicker' or field.getIsDateTime() %}
 {%- js %}
     var $timePicker = $('#{{ id|namespaceInputId|e('js') }}');
     $timePicker.timepicker($.extend({{ options|json_encode(jsonOptions)|raw }}, Craft.timepickerOptions));
@@ -37,3 +43,4 @@
         $timePicker.timepicker('setTime', {{ value.format('G') }}*3600 + {{ value.format('i') }}*60 + {{ value.format('s') }});
     {% endif %}
 {%- endjs %}
+{% endif %}

@@ -1,9 +1,11 @@
 <?php
 namespace verbb\formie\integrations\helpdesk;
 
-use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\HelpDesk;
+use verbb\formie\base\Integration;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -45,13 +47,14 @@ class Zendesk extends HelpDesk
     {
         return Craft::t('formie', 'Send your form content to Zendesk.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            $ticketFields = [
+            if ($this->mapToTicket && $this->settingsContext->dataKey === 'ticket') {
+                $ticketFields = [
                 new IntegrationField([
                     'handle' => 'subject',
                     'name' => Craft::t('formie', 'Subject'),
@@ -87,11 +90,10 @@ class Zendesk extends HelpDesk
                     'handle' => 'requester_email',
                     'name' => Craft::t('formie', 'Requester Email'),
                 ]),
-            ];
+                ];
 
-            $settings = [
-                'ticket' => $ticketFields,
-            ];
+                $settings['ticket'] = $ticketFields;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
         }
@@ -184,7 +186,7 @@ class Zendesk extends HelpDesk
         $rules[] = [
             ['ticketFieldMapping'], 'validateFieldMapping', 'params' => $ticket, 'when' => function($model) {
                 return $model->enabled && $model->mapToTicket;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
@@ -201,4 +203,23 @@ class Zendesk extends HelpDesk
             'auth' => ["{$username}/token", $apiKey],
         ]);
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToTicket',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Ticket']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tickets']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'ticketFieldMapping',
+            'if' => 'mapToTicket',
+            'dataLabel' => 'Ticket',
+            'dataKey' => 'ticket',
+        ]);
+
+        return $schema;
+    }
+
 }

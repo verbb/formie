@@ -2,27 +2,39 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\events\IntegrationConnectionEvent;
 use verbb\formie\events\IntegrationFormSettingsEvent;
+use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\events\ModifyFieldIntegrationValuesEvent;
+use verbb\formie\events\ModifyIntegrationSlotTagEvent;
 use verbb\formie\events\SendIntegrationPayloadEvent;
+use verbb\formie\helpers\IntegrationHelper;
 use verbb\formie\fields\Agree;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\References;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\Variables;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
+use verbb\formie\models\SlotTag;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\IntegrationField;
+use verbb\formie\events\ModifyIntegrationFormSettingsSchemaEvent;
 use verbb\formie\models\IntegrationFormSettings;
+use verbb\formie\models\IntegrationSettingsContext;
 use verbb\formie\models\Phone;
 use verbb\formie\models\Stencil;
 use verbb\formie\records\Integration as IntegrationRecord;
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\SavableComponent;
 use craft\helpers\App;
-use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -56,6 +68,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     public const EVENT_AFTER_FETCH_FORM_SETTINGS = 'afterFetchFormSettings';
     public const EVENT_MODIFY_FIELD_MAPPING_VALUES = 'modifyFieldMappingValues';
     public const EVENT_MODIFY_FIELD_MAPPING_VALUE = 'modifyFieldMappingValue';
+    public const EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA = 'modifyIntegrationFormSettingsSchema';
+    public const EVENT_MODIFY_SLOT_TAG = 'modifySlotTag';
+
     
     public const TYPE_ADDRESS_PROVIDER = 'addressProvider';
     public const TYPE_CAPTCHA = 'captcha';
@@ -105,6 +120,11 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return array_pop($classNameParts);
     }
 
+    public static function kebabClassName(): string
+    {
+        return StringHelper::toKebabCase(static::className());
+    }
+
     public static function isSelectable(): bool
     {
         return false;
@@ -144,6 +164,15 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    public static function warning(IntegrationInterface $integration, string $message, bool $throwError = false): void
+    {
+        Formie::warning($integration->name . ': ' . $message);
+
+        if ($throwError) {
+            throw new IntegrationException($message);
+        }
+    }
+
     public static function error(IntegrationInterface $integration, string $message, bool $throwError = false): void
     {
         Formie::error($integration->name . ': ' . $message);
@@ -155,12 +184,7 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public static function apiError(IntegrationInterface $integration, Error|Exception $exception, bool $throwError = true): void
     {
-        $messageText = $exception->getMessage();
-
-        // Check for Guzzle errors, which are truncated in the exception `getMessage()`.
-        if ($exception instanceof RequestException && $exception->getResponse()) {
-            $messageText = (string)$exception->getResponse()->getBody()->getContents();
-        }
+        $messageText = self::getExceptionLogMessage($exception);
 
         $message = Craft::t('formie', 'API error: “{message}” {file}:{line}', [
             'message' => $messageText,
@@ -175,50 +199,32 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
     }
 
+    public static function getExceptionLogMessage(Throwable $exception): string
+    {
+        if ($exception instanceof RequestException && $exception->getResponse()) {
+            $response = $exception->getResponse();
+            $statusCode = $response->getStatusCode();
+            $reason = trim((string)$response->getReasonPhrase());
+            $body = trim((string)$response->getBody());
+
+            if (mb_strlen($body) > 2000) {
+                $body = mb_substr($body, 0, 2000) . '...';
+            }
+
+            return trim("HTTP {$statusCode}" . ($reason !== '' ? " {$reason}" : '') . ($body !== '' ? " ({$body})" : ''));
+        }
+
+        return $exception->getMessage();
+    }
+
     public static function convertValueForIntegration(mixed $value, IntegrationField $integrationField): mixed
     {
-        if ($integrationField->getType() === IntegrationField::TYPE_ARRAY) {
-            return (is_array($value)) ? $value : [$value];
-        }
+        return IntegrationHelper::convertValueForIntegration($value, $integrationField);
+    }
 
-        if ($integrationField->getType() === IntegrationField::TYPE_DATE) {
-            if ($date = DateTimeHelper::toDateTime($value)) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATETIME) {
-            if ($date = DateTimeHelper::toDateTime($value)) {
-                return $date->format('Y-m-d H:i:s');
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_DATECLASS) {
-            // Always set the timezone to the system time, so it's properly saves as UTC
-            if ($date = DateTimeHelper::toDateTime($value, true)) {
-                return $date;
-            }
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_NUMBER) {
-            return (int)$value;
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_FLOAT) {
-            return (float)$value;
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_BOOLEAN) {
-            return StringHelper::toBoolean($value);
-        }
-
-        if ($integrationField->getType() === IntegrationField::TYPE_PHONE) {
-            return Phone::toPhoneString($value);
-        }
-
-        // Return the string representation of it by default (also default for integration fields)
-        // You could argue we should return `null`, but let's not be too strict on types.
-        return $value;
+    private static function isEmpty($value): bool
+    {
+        return $value === '' || $value === [] || $value === null;
     }
 
 
@@ -236,6 +242,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
     // Store extra context for when running the integration
     public array $context = [];
 
+    // Store extra context when configuring the integration in the form builder
+    public IntegrationSettingsContext $settingsContext;
+
     protected ?Client $_client = null;
 
     // Keep track of whether run in the context of a queue job
@@ -248,8 +257,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function __construct($config = [])
     {
-        // No longer required, due to Auth module
-        unset($config['tokenId']);
+        if (!isset($config['settingsContext'])) {
+            $config['settingsContext'] = new IntegrationSettingsContext();
+        }
 
         parent::__construct($config);
     }
@@ -300,6 +310,60 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return StringHelper::toKebabCase($end);
     }
 
+    public function getTypeHandle(): string
+    {
+        return StringHelper::toKebabCase($this->getType());
+    }
+
+    public function getCategory(): string
+    {
+        return '';
+    }
+
+    public function getCategoryHandle(): string
+    {
+        return StringHelper::toKebabCase($this->getCategory());
+    }
+
+    public function getCpIconPath(): string
+    {
+        $category = trim((string)$this->getCategoryHandle());
+        $handle = trim((string)$this->getClassHandle());
+
+        if ($category === '' || $handle === '') {
+            return '';
+        }
+
+        return "icons/{$category}/{$handle}.svg";
+    }
+
+    public function getCpIconUrl(?string $distBaseUrl = null): string
+    {
+        $path = $this->getCpIconPath();
+        if ($path === '') {
+            return $this->getIconUrl();
+        }
+
+        static $cachedDistBaseUrl = null;
+        $base = $distBaseUrl !== null ? rtrim((string)$distBaseUrl, '/') : '';
+
+        if ($base === '') {
+            if ($cachedDistBaseUrl === null) {
+                $resolved = (string)Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true);
+                $cachedDistBaseUrl = rtrim($resolved, '/');
+            }
+
+            $base = $cachedDistBaseUrl;
+        }
+
+        if ($base !== '') {
+            return "{$base}/{$path}";
+        }
+
+        // Fallback: should rarely happen, but keep behavior safe.
+        return (string)Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, $path);
+    }
+
     public function getEnabled(bool $parse = true): bool|string
     {
         if ($parse) {
@@ -335,26 +399,60 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
-    public function getFormSettingsHtml(Form|Stencil $form): string
+    public function renderSlotTag(string $key, RenderContext $context): ?SlotTag
     {
-        return '';
+        $event = new ModifyIntegrationSlotTagEvent([
+            'integration' => $this,
+            'tag' => $this->defineFieldSlotTag($key, $context),
+            'key' => $key,
+            'context' => $context->toArray(),
+        ]);
+
+        $this->trigger(static::EVENT_MODIFY_SLOT_TAG, $event);
+
+        return $event->tag;
     }
 
-    public function getFormSettingsHtmlVariables(Form|Stencil $form): array
+    public function getIntegrationFieldMappingField(array $config = []): array
     {
-        return [
+        $dataLabel = isset($config['dataLabel']) ? trim((string)$config['dataLabel']) : '';
+        $dataKey = isset($config['dataKey']) ? trim((string)$config['dataKey']) : '';
+
+        return SchemaHelper::integrationFieldMappingField(array_merge([
+            'label' => Craft::t('formie', '{name} Field Mapping', ['name' => $dataLabel]),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} {label} fields.', ['name' => $this->displayName(), 'label' => $dataLabel]),
+            'integrationLabel' => Craft::t('formie', '{name} Field', ['name' => $dataLabel]),
+            'integrationFields' => $this->defineFieldMappingSchema($dataKey),
+        ], $config));
+    }
+
+    public function getFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = $this->defineFormSettingsSchema($form);
+        $schema = SchemaHelper::schemaNode($schema);
+        $event = new ModifyIntegrationFormSettingsSchemaEvent([
+            'schema' => $schema,
             'integration' => $this,
             'form' => $form,
-            'fieldVariables' => [
-                'plugin' => 'formie',
-                'name' => $this::displayName(),
-            ],
-        ];
+        ]);
+        $this->trigger(self::EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA, $event);
+
+        return $event->schema;
+    }
+
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
+    {
+        return null;
     }
 
     public function hasValidSettings(): bool
     {
         return true;
+    }
+
+    public function supportsFormSettingsRefresh(): bool
+    {
+        return false;
     }
 
     public function getQueueJob(): ?JobInterface
@@ -491,8 +589,14 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function validateFieldMapping(string $attribute, array $fields = []): void
     {
+        $mapping = $this->$attribute;
+        if (!is_array($mapping)) {
+            $mapping = [];
+        }
+
         foreach ($fields as $field) {
-            $value = $this->$attribute[$field->handle] ?? '';
+            $rawValue = $mapping[$field->handle] ?? '';
+            $value = $this->normalizeFieldMappingValue($rawValue);
 
             if ($field->required && $value === '') {
                 $this->addError($attribute, Craft::t('formie', '{name} must be mapped.', ['name' => $field->name]));
@@ -527,8 +631,13 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         $response = $this->getClient()->request($method, ltrim($uri, '/'), $options);
+        $text = (string)$response->getBody()->getContents();
 
-        return Json::decode($response->getBody()->getContents());
+        if (Json::isJsonObject($text)) {
+            return Json::decode($text);
+        }
+
+        return $text;
     }
 
     public function deliverPayload(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
@@ -551,26 +660,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $response;
     }
 
-    public function deliverPayloadRequest(Submission $submission, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
-    {
-        // Allow events to cancel sending
-        if (!$this->beforeSendPayload($submission, $endpoint, $payload, $method, $contentType)) {
-            return false;
-        }
-
-        // Don't assume a JSON response, return the raw response to deal with later
-        $response = $this->getClient()->request($method, $endpoint, [
-            $contentType => $payload,
-        ]);
-
-        // Allow events to say the response is invalid
-        if (!$this->afterSendPayload($submission, $endpoint, $payload, $method, $response)) {
-            return false;
-        }
-
-        return $response;
-    }
-
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
     {
         $fieldValues = [];
@@ -579,7 +668,9 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             $fieldMapping = [];
         }
 
-        foreach ($fieldMapping as $tag => $fieldKey) {
+        foreach ($fieldMapping as $tag => $rawFieldKey) {
+            $fieldKey = $this->normalizeFieldMappingValue($rawFieldKey);
+
             // Don't let in un-mapped fields
             if ($fieldKey === '') {
                 continue;
@@ -588,29 +679,40 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
             // Get the type of field we are mapping to (for the integration)
             $integrationField = ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField();
 
-            // TODO define static integrations better
-            if ($fieldKey === '{submission:dateCreated}') {
-                $integrationField->type = IntegrationField::TYPE_DATETIME;
+            if (str_contains($fieldKey, '{')) {
+                // Reference tokens opt into Formie's field-resolution pipeline,
+                // including field-specific integration projections, while plain
+                // strings are treated as authored literals.
+                $resolved = Variables::getFieldAndValueForReference($fieldKey, $submission);
+                $value = static::convertValueForIntegration($resolved['value'], $integrationField);
+                $field = $resolved['field'];
+
+                // Most integrations treat empty values as "leave unmapped" to
+                // avoid clearing remote data unintentionally. Element syncing is
+                // the main exception because overwriteValues explicitly opts into
+                // sending blanks as real updates.
+                $shouldSet = !self::isEmpty($value) || ($this instanceof Element && $this->overwriteValues);
+            } else {
+                $value = static::convertValueForIntegration($fieldKey, $integrationField);
+                $field = null;
+                $shouldSet = true;
             }
 
-            if (str_contains($fieldKey, '{')) {
-                // Get the value of the mapped field, from the submission.
-                $fieldValue = $this->getMappedFieldValue($fieldKey, $submission, $integrationField);
+            if ($shouldSet) {
+                $fieldValues[$tag] = $value;
 
-                // Be sure the check against empty values and not map them. '', null and [] are all empty
-                // but 0 is a totally valid value.
-                if (self::isEmpty($fieldValue)) {
-                    // Check if an element integration, where we can check against overwrite values.
-                    // If it's empty, and we're overwriting values, we don't care
-                    if ($this instanceof Element && $this->overwriteValues) {
-                        $fieldValues[$tag] = $fieldValue;
-                    }
-                } else {
-                    $fieldValues[$tag] = $fieldValue;
+                $eventConfig = [
+                    'value' => $value,
+                    'submission' => $submission,
+                    'integrationField' => $integrationField,
+                    'integration' => $this,
+                ];
+
+                if ($field !== null) {
+                    $eventConfig['field'] = $field;
                 }
-            } else {
-                // Otherwise, might have passed in a direct, static value. But ensure they're typecasted properly
-                $fieldValues[$tag] = static::convertValueForIntegration($fieldKey, $integrationField);
+
+                $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, new ModifyFieldIntegrationValueEvent($eventConfig));
             }
         }
 
@@ -627,33 +729,6 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->fieldValues;
     }
 
-    public function getMappedFieldsByType(Submission $submission, array $fieldMapping, array $fieldSettings, string $type): array
-    {
-        $fields = [];
-
-        foreach ($fieldMapping as $tag => $fieldKey) {
-            // Don't let in un-mapped fields
-            if ($fieldKey === '' || !str_starts_with($fieldKey, '{field:')) {
-                continue;
-            }
-
-            $fieldInfo = $this->getMappedFieldInfo($fieldKey, $submission);
-            $field = $fieldInfo['field'];
-
-            if (!$field || get_class($field) !== $type) {
-                continue;
-            }
-
-            $fields[] = [
-                'integrationField' => ArrayHelper::firstWhere($fieldSettings, 'handle', $tag) ?? new IntegrationField(),
-                'field' => $field,
-                'value' => $submission->getFieldValue($field->fieldKey),
-            ];
-        }
-
-        return $fields;
-    }
-
     public function populateContext(): void
     {
         $request = Craft::$app->getRequest();
@@ -668,28 +743,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
 
     public function populateQueueJobContext($submission, $endpoint, $payload, $method, $contentType): void
     {
-        if (!$this->getQueueJob()) {
+        if (!$this->getQueueJob() || !method_exists($this, 'getClient')) {
             return;
         }
 
-        try {
-            $config = $this->getClient()->getConfig();
-        } catch (Throwable $e) {
-            $config = [];
-        }
+        $config = $this->getClient()->getConfig();
 
         $this->getQueueJob()->payload = [
             'client' => array_filter([
-                'headers' => $config['headers'] ?? null,
+                'headers' => self::_sanitizeQueueHeaders($config['headers'] ?? null),
                 'verify' => $config['verify'] ?? null,
                 'base_uri' => $config['base_uri'] ?? null,
-                'auth' => $config['auth'] ?? null,
+                'auth' => isset($config['auth']) ? '[redacted]' : null,
             ]),
             'request' => array_filter([
                 'method' => $method,
                 'endpoint' => ltrim((string)$endpoint, '/'),
                 'type' => $contentType,
-                'data' => $payload,
+                'data' => '[redacted]',
             ]),
         ];
     }
@@ -746,48 +817,41 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return $event->isValid;
     }
 
-    public function enforceOptInField(Submission $submission): bool
+    public function enforceOptInField(Submission $submission, ?array $variables = null): bool
     {
         // Default is just always do it!
         if (!$this->optInField) {
             return true;
         }
 
-        // Get the value of the mapped field, from the submission
-        $fieldValue = $this->getMappedFieldValue($this->optInField, $submission, new IntegrationField());
+        // Get the value of the mapped field (resolved via getFieldValue when field is found, else variables)
+        $optInField = $this->normalizeFieldMappingValue($this->optInField);
+        $resolved = Variables::getFieldAndValueForReference($optInField, $submission, $variables);
+        $field = $resolved['field'];
+        $rawValue = $resolved['value'];
 
-        if (self::isEmpty($fieldValue)) {
+        if ($field === null && self::isEmpty($rawValue)) {
             Integration::info($this, Craft::t('formie', 'Unable to find field “{field}” for opt-in in submission.', [
-                'field' => $this->optInField,
+                'field' => $optInField,
             ]));
 
             return false;
         }
 
-        // Do some checks depending on the field value type
-        $hasOptedIn = true;
+        if ($field !== null && $field->isValueEmpty($rawValue, $submission)) {
+            Integration::info($this, Craft::t('formie', 'Opting-out. Field “{field}” is empty.', [
+                'field' => $optInField,
+            ]));
 
-        // Fetch information about the field we've picked to opt-in with
-        $fieldInfo = $this->getMappedFieldInfo($this->optInField, $submission);
-        $field = $fieldInfo['field'];
-
-        // For Checkboxes fields, we'll have an object, but let's check for anything iterable just to be safe
-        if (is_iterable($fieldValue)) {
-            $hasOptedIn = (bool)count($fieldValue);
-        } else if ($field instanceof Agree) {
-            // If this is an agree field, check this is the "Checked Value". This needs to handle strings
-            // which won't work as falsey values.
-            if ($field->checkedValue !== $fieldValue) {
-                $hasOptedIn = false;
-            }
-        } else if (!$fieldValue) {
-            // For everything else, just a simple 'falsey' check is good enough
-            $hasOptedIn = false;
+            return false;
         }
+
+        $fieldValue = static::convertValueForIntegration($rawValue, new IntegrationField(['type' => IntegrationField::TYPE_BOOLEAN]));
+        $hasOptedIn = (bool)$fieldValue;
 
         if (!$hasOptedIn) {
             Integration::info($this, Craft::t('formie', 'Opting-out. Field “{field}” has value “{value}”.', [
-                'field' => $this->optInField,
+                'field' => $optInField,
                 'value' => $fieldValue,
             ]));
 
@@ -797,57 +861,24 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return true;
     }
 
-    public function getMappedFieldInfo(string $mappedFieldValue, Submission $submission): array
+    public function getMappedFieldValue(string $fieldKey, Submission $submission, IntegrationField $integrationField): mixed
     {
-        // Replace how we store the value (as `{field:fieldHandle}` or `{submission:id}`)
-        $fieldKey = str_replace(['{field:', '}'], ['', ''], $mappedFieldValue);
+        $fieldKey = $this->normalizeFieldMappingValue($fieldKey);
+        $resolved = Variables::getFieldAndValueForReference($fieldKey, $submission);
+        $fieldValue = static::convertValueForIntegration($resolved['value'], $integrationField);
+        $field = $resolved['field'];
 
-        // Change the field handle to reflect the top-level field, not the full path to the value
-        // but still keep the subField path (if any) for some fields to use
-        $fieldKey = explode('.', $fieldKey);
-        $fieldHandle = array_shift($fieldKey);
-        $fieldKey = implode('.', $fieldKey);
+        $event = new ModifyFieldIntegrationValueEvent([
+            'value' => $fieldValue,
+            'rawValue' => $resolved['value'],
+            'field' => $field,
+            'submission' => $submission,
+            'integrationField' => $integrationField,
+            'integration' => $this,
+        ]);
+        $this->trigger(static::EVENT_MODIFY_FIELD_MAPPING_VALUE, $event);
 
-        // Try and get the form field we're pulling data from
-        $field = ArrayHelper::firstWhere($submission->getFields(), 'handle', $fieldHandle);
-
-        return ['field' => $field, 'handle' => $fieldHandle, 'key' => $fieldKey];
-    }
-
-    public function getMappedFieldValue(string $mappedFieldValue, Submission $submission, IntegrationField $integrationField): mixed
-    {
-        try {
-            if (str_starts_with($mappedFieldValue, '{submission:')) {
-                $mappedFieldValue = str_replace(['{submission:', '}'], ['', ''], $mappedFieldValue);
-
-                // Ensure the submission value is typecasted properly.
-                return static::convertValueForIntegration($submission->$mappedFieldValue, $integrationField);
-            }
-
-            // Get information about the fields we're mapping to. The field key/handle will be different
-            // if this is a complex field, but the handle will always be the top-level field.
-            $fieldInfo = $this->getMappedFieldInfo($mappedFieldValue, $submission);
-            $field = $fieldInfo['field'];
-            $fieldKey = $fieldInfo['key'];
-            $fieldHandle = $fieldInfo['handle'];
-
-            // Then, allow the integration to control how to parse the field, from its type
-            if ($field) {
-                // Fetch the value from the submission with dot-notation
-                $fieldValueKey = str_replace(['{field:', '}'], ['', ''], $mappedFieldValue);
-                $value = $submission->getFieldValue($fieldValueKey);
-
-                return $field->getValueForIntegration($value, $integrationField, $this, $submission, $fieldKey);
-            }
-        } catch (Throwable $e) {
-            Formie::error('Error trying to fetch mapped field value: “{message}” {file}:{line}', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-        }
-
-        return null;
+        return $event->value;
     }
 
     public function allowedGqlSettings(): array
@@ -907,10 +938,102 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         return Craft::createGuzzleClient($options);
     }
 
+    protected function defineFieldMappingSchema(string $settingsKey, ?string $selectedCollectionField = null): array
+    {
+        $integrationFields = $this->getFormSettingValue($settingsKey);
+
+        if ($selectedCollectionField) {
+            $selectedCollectionId = (string)($this->{$selectedCollectionField} ?? '');
+            $selectedFields = [];
+
+            if ($selectedCollectionId !== '' && is_array($integrationFields)) {
+                foreach ($integrationFields as $collection) {
+                    $id = is_array($collection) ? ($collection['id'] ?? null) : ($collection->id ?? null);
+                    if ((string)$id !== $selectedCollectionId) {
+                        continue;
+                    }
+
+                    $selectedFields = is_array($collection) ? ($collection['fields'] ?? []) : ($collection->fields ?? []);
+                    break;
+                }
+            }
+
+            $integrationFields = $selectedFields;
+        }
+
+        if (!is_array($integrationFields) || !$integrationFields) {
+            return [];
+        }
+
+        return $this->convertIntegrationFieldsToSchema($integrationFields);
+    }
+
+    protected function convertIntegrationFieldsToSchema(array $integrationFields): array
+    {
+        $fields = [];
+
+        foreach ($integrationFields as $integrationField) {
+            $handle = is_array($integrationField) ? ($integrationField['handle'] ?? null) : ($integrationField->handle ?? null);
+            $name = is_array($integrationField) ? ($integrationField['name'] ?? null) : ($integrationField->name ?? null);
+            $required = (bool)(is_array($integrationField) ? ($integrationField['required'] ?? false) : ($integrationField->required ?? false));
+            $options = is_array($integrationField) ? ($integrationField['options'] ?? null) : ($integrationField->options ?? null);
+
+            if (!$handle) {
+                continue;
+            }
+
+            $label = $name ?: (string)$handle;
+
+            $fieldMeta = [
+                'handle' => (string)$handle,
+                'name' => $label,
+                'required' => $required,
+            ];
+
+            if (!empty($options)) {
+                $fieldMeta['options'] = $options;
+            }
+
+            $fields[] = $fieldMeta;
+        }
+
+        return $fields;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        return [
+            SchemaHelper::lightswitchField([
+                'label' => Craft::t('formie', 'Enabled'),
+                'instructions' => Craft::t('formie', 'Whether the integration should be enabled.'),
+                'name' => 'enabled',
+            ]),
+        ];
+    }
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        return null;
+    }
+
+    protected function getOptInFieldSchema(): array
+    {
+        return SchemaHelper::fieldSelectField([
+            'label' => Craft::t('formie', 'Opt-In Field'),
+            'instructions' => Craft::t('formie', 'Choose a field to opt-in to {name}. For example, you might only wish to subscribe users if they provide a value for a field of your choice - commonly, an Agree field.', ['name' => $this::displayName()]),
+            'name' => 'optInField',
+            'placeholder' => Craft::t('formie', 'Always Opt-in'),
+            'variableConfig' => [
+                'types' => [Variables::TYPE_BOOLEAN],
+            ],
+            'topLevelOnly' => true,
+        ]);
+    }
+
     protected function generateSubmissionPayloadValues(Submission $submission): array
     {
         $user = $submission->getUser();
-        $submissionContent = $submission->getValuesAsJson();
+        $submissionContent = $submission->getValuesAsArray();
         $formAttributes = Json::decode(Json::encode($submission->getForm()->getAttributes()));
 
         $submissionAttributes = $submission->toArray([
@@ -947,9 +1070,66 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         ];
     }
 
+    protected function normalizeFieldMappingValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $mappingType = $value['type'] ?? null;
+
+            if ($mappingType === 'none') {
+                return '';
+            }
+
+            $mappingValue = $value['value'] ?? '';
+
+            return is_scalar($mappingValue) ? $this->replaceProviderOptionTokens((string)$mappingValue) : '';
+        }
+
+        if (is_object($value)) {
+            $mappingType = $value->type ?? null;
+
+            if ($mappingType === 'none') {
+                return '';
+            }
+
+            $mappingValue = $value->value ?? '';
+
+            return is_scalar($mappingValue) ? $this->replaceProviderOptionTokens((string)$mappingValue) : '';
+        }
+
+        return is_scalar($value) ? $this->replaceProviderOptionTokens((string)$value) : '';
+    }
+
+    protected function replaceProviderOptionTokens(string $value): string
+    {
+        return preg_replace_callback('/\{providerOption:([^}]+)\}/', function($matches) {
+            $encoded = $matches[1] ?? '';
+            
+            if (!is_string($encoded) || $encoded === '') {
+                return '';
+            }
+
+            return rawurldecode($encoded);
+        }, $value) ?? $value;
+    }
+
 
     // Private Methods
     // =========================================================================
+
+    private static function _sanitizeQueueHeaders(mixed $headers): mixed
+    {
+        if (!is_array($headers)) {
+            return $headers;
+        }
+
+        foreach ($headers as $key => $value) {
+            if (in_array(mb_strtolower((string)$key), ['authorization', 'x-api-key', 'api-key'], true)) {
+                $headers[$key] = '[redacted]';
+            }
+        }
+
+        return $headers;
+    }
 
     private function setCache(array $values): void
     {
@@ -982,21 +1162,5 @@ abstract class Integration extends SavableComponent implements IntegrationInterf
         }
 
         return $this->cache[$key] ?? null;
-    }
-
-    private static function isEmpty($value): bool
-    {
-        return $value === '' || $value === [] || $value === null;
-    }
-
-
-    // Deprecated Methods
-    // =========================================================================
-
-    public static function log(IntegrationInterface $integration, string $message, bool $throwError = false): void
-    {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'The `log()` function is deprecated. Use `info()` instead.');
-
-        self::info($integration, $message, $throwError);
     }
 }

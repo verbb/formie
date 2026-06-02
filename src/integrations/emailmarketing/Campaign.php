@@ -51,7 +51,6 @@ class Campaign extends EmailMarketing
         return ['campaign'];
     }
 
-
     // Public Methods
     // =========================================================================
 
@@ -158,63 +157,15 @@ class Campaign extends EmailMarketing
 
             $referrer = $this->context['referrer'] ?? null;
 
-            // The `createAndSubscribeContact` method was added in Campaign v2.1.0.
-            if (method_exists(CampaignPlugin::$plugin->forms, 'createAndSubscribeContact')) {
-                $contact = CampaignPlugin::$plugin->forms->createAndSubscribeContact($email, $fieldValues, $list, 'formie', $referrer);
+            $contact = CampaignPlugin::$plugin->forms->createAndSubscribeContact($email, $fieldValues, $list, 'formie', $referrer);
+            
+            if ($contact->hasErrors()) {
+                Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
+                    'errors' => Json::encode($contact->getErrors()),
+                ]), true);
                 
-                if ($contact->hasErrors()) {
-                    Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
-                        'errors' => Json::encode($contact->getErrors()),
-                    ]), true);
-                    
-                    return false;
-                }
-            } 
-            // TODO: remove this in Formie v3, assuming it requires Craft 5, in which case Campaign v3 will be required.
-            else {
-                // Get the Campaign contact
-                $contact = CampaignPlugin::$plugin->contacts->getContactByEmail($email);
-    
-                if ($contact === null) {
-                    $contact = new ContactElement();
-                    $contact->email = $email;
-                }
-    
-                // Set field values
-                $contact->setFieldValues($fieldValues);
-    
-                // If subscribe verification required
-                if ($list->getMailingListType()->subscribeVerificationRequired) {
-                    // Create a pending contact
-                    $pendingContact = new PendingContactModel();
-                    $pendingContact->email = $email;
-                    $pendingContact->mailingListId = $list->id;
-                    $pendingContact->source = $referrer;
-                    $pendingContact->fieldData = $contact->getSerializedFieldValues();
-    
-                    if (!CampaignPlugin::$plugin->pendingContacts->savePendingContact($pendingContact)) {
-                        Integration::error($this, Craft::t('formie', 'Unable to save pending contact: “{errors}”.', [
-                            'errors' => Json::encode($pendingContact->getErrors()),
-                        ]), true);
-    
-                        return false;
-                    }
-    
-                    CampaignPlugin::$plugin->forms->sendVerifySubscribeEmail($pendingContact, $list);
-                } else {
-                    // Save contact
-                    if (!Craft::$app->getElements()->saveElement($contact)) {
-                        Integration::error($this, Craft::t('formie', 'Unable to save contact: “{errors}”.', [
-                            'errors' => Json::encode($contact->getErrors()),
-                        ]), true);
-    
-                        return false;
-                    }
-    
-                    // Subscribe them to the mailing list
-                    CampaignPlugin::$plugin->forms->subscribeContact($contact, $list, 'formie', $referrer);
-                }
-            } 
+                return false;
+            }
         } catch (Throwable $e) {
             Integration::apiError($this, $e);
 
@@ -223,7 +174,7 @@ class Campaign extends EmailMarketing
 
         return true;
     }
-
+    
 
     // Private Methods
     // =========================================================================

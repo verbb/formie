@@ -17,9 +17,14 @@ class TableRowType extends ObjectType
 
     public static function prepareRowFieldDefinition(Table $field): array
     {
+        return self::prepareRowFieldDefinitionFromColumns($field->columns);
+    }
+
+    public static function prepareRowFieldDefinitionFromColumns(array $columns): array
+    {
         $contentFields = [];
 
-        foreach ($field->columns as $columnDefinition) {
+        foreach ($columns as $columnDefinition) {
             $cellType = match ($columnDefinition['type']) {
                 'date', 'time' => DateTime::getType(),
                 'number' => Number::getType(),

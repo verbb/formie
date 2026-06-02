@@ -1,11 +1,11 @@
 <p>
-    {% if field.hasEmailLabel() and not (renderOptions.hideName ?? false) %}
+    {% if field.hasReferenceBlockLabel() and not (renderOptions.hideName ?? false) %}
         <strong>{{ field.label | t('formie') }}</strong><br>
     {% endif %}
 
-    {% if field.isValueEmpty(value, submission) and field.hasEmailPlaceholder() %}
+    {% if field.isValueEmpty(value, submission) and field.hasReferenceBlockPlaceholder() %}
         {{ notification.getPlaceholder() }}
     {% else %}
-        {{ field.getEmailHtml(submission, notification, value) | raw }}
+        {{ field.getReferenceBlockHtml(submission, notification, value) | raw }}
     {% endif %}
 </p>

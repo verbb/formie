@@ -39,4 +39,15 @@ class GcController extends Controller
 
         return ExitCode::OK;
     }
+
+    /**
+     * Removes stale submission states.
+     */
+    public function actionPruneSubmissionStates(): int
+    {
+        $count = Formie::$plugin->getSubmissionDrafts()->pruneDraftStates();
+        $this->stdout('Pruned submission states: ' . $count . PHP_EOL, Console::FG_GREEN);
+
+        return ExitCode::OK;
+    }
 }

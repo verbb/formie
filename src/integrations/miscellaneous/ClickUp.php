@@ -1,9 +1,11 @@
 <?php
 namespace verbb\formie\integrations\miscellaneous;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -44,7 +46,7 @@ class ClickUp extends Miscellaneous
     {
         return Craft::t('formie', 'Send your form content to ClickUp.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -184,13 +186,70 @@ class ClickUp extends Miscellaneous
 
         return $rules;
     }
-
+    
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
             'base_uri' => 'https://api.clickup.com/api/v2/',
             'headers' => ['Authorization' => App::parseEnv($this->apiKey)],
         ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+
+        $lists = $this->getFormSettingValue('lists');
+        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $fieldCollections = [];
+        $listFields = [];
+
+        if (is_array($lists)) {
+            foreach ($lists as $list) {
+                $id = $list['id'] ?? $list->id ?? null;
+                $name = $list['name'] ?? $list->name ?? null;
+                if ($id === null || $name === null) {
+                    continue;
+                }
+                $options[] = ['label' => (string)$name, 'value' => (string)$id];
+                $fields = $list['fields'] ?? $list->fields ?? [];
+                $fieldCollections[] = [
+                    'id' => (string)$id,
+                    'fields' => $this->convertIntegrationFieldsToSchema(is_array($fields) ? $fields : []),
+                ];
+            }
+
+            $selectedListId = (string)($this->listId ?? '');
+            if ($selectedListId !== '') {
+                foreach ($lists as $list) {
+                    $id = $list['id'] ?? $list->id ?? null;
+                    if ((string)$id !== $selectedListId) {
+                        continue;
+                    }
+                    $listFields = $list['fields'] ?? $list->fields ?? [];
+                    break;
+                }
+            }
+        }
+
+        $schema[] = SchemaHelper::integrationRefreshSelectField([
+            'label' => Craft::t('formie', 'List'),
+            'instructions' => Craft::t('formie', 'Select your {name} list to manage content on.', ['name' => $this->displayName()]),
+            'name' => 'listId',
+            'required' => true,
+            'options' => $options,
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'fieldMapping',
+            'label' => Craft::t('formie', 'Field Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} fields.', ['name' => $this->displayName()]),
+            'integrationLabel' => Craft::t('formie', '{name} Field', ['name' => $this->displayName()]),
+            'selectedCollectionField' => 'listId',
+            'integrationFieldCollections' => $fieldCollections,
+            'integrationFields' => $this->convertIntegrationFieldsToSchema(is_array($listFields) ? $listFields : []),
+        ]);
+
+        return $schema;
     }
 
 

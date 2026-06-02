@@ -2,9 +2,12 @@
 namespace verbb\formie\integrations\captchas;
 
 use verbb\formie\base\Captcha;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\Stencil;
 
@@ -49,40 +52,41 @@ class Hcaptcha extends Captcha
         return Craft::$app->getView()->renderTemplate('formie/integrations/captchas/hcaptcha/_plugin-settings', $variables);
     }
 
-    public function getFrontEndHtml(Form $form, FieldLayoutPage $page = null): string
+    public function renderHtml(Form $form, FieldLayoutPage $page = null): string
     {
         return Html::tag('div', null, [
-            'class' => 'fui-captcha formie-hcaptcha-placeholder',
+            'class' => 'formie-captcha formie-hcaptcha-placeholder',
             'data-hcaptcha-placeholder' => true,
         ]);
     }
 
-    public function getFrontEndJsVariables(Form $form, FieldLayoutPage $page = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
-        $settings = [
-            'siteKey' => App::parseEnv($this->siteKey),
-            'formId' => $form->getFormId(),
-            'theme' => $this->theme,
-            'size' => $this->size,
-            'language' => $this->_getMatchedLanguageId() ?? 'en',
-            'submitMethod' => $form->settings->submitMethod ?? 'page-reload',
-            'hasMultiplePages' => $form->hasMultiplePages() ?? false,
-            'loadingMethod' => $this->scriptLoadingMethod,
-        ];
+        if (!$context->form) {
+            return null;
+        }
 
-        $src = Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/captchas/hcaptcha.js');
-
-        return [
-            'src' => $src,
-            'module' => 'FormieHcaptcha',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'hcaptcha',
+            'config' => [
+                'handle' => $this->handle,
+                'placeholderSelector' => '[data-hcaptcha-placeholder]',
+                'siteKey' => App::parseEnv($this->siteKey),
+                'formId' => $context->form->getRenderId(),
+                'theme' => $this->theme,
+                'size' => $this->size,
+                'language' => $this->_getMatchedLanguageId() ?? 'en',
+                'submitMethod' => $context->form->settings->submitMethod ?? 'page-reload',
+                'hasMultiplePages' => $context->form->hasMultiplePages() ?? false,
+                'loadingMethod' => $this->scriptLoadingMethod,
+            ],
+        ]);
     }
 
     public function getGqlVariables(Form $form, FieldLayoutPage $page = null): array
     {
         return [
-            'formId' => $form->getFormId(),
+            'formId' => $form->getRenderId(),
             'sessionKey' => 'siteKey',
             'value' => App::parseEnv($this->siteKey),
         ];
@@ -135,10 +139,25 @@ class Hcaptcha extends Captcha
     }
 
 
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        if (!$this->hasValidSettings()) {
+            return [
+                $this->getMissingSettingsWarningSchema('hCaptcha', 'hcaptcha'),
+            ];
+        }
+
+        return parent::defineFormSettingsSchema($form);
+    }
+
+
     // Private Methods
     // =========================================================================
 
-    public function _getMatchedLanguageId()
+    private function _getMatchedLanguageId()
     {
         if ($this->language && $this->language != 'auto') {
             return $this->language;

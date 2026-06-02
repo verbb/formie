@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\automations;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Automation;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -64,7 +66,7 @@ class Ifttt extends Automation
 
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getUrl(), $payload);
+            $response = $this->deliverPayload($submission, $this->getUrl(), $payload);
 
             $rawResponse = (string)$response->getBody();
             $json = Json::decodeIfJson($rawResponse);
@@ -85,7 +87,7 @@ class Ifttt extends Automation
         try {
             $payload = $this->generatePayloadValues($submission);
 
-            $response = $this->deliverPayloadRequest($submission, $this->getUrl(), $payload);
+            $response = $this->deliverPayload($submission, $this->getUrl(), $payload);
 
             if ($response === false) {
                 return true;
@@ -119,5 +121,18 @@ class Ifttt extends Automation
         $rules[] = [['eventName'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Event Name'),
+            'instructions' => Craft::t('formie', 'Enter the {name} event name.', ['name' => $this->displayName()]),
+            'name' => 'eventName',
+            'required' => true,
+        ]);
+
+        return $schema;
     }
 }

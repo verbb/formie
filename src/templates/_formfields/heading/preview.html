@@ -1,1 +1,6 @@
-<component :is="field.settings.headingSize">${field.settings.label}</component>
+{field.headingSize === 'h1' && <h1 style={ { fontWeight: 'bold' , fontSize: '1.5rem' } }>{field.label}</h1>}
+{field.headingSize === 'h2' && <h2 style={ {fontWeight: 'bold' , fontSize: '1.25rem' } }>{field.label}</h2>}
+{field.headingSize === 'h3' && <h3 style={ {fontWeight: 'bold' , fontSize: '1.125rem' } }>{field.label}</h3>}
+{field.headingSize === 'h4' && <h4 style={ {fontWeight: 'bold' , fontSize: '1rem' } }>{field.label}</h4>}
+{field.headingSize === 'h5' && <h5 style={ {fontWeight: 'bold' , fontSize: '0.875rem' } }>{field.label}</h5>}
+{field.headingSize === 'h6' && <h6 style={ {fontWeight: 'bold' , fontSize: '0.75rem' } }>{field.label}</h6>}

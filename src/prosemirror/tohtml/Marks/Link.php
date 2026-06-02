@@ -9,6 +9,9 @@ use craft\validators\HandleValidator;
 
 class Link extends Mark
 {
+    // Static Methods
+    // =========================================================================
+
     private static function parseRefTags($value): array|string|null
     {
         $value = preg_replace_callback('/([^\'"\?#]*)(\?[^\'"\?#]+)?(#[^\'"\?#]+)?(?:#|%23)([\w]+)\:(\d+)(?:@(\d+))?(\:(?:transform\:)?' . HandleValidator::$handlePattern . ')?/', function($matches) {
@@ -48,8 +51,16 @@ class Link extends Mark
         return $value;
     }
 
+
+    // Properties
+    // =========================================================================    
+
     protected ?string $markType = 'link';
     protected string|null|array $tagName = 'a';
+    
+    
+    // Public Methods
+    // =========================================================================
 
     public function tag(): array
     {

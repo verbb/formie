@@ -3,7 +3,9 @@ namespace verbb\formie\integrations\crm;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\MicrosoftDynamics365RequiredLevelsEvent;
 use verbb\formie\events\MicrosoftDynamics365TargetSchemasEvent;
@@ -135,29 +137,28 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
-            if ($this->mapToContact) {
+            if ($this->mapToContact && $this->settingsContext->dataKey === 'contact') {
                 $settings['contact'] = $this->_getEntityFields('contact');
             }
 
-            if ($this->mapToLead) {
+            if ($this->mapToLead && $this->settingsContext->dataKey === 'lead') {
                 $settings['lead'] = $this->_getEntityFields('lead');
             }
 
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $settings['opportunity'] = $this->_getEntityFields('opportunity');
             }
 
-            if ($this->mapToAccount) {
+            if ($this->mapToAccount && $this->settingsContext->dataKey === 'account') {
                 $settings['account'] = $this->_getEntityFields('account');
             }
 
-            if ($this->mapToIncident) {
+            if ($this->mapToIncident && $this->settingsContext->dataKey === 'incident') {
                 $settings['incident'] = $this->_getEntityFields('incident');
             }
         } catch (Throwable $e) {
@@ -379,35 +380,98 @@ class MicrosoftDynamics365 extends Crm implements OAuthProviderInterface
         $rules[] = [
             ['contactFieldMapping'], 'validateFieldMapping', 'params' => $contact, 'when' => function($model) {
                 return $model->enabled && $model->mapToContact;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['leadFieldMapping'], 'validateFieldMapping', 'params' => $lead, 'when' => function($model) {
                 return $model->enabled && $model->mapToLead;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['accountFieldMapping'], 'validateFieldMapping', 'params' => $account, 'when' => function($model) {
                 return $model->enabled && $model->mapToAccount;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['incidentFieldMapping'], 'validateFieldMapping', 'params' => $incident, 'when' => function($model) {
                 return $model->enabled && $model->mapToIncident;
-            }, 'on' => [Integration::SCENARIO_FORM]
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false
         ];
 
         return $rules;
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToContact',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Contact']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Contacts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'contactFieldMapping',
+            'if' => 'mapToContact',
+            'dataLabel' => 'Contact',
+            'dataKey' => 'contact',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToLead',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Lead']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Leads']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'leadFieldMapping',
+            'if' => 'mapToLead',
+            'dataLabel' => 'Lead',
+            'dataKey' => 'lead',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToAccount',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Account']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Accounts']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'accountFieldMapping',
+            'if' => 'mapToAccount',
+            'dataLabel' => 'Account',
+            'dataKey' => 'account',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToIncident',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Incident']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Incidents']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'incidentFieldMapping',
+            'if' => 'mapToIncident',
+            'dataLabel' => 'Incident',
+            'dataKey' => 'incident',
+        ]);
+
+        return $schema;
+    }
+
 
     protected function convertFieldType($fieldType)
     {

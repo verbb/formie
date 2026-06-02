@@ -41,7 +41,6 @@ class AWeber extends EmailMarketing implements OAuthProviderInterface
         return Craft::t('formie', 'AWeber');
     }
 
-
     // Public Methods
     // =========================================================================
 

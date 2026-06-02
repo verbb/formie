@@ -3,8 +3,10 @@ namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
@@ -67,7 +69,9 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
     public function getBaseApiUrl(?Token $token): ?string
     {
-        return "https://sheets.googleapis.com/v4/spreadsheets/";
+        $spreadsheetId = $this->getSpreadsheetId();
+
+        return "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheetId}/";
     }
 
     public function getOAuthProviderConfig(): array
@@ -108,7 +112,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
     {
         return Craft::t('formie', 'Send your form content to Google Sheets.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -126,7 +130,7 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
             $savedColumns = [];
 
             foreach ($allSheets as $sheet) {
-                $response = $this->request('GET', "{$spreadsheetId}/values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
+                $response = $this->request('GET', "values/'{$sheet['properties']['title']}'!A1:ZZZ1", [
                     'query' => ['majorDimension' => 'ROWS'],
                 ]);
 
@@ -178,7 +182,6 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
 
             // Just in case...
             $columns = array_values(array_filter($columns));
-
             foreach ($columns as $key => $column) {
                 $rowValues[$key] = $fieldValues[$column] ?? '';
             }
@@ -221,5 +224,42 @@ class GoogleSheets extends Miscellaneous implements OAuthProviderInterface
         $rules[] = [['sheetId'], 'required', 'on' => [Integration::SCENARIO_FORM]];
 
         return $rules;
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+
+        $selectedSheetId = (string)($this->sheetId ?? '');
+
+        if ($selectedSheetId === '') {
+            $selectedSheetId = $this->_getFirstSheetId();
+        }
+
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'sheetId',
+            'label' => Craft::t('formie', 'Sheet'),
+            'instructions' => Craft::t('formie', 'Select which {name} sheet to add rows to.', ['name' => $this->displayName()]),
+            'required' => true,
+            'options' => $this->_getSheetOptions(),
+        ]);
+
+        $schemaFields = $this->convertIntegrationFieldsToSchema($this->_getSheetFields($selectedSheetId));
+        $fieldMappingSchema = array_map(fn(array $f) => SchemaHelper::fieldSelectField([
+            'name' => $f['handle'],
+            'label' => $f['name'],
+            'required' => $f['required'],
+            'options' => $f['options'] ?? [],
+        ]), $schemaFields);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::groupField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} columns.', ['name' => $this->displayName()]),
+                'children' => $fieldMappingSchema,
+            ]);
+        }
+
+        return $schema;
     }
 }

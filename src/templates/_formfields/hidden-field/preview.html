@@ -1,1 +1,10 @@
-<input type="text" disabled class="fui-field-input" :placeholder="field.settings.placeholder" :value="field.settings.defaultValue">
+<div className="formie-field-preview-control formie-field-preview-control--hidden">
+    <input
+        type="text"
+        className="formie-field-preview-input"
+        placeholder={field.placeholder}
+        value={field.defaultValue || ''}
+        readOnly
+    />
+    <span className="formie-field-preview-icon" dangerouslySetInnerHTML={{ __html: fieldType.icon || '' }} />
+</div>

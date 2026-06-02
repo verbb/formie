@@ -1,0 +1,9 @@
+{% set captchasHtml = craft.formie.renderCaptchas(form, page) %}
+
+{% if captchasHtml %}
+    {% formtag 'pageCaptchas' %}
+        {% formtag 'captchaContainer' %}
+            {{ captchasHtml }}
+        {% endformtag %}
+    {% endformtag %}
+{% endif %}

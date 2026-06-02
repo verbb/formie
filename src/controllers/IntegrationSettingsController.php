@@ -243,7 +243,7 @@ class IntegrationSettingsController extends SettingsAccessController
         $baseUrl = "formie/settings/$typeKebab";
         $continueEditingUrl = "formie/settings/$typeKebab/edit/{id}";
 
-        Plugin::registerAsset('src/js/formie-integration-settings.js');
+        Plugin::registerCpIntegrationConnectAssets();
 
         return $this->renderTemplate('formie/settings/integrations/_edit', [
             'integration' => $integration,

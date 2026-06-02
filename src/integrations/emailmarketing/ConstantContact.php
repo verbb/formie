@@ -41,7 +41,6 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
         return Craft::t('formie', 'Constant Contact');
     }
 
-
     // Public Methods
     // =========================================================================
 
@@ -189,7 +188,7 @@ class ConstantContact extends EmailMarketing implements OAuthProviderInterface
 
         return true;
     }
-
+    
 
     // Private Methods
     // =========================================================================

@@ -1,9 +1,10 @@
 <?php
 namespace verbb\formie\controllers;
 
-use verbb\formie\migrations\MigrateFreeform4;
-use verbb\formie\migrations\MigrateFreeform5;
-use verbb\formie\migrations\MigrateSproutForms;
+use verbb\formie\migrations\plugins\MigrateFreeform4;
+use verbb\formie\migrations\plugins\MigrateFreeform5;
+use verbb\formie\migrations\plugins\MigrateSproutForms;
+use verbb\formie\migrations\plugins\Line;
 
 use Craft;
 use craft\errors\MissingComponentException;
@@ -29,7 +30,7 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable) {}
+        } catch (Throwable $e) {}
 
         $formIds = $this->request->getParam('formIds');
         $forms = SproutFormsForm::find()->id($formIds)->all();
@@ -46,13 +47,10 @@ class MigrationsController extends SettingsAccessController
             $migration = new MigrateSproutForms(['formId' => $form->id]);
 
             try {
-                ob_start();
-                $migration->up();
-                $output = ob_get_clean();
-
-                $outputs[$form->id] = nl2br($output);
+                $result = $migration->run();
+                $outputs[$form->id] = $result->lines;
             } catch (Throwable $e) {
-                $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
+                $outputs[$form->id] = [Line::error('Failed to migrate: ' . $e->getMessage())];
             }
         }
 
@@ -70,7 +68,7 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable) {}
+        } catch (Throwable $e) {}
 
         $formIds = $this->request->getParam('formIds');
 
@@ -93,13 +91,10 @@ class MigrationsController extends SettingsAccessController
             $migration = new MigrateFreeform4(['formId' => $form->id]);
 
             try {
-                ob_start();
-                $migration->up();
-                $output = ob_get_clean();
-
-                $outputs[$form->id] = nl2br($output);
+                $result = $migration->run();
+                $outputs[$form->id] = $result->lines;
             } catch (Throwable $e) {
-                $outputs[$form->id] = 'Failed to migrate: ' . $e->getMessage();
+                $outputs[$form->id] = [Line::error('Failed to migrate: ' . $e->getMessage())];
             }
         }
 
@@ -117,7 +112,7 @@ class MigrationsController extends SettingsAccessController
         // Backup!
         try {
             Craft::$app->getDb()->backup();
-        } catch (Throwable) {}
+        } catch (Throwable $e) {}
 
         $formIds = $this->request->getParam('formIds');
 
@@ -140,13 +135,10 @@ class MigrationsController extends SettingsAccessController
             $migration = new MigrateFreeform5(['formId' => $form->getId()]);
 
             try {
-                ob_start();
-                $migration->up();
-                $output = ob_get_clean();
-
-                $outputs[$form->getId()] = nl2br($output);
+                $result = $migration->run();
+                $outputs[$form->getId()] = $result->lines;
             } catch (Throwable $e) {
-                $outputs[$form->getId()] = 'Failed to migrate: ' . $e->getMessage();
+                $outputs[$form->getId()] = [Line::error('Failed to migrate: ' . $e->getMessage())];
             }
         }
 

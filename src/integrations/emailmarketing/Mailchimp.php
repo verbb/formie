@@ -3,8 +3,10 @@ namespace verbb\formie\integrations\emailmarketing;
 
 use verbb\formie\base\Integration;
 use verbb\formie\base\EmailMarketing;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
@@ -34,7 +36,6 @@ class Mailchimp extends EmailMarketing
     public bool $appendTags = false;
     public bool $useDoubleOptIn = false;
 
-
     // Public Methods
     // =========================================================================
 
@@ -42,7 +43,7 @@ class Mailchimp extends EmailMarketing
     {
         return Craft::t('formie', 'Sign up users to your {name} lists to grow your audience for campaigns.', ['name' => static::displayName()]);
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
@@ -251,6 +252,15 @@ class Mailchimp extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['apiKey'], 'required'];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         if (!$dataCenter = $this->_getDataCenter()) {
@@ -264,18 +274,26 @@ class Mailchimp extends EmailMarketing
     }
 
 
-    // Protected Methods
-    // =========================================================================
 
-    protected function defineRules(): array
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        $rules = parent::defineRules();
+        $schema = parent::defineFormSettingsSchema($form);
 
-        $rules[] = [['apiKey'], 'required'];
+        $schema[] = SchemaHelper::lightswitchField([
+            'label' => Craft::t('formie', 'Append Tags'),
+            'instructions' => Craft::t('formie', 'Whether to append tags to the list of existing member tags.'),
+            'name' => 'appendTags',
+        ]);
 
-        return $rules;
+        $schema[] = SchemaHelper::lightswitchField([
+            'label' => Craft::t('formie', 'Use Double Opt in'),
+            'instructions' => Craft::t('formie', 'Whether to use double opt-in, which will send the user a confirmation email before they‘re added to the list.'),
+            'name' => 'useDoubleOptIn',
+        ]);
+
+        return $schema;
     }
-
+    
 
     // Private Methods
     // =========================================================================

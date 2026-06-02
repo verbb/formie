@@ -35,7 +35,6 @@ class CustomerIo extends EmailMarketing
     public ?string $siteId = null;
     public ?string $dataCenter = null;
 
-
     // Public Methods
     // =========================================================================
 

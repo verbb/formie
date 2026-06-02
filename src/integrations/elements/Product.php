@@ -4,10 +4,12 @@ namespace verbb\formie\integrations\elements;
 use verbb\formie\Formie;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Element;
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFieldIntegrationValueEvent;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationCollection;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -56,9 +58,7 @@ class Product extends Element
     public function getDescription(): string
     {
         return Craft::t('formie', 'Map content provided by form submissions to create {name} elements.', ['name' => static::displayName()]);
-    }
-
-    public function fetchFormSettings()
+    }    public function fetchFormSettings()
     {
         $customFields = [];
 
@@ -300,7 +300,7 @@ class Product extends Element
             }
         } catch (\Throwable $e) {
             $error = Craft::t('formie', 'Element integration failed for submission “{submission}”. Error: {error} {file}:{line}', [
-                'error' => $e->getMessage(),
+                'error' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'submission' => $submission->id,
@@ -349,6 +349,86 @@ class Product extends Element
         return $rules;
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $selectedProductTypeId = (string)($this->productTypeId ?? '');
+        if ($selectedProductTypeId === '') {
+            $selectedProductTypeId = $this->_getFirstProductTypeId();
+        }
+
+        $schema[] = SchemaHelper::comboboxField([
+            'name' => 'productTypeId',
+            'label' => Craft::t('formie', 'Product Type'),
+            'instructions' => Craft::t('formie', 'Select a product type to map content to. This will reflect the available fields to map to.'),
+            'required' => true,
+            'options' => $this->_getProductTypeOptions(),
+        ]);
+        $schema[] = SchemaHelper::elementSelectField([
+            'name' => 'defaultAuthorId',
+            'label' => Craft::t('formie', 'Default Author'),
+            'instructions' => Craft::t('formie', 'Select a user to be the default author for the created product.'),
+            'required' => true,
+            'selectionLabel' => Craft::t('formie', 'Choose a User'),
+            'config' => [
+                'jsClass' => 'Craft.ElementSelectInput',
+                'elementType' => User::class,
+                'limit' => 1,
+            ],
+        ]);
+        $schema[] = SchemaHelper::integrationFieldMappingField([
+            'name' => 'attributeMapping',
+            'label' => Craft::t('formie', 'Attribute Mapping'),
+            'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} attributes.', ['label' => 'Product']),
+            'integrationLabel' => Craft::t('formie', 'Element Field'),
+            'showRefreshButton' => false,
+            'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+            'integrationFields' => $this->convertIntegrationFieldsToSchema($this->getElementAttributes()),
+        ]);
+
+        $productTypeSettings = $this->_getProductTypeSettings();
+        $fieldMappingSchema = $this->convertIntegrationFieldsToSchema(is_object($productTypeSettings) ? ($productTypeSettings->fields ?? []) : []);
+        if ($fieldMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'fieldMapping',
+                'label' => Craft::t('formie', 'Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {label} fields.', ['label' => 'Product']),
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $fieldMappingSchema,
+            ]);
+        }
+
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'overwriteValues',
+            'label' => Craft::t('formie', 'Overwrite Content'),
+            'instructions' => Craft::t('formie', 'Whether to overwrite existing content, even if empty values are provided.'),
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'updateElement',
+            'label' => Craft::t('formie', 'Update Products'),
+            'instructions' => Craft::t('formie', 'Whether this integration should update an existing product if found, or always create a new product.'),
+        ]);
+
+        $updateAttributes = $this->getUpdateAttributes();
+        $updateMappingSchema = $this->convertIntegrationFieldsToSchema($updateAttributes[$selectedProductTypeId] ?? []);
+        if ($updateMappingSchema) {
+            $schema[] = SchemaHelper::integrationFieldMappingField([
+                'name' => 'updateElementMapping',
+                'label' => Craft::t('formie', 'Update Element Mapping'),
+                'instructions' => Craft::t('formie', 'Select the fields you want to use to check for existing elements. Formie will look for existing elements with the attributes chosen and the values provided in the submission.'),
+                'if' => 'updateElement',
+                'integrationLabel' => Craft::t('formie', 'Element Field'),
+                'showRefreshButton' => false,
+                'valueLabel' => Craft::t('formie', 'Form Field / Static Value'),
+                'integrationFields' => $updateMappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================
@@ -358,5 +438,32 @@ class Product extends Element
         $productTypes = $this->getFormSettingValue('elements');
 
         return ArrayHelper::firstWhere($productTypes, 'id', $this->productTypeId);
+    }
+
+    private function _getProductTypeOptions(): array
+    {
+        $options = [['label' => Craft::t('formie', 'Select an option'), 'value' => '']];
+        $elements = $this->getFormSettingValue('elements');
+        if (is_array($elements)) {
+            foreach ($elements as $item) {
+                $id = $item->id ?? $item['id'] ?? null;
+                $name = $item->name ?? $item['name'] ?? null;
+                if ($id !== null && $name !== null) {
+                    $options[] = ['label' => (string)$name, 'value' => (string)$id];
+                }
+            }
+        }
+        return $options;
+    }
+
+    private function _getFirstProductTypeId(): string
+    {
+        $elements = $this->getFormSettingValue('elements');
+        if (is_array($elements) && !empty($elements)) {
+            $first = reset($elements);
+            $id = $first->id ?? $first['id'] ?? null;
+            return $id !== null ? (string)$id : '';
+        }
+        return '';
     }
 }

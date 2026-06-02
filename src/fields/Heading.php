@@ -3,7 +3,9 @@ namespace verbb\formie\fields;
 
 use verbb\formie\base\CosmeticField;
 use verbb\formie\helpers\SchemaHelper;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -35,11 +37,11 @@ class Heading extends CosmeticField
     // Public Methods
     // =========================================================================
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewHeading(),
+        ];
     }
 
     public function getSettingGqlTypes(): array
@@ -52,16 +54,16 @@ class Heading extends CosmeticField
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField([
                 'label' => Craft::t('formie', 'Heading Text'),
-                'help' => Craft::t('formie', 'The text to be displayed in the heading.'),
+                'instructions' => Craft::t('formie', 'The text to be displayed in the heading.'),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Heading Size'),
-                'help' => Craft::t('formie', 'Choose the size for the heading.'),
+                'instructions' => Craft::t('formie', 'Choose the size for the heading.'),
                 'name' => 'headingSize',
                 'options' => [
                     ['label' => Craft::t('formie', 'H2'), 'value' => 'h2'],
@@ -71,11 +73,11 @@ class Heading extends CosmeticField
                     ['label' => Craft::t('formie', 'H6'), 'value' => 'h6'],
                 ],
             ]),
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -84,7 +86,7 @@ class Heading extends CosmeticField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -92,20 +94,28 @@ class Heading extends CosmeticField
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        if ($key === 'fieldHeading') {
-            return new HtmlTag($this->headingSize, [
-                'class' => "fui-heading fui-heading-{$this->headingSize}",
-            ], $this->getInputAttributes());
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
-
     // Protected Methods
     // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        if ($key === 'fieldHeading') {
+            return SlotTag::make($this->headingSize)
+                ->core([
+                    'data-formie-heading' => true,
+                    'data-formie-heading-size' => $this->headingSize,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-heading',
+                        "formie-heading-{$this->headingSize}",
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
 
     protected function defineRules(): array
     {
@@ -123,7 +133,7 @@ class Heading extends CosmeticField
         return $rules;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/heading/input', [
             'name' => $this->handle,

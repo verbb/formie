@@ -28,12 +28,10 @@ class IterableIntegration extends EmailMarketing
         return Craft::t('formie', 'Iterable');
     }
 
-
     // Properties
     // =========================================================================
 
     public ?string $apiKey = null;
-
 
     // Public Methods
     // =========================================================================
@@ -177,7 +175,7 @@ class IterableIntegration extends EmailMarketing
             'headers' => ['Api_Key' => App::parseEnv($this->apiKey)],
         ]);
     }
-
+    
 
     // Private Methods
     // =========================================================================

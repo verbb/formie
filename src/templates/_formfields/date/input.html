@@ -4,9 +4,6 @@
 
 {% block field %}
 
-{# Keep track of the outer date field #}
-{% set dateField = field %}
-
 {% if field.displayType == 'calendar' or field.displayType == 'datePicker' %}
     {% if field.getIsDate() or field.getIsDateTime() %}
         {% include 'formie/_formfields/date/_date' %}
@@ -19,21 +16,18 @@
 
 {% if field.displayType == 'dropdowns' or field.displayType == 'inputs' %}
     {% namespace field.handle %}
-        {% for row in field.getRows(false) %}
-            <div class="fui-row">
-                {% for field in row.getFields(false) %}
-                    {# Update the namespace for the field #}
-                    {% do field.setParentField(dateField) %}
-                    
-                    <div class="fui-col-auto">
-                        {% set value = element.getFieldValue(field.fieldKey) ?? field.normalizeValue(field.getDefaultValue(), element) %}
-                        {% set errors = element.getErrors(field.fieldKey) ?? [] %}
+        <div class="formie-subfield-rows" data-formie-subfield-rows>
+            {% for row in field.getRows(false) %}
+                <div class="formie-subfield-row" data-formie-subfield-row>
+                    {% for field in row.getFields(false) %}
+                        {% set value = element.getFieldValue(field.valueKey()) ?? field.getInitialValue(element) %}
+                        {% set errors = element.getErrors(field.valueKey()) ?? [] %}
 
-                        {{ field.getCpInputHtml(value, element) }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endfor %}
+                        {{ field.getSubmissionHtml(value, element) }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
     {% endnamespace %}
 {% endif %}
 

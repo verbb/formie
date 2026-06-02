@@ -1,7 +1,7 @@
 <?php
 namespace verbb\formie\models;
 
-use verbb\formie\base\NestedField;
+use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
 use verbb\formie\models\FieldLayout;
 use verbb\formie\models\FieldLayoutPage;
@@ -11,6 +11,7 @@ use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
 use craft\helpers\StringHelper;
+use verbb\formie\helpers\References;
 
 use DateTime;
 
@@ -66,13 +67,14 @@ class StencilData extends Model
                     $settings['label'] = $field->label;
                     $settings['handle'] = $field->handle;
 
-                    if ($field instanceof NestedField) {
+                    if ($field instanceof ParentField) {
                         $settings['rows'] = $serializeRows($field->getRows());
                         $settings['nestedLayoutId'] = null;
                     }
 
                     $rowData['fields'][] = [
                         'type' => get_class($field),
+                        'reference' => $field->reference,
                         'settings' => $settings,
                     ];
                 }
@@ -226,16 +228,60 @@ class StencilData extends Model
         }, $pages);
     }
 
-    public function populateToForm(Form $form): void
+    public function populateToForm(Form $form, bool $regenerateFieldReferences = false): void
     {
-        $form->settings = $this->settings;
-        $form->userDeletedAction = $this->userDeletedAction;
-        $form->fileUploadsAction = $this->fileUploadsAction;
-        $form->dataRetention = $this->dataRetention;
-        $form->dataRetentionValue = $this->dataRetentionValue;
+        $data = $regenerateFieldReferences
+            ? $this->_createRemappedStencilData()
+            : $this;
 
-        $form->setNotifications($this->notifications);
+        $form->settings = $data->settings;
+        $form->userDeletedAction = $data->userDeletedAction;
+        $form->fileUploadsAction = $data->fileUploadsAction;
+        $form->dataRetention = $data->dataRetention;
+        $form->dataRetentionValue = $data->dataRetentionValue;
+        $form->setNotifications($data->notifications);
+        $form->setFormLayout(new FieldLayout(['pages' => $data->pages]));
+    }
 
-        $form->setFormLayout(new FieldLayout(['pages' => $this->pages]));
+    private function _createRemappedStencilData(): self
+    {
+        $serializedData = $this->getSerializedData();
+        $encoded = Json::encode($serializedData);
+
+        if (!is_string($encoded) || $encoded === '') {
+            return new self($serializedData);
+        }
+
+        $referenceMap = [];
+        $encoded = preg_replace_callback('/"reference":"([^"]+)"/', function($matches) use (&$referenceMap) {
+            $oldReference = trim((string)($matches[1] ?? ''));
+
+            if ($oldReference === '') {
+                return $matches[0];
+            }
+
+            $newReference = $referenceMap[$oldReference] ?? StringHelper::UUID();
+            $referenceMap[$oldReference] = $newReference;
+
+            return '"reference":"' . $newReference . '"';
+        }, $encoded) ?? $encoded;
+
+        $decoded = Json::decode($this->_rewriteSerializedFieldReferenceTokens($encoded, $referenceMap));
+
+        return new self(is_array($decoded) ? $decoded : $serializedData);
+    }
+
+    private function _rewriteSerializedFieldReferenceTokens(string $encodedData, array $referenceMap): string
+    {
+        if ($referenceMap === [] || $encodedData === '') {
+            return $encodedData;
+        }
+
+        $rewritten = preg_replace_callback('/\{field:[^}]+\}/', function($matches) use ($referenceMap) {
+            $rawToken = (string)($matches[0] ?? '');
+            return References::remapFieldReferenceToken($rawToken, $referenceMap);
+        }, $encodedData);
+
+        return is_string($rewritten) && $rewritten !== '' ? $rewritten : $encodedData;
     }
 }

@@ -33,7 +33,6 @@ class Ecomail extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 

@@ -9,9 +9,9 @@ use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\elements\Tag as FormieTag;
 use verbb\formie\events\ModifyElementFieldQueryEvent;
-use verbb\formie\fields\data\MultiOptionsFieldData;
-use verbb\formie\fields\data\OptionData;
-use verbb\formie\fields\data\SingleOptionFieldData;
+use verbb\formie\fields\values\MultiOptionFieldValue;
+use verbb\formie\fields\values\OptionValue;
+use verbb\formie\fields\values\SingleOptionFieldValue;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
@@ -55,6 +55,26 @@ class Tags extends ElementField
         return Tag::class;
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return static::gqlElementContentTypeDefinitionFromConfig(
+            $config,
+            TagInterface::getType(),
+            TagArguments::getArguments(),
+            TagResolver::class,
+        );
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        return static::gqlElementContentMutationArgumentTypeDefinitionFromConfig($config);
+    }
+
 
     // Properties
     // =========================================================================
@@ -67,13 +87,12 @@ class Tags extends ElementField
     // Public Methods
     // =========================================================================
 
-    public function getFieldTypeDefaults(): array
+    public function __construct(array $config = [])
     {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['placeholder'] = Craft::t('formie', 'Select a tag');
+        // Setuo defaults for some values which can't in in the property definition
+        $config['placeholder'] = $config['placeholder'] ?? Craft::t('formie', 'Select a tag');
 
-        return $settings;
+        parent::__construct($config);
     }
 
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
@@ -143,11 +162,11 @@ class Tags extends ElementField
         ];
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/tags/preview', [
-            'field' => $this,
-        ]);
+        return [
+            SchemaHelper::previewElementField(),
+        ];
     }
 
     public function getDisplayTypeField(): FieldInterface
@@ -161,7 +180,7 @@ class Tags extends ElementField
 
         $config['inputAttributes'][] = [
             'label' => 'class',
-            'value' => 'fui-input',
+            'value' => 'formie-input',
         ];
 
         // Special-case for Tag fields - not really a dropdown
@@ -176,27 +195,19 @@ class Tags extends ElementField
         return parent::getDisplayTypeField();
     }
 
-    public function getDisplayTypeValue($value): MultiOptionsFieldData|SingleOptionFieldData|null
+    public function getDisplayTypeValue($value): MultiOptionFieldValue|SingleOptionFieldValue|null
     {
         if ($this->displayType === 'dropdown') {
             $options = [];
 
             foreach ($value->all() as $element) {
-                $options[] = new OptionData($element->title, $element->id, true);
+                $options[] = new OptionValue($element->title, $element->id, true);
             }
 
-            return new MultiOptionsFieldData($options);
+            return new MultiOptionFieldValue($options);
         }
 
         return parent::getDisplayTypeValue($value);
-    }
-
-    public function getFrontEndJsModules(): ?array
-    {
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/tags.js'),
-            'module' => 'FormieTags',
-        ];
     }
 
     public function getTags(): array
@@ -284,7 +295,7 @@ class Tags extends ElementField
         ];
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         $options = $this->getSourceOptions();
 
@@ -292,15 +303,15 @@ class Tags extends ElementField
             SchemaHelper::labelField(),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Placeholder'),
-                'help' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
+                'instructions' => Craft::t('formie', 'The option shown initially, when no option is selected.'),
                 'name' => 'placeholder',
                 'validation' => 'required',
                 'required' => true,
-                'if' => '$get(displayType).value == dropdown',
+                'if' => 'displayType == "dropdown"',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Source'),
-                'help' => Craft::t('formie', 'Which source do you want to select tags from?'),
+                'instructions' => Craft::t('formie', 'Which source do you want to select tags from?'),
                 'name' => 'source',
                 'options' => $options,
                 'validation' => 'required',
@@ -310,7 +321,7 @@ class Tags extends ElementField
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Select default tags to be selected.'),
+                'instructions' => Craft::t('formie', 'Select default tags to be selected.'),
                 'name' => 'defaultValue',
                 'selectionLabel' => Craft::t('formie', 'Choose'),
                 'config' => [
@@ -321,66 +332,56 @@ class Tags extends ElementField
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         $labelSourceOptions = $this->getLabelSourceOptions();
 
         return [
             SchemaHelper::lightswitchField([
                 'label' => Craft::t('formie', 'Required Field'),
-                'help' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
+                'instructions' => Craft::t('formie', 'Whether this field should be required when filling out the form.'),
                 'name' => 'required',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Error Message'),
-                'help' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
+                'instructions' => Craft::t('formie', 'When validating the form, show this message if an error occurs. Leave empty to retain the default message.'),
                 'name' => 'errorMessage',
-                'if' => '$get(required).value',
+                'if' => 'required',
             ]),
             SchemaHelper::prePopulate(),
-            SchemaHelper::includeInEmailField(),
-            SchemaHelper::emailNotificationValue(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
+            SchemaHelper::emailFieldSummaryValue(),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit'),
-                'help' => Craft::t('formie', 'Limit the number of selectable variants.'),
+                'instructions' => Craft::t('formie', 'Limit the number of selectable variants.'),
                 'name' => 'limit',
             ]),
             SchemaHelper::numberField([
                 'label' => Craft::t('formie', 'Limit Options'),
-                'help' => Craft::t('formie', 'Limit the number of available variants.'),
+                'instructions' => Craft::t('formie', 'Limit the number of available variants.'),
                 'name' => 'limitOptions',
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Label Source'),
-                'help' => Craft::t('formie', 'Select what to use as the label for each entry.'),
+                'instructions' => Craft::t('formie', 'Select what to use as the label for each entry.'),
                 'name' => 'labelSource',
                 'options' => $labelSourceOptions,
             ]),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Display Type'),
-                'help' => Craft::t('formie', 'Set different display layouts for this field.'),
+                'instructions' => Craft::t('formie', 'Set different display layouts for this field.'),
                 'name' => 'displayType',
                 'options' => [
                     ['label' => Craft::t('formie', 'Dropdown'), 'value' => 'dropdown'],
                     ['label' => Craft::t('formie', 'Checkboxes'), 'value' => 'checkboxes'],
                     ['label' => Craft::t('formie', 'Radio Buttons'), 'value' => 'radio'],
-                ],
-            ]),
-            SchemaHelper::selectField([
-                'label' => Craft::t('formie', 'Layout'),
-                'help' => Craft::t('formie', 'Select which layout to use for these fields.'),
-                'name' => 'layout',
-                'if' => '$get(displayType).value != dropdown',
-                'options' => [
-                    ['label' => Craft::t('formie', 'Vertical'), 'value' => 'vertical'],
-                    ['label' => Craft::t('formie', 'Horizontal'), 'value' => 'horizontal'],
                 ],
             ]),
             SchemaHelper::labelPosition($this),
@@ -389,7 +390,7 @@ class Tags extends ElementField
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -399,7 +400,7 @@ class Tags extends ElementField
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),

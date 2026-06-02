@@ -7,7 +7,6 @@ use verbb\formie\elements\Submission;
 use verbb\formie\gql\arguments\mutations\SubmissionArguments as SubmissionMutationArguments;
 use verbb\formie\gql\resolvers\mutations\SubmissionResolver;
 use verbb\formie\gql\types\generators\SubmissionGenerator;
-use verbb\formie\gql\types\input\CaptchaInputType;
 
 use Craft;
 use craft\gql\base\ElementMutationResolver;
@@ -26,19 +25,18 @@ class SubmissionMutation extends Mutation
     public static function getMutations(): array
     {
         $mutationList = [];
-
         $createDeleteMutation = false;
+        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
+        $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
+        $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
+        $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
 
-        foreach (Form::find()->all() as $form) {
+        foreach ($forms as $form) {
             $scope = 'formieSubmissions.' . $form->uid;
 
-            $canCreateAll = Gql::canSchema('formieSubmissions.all', 'create');
-            $canSaveAll = Gql::canSchema('formieSubmissions.all', 'save');
-            $canDeleteAll = Gql::canSchema('formieSubmissions.all', 'delete');
-
-            $canCreate = Gql::canSchema($scope, 'create');
-            $canSave = Gql::canSchema($scope, 'save');
-            $canDelete = Gql::canSchema($scope, 'delete');
+            $canCreate = $canCreateAll || Gql::canSchema($scope, 'create');
+            $canSave = $canSaveAll || Gql::canSchema($scope, 'save');
+            $canDelete = $canDeleteAll || Gql::canSchema($scope, 'delete');
 
             if ($canCreateAll || $canSaveAll || $canCreate || $canSave) {
                 $mutation = static::createSaveMutation($form);
@@ -74,24 +72,11 @@ class SubmissionMutation extends Mutation
 
         $resolver = Craft::createObject(SubmissionResolver::class);
         $resolver->setResolutionData('form', $form);
-        $contentFields = $form->getFields();
+        $contentFieldConfigs = Formie::$plugin->getFields()->getAllFieldConfigsForForms([(int)$form->id])[(int)$form->id] ?? [];
 
-        static::prepareResolver($resolver, $contentFields);
+        static::prepareFormieResolver($resolver, $contentFieldConfigs);
 
-        $captchaArguments = [];
-
-        $captchas = Formie::$plugin->getIntegrations()->getAllEnabledCaptchasForForm($form);
-
-        // Add in any enabled captchas for the form, so they can be allowed to send tokens
-        foreach ($captchas as $captcha) {
-            $handle = $captcha->getGqlHandle();
-
-            $captchaArguments[$handle] = [
-                'name' => $handle,
-                'type' => CaptchaInputType::getType(),
-            ];
-        }
-
+        $captchaArguments = Formie::$plugin->getIntegrations()->getGqlCaptchaArgumentsForForm($form);
         $mutationArguments = array_merge($mutationArguments, $resolver->getResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY), $captchaArguments);
 
         return [
@@ -101,5 +86,32 @@ class SubmissionMutation extends Mutation
             'resolve' => [$resolver, 'saveSubmission'],
             'type' => $generatedType,
         ];
+    }
+
+    private static function prepareFormieResolver(SubmissionResolver $resolver, array $contentFieldConfigs): void
+    {
+        $fieldList = [];
+        $fieldsService = Formie::$plugin->getFields();
+
+        // Keep schema generation on normalized field config rows for simple first-party fields.
+        // Only fall back to hydrated field objects when a field type has not opted into the
+        // config-driven GQL contract yet, so client-only field logic remains the compatibility net.
+        foreach ($contentFieldConfigs as $contentFieldConfig) {
+            $contentFieldType = $fieldsService->getFieldConfigContentGqlMutationArgumentType($contentFieldConfig);
+            $handle = $contentFieldConfig['handle'] ?? null;
+
+            if (!$handle) {
+                continue;
+            }
+
+            $fieldList[$handle] = $contentFieldType;
+            $configArray = is_array($contentFieldType) ? $contentFieldType : $contentFieldType->config;
+
+            if (is_array($configArray) && !empty($configArray['normalizeValue'])) {
+                $resolver->setValueNormalizer($handle, $configArray['normalizeValue']);
+            }
+        }
+
+        $resolver->setResolutionData(ElementMutationResolver::CONTENT_FIELD_KEY, $fieldList);
     }
 }

@@ -4,14 +4,17 @@ namespace verbb\formie\services;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
+use verbb\formie\deprecations\RenderingDeprecations;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\ModifyFormRenderOptionsEvent;
-use verbb\formie\events\ModifyFrontEndJsTranslationsEvent;
+use verbb\formie\events\ModifyFrontendJsTranslationsEvent;
 use verbb\formie\events\ModifyRenderEvent;
 use verbb\formie\models\FieldLayoutPage;
 use verbb\formie\models\FormTemplate;
 use verbb\formie\models\Notification;
+use verbb\formie\models\RenderFrame;
+use verbb\formie\web\FieldRenderCallContext;
 
 use Craft;
 use craft\base\Component;
@@ -41,19 +44,27 @@ class Rendering extends Component
     public const EVENT_MODIFY_RENDER_PAGE = 'modifyRenderPage';
     public const EVENT_MODIFY_RENDER_FIELD = 'modifyRenderField';
     public const EVENT_MODIFY_FORM_RENDER_OPTIONS = 'modifyFormRenderOptions';
-    public const EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS = 'modifyFrontEndJsTranslations';
+    public const EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS = 'modifyFrontendJsTranslations';
     public const RENDER_TYPE_CSS = 'css';
     public const RENDER_TYPE_JS = 'js';
+
+
+    // Traits
+    // =========================================================================
+
+    use RenderingDeprecations;
 
 
     // Properties
     // =========================================================================
 
     private bool $_renderedJs = false;
-    private array $_cssFiles = [];
-    private array $_jsFiles = [];
     private array $_filesBuffers = [];
     private array $_renderVariables = [];
+
+    // Stack of active render calls so nested page/field/template code can read the
+    // current form and resolved render options without threading them everywhere.
+    private array $_renderFrames = [];
 
 
     // Public Methods
@@ -66,9 +77,10 @@ class Rendering extends Component
             return null;
         }
 
-        // Give the form a unique ID for each render, to help with multiple renders of the same form
+        // Give the form a unique render ID for each render, to help with multiple
+        // renders of the same state identity on one page.
         if ($fullRender) {
-            $form->setFormId($form->getFormId(false));
+            $form->setRenderId($form->getRenderId(false));
         }
 
         // Fire a 'modifyFormRenderOptions' event
@@ -77,55 +89,51 @@ class Rendering extends Component
             'renderOptions' => $renderOptions,
         ]);
         $this->trigger(self::EVENT_MODIFY_FORM_RENDER_OPTIONS, $event);
-        $renderOptions = $event->renderOptions;
+        $renderOptions = $this->_normalizeRenderOptions($event->renderOptions);
 
-        // Allow the form to handle how to apply render variables
-        $form->applyRenderOptions($renderOptions);
+        $this->_prepareFormForRender($form, $renderOptions);
+        // Push the outer render context so nested field/template helpers can read it.
+        $this->pushRenderFrame($form, $renderOptions);
 
-        // Get the active submission.
-        $submission = $form->getCurrentSubmission();
-        $jsVariables = $form->getFrontEndJsVariables();
+        try {
+            // Get the active submission and hydrate page continuity before template access.
+            $submission = $this->_hydrateSubmitFlowProgress($form);
 
-        $html = $form->renderTemplate('form', [
-            'form' => $form,
-            'renderOptions' => $renderOptions,
-            'submission' => $submission,
-            'jsVariables' => $jsVariables,
-        ]);
+            $html = $form->renderTemplate('form', [
+                'form' => $form,
+                'submission' => $submission,
+                'customInputs' => $renderOptions['customInputs'] ?? [],
+            ]);
 
-        // Fire a 'modifyRenderForm' event
-        $event = new ModifyRenderEvent([
-            'html' => TemplateHelper::raw($html),
-        ]);
-        $this->trigger(self::EVENT_MODIFY_RENDER_FORM, $event);
+            // Fire a 'modifyRenderForm' event
+            $event = new ModifyRenderEvent([
+                'html' => TemplateHelper::raw($html),
+            ]);
+            $this->trigger(self::EVENT_MODIFY_RENDER_FORM, $event);
 
-        $output = TemplateHelper::raw($event->html);
+            $output = TemplateHelper::raw($event->html);
 
-        // We might want to explicitly disable JS/CSS for just this render call
-        $renderCss = $renderOptions['renderCss'] ?? true;
-        $renderJs = $renderOptions['renderJs'] ?? true;
+            // We might need to output CSS and JS inline, or at the head/footer. `formAssets()`
+            // will sort this out, but we don't want to do anything if rendering manually.
+            $assetSettings = $this->_resolveFormAssetSettings($form, $renderOptions);
 
-        // We might need to output CSS and JS inline, or at the head/footer. `renderFormAssets`
-        // will sort this out, but we don't want to do anything if rendering manually
-        $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
-        $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
+            if ($assetSettings['outputCssLocation'] !== FormTemplate::MANUAL) {
+                $css = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, false, $renderOptions);
 
-        $outputCss = $form->getFrontEndTemplateOption('outputCssLayout');
-        $outputJs = $form->getFrontEndTemplateOption('outputJsBase');
+                $output = TemplateHelper::raw($output . $css);
+            }
 
-        if ($outputCssLocation !== FormTemplate::MANUAL && $outputCss && $renderCss) {
-            $css = $this->renderFormAssets($form, self::RENDER_TYPE_CSS, false, $renderOptions);
+            if ($assetSettings['outputJsLocation'] !== FormTemplate::MANUAL) {
+                $js = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, false, $renderOptions);
 
-            $output = TemplateHelper::raw($output . $css);
+                $output = TemplateHelper::raw($output . $js);
+            }
+
+            return $output;
+        } finally {
+            // Drop the outer render context once this render call is complete.
+            $this->popRenderFrame();
         }
-
-        if ($outputJsLocation !== FormTemplate::MANUAL && $outputJs && $renderJs) {
-            $js = $this->renderFormAssets($form, self::RENDER_TYPE_JS, false, $renderOptions);
-
-            $output = TemplateHelper::raw($output . $js);
-        }
-
-        return $output;
     }
 
     public function renderPage(Form|string|null $form, FieldLayoutPage|null $page = null, array $renderOptions = []): ?Markup
@@ -135,37 +143,62 @@ class Rendering extends Component
             return null;
         }
 
-        if (!$page) {
-            $page = $form->getCurrentPage();
+        // Reuse the parent form render context when page rendering happens inside `renderForm()`.
+        $active = $this->getActiveRenderFrame();
+        $pushedHere = false;
+
+        if (!$active || (string)$active->getForm()->id !== (string)$form->id) {
+            $this->_prepareFormForRender($form, $renderOptions);
+            // Standalone page renders still need a temporary context for nested helpers.
+            $this->pushRenderFrame($form, $renderOptions);
+            $pushedHere = true;
+        } else {
+            // Nested page renders inherit the already-normalized parent render options.
+            $this->_prepareFormForRender($form, $active->getRenderOptions());
         }
 
-        // Get the active submission.
-        $submission = $form->getCurrentSubmission();
+        try {
+            $submission = $this->_hydrateSubmitFlowProgress($form);
 
-        $html = $form->renderTemplate('page', [
-            'form' => $form,
-            'page' => $page,
-            'renderOptions' => $renderOptions,
-            'submission' => $submission,
-        ]);
+            if (!$page) {
+                $page = $form->getCurrentPage();
+            }
 
-        // Fire a 'modifyRenderPage' event
-        $event = new ModifyRenderEvent([
-            'html' => $html,
-        ]);
-        $this->trigger(self::EVENT_MODIFY_RENDER_PAGE, $event);
+            $html = $form->renderTemplate('page', [
+                'form' => $form,
+                'page' => $page,
+                'submission' => $submission,
+            ]);
 
-        return TemplateHelper::raw($event->html);
+            // Fire a 'modifyRenderPage' event
+            $event = new ModifyRenderEvent([
+                'html' => $html,
+            ]);
+            $this->trigger(self::EVENT_MODIFY_RENDER_PAGE, $event);
+
+            return TemplateHelper::raw($event->html);
+        } finally {
+            if ($pushedHere) {
+                $this->popRenderFrame();
+            }
+        }
     }
 
-    public function renderField(Form|string|null $form, FieldInterface|string $field, array $renderOptions = []): ?Markup
+    /**
+     * Render a single field. Nested fields should come from contextual `getRows()` / `getFields()` traversal, which already
+     * applies parent and repeater-row scope on cloned field instances.
+     *
+     * Do not pass `value` unless you need an override: the field template falls back to
+     * `field.getElementValue(submission)`, which uses `valueKey()` (full dotted path) and supports arbitrary depth.
+     *
+     * @param array<string, mixed> $fieldOptions Optional: `value`, `fieldLabelPrefix`, `fieldLabelSuffix`, `fieldNamespace`, `inputName`
+     */
+    public function renderField(Form|string|null $form, FieldInterface|string $field, array $fieldOptions = []): ?Markup
     {
         // Allow an empty form to fail silently
         if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
         }
-
-        $view = Craft::$app->getView();
 
         if (is_string($field)) {
             $field = $form->getFieldByHandle($field);
@@ -175,20 +208,73 @@ class Rendering extends Component
             }
         }
 
-        // Allow fields to apply any render options in their own way
-        $field->applyRenderOptions($form, $renderOptions);
+        // Reuse the parent form render context when a single field is rendered from inside a full form render.
+        $active = $this->getActiveRenderFrame();
+        $pushedHere = false;
 
-        // Get the active submission.
-        $element = $form->getCurrentSubmission();
+        if (!$active || (string)$active->getForm()->id !== (string)$form->id) {
+            $this->_prepareFormForRender($form, $fieldOptions);
+            // Standalone field renders need their own context so field internals can inspect render options.
+            $this->pushRenderFrame($form, $fieldOptions);
+            $pushedHere = true;
+            $baseOptions = $fieldOptions;
+        } else {
+            // Nested field renders inherit the parent form's render options by default.
+            $baseOptions = $active->getRenderOptions();
+        }
+
+        $prepareOptions = $baseOptions;
+        if (array_key_exists('fieldNamespace', $fieldOptions)) {
+            $prepareOptions['fieldNamespace'] = $fieldOptions['fieldNamespace'];
+        }
+
+        $this->_prepareFormForRender($form, $prepareOptions);
+
+        $callContext = array_intersect_key($fieldOptions, array_flip(['inputName']));
+        FieldRenderCallContext::push($callContext);
+
+        $originalNamespace = $field->getNamespace();
+
+        if (array_key_exists('fieldNamespace', $fieldOptions)) {
+            $field->setNamespace($fieldOptions['fieldNamespace']);
+        }
+
+        // Get the active submission and hydrate page continuity for field context.
+        $element = $this->_hydrateSubmitFlowProgress($form);
+        $value = $fieldOptions['value'] ?? null;
+
+        $configValue = $value;
+        if ($configValue === null && $element) {
+            $configValue = $field->getElementValue($element);
+        }
 
         /* @var Field $field */
-        $html = $form->renderTemplate('field', [
-            'form' => $form,
-            'field' => $field,
-            'handle' => $field->handle,
-            'renderOptions' => $renderOptions,
-            'element' => $element,
-        ]);
+        $config = $field->getInputTemplateVariables($form, $configValue);
+        $fieldLabelPrefix = array_key_exists('fieldLabelPrefix', $fieldOptions)
+            ? $fieldOptions['fieldLabelPrefix']
+            : $config['fieldLabelPrefix'];
+        $fieldLabelSuffix = array_key_exists('fieldLabelSuffix', $fieldOptions)
+            ? $fieldOptions['fieldLabelSuffix']
+            : $config['fieldLabelSuffix'];
+
+        try {
+            $html = $form->renderTemplate('field', [
+                'form' => $form,
+                'field' => $field,
+                'handle' => $field->handle,
+                'value' => $value,
+                'element' => $element,
+                'fieldLabelPrefix' => $fieldLabelPrefix,
+                'fieldLabelSuffix' => $fieldLabelSuffix,
+            ]);
+        } finally {
+            $field->setNamespace($originalNamespace);
+            FieldRenderCallContext::pop();
+
+            if ($pushedHere) {
+                $this->popRenderFrame();
+            }
+        }
 
         // Fire a 'modifyRenderField' event
         $event = new ModifyRenderEvent([
@@ -199,96 +285,58 @@ class Rendering extends Component
         return TemplateHelper::raw($event->html);
     }
 
-    public function registerAssets(Form|string|null $form, array $renderOptions = []): void
+    public function pushRenderFrame(Form $form, array $renderOptions): void
     {
-        // So we can easily re-use code, we just call the `renderForm` function
-        // This will register any assets, and should be included outside of cached areas.
-        // It should be called like `{% do craft.formie.registerAssets(handle) %}`
-        $this->renderForm($form, $renderOptions, false);
+        $this->_renderFrames[] = new RenderFrame($form, $renderOptions);
     }
 
-    public function renderFormAssets(Form|string|null $form, string $type = null, bool $forceInline = false, array $renderOptions = []): ?Markup
+    public function popRenderFrame(): void
     {
-        // Allow an empty form to fail silently
+        array_pop($this->_renderFrames);
+    }
+
+    public function getActiveRenderFrame(): ?RenderFrame
+    {
+        if (!$this->_renderFrames) {
+            return null;
+        }
+
+        // Consumers read the top-most frame to get the current form render context.
+        return $this->_renderFrames[count($this->_renderFrames) - 1];
+    }
+
+    public function formAssets(Form|string|null $form, array $renderOptions = []): ?Markup
+    {
         if (!($form = $this->_getFormFromTemplate($form))) {
             return null;
         }
 
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        $view = Craft::$app->getView();
-
-        $outputCssLayout = $form->getFrontEndTemplateOption('outputCssLayout');
-        $outputCssTheme = $form->getFrontEndTemplateOption('outputCssTheme');
-        $outputCssLocation = $form->getFrontEndTemplateLocation('outputCssLocation');
-        $outputJsLocation = $form->getFrontEndTemplateLocation('outputJsLocation');
-
-        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
-
-        // Support CSS Layers under a flag for now
-        if ($settings->useCssLayers) {
-            $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base-layer.css');
-            $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme-layer.css');
-        }
-
+        $renderOptions = $this->_normalizeRenderOptions($renderOptions);
+        $buffers = $this->_captureFormAssetBuffers($form, $renderOptions);
         $output = [];
 
-        if ($type !== self::RENDER_TYPE_JS) {
-            $cssAttributes = $renderOptions['cssAttributes'] ?? [];
+        if ($renderOptions['includeCss'] ?? true) {
+            $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_CSS, true, $renderOptions);
 
-            // Only output this if we're not showing the theme. We bundle the two together
-            // during build, so we don't have to serve two stylesheets.
-            if ($outputCssLayout && !$outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
-                    $view->registerCssFile($cssLayout);
-                } else {
-                    $output[] = Html::cssFile($cssLayout, $cssAttributes);
-                }
-            }
-
-            if ($outputCssLayout && $outputCssTheme) {
-                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
-                    $view->registerCssFile($cssTheme);
-                } else {
-                    $output[] = Html::cssFile($cssTheme, $cssAttributes);
-                }
+            foreach ($buffers['css'] as $cssFile) {
+                $output[] = $cssFile;
             }
         }
 
-        if ($type !== self::RENDER_TYPE_CSS) {
-            // Some attributes are JS-render related
-            $scriptAttributes = $this->_getScriptAttributes($renderOptions);
-            $jsAttributes = $this->_getJsAttributes($renderOptions);
+        if ($renderOptions['includeJs'] ?? true) {
+            $output[] = $this->_renderResolvedFormAssets($form, self::RENDER_TYPE_JS, true, $renderOptions);
 
-            // Only output this file once. It's applicable to all forms on a page.
-            if (!$this->_renderedJs) {
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
-                    $view->registerJsFile($jsFile, $jsAttributes);
-                } else {
-                    $output[] = Html::jsFile($jsFile, $jsAttributes);
-                }
-
-                // Add locale definition JS variables
-                $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
-
-                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
-                    $view->registerScript($jsString, View::POS_END, $scriptAttributes);
-                } else {
-                    $output[] = Html::script($jsString, $scriptAttributes);
-                }
-
-                $this->_renderedJs = true;
+            foreach ($this->_flattenBufferedAssets($buffers['js']) as $jsFile) {
+                $output[] = $jsFile;
             }
         }
+
+        $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
 
-    public function getFrontEndJsTranslations(): array
+    public function getFrontendJsTranslations(): array
     {
         $strings = [
             // Core validators
@@ -345,10 +393,10 @@ class Rendering extends Component
         ];
 
         // Allow plugins to modify JS translation strings
-        $event = new ModifyFrontEndJsTranslationsEvent([
+        $event = new ModifyFrontendJsTranslationsEvent([
             'strings' => $strings,
         ]);
-        $this->trigger(self::EVENT_MODIFY_FRONT_END_JS_TRANSLATIONS, $event);
+        $this->trigger(self::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS, $event);
 
         return $this->_getTranslatedStrings($event->strings);
     }
@@ -405,7 +453,7 @@ class Rendering extends Component
             $form = $element;
 
             if (is_string($form)) {
-                $form = Form::find()->handle($form)->one();
+                $form = Formie::$plugin->getForms()->getFormByHandle($form);
             }
 
             if (!$form) {
@@ -427,7 +475,7 @@ class Rendering extends Component
 
         $disabledValues = [];
 
-        // Try to populate fields with their default value
+        // Try to populate fields with their initial render value
         foreach ($values as $key => $value) {
             try {
                 $field = $form->getFieldByHandle($key);
@@ -438,18 +486,19 @@ class Rendering extends Component
                 }
 
                 if ($field) {
+                    // Store the explicit prefill on the field so render-time consumers can treat it
+                    // separately from the field-owned default definition.
+                    $field->populateValue($value, $submission);
+                    $initialValue = $field->getInitialValue($submission ?: $form);
+
                     // Store any visibly disabled fields against the form to apply later
                     if ($field->visibility === 'disabled') {
                         $disabledValues[$key] = $value;
                     }
-                    
-                    // Ensure that the field has a chance to populate the default value correctly
-                    $field->populateValue($value, $submission);
 
                     // If forcing, set the value every time this is called
                     if ($force && $submission) {
-                        // The value will be normalised already as the `defaultValue`
-                        $submission->setFieldValue($field->handle, $field->defaultValue);
+                        $submission->setFieldValue($field->handle, $initialValue);
                     }
                 }
             } catch (Throwable $e) {
@@ -488,125 +537,21 @@ class Rendering extends Component
         return $bufferedFiles;
     }
 
-    public function renderFormCssJs(Form|string|null $form, array $renderOptions = []): void
+    public function frontendAssets(array $renderOptions = []): ?Markup
     {
-        // Don't re-render the form multiple times if it's already rendered
-        if ($this->_jsFiles || $this->_cssFiles) {
-            return;
-        }
-
-        $view = Craft::$app->getView();
-        $renderedJs = $this->_renderedJs;
-
-        // Create our own buffer for CSS files. `View::startCssBuffer()` only handles CSS code, not files
-        $this->startFileBuffer('cssFiles', $view);
-        $view->startCssBuffer();
-
-        $this->startFileBuffer('jsFiles', $view);
-        $view->startJsBuffer();
-
-        // Render the form, and capture any CSS being output to the asset manager. Grab that and output it directly.
-        // This helps when targeting head/body/inline and ensure we output it **here**
-        $this->renderForm($form, $renderOptions, false);
-
-        $this->_cssFiles = $this->clearFileBuffer('cssFiles', $view);
-        $this->_cssFiles = array_merge($this->_cssFiles, [$view->clearCssBuffer()]);
-
-        $this->_jsFiles = $this->clearFileBuffer('jsFiles', $view);
-        $this->_jsFiles = array_merge($this->_jsFiles, [$view->clearJsBuffer()]);
-
-        $this->_cssFiles = array_filter($this->_cssFiles);
-        $this->_jsFiles = array_filter($this->_jsFiles);
-
-        // This render only discovers assets for the manual CSS/JS helpers. If a template
-        // only outputs `renderFormCss()`, the later real form render still needs Formie's JS.
-        $this->_renderedJs = $renderedJs;
-    }
-
-    public function renderFormCss(Form|string|null $form, array $renderOptions = []): Markup
-    {
-        $this->renderFormCssJs($form, $renderOptions);
-
-        return TemplateHelper::raw(implode("\n", $this->_cssFiles));
-    }
-
-    public function renderFormJs(Form|string|null $form, array $renderOptions = []): Markup
-    {
-        $this->renderFormCssJs($form, $renderOptions);
-
-        $allJsFiles = [];
-
-        foreach ($this->_jsFiles as $jsFile) {
-            if (is_array($jsFile)) {
-                $allJsFiles = array_merge($allJsFiles, $jsFile);
-            } else {
-                $allJsFiles[] = $jsFile;
-            }
-        }
-
-        if ($allJsFiles) {
-            $this->_renderedJs = true;
-        }
-
-        return TemplateHelper::raw(implode("\n", $allJsFiles));
-    }
-
-    public function renderCss(bool $inline = false, array $renderOptions = []): ?Markup
-    {
-        /* @var Settings $settings */
-        $settings = Formie::$plugin->getSettings();
-
-        $view = Craft::$app->getView();
-        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base.css');
-        $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme.css');
-
-        if ($settings->useCssLayers) {
-            $cssLayout = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-base-layer.css');
-            $cssTheme = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'css/formie-theme-layer.css');
-        }
-
+        $renderOptions = $this->_normalizeRenderOptions($renderOptions);
+        $inline = (bool)($renderOptions['inline'] ?? false);
         $output = [];
 
-        $cssAttributes = $renderOptions['cssAttributes'] ?? [];
-
-        if ($inline) {
-            $output[] = Html::cssFile($cssLayout, $cssAttributes);
-            $output[] = Html::cssFile($cssTheme, $cssAttributes);
-        } else {
-            $view->registerCssFile($cssLayout, $cssAttributes);
-            $view->registerCssFile($cssTheme, $cssAttributes);
+        if ($renderOptions['includeCss'] ?? true) {
+            $output[] = $this->_renderFrontendCss($inline, $renderOptions);
         }
 
-        return TemplateHelper::raw(implode(PHP_EOL, $output));
-    }
-
-    public function renderJs(bool $inline = false, array $renderOptions = []): ?Markup
-    {
-        $view = Craft::$app->getView();
-        $assetPath = '@verbb/formie/web/assets/frontend/dist/';
-        $jsFile = Craft::$app->getAssetManager()->getPublishedUrl($assetPath, true, 'js/formie.js');
-
-        $output = [];
-
-        // Add locale definition JS variables
-        $jsString = 'window.FormieTranslations=' . Json::encode($this->getFrontEndJsTranslations()) . ';';
-
-        // Some attributes are JS-render related
-        $scriptAttributes = $this->_getScriptAttributes($renderOptions);
-        $jsAttributes = $this->_getJsAttributes($renderOptions);
-
-        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
-            $jsAttributes['data-bypass-observer'] = false;
+        if ($renderOptions['includeJs'] ?? true) {
+            $output[] = $this->_renderFrontendJs($inline, $renderOptions);
         }
 
-        if ($inline) {
-            $output[] = Html::jsFile($jsFile, $jsAttributes);
-            $output[] = Html::script($jsString, $scriptAttributes);
-        } else {
-            $view->registerJsFile($jsFile, $jsAttributes);
-            $view->registerScript($jsString, View::POS_END, $scriptAttributes);
-        }
+        $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
 
         return TemplateHelper::raw(implode(PHP_EOL, $output));
     }
@@ -633,6 +578,197 @@ class Rendering extends Component
     // Private Methods
     // =========================================================================
 
+    private function _normalizeRenderOptions(array $renderOptions = []): array
+    {
+        if (!array_key_exists('includeCss', $renderOptions) && array_key_exists('renderCss', $renderOptions)) {
+            $renderOptions['includeCss'] = $renderOptions['renderCss'];
+        }
+
+        if (!array_key_exists('includeJs', $renderOptions) && array_key_exists('renderJs', $renderOptions)) {
+            $renderOptions['includeJs'] = $renderOptions['renderJs'];
+        }
+
+        if (!array_key_exists('outputCss', $renderOptions) && (array_key_exists('outputCssLayout', $renderOptions) || array_key_exists('outputCssTheme', $renderOptions))) {
+            $renderOptions['outputCss'] = (bool)($renderOptions['outputCssLayout'] ?? false) || (bool)($renderOptions['outputCssTheme'] ?? false);
+        }
+
+        if (!array_key_exists('outputJs', $renderOptions) && (array_key_exists('outputJsBase', $renderOptions) || array_key_exists('outputJsTheme', $renderOptions))) {
+            $renderOptions['outputJs'] = (bool)($renderOptions['outputJsBase'] ?? false) || (bool)($renderOptions['outputJsTheme'] ?? false);
+        }
+
+        return $renderOptions;
+    }
+
+    private function _resolveFormAssetSettings(Form $form, array $renderOptions = []): array
+    {
+        return [
+            'outputCss' => array_key_exists('outputCss', $renderOptions) ? (bool)$renderOptions['outputCss'] : $form->getFrontendTemplateOption('outputCss'),
+            'outputJs' => array_key_exists('outputJs', $renderOptions) ? (bool)$renderOptions['outputJs'] : $form->getFrontendTemplateOption('outputJs'),
+            'outputCssLocation' => $renderOptions['outputCssLocation'] ?? $form->getFrontendTemplateLocation('outputCssLocation'),
+            'outputJsLocation' => $renderOptions['outputJsLocation'] ?? $form->getFrontendTemplateLocation('outputJsLocation'),
+        ];
+    }
+
+    /**
+     * @return array{css: array, js: array}
+     */
+    private function _captureFormAssetBuffers(Form $form, array $renderOptions): array
+    {
+        $view = Craft::$app->getView();
+
+        $captureOptions = array_merge($renderOptions, [
+            'includeCss' => false,
+            'includeJs' => false,
+        ]);
+
+        $this->startFileBuffer('cssFiles', $view);
+        $view->startCssBuffer();
+
+        $this->startFileBuffer('jsFiles', $view);
+        $view->startJsBuffer();
+
+        try {
+            $this->renderForm($form, $captureOptions, false);
+        } finally {
+            $cssFiles = $this->clearFileBuffer('cssFiles', $view) ?: [];
+            $jsFiles = $this->clearFileBuffer('jsFiles', $view) ?: [];
+            $cssFiles = array_merge($cssFiles, [$view->clearCssBuffer()]);
+            $jsFiles = array_merge($jsFiles, [$view->clearJsBuffer()]);
+        }
+
+        return [
+            'css' => array_values(array_filter($cssFiles)),
+            'js' => array_values(array_filter($jsFiles)),
+        ];
+    }
+
+    private function _renderResolvedFormAssets(Form $form, ?string $type, bool $forceInline, array $renderOptions = []): Markup
+    {
+        $view = Craft::$app->getView();
+        $output = [];
+        $assetSettings = $this->_resolveFormAssetSettings($form, $renderOptions);
+
+        if ($type !== self::RENDER_TYPE_JS && ($renderOptions['includeCss'] ?? true)) {
+            $cssFile = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls()['css'] ?? null;
+            $cssAttributes = $renderOptions['cssAttributes'] ?? [];
+            $outputCssLocation = $assetSettings['outputCssLocation'];
+
+            if ($assetSettings['outputCss'] && $cssFile) {
+                if ($outputCssLocation === FormTemplate::PAGE_HEADER && !$forceInline) {
+                    $view->registerCssFile($cssFile, $cssAttributes);
+                } else {
+                    $output[] = Html::cssFile($cssFile, $cssAttributes);
+                }
+            }
+        }
+
+        if ($type !== self::RENDER_TYPE_CSS && ($renderOptions['includeJs'] ?? true)) {
+            $outputJsLocation = $assetSettings['outputJsLocation'];
+
+            if ($assetSettings['outputJs'] && !$this->_renderedJs) {
+                $output[] = $this->_renderFrontendJs($forceInline || $outputJsLocation !== FormTemplate::PAGE_FOOTER, $renderOptions);
+
+                if ($outputJsLocation === FormTemplate::PAGE_FOOTER && !$forceInline) {
+                    $output = [];
+                }
+
+                $this->_renderedJs = true;
+            }
+        }
+
+        $output = array_filter($output, static fn($value) => $value !== null && $value !== '');
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    private function _flattenBufferedAssets(array $assets): array
+    {
+        $flattened = [];
+
+        foreach ($assets as $asset) {
+            if (is_array($asset)) {
+                $flattened = array_merge($flattened, $asset);
+            } else {
+                $flattened[] = $asset;
+            }
+        }
+
+        return $flattened;
+    }
+
+    private function _renderFrontendCss(bool $inline, array $renderOptions = []): Markup
+    {
+        $view = Craft::$app->getView();
+        $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+        $cssFile = $assetUrls['css'];
+        $output = [];
+        $cssAttributes = $renderOptions['cssAttributes'] ?? [];
+
+        if (!$cssFile) {
+            return TemplateHelper::raw('');
+        }
+
+        if ($inline) {
+            $output[] = Html::cssFile($cssFile, $cssAttributes);
+        } else {
+            $view->registerCssFile($cssFile, $cssAttributes);
+        }
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    private function _renderFrontendJs(bool $inline, array $renderOptions = []): Markup
+    {
+        $view = Craft::$app->getView();
+        $assetUrls = Formie::$plugin->getFrontendAssets()->getBrowserAssetUrls();
+        $jsFile = $assetUrls['js'];
+        $viteClientFile = $assetUrls['viteClient'] ?? null;
+        $output = [];
+
+        $scriptAttributes = $this->_getScriptAttributes($renderOptions);
+        $jsAttributes = $this->_getJsAttributes($renderOptions);
+        $translationsTag = $this->_renderFrontendTranslationsTag($renderOptions);
+
+        if ($inline) {
+            $output[] = $translationsTag;
+
+            if ($viteClientFile) {
+                $output[] = Html::jsFile($viteClientFile, ['type' => 'module']);
+            }
+
+            if ($jsFile) {
+                $output[] = Html::jsFile($jsFile, $jsAttributes);
+            }
+        } else {
+            $view->registerHtml($translationsTag, View::POS_END);
+
+            if ($viteClientFile) {
+                $view->registerJsFile($viteClientFile, ['type' => 'module']);
+            }
+
+            if ($jsFile) {
+                $view->registerJsFile($jsFile, $jsAttributes);
+            }
+        }
+
+        return TemplateHelper::raw(implode(PHP_EOL, $output));
+    }
+
+    private function _renderFrontendTranslationsTag(array $renderOptions = []): string
+    {
+        $attributes = array_merge($this->_getScriptAttributes($renderOptions), [
+            'type' => 'application/json',
+            'data-formie-translations' => true,
+        ]);
+        
+        $translationsJson = Json::encode(
+            $this->getFrontendJsTranslations(),
+            JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        );
+
+        return Html::tag('script', $translationsJson, $attributes);
+    }
+
     private function _getTranslatedStrings(array $array): array
     {
         $strings = [];
@@ -644,6 +780,11 @@ class Rendering extends Component
         return $strings;
     }
 
+    private function _hydrateSubmitFlowProgress(Form $form): ?Submission
+    {
+        return $form->getCurrentSubmission();
+    }
+
     private function _getFormFromTemplate(Form|string|null $form): ?Form
     {
         if ($form instanceof Form) {
@@ -651,7 +792,7 @@ class Rendering extends Component
         }
         
         if ($form && is_string($form)) {
-            if ($form = Form::find()->handle($form)->one()) {
+            if ($form = Formie::$plugin->getForms()->getFormByHandle($form)) {
                 return $form;
             }
         }
@@ -659,22 +800,22 @@ class Rendering extends Component
         return null;
     }
 
+    private function _prepareFormForRender(Form $form, array $renderOptions = []): void
+    {
+        $sessionKey = $renderOptions['sessionKey'] ?? null;
+        $form->setSessionKey(base64_encode((string)$sessionKey));
+        $form->setThemeConfig((array)($renderOptions['themeConfig'] ?? []));
+        $form->setFrontendTheme((string)($renderOptions['theme'] ?? 'formie'));
+    }
+
     private function _getJsAttributes(array $renderOptions = []): array
     {
         // Some attributes are JS-render related
         $attributes = $this->_getScriptAttributes($renderOptions);
         $jsAttributes = $renderOptions['jsAttributes'] ?? [];
-        $jsAttributes = array_merge($attributes, ['defer' => true], $jsAttributes);
+        $browserStartupAttributes = $this->_getBrowserStartupScriptAttributes($renderOptions);
 
-        if (isset($renderOptions['initJs']) && $renderOptions['initJs'] === false) {
-            $jsAttributes['data-manual-init'] = true;
-        }
-
-        if (isset($renderOptions['useObserver']) && $renderOptions['useObserver'] === false) {
-            $jsAttributes['data-bypass-observer'] = true;
-        }
-
-        return $jsAttributes;
+        return array_merge($attributes, ['type' => 'module'], $jsAttributes, $browserStartupAttributes);
     }
 
     private function _getScriptAttributes(array $renderOptions = []): array
@@ -683,5 +824,15 @@ class Rendering extends Component
         $scriptAttributes = $renderOptions['scriptAttributes'] ?? [];
 
         return array_merge(['type' => 'text/javascript'], $attributes, $scriptAttributes);
+    }
+
+    private function _getBrowserStartupScriptAttributes(array $renderOptions = []): array
+    {
+        return [
+            'data-formie-startup' => true,
+            // Keep page-level browser-script behavior on the script itself rather
+            // than a preload global. Per-form init opt-out lives on the form root.
+            'data-formie-use-observer' => ($renderOptions['useObserver'] ?? true) ? false : 'false',
+        ];
     }
 }

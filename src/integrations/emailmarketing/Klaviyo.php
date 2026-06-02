@@ -26,13 +26,11 @@ class Klaviyo extends EmailMarketing
         return Craft::t('formie', 'Klaviyo');
     }
 
-
     // Properties
     // =========================================================================
 
     public ?string $privateApiKey = null;
     public ?string $publicApiKey = null;
-
 
     // Public Methods
     // =========================================================================
@@ -253,6 +251,15 @@ class Klaviyo extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         return Craft::createGuzzleClient([
@@ -263,20 +270,7 @@ class Klaviyo extends EmailMarketing
             ],
         ]);
     }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['publicApiKey', 'privateApiKey'], 'required'];
-
-        return $rules;
-    }
-
+    
 
     // Private Methods
     // =========================================================================

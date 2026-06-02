@@ -1,6 +1,7 @@
 <?php
 namespace verbb\formie\base;
 
+use verbb\formie\base\FormInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\events\SendIntegrationPayloadEvent;
@@ -47,7 +48,7 @@ abstract class Crm extends Integration
     {
         $handle = $this->getClassHandle();
 
-        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "img/crm/{$handle}.svg");
+        return Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/cp/dist/', true, "icons/crm/{$handle}.svg");
     }
 
     public function getSettingsHtml(): ?string
@@ -58,12 +59,9 @@ abstract class Crm extends Integration
         return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_plugin-settings", $variables);
     }
 
-    public function getFormSettingsHtml(Form|Stencil $form): string
+    public function supportsFormSettingsRefresh(): bool
     {
-        $handle = $this->getClassHandle();
-        $variables = $this->getFormSettingsHtmlVariables($form);
-
-        return Craft::$app->getView()->renderTemplate("formie/integrations/crm/{$handle}/_form-settings", $variables);
+        return true;
     }
 
     public function getFieldMappingValues(Submission $submission, ?array $fieldMapping, mixed $fieldSettings = [])
@@ -78,8 +76,47 @@ abstract class Crm extends Integration
         return parent::getFieldMappingValues($submission, $fieldMapping, $fields);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
     {
-        return null;
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = $this->getOptInFieldSchema();
+
+        return $schema;
+    }
+
+    protected function getCollectionOptions(string $settingsKey): array
+    {
+        $options = [
+            [
+                'label' => Craft::t('formie', 'Select an option'),
+                'value' => '',
+            ],
+        ];
+
+        $collections = $this->getFormSettingValue($settingsKey);
+
+        if (!is_array($collections)) {
+            return $options;
+        }
+
+        foreach ($collections as $collection) {
+            $id = is_array($collection) ? ($collection['id'] ?? null) : ($collection->id ?? null);
+            $name = is_array($collection) ? ($collection['name'] ?? null) : ($collection->name ?? null);
+
+            if ($id === null || $name === null) {
+                continue;
+            }
+
+            $options[] = [
+                'label' => (string)$name,
+                'value' => (string)$id,
+            ];
+        }
+
+        return $options;
     }
 }

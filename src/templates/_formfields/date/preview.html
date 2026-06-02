@@ -1,3 +1,24 @@
-<date-preview :field="field">
-    {{ field.getSvgIcon() | raw }}
-</date-preview>
+<div className="formie-field-preview-layout-parent">
+    {(field.rows || []).map((row, rowIndex) => {
+        const visibleFields = (row?.fields || []).filter((subField) => subField?.enabled !== false);
+
+        if (!visibleFields.length) {
+            return null;
+        }
+
+        return (
+            <div key={rowIndex} className="formie-field-preview-layout-child-row">
+                {visibleFields.map((subField, fieldIndex) => (
+                    <div key={fieldIndex} className="formie-field-preview-layout-child">
+                        <div className="formie-field-preview-sub-label">{subField.label}</div>
+                        <Components.ChildFieldPreview field={subField} />
+                    </div>
+                ))}
+            </div>
+        );
+    })}
+
+    {(!field.rows || field.rows.length === 0) && (
+        <Components.SubFieldPreviewControl field={field} />
+    )}
+</div>

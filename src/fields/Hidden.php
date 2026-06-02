@@ -1,31 +1,33 @@
 <?php
 namespace verbb\formie\fields;
 
-use verbb\formie\Formie;
 use verbb\formie\base\Field;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\base\SortableFieldInterface;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\values\StringFieldValue;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModule;
 use verbb\formie\positions\Hidden as HiddenPosition;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\models\SlotTag;
 use verbb\formie\models\Notification;
+
+use verbb\formie\theme\context\RenderContext;
 
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\InlineEditableFieldInterface;
-use craft\base\PreviewableFieldInterface;
-use craft\base\SortableFieldInterface;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\UrlHelper;
-use craft\web\View;
 
 use GraphQL\Type\Definition\Type;
 
-use Throwable;
 use DateTime;
 
-class Hidden extends Field implements InlineEditableFieldInterface, PreviewableFieldInterface, SortableFieldInterface
+class Hidden extends Field implements SortableFieldInterface, PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -38,6 +40,11 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
     public static function getSvgIconPath(): string
     {
         return 'formie/_formfields/hidden-field/icon.svg';
+    }
+
+    public function themeConfigKey(): string
+    {
+        return 'hiddenField';
     }
 
 
@@ -57,7 +64,15 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         // Remove unused settings
         unset($config['columnType']);
 
+        // Setuo defaults for some values which can't in in the property definition
+        $config['labelPosition'] = $config['labelPosition'] ?? HiddenPosition::class;
+
         parent::__construct($config);
+    }
+
+    public function fieldKind(): string
+    {
+        return self::KIND_HIDDEN;
     }
 
     public function init(): void
@@ -101,22 +116,14 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         return true;
     }
 
-    public function getFieldTypeDefaults(): array
-    {
-        // Setup defaults for some values which can't be set in the property definition
-        $settings = parent::getFieldTypeDefaults();
-        $settings['labelPosition'] = HiddenPosition::class;
-
-        return $settings;
-    }
-
     public function serializeValue(mixed $value, ?ElementInterface $element): mixed
     {
         // Handle variables use in custom fields
         if ($this->defaultOption === 'custom') {
-            // Check if there's no value been added on the front-end, and use the default value
+            // Only field-authored defaults may resolve references. Non-empty submitted
+            // Hidden values are attacker-controlled and must remain literal.
             if ($value === '') {
-                $value = Variables::getParsedValue($this->defaultValue, $element);
+                $value = References::parseContent((string)$this->defaultValue, $element);
             }
 
             // Immediately update the value for the element, so integrations use the up-to-date value
@@ -126,56 +133,30 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         return parent::serializeValue($value, $element);
     }
 
-    public function getValueForCondition(mixed $value, Submission $submission): mixed
+    public function defineFormBuilderPreviewSchema(): array
     {
-        // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
-        return $this->getValueAsString($value, $submission);
+        return [
+            SchemaHelper::previewInput([
+                'type' => 'hidden',
+                'wrapperClassName' => 'formie-field-preview-control formie-field-preview-control--hidden',
+            ]),
+        ];
     }
 
-    public function getPreviewInputHtml(): string
+    public function getInputTemplateVariables(Form $form, mixed $value): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/preview', [
-            'field' => $this,
-        ]);
-    }
+        $inputOptions = parent::getInputTemplateVariables($form, $value);
+        $submission = $form->getCurrentSubmission();
+        $prefillValue = $this->getPrefillValue($submission ?: $form, $hasPrefill);
 
-    public function getFrontEndJsModules(): ?array
-    {
-        if ($this->defaultOption === 'cookie' && $this->cookieName) {
-            return [
-                'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/fields/hidden.js'),
-                'module' => 'FormieHidden',
-                'settings' => [
-                    'cookieName' => $this->cookieName,
-                ],
-            ];
+        // Hidden initial values are treated as literal data at render time.
+        // Only field-authored custom defaults resolve reference tokens, and only
+        // when a submission context exists. Template/query prefills remain literal.
+        if ($hasPrefill) {
+            $inputOptions['value'] = $prefillValue;
+        } else if ($this->defaultOption === 'custom' && is_string($value) && $submission) {
+            $inputOptions['value'] = References::parseContent($value, $submission);
         }
-
-        return null;
-    }
-
-    public function getFrontEndInputOptions(Form $form, mixed $value, array $renderOptions = []): array
-    {
-        $inputOptions = parent::getFrontEndInputOptions($form, $value, $renderOptions);
-        $defaultValue = (string)$this->defaultValue;
-
-        if ($this->defaultOption === 'custom') {
-            try {
-                $defaultValue = Craft::$app->getView()->renderString(
-                    $defaultValue,
-                    [
-                        'field' => $this,
-                        'form' => $form,
-                    ],
-                    View::TEMPLATE_MODE_SITE
-                );
-            } catch (Throwable $e) {
-                $defaultValue = (string)$this->defaultValue;
-                Formie::error('Failed to render hidden field template: ' . $e->getMessage());
-            }
-        }
-
-        $inputOptions['defaultValue'] = $defaultValue;
 
         return $inputOptions;
     }
@@ -198,16 +179,16 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         ]);
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField([
                 'label' => Craft::t('formie', 'Name'),
-                'help' => Craft::t('formie', 'The name of this field displayed only to you'),
+                'instructions' => Craft::t('formie', 'The name of this field displayed only to you'),
             ]),
             SchemaHelper::selectField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Select an option for the default value.'),
+                'instructions' => Craft::t('formie', 'Select an option for the default value.'),
                 'name' => 'defaultOption',
                 'options' => [
                     ['label' => Craft::t('formie', 'Date (mm/dd/yyyy)'), 'value' => 'dateUs'],
@@ -227,34 +208,42 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
             ]),
             SchemaHelper::variableTextField([
                 'label' => Craft::t('formie', 'Default Value'),
-                'help' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
+                'instructions' => Craft::t('formie', 'Set a default value for the field when it doesn’t have a value.'),
                 'name' => 'defaultValue',
-                'variables' => 'plainTextVariables',
-                'if' => '$get(defaultOption).value == custom',
+                'variableConfig' => [
+                    'content' => Variables::CONTENT_SINGLE_LINE,
+                    'types' => [Variables::TYPE_TEXT],
+                    'groups' => [
+                        Variables::STATIC_FORM,
+                        Variables::STATIC_GENERAL,
+                        Variables::STATIC_SITE,
+                    ],
+                ],
+                'if' => 'defaultOption == "custom"',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Query Parameter'),
-                'help' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
+                'instructions' => Craft::t('formie', 'Entering the query parameter to populate the value of the field when it loads.'),
                 'name' => 'queryParameter',
-                'if' => '$get(defaultOption).value == query',
+                'if' => 'defaultOption == "query"',
             ]),
             SchemaHelper::textField([
                 'label' => Craft::t('formie', 'Cookie Name'),
-                'help' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
+                'instructions' => Craft::t('formie', 'Enter the name of the cookie to use as the value of this field.'),
                 'name' => 'cookieName',
-                'if' => '$get(defaultOption).value == cookie',
+                'if' => 'defaultOption == "cookie"',
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -265,9 +254,18 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         ];
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
+    // Protected Methods
+    // =========================================================================
+
+    protected function defineValueForCondition(mixed $value, Submission $submission): mixed
     {
-        $form = $context['form'] ?? null;
+        // Prevent an infinite loop with hidden fields, as their `serializeValue()` will call this
+        return $this->getValueAsString($value, $submission);
+    }
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
 
         $id = $this->getHtmlId($form);
         $dataId = $this->getHtmlDataId($form);
@@ -277,29 +275,71 @@ class Hidden extends Field implements InlineEditableFieldInterface, PreviewableF
         }
 
         if ($key === 'fieldInput') {
-            return new HtmlTag('input', [
-                'type' => 'hidden',
-                'id' => $id,
-                'name' => $this->getHtmlName(),
-                'data' => [
-                    'fui-id' => $dataId,
-                ],
-            ], $this->getInputAttributes());
+            return SlotTag::make('input')
+                ->core([
+                    'type' => 'hidden',
+                    'id' => $id,
+                    'name' => $this->getHtmlName(),
+                    'data-formie-input' => true,
+                    'data-formie-hidden-input' => true,
+                    'data-formie-input-id' => $dataId,
+                    'data-formie-input-type' => 'hidden',
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-input',
+                        'formie-hidden-input',
+                    ],
+                ])
+                ->instanceAttributes($this->getInputAttributes());
         }
 
-        return parent::defineHtmlTag($key, $context);
+        return parent::defineFieldSlotTag($key, $context);
     }
 
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/hidden-field/input', [
             'name' => $this->handle,
             'value' => $value,
             'field' => $this,
         ]);
+    }
+
+    protected function supportsPlainTextHtmlSanitization(): bool
+    {
+        return true;
+    }
+
+    protected function defineClientInput(): array
+    {
+        return array_merge(parent::defineClientInput(), [
+            'defaultOption' => $this->defaultOption,
+            'queryParameter' => $this->queryParameter,
+            'cookieName' => $this->cookieName,
+            'inputType' => 'hidden',
+        ]);
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+
+        if ($this->defaultOption === 'cookie' && $this->cookieName) {
+            $modules[] = new ClientModule([
+                'id' => 'hidden',
+                'renderTargets' => [ClientModule::RENDER_TARGET_FRONTEND],
+                'config' => [
+                    'cookieName' => $this->cookieName,
+                ],
+            ]);
+        }
+
+        return $modules;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return StringFieldValue::class;
     }
 }

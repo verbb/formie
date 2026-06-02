@@ -4,10 +4,11 @@ namespace verbb\formie\models;
 use verbb\formie\Formie;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\NestedField;
+use verbb\formie\base\ParentField;
 use verbb\formie\elements\Form;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\ValidationHelper;
 
 use Craft;
 use craft\base\ElementInterface;
@@ -15,8 +16,6 @@ use craft\base\FieldLayoutElement;
 use craft\base\SavableComponent;
 use craft\fieldlayoutelements\CustomField;
 use craft\helpers\Json;
-use craft\models\FieldLayout as CraftFieldLayout;
-use craft\models\FieldLayoutTab;
 
 use DateTime;
 
@@ -28,8 +27,11 @@ class FieldLayout extends SavableComponent
     public ?string $uid = null;
     public ?string $type = null;
 
-    private array $_deletedItems = [];
     private array $_pages = [];
+    private ?array $_cachedRows = null;
+    private ?array $_cachedFields = null;
+    private ?array $_fieldsByHandle = null;
+    private ?array $_fieldsById = null;
 
 
     // Public Methods
@@ -68,6 +70,7 @@ class FieldLayout extends SavableComponent
     public function setPages(array $pages): void
     {
         $this->_pages = [];
+        $this->_resetIndexes();
 
         foreach ($pages as $page) {
             $this->_pages[] = (!($page instanceof FieldLayoutPage)) ? new FieldLayoutPage($page) : $page;
@@ -76,84 +79,58 @@ class FieldLayout extends SavableComponent
 
     public function getRows(bool $includeDisabled = true): array
     {
-        $rows = [];
+        if ($includeDisabled) {
+            if ($this->_cachedRows === null) {
+                $rows = [];
 
-        foreach ($this->getPages() as $page) {
-            foreach ($page->getRows($includeDisabled) as $row) {
-                $rows[] = $row;
+                foreach ($this->getPages() as $page) {
+                    foreach ($page->getRows() as $row) {
+                        $rows[] = $row;
+                    }
+                }
+
+                $this->_cachedRows = $rows;
             }
+
+            return $this->_cachedRows;
         }
 
-        return $rows;
+        return array_values(array_filter($this->getRows(), static function(FieldLayoutRow $row): bool {
+            return (bool)$row->getFields(false);
+        }));
     }
 
     public function getFields(bool $includeDisabled = true): array
     {
-        $fields = [];
+        if ($includeDisabled) {
+            if ($this->_cachedFields === null) {
+                $fields = [];
 
-        foreach ($this->getPages() as $page) {
-            foreach ($page->getRows($includeDisabled) as $row) {
-                foreach ($row->getFields($includeDisabled) as $field) {
-                    $fields[] = $field;
+                foreach ($this->getRows() as $row) {
+                    foreach ($row->getFields() as $field) {
+                        $fields[] = $field;
+                    }
                 }
+
+                $this->_cachedFields = $fields;
             }
+
+            return $this->_cachedFields;
         }
 
-        return $fields;
+        return array_values(array_filter($this->getFields(), static function(FieldInterface $field): bool {
+            return !$field->getIsDisabled();
+        }));
     }
 
     public function getFieldByHandle(string $handle): ?FieldInterface
     {
-        $foundField = null;
-
-        foreach ($this->getFields() as $field) {
-            if ($field->handle === $handle) {
-                $foundField = $field;
-            }
-        }
-
-        return $foundField;
+        return $this->_getFieldsByHandle()[$handle] ?? null;
     }
 
-    public function getCustomFields(): array
+    public function getFieldById(int $id): ?FieldInterface
     {
-        Craft::$app->getDeprecator()->log(__METHOD__, 'Layout’s `getCustomFields()` method has been deprecated. Use `getFields()` instead.');
-
-        return $this->getFields();
-    }
-
-    public function getDeletedItems(): array
-    {
-        return $this->_deletedItems;
-    }
-
-    public function setDeletedItems(array $deletedItems): void
-    {
-        $this->_deletedItems = $deletedItems;
-    }
-
-    public function getFieldLayout(): CraftFieldLayout
-    {
-        // TODO: remove - for legacy purposes
-        $config = ['type' => Submission::class];
-
-        foreach ($this->getPages() as $page) {
-            $tab = [
-                'name' => $page->label,
-            ];
-
-            foreach ($page->getFields() as $field) {
-                $tab['elements'][] = [
-                    'label' => $field->label,
-                    'attribute' => $field->handle,
-                    'type' => "craft\\fieldlayoutelements\\TextField",
-                ];
-            }
-
-            $config['tabs'][] = $tab;
-        }
-
-        return CraftFieldLayout::createFromConfig($config);
+        return $this->_getFieldsById()[$id] ?? null;
     }
 
     public function getFormBuilderConfig(): array
@@ -165,14 +142,14 @@ class FieldLayout extends SavableComponent
 
     public function validatePages(): void
     {
-        foreach ($this->getPages() as $page) {
+        foreach ($this->getPages() as $pageKey => $page) {
             if (!$page->validate()) {
-                $this->addError('pages', $page->getErrors());
+                ValidationHelper::addPrefixedErrors($this, $page->getErrors(), "pages.$pageKey");
             }
         }
     }
 
-    public function getVisiblePageFields(ElementInterface $element): array
+    public function getFieldsToValidate(ElementInterface $element): array
     {
         // Compatibility with Craft Field Layout
         $currentPageFields = $element->getForm()?->getCurrentPage()?->getFields() ?? [];
@@ -186,6 +163,10 @@ class FieldLayout extends SavableComponent
                 if (!in_array($field->handle, $currentPageFieldHandles)) {
                     return false;
                 }
+            }
+
+            if ($field->getIsDisabled()) {
+                return false;
             }
 
             if ($field->isConditionallyHidden($element)) {
@@ -244,11 +225,49 @@ class FieldLayout extends SavableComponent
         }
 
         // If the field is a nested field, recurse through its children.
-        if ($field instanceof NestedField) {
+        if ($field instanceof ParentField) {
             foreach ($field->getFields() as $childField) {
                 // Append the current field's handle to the prefix.
                 $this->_collectErrorsRecursive($childField, $prefix . '.' . $field->handle, $errors);
             }
         }
     }
+
+    private function _resetIndexes(): void
+    {
+        $this->_cachedRows = null;
+        $this->_cachedFields = null;
+        $this->_fieldsByHandle = null;
+        $this->_fieldsById = null;
+    }
+
+    private function _getFieldsByHandle(): array
+    {
+        if ($this->_fieldsByHandle === null) {
+            $this->_fieldsByHandle = [];
+
+            // Layout lookups are hit repeatedly by forms, rendering, validation and submission access.
+            // Cache the flattened field graph once so repeated handle lookups do not keep traversing
+            // the same page -> row -> field structure on a single request.
+            foreach ($this->getFields() as $field) {
+                $this->_fieldsByHandle[$field->handle] = $field;
+            }
+        }
+
+        return $this->_fieldsByHandle;
+    }
+
+    private function _getFieldsById(): array
+    {
+        if ($this->_fieldsById === null) {
+            $this->_fieldsById = [];
+
+            foreach ($this->getFields() as $field) {
+                $this->_fieldsById[$field->id] = $field;
+            }
+        }
+
+        return $this->_fieldsById;
+    }
+
 }

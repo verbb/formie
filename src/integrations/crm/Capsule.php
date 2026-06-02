@@ -2,7 +2,9 @@
 namespace verbb\formie\integrations\crm;
 
 use verbb\formie\base\Crm;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\helpers\StringHelper;
@@ -48,14 +50,13 @@ class Capsule extends Crm
     {
         return Craft::t('formie', 'Manage your {name} customers by providing important information on their conversion on your site.', ['name' => static::displayName()]);
     }
-
     public function fetchFormSettings(): IntegrationFormSettings
     {
         $settings = [];
 
         try {
             // Get People fields
-            if ($this->mapToPeople) {
+            if ($this->mapToPeople && $this->settingsContext->dataKey === 'people') {
                 $fields = $this->request('GET', 'parties/fields/definitions')['definitions'] ?? [];
 
                 $settings['people'] = array_merge([
@@ -99,7 +100,7 @@ class Capsule extends Crm
             }
 
             // Get Opportunity fields
-            if ($this->mapToOpportunity) {
+            if ($this->mapToOpportunity && $this->settingsContext->dataKey === 'opportunity') {
                 $fields = $this->request('GET', 'opportunities/fields/definitions')['definitions'] ?? [];
 
                 $settings['opportunity'] = array_merge([
@@ -200,7 +201,7 @@ class Capsule extends Crm
             }
 
             // Get Task fields
-            if ($this->mapToTask) {
+            if ($this->mapToTask && $this->settingsContext->dataKey === 'task') {
                 $settings['task'] = [
                     new IntegrationField([
                         'handle' => 'description',
@@ -389,20 +390,6 @@ class Capsule extends Crm
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'https://api.capsulecrm.com/api/v2/',
-            'headers' => [
-                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
-            ],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -417,22 +404,72 @@ class Capsule extends Crm
         $rules[] = [
             ['peopleFieldMapping'], 'validateFieldMapping', 'params' => $people, 'when' => function($model) {
                 return $model->enabled && $model->mapToPeople;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['opportunityFieldMapping'], 'validateFieldMapping', 'params' => $opportunity, 'when' => function($model) {
                 return $model->enabled && $model->mapToOpportunity;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         $rules[] = [
             ['taskFieldMapping'], 'validateFieldMapping', 'params' => $task, 'when' => function($model) {
                 return $model->enabled && $model->mapToTask;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
+    }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'https://api.capsulecrm.com/api/v2/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . App::parseEnv($this->apiKey),
+            ],
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToPeople',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'People']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'People']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'peopleFieldMapping',
+            'if' => 'mapToPeople',
+            'dataLabel' => 'People',
+            'dataKey' => 'people',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToOpportunity',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Opportunity']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Opportunities']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'opportunityFieldMapping',
+            'if' => 'mapToOpportunity',
+            'dataLabel' => 'Opportunity',
+            'dataKey' => 'opportunity',
+        ]);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToTask',
+            'label' => Craft::t('formie', 'Map to {name}', ['name' => 'Task']),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Tasks']),
+        ]);
+        $schema[] = $this->getIntegrationFieldMappingField([
+            'name' => 'taskFieldMapping',
+            'if' => 'mapToTask',
+            'dataLabel' => 'Task',
+            'dataKey' => 'task',
+        ]);
+
+        return $schema;
     }
 
 

@@ -4,6 +4,7 @@ namespace verbb\formie\gql\types;
 use craft\gql\GqlEntityRegistry;
 
 use GraphQL\Type\Definition\ScalarType;
+use GraphQL\Utils\AST;
 
 class ArrayType extends ScalarType
 {
@@ -26,8 +27,12 @@ class ArrayType extends ScalarType
 
     public function serialize($value)
     {
-        if (!is_array($value)) {
-            $value->toArray();
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_object($value) && method_exists($value, 'toArray')) {
+            return $value->toArray();
         }
 
         return $value;
@@ -40,6 +45,6 @@ class ArrayType extends ScalarType
 
     public function parseLiteral($valueNode, array $variables = null)
     {
-        return $valueNode;
+        return AST::valueFromASTUntyped($valueNode, $variables);
     }
 }

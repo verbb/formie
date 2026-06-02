@@ -1,0 +1,146 @@
+{
+  "_data-utils-DhrTco50.js": {
+    "file": "assets/data-utils-DhrTco50.js",
+    "name": "data-utils"
+  },
+  "_dndkit-CvMe4ogR.js": {
+    "file": "assets/dndkit-CvMe4ogR.js",
+    "name": "dndkit",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js"
+    ]
+  },
+  "_fontawesome-B_WoXR3z.js": {
+    "file": "assets/fontawesome-B_WoXR3z.js",
+    "name": "fontawesome",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js"
+    ]
+  },
+  "_formie-browser-DgAJWHbf.js": {
+    "file": "assets/formie-browser-DgAJWHbf.js",
+    "name": "formie-browser",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js"
+    ],
+    "dynamicImports": [
+      "_formie-browser-DgAJWHbf.js"
+    ]
+  },
+  "_plugin-kit-react-B2u6FpTw.js": {
+    "file": "assets/plugin-kit-react-B2u6FpTw.js",
+    "name": "plugin-kit-react",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js",
+      "_fontawesome-B_WoXR3z.js",
+      "_data-utils-DhrTco50.js"
+    ]
+  },
+  "_react-vendor-v3g0sBEj.js": {
+    "file": "assets/react-vendor-v3g0sBEj.js",
+    "name": "react-vendor",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js"
+    ]
+  },
+  "_rolldown-runtime-tcWNtVWY.js": {
+    "file": "assets/rolldown-runtime-tcWNtVWY.js",
+    "name": "rolldown-runtime"
+  },
+  "_utils-Ckx9EzuJ.js": {
+    "file": "assets/utils-Ckx9EzuJ.js",
+    "name": "utils",
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js",
+      "_fontawesome-B_WoXR3z.js",
+      "_plugin-kit-react-B2u6FpTw.js",
+      "_data-utils-DhrTco50.js"
+    ]
+  },
+  "src/form-builder/formie-form-builder.js": {
+    "file": "assets/formie-form-builder-BAfN1quY.js",
+    "name": "formie-form-builder",
+    "src": "src/form-builder/formie-form-builder.js",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js",
+      "_fontawesome-B_WoXR3z.js",
+      "_plugin-kit-react-B2u6FpTw.js",
+      "_data-utils-DhrTco50.js",
+      "_react-vendor-v3g0sBEj.js",
+      "_utils-Ckx9EzuJ.js"
+    ]
+  },
+  "src/integration-connect/formie-integration-connect.js": {
+    "file": "assets/formie-integration-connect-BMx1G2HH.js",
+    "name": "formie-integration-connect",
+    "src": "src/integration-connect/formie-integration-connect.js",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js",
+      "_fontawesome-B_WoXR3z.js",
+      "_plugin-kit-react-B2u6FpTw.js",
+      "_react-vendor-v3g0sBEj.js",
+      "_utils-Ckx9EzuJ.js"
+    ]
+  },
+  "src/new-form/formie-new-form.js": {
+    "file": "assets/formie-new-form-DTHnRvrN.js",
+    "name": "formie-new-form",
+    "src": "src/new-form/formie-new-form.js",
+    "isEntry": true,
+    "imports": [
+      "_rolldown-runtime-tcWNtVWY.js",
+      "_dndkit-CvMe4ogR.js",
+      "_fontawesome-B_WoXR3z.js",
+      "_plugin-kit-react-B2u6FpTw.js",
+      "_react-vendor-v3g0sBEj.js",
+      "_utils-Ckx9EzuJ.js"
+    ]
+  },
+  "src/plugin-settings/js/formie-plugin-settings.js": {
+    "file": "plugin-settings/js/formie-plugin-settings.js",
+    "name": "formie-plugin-settings",
+    "src": "src/plugin-settings/js/formie-plugin-settings.js",
+    "isEntry": true,
+    "css": [
+      "plugin-settings/css/formie-plugin-settings.css"
+    ]
+  },
+  "src/sent-notifications/js/formie-sent-notifications.js": {
+    "file": "sent-notifications/js/formie-sent-notifications.js",
+    "name": "formie-sent-notifications",
+    "src": "src/sent-notifications/js/formie-sent-notifications.js",
+    "isEntry": true,
+    "css": [
+      "sent-notifications/css/formie-sent-notifications.css"
+    ]
+  },
+  "src/submissions/js/formie-submissions.js": {
+    "file": "submissions/js/formie-submissions.js",
+    "name": "formie-submissions",
+    "src": "src/submissions/js/formie-submissions.js",
+    "isEntry": true,
+    "imports": [
+      "_formie-browser-DgAJWHbf.js"
+    ],
+    "css": [
+      "submissions/css/formie-submissions.css"
+    ]
+  },
+  "src/widgets/js/formie-widgets.js": {
+    "file": "widgets/js/formie-widgets.js",
+    "name": "formie-widgets",
+    "src": "src/widgets/js/formie-widgets.js",
+    "isEntry": true,
+    "css": [
+      "widgets/css/formie-widgets.css"
+    ]
+  }
+}

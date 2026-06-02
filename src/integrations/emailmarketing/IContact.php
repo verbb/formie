@@ -35,7 +35,6 @@ class IContact extends EmailMarketing
     public ?string $password = null;
     public ?string $username = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -216,6 +215,15 @@ class IContact extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
+    protected function defineRules(): array
+    {
+        $rules = parent::defineRules();
+
+        $rules[] = [['appId', 'password', 'username', 'accountId', 'clientFolderId'], 'required'];
+
+        return $rules;
+    }
+
     protected function defineClient(): Client
     {
         $accountId = App::parseEnv($this->accountId);
@@ -233,20 +241,7 @@ class IContact extends EmailMarketing
             ],
         ]);
     }
-
-
-    // Protected Methods
-    // =========================================================================
-
-    protected function defineRules(): array
-    {
-        $rules = parent::defineRules();
-
-        $rules[] = [['appId', 'password', 'username', 'accountId', 'clientFolderId'], 'required'];
-
-        return $rules;
-    }
-
+    
 
     // Private Methods
     // =========================================================================

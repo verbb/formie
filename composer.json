@@ -2,7 +2,7 @@
     "name": "verbb/formie",
     "description": "The most user-friendly forms plugin for Craft.",
     "type": "craft-plugin",
-    "version": "3.1.27",
+    "version": "4.0.0-beta.1",
     "keywords": [
         "craft",
         "cms",
@@ -38,17 +38,53 @@
         "nystudio107/craft-plugin-vite": "^5.0.0",
         "stripe/stripe-php": "^7.0 || ^8.0 || ^9.0 || ^10.0 || ^11.0 || ^12.0 || ^13.0 || ^14.0 || ^15.0 || ^16.0",
         "symfony/expression-language": "^5.0 || ^6.0 || ^7.0",
-        "theiconic/name-parser": "^1.0",
-        "verbb/auth": "^2.0.35",
+        "verbb/auth": "^2.0.20",
         "verbb/base": "^3.0.11"
+    },
+    "require-dev": {
+        "craftcms/cms": "^5.9",
+        "craftcms/generator": "^2.0.0",
+        "pestphp/pest": "^3.8",
+        "pestphp/pest-plugin": "^3.0",
+        "yiisoft/yii2-shell": "^2.0.3",
+        "vlucas/phpdotenv": "^5.6",
+        "solspace/craft-freeform": "^5.14"
     },
     "autoload": {
         "psr-4": {
             "verbb\\formie\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --exclude-group=slow --exclude-group=perf --exclude-group=migrate-plugins",
+        "test:security": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests/Security",
+        "test:setup": "@php tests/bin/test-setup.php",
+        "test:slow": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --group=slow",
+        "test:perf": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --group=perf",
+        "perf": "@php tests/bin/perf.php",
+        "test:all": "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests --exclude-group=migrate-plugins",
+        "test:migrate-plugins:setup": "@php tests/bin/test-setup-migrate-plugins.php",
+        "test:migrate-plugins": [
+            "@test:setup",
+            "@test:migrate-plugins:setup",
+            "./vendor/bin/pest --bootstrap tests/bootstrap-craft.php -c phpunit.craft.xml tests/Migrations --group=migrate-plugins"
+        ]
+    },
     "extra": {
         "name": "Formie",
+        "description": "The most user-friendly forms plugin for Craft.",
         "handle": "formie",
         "changelogUrl": "https://raw.githubusercontent.com/verbb/formie/craft-5/CHANGELOG.md",
         "class": "verbb\\formie\\Formie"

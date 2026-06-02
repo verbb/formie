@@ -1,0 +1,108 @@
+@layer formie-theme {
+
+    .formie-checkboxes-options,
+    .formie-radio-options,
+    .formie-agree-options {
+        gap: var(--formie-check-margin-bottom) var(--formie-check-margin-right);
+        margin-top: var(--formie-space-1);
+    }
+
+    .formie-checkbox-option,
+    .formie-radio-option {
+        position: relative;
+        margin: 0;
+        font-size: var(--formie-check-font-size);
+        line-height: var(--formie-check-line-height);
+    }
+
+    .formie-checkbox-input,
+    .formie-radio-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .formie-checkbox-option-label,
+    .formie-radio-option-label {
+        position: relative;
+        display: inline-block;
+        padding-left: var(--formie-check-label-padding-left);
+        font-size: var(--formie-check-font-size);
+        font-weight: var(--formie-font-weight-normal);
+        line-height: var(--formie-check-size);
+        user-select: none;
+        transition: var(--formie-check-label-transition);
+    }
+
+    .formie-checkbox-option-label::before,
+    .formie-radio-option-label::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        width: var(--formie-check-size);
+        height: var(--formie-check-size);
+        content: "";
+        cursor: pointer;
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        background-color: var(--formie-check-label-background-color);
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 50% 50%;
+        transition: var(--formie-check-label-transition);
+    }
+
+    .formie-checkbox-option-label::before {
+        border-radius: var(--formie-check-check-border-radius);
+    }
+
+    .formie-radio-option-label::before {
+        border-radius: var(--formie-check-radio-border-radius);
+    }
+
+    .formie-checkbox-input:focus-visible+.formie-checkbox-option-label::before,
+    .formie-radio-input:focus-visible+.formie-radio-option-label::before {
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-checkbox-input:checked+.formie-checkbox-option-label::before,
+    .formie-radio-input:checked+.formie-radio-option-label::before {
+        background-color: var(--formie-color-primary);
+        border-color: var(--formie-color-primary);
+    }
+
+    .formie-checkbox-input:checked+.formie-checkbox-option-label::before {
+        background-image: var(--formie-check-check-background-image);
+        background-size: var(--formie-check-check-background-size);
+    }
+
+    .formie-radio-input:checked+.formie-radio-option-label::before {
+        background-image: var(--formie-check-radio-background-image);
+        background-size: var(--formie-check-radio-background-size);
+    }
+
+    .formie-checkbox-input:disabled+.formie-checkbox-option-label,
+    .formie-radio-input:disabled+.formie-radio-option-label {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .formie-checkbox-input:disabled+.formie-checkbox-option-label::before,
+    .formie-radio-input:disabled+.formie-radio-option-label::before {
+        background-color: var(--formie-check-background-color);
+        cursor: not-allowed;
+    }
+
+    .formie-field-has-error .formie-checkbox-input:focus-visible+.formie-checkbox-option-label::before,
+    .formie-field-has-error .formie-radio-input:focus-visible+.formie-radio-option-label::before {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+}

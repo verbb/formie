@@ -1,20 +1,33 @@
 {# Only show values if there's a current submission, to prevent abuse #}
 {% set submission = submission ?? form.getCurrentSubmission() %}
+{% set fieldAccessToken = fieldAccessToken ?? field.getFieldAccessToken(submission) %}
 
-{% fieldtag 'fieldSummaryBlocks' %}
+{% if fieldAccessToken %}
+    <input type="hidden" data-formie-summary-token value="{{ fieldAccessToken }}">
+{% endif %}
+
+{% fieldtag 'fieldSummaryContainer' %}
     {% if submission %}
         {{ fieldtag('fieldSummaryHeading') }}<br>
-
-        {% for info in submission.getValuesForSummary() %}
-            {% fieldtag 'fieldSummaryBlock' %}
-                {{ fieldtag('fieldSummaryLabel', {
-                    text: info.field.label,
-                }) }}<br>
-
-                {{ fieldtag('fieldSummaryValue', {
-                    text: info.html,
-                }) }}<br>
-            {% endfieldtag %}
-        {% endfor %}
     {% endif %}
+
+    {% fieldtag 'fieldSummaryBlocks' %}
+        {% if submission %}
+            {% for info in submission.getValuesForSummary() %}
+                {% fieldtag 'fieldSummaryBlock' %}
+                    {% fieldtag 'fieldSummaryLabel' %}
+                        {{- info.field.label -}}
+                    {% endfieldtag %}<br>
+
+                    {% fieldtag 'fieldSummaryValue' %}
+                        {% if info.html is not null %}
+                            {{- info.html | raw -}}
+                        {% else %}
+                            {{- info.text -}}
+                        {% endif %}
+                    {% endfieldtag %}<br>
+                {% endfieldtag %}
+            {% endfor %}
+        {% endif %}
+    {% endfieldtag %}
 {% endfieldtag %}

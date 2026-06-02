@@ -1,0 +1,37 @@
+{{ csrfInput({ autocomplete: 'off' }) }}
+{{ actionInput(form.getActionUrl()) }}
+{{ hiddenInput('submitAction', 'submit') }}
+{{ hiddenInput('handle', form.handle) }}
+{{ hiddenInput('siteId', craft.app.sites.currentSite.id) }}
+{{ hiddenInput('renderId', form.getRenderId()) }}
+{{ hiddenInput('requestToken', form.getRequestToken()) }}
+
+{% if form.getRelations() %}
+    {{ hiddenInput('relations', form.getRelations()) }}
+{% endif %}
+
+{% if form.getPopulatedFieldValues() %}
+    {{ hiddenInput('extraFields', form.getPopulatedFieldValues()) }}
+{% endif %}
+
+{% if submission and submission.uid %}
+    {{ hiddenInput('submissionUid', submission.uid) }}
+{% endif %}
+
+{% if form.isEditingSubmission() %}
+    {{ hiddenInput('submissionEditToken', form.getSubmissionEditToken()) }}
+{% endif %}
+
+{% if currentPage %}
+    {{ hiddenInput('pageId', currentPage.id) }}
+{% endif %}
+
+{% if form.getDraftContextToken() %}
+    {{ hiddenInput('draftContextToken', form.getDraftContextToken()) }}
+{% endif %}
+
+{% set customInputs = customInputs ?? [] %}
+
+{% for inputName, inputValue in customInputs %}
+    {{ hiddenInput(inputName, inputValue) }}
+{% endfor %}

@@ -2,9 +2,11 @@
 namespace verbb\formie\integrations\miscellaneous;
 
 use verbb\formie\base\Integration;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Miscellaneous;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
@@ -168,19 +170,6 @@ class Recruitee extends Miscellaneous
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        $subdomain = App::parseEnv($this->subdomain);
-
-        return Craft::createGuzzleClient([
-            'base_uri' => "https://{$subdomain}.recruitee.com/api/",
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -193,13 +182,52 @@ class Recruitee extends Miscellaneous
         $rules[] = [
             ['candidateFieldMapping'], 'validateFieldMapping', 'params' => $candidate, 'when' => function($model) {
                 return $model->enabled && $model->mapToCandidate;
-            }, 'on' => [Integration::SCENARIO_FORM],
+            }, 'on' => [Integration::SCENARIO_FORM], 'skipOnEmpty' => false,
         ];
 
         return $rules;
     }
 
+    protected function defineClient(): Client
+    {
+        $subdomain = App::parseEnv($this->subdomain);
 
+        return Craft::createGuzzleClient([
+            'base_uri' => "https://{$subdomain}.recruitee.com/api/",
+        ]);
+    }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::lightswitchField([
+            'name' => 'mapToCandidate',
+            'label' => Craft::t('formie', 'Map to Candidate'),
+            'instructions' => Craft::t('formie', 'Whether to map form data to {name} {label}.', ['name' => $this->displayName(), 'label' => 'Candidates']),
+        ]);
+
+        $candidate = $this->getFormSettingValue('candidate');
+        $schemaFields = is_array($candidate) ? $this->convertIntegrationFieldsToSchema($candidate) : [];
+        $candidateMappingSchema = array_map(fn(array $f) => SchemaHelper::fieldSelectField([
+            'name' => $f['handle'],
+            'label' => $f['name'],
+            'required' => $f['required'],
+            'options' => $f['options'] ?? [],
+        ]), $schemaFields);
+        if ($candidateMappingSchema) {
+            $schema[] = SchemaHelper::groupField([
+                'name' => 'candidateFieldMapping',
+                'label' => Craft::t('formie', 'Candidate Field Mapping'),
+                'instructions' => Craft::t('formie', 'Choose how your form fields should map to your {name} {label} fields.', ['name' => $this->displayName(), 'label' => 'Candidate']),
+                'if' => 'mapToCandidate',
+                'children' => $candidateMappingSchema,
+            ]);
+        }
+
+        return $schema;
+    }
+
+    
     // Private Methods
     // =========================================================================
 

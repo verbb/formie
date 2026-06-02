@@ -9,6 +9,11 @@
             name: 'number',
             required: field.required ? true : false,
             value: value.number ?? '',
+            inputAttributes: {
+                'data-formie-input': true,
+                'data-formie-phone-input': true,
+                'data-formie-input-type': 'tel',
+            },
         }) }}
 
         {% if field.countryEnabled %}
@@ -16,12 +21,11 @@
                 type: 'hidden',
                 name: 'country',
                 value: value.country ?? '',
-                data: {
-                    country: '',
-                },
+                'data-formie-input': true,
+                'data-formie-phone-country-input': true,
+                'data-formie-input-type': 'hidden',
+                'data-formie-country': true,
             }) }}
-
-            {% do view.registerCssFile(view.getAssetManager().getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'css/fields/phone-country.css')) %}
         {% endif %}
     {% endnamespace %}
 {% endblock %}

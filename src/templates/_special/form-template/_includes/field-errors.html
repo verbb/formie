@@ -1,7 +1,0 @@
-{% fieldtag 'fieldErrors' %}
-    {% set error = errors | first %}
-    
-    {{ fieldtag('fieldError', {
-        text: error | t('formie'),
-    }) }}
-{% endfieldtag %}

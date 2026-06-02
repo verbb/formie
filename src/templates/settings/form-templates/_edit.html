@@ -95,22 +95,14 @@
 
     {{ forms.lightswitchField({
         label: 'Output CSS' | t('formie'),
-        instructions: 'Enable this option to output basic layout CSS for row and column support when rendering forms using this template.' | t('formie'),
-        name: 'outputCssLayout',
-        on: template.outputCssLayout,
-        errors: template.getErrors('outputCssLayout'),
-        toggle: 'output-css-theme',
+        instructions: 'Enable this option to output the Formie CSS required for this template when rendering forms.' | t('formie'),
+        name: 'outputCss',
+        on: template.outputCss,
+        errors: template.getErrors('outputCss'),
+        toggle: 'output-css-location',
     }) }}
 
-    <div id="output-css-theme" class="{{ not template.outputCssLayout ? 'hidden' }}">
-        {{ forms.lightswitchField({
-            label: 'Output Theme' | t('formie'),
-            instructions: 'Enable this option to output the default Formie CSS theme when rendering forms using this template.' | t('formie'),
-            name: 'outputCssTheme',
-            on: template.outputCssTheme,
-            errors: template.getErrors('outputCssTheme'),
-        }) }}
-
+    <div id="output-css-location" class="{{ not template.outputCss ? 'hidden' }}">
         {{ forms.selectField({
             label: 'CSS Render Location' | t('formie'),
             instructions: 'Determine where to render the CSS output for the form.' | t('formie'),
@@ -130,24 +122,16 @@
     <h2>{{ 'JavaScript Options' | t('formie') }}</h2>
 
     {{ forms.lightswitchField({
-        label: 'Output Base JavaScript' | t('formie'),
-        instructions: 'Enable this option to output the base Formie JavaScript when rendering forms using this template. This provides event listeners for forms, ensuring captcha integrations work. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
-        name: 'outputJsBase',
-        on: template.outputJsBase,
+        label: 'Output JavaScript' | t('formie'),
+        instructions: 'Enable this option to output the Formie JavaScript required for this template when rendering forms. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
+        name: 'outputJs',
+        on: template.outputJs,
         errors: template.getErrors('outputJs'),
-        toggle: 'output-js-base',
+        toggle: 'output-js-location',
         warning: 'Ensure you understand the implications of disabling Formie‘s JavaScript. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
     }) }}
 
-    <div id="output-js-base" class="{{ not template.outputJsBase ? 'hidden' }}">
-        {{ forms.lightswitchField({
-            label: 'Output Theme' | t('formie'),
-            instructions: 'Enable this option to output the themed JavaScript when rendering forms using this template. This provides client-side validation, multi-page support, and lots more. Read the [docs](https://verbb.io/craft-plugins/formie/docs/developers/front-end-js) for more information.' | t('formie'),
-            name: 'outputJsTheme',
-            on: template.outputJsTheme,
-            errors: template.getErrors('outputJsTheme'),
-        }) }}
-
+    <div id="output-js-location" class="{{ not template.outputJs ? 'hidden' }}">
         {{ forms.selectField({
             label: 'JavaScript Render Location' | t('formie'),
             instructions: 'Determine where to render the JavaScript output for the form.' | t('formie'),

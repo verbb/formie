@@ -1,5 +1,251 @@
 # Changelog
 
+## 4.0.0-beta.1 - 2026-05-27
+
+### Added
+- Add a Formie 3 to Formie 4 migration path for existing Craft 5 projects.
+- Add direct Formie 2 to Formie 4 migration support, allowing Craft 4 projects to move to Craft 5 without upgrading through Formie 3 first.
+- Add Formie 4 Compatibility Mode, enabled by default, to bridge selected Formie 3 class aliases, event owners, custom field schema methods, field config keys, theme config keys, and legacy front-end event listeners during upgrades.
+- Add the new React-powered form builder foundation.
+- Add schema-driven integration settings for the form builder via `Integration::defineFormSettingsSchema()`, `Integration::getFormSettingsSchema()`, `Integration::EVENT_MODIFY_INTEGRATION_FORM_SETTINGS_SCHEMA`, and `ModifyIntegrationFormSettingsSchemaEvent`.
+- Add `Notifications::EVENT_MODIFY_NOTIFICATION_SCHEMA` for modifying notification schemas.
+- Add a new staged submission workflow service (`SubmissionWorkflow`) with `prepare`, `normalize`, `validate`, `screen`, `authorize`, `save`, `dispatch`, and `finalize` stages.
+- Add submission workflow process modes for normal submits, existing-submission edits, save-draft requests, and payment replays.
+- Add submission workflow extension events: `EVENT_REGISTER_WORKFLOW_STAGES`, `EVENT_REGISTER_STAGE_TASKS`, `EVENT_BEFORE_STAGE`, `EVENT_AFTER_STAGE`, `EVENT_BEFORE_TASK`, and `EVENT_AFTER_TASK`.
+- Add `SubmissionRequestEvent`, `SubmissionWorkflowStageEvent`, `SubmissionWorkflowTaskEvent`, `RegisterWorkflowStagesEvent`, and `RegisterStageTasksEvent`.
+- Add workflow enums for stage and task names, including tasks such as `screen.runCaptchaChecks`, `save.processPayments`, `dispatch.sendNotifications`, and `dispatch.triggerIntegrations`.
+- Add database-backed temporary submission state, incomplete submission state, saved drafts, and resume-token handling.
+- Add save-and-resume retention settings including `submissionStateRetentionDays`, `saveResumeTokenTtlDays`, and `maxSavedDraftsPerSession`.
+- Add anonymous client bootstrap and refresh rate-limit settings: `anonymousClientBootstrapRateLimit`, `anonymousClientRefreshRateLimit`, and `anonymousClientRateWindowSeconds`.
+- Add static-cache token refresh handling with `staticCacheRefreshOnLoad`.
+- Add `setOnlyCurrentPagePayload` for limiting submitted multi-page payload handling to the current page.
+- Add `plainTextHtmlSanitizationMode` for controlling plain-text HTML sanitization behavior.
+- Add `useCssLayers` for optionally outputting Formie CSS with CSS layers.
+- Add a Formie-native submission content manager, normalizer, serializer, and accessor layer.
+- Add field definition metadata APIs and traits for Formie-owned field definitions.
+- Add `Field::getDescription()` description sections for field value, structure, component, behavior, references, and conditions metadata.
+- Add `Field::themeConfigKey()` for resolving canonical theme config field keys.
+- Add `Field::defineValueForReference()`, `Field::getValueForReference()`, `Field::defineValueForReferenceBlock()`, and `Field::getValueForReferenceBlock()` as the canonical field reference value APIs.
+- Add `Field::defineValueForCondition()` and `Submission::getFieldValueForCondition()` for condition-specific value projection.
+- Add `Field::getCpEditHtml()` as the canonical CP submission edit rendering contract.
+- Add `Field::defineFieldSlotTag()` and `SlotTag` for field slot tag customization.
+- Add `Form::EVENT_MODIFY_SLOT_TAG`, `Field::EVENT_MODIFY_SLOT_TAG`, and `Integration::EVENT_MODIFY_SLOT_TAG`.
+- Add `ModifyFormSlotTagEvent`, `ModifyFieldSlotTagEvent`, and `ModifyIntegrationSlotTagEvent`.
+- Add `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE` and `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`.
+- Add `ValueContext::array()`, `ValueContext::reference()`, and `ValueContext::referenceBlock()`.
+- Add `craft.formie.parseValue()` and `craft.formie.parseContent()` for parsing field-reference values in Twig.
+- Add `craft.formie.formAssets()` for form-scoped asset output.
+- Add `craft.formie.frontendAssets()` for shared front-end asset output.
+- Add new `FormTemplate` output locations: `PAGE_HEADER`, `PAGE_FOOTER`, `INSIDE_FORM`, and `MANUAL`.
+- Add `initJs` and `useObserver` rendering options for controlling Formie front-end initialization.
+- Add client/server rendering services for Formie-managed HTML and client-rendered consumers, including `ClientSessionService`, `FormBootstrapBuilder`, `FormDefinitionBuilder`, `ClientModuleManifestBuilder`, and `ServerRenderPayloadBuilder`.
+- Add client request/response models including `FormSession`, `LoadContext`, `FormDefinition`, `FormBootstrap`, `SubmitRequest`, `PageTransitionRequest`, `SessionRefreshRequest`, and `SubmitResult`.
+- Add client controllers for loading forms, changing pages, refreshing sessions, and submitting client-rendered forms.
+- Add `FrontendAssets` as the canonical shared front-end asset service.
+- Add `ClientModule`, `ClientModuleContext`, and `RenderFrame` models.
+- Add `IntegrationInterface::getClientModule()` for front-end module registration by integrations, captchas, address providers, and payments.
+- Add `ClientModule` manifests with render-target metadata for front-end module hydration.
+- Add `hydrateFormieModules()` support for hydrating individual Formie modules without mounting a full form client.
+- Add the `@verbb/formie-core` package for framework-agnostic form definitions, transports, field helpers, conditions, calculations, and client-rendered form state.
+- Add the `@verbb/formie-browser` package as Formie’s canonical browser runtime for server-rendered forms.
+- Add the `@verbb/formie-react` package with `FormieForm`, `FormieClientForm`, `useFormieHtml()`, `useFormieClient()`, `useFormie()`, `useFormieField()`, `useFormiePage()`, `useFormieInstance()`, and `useFormieSlot()`.
+- Add the `@verbb/formie-vue` package with matching server-rendered and client-rendered Vue APIs.
+- Add the `@verbb/formie-web-components` package with `formie-form`, `formie-core-form`, `registerFormieWebComponents()`, `FormieRegistry`, and `createFormieRegistry()`.
+- Add REST and GraphQL transports for client-rendered forms.
+- Add `createFormieClient()`, `formie()`, `FormieValidator`, `ModuleRegistry`, `defineCaptchaModule()`, `definePassiveCaptchaModule()`, `definePaymentModule()`, and `defineAddressModule()` to the browser package.
+- Add browser CSS exports for Formie’s base, theme, and combined CSS.
+- Add canonical `formie:*` browser events for mount, unmount, validation, submit, page navigation, token refresh, state reset, field modules, address modules, payment modules, and submission workflow stages.
+- Add the canonical `formie:client:ready` event.
+- Add page-level client analytics output via `data-formie-client-event`.
+- Add GraphQL `formieHtmlForm` for server-rendered HTML form payloads.
+- Add GraphQL `formieClientForm` for client-rendered form definitions and sessions.
+- Add GraphQL mutations for client-rendered form submit, page changes, and session refresh.
+- Add GraphQL `runtimePayload`/client payload support built from the shared front-end payload builder.
+- Add GraphQL schema scope enforcement for handle-based client form reads and lifecycle mutations.
+- Add support for nested GraphQL field builders to read stored row configs for Group, Repeater, and Table-style fields.
+- Add request-local caches for form lookups, field metadata, field config settings, client module manifests, integration lists, submission status handles, and GraphQL field metadata.
+- Add synced-field storage split between shared field definitions and per-form field placements.
+- Add migration support for synced-field definitions and placements.
+- Add blocking validation for synced-field handle collisions instead of silently renaming handles.
+- Add support for detaching synced fields.
+- Add field-reference preservation for unresolved historical submission content when fields are removed or layouts change.
+- Add support for preserving Name field multi-part layout values when field modes change.
+- Add `SubmissionQuery::invalidateStaticCaches()` for long-running workers after form/field mutations.
+- Add `Formie::$plugin->getFactories()` for programmatic form and submission builders.
+- Add security regression guard tests.
+- Add a performance harness for submission query and field-graph scenarios.
+- Add integration field-mapping regression coverage across complex and nested field values.
+- Add Formie 4 plugin docs, migration docs, developer docs, and front-end package docs.
+- Add React, Vue, Web Components, Next.js, and Nuxt starter projects for the new front-end package stack.
+- Add Craft-rendered starter examples for Barba.js, Sprig, and Datastar.
+- Add `@verbb/plugin-kit` and `@verbb/plugin-kit-react` as the shared control panel UI foundation used by Formie’s React builder.
+
+### Changed
+- Require Craft CMS 5 and PHP 8.2+.
+- Rework Formie’s form builder around React, schema-driven settings, and shared Plugin Kit React components.
+- Rework Formie’s front-end JavaScript from the old bundled theme/runtime model to package-based browser and framework runtimes.
+- Split Formie’s front-end rendering model into server-rendered forms and client-rendered forms.
+- Move Formie browser JavaScript and CSS into `@verbb/formie-browser`.
+- Rename `@verbb/formie-dom` to `@verbb/formie-browser`.
+- Replace old Formie JavaScript callback names and validator events with canonical `formie:*` DOM events.
+- Move the public ready event from `formie:runtime:ready` to `formie:client:ready`.
+- Move runtime/client PHP namespaces toward `client` naming, while keeping selected `runtime` class aliases in Compatibility Mode.
+- Rename runtime JS translation hooks to frontend JS translation hooks: `Rendering::EVENT_MODIFY_FRONTEND_JS_TRANSLATIONS`, `ModifyFrontendJsTranslationsEvent`, and `Rendering::getFrontendJsTranslations()`.
+- Replace `RuntimeModule` and `RuntimeModuleContext` terminology with `ClientModule` and `ClientModuleContext`.
+- Replace `RuntimeRenderFrame` terminology with `RenderFrame`.
+- Rename `RuntimeAssets` to `FrontendAssets`.
+- Replace `renderFormAssets()`, `registerFormAssets()`, `renderFormCss()`, and `renderFormJs()` with `formAssets()`.
+- Replace `renderRuntimeAssets()`, `renderCss()`, and `renderJs()` with `frontendAssets()`.
+- Rename render options `renderCss` and `renderJs` to `includeCss` and `includeJs`.
+- Rename form template options `outputCssLayout` and `outputCssTheme` to `outputCss`.
+- Rename form template options `outputJsBase` and `outputJsTheme` to `outputJs`.
+- Change Formie’s default front-end CSS class prefix from `fui` to `formie`.
+- Change form submit processing from a single save-oriented path to the staged submission workflow.
+- Route controller submissions, managed client submissions, GraphQL submissions, save-draft requests, and payment replays through the same submission workflow engine.
+- Move payment processing into workflow tasks instead of calling standalone submission payment processing directly.
+- Move notification dispatch and integration dispatch into workflow dispatch tasks.
+- Move payment callbacks, webhooks, and status polls through the payment replay workflow path with idempotent handling.
+- Store temporary and incomplete submission state in the database instead of offering session/database progression storage modes.
+- Remove the old user-facing `submissionStore`/`submissionStateMode` choice from active submission progression behavior.
+- Refresh submission state tokens on each multi-page step and Ajax response.
+- Use encrypted/authenticated state tokens for multi-page progression.
+- Rework save-and-resume around tokenized database records, TTL handling, capability checks, and URL token stripping.
+- Rework pending upload handling around sidecar records, finalize-on-submit behavior, and garbage collection of stale uploads.
+- Change submit action URLs and hidden field initial values so they no longer execute Twig.
+- Separate field defaults from prefill sources.
+- Change the default submission title pipeline to use `submissionTitleFormat` and field references on first save.
+- Change field references to use stable field references instead of relying only on field handles in places such as notifications, calculations, conditions, and integration mapping.
+- Change field value APIs from JSON/variable/email terminology toward array/reference/reference-block terminology.
+- Change field value storage and projection to preserve unresolved historical field UIDs instead of dropping unknown values after layout changes.
+- Change CP submission editing to hydrate only required field modules rather than mounting an entire front-end form client.
+- Change condition evaluation to use explicit boolean, numeric, and string coercion.
+- Change container and repeatable field condition subjects to use handle keys while storage remains UID-keyed.
+- Change field type metadata and GraphQL metadata to read from normalized configs before materializing field objects.
+- Change Formie fields service internals to stay config-first until callers need field object traversal.
+- Change Formie form, field, integration, and GraphQL lookup hot paths to use request-local caches.
+- Change synced fields from self-referential `syncId` fan-out to a definition/placement storage model.
+- Lock synced-field handle edits while fields remain synced.
+- Change stencils to use the canonical React builder and snapshot semantics.
+- Change stencil form creation to remap field references when materializing forms.
+- Change integration settings in the form builder from Twig/Vue HTML to PHP-defined schemas.
+- Change custom integration front-end output from `getFrontEndJsVariables()` to client modules.
+- Change address providers, captchas, payments, and field modules to register browser modules via the new client module manifest.
+- Change captchas to run through the workflow screen stage.
+- Change passive captcha and spam checks to use the shared screen workflow stage.
+- Change Formie’s static-cache support to use built-in token refresh behavior instead of requiring custom refresh snippets.
+- Change headless form rendering to use explicit server-rendered and client-rendered GraphQL queries.
+- Change GraphQL `formieForm { templateHtml }` usage to `formieHtmlForm { html }`.
+- Rename GraphQL page client event settings from `enableJsEvents` and `jsGtmEventOptions` to `enableClientEvents` and `clientEventFields`.
+- Change GraphQL field metadata generation to use cached field metadata from the fields service.
+- Change GraphQL client-form access so handle-based reads and lifecycle mutations require explicit schema scopes.
+- Change custom field schema method names from `defineGeneralSchema()`, `defineSettingsSchema()`, `defineAppearanceSchema()`, `defineAdvancedSchema()`, and `defineConditionsSchema()` to `defineFormBuilderGeneralSchema()`, `defineFormBuilderSettingsSchema()`, `defineFormBuilderAppearanceSchema()`, `defineFormBuilderAdvancedSchema()`, and `defineFormBuilderConditionsSchema()`.
+- Change schema node keys from `$formkit` to `$field`.
+- Change schema help text keys from `help` to `instructions`.
+- Change field builder previews from `getFormBuilderPreviewHtml()` to `defineFormBuilderPreviewSchema()`.
+- Change field input template discovery from `getFrontEndInputTemplatePath()` to `getInputTemplatePath()`.
+- Change field email template terminology from email templates to reference-block templates.
+- Change field slot/tag customization from `HtmlTag`/`htmlTag` terminology to `SlotTag`/`slotTag`.
+- Change form render IDs from `Form::getFormId()`/`setFormId()` terminology to `Form::getRenderId()`/`setRenderId()`.
+- Move `Submissions::EVENT_BEFORE_SEND_NOTIFICATION` ownership to `Notifications::EVENT_BEFORE_SEND_NOTIFICATION`.
+- Move `Submissions::EVENT_BEFORE_TRIGGER_INTEGRATION` ownership to `Integrations::EVENT_BEFORE_TRIGGER_INTEGRATION`.
+- Keep Yii-style `getElementValidationRules()` as the supported submission validation surface for Formie 4.
+- Update integration field mapping to handle nested groups, repeaters, tables, element fields, and normalized field values more consistently.
+- Improve file upload validation, filename normalization, and safer CP/email summary URLs.
+- Improve payment webhook, callback, and status-poll error handling and authenticity checks.
+- Improve anonymous runtime route method constraints and abuse/rate-limit handling.
+- Improve CORS handling so arbitrary origins are not reflected when GraphQL origins are not configured.
+- Improve large-form builder drag/drop performance and validation in production builds.
+- Improve export/query performance with request-local caches and explicit invalidation hooks.
+
+### Fixed
+- Fix migration coverage for Formie 3 to Formie 4 upgrades.
+- Fix migration coverage for direct Formie 2 to Formie 4 upgrades.
+- Fix synced-field migration to preserve shared field definitions and per-form placements.
+- Fix field hydration for legacy config keys under Compatibility Mode.
+- Fix legacy webhook/automation naming compatibility during upgrades.
+- Fix Stripe and other payment replay flows to run through the canonical workflow path.
+- Fix submission workflow failure logging to include halted stage, stage metadata, payment status, payment message, and payment decision details.
+- Fix hidden condition values and container/repeatable field values to use normalized field value projections consistently.
+- Fix condition evaluator behavior for boolean, numeric, and string comparisons.
+- Fix unresolved historical submission data being lost when a form layout no longer contains the original field.
+- Fix GraphQL schema generation for nested field structures.
+- Fix GraphQL field metadata generation performance for large forms.
+- Fix form handle lookup hot paths by routing through request-local form caches.
+- Fix repeated per-form integration list resolution by memoizing enabled integrations per form per request.
+- Fix client module manifest lookup costs with request-local caches.
+- Fix long-running worker cache staleness by exposing `SubmissionQuery::invalidateStaticCaches()`.
+- Fix file-upload security checks for MIME types, extensions, active content, and filename normalization.
+- Fix safer file upload URLs in CP and email summary contexts.
+- Fix payment webhook and callback responses to avoid exposing sensitive validation details.
+- Fix anonymous client bootstrap, refresh, page transition, and submit flows to share stricter abuse controls.
+- Fix static-cache handling for token refresh and restored form responses.
+- Fix large builder drag/drop behavior on dense multi-page forms.
+- Fix integration mapping for normalized nested field values.
+- Fix missing or inconsistent custom field compatibility for legacy schema arrays and FormKit-style nodes.
+- Fix legacy front-end event bridging for projects migrating from Formie 3 event listeners.
+
+### Deprecated
+- Deprecated `Form::getFormId()` and `Form::setFormId()`. Use `Form::getRenderId()` and `Form::setRenderId()`.
+- Deprecated `Form::EVENT_MODIFY_HTML_TAG`. Use `Form::EVENT_MODIFY_SLOT_TAG`.
+- Deprecated `ModifyFormHtmlTagEvent`. Use `ModifyFormSlotTagEvent`.
+- Deprecated `Field::EVENT_MODIFY_HTML_TAG`. Use `Field::EVENT_MODIFY_SLOT_TAG`.
+- Deprecated `ModifyFieldHtmlTagEvent`. Use `ModifyFieldSlotTagEvent`.
+- Deprecated `Field::EVENT_MODIFY_VALUE_AS_JSON`. Use `Field::EVENT_MODIFY_VALUE_AS_ARRAY`.
+- Deprecated `Field::EVENT_MODIFY_VALUE_FOR_EMAIL`. Use `Field::EVENT_MODIFY_VALUE_FOR_REFERENCE_BLOCK`.
+- Deprecated field value JSON methods such as `getValueAsJson()` and `defineValueAsJson()`. Use array-based equivalents.
+- Deprecated field variable value methods such as `getValueForVariable()`, `getValueForVariableRaw()`, `defineValueForVariable()`, and `defineValueForVariableRaw()`. Use reference value methods.
+- Deprecated field email value methods such as `getValueForEmail()` and `defineValueForEmail()`. Use reference-block value methods.
+- Deprecated field email template methods such as `getEmailTemplatePath()`, `getEmailHtml()`, `getEmailOptions()`, `hasEmailLabel()`, and `hasEmailPlaceholder()`. Use reference-block equivalents.
+- Deprecated legacy field key helpers such as `getFieldKey()`, `getErrorKey()`, `getFullHandle()`, `getFullNamespace()`, and `getReservedHandles()`.
+- Deprecated legacy custom field schema methods in favor of `defineFormBuilder*Schema()` methods.
+- Deprecated `getFormBuilderPreviewHtml()` in favor of `defineFormBuilderPreviewSchema()`.
+- Deprecated `getFrontEndInputTemplatePath()` in favor of `getInputTemplatePath()`.
+- Deprecated `defineHtmlTag()` in favor of `defineFieldSlotTag()`.
+- Deprecated `Submission::getValueAsString()`, `Submission::getValueAsJson()`, `Submission::getValueForExport()`, and `Submission::getValueForSummary()` in favor of `getFieldValue*()` methods.
+- Deprecated `Submission::getFieldValueAsJson()` in favor of `Submission::getFieldValueAsArray()`.
+- Deprecated `Submission::getValuesAsJson()` in favor of `Submission::getValuesAsArray()`.
+- Deprecated `Submission::getFieldValueForEmail()` in favor of `Submission::getFieldValueForReferenceBlock()`.
+- Deprecated `Submission::getFieldValueForVariable()` in favor of `Submission::getFieldValueForReference()`.
+- Deprecated `SubmissionContentManager::getValuesAsJson()` in favor of `getValuesAsArray()`.
+- Deprecated `ValueContext::json()` and `ValueContext::TYPE_JSON`. Use `ValueContext::array()` and `ValueContext::TYPE_ARRAY`.
+- Deprecated `ValueContext::variable()` and `ValueContext::TYPE_VARIABLE`. Use `ValueContext::reference()` and `ValueContext::TYPE_REFERENCE`.
+- Deprecated `ValueContext::email()` and `ValueContext::TYPE_EMAIL`. Use `ValueContext::referenceBlock()` and `ValueContext::TYPE_REFERENCE_BLOCK`.
+- Deprecated `craft.formie.registerAssets()`, `craft.formie.registerFormAssets()`, `craft.formie.renderFormAssets()`, `craft.formie.renderFormCss()`, and `craft.formie.renderFormJs()`. Use `craft.formie.formAssets()`.
+- Deprecated `craft.formie.renderRuntimeAssets()`, `craft.formie.renderCss()`, and `craft.formie.renderJs()`. Use `craft.formie.frontendAssets()`.
+- Deprecated render option keys `renderCss`, `renderJs`, `outputCssLayout`, `outputCssTheme`, `outputJsBase`, and `outputJsTheme`.
+- Deprecated `assets()` as the form-scoped asset helper name. Use `formAssets()`.
+- Deprecated legacy theme config root keys including `radio`, `date`, `email`, `hidden`, and `phone`. Use `radioButtons`, `dateTime`, `emailAddress`, `hiddenField`, and `phoneNumber`.
+- Deprecated legacy schema config keys including `limitType`, `limitAmount`, `subfieldLabelPosition`, `includeInEmail`, and `emailValue`.
+- Deprecated `Integration::getFormSettingsHtml()` for builder settings. Use `Integration::defineFormSettingsSchema()`.
+- Deprecated custom integration front-end variable output via `getFrontEndJsVariables()`. Use `IntegrationInterface::getClientModule()`.
+- Deprecated standalone `Submissions::processPayments()` usage. Payments now run through workflow tasks.
+- Deprecated selected submission dispatch pass-through methods on `Submissions`; use the canonical workflow, notification, integration, and payment services.
+- Deprecated runtime-named PHP classes in favor of client/frontend names where aliases are provided by Compatibility Mode.
+- Deprecated `Rendering::EVENT_MODIFY_RUNTIME_JS_TRANSLATIONS`, `ModifyRuntimeJsTranslationsEvent`, and `getRuntimeJsTranslations()` in favor of frontend-named equivalents.
+- Deprecated GraphQL page setting names `enableJsEvents` and `jsGtmEventOptions`.
+- Deprecated the refresh-token request `form` query parameter. Use `handle`.
+- Deprecated legacy Formie DOM events such as `onFormieLoaded`, `onFormieInit`, `onFormieReady`, `onBeforeFormieSubmit`, `onFormieSubmit`, `onAfterFormieSubmit`, `onFormieSubmitError`, `onFormiePageToggle`, `onFormieValidate`, and `onAfterFormieValidate`.
+- Deprecated legacy validator events such as `formieValidatorInitialized`, `formieValidatorDestroyed`, `formieValidatorShowError`, and `formieValidatorClearError`.
+- Deprecated the global `Formie.refreshForCache()` helper in favor of static-cache token refresh handling.
+
+### Removed
+- Remove the legacy `CustomElement` inheritance model from submissions.
+- Remove the `FieldLegacy` bridge trait.
+- Remove legacy Formie 3 field `inputHtml()` fallback behavior.
+- Remove expired Formie 3 field `name` helper compatibility surfaces.
+- Remove old sticky JavaScript form-bus APIs.
+- Remove the built-in Duplicate captcha integration.
+- Remove the built-in JavaScript captcha integration.
+- Remove the built-in Honeypot captcha integration.
+- Remove active support for file, Redis, and Memcached draft-state backends. Formie 4 supports the database-backed adapter.
+- Remove the old `submissionStateMode` and `submissionStore` settings from active configuration.
+- Remove `enableGatsbyCompatibility` from active configuration.
+- Remove active session/database branching for submission progression storage.
+- Remove `getFrontEndJsVariables()` as the custom integration front-end API.
+- Remove old built-in front-end bundle assumptions in favor of `@verbb/formie-browser` and the framework packages.
+- Remove direct `templateHtml` usage from the primary GraphQL form rendering path.
+- Remove Algolia as a built-in address provider module.
+
 ## 3.1.27 - 2026-05-30
 
 ### Added

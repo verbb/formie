@@ -157,19 +157,7 @@
                 </div>
             {% endif %}
         {% elseif integration.supportsConnection() %}
-            {# Placeholder until Vue kicks in #}
-            <div class="field lightswitch-field fui-connect" v-if="false">
-                <div class="heading">
-                    <span class="status {{ connected ? 'on' : 'disabled' }}"></span>
-                    <span>{{ (connected ? 'Connected' : 'Not connected') | t('formie') }}</span>
-                </div>
-
-                <div class="input ltr">
-                    <button class="btn small" title="{{ 'Refresh' | t('formie') }}">{{ 'Refresh' | t('formie') }}</button>
-                </div>
-            </div>
-
-            <integration-connect class="fui-connect" :connected="{{ connected | json_encode }}" v-cloak></integration-connect>
+            <div class="fui-connect formie-integration-connect" style="min-height: 40px;"></div>
         {% endif %}
     {% endif %}
 </div>
@@ -205,12 +193,34 @@ $(document).ready(function() {
     var html = '<div class="heading"><span class="warning with-icon">{{ 'Save this integration to connect.' | t('formie') }}</span></div>';
     
     $('#main-form').find('input, select, textarea').on('input', function() {
-        $('.fui-connect').html(html);
+        $('.fui-connect').not('.formie-integration-connect').html(html);
     });
 
     $('#main-form').find('.lightswitch').on('change', function() {
-        $('.fui-connect').html(html);
+        $('.fui-connect').not('.formie-integration-connect').html(html);
     });
 });
+
+{% if not isNewIntegration and integration.supportsConnection() and not integration.supportsOAuthConnection() %}
+(() => {
+    const settings = {
+        connected: {{ integration.getIsConnected() | json_encode | raw }},
+        integration: {{ integration.handle | json_encode | raw }},
+        integrationId: {{ integration.id | json_encode | raw }},
+        integrationType: {{ className(integration) | json_encode | raw }},
+    };
+
+    const mountApp = () => {
+        if (!window.Craft?.Formie?.IntegrationConnect) {
+            window.setTimeout(mountApp, 25);
+            return;
+        }
+
+        new window.Craft.Formie.IntegrationConnect(settings);
+    };
+
+    mountApp();
+})();
+{% endif %}
 
 {% endjs %}

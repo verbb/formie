@@ -1,7 +1,18 @@
-<select class="fui-field-select" :multiple="field.settings.multi">
-    <option
-        v-for="(option, index) in field.settings.options"
-        :key="index"
-        :selected="option.isDefault"
-    >${ option.label }</option>
+<select
+    className="formie-field-preview-select"
+    multiple={field.multi}
+    defaultValue={field.multi
+        ? (field.options?.filter(o => o.isDefault).map(o => o.value) ?? [])
+        : (field.options?.find(o => o.isDefault)?.value ?? '')
+    }
+>
+    {!field.multi && field.placeholder && (
+        <option value="" disabled>{field.placeholder}</option>
+    )}
+
+    {field.options?.map((option, index) => (
+        <option key={index} value={option.value}>
+            {option.label}
+        </option>
+    ))}
 </select>

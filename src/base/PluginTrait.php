@@ -2,39 +2,59 @@
 namespace verbb\formie\base;
 
 use verbb\formie\Formie;
+use verbb\formie\cache\RenderCache;
+use verbb\formie\client\bootstrap\FormBootstrapBuilder;
+use verbb\formie\client\bootstrap\FormDefinitionBuilder;
+use verbb\formie\client\modules\ClientModuleManifestBuilder;
+use verbb\formie\client\ClientSessionService;
 use verbb\formie\elements\Submission as SubmissionElement;
 use verbb\formie\events\ModifyTwigEnvironmentEvent;
+use verbb\formie\server\ServerRenderPayloadBuilder;
 use verbb\formie\services\Countries;
+use verbb\formie\services\Compatibility;
 use verbb\formie\services\EmailDomains;
 use verbb\formie\services\Emails;
 use verbb\formie\services\EmailTemplates;
+use verbb\formie\services\Factories;
+use verbb\formie\services\FieldTypeDefinitions;
 use verbb\formie\services\Fields;
+use verbb\formie\services\FileUploads;
 use verbb\formie\services\Forms;
 use verbb\formie\services\FormTemplates;
 use verbb\formie\services\Integrations;
 use verbb\formie\services\Notifications;
 use verbb\formie\services\Payments;
 use verbb\formie\services\PdfTemplates;
+use verbb\formie\services\Phone;
 use verbb\formie\services\Plans;
 use verbb\formie\services\PredefinedOptions;
 use verbb\formie\services\Repair;
 use verbb\formie\services\Relations;
-use verbb\formie\services\RenderCache;
 use verbb\formie\services\Rendering;
+use verbb\formie\services\FrontendAssets;
 use verbb\formie\services\SentNotifications;
 use verbb\formie\services\Service;
 use verbb\formie\services\Statuses;
 use verbb\formie\services\Stencils;
-use verbb\formie\services\Storage;
 use verbb\formie\services\Submissions;
+use verbb\formie\services\SubmissionProcessor;
+use verbb\formie\services\SubmissionWorkflow;
+use verbb\formie\services\SubmissionDrafts;
 use verbb\formie\services\Subscriptions;
-use verbb\formie\web\assets\forms\FormsAsset;
+use verbb\formie\services\StorageManager;
+use verbb\formie\services\ThemeConfig;
+use verbb\formie\services\WorkflowTaskRunner;
+use verbb\formie\theme\slots\FieldSlotRegistry;
+use verbb\formie\theme\slots\FormSlotRegistry;
+use verbb\formie\web\assets\cp\CpReactAsset;
 
 use Craft;
+use craft\helpers\App;
 
 use verbb\base\LogTrait;
 use verbb\base\helpers\Plugin;
 use verbb\base\services\Templates;
+use verbb\formie\helpers\Plugin as FormiePluginHelper;
 
 use nystudio107\pluginvite\services\VitePluginService;
 
@@ -65,7 +85,9 @@ trait PluginTrait
     {
         Plugin::bootstrapPlugin('formie');
 
-        // Allow plugins to modify the template variables
+        // Build the Twig allow-list before the templates service is registered
+        // so extension code can widen the safe client surface without replacing
+        // Formie's sandbox configuration wholesale.
         $event = new ModifyTwigEnvironmentEvent([
             'allowedTags' => [],
             'allowedFilters' => [],
@@ -105,28 +127,55 @@ trait PluginTrait
         return [
             'components' => [
                 'countries' => Countries::class,
+                'compatibility' => Compatibility::class,
+                'cpAssets' => [
+                    'class' => VitePluginService::class,
+                    'assetClass' => CpReactAsset::class,
+                    'useDevServer' => true,
+                    'devServerPublic' => rtrim(App::parseEnv('$FORMIE_CP_DEV_SERVER_PUBLIC') ?: 'http://localhost:3900/', '/') . '/',
+                    'errorEntry' => 'js/main.js',
+                    'cacheKeySuffix' => '',
+                    'devServerInternal' => rtrim(App::parseEnv('$FORMIE_CP_DEV_SERVER_INTERNAL') ?: 'http://localhost:3900/', '/') . '/',
+                    'checkDevServer' => true,
+                    'includeReactRefreshShim' => true,
+                ],
                 'emailDomains' => EmailDomains::class,
                 'emails' => Emails::class,
                 'emailTemplates' => EmailTemplates::class,
+                'factories' => Factories::class,
+                'fieldTypeDefinitions' => FieldTypeDefinitions::class,
                 'fields' => Fields::class,
+                'fieldSlotRegistry' => FieldSlotRegistry::class,
+                'fileUploads' => FileUploads::class,
                 'forms' => Forms::class,
+                'formSlotRegistry' => FormSlotRegistry::class,
+                'clientFormBootstrapBuilder' => FormBootstrapBuilder::class,
+                'clientFormDefinitionBuilder' => FormDefinitionBuilder::class,
                 'formTemplates' => FormTemplates::class,
                 'integrations' => Integrations::class,
+                'serverRenderPayloadBuilder' => ServerRenderPayloadBuilder::class,
+                'clientModuleManifestBuilder' => ClientModuleManifestBuilder::class,
                 'notifications' => Notifications::class,
                 'payments' => Payments::class,
                 'pdfTemplates' => PdfTemplates::class,
+                'phone' => Phone::class,
                 'plans' => Plans::class,
                 'predefinedOptions' => PredefinedOptions::class,
                 'repair' => Repair::class,
                 'relations' => Relations::class,
                 'renderCache' => RenderCache::class,
                 'rendering' => Rendering::class,
+                'frontendAssets' => FrontendAssets::class,
+                'clientSessionService' => ClientSessionService::class,
                 'sentNotifications' => SentNotifications::class,
                 'service' => Service::class,
                 'statuses' => Statuses::class,
                 'stencils' => Stencils::class,
-                'storage' => Storage::class,
+                'storageManager' => StorageManager::class,
                 'submissions' => Submissions::class,
+                'submissionProcessor' => SubmissionProcessor::class,
+                'submissionDrafts' => SubmissionDrafts::class,
+                'submissionWorkflow' => SubmissionWorkflow::class,
                 'subscriptions' => Subscriptions::class,
                 'templates' => [
                     'class' => Templates::class,
@@ -137,17 +186,8 @@ trait PluginTrait
                     'allowedMethods' => $event->allowedMethods,
                     'allowedProperties' => $event->allowedProperties,
                 ],
-                'vite' => [
-                    'class' => VitePluginService::class,
-                    'assetClass' => FormsAsset::class,
-                    'useDevServer' => true,
-                    'devServerPublic' => 'http://localhost:4000/',
-                    'errorEntry' => 'js/main.js',
-                    'cacheKeySuffix' => '',
-                    'devServerInternal' => 'http://localhost:4000/',
-                    'checkDevServer' => true,
-                    'includeReactRefreshShim' => false,
-                ],
+                'themeConfig' => ThemeConfig::class,
+                'workflowTaskRunner' => WorkflowTaskRunner::class,
             ],
         ];
     }
@@ -178,9 +218,59 @@ trait PluginTrait
         return $this->get('countries');
     }
 
-    public function getEmails(): Emails
+    public function getCompatibility(): Compatibility
     {
-        return $this->get('emails');
+        return $this->get('compatibility');
+    }
+
+    public function getCpAssets(): VitePluginService
+    {
+        return $this->get('cpAssets');
+    }
+
+    public function registerCpFormBuilderAssets(): void
+    {
+        FormiePluginHelper::registerCpFormBuilderAssets();
+    }
+
+    public function registerCpNewFormAssets(): void
+    {
+        FormiePluginHelper::registerCpNewFormAssets();
+    }
+
+    public function registerCpStencilNewAssets(): void
+    {
+        FormiePluginHelper::registerCpStencilNewAssets();
+    }
+
+    public function registerCpStencilEditAssets(): void
+    {
+        FormiePluginHelper::registerCpStencilEditAssets();
+    }
+
+    public function registerCpIntegrationConnectAssets(): void
+    {
+        FormiePluginHelper::registerCpIntegrationConnectAssets();
+    }
+
+    public function registerCpPluginSettingsAssets(): void
+    {
+        FormiePluginHelper::registerCpPluginSettingsAssets();
+    }
+
+    public function registerCpSubmissionsAssets(): void
+    {
+        FormiePluginHelper::registerCpSubmissionsAssets();
+    }
+
+    public function registerCpSentNotificationsAssets(): void
+    {
+        FormiePluginHelper::registerCpSentNotificationsAssets();
+    }
+
+    public function registerCpWidgetsAssets(): void
+    {
+        FormiePluginHelper::registerCpWidgetsAssets();
     }
 
     public function getEmailDomains(): EmailDomains
@@ -188,14 +278,59 @@ trait PluginTrait
         return $this->get('emailDomains');
     }
 
+    public function getEmails(): Emails
+    {
+        return $this->get('emails');
+    }
+
     public function getEmailTemplates(): EmailTemplates
     {
         return $this->get('emailTemplates');
     }
 
+    public function getFactories(): Factories
+    {
+        return $this->get('factories');
+    }
+
     public function getFields(): Fields
     {
         return $this->get('fields');
+    }
+
+    public function getFrontendAssets(): FrontendAssets
+    {
+        return $this->get('frontendAssets');
+    }
+
+    public function getClientFormBootstrapBuilder(): FormBootstrapBuilder
+    {
+        return $this->get('clientFormBootstrapBuilder');
+    }
+
+    public function getClientFormDefinitionBuilder(): FormDefinitionBuilder
+    {
+        return $this->get('clientFormDefinitionBuilder');
+    }
+
+    public function getServerRenderPayloadBuilder(): ServerRenderPayloadBuilder
+    {
+        return $this->get('serverRenderPayloadBuilder');
+    }
+
+    public function getClientModuleManifestBuilder(): ClientModuleManifestBuilder
+    {
+        return $this->get('clientModuleManifestBuilder');
+    }
+
+    public function getClientSessionService(): ClientSessionService
+    {
+        return $this->get('clientSessionService');
+    }
+
+    public function getFieldTypeDefinitions(): FieldTypeDefinitions
+    {
+        return $this->get('fieldTypeDefinitions');
     }
 
     public function getForms(): Forms
@@ -226,6 +361,11 @@ trait PluginTrait
     public function getPdfTemplates(): PdfTemplates
     {
         return $this->get('pdfTemplates');
+    }
+
+    public function getPhone(): Phone
+    {
+        return $this->get('phone');
     }
 
     public function getPlans(): Plans
@@ -278,14 +418,49 @@ trait PluginTrait
         return $this->get('stencils');
     }
 
-    public function getStorage(): Storage
-    {
-        return $this->get('storage');
-    }
-
     public function getSubmissions(): Submissions
     {
         return $this->get('submissions');
+    }
+
+    public function getSubmissionProcessor(): SubmissionProcessor
+    {
+        return $this->get('submissionProcessor');
+    }
+
+    public function getSubmissionWorkflow(): SubmissionWorkflow
+    {
+        return $this->get('submissionWorkflow');
+    }
+
+    public function getWorkflowTaskRunner(): WorkflowTaskRunner
+    {
+        return $this->get('workflowTaskRunner');
+    }
+
+    public function getSubmissionDrafts(): SubmissionDrafts
+    {
+        return $this->get('submissionDrafts');
+    }
+
+    public function getStorageManager(): StorageManager
+    {
+        return $this->get('storageManager');
+    }
+
+    public function getThemeConfigService(): ThemeConfig
+    {
+        return $this->get('themeConfig');
+    }
+
+    public function getFormSlotRegistry(): FormSlotRegistry
+    {
+        return $this->get('formSlotRegistry');
+    }
+
+    public function getFieldSlotRegistry(): FieldSlotRegistry
+    {
+        return $this->get('fieldSlotRegistry');
     }
 
     public function getSubscriptions(): Subscriptions
@@ -293,65 +468,13 @@ trait PluginTrait
         return $this->get('subscriptions');
     }
 
+    public function getFileUploads(): FileUploads
+    {
+        return $this->get('fileUploads');
+    }
+
     public function getTemplates(): Templates
     {
         return $this->get('templates');
     }
-
-    public function getVite(): VitePluginService
-    {
-        return $this->get('vite');
-    }
 }
-
-// Handle deprecated classes via an alias, until Formie 4
-class_alias('verbb\formie\base\Field', 'verbb\formie\base\FormField');
-class_alias('verbb\formie\base\FieldInterface', 'verbb\formie\base\FormFieldInterface');
-class_alias('verbb\formie\fields\Address', 'verbb\formie\fields\formfields\Address');
-class_alias('verbb\formie\fields\Agree', 'verbb\formie\fields\formfields\Agree');
-class_alias('verbb\formie\fields\Calculations', 'verbb\formie\fields\formfields\Calculations');
-class_alias('verbb\formie\fields\Categories', 'verbb\formie\fields\formfields\Categories');
-class_alias('verbb\formie\fields\Checkboxes', 'verbb\formie\fields\formfields\Checkboxes');
-class_alias('verbb\formie\fields\Date', 'verbb\formie\fields\formfields\Date');
-class_alias('verbb\formie\fields\Dropdown', 'verbb\formie\fields\formfields\Dropdown');
-class_alias('verbb\formie\fields\Email', 'verbb\formie\fields\formfields\Email');
-class_alias('verbb\formie\fields\Entries', 'verbb\formie\fields\formfields\Entries');
-class_alias('verbb\formie\fields\FileUpload', 'verbb\formie\fields\formfields\FileUpload');
-class_alias('verbb\formie\fields\Group', 'verbb\formie\fields\formfields\Group');
-class_alias('verbb\formie\fields\Heading', 'verbb\formie\fields\formfields\Heading');
-class_alias('verbb\formie\fields\Hidden', 'verbb\formie\fields\formfields\Hidden');
-class_alias('verbb\formie\fields\Html', 'verbb\formie\fields\formfields\Html');
-class_alias('verbb\formie\fields\MissingField', 'verbb\formie\fields\formfields\MissingField');
-class_alias('verbb\formie\fields\MultiLineText', 'verbb\formie\fields\formfields\MultiLineText');
-class_alias('verbb\formie\fields\Name', 'verbb\formie\fields\formfields\Name');
-class_alias('verbb\formie\fields\Number', 'verbb\formie\fields\formfields\Number');
-class_alias('verbb\formie\fields\Password', 'verbb\formie\fields\formfields\Password');
-class_alias('verbb\formie\fields\Payment', 'verbb\formie\fields\formfields\Payment');
-class_alias('verbb\formie\fields\Phone', 'verbb\formie\fields\formfields\Phone');
-class_alias('verbb\formie\fields\Products', 'verbb\formie\fields\formfields\Products');
-class_alias('verbb\formie\fields\Radio', 'verbb\formie\fields\formfields\Radio');
-class_alias('verbb\formie\fields\Recipients', 'verbb\formie\fields\formfields\Recipients');
-class_alias('verbb\formie\fields\Repeater', 'verbb\formie\fields\formfields\Repeater');
-class_alias('verbb\formie\fields\Section', 'verbb\formie\fields\formfields\Section');
-class_alias('verbb\formie\fields\Signature', 'verbb\formie\fields\formfields\Signature');
-class_alias('verbb\formie\fields\SingleLineText', 'verbb\formie\fields\formfields\SingleLineText');
-class_alias('verbb\formie\fields\Summary', 'verbb\formie\fields\formfields\Summary');
-class_alias('verbb\formie\fields\Table', 'verbb\formie\fields\formfields\Table');
-class_alias('verbb\formie\fields\Tags', 'verbb\formie\fields\formfields\Tags');
-class_alias('verbb\formie\fields\Users', 'verbb\formie\fields\formfields\Users');
-class_alias('verbb\formie\fields\Variants', 'verbb\formie\fields\formfields\Variants');
-
-class_alias('verbb\formie\integrations\helpdesk\Freshdesk', 'verbb\formie\integrations\crm\Freshdesk');
-class_alias('verbb\formie\integrations\helpdesk\Gorgias', 'verbb\formie\integrations\miscellaneous\Gorgias');
-class_alias('verbb\formie\integrations\helpdesk\Zendesk', 'verbb\formie\integrations\miscellaneous\Zendesk');
-
-class_alias('verbb\formie\integrations\messaging\Slack', 'verbb\formie\integrations\miscellaneous\Slack');
-class_alias('verbb\formie\integrations\messaging\Telegram', 'verbb\formie\integrations\miscellaneous\Telegram');
-
-class_alias('verbb\formie\events\ModifyAutomationPayloadEvent', 'verbb\formie\events\ModifyWebhookPayloadEvent');
-class_alias('verbb\formie\base\Automation', 'verbb\formie\base\Webhook');
-class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\webhooks\Webhook');
-class_alias('verbb\formie\integrations\automations\WebRequest', 'verbb\formie\integrations\automations\Webhook');
-class_alias('verbb\formie\integrations\automations\Zapier', 'verbb\formie\integrations\webhooks\Zapier');
-
-class_alias('verbb\formie\services\Countries', 'verbb\formie\services\Phone');

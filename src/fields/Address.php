@@ -2,26 +2,35 @@
 namespace verbb\formie\fields;
 
 use verbb\formie\Formie;
+use verbb\formie\base\AddressProvider;
 use verbb\formie\base\Field;
 use verbb\formie\base\FieldInterface;
-use verbb\formie\base\Integration;
 use verbb\formie\base\IntegrationInterface;
-use verbb\formie\base\SubFieldInterface;
-use verbb\formie\base\SubField;
+use verbb\formie\base\FixedParentFieldInterface;
+use verbb\formie\base\FixedParentField;
+use verbb\formie\base\PreviewableFieldInterface;
+use verbb\formie\fields\definitions\FieldClientModules;
+use verbb\formie\fields\definitions\FieldReferenceValue;
+use verbb\formie\fields\definitions\FieldValueClass;
 use verbb\formie\gql\types\AddressType;
 use verbb\formie\gql\types\generators\FieldAttributeGenerator;
 use verbb\formie\gql\types\input\AddressInputType;
+use verbb\formie\fields\values\AddressFieldValue;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\models\Address as AddressModel;
-use verbb\formie\models\HtmlTag;
+use verbb\formie\helpers\Table;
+use verbb\formie\helpers\Variables;
+use verbb\formie\models\ClientModuleContext;
+use verbb\formie\models\SlotTag;
 use verbb\formie\positions\AboveInput;
 use verbb\formie\positions\Hidden as HiddenPosition;
 
+use verbb\formie\theme\context\RenderContext;
+
 use Craft;
 use craft\base\ElementInterface;
-use craft\base\PreviewableFieldInterface;
 use craft\errors\InvalidFieldException;
+use craft\db\Query;
 use craft\helpers\Component;
 use craft\helpers\Json;
 
@@ -32,7 +41,7 @@ use GraphQL\Type\Definition\Type;
 use yii\base\Event;
 use yii\db\Schema;
 
-class Address extends SubField implements PreviewableFieldInterface
+class Address extends FixedParentField implements PreviewableFieldInterface
 {
     // Static Methods
     // =========================================================================
@@ -52,6 +61,21 @@ class Address extends SubField implements PreviewableFieldInterface
         return Schema::TYPE_JSON;
     }
 
+    public static function supportsGqlConfigProvider(): bool
+    {
+        return true;
+    }
+
+    public static function gqlContentTypeFromConfig(array $config): Type|array
+    {
+        return AddressType::getType();
+    }
+
+    public static function gqlContentMutationArgumentTypeFromConfig(array $config): Type|array
+    {
+        return AddressInputType::getTypeFromConfig($config);
+    }
+    
 
     // Public Methods
     // =========================================================================
@@ -148,17 +172,22 @@ class Address extends SubField implements PreviewableFieldInterface
         parent::__construct($config);
     }
 
+    public function fieldKind(): string
+    {
+        return self::KIND_ADDRESS;
+    }
+
     public function normalizeValue(mixed $value, ?ElementInterface $element): mixed
     {
         $value = parent::normalizeValue($value, $element);
         $value = Json::decodeIfJson($value);
 
-        if ($value instanceof AddressModel) {
-            return $value;
+        if ($value instanceof AddressFieldValue) {
+            return $value->isEmpty() ? null : $value;
         }
 
         if (is_array($value)) {
-            $address = new AddressModel($value);
+            $address = new AddressFieldValue($value);
 
             // Normalize country to null, due to it being a dropdown
             if ($address->country === '') {
@@ -172,39 +201,17 @@ class Address extends SubField implements PreviewableFieldInterface
                 }
             }
 
-            return $address;
+            return $address->isEmpty() ? null : $address;
         }
 
-        return new AddressModel();
+        return null;
     }
 
-    public function getPreviewInputHtml(): string
+    public function defineFormBuilderPreviewSchema(): array
     {
-        return Craft::$app->getView()->renderTemplate('formie/_formfields/address/preview', [
-            'field' => $this,
-        ]);
-    }
-
-    public function getAutoCompleteHtml(array $renderOptions = []): string
-    {
-        $integration = $this->getAddressProviderIntegration();
-
-        if (!$integration) {
-            return '';
-        }
-
-        return $integration->getFrontEndHtml($this, $renderOptions);
-    }
-
-    public function getFrontEndJsModules(): ?array
-    {
-        $integration = $this->getAddressProviderIntegration();
-
-        if (!$integration) {
-            return null;
-        }
-
-        return $integration?->getFrontEndJsVariables($this);
+        return [
+            SchemaHelper::previewContainerParent(),
+        ];
     }
 
     public function getAddressProviderIntegration(): ?IntegrationInterface
@@ -232,29 +239,55 @@ class Address extends SubField implements PreviewableFieldInterface
         return $this->supportsCurrentLocation() && $autoCompleteCurrentLocation;
     }
 
+    public function createLocationLinkSlotTag(RenderContext $context): SlotTag
+    {
+        // "Use my location" control for the auto-complete sub-field label (not resolved on the parent Address field itself).
+        return SlotTag::make('a')
+            ->core([
+                'href' => 'javascript:;',
+                'text' => Craft::t('formie', 'Use my location'),
+                'data-formie-address-location' => true,
+            ])
+            ->theme([
+                'class' => [
+                    'formie-address-location',
+                ],
+            ]);
+    }
+
     public function getContentGqlType(): Type|array
     {
         return AddressType::getType();
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
             SchemaHelper::labelField(),
-            SchemaHelper::subFieldsConfigurationField([], [
-                'type' => static::class,
+            SchemaHelper::nestedFieldsConfigurationField([
+                'label' => Craft::t('formie', 'Sub-Field Configuration'),
+                'instructions' => Craft::t('formie', 'Configure the sub-fields for this field. Move to rearrange columns and rows, and click to edit sub-field settings.'),
+                'children' => [
+                    [
+                        '$cmp' => 'NestedLayout',
+                        'props' => [
+                            'parentType' => static::class,
+                            'layoutKey' => 'rows',
+                        ],
+                    ],
+                ],
             ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            SchemaHelper::includeInEmailField(),
+            SchemaHelper::includeInEmailFieldSummariesField(),
         ];
     }
 
-    public function defineAppearanceSchema(): array
+    public function defineFormBuilderAppearanceSchema(): array
     {
         return [
             SchemaHelper::visibility(),
@@ -265,7 +298,7 @@ class Address extends SubField implements PreviewableFieldInterface
         ];
     }
 
-    public function defineAdvancedSchema(): array
+    public function defineFormBuilderAdvancedSchema(): array
     {
         return [
             SchemaHelper::handleField(),
@@ -275,7 +308,7 @@ class Address extends SubField implements PreviewableFieldInterface
         ];
     }
 
-    public function defineConditionsSchema(): array
+    public function defineFormBuilderConditionsSchema(): array
     {
         return [
             SchemaHelper::enableConditionsField(),
@@ -288,48 +321,53 @@ class Address extends SubField implements PreviewableFieldInterface
         return AddressInputType::getType($this);
     }
 
-    public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
-    {
-        $form = $context['form'] ?? null;
-
-        $id = $this->getHtmlId($form);
-        
-        if ($key === 'fieldContainer') {
-            return new HtmlTag('fieldset', [
-                'class' => 'fui-fieldset',
-                'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
-            ]);
-        }
-
-        if ($key === 'fieldLabel') {
-            $labelPosition = $context['labelPosition'] ?? null;
-
-            return new HtmlTag('legend', [
-                'class' => [
-                    'fui-legend',
-                ],
-                'data' => [
-                    'field-label' => true,
-                    'fui-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
-                ],
-            ]);
-        }
-
-        if ($key === 'locationLink') {
-            return new HtmlTag('a', [
-                'href' => 'javascript:;',
-                'class' => 'fui-link fui-address-location-link',
-                'text' => Craft::t('formie', 'Use my location'),
-                'data-fui-address-location-btn' => true,
-            ]);
-        }
-
-        return parent::defineHtmlTag($key, $context);
-    }
-
 
     // Protected Methods
     // =========================================================================
+
+    protected function defineFieldSlotTag(string $key, RenderContext $context): ?SlotTag
+    {
+        $form = $context->form;
+
+        $id = $this->getHtmlId($form);
+        
+        if ($key === 'fieldLayout') {
+            return SlotTag::make('fieldset')
+                ->core([
+                    'data-formie-field-layout' => true,
+                    'data-formie-address-field-layout' => true,
+                    'aria-describedby' => $this->instructions ? "{$id}-instructions" : null,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-field-layout',
+                        'formie-address-field-layout',
+                    ],
+                ]);
+        }
+
+        if ($key === 'fieldLabel') {
+            $labelPosition = $context->get('labelPosition');
+
+            return SlotTag::make('legend')
+                ->core([
+                    'data-formie-label' => true,
+                    'data-formie-field-label' => true,
+                    'data-formie-address-field-label' => true,
+                    'data-formie-sr-only' => $labelPosition instanceof HiddenPosition ? true : false,
+                ])
+                ->theme([
+                    'class' => [
+                        'formie-label',
+                        'formie-field-label',
+                        'formie-address-field-label',
+                        $labelPosition instanceof HiddenPosition ? 'formie-sr-only' : false,
+                    ],
+                ]);
+        }
+
+        return parent::defineFieldSlotTag($key, $context);
+    }
 
     protected function defineSubFields(): array
     {
@@ -512,7 +550,7 @@ class Address extends SubField implements PreviewableFieldInterface
         return $fields;
     }
 
-    protected function cpInputHtml(mixed $value, ?ElementInterface $element, bool $inline): string
+    protected function defineSubmissionHtml(mixed $value, ?ElementInterface $element, bool $inline): string
     {
         return Craft::$app->getView()->renderTemplate('formie/_formfields/address/input', [
             'name' => $this->handle,
@@ -524,15 +562,101 @@ class Address extends SubField implements PreviewableFieldInterface
 
     protected function defineValueForEmailPreview(FakerFactory $faker): mixed
     {
-        return new AddressModel([
+        return new AddressFieldValue([
             'address1' => $faker->streetAddress,
             'address2' => $faker->buildingNumber,
             'address3' => $faker->streetSuffix,
             'city' => $faker->city,
             'zip' => $faker->postcode,
             'state' => $faker->state,
-            'country' => AddressModel::nameToCode($faker->country),
+            'country' => AddressFieldValue::nameToCode($faker->country),
         ]);
+    }
+
+    protected function defineReferenceValues(): array
+    {
+        return [
+            FieldReferenceValue::default([
+                'handle' => '__toString',
+                'label' => Craft::t('formie', 'Formatted Address'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'address1',
+                'label' => Craft::t('formie', 'Address 1'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'address2',
+                'label' => Craft::t('formie', 'Address 2'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'address3',
+                'label' => Craft::t('formie', 'Address 3'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'city',
+                'label' => Craft::t('formie', 'City'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'state',
+                'label' => Craft::t('formie', 'State / Province'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'zip',
+                'label' => Craft::t('formie', 'ZIP / Postal Code'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+            FieldReferenceValue::property([
+                'handle' => 'country',
+                'label' => Craft::t('formie', 'Country'),
+                'variableTypes' => [Variables::TYPE_TEXT],
+            ]),
+        ];
+    }
+
+    protected function defineClientModules(): array
+    {
+        $modules = parent::defineClientModules();
+        $modules[] = function(ClientModuleContext $context) {
+            $integration = $this->getAddressProviderIntegration();
+
+            if (!$integration) {
+                return null;
+            }
+
+            $clientModule = $integration->getClientModule(new ClientModuleContext([
+                'form' => $context->form,
+                'field' => $this,
+                'integration' => $integration,
+                'renderTarget' => $context->renderTarget,
+            ]));
+
+            if (!$clientModule?->id) {
+                return null;
+            }
+
+            if (!$clientModule->type) {
+                $clientModule->type = 'address';
+            }
+
+            if (!$clientModule->targets) {
+                $clientModule->targets = $context->getTargets();
+            }
+
+            return $clientModule;
+        };
+
+        return $modules;
+    }
+
+    protected function defineValueClass(): ?string
+    {
+        return AddressFieldValue::class;
     }
 
 
@@ -542,14 +666,29 @@ class Address extends SubField implements PreviewableFieldInterface
     private function _getAddressProviderOptions(): array
     {
         $addressProviderOptions = [];
-        $addressProviders = Formie::$plugin->getIntegrations()->getAllIntegrationsForType(Integration::TYPE_ADDRESS_PROVIDER);
+        $integrationRows = (new Query())
+            ->select(['handle', 'name', 'type', 'enabled'])
+            ->from(Table::FORMIE_INTEGRATIONS)
+            ->where(['enabled' => true])
+            ->all();
 
-        foreach ($addressProviders as $addressProvider) {
-            if ($addressProvider->getEnabled()) {
-                $addressProviderOptions[] = ['label' => $addressProvider->getName(), 'value' => $addressProvider->getHandle()];
+        foreach ($integrationRows as $integrationRow) {
+            $integrationType = $integrationRow['type'] ?? null;
+            $handle = $integrationRow['handle'] ?? null;
+            $name = $integrationRow['name'] ?? null;
+
+            if (!$integrationType || !is_subclass_of($integrationType, AddressProvider::class)) {
+                continue;
             }
+
+            if (!$handle || !$name) {
+                continue;
+            }
+
+            $addressProviderOptions[] = ['label' => $name, 'value' => $handle];
         }
 
         return $addressProviderOptions;
     }
+
 }

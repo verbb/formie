@@ -12,12 +12,17 @@
         size: 10,
         placeholder: ' ',
         value: value ? value|date('short', false, false) : '',
+        inputAttributes: field.displayType == 'datePicker' and not field.getIsDateTime() ? {
+            'data-formie-date-datepicker-input': true,
+        } : {},
     } -%}
     <div data-icon="date"></div>
 </div>
 
+{% if field.displayType != 'datePicker' or field.getIsDateTime() %}
 {%- js %}
     $('#{{ id|namespaceInputId|e('js') }}').datepicker($.extend({
         defaultDate: new Date({% if value %}{{ value.format('Y') }}, {{ value.format('n')-1 }}, {{ value.format('j') }}{% endif %})
     }, Craft.datepickerOptions));
 {%- endjs %}
+{% endif %}

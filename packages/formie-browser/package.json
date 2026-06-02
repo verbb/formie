@@ -1,0 +1,78 @@
+{
+  "name": "@verbb/formie-browser",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "vite-dev.mjs",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/verbb/formie.git"
+  },
+  "bugs": {
+    "url": "https://github.com/verbb/formie/issues"
+  },
+  "homepage": "https://docs.verbb.io/formie/browser",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "imports": {
+    "#theme/*": "./src/css/theme/*",
+    "#theme-base/*": "./src/css/theme-base/*",
+    "#icons/*": "./src/icons/*",
+    "#contracts/*": "./src/js/contracts/*",
+    "#compatibility/*": "./src/js/compatibility/*",
+    "#core/*": "./src/js/core/*",
+    "#events/*": "./src/js/events/*",
+    "#modules/*": "./src/js/modules/*",
+    "#theme/*": "./src/js/theme/*",
+    "#submit/*": "./src/js/submit/*",
+    "#transport/*": "./src/js/transport/*",
+    "#utils/*": "./src/js/utils/*",
+    "#validation/*": "./src/js/validation/*"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./css/formie.css": "./dist/css/formie.css",
+    "./css/formie-base.css": "./dist/css/formie-base.css",
+    "./css/formie-theme.css": "./dist/css/formie-theme.css",
+    "./package.json": "./package.json",
+    "./vite-dev": "./vite-dev.mjs"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  },
+  "dependencies": {
+    "@verbb/formie-core": "1.0.0",
+    "@friendlycaptcha/sdk": "^1.0.0",
+    "@placekit/autocomplete-js": "^2.2.1",
+    "expression-language": "^2.5.4",
+    "flatpickr": "^4.6.13",
+    "friendly-challenge": "^0.9.19",
+    "intl-tel-input": "^27.3.0",
+    "pell": "^1.0.6",
+    "signature_pad": "^5.1.3"
+  }
+}

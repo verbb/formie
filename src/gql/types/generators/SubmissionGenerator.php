@@ -7,6 +7,7 @@ use verbb\formie\gql\interfaces\SubmissionInterface;
 use verbb\formie\gql\types\SubmissionType;
 
 use Craft;
+use craft\errors\GqlException;
 use craft\gql\base\Generator;
 use craft\gql\base\GeneratorInterface;
 use craft\gql\base\SingleGeneratorInterface;
@@ -20,7 +21,7 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
 
     public static function generateTypes(mixed $context = null): array
     {
-        $forms = Formie::$plugin->getForms()->getAllForms();
+        $forms = Formie::$plugin->getForms()->getAllFormsWithLayouts();
         $gqlTypes = [];
 
         foreach ($forms as $form) {
@@ -71,11 +72,16 @@ class SubmissionGenerator extends Generator implements GeneratorInterface, Singl
         }
 
         $contentFieldGqlTypes = [];
+        $fieldsService = Formie::$plugin->getFields();
+        $fieldConfigs = isset($context->id)
+            ? ($fieldsService->getAllFieldConfigsForForms([(int)$context->id])[(int)$context->id] ?? [])
+            : [];
 
-        // Handle form fields
-        foreach ($context->getFields() as $contentField) {
-            if ($contentField->includeInGqlSchema($schema)) {
-                $contentFieldGqlTypes[$contentField->handle] = $contentField->getContentGqlType();
+        foreach ($fieldConfigs as $fieldConfig) {
+            $handle = $fieldConfig['handle'] ?? null;
+
+            if ($handle && $fieldsService->fieldConfigIncludedInGqlSchema($fieldConfig, $schema)) {
+                $contentFieldGqlTypes[$handle] = $fieldsService->getFieldConfigContentGqlType($fieldConfig);
             }
         }
 

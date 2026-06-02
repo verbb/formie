@@ -32,7 +32,6 @@ class Moosend extends EmailMarketing
 
     public ?string $apiKey = null;
 
-
     // Public Methods
     // =========================================================================
 
@@ -157,18 +156,6 @@ class Moosend extends EmailMarketing
     // Protected Methods
     // =========================================================================
 
-    protected function defineClient(): Client
-    {
-        return Craft::createGuzzleClient([
-            'base_uri' => 'http://api.moosend.com/v3/',
-            'query' => ['apikey' => App::parseEnv($this->apiKey)],
-        ]);
-    }
-
-
-    // Protected Methods
-    // =========================================================================
-
     protected function defineRules(): array
     {
         $rules = parent::defineRules();
@@ -177,4 +164,13 @@ class Moosend extends EmailMarketing
 
         return $rules;
     }
+
+    protected function defineClient(): Client
+    {
+        return Craft::createGuzzleClient([
+            'base_uri' => 'http://api.moosend.com/v3/',
+            'query' => ['apikey' => App::parseEnv($this->apiKey)],
+        ]);
+    }
+
 }

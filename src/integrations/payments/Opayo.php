@@ -13,11 +13,14 @@ use verbb\formie\events\PaymentReceiveWebhookEvent;
 use verbb\formie\fields;
 use verbb\formie\fields\SingleLineText;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\PaymentAccess;
 use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\helpers\StringHelper;
-use verbb\formie\helpers\Variables;
-use verbb\formie\models\IntegrationField;
+use verbb\formie\models\ClientModule;
+use verbb\formie\models\ClientModuleContext;
 use verbb\formie\models\Payment as PaymentModel;
+use verbb\formie\models\PaymentAction;
+use verbb\formie\models\PaymentDecision;
 use verbb\formie\models\Plan;
 
 use Craft;
@@ -29,6 +32,8 @@ use craft\helpers\UrlHelper;
 use craft\web\Response;
 
 use yii\base\Event;
+use yii\web\BadRequestHttpException;
+use yii\web\TooManyRequestsHttpException;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -48,6 +53,8 @@ class Opayo extends Payment
 
     // https://stripe.com/docs/currencies#zero-decimal
     private const ZERO_DECIMAL_CURRENCIES = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
+    private const MERCHANT_SESSION_RATE_LIMIT = 20;
+    private const MERCHANT_SESSION_RATE_WINDOW_SECONDS = 60;
 
 
     // Static Methods
@@ -56,6 +63,11 @@ class Opayo extends Payment
     public static function displayName(): string
     {
         return Craft::t('formie', 'Opayo');
+    }
+
+    public function requiresAjaxSubmission(): bool
+    {
+        return true;
     }
     
     public static function toOpayoAmount(float $amount, string $currency): float
@@ -113,28 +125,28 @@ class Opayo extends Payment
         return UrlHelper::siteUrl('formie/payment-webhooks/process-callback', ['handle' => $this->handle]);
     }
 
-    public function getFrontEndJsVariables(FieldInterface $field = null): ?array
+    public function getClientModule(ClientModuleContext $context): ?ClientModule
     {
         if (!$this->hasValidSettings()) {
             return null;
         }
 
-        $this->setField($field);
+        $this->setField($context->field);
 
-        $settings = [
-            'handle' => $this->handle,
-            'useSandbox' => App::parseBooleanEnv($this->useSandbox),
-            'currency' => $this->getFieldSetting('currency'),
-            'amountType' => $this->getFieldSetting('amountType'),
-            'amountFixed' => $this->getFieldSetting('amountFixed'),
-            'amountVariable' => $this->getFieldSetting('amountVariable'),
-        ];
-
-        return [
-            'src' => Craft::$app->getAssetManager()->getPublishedUrl('@verbb/formie/web/assets/frontend/dist/', true, 'js/payments/opayo.js'),
-            'module' => 'FormieOpayo',
-            'settings' => $settings,
-        ];
+        return new ClientModule([
+            'id' => 'opayo',
+            'config' => [
+                'handle' => $this->handle,
+                'useSandbox' => App::parseBooleanEnv($this->useSandbox),
+                'currency' => $this->getFieldSetting('currency'),
+                'amountType' => $this->getFieldSetting('amountType'),
+                'amountFixed' => $this->getFieldSetting('amountFixed'),
+                'amountVariable' => $this->normalizeClientFieldReference($this->getFieldSetting('amountVariable')),
+                'sessionToken' => PaymentAccess::issueProviderSessionToken('opayo', (int)$this->id, (string)$this->handle),
+                'requiredInputSuffixes' => ['opayoTokenId'],
+                'waitForValueMs' => 2500,
+            ],
+        ]);
     }
 
     public function getAmount(Submission $submission): float
@@ -148,15 +160,16 @@ class Opayo extends Payment
         return (string)$this->getFieldSetting('currency');
     }
 
-    public function processPayment(Submission $submission): bool
+    public function processPayment(Submission $submission): PaymentDecision
     {
         $payload = [];
         $response = null;
         $result = false;
+        $paymentReference = null;
 
         // Allow events to cancel sending
         if (!$this->beforeProcessPayment($submission)) {
-            return true;
+            return PaymentDecision::notRequired();
         }        
 
         // Get the amount from the field, which handles dynamic fields
@@ -166,17 +179,17 @@ class Opayo extends Payment
         // Capture the authorized payment
         try {
             $field = $this->getField();
-            $fieldValue = $this->getPaymentFieldValue($submission);
-            $opayoTokenId = $fieldValue['opayoTokenId'] ?? null;
-            $opayoSessionKey = $fieldValue['opayoSessionKey'] ?? null;
-            $opayo3DSComplete = $fieldValue['opayo3DSComplete'] ?? null;
+            $paymentPayload = $this->getPaymentFieldPayload($submission);
+            $opayoTokenId = $paymentPayload->string('opayoTokenId');
+            $opayoSessionKey = $paymentPayload->string('opayoSessionKey');
+            $opayo3DSComplete = $paymentPayload->string('opayo3DSComplete');
 
             // Check if we've returned from a 3DS challenge. We've already captured the payment, and recorded the successful payment.
             if ($opayo3DSComplete) {
                 // Verify that we indeed have a verified payment - just in case people are trying to send through _any_ value
                 if (Formie::$plugin->getPayments()->getPaymentByReference($opayo3DSComplete)) {
                     // We can return true here to allow the form to continue with the submission process
-                    return true;
+                    return PaymentDecision::succeeded($this->handle, $opayo3DSComplete);
                 } else {
                     throw new Exception('Unable to find payment by "' . $opayo3DSComplete . '".');
                 }
@@ -230,6 +243,7 @@ class Opayo extends Payment
                 $payment->reference = $response['transactionId'] ?? '';
                 $payment->response = $response;
                 $payment->status = PaymentModel::STATUS_PENDING;
+                $paymentReference = $payment->reference;
 
                 Formie::$plugin->getPayments()->savePayment($payment);
 
@@ -243,7 +257,7 @@ class Opayo extends Payment
 
                 // Store the data we need for 3DS against the form, which is added is the Ajax response
                 $submission->getForm()->addSubmitData([
-                    'event' => 'FormiePaymentOpayo3DS',
+                    'event' => 'formie:payment:opayo:challenge',
                     'data' => [
                         'acsUrl' => $acsUrl,
                         'creq' => $response['cReq'] ?? '',
@@ -252,10 +266,19 @@ class Opayo extends Payment
                     ],
                 ]);
 
-                // Add an error to the form to ensure it doesn't proceed, and the 3DS popup is shown
-                $this->addFieldError($submission, Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'));
-
-                return false;
+                return PaymentDecision::requiresAction(
+                    $payment->reference,
+                    PaymentAction::challengeEvent('formie:payment:opayo:challenge', $acsUrl)
+                        ->forProvider($this->handle)
+                        ->withMessage(Craft::t('formie', 'This payment requires 3D Secure authentication. Please follow the instructions on-screen to continue.'))
+                        ->withPayload([
+                            'acsUrl' => $acsUrl,
+                            'creq' => $response['cReq'] ?? '',
+                            'returnUrl' => $this->getReturnUrl(),
+                            'threeDSSessionData' => base64_encode(Json::encode($threeDSSessionData)),
+                        ])
+                        ->resumeMode(PaymentAction::RESUME_MODE_CALLBACK, $this->getReturnUrl())
+                );
             }
 
             if ($status !== 'Ok') {
@@ -271,6 +294,7 @@ class Opayo extends Payment
             $payment->reference = $response['transactionId'] ?? '';
             $payment->response = $response;
             $payment->status = PaymentModel::STATUS_SUCCESS;
+            $paymentReference = $payment->reference;
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
@@ -278,7 +302,7 @@ class Opayo extends Payment
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}”. Payload: “{payload}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -288,7 +312,7 @@ class Opayo extends Payment
             Integration::apiError($this, $e, $this->throwApiError);
 
             // Provide a client-friendly error, rather than expose the full error
-            $message = (strlen($e->getMessage()) > 30) ? substr($e->getMessage(), 0, 30) . '...' : '';
+            $message = $this->getFriendlyPaymentErrorMessage($e);
             $this->addFieldError($submission, Craft::t('formie', 'A payment error has occurred “{message}”.', ['message' => $message]));
             
             $payment = new PaymentModel();
@@ -303,15 +327,15 @@ class Opayo extends Payment
 
             Formie::$plugin->getPayments()->savePayment($payment);
 
-            return false;
+            return PaymentDecision::failed($e->getMessage(), $this->handle, $paymentReference);
         }
 
         // Allow events to say the response is invalid
         if (!$this->afterProcessPayment($submission, $result)) {
-            return true;
+            return PaymentDecision::succeeded($this->handle);
         }
 
-        return $result;
+        return $result ? PaymentDecision::succeeded($this->handle) : PaymentDecision::failed(null, $this->handle);
     }
 
     public function processCallback(): Response
@@ -323,6 +347,10 @@ class Opayo extends Payment
         // Check to see if we're requesting a merchant session key - the first step
         if ($request->getParam('merchantSessionKey')) {
             $callbackResponse->format = Response::FORMAT_JSON;
+            $sessionToken = (string)$request->getParam('sessionToken');
+
+            $this->_requireValidMerchantSessionToken($sessionToken);
+            $this->_enforceMerchantSessionRateLimit($sessionToken);
 
             try {
                 $response = $this->request('POST', 'merchant-session-keys', [
@@ -334,7 +362,7 @@ class Opayo extends Payment
                 ];
             } catch (Throwable $e) {
                 $callbackResponse->data = [
-                    'error' => $e->getMessage(),
+                    'error' => Craft::t('formie', 'Unable to initialize payment session.'),
                 ];
             }
 
@@ -396,7 +424,7 @@ class Opayo extends Payment
         } catch (Throwable $e) {
             // Save a different payload to logs
             Integration::error($this, Craft::t('formie', 'Payment error: “{message}” {file}:{line}. Response: “{response}. Payload: “{payload}”', [
-                'message' => $e->getMessage(),
+                'message' => Integration::getExceptionLogMessage($e),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'response' => Json::encode($response),
@@ -464,7 +492,7 @@ class Opayo extends Payment
         }
 
         // Send back some JS to trigger the iframe to close, and the submission to submit
-        $callbackResponse->data = '<script>window.parent.postMessage({ message: "FormiePaymentOpayo3DSResponse", value: ' . Json::encode($responseData) . ' }, "*");</script>';
+        $callbackResponse->data = '<script>window.parent.postMessage({ message: "formie:payment:opayo:challenge:response", value: ' . Json::encode($responseData) . ' }, "*");</script>';
 
         return $callbackResponse;
     }
@@ -484,80 +512,74 @@ class Opayo extends Payment
         return true;
     }
 
-    public function defineGeneralSchema(): array
+    public function defineFormBuilderGeneralSchema(): array
     {
         return [
-            SchemaHelper::selectField([
+            SchemaHelper::comboboxField([
                 'label' => Craft::t('formie', 'Payment Currency'),
-                'help' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
+                'instructions' => Craft::t('formie', 'Provide the currency to be used for the transaction.'),
                 'name' => 'currency',
                 'required' => true,
-                'validation' => 'required',
                 'options' => array_merge(
                     [['label' => Craft::t('formie', 'Select an option'), 'value' => '']],
                     static::getCurrencyOptions()
                 ),
             ]),
-            [
-                '$formkit' => 'fieldWrap',
+            SchemaHelper::fieldWrap([
                 'label' => Craft::t('formie', 'Payment Amount'),
-                'help' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'instructions' => Craft::t('formie', 'Provide an amount for the transaction. This can be either a fixed value, or derived from a field.'),
+                'required' => true,
                 'children' => [
-                    [
-                        '$el' => 'div',
-                        'attrs' => [
-                            'class' => 'flex',
+                    SchemaHelper::selectField([
+                        'name' => 'amountType',
+                        'required' => true,
+                        'options' => [
+                            ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
+                            ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
                         ],
-                        'children' => [
-                            SchemaHelper::selectField([
-                                'name' => 'amountType',
-                                'options' => [
-                                    ['label' => Craft::t('formie', 'Fixed Value'), 'value' => Payment::VALUE_TYPE_FIXED],
-                                    ['label' => Craft::t('formie', 'Dynamic Value'), 'value' => Payment::VALUE_TYPE_DYNAMIC],
-                                ],
-                            ]),
-                            SchemaHelper::numberField([
-                                'name' => 'amountFixed',
-                                'size' => 6,
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_FIXED,
-                            ]),
-                            SchemaHelper::fieldSelectField([
-                                'name' => 'amountVariable',
-                                'fieldTypes' => [
-                                    fields\Calculations::class,
-                                    fields\Dropdown::class,
-                                    fields\Hidden::class,
-                                    fields\Number::class,
-                                    fields\Radio::class,
-                                    fields\SingleLineText::class,
-                                ],
-                                'if' => '$get(amountType).value == ' . Payment::VALUE_TYPE_DYNAMIC,
-                            ]),
+                    ]),
+                    SchemaHelper::numberField([
+                        'name' => 'amountFixed',
+                        'required' => true,
+                        'size' => 6,
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_FIXED . '"',
+                    ]),
+                    SchemaHelper::fieldSelectField([
+                        'name' => 'amountVariable',
+                        'referenceContext' => 'client',
+                        'includeSelectors' => false,
+                        'topLevelOnly' => true,
+                        'required' => true,
+                        'fieldTypes' => [
+                            fields\Calculations::class,
+                            fields\Dropdown::class,
+                            fields\Hidden::class,
+                            fields\Number::class,
+                            fields\Radio::class,
+                            fields\SingleLineText::class,
                         ],
-                    ],
+                        'if' => 'amountType == "' . Payment::VALUE_TYPE_DYNAMIC . '"',
+                    ]),
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function defineSettingsSchema(): array
+    public function defineFormBuilderSettingsSchema(): array
     {
         return [
-            [
-                '$formkit' => 'staticTable',
+            SchemaHelper::staticTableField([
                 'label' => Craft::t('formie', 'Billing Details'),
-                'help' => Craft::t('formie', 'Whether to send billing details alongside the payment.'),
+                'instructions' => Craft::t('formie', 'Whether to send billing details alongside the payment.'),
                 'name' => 'billingDetails',
                 'columns' => [
                     'heading' => [
                         'type' => 'heading',
                         'heading' => Craft::t('formie', 'Billing Info'),
-                        'class' => 'heading-cell thin',
                     ],
                     'value' => [
                         'type' => 'fieldSelect',
                         'label' => Craft::t('formie', 'Field'),
-                        'class' => 'select-cell',
                     ],
                 ],
                 'rows' => [
@@ -574,11 +596,11 @@ class Opayo extends Payment
                         'value' => '',
                     ],
                 ],
-            ],
+            ]),
         ];
     }
 
-    public function getFrontEndSubFields($field, $context): array
+    public function getPaymentSubFields($field): array
     {
         $subFields = [];
 
@@ -677,9 +699,7 @@ class Opayo extends Payment
                 $subField = Component::createComponent($config, FieldInterface::class);
 
                 // Ensure we set the parent field instance to handle the nested nature of subfields
-                $subField->setParentField($field);
-
-                $subFields[$key][] = $subField;
+                $subFields[$key][] = $subField->withParentField($field);
             }
         }
 
@@ -708,6 +728,15 @@ class Opayo extends Payment
             'base_uri' => $url . 'api/v1/',
             'auth' => [App::parseEnv($this->integrationKey), App::parseEnv($this->integrationPassword)],
         ]);
+    }
+
+    protected function definePaymentFieldSettingsDefaults(): array
+    {
+        $defaults = [
+            'amountType' => self::VALUE_TYPE_FIXED,
+        ];
+
+        return $defaults;
     }
 
 
@@ -747,53 +776,30 @@ class Opayo extends Payment
         $billingAddress = $this->getFieldSetting('billingDetails.billingAddress');
         $billingEmail = $this->getFieldSetting('billingDetails.billingEmail');
 
-        // Just in case we're picking the string version of the Address field value (due to Vue restrictions)
-        // ensure that we refer to the actual Address field model value as we need the "bits".
-        $billingName = str_replace('.__toString', '', $billingName);
-        $billingAddress = str_replace('.__toString', '', $billingAddress);
 
-        if ($billingEmail) {
-            $integrationField = new IntegrationField();
-            $integrationField->type = IntegrationField::TYPE_STRING;
-
-            $email = $this->getMappedFieldValue($billingEmail, $submission, $integrationField);
-            
+        if ($billingEmail && ($email = $submission->getFieldValueAsString($billingEmail))) {
             // Only set if we have a valid email
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $payload['customerEMail'] = $email;
             }
         }
 
-        if ($billingName) {
-            $integrationField = new IntegrationField();
-            $integrationField->type = IntegrationField::TYPE_ARRAY;
+        if ($billingName && ($fullName = $submission->getFieldValueAsArray($billingName)) && is_array($fullName)) {
+            if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
+                $payload['customerFirstName'] = $firstName;
+            }
 
-            $fullName = $this->getMappedFieldValue($billingName, $submission, $integrationField);
-
-            if ($fullName && is_array($fullName)) {
-                if ($firstName = ArrayHelper::remove($fullName, 'firstName')) {
-                    $payload['customerFirstName'] = $firstName;
-                }
-
-                if ($lastName = ArrayHelper::remove($fullName, 'lastName')) {
-                    $payload['customerLastName'] = $lastName;
-                }
+            if ($lastName = ArrayHelper::remove($fullName, 'lastName')) {
+                $payload['customerLastName'] = $lastName;
             }
         }
 
-        if ($billingAddress) {
-            $integrationField = new IntegrationField();
-            $integrationField->type = IntegrationField::TYPE_ARRAY;
-
-            $address = $this->getMappedFieldValue($billingAddress, $submission, $integrationField);
-
-            if ($address && is_array($address)) {
-                $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
-                $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
-                $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
-                $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
-                $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
-            }
+        if ($billingAddress && ($address = $submission->getFieldValueAsArray($billingAddress)) && is_array($address)) {
+            $payload['billingAddress']['address1'] = trim((string)ArrayHelper::remove($address, 'address1'));
+            $payload['billingAddress']['city'] = trim((string)ArrayHelper::remove($address, 'city'));
+            $payload['billingAddress']['postalCode'] = trim((string)ArrayHelper::remove($address, 'zip'));
+            $payload['billingAddress']['state'] = trim((string)ArrayHelper::remove($address, 'state'));
+            $payload['billingAddress']['country'] = trim((string)ArrayHelper::remove($address, 'country'));
         }
 
         // Testing only
@@ -817,12 +823,15 @@ class Opayo extends Payment
         }
 
         // If mapping the state, we need to convert from full-text to abbreviation
-        if ($payload['billingAddress']['state'] && strlen($payload['billingAddress']['state']) > 3) {
+        $billingState = trim((string)($payload['billingAddress']['state'] ?? ''));
+        $billingCountry = trim((string)($payload['billingAddress']['country'] ?? ''));
+
+        if ($billingState !== '' && strlen($billingState) > 3 && $billingCountry !== '') {
             $subdivisionRepository = new SubdivisionRepository();
-            $states = $subdivisionRepository->getAll([$payload['billingAddress']['country']]);
+            $states = $subdivisionRepository->getAll([$billingCountry]);
 
             foreach ($states as $state) {
-                if ($state->getName() === $payload['billingAddress']['state']) {
+                if ($state->getName() === $billingState) {
                     $payload['billingAddress']['state'] = $state->getCode();
                 }
             }
@@ -830,7 +839,7 @@ class Opayo extends Payment
 
         // State is only required for US addresses, and will likely throw errors for other countries
         // https://www.opayo.co.uk/support/error-codes/3130-%C2%A0-billingstate-value-too-long
-        if ($payload['billingAddress']['country'] !== 'US') {
+        if (($payload['billingAddress']['country'] ?? '') !== 'US') {
             unset($payload['billingAddress']['state']);
         }
 
@@ -858,5 +867,49 @@ class Opayo extends Payment
             'transType' => 'GoodsAndServicePurchase',
             'threeDSRequestorDecReqInd' => 'N',
         ];
+    }
+
+    private function _requireValidMerchantSessionToken(string $token): void
+    {
+        $payload = PaymentAccess::resolveProviderSessionToken($token, 'opayo');
+
+        if (!$payload || (int)$payload['integrationId'] !== (int)$this->id || (string)$payload['integrationHandle'] !== (string)$this->handle) {
+            throw new BadRequestHttpException('Invalid or expired payment session.');
+        }
+    }
+
+    private function _enforceMerchantSessionRateLimit(string $token): void
+    {
+        $ipAddress = Craft::$app->getRequest()->getUserIP();
+        $cacheKey = 'formie.opayo-merchant-session-rate.' . md5($token . '|' . $ipAddress);
+        $mutexKey = 'formie.opayo-merchant-session-rate-lock.' . md5($token . '|' . $ipAddress);
+        $cache = Craft::$app->getCache();
+        $mutex = Craft::$app->getMutex();
+        $now = time();
+        $lockAcquired = $mutex?->acquire($mutexKey, 3) ?? false;
+
+        try {
+            $entry = $cache->get($cacheKey);
+
+            if (!is_array($entry) || !isset($entry['count'], $entry['resetAt']) || (int)$entry['resetAt'] <= $now) {
+                $entry = [
+                    'count' => 0,
+                    'resetAt' => $now + self::MERCHANT_SESSION_RATE_WINDOW_SECONDS,
+                ];
+            }
+
+            if ((int)$entry['count'] >= self::MERCHANT_SESSION_RATE_LIMIT) {
+                Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, (int)$entry['resetAt'] - $now));
+
+                throw new TooManyRequestsHttpException('Too many payment session requests. Please try again shortly.');
+            }
+
+            $entry['count'] = (int)$entry['count'] + 1;
+            $cache->set($cacheKey, $entry, max(1, (int)$entry['resetAt'] - $now));
+        } finally {
+            if ($lockAcquired) {
+                $mutex?->release($mutexKey);
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@
 {% import 'verbb-base/_macros' as macros %}
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
-{% do view.registerAssetBundle('verbb\\formie\\web\\assets\\cp\\CpAsset') -%}
+{% do craft.formie.getPlugin().registerCpPluginSettingsAssets() -%}
 
 {% set crumbs = [
     { label: craft.formie.getPluginName() | t('formie'), url: url('formie') },

@@ -16,6 +16,7 @@ use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\web\UploadedFile;
 
+use yii\web\BadRequestHttpException;
 use yii\helpers\Markdown;
 use yii\web\HttpException;
 use yii\web\Response;
@@ -26,6 +27,13 @@ class ImportExportController extends SettingsAccessController
 {
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        $this->requireAdmin();
+
+        return parent::beforeAction($action);
+    }
 
     public function actionIndex(?string $importError = null, ?string $exportError = null): ?Response
     {
@@ -51,7 +59,7 @@ class ImportExportController extends SettingsAccessController
         }
 
         $filename = 'formie-import-' . gmdate('ymd_His') . '.json';
-        $fileLocation = Assets::getTempPath($filename);
+        $fileLocation = $this->_resolveImportFileLocation($filename);
 
         move_uploaded_file($uploadedFile->tempName, $fileLocation);
 
@@ -65,7 +73,7 @@ class ImportExportController extends SettingsAccessController
     {
         $request = $this->request;
 
-        $fileLocation = Assets::getTempPath($filename);
+        $fileLocation = $this->_resolveImportFileLocation($filename);
 
         if (!file_exists($fileLocation)) {
             throw new HttpException(404);
@@ -148,7 +156,7 @@ class ImportExportController extends SettingsAccessController
         $filename = $request->getParam('filename');
         $formAction = $request->getParam('formAction');
 
-        $fileLocation = Assets::getTempPath($filename);
+        $fileLocation = $this->_resolveImportFileLocation($filename);
 
         if (!file_exists($fileLocation)) {
             throw new HttpException(404);
@@ -159,13 +167,12 @@ class ImportExportController extends SettingsAccessController
         $form = ImportExportHelper::importFormFromJson($json, $formAction);
 
         // check for errors
-        if( $form->getConsolidatedErrors() ){
-
+        if( $form->getErrors() ){
             $this->setFailFlash(Craft::t('formie', 'Unable to import form.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'form' => $form,
-                'errors' => $form->getConsolidatedErrors(),
+                'errors' => $form->getErrors(),
             ]);
 
             return null;
@@ -221,5 +228,14 @@ class ImportExportController extends SettingsAccessController
         }
 
         echo '<div class="log-label ' . $class . '">' . Markdown::processParagraph($string) . '</div>';
+    }
+
+    private function _resolveImportFileLocation(mixed $filename): string
+    {
+        if (!is_string($filename) || !preg_match('/^formie-import-\d{6}_\d{6}\.json$/', $filename)) {
+            throw new BadRequestHttpException('Invalid import filename.');
+        }
+
+        return Assets::getTempPath($filename);
     }
 }

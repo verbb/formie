@@ -1,0 +1,13 @@
+{% formtag 'formMessagesTop' %}
+    {% if flashNotice and form.settings.submitActionMessagePosition == 'top-form' %}
+        {{ formieInclude('form/message-success') }}
+    {% endif %}
+
+    {% if flashError and form.settings.errorMessagePosition == 'top-form' %}
+        {{ formieInclude('form/message-error') }}
+    {% endif %}
+
+    {% if errors and form.settings.errorMessagePosition == 'top-form' %}
+        {{ formieInclude('form/errors') }}
+    {% endif %}
+{% endformtag %}

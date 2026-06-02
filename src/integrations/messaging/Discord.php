@@ -2,10 +2,12 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
+use verbb\formie\helpers\SchemaHelper;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -48,7 +50,7 @@ class Discord extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Discord.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         return new IntegrationFormSettings([]);
@@ -64,7 +66,7 @@ class Discord extends Messaging
                 'content' => $message,
             ];
 
-            $response = $this->deliverPayloadRequest($submission, $webhookUrl, $payload);
+            $response = $this->deliverPayload($submission, $webhookUrl, $payload);
 
             if ($response === false) {
                 return true;
@@ -106,6 +108,26 @@ class Discord extends Messaging
 
         return $rules;
     }
+
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::textField([
+            'label' => Craft::t('formie', 'Webhook URL'),
+            'instructions' => Craft::t('formie', 'Enter the {name} webhook URL that will be triggered when a submission is made.', ['name' => $this->displayName()]),
+            'name' => 'webhookUrl',
+            'required' => true,
+        ]);
+        $schema[] = SchemaHelper::richTextField([
+            'label' => Craft::t('formie', 'Message'),
+            'instructions' => Craft::t('formie', 'This text will be sent to {name}.', ['name' => $this->displayName()]),
+            'name' => 'message',
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+
     
 
     // Private Methods

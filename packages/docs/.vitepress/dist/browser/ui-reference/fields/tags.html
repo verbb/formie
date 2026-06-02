@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tags | Formie Frontend</title>
+    <meta name="description" content="Core package documentation for theming, modules, and framework adapters.">
+    <meta name="generator" content="VitePress v1.6.4">
+    <link rel="preload stylesheet" href="/formie/assets/style.IBARXxJs.css" as="style">
+    <link rel="preload stylesheet" href="/formie/vp-icons.css" as="style">
+    
+    <script type="module" src="/formie/assets/app.CrYX3bVK.js"></script>
+    <link rel="modulepreload" href="/formie/assets/chunks/theme.Ivg2qjl3.js">
+    <link rel="modulepreload" href="/formie/assets/chunks/framework.BKStFnx-.js">
+    <link rel="modulepreload" href="/formie/assets/browser_ui-reference_fields_tags.md.D5SrozFT.lean.js">
+    <link rel="icon" type="image/svg+xml" href="/formie/icon.svg">
+    <script id="check-mac-os">document.documentElement.classList.toggle("mac",/Mac|iPhone|iPod|iPad/i.test(navigator.platform));</script>
+  </head>
+  <body>
+    <div id="app"><div class="min-h-screen bg-slate-50 text-slate-900 lg:h-screen lg:overflow-hidden"><!----><div class="max-lg:contents lg:flex lg:w-full" data-docs-theme="almond" style="--docs-primary:#e64d4c;--docs-primary-strong:color-mix(in oklab, #e64d4c 82%, black);--docs-primary-soft:color-mix(in oklab, #e64d4c 12%, white);--docs-primary-soft-hover:color-mix(in oklab, #e64d4c 16%, white);--docs-primary-border:color-mix(in oklab, #e64d4c 18%, white);--docs-primary-border-strong:color-mix(in oklab, #e64d4c 28%, white);"><div class="max-lg:contents lg:flex-1 lg:min-w-0 lg:overflow-x-clip"><header id="navbar" class="peer fixed top-0 z-30 w-full"><div class="relative z-10 mx-auto max-w-[96rem] px-4"><div class="relative"><div class="transition-opacity duration-200"><div class="lg:hidden"><div class="flex h-14 items-center justify-between gap-3"><a href="/formie/" class="flex min-w-0 items-center gap-3 select-none"><img src="/formie/icon.svg" alt="" class="relative block h-6 w-auto max-w-[156px] shrink-0 object-contain"><!----></a><div class="flex items-center gap-1.5"><button type="button" class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-white/80 hover:text-slate-900" aria-label="Open search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-[18px] w-[18px]" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></button><!--[--><a href="https://github.com/verbb/formie" target="_blank" rel="noreferrer" class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-white/80 hover:text-slate-900" aria-label="github"><svg viewBox="0 0 24 24" fill="currentColor" class="h-[18px] w-[18px]" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58l-.02-2.04c-3.34.73-4.04-1.42-4.04-1.42-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.9 0-1.3.46-2.36 1.23-3.19-.12-.3-.53-1.52.12-3.17 0 0 1-.32 3.3 1.22a11.5 11.5 0 0 1 6 0c2.3-1.54 3.3-1.22 3.3-1.22.65 1.65.24 2.87.12 3.17.76.83 1.22 1.89 1.22 3.19 0 4.58-2.81 5.59-5.49 5.89.43.37.82 1.1.82 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .5Z"></path></svg></a><!--]--></div></div><div class="relative border-t border-slate-100 px-1 py-2 lg:hidden"><button type="button" class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200/80 bg-white/80 px-3 py-2 text-left text-sm font-medium text-slate-800" aria-expanded="false" aria-haspopup="listbox" aria-label="Documentation section"><span class="min-w-0 truncate">Browser</span><svg class="h-4 w-4 shrink-0 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><!----></div><button type="button" class="flex h-14 w-full items-center px-1 text-left cursor-pointer focus:outline-0" aria-label="Open navigation menu" aria-expanded="false"><div class="text-slate-500 transition hover:text-slate-600"><span class="sr-only">Navigation</span><svg class="h-4" fill="currentColor" viewBox="0 0 448 512" aria-hidden="true"><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"></path></svg></div><div class="ml-4 flex min-w-0 items-center space-x-3 overflow-hidden text-sm leading-6 whitespace-nowrap"><div class="flex shrink-0 items-center space-x-3 text-slate-500"><span>Fields</span><svg width="3" height="24" viewBox="0 -9 3 24" class="h-5 overflow-visible text-slate-400" aria-hidden="true"><path d="M0 0L3 3L0 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg></div><div class="min-w-0 flex-1 truncate font-semibold text-slate-900">Tags</div></div></button></div><div class="relative hidden h-14 min-w-0 flex-1 items-center gap-x-4 lg:flex lg:border-none"><div class="flex min-w-0 flex-1 items-center gap-x-4"><a href="/formie/" class="flex min-w-0 items-center gap-3 select-none"><img src="/formie/icon.svg" alt="" class="relative block h-6 w-auto max-w-[156px] shrink-0 object-contain"><!----></a><div class="relative hidden min-w-0 shrink lg:block"><button type="button" class="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-200/80 bg-white/70 px-3 py-1.5 text-sm font-medium text-slate-800 backdrop-blur transition hover:bg-slate-100/90" aria-expanded="false" aria-haspopup="listbox" aria-label="Documentation section"><span class="truncate">Browser</span><svg class="h-4 w-4 shrink-0 text-slate-500 transition-transform" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><!----></div></div><div class="flex items-center gap-4"><div class="flex items-center gap-2"><!--[--><a href="https://github.com/verbb/formie" target="_blank" rel="noreferrer" class="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-white/80 hover:text-slate-900" aria-label="github"><svg viewBox="0 0 24 24" fill="currentColor" class="h-[18px] w-[18px]" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58l-.02-2.04c-3.34.73-4.04-1.42-4.04-1.42-.54-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.49 1 .11-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.9 0-1.3.46-2.36 1.23-3.19-.12-.3-.53-1.52.12-3.17 0 0 1-.32 3.3 1.22a11.5 11.5 0 0 1 6 0c2.3-1.54 3.3-1.22 3.3-1.22.65 1.65.24 2.87.12 3.17.76.83 1.22 1.89 1.22 3.19 0 4.58-2.81 5.59-5.49 5.89.43.37.82 1.1.82 2.22l-.01 3.29c0 .32.22.7.83.58A12 12 0 0 0 12 .5Z"></path></svg></a><!--]--></div></div></div></div></div></div></header><div class="scroll-mt-[var(--scroll-mt)] fixed top-[7rem] w-full pb-2 pt-0 lg:top-[3.5rem]"><div class="pointer-events-none opacity-0 fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-md transition-opacity duration-300 lg:hidden"></div><button type="button" class="pointer-events-none opacity-0 scale-95 fixed right-4 top-5 z-[60] inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/95 text-slate-500 shadow-[0_8px_24px_rgba(15,23,42,0.16)] backdrop-blur transition duration-300 lg:hidden" aria-label="Close navigation menu"><svg viewBox="0 0 20 20" fill="none" class="h-5 w-5" aria-hidden="true"><path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"></path></svg></button><aside class="-translate-x-[105%] fixed inset-y-0 left-0 z-50 w-[min(22rem,calc(100vw-2.5rem))] max-w-full overflow-y-auto overscroll-contain border-r border-slate-200/80 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.22)] transition-transform duration-300 lg:hidden"><div class="min-h-full bg-white"><div class="border-b border-slate-200/80 px-4 pb-4 pt-5"><div class="flex min-w-0 items-center gap-3"><img src="/formie/icon.svg" alt="" class="block h-7 w-auto max-w-[156px] shrink-0 object-contain"></div></div><div class="px-4 pb-6 pt-6"><nav aria-label="Sidebar navigation" class="text-sm"><!--[--><section class="mt-6 first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900"><!----> Getting Started</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/javascript-events" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">JavaScript events</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/submission-handling" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Submission handling</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900"><!----> Advanced</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/behavior/custom-client" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Custom client</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/manual-initialization" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Manual initialization</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/migrating-from-formie-plugin" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Migrating from Formie Plugin</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900"><!----> Validation</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/validation/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/validation/built-in-rules" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Built-in rules</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/validation/build-a-custom-validator" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Build a custom validator</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900"><!----> UI reference</h2><ul class="space-y-px"><!--[--><li class="relative"><button type="button" class="text-docs-primary group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Fields</span><svg viewBox="0 0 640 640" class="rotate-90 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><ul style="margin-left:1rem;"><!--[--><li class="relative"><a href="/formie/browser/ui-reference/fields/agree" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Agree</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/address" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Address</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/calculations" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Calculations</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/categories" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Categories</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/checkboxes" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Checkboxes</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/date" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Date</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/entries" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Entries</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/file-upload" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">File Upload</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/hidden" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Hidden</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/multi-line-text" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Multi Line Text</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/payment" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Payment</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/phone" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Phone</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/radio" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Radio</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/recipients" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Recipients</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/repeater" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Repeater</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/signature" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Signature</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/single-line-text" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Single Line Text</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/summary" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Summary</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/table" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Table</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/tags" class="text-docs-primary group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Tags</span></div></div></a><!----></li><!--]--></ul></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Components</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><a href="/formie/browser/ui-reference/css-variables" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">CSS variables</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900"><!----> Modules</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/modules/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/modules/build-a-custom-module" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Build a custom module</span></div></div></a><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Field modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Address modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Captcha modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Payment modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0 transition-transform" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><!--]--></ul></section><!--]--></nav></div></div></aside><div class="mx-auto grid h-[calc(100dvh-8rem)] min-h-0 w-full max-w-[96rem] rounded-2xl px-2 lg:h-[calc(100dvh-4rem)] lg:grid-cols-[16.5rem_minmax(0,1fr)] lg:gap-x-2 lg:px-4"><div id="sidebar-content" class="hidden min-h-0 lg:flex lg:flex-col"><div class="flex h-full min-h-0 flex-col gap-4 text-sm"><div class="relative z-20 hidden items-center gap-2.5 mr-4 mt-2 mb-2 lg:flex"><button type="button" class="group/search flex h-9 w-full items-center justify-between gap-2 rounded-lg bg-white pl-3.5 pr-3 text-left text-sm leading-6 text-gray-500 ring-1 ring-gray-400/30 transition-[color,box-shadow] hover:text-gray-800 hover:ring-gray-600/30" aria-label="Open search"><div class="flex min-w-0 items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 min-w-4 flex-none text-gray-700" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><div class="min-w-0 truncate">Search...</div></div><span class="flex-none text-xs">⌘K</span></button></div><div id="navigation-items" class="stable-scrollbar-gutter pb-4 min-h-0 flex-1 overflow-y-auto"><nav aria-label="Sidebar navigation" class="text-sm"><!--[--><section class="mt-6 first:mt-0 lg:mt-6 lg:first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900 lg:mb-2"><!----> Getting Started</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/javascript-events" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">JavaScript events</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/submission-handling" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Submission handling</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0 lg:mt-6 lg:first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900 lg:mb-2"><!----> Advanced</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/behavior/custom-client" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Custom client</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/manual-initialization" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Manual initialization</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/behavior/migrating-from-formie-plugin" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Migrating from Formie Plugin</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0 lg:mt-6 lg:first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900 lg:mb-2"><!----> Validation</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/validation/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/validation/built-in-rules" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Built-in rules</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/validation/build-a-custom-validator" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Build a custom validator</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0 lg:mt-6 lg:first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900 lg:mb-2"><!----> UI reference</h2><ul class="space-y-px"><!--[--><li class="relative"><button type="button" class="text-docs-primary group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Fields</span><svg viewBox="0 0 640 640" class="rotate-90 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><ul style="margin-left:1rem;"><!--[--><li class="relative"><a href="/formie/browser/ui-reference/fields/agree" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Agree</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/address" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Address</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/calculations" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Calculations</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/categories" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Categories</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/checkboxes" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Checkboxes</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/date" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Date</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/entries" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Entries</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/file-upload" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">File Upload</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/hidden" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Hidden</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/multi-line-text" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Multi Line Text</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/payment" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Payment</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/phone" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Phone</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/radio" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Radio</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/recipients" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Recipients</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/repeater" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Repeater</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/signature" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Signature</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/single-line-text" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Single Line Text</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/summary" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Summary</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/table" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Table</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/ui-reference/fields/tags" class="text-docs-primary group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Tags</span></div></div></a><!----></li><!--]--></ul></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Components</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><a href="/formie/browser/ui-reference/css-variables" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">CSS variables</span></div></div></a><!----></li><!--]--></ul></section><section class="mt-6 first:mt-0 lg:mt-6 lg:first:mt-0"><h2 class="mb-3 flex items-center gap-2.5 text-sm font-medium text-slate-900 lg:mb-2"><!----> Modules</h2><ul class="space-y-px"><!--[--><li class="relative"><a href="/formie/browser/modules/" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Overview</span></div></div></a><!----></li><li class="relative"><a href="/formie/browser/modules/build-a-custom-module" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><div class="flex min-w-0 flex-1 items-start gap-x-2.5"><!----><div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 [word-break:break-word]"><span class="min-w-0 max-w-full break-words">Build a custom module</span></div></div></a><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Field modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Address modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Captcha modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><li class="relative"><button type="button" class="text-slate-700 group flex w-full cursor-pointer items-center py-0.5 pr-2 text-left text-sm leading-6 outline-offset-[-1px] transition hover:text-docs-primary"><span class="min-w-0 flex-1 break-words">Payment modules</span><svg viewBox="0 0 640 640" class="rotate-0 size-3 shrink-0" aria-hidden="true"><path d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"></path></svg></button><!----></li><!--]--></ul></section><!--]--></nav></div></div></div><div class="min-w-0 h-full min-h-0"><div id="docs-scroll-container" class="stable-scrollbar-gutter h-full overflow-y-auto rounded-xl border border-gray-400/30 bg-white px-8 pt-8 pb-10 lg:px-10 lg:pt-10"><div class="mx-auto w-full max-w-[88rem] xl:grid xl:grid-cols-[minmax(0,52rem)_16.5rem] xl:justify-center xl:gap-x-12"><main id="content-area" class="w-full min-w-0 overflow-x-visible"><!--[--><div class="eyebrow mb-2.5 h-5 text-sm font-semibold text-docs-primary">Fields</div><div style="position:relative;" class="vp-doc mdx-content relative prose prose-gray [contain:inline-size] isolate"><div><h1 id="tags" tabindex="-1">Tags <a class="header-anchor" href="#tags" aria-label="Permalink to &quot;Tags&quot;">​</a></h1><p>Tags is the field for comma-separated or tokenized values.</p><p>Use this page to preserve the tag metadata and input markup when you customize the field or restyle it.</p><h2 id="preview" tabindex="-1">Preview <a class="header-anchor" href="#preview" aria-label="Permalink to &quot;Preview&quot;">​</a></h2><iframe class="formie-preview-frame" style="height:120px;" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot; /&gt;
+  &lt;style&gt;
+    @layer formie-base, formie-theme-base, formie-theme;
+
+@layer formie-base {
+
+    .formie-form,
+    .formie-form fieldset,
+    .formie-form legend,
+    .formie-form h1,
+    .formie-form h2,
+    .formie-form h3,
+    .formie-form h4,
+    .formie-form h5,
+    .formie-form h6,
+    .formie-form p,
+    .formie-form ul,
+    .formie-form ol,
+    .formie-form menu,
+    .formie-form dl,
+    .formie-form dd,
+    .formie-form blockquote,
+    .formie-form figure {
+        margin: 0;
+        padding: 0;
+    }
+
+    .formie-form,
+    .formie-form *,
+    .formie-form *::before,
+    .formie-form *::after {
+        box-sizing: border-box;
+    }
+
+    .formie-page-container,
+    .formie-field-layout,
+    .formie-form fieldset,
+    .formie-form legend {
+        border: 0;
+        min-inline-size: 0;
+    }
+
+    /* Fix for Firefox display issue in fieldset */
+    body:not(:-moz-handler-blocked) .formie-form fieldset {
+        display: table-cell;
+    }
+
+    .formie-form legend {
+        /* legend should be `display: contents` to work with grid */
+        display: contents;
+    }
+
+    .formie-form legend * {
+        /* legend should be `display: contents` to work with grid */
+        display: contents;
+    }
+
+    .formie-sr-only {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        display: block !important;
+    }
+
+    [data-formie-conditionally-hidden],
+    [data-formie-page-hidden],
+    [data-formie-row-hidden],
+    .formie-conditionally-hidden,
+    .formie-page-hidden,
+    .formie-row-hidden,
+    [hidden] {
+        display: none !important;
+    }
+}
+@layer formie-theme-base {
+    .formie-form button,
+    .formie-form input,
+    .formie-form select,
+    .formie-form optgroup,
+    .formie-form textarea,
+    .formie-form ::file-selector-button {
+        margin: 0;
+        font: inherit;
+        font-feature-settings: inherit;
+        font-variation-settings: inherit;
+        line-height: inherit;
+        letter-spacing: inherit;
+        color: inherit;
+        border-radius: 0;
+        background-color: transparent;
+        opacity: 1;
+    }
+
+    .formie-form a,
+    .formie-link,
+    .formie-address-location {
+        color: var(--formie-color-primary);
+        text-decoration: underline;
+        text-underline-offset: var(--formie-link-underline-offset);
+        transition: color 150ms ease;
+    }
+
+    .formie-form a:hover,
+    .formie-link:hover,
+    .formie-address-location:hover {
+        color: var(--formie-color-primary-hover);
+    }
+}
+
+@layer formie-theme-base {
+    .formie-button {
+        appearance: none;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .formie-input,
+    .formie-textarea,
+    .formie-select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: var(--formie-control-padding-y) var(--formie-control-padding-x);
+        font-size: var(--formie-control-font-size);
+        line-height: var(--formie-line-height-tight);
+        min-height: var(--formie-control-height);
+    }
+
+    .formie-textarea {
+        min-height: var(--formie-textarea-min-height);
+        resize: vertical;
+    }
+
+    /* Prevent Mobile Safari auto-zoom on focus for input/select controls. */
+    @supports (-webkit-touch-callout: none) {
+
+        .formie-input,
+        .formie-select {
+            font-size: 16px;
+        }
+    }
+
+    .formie-checkbox-input,
+    .formie-radio-input {
+        width: var(--formie-font-size-base);
+        height: var(--formie-font-size-base);
+        margin: calc(var(--formie-space-1) * 0.8) 0 0;
+        padding: 0;
+        flex: 0 0 auto;
+    }
+}
+@layer formie-theme {
+    .formie-form {
+        --formie-font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, sans-serif;
+
+        --formie-font-size-xs: 0.75rem;
+        --formie-font-size-sm: 0.875rem;
+        --formie-font-size-base: 1rem;
+        --formie-font-size-lg: 1.125rem;
+        --formie-font-size-xl: 1.375rem;
+        --formie-font-size-2xl: 1.75rem;
+
+        --formie-font-weight-normal: 400;
+        --formie-font-weight-medium: 500;
+        --formie-font-weight-semibold: 600;
+        --formie-font-weight-bold: 700;
+
+        --formie-line-height-tight: 1.25;
+        --formie-line-height-base: 1.5;
+        --formie-line-height-relaxed: 1.4;
+        --formie-letter-spacing-tight: -0.02em;
+
+        --formie-space-1: 0.25rem;
+        --formie-space-1-5: 0.375rem;
+        --formie-space-2: 0.5rem;
+        --formie-space-2-5: 0.625rem;
+        --formie-space-3: 0.75rem;
+        --formie-space-3-5: 0.875rem;
+        --formie-space-4: 1rem;
+        --formie-space-4-5: 1.125rem;
+        --formie-space-5: 1.25rem;
+        --formie-space-5-5: 1.375rem;
+        --formie-space-6: 1.5rem;
+        --formie-space-7: 1.75rem;
+        --formie-space-8: 2rem;
+        --formie-space-9: 2.25rem;
+        --formie-space-10: 2.5rem;
+        --formie-space-11: 2.75rem;
+        --formie-space-12: 3rem;
+
+        --formie-radius-sm: 0.25rem;
+        --formie-radius-md: 0.375rem;
+        --formie-radius-lg: 0.5rem;
+        --formie-radius-full: 999px;
+        --formie-border-width: 1px;
+
+        /* Color palette */
+        --formie-black: #000000;
+        --formie-white: #ffffff;
+
+        --formie-neutral-50: #f8fafc;
+        --formie-neutral-100: #f1f5f9;
+        --formie-neutral-200: #e2e8f0;
+        --formie-neutral-300: #cbd5e1;
+        --formie-neutral-400: #94a3b8;
+        --formie-neutral-500: #64748b;
+        --formie-neutral-600: #475569;
+        --formie-neutral-700: #334155;
+        --formie-neutral-800: #1e293b;
+        --formie-neutral-900: #0f172a;
+        --formie-neutral-950: #020617;
+
+        --formie-primary-50: #e8ecfc;
+        --formie-primary-100: #d2d9f9;
+        --formie-primary-200: #a4b3f4;
+        --formie-primary-300: #778dee;
+        --formie-primary-400: #4967e9;
+        --formie-primary-500: #1c41e3;
+        --formie-primary-600: #1634b6;
+        --formie-primary-700: #112788;
+        --formie-primary-800: #0b1a5b;
+        --formie-primary-900: #060d2d;
+        --formie-primary-950: #040920;
+
+        --formie-danger-50: #fef2f2;
+        --formie-danger-100: #fee2e2;
+        --formie-danger-200: #fecaca;
+        --formie-danger-300: #fca5a5;
+        --formie-danger-400: #f87171;
+        --formie-danger-500: #ef4444;
+        --formie-danger-600: #dc2626;
+        --formie-danger-700: #b91c1c;
+        --formie-danger-800: #991b1b;
+        --formie-danger-900: #7f1d1d;
+        --formie-danger-950: #450a0a;
+
+        --formie-success-50: #f0fdf4;
+        --formie-success-100: #dcfce7;
+        --formie-success-200: #bbf7d0;
+        --formie-success-300: #86efac;
+        --formie-success-400: #4ade80;
+        --formie-success-500: #22c55e;
+        --formie-success-600: #16a34a;
+        --formie-success-700: #15803d;
+        --formie-success-800: #166534;
+        --formie-success-900: #14532d;
+        --formie-success-950: #052e16;
+
+        /* Semantic color aliases */
+        --formie-color-background: var(--formie-white);
+        --formie-color-surface: var(--formie-white);
+        --formie-color-surface-subtle: var(--formie-neutral-50);
+        --formie-color-surface-muted: var(--formie-neutral-100);
+        --formie-color-text: var(--formie-neutral-700);
+        --formie-color-text-muted: var(--formie-neutral-500);
+        --formie-color-heading: var(--formie-neutral-900);
+        --formie-color-border: var(--formie-neutral-300);
+        --formie-color-border-soft: var(--formie-neutral-200);
+        --formie-color-primary: var(--formie-primary-400);
+        --formie-color-primary-hover: var(--formie-primary-500);
+        --formie-color-primary-border: var(--formie-primary-500);
+        --formie-color-primary-soft: var(--formie-primary-100);
+        --formie-color-focus-ring: var(--formie-primary-300);
+        --formie-color-danger: var(--formie-danger-500);
+        --formie-color-danger-soft: var(--formie-danger-50);
+        --formie-color-danger-dark: var(--formie-danger-900);
+        --formie-color-success: var(--formie-success-500);
+        --formie-color-success-soft: var(--formie-success-50);
+        --formie-color-success-dark: var(--formie-success-900);
+        --formie-color-button-text: var(--formie-color-surface);
+
+        --formie-focus-ring-border-color: var(--formie-color-focus-ring);
+        --formie-shadow-focus: 0 0 0 3px rgba(119, 141, 238, 0.45);
+        --formie-shadow-danger-focus: 0 0 0 3px rgba(248, 180, 180, 0.45);
+
+        /* Form */
+        --formie-title-form-size: 1.4rem;
+        --formie-body-size: 0.9375rem;
+        --formie-gap-form: 0;
+        --formie-gap-form-header: var(--formie-space-4);
+        --formie-gap-form-messages: var(--formie-space-4);
+        --formie-gap-form-navigation: var(--formie-space-4);
+        --formie-gap-form-body: 0;
+        --formie-gap-form-footer: var(--formie-space-4);
+
+        /* Messages */
+        --formie-message-padding: var(--formie-space-4);
+        --formie-message-margin-bottom: var(--formie-space-4);
+        --formie-message-size: var(--formie-font-size-sm);
+        --formie-message-line-height: var(--formie-line-height-relaxed);
+
+        /* Buttons */
+        --formie-button-border: var(--formie-border-width) solid var(--formie-color-border);
+        --formie-button-border-hover: var(--formie-button-secondary-border-hover);
+        --formie-button-border-radius: var(--formie-radius-sm);
+        --formie-button-background: var(--formie-neutral-100);
+        --formie-button-background-hover: var(--formie-neutral-200);
+        --formie-button-text-color: var(--formie-color-heading);
+        --formie-button-color: var(--formie-button-text-color);
+        --formie-button-line-height: var(--formie-line-height-tight);
+        --formie-button-font-weight: var(--formie-font-weight-medium);
+        --formie-button-min-height: var(--formie-space-10);
+        --formie-button-padding-y: var(--formie-space-2);
+        --formie-button-padding-x: var(--formie-space-4);
+        --formie-button-font-size: var(--formie-font-size-sm);
+        --formie-button-gap: var(--formie-space-2);
+        --formie-button-icon-size: 0.9375rem;
+        --formie-button-icon-button-size: 1.875rem;
+        --formie-button-icon-border-radius: var(--formie-radius-full);
+        --formie-button-icon-background: var(--formie-neutral-100);
+        --formie-button-icon-background-hover: var(--formie-neutral-200);
+        --formie-button-icon-border: var(--formie-border-width) solid var(--formie-neutral-300);
+        --formie-button-icon-border-hover: var(--formie-border-width) solid var(--formie-neutral-400);
+        --formie-button-icon-color: var(--formie-neutral-950);
+        --formie-button-opacity-disabled: 0.7;
+        --formie-button-shadow-focus: 0 0 0 3px var(--formie-color-border-soft);
+
+        /* Icons */
+        --formie-icon-mask-plus: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 448 512&#39;%3E%3Cpath fill=&#39;%23000&#39; d=&#39;M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z&#39;/%3E%3C/svg%3E&quot;);
+        --formie-icon-mask-arrow-left: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 320 512&#39;%3E%3Cpath fill=&#39;%23000&#39; d=&#39;M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z&#39;/%3E%3C/svg%3E&quot;);
+        --formie-icon-mask-arrow-right: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 320 512&#39;%3E%3Cpath fill=&#39;%23000&#39; d=&#39;M278.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z&#39;/%3E%3C/svg%3E&quot;);
+        --formie-icon-mask-close: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 384 512&#39;%3E%3Cpath fill=&#39;%23000&#39; d=&#39;M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z&#39;/%3E%3C/svg%3E&quot;);
+
+        --formie-button-primary-background: var(--formie-color-primary);
+        --formie-button-primary-background-hover: var(--formie-color-primary-hover);
+        --formie-button-primary-text-color: var(--formie-white);
+        --formie-button-primary-border: var(--formie-border-width) solid transparent;
+        --formie-button-primary-border-hover: var(--formie-border-width) solid var(--formie-color-primary-hover);
+        --formie-button-primary-shadow-focus: 0 0 0 3px var(--formie-primary-300);
+
+        --formie-button-secondary-border: var(--formie-border-width) solid var(--formie-color-border);
+        --formie-button-secondary-border-hover: var(--formie-button-secondary-border);
+        --formie-button-secondary-background: var(--formie-color-surface);
+        --formie-button-secondary-background-hover: var(--formie-neutral-100);
+        --formie-button-secondary-text-color: var(--formie-color-heading);
+
+        --formie-button-ghost-border: var(--formie-border-width) solid transparent;
+        --formie-button-ghost-border-hover: var(--formie-button-ghost-border);
+        --formie-button-ghost-background: transparent;
+        --formie-button-ghost-background-hover: var(--formie-neutral-100);
+        --formie-button-ghost-text-color: var(--formie-color-heading);
+        --formie-button-ghost-shadow-focus: var(--formie-button-shadow-focus);
+
+        --formie-button-link-text-color: var(--formie-color-primary);
+        --formie-button-link-text-color-hover: var(--formie-color-primary-hover);
+
+        /* Navigation */
+        --formie-tab-padding-y: var(--formie-space-2);
+        --formie-tab-padding-x: var(--formie-space-4);
+        --formie-tab-font-size: var(--formie-font-size-sm);
+        --formie-gap-tabs: var(--formie-space-4);
+
+        /* Progress */
+        --formie-progress-height: 1.2rem;
+        --formie-progress-padding: var(--formie-space-4);
+        --formie-progress-size: 0.8rem;
+
+        /* Loading */
+        --formie-loading-size: var(--formie-space-4);
+        --formie-loading-margin-top: calc(var(--formie-loading-size) * -0.5);
+        --formie-loading-margin-left: calc(var(--formie-loading-size) * -0.5);
+        --formie-loading-border-width: 2px;
+        --formie-loading-animation: loading 0.5s infinite linear;
+        --formie-loading-left: 50%;
+        --formie-loading-top: 50%;
+        --formie-loading-z-index: 1;
+
+        /* Pages */
+        --formie-gap-pages: 0;
+        --formie-gap-page: var(--formie-space-4);
+        --formie-gap-page-container: 0;
+        --formie-gap-page-header: var(--formie-space-4);
+        --formie-gap-page-body: var(--formie-space-4);
+        --formie-gap-page-footer: var(--formie-space-4);
+        --formie-gap-page-buttons: var(--formie-space-4);
+
+        /* Page */
+        --formie-title-page-size: var(--formie-font-size-lg);
+
+        /* Rows */
+        --formie-gap-rows: var(--formie-space-4);
+        --formie-gap-row: var(--formie-space-4);
+        --formie-gap-subfield-rows: var(--formie-space-2);
+        --formie-gap-subfield-row: var(--formie-space-2);
+        --formie-gap-nested-field-rows: var(--formie-space-2);
+        --formie-gap-nested-field-row: var(--formie-space-2);
+        --formie-subfield-row-column-min-width: 12rem;
+        --formie-nested-field-row-column-min-width: 16rem;
+
+        /* Row fields */
+        --formie-gap-errors: var(--formie-space-2);
+        --formie-gap-field-errors: var(--formie-space-2);
+
+        /* Field */
+        --formie-label-size: var(--formie-font-size-sm);
+        --formie-meta-size: var(--formie-font-size-sm);
+        --formie-control-height: 2.375rem;
+        --formie-control-padding-y: var(--formie-space-2);
+        --formie-control-padding-x: var(--formie-space-3);
+        --formie-control-font-size: var(--formie-font-size-sm);
+        --formie-textarea-min-height: 9rem;
+        --formie-select-indicator-size: 1.4rem;
+        --formie-list-indent: var(--formie-space-5);
+        --formie-link-underline-offset: 0.15em;
+        --formie-gap-field: var(--formie-space-2);
+        --formie-gap-field-layout: var(--formie-space-2);
+        --formie-gap-field-content: var(--formie-space-2);
+        --formie-gap-field-control: var(--formie-space-2);
+        --formie-gap-options: var(--formie-space-2);
+
+        /* Field: summary */
+        --formie-summary-padding: var(--formie-space-4);
+        --formie-gap-summary: var(--formie-space-4);
+
+        --formie-file-summary-padding: var(--formie-space-4);
+        --formie-gap-file-summary: var(--formie-space-3);
+
+        /* Field: rich text */
+        --formie-rich-text-min-height: 12rem;
+
+        /* Field: signature */
+        --formie-signature-width: 100%;
+        --formie-signature-height: 8rem;
+        --formie-signature-background: var(--formie-color-surface-subtle);
+        --formie-signature-border: 1px solid var(--formie-color-border);
+        --formie-signature-border-radius: var(--formie-radius-sm);
+
+        --formie-signature-remove-button-top: 0;
+        --formie-signature-remove-button-right: -14px;
+        --formie-signature-remove-button-transform: translate(0, -50%);
+
+        /* Field: check/radio */
+        --formie-check-font-size: var(--formie-font-size-sm);
+        --formie-check-line-height: var(--formie-line-height-base);
+        --formie-check-margin-bottom: var(--formie-space-2);
+        --formie-check-margin-right: var(--formie-space-4);
+        --formie-check-background-color: var(--formie-color-surface-muted);
+        --formie-check-size: var(--formie-space-4);
+        --formie-check-label-padding-left: var(--formie-space-6);
+        --formie-check-label-line-height: var(--formie-space-6);
+        --formie-check-label-top: 0.3125rem;
+        --formie-check-label-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        --formie-check-label-background-color: var(--formie-color-surface);
+        --formie-check-check-border-radius: 2px;
+        --formie-check-check-background-image: url(&quot;data:image/svg+xml;charset=utf8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 8 8&#39;%3E%3Cpath fill=&#39;%23fff&#39; d=&#39;M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z&#39;/%3E%3C/svg%3E&quot;);
+        --formie-check-check-background-size: 8px auto;
+        --formie-check-radio-border-radius: 50%;
+        --formie-check-radio-background-image: url(&quot;data:image/svg+xml;charset=utf8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;-4 -4 8 8&#39;%3E%3Ccircle r=&#39;3&#39; fill=&#39;%23fff&#39;/%3E%3C/svg%3E&quot;);
+        --formie-check-radio-background-size: 8px auto;
+
+        /* Field: group */
+        --formie-group-border: 1px solid var(--formie-color-border);
+        --formie-group-border-radius: var(--formie-radius-sm);
+        --formie-group-padding: var(--formie-space-4);
+
+        /* Field: repeater */
+        --formie-repeater-add-button-padding-left: var(--formie-space-8);
+        --formie-repeater-add-button-icon-mask: var(--formie-icon-mask-plus);
+        --formie-repeater-add-button-height: 14px;
+        --formie-repeater-add-button-width: 14px;
+        --formie-repeater-add-button-left: var(--formie-space-3);
+
+        --formie-repeater-remove-button-top: 0;
+        --formie-repeater-remove-button-right: -14px;
+        --formie-repeater-remove-button-transform: translate(0, -50%);
+
+        --formie-table-width: 100%;
+        --formie-table-margin-bottom: 1rem;
+        --formie-table-border-collapse: collapse;
+
+        --formie-table-row-padding: 0.2rem;
+        --formie-table-th-text-align: inherit;
+        --formie-table-th-font-size: 0.75rem;
+        --formie-table-th-font-weight: 600;
+
+        --formie-table-add-button-padding-left: var(--formie-space-8);
+        --formie-table-add-button-icon-mask: var(--formie-icon-mask-plus);
+        --formie-table-add-button-height: 14px;
+        --formie-table-add-button-width: 14px;
+        --formie-table-add-button-left: var(--formie-space-3);
+
+        --formie-table-remove-button-top: 0;
+        --formie-table-remove-button-right: -14px;
+        --formie-table-remove-button-transform: translate(0, -50%);
+
+
+        /* --formie-table-add-btn-padding-left: 2rem;
+
+        --formie-table-add-btn-top: 0.75rem;
+        --formie-table-add-btn-left: 0.75rem;
+        --formie-table-add-btn-width: 14px;
+        --formie-table-add-btn-height: 14px;
+        --formie-table-add-btn-bg-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 384 512&#39;%3E%3Cpath fill=&#39;currentColor&#39; d=&#39;M368 224H224V80c0-8.84-7.16-16-16-16h-32c-8.84 0-16 7.16-16 16v144H16c-8.84 0-16 7.16-16 16v32c0 8.84 7.16 16 16 16h144v144c0 8.84 7.16 16 16 16h32c8.84 0 16-7.16 16-16V288h144c8.84 0 16-7.16 16-16v-32c0-8.84-7.16-16-16-16z&#39;%3E%3C/path%3E%3C/svg%3E&quot;); */
+
+        /* --formie-table-remove-btn-border-radius: 50%;
+        --formie-table-remove-btn-padding: 13px;
+        --formie-table-remove-btn-text-indent: -9999px;
+        --formie-table-remove-btn-top: 50%;
+        --formie-table-remove-btn-left: 50%;
+        --formie-table-remove-btn-width: 9px;
+        --formie-table-remove-btn-height: 14px;
+        --formie-table-remove-btn-transform: translate(-50%, -50%);
+        --formie-table-remove-btn-bg-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 320 512&#39;%3E%3Cpath fill=&#39;currentColor&#39; d=&#39;M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z&#39;%3E%3C/path%3E%3C/svg%3E&quot;); */
+
+        font-family: var(--formie-font-family);
+        font-size: var(--formie-body-size);
+        line-height: var(--formie-line-height-base);
+        color: var(--formie-color-text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+@layer formie-theme {
+    .formie-form-title {
+        color: var(--formie-color-heading);
+        margin: 0 0 var(--formie-space-4);
+        font-size: var(--formie-title-form-size);
+        font-weight: var(--formie-font-weight-bold);
+        letter-spacing: var(--formie-letter-spacing-tight);
+    }
+
+    .formie-page-title {
+        color: var(--formie-color-heading);
+        margin: 0 0 var(--formie-space-4);
+        font-size: var(--formie-title-page-size);
+        font-weight: var(--formie-font-weight-semibold);
+    }
+
+    .formie-label,
+    .formie-field-label,
+    .formie-field-option-label,
+    .formie-summary-label {
+        color: var(--formie-color-heading);
+        font-size: var(--formie-label-size);
+        font-weight: var(--formie-font-weight-medium);
+        line-height: var(--formie-line-height-tight);
+    }
+
+    label.formie-field-label {
+        /* legend should be `display: contents` to work with grid */
+        /* so only apply this to label elements */
+        display: block;
+    }
+
+    .formie-form label,
+    .formie-form legend {
+        color: var(--formie-color-heading);
+    }
+
+    .formie-field-has-error .formie-label,
+    .formie-field-has-error .formie-field-label,
+    .formie-field-has-error .formie-field-option-label,
+    .formie-field-has-error .formie-summary-label,
+    .formie-field-has-error label,
+    .formie-field-has-error legend {
+        color: var(--formie-color-danger-dark);
+    }
+
+    .formie-instructions {
+        color: var(--formie-color-text-muted);
+        font-size: var(--formie-meta-size);
+        line-height: var(--formie-line-height-relaxed);
+        margin-top: calc(var(--formie-space-1) * -1);
+    }
+
+    .formie-instructions p {
+        margin: 0;
+        padding: 0;
+    }
+
+    .formie-field-note {
+        color: var(--formie-color-text-muted);
+        font-size: var(--formie-meta-size);
+        line-height: var(--formie-line-height-relaxed);
+    }
+
+    .formie-form p,
+    .formie-form ul {
+        margin-top: 0;
+    }
+
+}
+@layer formie-theme {
+    .formie-field-required {
+        color: var(--formie-color-danger);
+    }
+
+    .formie-errors {
+        margin-bottom: var(--formie-space-4);
+    }
+
+    .formie-field-error,
+    .formie-error {
+        display: block;
+        color: var(--formie-color-danger);
+        font-size: var(--formie-meta-size);
+    }
+
+    .formie-message {
+        margin-bottom: var(--formie-message-margin-bottom);
+        padding: var(--formie-message-padding);
+        border-radius: var(--formie-radius-sm);
+        font-size: var(--formie-message-size);
+        font-weight: var(--formie-font-weight-medium);
+        line-height: var(--formie-message-line-height);
+    }
+
+    .formie-message-error {
+        background: var(--formie-color-danger-soft);
+        color: var(--formie-color-danger-dark);
+    }
+
+    .formie-message-error .formie-error {
+        color: var(--formie-color-danger-dark);
+    }
+
+    .formie-message-success {
+        background: var(--formie-color-success-soft);
+        color: var(--formie-color-success-dark);
+    }
+}
+
+@layer formie-theme {
+    .formie-page-buttons {
+        display: grid;
+        gap: var(--formie-gap-field);
+    }
+
+    .formie-button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--formie-gap-field);
+        width: 100%;
+        align-items: center;
+        position: relative;
+    }
+
+    .formie-button {
+        --formie-loading-color: var(--formie-button-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--formie-button-gap);
+        min-height: var(--formie-button-min-height);
+        flex-shrink: 0;
+        border: var(--formie-button-border);
+        border-radius: var(--formie-button-border-radius);
+        background-color: var(--formie-button-background);
+        color: var(--formie-button-color);
+        padding: var(--formie-button-padding-y) var(--formie-button-padding-x);
+        font-size: var(--formie-button-font-size);
+        line-height: var(--formie-button-line-height);
+        font-weight: var(--formie-button-font-weight);
+        position: relative;
+        white-space: nowrap;
+        text-decoration: none;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, color 150ms ease, opacity 150ms ease;
+    }
+
+    .formie-button:hover {
+        background-color: var(--formie-button-background-hover);
+        border: var(--formie-button-border-hover);
+    }
+
+    .formie-button:focus {
+        outline: 0;
+    }
+
+    .formie-button:focus-visible {
+        outline: 0;
+        box-shadow: var(--formie-button-shadow-focus);
+    }
+
+    .formie-button:disabled {
+        opacity: var(--formie-button-opacity-disabled);
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
+    .formie-button-primary {
+        --formie-button-color: var(--formie-button-primary-text-color);
+        background-color: var(--formie-button-primary-background);
+        border: var(--formie-button-primary-border);
+    }
+
+    .formie-button-primary:hover {
+        background-color: var(--formie-button-primary-background-hover);
+        border: var(--formie-button-primary-border-hover);
+    }
+
+    .formie-button-primary:focus-visible {
+        box-shadow: var(--formie-button-primary-shadow-focus);
+    }
+
+    .formie-button-secondary {
+        --formie-button-color: var(--formie-button-secondary-text-color);
+        background-color: var(--formie-button-secondary-background);
+        border: var(--formie-button-secondary-border);
+    }
+
+    .formie-button-secondary:hover {
+        background-color: var(--formie-button-secondary-background-hover);
+        border: var(--formie-button-secondary-border-hover);
+    }
+
+    .formie-button-secondary:focus-visible {
+        box-shadow: var(--formie-button-shadow-focus);
+    }
+
+    .formie-button-ghost {
+        --formie-button-color: var(--formie-button-ghost-text-color);
+        background-color: var(--formie-button-ghost-background);
+        border: var(--formie-button-ghost-border);
+    }
+
+    .formie-button-ghost:hover {
+        background-color: var(--formie-button-ghost-background-hover);
+        border: var(--formie-button-ghost-border-hover);
+    }
+
+    .formie-button-ghost:focus-visible {
+        box-shadow: var(--formie-button-ghost-shadow-focus);
+    }
+
+    .formie-button-icon {
+        --formie-button-color: var(--formie-button-icon-color);
+        width: var(--formie-button-icon-button-size);
+        min-width: var(--formie-button-icon-button-size);
+        height: var(--formie-button-icon-button-size);
+        min-height: var(--formie-button-icon-button-size);
+        padding: 0;
+        border: var(--formie-button-icon-border);
+        border-radius: var(--formie-button-icon-border-radius);
+        background-color: var(--formie-button-icon-background);
+        font-size: 0;
+        line-height: 0;
+        text-indent: -9999px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .formie-button-icon:hover {
+        background-color: var(--formie-button-icon-background-hover);
+        border: var(--formie-button-icon-border-hover);
+    }
+
+    .formie-button-icon::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        display: block;
+        content: &#39;&#39;;
+        width: var(--formie-button-icon-size);
+        height: var(--formie-button-icon-size);
+        transform: translate(-50%, -50%);
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-button-icon-mask);
+        mask-image: var(--formie-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    .formie-button-icon[data-formie-icon=&quot;plus&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-plus);
+    }
+
+    .formie-button-icon[data-formie-icon=&quot;arrow-left&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-left);
+    }
+
+    .formie-button-icon[data-formie-icon=&quot;arrow-right&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
+    }
+
+    .formie-button-icon[data-formie-icon=&quot;close&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-close);
+    }
+
+    .formie-button-text-icon {
+        width: var(--formie-button-icon-size);
+        height: var(--formie-button-icon-size);
+        flex-shrink: 0;
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-button-icon-mask);
+        mask-image: var(--formie-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+    .formie-button-text-icon[data-formie-icon=&quot;plus&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-plus);
+    }
+
+    .formie-button-text-icon[data-formie-icon=&quot;arrow-left&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-left);
+    }
+
+    .formie-button-text-icon[data-formie-icon=&quot;arrow-right&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-arrow-right);
+    }
+
+    .formie-button-text-icon[data-formie-icon=&quot;close&quot;] {
+        --formie-button-icon-mask: var(--formie-icon-mask-close);
+    }
+
+    .formie-button-back {
+        order: 0;
+    }
+
+    .formie-button-submit {
+        order: 10;
+    }
+
+    .formie-button-save {
+        order: 20;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;left&quot;] .formie-button-container {
+        justify-content: flex-start;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;right&quot;] .formie-button-container {
+        justify-content: flex-end;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;center&quot;] .formie-button-container {
+        justify-content: center;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;left-right&quot;] .formie-button-back {
+        margin-inline-end: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;save-right&quot;] .formie-button-save {
+        margin-inline-start: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;save-left&quot;] .formie-button-save {
+        order: -10;
+        margin-inline-end: auto;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;right-save-left&quot;] .formie-button-save,
+    .formie-page-buttons[data-formie-buttons-position=&quot;center-save-left&quot;] .formie-button-save {
+        order: -10;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;right-save-left&quot;] .formie-button-container {
+        justify-content: flex-end;
+    }
+
+    .formie-page-buttons[data-formie-buttons-position=&quot;center-save-left&quot;] .formie-button-container,
+    .formie-page-buttons[data-formie-buttons-position=&quot;center-save-right&quot;] .formie-button-container {
+        justify-content: center;
+    }
+
+    .formie-button[data-formie-loading=&quot;true&quot;] {
+        pointer-events: none;
+    }
+
+}
+@layer formie-theme {
+    .formie-loading {
+        position: relative;
+        pointer-events: none;
+        color: transparent !important;
+    }
+
+    .formie-loading::after {
+        position: absolute;
+        display: block;
+        height: var(--formie-loading-size);
+        width: var(--formie-loading-size);
+        margin-top: var(--formie-loading-margin-top);
+        margin-left: var(--formie-loading-margin-left);
+        border-width: var(--formie-loading-border-width);
+        border-style: solid;
+        border-radius: 9999px;
+        border-color: var(--formie-loading-color, var(--formie-color-primary));
+        animation: var(--formie-loading-animation);
+        border-right-color: transparent;
+        border-top-color: transparent;
+        content: &quot;&quot;;
+        left: var(--formie-loading-left);
+        top: var(--formie-loading-top);
+        z-index: var(--formie-loading-z-index);
+    }
+
+    @keyframes loading {
+        0% {
+            transform: rotate(0)
+        }
+
+        100% {
+            transform: rotate(360deg)
+        }
+    }
+}
+@layer formie-theme {
+    .formie-progress-wrapper[data-formie-progress-position=&quot;start&quot;] {
+        padding-bottom: var(--formie-progress-padding);
+    }
+
+    .formie-progress-wrapper[data-formie-progress-position=&quot;end&quot;] {
+        padding-top: var(--formie-progress-padding);
+    }
+
+    .formie-progress {
+        display: flex;
+        align-items: center;
+        position: relative;
+        background: var(--formie-color-surface-muted);
+        border-radius: var(--formie-radius-full);
+        min-height: var(--formie-progress-height);
+        overflow: hidden;
+    }
+
+    .formie-progress-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: var(--formie-color-primary);
+        color: var(--formie-color-button-text);
+        font-size: var(--formie-progress-size);
+        font-weight: var(--formie-font-weight-medium);
+        min-height: var(--formie-progress-height);
+        transition: width 0.3s ease;
+    }
+
+    .formie-progress-value {
+        line-height: 1;
+    }
+
+    .formie-progress-bar &gt; .formie-progress-value {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translate(50%, -50%);
+        white-space: nowrap;
+        padding: 0 var(--formie-space-2);
+        min-height: var(--formie-progress-height);
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--formie-radius-full);
+        background: var(--formie-color-primary);
+        color: var(--formie-color-button-text);
+    }
+
+    .formie-progress-bar[data-formie-progress-state=&quot;start&quot;] &gt; .formie-progress-value {
+        left: 0;
+        right: auto;
+        transform: translate(0, -50%);
+    }
+
+    .formie-progress-bar[data-formie-progress-state=&quot;end&quot;] &gt; .formie-progress-value {
+        right: 0;
+        transform: translate(0, -50%);
+    }
+}
+
+@layer formie-theme {
+    .formie-form {
+        display: grid;
+        gap: var(--formie-gap-form);
+    }
+
+    .formie-form-header {
+        display: grid;
+        gap: var(--formie-gap-form-header);
+    }
+
+    .formie-form-messages {
+        display: grid;
+        gap: var(--formie-gap-form-messages);
+    }
+
+    .formie-form-messages[data-formie-form-messages-bottom]:not(:empty) {
+        padding-top: var(--formie-space-4);
+    }
+
+    .formie-form-navigation {
+        display: grid;
+        gap: var(--formie-gap-form-navigation);
+    }
+
+    .formie-form-body {
+        display: grid;
+        gap: var(--formie-gap-form-body);
+    }
+
+    .formie-form-footer {
+        display: grid;
+        gap: var(--formie-gap-form-footer);
+    }
+
+    .formie-pages {
+        display: grid;
+        gap: var(--formie-gap-pages);
+    }
+
+    .formie-page {
+        display: grid;
+        gap: var(--formie-gap-page);
+    }
+
+    .formie-page-container {
+        display: grid;
+        gap: var(--formie-gap-page-container);
+    }
+
+    .formie-page-header {
+        display: grid;
+        gap: var(--formie-gap-page-header);
+    }
+
+    .formie-page-body {
+        display: grid;
+        gap: var(--formie-gap-page-body);
+    }
+
+    .formie-page-footer {
+        display: grid;
+        gap: var(--formie-gap-page-footer);
+    }
+
+    .formie-page-buttons {
+        display: grid;
+        gap: var(--formie-gap-page-buttons);
+    }
+
+    .formie-rows {
+        display: grid;
+        gap: var(--formie-gap-rows);
+    }
+
+    .formie-row {
+        display: grid;
+        gap: var(--formie-gap-row);
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+    }
+
+    /* Collapse row wrappers once every field inside them is hidden. */
+    .formie-row:not(:has(&gt; [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))),
+    .formie-subfield-row:not(:has(&gt; [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))),
+    .formie-nested-field-row:not(:has(&gt; [data-formie-field]:not([data-formie-conditionally-hidden], [data-formie-page-hidden], [data-formie-row-hidden], [hidden]))) {
+        display: none;
+    }
+
+    @media (min-width: 40rem) {
+        .formie-row[data-formie-field-count=&quot;2&quot;] {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 56rem) {
+        .formie-row[data-formie-field-count=&quot;3&quot;] {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .formie-row[data-formie-field-count=&quot;4&quot;] {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    .formie-errors {
+        display: grid;
+        gap: var(--formie-gap-errors);
+    }
+
+    .formie-successes {
+        display: grid;
+        gap: var(--formie-gap-errors);
+    }
+
+    .formie-field-errors {
+        display: grid;
+        gap: var(--formie-gap-field-errors);
+    }
+
+    .formie-page-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 0 var(--formie-gap-tabs);
+        gap: 0;
+        border-bottom: var(--formie-border-width) solid var(--formie-color-border);
+        font-size: var(--formie-tab-font-size);
+    }
+
+    .formie-tab {
+        margin-bottom: calc(-1 * var(--formie-border-width));
+        color: var(--formie-color-text-muted);
+        border: var(--formie-border-width) solid transparent;
+    }
+
+    .formie-tab-link {
+        display: block;
+        padding: var(--formie-tab-padding-y) var(--formie-tab-padding-x);
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .formie-tab-link:hover {
+        color: var(--formie-color-heading);
+        text-decoration: none;
+    }
+
+    .formie-tab-current {
+        color: var(--formie-color-heading);
+        background: var(--formie-color-surface);
+        border-color: var(--formie-color-border);
+        border-bottom-color: var(--formie-color-surface);
+        border-radius: var(--formie-radius-sm) var(--formie-radius-sm) 0 0;
+        font-weight: var(--formie-font-weight-medium);
+    }
+
+    .formie-tab-error {
+        color: var(--formie-color-danger);
+    }
+
+    .formie-tab-error .formie-tab-link:hover,
+    .formie-tab-error.formie-tab-current .formie-tab-link,
+    .formie-tab-error.formie-tab-current .formie-tab-link:hover {
+        color: var(--formie-color-danger);
+    }
+}
+@layer formie-theme {
+    .formie-field-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--formie-gap-options);
+    }
+
+    .formie-field {
+        display: grid;
+        gap: var(--formie-gap-field);
+    }
+
+    .formie-field-layout {
+        display: grid;
+        gap: var(--formie-gap-field-layout);
+    }
+
+    .formie-field-layout[data-formie-label-position=&quot;left&quot;] {
+        grid-template-columns: fit-content(12rem) minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .formie-field-layout[data-formie-label-position=&quot;right&quot;] {
+        grid-template-columns: minmax(0, 1fr) fit-content(12rem);
+        align-items: start;
+    }
+
+    .formie-field-layout[data-formie-label-position=&quot;left&quot;] &gt; label.formie-field-label,
+    .formie-field-layout[data-formie-label-position=&quot;right&quot;] &gt; label.formie-field-label {
+        display: block;
+        min-inline-size: 0;
+        max-inline-size: 100%;
+        align-self: center;
+    }
+
+    .formie-field-content {
+        display: grid;
+        gap: var(--formie-gap-field-content);
+        min-inline-size: 0;
+    }
+
+    .formie-field-control {
+        display: grid;
+        gap: var(--formie-gap-field-control);
+    }
+
+    .formie-layout-horizontal {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .formie-layout-vertical {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .formie-field-option {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: var(--formie-gap-options);
+    }
+}
+@layer formie-theme {
+    .formie-subfield-rows {
+        display: grid;
+        gap: var(--formie-gap-subfield-rows);
+    }
+
+    .formie-subfield-row {
+        display: grid;
+        gap: var(--formie-gap-subfield-row);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--formie-subfield-row-column-min-width)), 1fr));
+        align-items: start;
+    }
+}
+
+@layer formie-theme {
+
+    .formie-input,
+    .formie-textarea {
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    .formie-input-error,
+    .formie-field-has-error .formie-input,
+    .formie-field-has-error .formie-select,
+    .formie-field-has-error .formie-textarea {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-input:focus,
+    .formie-textarea:focus {
+        outline: 0;
+    }
+
+    .formie-input:focus-visible,
+    .formie-textarea:focus-visible {
+        outline: 0;
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-input-error:focus-visible,
+    .formie-field-has-error .formie-input:focus-visible,
+    .formie-field-has-error .formie-textarea:focus-visible {
+        border-color: var(--formie-color-danger);
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    /* Fix Safari date/time input inner control height quirks. */
+    input::-webkit-datetime-edit {
+        display: block;
+        padding: 0;
+        margin-bottom: -2px;
+    }
+
+    /* Fix mobile Safari date/time values appearing vertically shrunk. */
+    input::-webkit-date-and-time-value {
+        height: 1.5em;
+    }
+}
+@layer formie-theme {
+    .formie-address-location {
+        font-weight: 500;
+    }
+
+    .formie-autocomplete-wrapper {
+        position: relative;
+    }
+
+    .formie-autocomplete-placeholder {
+        position: absolute;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+}
+
+@layer formie-theme {
+    .formie-file-input {
+        padding: var(--formie-space-1);
+        line-height: var(--formie-line-height-base);
+        cursor: pointer;
+    }
+
+    .formie-file-input::file-selector-button,
+    .formie-file-input::-webkit-file-upload-button {
+        appearance: none;
+        -webkit-appearance: none;
+        margin-inline-end: var(--formie-space-2);
+        padding: calc(var(--formie-control-padding-y) - 1px) var(--formie-space-2);
+        min-height: calc(var(--formie-control-height) - (var(--formie-space-1) * 2));
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: calc(var(--formie-radius-sm) - 1px);
+        background: var(--formie-color-surface-subtle);
+        color: var(--formie-color-heading);
+        font-weight: var(--formie-font-weight-normal);
+        font-size: var(--formie-font-size-xs);
+        line-height: 1.1;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .formie-file-input:hover::file-selector-button,
+    .formie-file-input:hover::-webkit-file-upload-button {
+        border-color: color-mix(in srgb, var(--formie-color-border) 70%, var(--formie-color-heading) 30%);
+        background: var(--formie-color-surface-muted);
+    }
+
+    .formie-file-input:focus {
+        outline: 0;
+    }
+
+    .formie-file-input:focus-visible::file-selector-button,
+    .formie-file-input:focus-visible::-webkit-file-upload-button {
+        border-color: var(--formie-color-focus-ring);
+    }
+
+    .formie-field-has-error .formie-file-input::file-selector-button,
+    .formie-field-has-error .formie-file-input::-webkit-file-upload-button {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-file-summary {
+        padding: var(--formie-file-summary-padding);
+        gap: var(--formie-gap-file-summary);
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+    }
+
+    .formie-file-summary-container {
+        margin: 0;
+        padding-left: var(--formie-list-indent);
+    }
+}
+@layer formie-theme {
+
+    .formie-checkboxes-options,
+    .formie-radio-options,
+    .formie-agree-options {
+        gap: var(--formie-check-margin-bottom) var(--formie-check-margin-right);
+        margin-top: var(--formie-space-1);
+    }
+
+    .formie-checkbox-option,
+    .formie-radio-option {
+        position: relative;
+        margin: 0;
+        font-size: var(--formie-check-font-size);
+        line-height: var(--formie-check-line-height);
+    }
+
+    .formie-checkbox-input,
+    .formie-radio-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .formie-checkbox-option-label,
+    .formie-radio-option-label {
+        position: relative;
+        display: inline-block;
+        padding-left: var(--formie-check-label-padding-left);
+        font-size: var(--formie-check-font-size);
+        font-weight: var(--formie-font-weight-normal);
+        line-height: var(--formie-check-size);
+        user-select: none;
+        transition: var(--formie-check-label-transition);
+    }
+
+    .formie-checkbox-option-label::before,
+    .formie-radio-option-label::before {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: block;
+        width: var(--formie-check-size);
+        height: var(--formie-check-size);
+        content: &quot;&quot;;
+        cursor: pointer;
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        background-color: var(--formie-check-label-background-color);
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 50% 50%;
+        transition: var(--formie-check-label-transition);
+    }
+
+    .formie-checkbox-option-label::before {
+        border-radius: var(--formie-check-check-border-radius);
+    }
+
+    .formie-radio-option-label::before {
+        border-radius: var(--formie-check-radio-border-radius);
+    }
+
+    .formie-checkbox-input:focus-visible+.formie-checkbox-option-label::before,
+    .formie-radio-input:focus-visible+.formie-radio-option-label::before {
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-checkbox-input:checked+.formie-checkbox-option-label::before,
+    .formie-radio-input:checked+.formie-radio-option-label::before {
+        background-color: var(--formie-color-primary);
+        border-color: var(--formie-color-primary);
+    }
+
+    .formie-checkbox-input:checked+.formie-checkbox-option-label::before {
+        background-image: var(--formie-check-check-background-image);
+        background-size: var(--formie-check-check-background-size);
+    }
+
+    .formie-radio-input:checked+.formie-radio-option-label::before {
+        background-image: var(--formie-check-radio-background-image);
+        background-size: var(--formie-check-radio-background-size);
+    }
+
+    .formie-checkbox-input:disabled+.formie-checkbox-option-label,
+    .formie-radio-input:disabled+.formie-radio-option-label {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .formie-checkbox-input:disabled+.formie-checkbox-option-label::before,
+    .formie-radio-input:disabled+.formie-radio-option-label::before {
+        background-color: var(--formie-check-background-color);
+        cursor: not-allowed;
+    }
+
+    .formie-field-has-error .formie-checkbox-input:focus-visible+.formie-checkbox-option-label::before,
+    .formie-field-has-error .formie-radio-input:focus-visible+.formie-radio-option-label::before {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+}
+@layer formie-theme {
+    .formie-group-field-layout&gt;.formie-field-content {
+        border: var(--formie-group-border);
+        border-radius: var(--formie-group-border-radius);
+        padding: var(--formie-group-padding);
+    }
+
+    .formie-nested-field-rows {
+        display: grid;
+        gap: var(--formie-gap-nested-field-rows);
+    }
+
+    .formie-nested-field-row {
+        display: grid;
+        gap: var(--formie-gap-nested-field-row);
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--formie-nested-field-row-column-min-width)), 1fr));
+        align-items: start;
+    }
+}
+@layer formie-theme {
+    .formie-repeater-container {
+        display: grid;
+        gap: var(--formie-space-4);
+    }
+
+    .formie-repeater-item-wrapper {
+        position: relative;
+        display: grid;
+        gap: var(--formie-space-4);
+        padding: var(--formie-space-4);
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-md);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    .formie-repeater-item-wrapper:focus-within {
+        border-color: var(--formie-focus-ring-border-color);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error .formie-repeater-item-wrapper {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error .formie-repeater-item-wrapper:focus-within {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    .formie-repeater-item-wrapper&gt;.formie-repeater-remove-button {
+        position: absolute;
+        top: var(--formie-repeater-remove-button-top);
+        right: var(--formie-repeater-remove-button-right);
+        transform: var(--formie-repeater-remove-button-transform);
+        font-size: 0;
+        line-height: 0;
+    }
+
+    .formie-button.formie-repeater-add-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        max-width: 100%;
+        justify-self: start;
+        padding-left: var(--formie-repeater-add-button-padding-left);
+    }
+
+    .formie-button.formie-repeater-add-button::before {
+        position: absolute;
+        content: &quot;&quot;;
+        display: block;
+        width: var(--formie-repeater-add-button-width);
+        height: var(--formie-repeater-add-button-height);
+        left: var(--formie-repeater-add-button-left);
+        top: 50%;
+        transform: translate(0, -50%);
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-repeater-add-button-icon-mask);
+        mask-image: var(--formie-repeater-add-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+}
+@layer formie-theme {
+    .formie-rich-text {
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        box-sizing: border-box;
+        overflow: hidden;
+        padding: 0;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    .formie-rich-text:focus-within {
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error .formie-rich-text {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error .formie-rich-text:focus-within {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    .formie-rich-text-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0;
+        padding: var(--formie-space-1);
+        border-bottom: var(--formie-border-width) solid var(--formie-color-border);
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+    }
+
+    .formie-rich-text .formie-rich-text-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--formie-space-8);
+        height: var(--formie-space-8);
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: var(--formie-radius-sm);
+        background: transparent;
+        color: var(--formie-color-heading);
+        font-size: var(--formie-font-size-sm);
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: none;
+        transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .formie-rich-text .formie-rich-text-button:hover,
+    .formie-rich-text .formie-rich-text-button.formie-rich-text-selected {
+        background: var(--formie-color-surface-muted);
+    }
+
+    .formie-rich-text .formie-rich-text-button:focus-visible {
+        outline: 0;
+        box-shadow: 0 0 0 2px var(--formie-color-surface), 0 0 0 4px color-mix(in srgb, var(--formie-color-focus-ring) 60%, transparent);
+    }
+
+    .formie-rich-text [contenteditable=&quot;true&quot;] {
+        min-height: var(--formie-rich-text-min-height);
+        padding: var(--formie-space-3) calc(var(--formie-space-3) + var(--formie-space-1) / 2);
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        outline: 0;
+        overflow-wrap: anywhere;
+        line-height: var(--formie-line-height-base);
+        color: var(--formie-color-text);
+    }
+
+    .formie-rich-text [contenteditable=&quot;true&quot;]&gt; :first-child {
+        margin-top: 0;
+    }
+
+    .formie-rich-text [contenteditable=&quot;true&quot;]&gt; :last-child {
+        margin-bottom: 0;
+    }
+
+    .formie-rich-text-content p,
+    .formie-rich-text-content ul,
+    .formie-rich-text-content ol,
+    .formie-rich-text-content blockquote,
+    .formie-rich-text-content dl,
+    .formie-rich-text-content dd,
+    .formie-rich-text-content figure,
+    .formie-rich-text-content hr,
+    .formie-rich-text-content pre {
+        margin: 0 0 var(--formie-space-4);
+    }
+
+    .formie-rich-text-content h1,
+    .formie-rich-text-content h2,
+    .formie-rich-text-content h3,
+    .formie-rich-text-content h4,
+    .formie-rich-text-content h5,
+    .formie-rich-text-content h6 {
+        margin: 0 0 var(--formie-space-3);
+        color: var(--formie-color-heading);
+        font-weight: var(--formie-font-weight-semibold);
+        line-height: var(--formie-line-height-tight);
+    }
+
+    .formie-rich-text-content h1 {
+        font-size: var(--formie-font-size-2xl);
+    }
+
+    .formie-rich-text-content h2 {
+        font-size: var(--formie-font-size-xl);
+    }
+
+    .formie-rich-text-content h3 {
+        font-size: var(--formie-font-size-lg);
+    }
+
+    .formie-rich-text-content h4 {
+        font-size: var(--formie-font-size-base);
+    }
+
+    .formie-rich-text-content h5,
+    .formie-rich-text-content h6 {
+        font-size: var(--formie-font-size-sm);
+    }
+
+    .formie-rich-text-content ul,
+    .formie-rich-text-content ol {
+        padding-inline-start: var(--formie-list-indent);
+    }
+
+    .formie-rich-text-content ul {
+        list-style: disc;
+    }
+
+    .formie-rich-text-content ol {
+        list-style: decimal;
+    }
+
+    .formie-rich-text-content li+li {
+        margin-top: var(--formie-space-1);
+    }
+
+    .formie-rich-text-content a {
+        color: var(--formie-color-primary);
+        text-decoration: underline;
+        text-underline-offset: var(--formie-link-underline-offset);
+    }
+
+    .formie-rich-text-content blockquote {
+        padding-inline-start: var(--formie-space-4);
+        color: var(--formie-color-text-muted);
+        border-inline-start: 4px solid var(--formie-color-border-soft);
+    }
+
+    .formie-rich-text-content pre {
+        padding: var(--formie-space-4);
+        overflow-x: auto;
+        border-radius: var(--formie-radius-md);
+        background: var(--formie-color-surface-muted);
+    }
+
+    .formie-rich-text-content code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, monospace;
+        font-size: 0.95em;
+    }
+
+    .formie-rich-text-content :not(pre)&gt;code {
+        padding: 0.12em 0.35em;
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface-muted);
+    }
+
+    .formie-rich-text-content pre code {
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .formie-rich-text-content hr {
+        height: 0;
+        border: 0;
+        border-top: var(--formie-border-width) solid var(--formie-color-border);
+    }
+
+    .formie-rich-text-content img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .formie-rich-text-content[data-placeholder]:empty::before {
+        content: attr(data-placeholder);
+        color: var(--formie-color-text-muted);
+        pointer-events: none;
+    }
+}
+@layer formie-theme {
+    .formie-select {
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+        background: var(--formie-color-surface);
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        appearance: none;
+    }
+
+    .formie-select:not([multiple]):not([size]),
+    .formie-select[size=&quot;1&quot;] {
+        padding-right: calc(var(--formie-control-padding-x) * 3);
+        background-image: url(&quot;data:image/svg+xml;charset=utf-8,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; viewBox=&#39;0 0 20 20&#39; fill=&#39;none&#39;%3E%3Cpath d=&#39;M7 7l3-3 3 3m0 6l-3 3-3-3&#39; stroke=&#39;%239CA3AF&#39; stroke-width=&#39;1.5&#39; stroke-linecap=&#39;round&#39; stroke-linejoin=&#39;round&#39;/%3E%3C/svg%3E&quot;);
+        background-position: right var(--formie-space-2) center;
+        background-repeat: no-repeat;
+        background-size: var(--formie-select-indicator-size) var(--formie-select-indicator-size);
+    }
+
+    .formie-select:focus {
+        outline: 0;
+    }
+
+    .formie-select:focus-visible {
+        outline: 0;
+        border-color: var(--formie-color-focus-ring);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error .formie-select {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error .formie-select:focus-visible {
+        border-color: var(--formie-color-danger);
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+}
+@layer formie-theme {
+    [data-formie-field-type=&quot;signature&quot;] .formie-field-control {
+        position: relative;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    [data-formie-field-type=&quot;signature&quot;] .formie-field-control:focus-within .formie-signature-canvas {
+        border-color: var(--formie-focus-ring-border-color);
+        box-shadow: var(--formie-shadow-focus);
+    }
+
+    .formie-field-has-error[data-formie-field-type=&quot;signature&quot;] .formie-signature-canvas {
+        border-color: var(--formie-color-danger);
+    }
+
+    .formie-field-has-error[data-formie-field-type=&quot;signature&quot;] .formie-field-control:focus-within .formie-signature-canvas {
+        box-shadow: var(--formie-shadow-danger-focus);
+    }
+
+    [data-formie-field-type=&quot;signature&quot;] .formie-signature-canvas {
+        display: block;
+        width: var(--formie-signature-width);
+        height: var(--formie-signature-height);
+        border: var(--formie-signature-border);
+        background: var(--formie-signature-background);
+        border-radius: var(--formie-signature-border-radius);
+        touch-action: none;
+        transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+    }
+
+    [data-formie-field-type=&quot;signature&quot;] .formie-signature-remove-button {
+        position: absolute;
+        top: var(--formie-signature-remove-button-top);
+        right: var(--formie-signature-remove-button-right);
+        transform: var(--formie-signature-remove-button-transform);
+        font-size: 0;
+        line-height: 0;
+    }
+}
+@layer formie-theme {
+    .formie-summary-container {
+        padding: var(--formie-summary-padding);
+        border: var(--formie-border-width) solid var(--formie-color-border);
+        border-radius: var(--formie-radius-sm);
+    }
+
+    .formie-summary-heading {
+        color: var(--formie-color-heading);
+    }
+
+    .formie-summary-blocks {
+        display: grid;
+        gap: var(--formie-gap-summary);
+    }
+
+    .formie-summary-blocks[data-formie-loading=&quot;true&quot;] {
+        position: relative;
+        min-height: calc(var(--formie-loading-size) + var(--formie-space-4));
+    }
+
+    .formie-summary-blocks[data-formie-loading=&quot;true&quot;] &gt; * {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .formie-summary-blocks[data-formie-loading=&quot;true&quot;]::before {
+        position: absolute;
+        inset: 0;
+        content: &quot;&quot;;
+        display: block;
+        background: var(--formie-color-bg);
+        border-radius: inherit;
+        z-index: 1;
+    }
+
+    .formie-summary-blocks[data-formie-loading=&quot;true&quot;]::after {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--formie-loading-size);
+        height: var(--formie-loading-size);
+        content: &quot;&quot;;
+        display: block;
+        border: var(--formie-loading-border-width) solid var(--formie-loading-color);
+        border-top-color: transparent;
+        border-right-color: transparent;
+        border-radius: var(--formie-radius-full);
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        animation: formie-loading-spin var(--formie-loading-speed) linear infinite;
+    }
+}
+@layer formie-theme {
+
+    .formie-table-wrapper {
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .formie-table {
+        width: var(--formie-table-width);
+        margin-bottom: var(--formie-table-margin-bottom);
+        border-collapse: var(--formie-table-border-collapse);
+    }
+
+    .formie-table th {
+        text-align: var(--formie-table-th-text-align);
+        font-size: var(--formie-table-th-font-size);
+        font-weight: var(--formie-table-th-font-weight);
+        color: var(--formie-table-th-color, var(--formie-gray-500));
+    }
+
+    .formie-table th,
+    .formie-table td {
+        padding: var(--formie-table-row-padding);
+        vertical-align: top;
+    }
+
+    .formie-table th:first-child,
+    .formie-table td:first-child {
+        padding-left: 0;
+    }
+
+    .formie-table th:last-child,
+    .formie-table td:last-child {
+        padding-right: 0;
+    }
+
+    .formie-table [data-col-remove] {
+        width: calc(var(--formie-button-icon-button-size) + (var(--formie-table-row-padding) * 2));
+        min-width: calc(var(--formie-button-icon-button-size) + (var(--formie-table-row-padding) * 2));
+        white-space: nowrap;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .formie-table [data-formie-table-column-type=&quot;checkbox&quot;] {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .formie-table [data-formie-table-column-type=&quot;checkbox&quot;] .formie-checkbox-option {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: var(--formie-check-size);
+        margin: 0;
+    }
+
+    .formie-table [data-formie-table-column-type=&quot;checkbox&quot;] .formie-checkbox-option-label {
+        display: block;
+        width: var(--formie-check-size);
+        min-width: var(--formie-check-size);
+        height: var(--formie-check-size);
+        margin: 0 auto;
+        padding-left: 0;
+        font-size: 0;
+        line-height: 0;
+    }
+
+    .formie-table [data-formie-table-column-type=&quot;checkbox&quot;] .formie-checkbox-option-label::before {
+        position: static;
+    }
+
+    .formie-table-color-input {
+        min-width: 4rem;
+        padding: var(--formie-space-1);
+    }
+
+    .formie-table-multiline-input {
+        min-height: calc(var(--formie-control-height) + var(--formie-space-2));
+    }
+
+    .formie-table-remove-button {
+        display: inline-flex;
+        vertical-align: middle;
+    }
+
+    .formie-button.formie-table-add-button {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        max-width: 100%;
+        justify-self: start;
+        padding-left: var(--formie-table-add-button-padding-left);
+    }
+
+    .formie-button.formie-table-add-button::before {
+        position: absolute;
+        content: &quot;&quot;;
+        display: block;
+        width: var(--formie-table-add-button-width);
+        height: var(--formie-table-add-button-height);
+        left: var(--formie-table-add-button-left);
+        top: 50%;
+        transform: translate(0, -50%);
+        background-color: currentColor;
+        -webkit-mask-image: var(--formie-table-add-button-icon-mask);
+        mask-image: var(--formie-table-add-button-icon-mask);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+    }
+
+}
+@layer formie-theme {
+    .formie-limit-number {
+        font-weight: var(--formie-font-weight-semibold);
+        color: var(--formie-color-text);
+    }
+
+    .formie-limit-number-error {
+        color: var(--formie-color-danger);
+    }
+}
+@layer formie-theme {
+    .formie-sr-only {
+        position: absolute !important;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}
+
+.preview-gallery-page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    color: #171717;
+}
+
+.preview-gallery-stack,
+.preview-gallery-flow {
+    display: grid;
+    gap: 2rem;
+}
+
+.preview-gallery-header,
+.preview-gallery-section,
+.preview-gallery-section-title {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.preview-gallery-header h1,
+.preview-gallery-header p,
+.preview-gallery-section-title h3,
+.preview-gallery-section-title p {
+    margin: 0;
+}
+
+.preview-gallery-header h1 {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    color: #171717;
+}
+
+.preview-gallery-header p,
+.preview-gallery-section-title p {
+    max-width: 52rem;
+    color: #44403c;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.preview-gallery-section {
+    gap: 1rem;
+}
+
+.preview-gallery-section + .preview-gallery-section {
+    padding-top: 2rem;
+    border-top: 1px solid #ece7e1;
+}
+
+.preview-gallery-section-title h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: #171717;
+}
+
+.preview-gallery-window {
+    padding: 1.75rem;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px;
+    border: 1px solid rgba(38, 74, 115, 0.15);
+}
+
+.preview-gallery-window &gt; .formie-form,
+.preview-gallery-stack-block {
+    display: grid;
+    gap: 1rem;
+}
+
+.preview-gallery-note {
+    margin: 0;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.preview-gallery-inline-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, monospace;
+    font-size: 0.9em;
+}
+
+.preview-gallery-card {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.preview-gallery-card &gt; * + * {
+    margin-top: 0;
+}
+
+@media (max-width: 900px) {
+    .preview-gallery-page {
+        padding: 1.5rem 0 2rem;
+    }
+}
+
+    body { margin: 0; padding: 16px; background: #fff; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;script id=&quot;formie-preview-config&quot; type=&quot;application/json&quot;&gt;{}&lt;/script&gt;
+  
+&lt;/body&gt;
+&lt;/html&gt;" title="Formie preview" loading="lazy"></iframe><h2 id="attributes" tabindex="-1">Attributes <a class="header-anchor" href="#attributes" aria-label="Permalink to &quot;Attributes&quot;">​</a></h2><p>Tags uses one visible input, but the field still has an outer wrapper for shared validation and error state.</p><h3 id="field" tabindex="-1">Field <a class="header-anchor" href="#field" aria-label="Permalink to &quot;Field&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Attribute</th><th>Description</th><th>Importance</th></tr></thead><tbody><tr><td><code>data-formie-field-handle</code></td><td>Stable field identity used by validation, conditions, and error rendering</td><td>Required</td></tr></tbody></table><h3 id="field-input" tabindex="-1">Field input <a class="header-anchor" href="#field-input" aria-label="Permalink to &quot;Field input&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Attribute</th><th>Description</th><th>Importance</th></tr></thead><tbody><tr><td><code>name</code></td><td>Submission payload key</td><td>Required</td></tr><tr><td><code>data-formie-input</code></td><td>Generic Formie input marker included in normal output</td><td>Recommended</td></tr><tr><td><code>data-formie-input-id</code></td><td>Stable input identity</td><td>Recommended</td></tr><tr><td><code>data-formie-tags</code></td><td>Serialized tag values used to seed the field state</td><td>Recommended</td></tr></tbody></table><h2 id="styling-classes" tabindex="-1">Styling classes <a class="header-anchor" href="#styling-classes" aria-label="Permalink to &quot;Styling classes&quot;">​</a></h2><p>These classes are for presentation only. They are not behavior requirements:</p><h3 id="field-input-1" tabindex="-1">Field input <a class="header-anchor" href="#field-input-1" aria-label="Permalink to &quot;Field input&quot;">​</a></h3><table tabindex="0"><thead><tr><th>Class</th><th>Description</th></tr></thead><tbody><tr><td><code>formie-input</code></td><td>Shared text-input styling and focus treatment</td></tr><tr><td><code>formie-input-error</code></td><td>Error-state styling class</td></tr></tbody></table><h2 id="related-pages" tabindex="-1">Related pages <a class="header-anchor" href="#related-pages" aria-label="Permalink to &quot;Related pages&quot;">​</a></h2><ul><li><a href="/formie/browser/ui-reference/fields/single-line-text">Single Line Text</a></li><li><a href="/formie/browser/ui-reference/css-variables">CSS variables</a></li></ul></div></div><div class="mt-12 border-t border-slate-200 pt-6"><div class="flex flex-col gap-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between"><!----><div>Last updated: Apr 9, 2026, 12:11 AM</div></div><div class="mt-6 grid gap-3 sm:grid-cols-2"><a href="/formie/browser/ui-reference/fields/table" class="group rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-docs-primary-border-strong hover:bg-docs-primary-soft/50"><div class="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Previous</div><div class="mt-1 text-sm font-medium text-slate-900 group-hover:text-docs-primary-strong">Table</div></a><a href="/formie/browser/ui-reference/components/buttons" class="group rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-docs-primary-border-strong hover:bg-docs-primary-soft/50 sm:text-right"><div class="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">Next</div><div class="mt-1 text-sm font-medium text-slate-900 group-hover:text-docs-primary-strong">Buttons</div></a></div></div><!--]--></main><aside id="content-side-layout" class="hidden xl:block"><div class="sticky top-0 pt-1"><div id="table-of-contents-shell" class="max-h-[calc(100dvh-7rem)] w-[16.5rem] overflow-y-auto space-y-2 pb-4 text-sm leading-6 text-slate-600"><!----></div></div></aside></div></div></div></div></div></div></div></div></div>
+    <script>window.__VP_HASH_MAP__=JSON.parse("{\"browser_behavior_custom-client.md\":\"C5Gnbzi9\",\"browser_behavior_javascript-events.md\":\"DBYkgvz6\",\"browser_behavior_manual-initialization.md\":\"DqPeGMIL\",\"browser_behavior_migrating-from-formie-plugin.md\":\"J4fJz8Fg\",\"browser_behavior_submission-handling.md\":\"BBKiVgTc\",\"browser_index.md\":\"WDdb1wmt\",\"browser_modules_address_address-finder.md\":\"DWlnkLxt\",\"browser_modules_address_google-address.md\":\"D32uRc5y\",\"browser_modules_address_loqate.md\":\"DgmVuN5u\",\"browser_modules_address_place-kit.md\":\"w1snFES0\",\"browser_modules_build-a-custom-module.md\":\"CELP9BqT\",\"browser_modules_captcha_captcha-eu.md\":\"DIdzpM4o\",\"browser_modules_captcha_friendly-captcha.md\":\"DgYd-XiF\",\"browser_modules_captcha_hcaptcha.md\":\"CnlUliBh\",\"browser_modules_captcha_recaptcha.md\":\"qsQl-eDw\",\"browser_modules_captcha_snaptcha.md\":\"BXiTiZub\",\"browser_modules_captcha_turnstile.md\":\"CiRt_WFU\",\"browser_modules_field_calculations.md\":\"Celrerk3\",\"browser_modules_field_conditions.md\":\"Cc6Wb5CC\",\"browser_modules_field_date-picker.md\":\"DvD8v8l7\",\"browser_modules_field_file-upload.md\":\"DPjRO7wh\",\"browser_modules_field_phone-country.md\":\"aGPNGE-J\",\"browser_modules_field_repeater.md\":\"TfXbS4Gb\",\"browser_modules_field_rich-text.md\":\"BY9sfB9n\",\"browser_modules_field_signature.md\":\"BXOezT_Y\",\"browser_modules_field_summary.md\":\"Bo_Bn4Gd\",\"browser_modules_field_table.md\":\"DDGtnhvv\",\"browser_modules_index.md\":\"O4Pl_-Yg\",\"browser_modules_payment_bpoint.md\":\"vak2rlkD\",\"browser_modules_payment_eway.md\":\"DUNzjgCc\",\"browser_modules_payment_go-cardless.md\":\"Ceb8rh3w\",\"browser_modules_payment_mollie.md\":\"UQhTaZmd\",\"browser_modules_payment_moneris.md\":\"BfIXQoME\",\"browser_modules_payment_opayo.md\":\"CUA4rNgW\",\"browser_modules_payment_paddle.md\":\"O20Md4d9\",\"browser_modules_payment_paypal.md\":\"Dt0P458V\",\"browser_modules_payment_payway.md\":\"gZMiUm-a\",\"browser_modules_payment_square.md\":\"CXgrFhwR\",\"browser_modules_payment_stripe.md\":\"DDtwJmGY\",\"browser_ui-reference_components_buttons.md\":\"B0-PVnxu\",\"browser_ui-reference_components_field.md\":\"E4xadkqY\",\"browser_ui-reference_components_form.md\":\"jnPsatK_\",\"browser_ui-reference_components_index.md\":\"ujmPaGe8\",\"browser_ui-reference_components_loading.md\":\"CdpSqPLP\",\"browser_ui-reference_components_messages.md\":\"D00lyY-h\",\"browser_ui-reference_components_page-navigation.md\":\"C-ks3k3W\",\"browser_ui-reference_components_progress.md\":\"DkNPZYek\",\"browser_ui-reference_css-variables.md\":\"CJdoQ1wb\",\"browser_ui-reference_fields_address.md\":\"DO2CUzpZ\",\"browser_ui-reference_fields_agree.md\":\"5KJUz--I\",\"browser_ui-reference_fields_calculations.md\":\"C9rNQwtR\",\"browser_ui-reference_fields_categories.md\":\"BfXa6F9s\",\"browser_ui-reference_fields_checkboxes.md\":\"DY8cYm1z\",\"browser_ui-reference_fields_date.md\":\"Ckpvh5LG\",\"browser_ui-reference_fields_entries.md\":\"Dt8Ba9Ns\",\"browser_ui-reference_fields_file-upload.md\":\"BlHvQuyr\",\"browser_ui-reference_fields_hidden.md\":\"CewjFlmY\",\"browser_ui-reference_fields_index.md\":\"C8Hgngu_\",\"browser_ui-reference_fields_multi-line-text.md\":\"B9uTJZmQ\",\"browser_ui-reference_fields_payment.md\":\"CE1zDPNK\",\"browser_ui-reference_fields_phone.md\":\"DLpbCFvm\",\"browser_ui-reference_fields_radio.md\":\"DZBM-k6Q\",\"browser_ui-reference_fields_recipients.md\":\"Czrv_uUJ\",\"browser_ui-reference_fields_repeater.md\":\"DezQFPUB\",\"browser_ui-reference_fields_signature.md\":\"OTUFeHQ0\",\"browser_ui-reference_fields_single-line-text.md\":\"BUQHqm7z\",\"browser_ui-reference_fields_summary.md\":\"B-_R3Vbs\",\"browser_ui-reference_fields_table.md\":\"CkHiSbsO\",\"browser_ui-reference_fields_tags.md\":\"D5SrozFT\",\"browser_ui-reference_index.md\":\"BSEyPxUX\",\"browser_validation_build-a-custom-validator.md\":\"BUkNCcOT\",\"browser_validation_built-in-rules.md\":\"BhGae0Ny\",\"browser_validation_index.md\":\"B1l99esJ\",\"index.md\":\"jsF5X70n\",\"react_client-rendered_component-customization.md\":\"CYt0tTTk\",\"react_client-rendered_overview.md\":\"CG77qbKs\",\"react_getting-started_installation.md\":\"B-Qrhm1J\",\"react_index.md\":\"CdKDCOGb\",\"react_server-rendered_overview.md\":\"e3N2oKYN\",\"react_server-rendered_styling.md\":\"CiMQR6IZ\",\"vue_client-rendered_component-customization.md\":\"CVtiB5t4\",\"vue_client-rendered_overview.md\":\"CvYYp__T\",\"vue_getting-started_installation.md\":\"DA3piJIN\",\"vue_index.md\":\"VY-bhEsu\",\"vue_server-rendered_overview.md\":\"D-rxCgC2\",\"vue_server-rendered_styling.md\":\"BnhN-qg-\",\"web-components_client-rendered_component-customization.md\":\"CIU0_R5q\",\"web-components_client-rendered_overview.md\":\"7xozkHSG\",\"web-components_getting-started_installation.md\":\"5Y2oR_mE\",\"web-components_index.md\":\"BMOdf-4X\",\"web-components_server-rendered_overview.md\":\"D1dUVbMg\",\"web-components_server-rendered_styling.md\":\"BiUFBSKP\"}");window.__VP_SITE_DATA__=JSON.parse("{\"lang\":\"en-US\",\"dir\":\"ltr\",\"title\":\"Formie Frontend\",\"description\":\"Core package documentation for theming, modules, and framework adapters.\",\"base\":\"/formie/\",\"head\":[],\"router\":{\"prefetchLinks\":true},\"appearance\":false,\"themeConfig\":{\"siteTitle\":\"Formie Frontend\",\"logo\":\"/icon.svg\",\"docsTheme\":{\"homeLink\":\"/formie/\",\"primary\":\"#e64d4c\"},\"nav\":[{\"text\":\"Browser\",\"link\":\"/browser/\"},{\"text\":\"React\",\"link\":\"/react/\"},{\"text\":\"Vue\",\"link\":\"/vue/\"},{\"text\":\"Web Components\",\"link\":\"/web-components/\"}],\"sidebar\":{\"/browser/\":[{\"text\":\"Getting Started\",\"items\":[{\"text\":\"Overview\",\"link\":\"/browser/\"},{\"text\":\"JavaScript events\",\"link\":\"/browser/behavior/javascript-events\"},{\"text\":\"Submission handling\",\"link\":\"/browser/behavior/submission-handling\"}]},{\"text\":\"Advanced\",\"items\":[{\"text\":\"Custom client\",\"link\":\"/browser/behavior/custom-client\"},{\"text\":\"Manual initialization\",\"link\":\"/browser/behavior/manual-initialization\"},{\"text\":\"Migrating from Formie Plugin\",\"link\":\"/browser/behavior/migrating-from-formie-plugin\"}]},{\"text\":\"Validation\",\"items\":[{\"text\":\"Overview\",\"link\":\"/browser/validation/\"},{\"text\":\"Built-in rules\",\"link\":\"/browser/validation/built-in-rules\"},{\"text\":\"Build a custom validator\",\"link\":\"/browser/validation/build-a-custom-validator\"}]},{\"text\":\"UI reference\",\"items\":[{\"text\":\"Fields\",\"collapsed\":true,\"items\":[{\"text\":\"Agree\",\"link\":\"/browser/ui-reference/fields/agree\"},{\"text\":\"Address\",\"link\":\"/browser/ui-reference/fields/address\"},{\"text\":\"Calculations\",\"link\":\"/browser/ui-reference/fields/calculations\"},{\"text\":\"Categories\",\"link\":\"/browser/ui-reference/fields/categories\"},{\"text\":\"Checkboxes\",\"link\":\"/browser/ui-reference/fields/checkboxes\"},{\"text\":\"Date\",\"link\":\"/browser/ui-reference/fields/date\"},{\"text\":\"Entries\",\"link\":\"/browser/ui-reference/fields/entries\"},{\"text\":\"File Upload\",\"link\":\"/browser/ui-reference/fields/file-upload\"},{\"text\":\"Hidden\",\"link\":\"/browser/ui-reference/fields/hidden\"},{\"text\":\"Multi Line Text\",\"link\":\"/browser/ui-reference/fields/multi-line-text\"},{\"text\":\"Payment\",\"link\":\"/browser/ui-reference/fields/payment\"},{\"text\":\"Phone\",\"link\":\"/browser/ui-reference/fields/phone\"},{\"text\":\"Radio\",\"link\":\"/browser/ui-reference/fields/radio\"},{\"text\":\"Recipients\",\"link\":\"/browser/ui-reference/fields/recipients\"},{\"text\":\"Repeater\",\"link\":\"/browser/ui-reference/fields/repeater\"},{\"text\":\"Signature\",\"link\":\"/browser/ui-reference/fields/signature\"},{\"text\":\"Single Line Text\",\"link\":\"/browser/ui-reference/fields/single-line-text\"},{\"text\":\"Summary\",\"link\":\"/browser/ui-reference/fields/summary\"},{\"text\":\"Table\",\"link\":\"/browser/ui-reference/fields/table\"},{\"text\":\"Tags\",\"link\":\"/browser/ui-reference/fields/tags\"}]},{\"text\":\"Components\",\"collapsed\":true,\"items\":[{\"text\":\"Buttons\",\"link\":\"/browser/ui-reference/components/buttons\"},{\"text\":\"Field\",\"link\":\"/browser/ui-reference/components/field\"},{\"text\":\"Form\",\"link\":\"/browser/ui-reference/components/form\"},{\"text\":\"Loading\",\"link\":\"/browser/ui-reference/components/loading\"},{\"text\":\"Messages\",\"link\":\"/browser/ui-reference/components/messages\"},{\"text\":\"Page Navigation\",\"link\":\"/browser/ui-reference/components/page-navigation\"},{\"text\":\"Progress\",\"link\":\"/browser/ui-reference/components/progress\"}]},{\"text\":\"CSS variables\",\"link\":\"/browser/ui-reference/css-variables\"}]},{\"text\":\"Modules\",\"items\":[{\"text\":\"Overview\",\"link\":\"/browser/modules/\"},{\"text\":\"Build a custom module\",\"link\":\"/browser/modules/build-a-custom-module\"},{\"text\":\"Field modules\",\"collapsed\":true,\"items\":[{\"text\":\"Calculations\",\"link\":\"/browser/modules/field/calculations\"},{\"text\":\"Conditions\",\"link\":\"/browser/modules/field/conditions\"},{\"text\":\"Date picker\",\"link\":\"/browser/modules/field/date-picker\"},{\"text\":\"File upload\",\"link\":\"/browser/modules/field/file-upload\"},{\"text\":\"Phone country\",\"link\":\"/browser/modules/field/phone-country\"},{\"text\":\"Repeater\",\"link\":\"/browser/modules/field/repeater\"},{\"text\":\"Rich text\",\"link\":\"/browser/modules/field/rich-text\"},{\"text\":\"Signature\",\"link\":\"/browser/modules/field/signature\"},{\"text\":\"Summary\",\"link\":\"/browser/modules/field/summary\"},{\"text\":\"Table\",\"link\":\"/browser/modules/field/table\"}]},{\"text\":\"Address modules\",\"collapsed\":true,\"items\":[{\"text\":\"Address Finder\",\"link\":\"/browser/modules/address/address-finder\"},{\"text\":\"Google address\",\"link\":\"/browser/modules/address/google-address\"},{\"text\":\"Loqate\",\"link\":\"/browser/modules/address/loqate\"},{\"text\":\"PlaceKit\",\"link\":\"/browser/modules/address/place-kit\"}]},{\"text\":\"Captcha modules\",\"collapsed\":true,\"items\":[{\"text\":\"CAPTCHA.eu\",\"link\":\"/browser/modules/captcha/captcha-eu\"},{\"text\":\"Friendly Captcha\",\"link\":\"/browser/modules/captcha/friendly-captcha\"},{\"text\":\"hCaptcha\",\"link\":\"/browser/modules/captcha/hcaptcha\"},{\"text\":\"reCAPTCHA\",\"link\":\"/browser/modules/captcha/recaptcha\"},{\"text\":\"Snaptcha\",\"link\":\"/browser/modules/captcha/snaptcha\"},{\"text\":\"Turnstile\",\"link\":\"/browser/modules/captcha/turnstile\"}]},{\"text\":\"Payment modules\",\"collapsed\":true,\"items\":[{\"text\":\"Bpoint\",\"link\":\"/browser/modules/payment/bpoint\"},{\"text\":\"Eway\",\"link\":\"/browser/modules/payment/eway\"},{\"text\":\"GoCardless\",\"link\":\"/browser/modules/payment/go-cardless\"},{\"text\":\"Mollie\",\"link\":\"/browser/modules/payment/mollie\"},{\"text\":\"Moneris\",\"link\":\"/browser/modules/payment/moneris\"},{\"text\":\"Opayo\",\"link\":\"/browser/modules/payment/opayo\"},{\"text\":\"Paddle\",\"link\":\"/browser/modules/payment/paddle\"},{\"text\":\"PayPal\",\"link\":\"/browser/modules/payment/paypal\"},{\"text\":\"PayWay\",\"link\":\"/browser/modules/payment/payway\"},{\"text\":\"Square\",\"link\":\"/browser/modules/payment/square\"},{\"text\":\"Stripe\",\"link\":\"/browser/modules/payment/stripe\"}]}]}],\"/react/\":[{\"text\":\"Getting Started\",\"items\":[{\"text\":\"Overview\",\"link\":\"/react/\"},{\"text\":\"Installation\",\"link\":\"/react/getting-started/installation\"}]},{\"text\":\"Server-rendered\",\"items\":[{\"text\":\"Overview\",\"link\":\"/react/server-rendered/overview\"},{\"text\":\"Styling\",\"link\":\"/react/server-rendered/styling\"}]},{\"text\":\"Client-rendered\",\"items\":[{\"text\":\"Overview\",\"link\":\"/react/client-rendered/overview\"},{\"text\":\"Component customization\",\"link\":\"/react/client-rendered/component-customization\"}]}],\"/vue/\":[{\"text\":\"Getting Started\",\"items\":[{\"text\":\"Overview\",\"link\":\"/vue/\"},{\"text\":\"Installation\",\"link\":\"/vue/getting-started/installation\"}]},{\"text\":\"Server-rendered\",\"items\":[{\"text\":\"Overview\",\"link\":\"/vue/server-rendered/overview\"},{\"text\":\"Styling\",\"link\":\"/vue/server-rendered/styling\"}]},{\"text\":\"Client-rendered\",\"items\":[{\"text\":\"Overview\",\"link\":\"/vue/client-rendered/overview\"},{\"text\":\"Component customization\",\"link\":\"/vue/client-rendered/component-customization\"}]}],\"/web-components/\":[{\"text\":\"Getting Started\",\"items\":[{\"text\":\"Overview\",\"link\":\"/web-components/\"},{\"text\":\"Installation\",\"link\":\"/web-components/getting-started/installation\"}]},{\"text\":\"HTML Mode\",\"items\":[{\"text\":\"Overview\",\"link\":\"/web-components/html-mode/overview\"},{\"text\":\"Styling\",\"link\":\"/web-components/html-mode/styling\"}]},{\"text\":\"Component Mode\",\"items\":[{\"text\":\"Overview\",\"link\":\"/web-components/component-mode/overview\"},{\"text\":\"Component customization\",\"link\":\"/web-components/component-mode/component-customization\"}]}]},\"socialLinks\":[{\"icon\":\"github\",\"link\":\"https://github.com/verbb/formie\"}],\"outline\":[2,3],\"lastUpdatedText\":\"Last updated\",\"search\":{\"provider\":\"local\"}},\"locales\":{},\"scrollOffset\":134,\"cleanUrls\":true}");</script>
+    
+  </body>
+</html>

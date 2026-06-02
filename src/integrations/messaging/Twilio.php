@@ -2,11 +2,13 @@
 namespace verbb\formie\integrations\messaging;
 
 use verbb\formie\Formie;
+use verbb\formie\base\FormInterface;
 use verbb\formie\base\Integration;
 use verbb\formie\base\Messaging;
 use verbb\formie\elements\Submission;
 use verbb\formie\helpers\RichTextHelper;
-use verbb\formie\helpers\Variables;
+use verbb\formie\helpers\SchemaHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\models\IntegrationFormSettings;
 
 use Craft;
@@ -47,7 +49,7 @@ class Twilio extends Messaging
     {
         return Craft::t('formie', 'Send your form content to Twilio.');
     }
-
+    
     public function fetchFormSettings(): IntegrationFormSettings
     {
         return new IntegrationFormSettings([]);
@@ -61,7 +63,7 @@ class Twilio extends Messaging
             $to = App::parseEnv($this->toNumber);
             $body = $this->_renderMessage($submission);
 
-            $to = Variables::getParsedValue($to, $submission, $submission->getForm());
+            $to = References::parseContent($to, $submission);
 
             $payload = [
                 'From' => $from,
@@ -135,6 +137,25 @@ class Twilio extends Messaging
         ]);
     }
 
+    protected function defineFormSettingsSchema(FormInterface $form): array
+    {
+        $schema = parent::defineFormSettingsSchema($form);
+        $schema[] = SchemaHelper::variableTextField([
+            'label' => Craft::t('formie', 'To Number'),
+            'instructions' => Craft::t('formie', 'The phone number to send the message to.'),
+            'name' => 'toNumber',
+            'required' => true,
+        ]);
+        $schema[] = SchemaHelper::richTextField([
+            'label' => Craft::t('formie', 'Message'),
+            'instructions' => Craft::t('formie', 'This text will be sent to {name}.', ['name' => $this->displayName()]),
+            'name' => 'message',
+            'required' => true,
+        ]);
+
+        return $schema;
+    }
+    
 
     // Private Methods
     // =========================================================================
