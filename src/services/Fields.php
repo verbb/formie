@@ -1976,11 +1976,7 @@ class Fields extends Component
                     $keptRowIds[] = $row->id;
                 }
 
-                foreach ($row->getFields() as $field) {
-                    if ($field->id) {
-                        $keptFieldIds[] = $field->id;
-                    }
-                }
+                $this->_collectKeptLayoutFieldIds($row->getFields(), $keptFieldIds);
             }
         }
 
@@ -2033,6 +2029,23 @@ class Fields extends Component
         foreach ($deletedPageIds as $id) {
             if (!$this->deletePageById((int)$id)) {
                 throw new Exception('Failed to delete page ID: ' . $id);
+            }
+        }
+    }
+
+    private function _collectKeptLayoutFieldIds(array $fields, array &$keptFieldIds): void
+    {
+        foreach ($fields as $field) {
+            if ($field->id) {
+                $keptFieldIds[] = $field->id;
+            }
+
+            if (!method_exists($field, 'getRows')) {
+                continue;
+            }
+
+            foreach ($field->getRows() as $nestedRow) {
+                $this->_collectKeptLayoutFieldIds($nestedRow->getFields(), $keptFieldIds);
             }
         }
     }

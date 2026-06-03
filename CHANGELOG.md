@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
+- Fix replacing a deleted field with a new field using the same handle requiring a two-step save in the form builder. ([#1854](https://github.com/verbb/formie/issues/1854))
 
 ## 4.0.0-beta.2 - 2026-06-03
 
