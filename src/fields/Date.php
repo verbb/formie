@@ -1316,10 +1316,16 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
 
     protected function defineClientInput(): array
     {
-        return array_merge(parent::defineClientInput(), [
+        $input = array_merge(parent::defineClientInput(), [
             'dateEnabled' => $this->getIsDate(),
             'timeEnabled' => $this->getIsTime(),
         ]);
+
+        if ($placeholder = $this->getEffectivePlaceholder()) {
+            $input['placeholder'] = $placeholder;
+        }
+
+        return $input;
     }
 
     protected function defineClientModules(): array
@@ -1384,17 +1390,6 @@ class Date extends FixedParentField implements SortableFieldInterface, Previewab
         }
 
         return $modules;
-    }
-
-    protected function defineClientInput(): array
-    {
-        $input = parent::defineClientInput();
-
-        if ($placeholder = $this->getEffectivePlaceholder()) {
-            $input['placeholder'] = $placeholder;
-        }
-
-        return $input;
     }
 
     protected function defineValueClass(): ?string
