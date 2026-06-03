@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix dropdown field options not saving in the form builder when no default option is selected. ([#2795](https://github.com/verbb/formie/issues/2795))
+
 ## 4.0.0-beta.2 - 2026-06-03
 
 ### Fixed

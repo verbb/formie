@@ -68,6 +68,7 @@ import { useNestedLayoutVariant } from '@form-builder/hooks/useNestedLayoutVaria
 import { getDevToolsConfig } from '@form-builder/dev/config';
 import { SnapTopLeftCornerToCursor } from '@utils';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
+import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { assignFieldReferences } from '@form-builder/utils/fieldReferences';
 
 const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
@@ -682,7 +683,7 @@ const SubFieldEditModal = ({
                     type="button"
                     variant="primary"
                     onClick={() => {
-                        return form.handleSubmit();
+                        submitSchemaFormAfterPendingTableUpdates(form);
                     }}
                     disabled={!hasSchemaConfig}
                 >

@@ -65,6 +65,7 @@ import { getDevToolsConfig } from '@form-builder/dev/config';
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { resolveContainerRows } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
+import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 const EXCLUDED_SUB_FIELD_SETTING_NAMES = [
@@ -383,7 +384,7 @@ const NestedFieldEditModal = ({
 
                     <Button type="button" variant="primary" disabled={!hasSchemaConfig} onClick={(e) => {
                         e.preventDefault();
-                        form.handleSubmit();
+                        submitSchemaFormAfterPendingTableUpdates(form);
                     }}>
                         {Craft.t('formie', 'Apply')}
                     </Button>

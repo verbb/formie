@@ -61,6 +61,7 @@ import {
 import { focusFirstVisibleInputIfEmpty } from '@form-builder/utils/focus';
 import { syncContainerRowsFromVariant } from '@form-builder/utils/containerLayoutVariants';
 import { announceFormBuilderStatus, focusFieldActionsTrigger } from '@form-builder/utils/accessibility';
+import { submitSchemaFormAfterPendingTableUpdates } from '@form-builder/utils/submitSchemaForm';
 import { SnapTopLeftCornerToCursor } from '@utils';
 
 import { FieldPreview } from './FieldPreview';
@@ -830,7 +831,7 @@ const FieldEditModal = ({
     const handleSave = (e) => {
         e.preventDefault();
 
-        form.handleSubmit();
+        submitSchemaFormAfterPendingTableUpdates(form);
     };
 
     const handleCancel = () => {
