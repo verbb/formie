@@ -553,6 +553,7 @@ class FormSlotRegistry extends Component
                 'name' => 'submitAction',
                 'value' => 'submit',
                 'data-formie-action' => 'submit',
+                'data-formie-conditions' => $page?->getSubmitButtonConditionsJson(),
             ])
             ->theme([
                 'class' => [

@@ -330,6 +330,50 @@ class FieldLayoutPage extends SavableComponent
         return Json::encode($conditions);
     }
 
+    public function hasSubmitButtonConditions(): bool
+    {
+        $pageSettings = $this->getPageSettings();
+
+        return ($pageSettings->enableNextButtonConditions && $pageSettings->getConditions());
+    }
+
+    public function getSubmitButtonConditions(): array
+    {
+        return $this->getPageSettings()->getConditions();
+    }
+
+    public function getSubmitButtonClientConditions(): array
+    {
+        $conditions = $this->getSubmitButtonConditions();
+
+        if (!$conditions) {
+            return [];
+        }
+
+        if ($form = $this->getForm()) {
+            $conditions = ConditionsHelper::normalizeClientConditions($conditions, $form);
+        }
+
+        $conditions['clearOnHide'] = true;
+
+        return $conditions;
+    }
+
+    public function getSubmitButtonConditionsJson(): ?string
+    {
+        if (!$this->getPageSettings()->enableNextButtonConditions) {
+            return null;
+        }
+
+        $conditions = $this->getSubmitButtonClientConditions();
+
+        if (!$conditions) {
+            return null;
+        }
+
+        return Json::encode($conditions);
+    }
+
     public function getFieldErrors(?Submission $submission): array
     {
         $errors = [];
