@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2
+
+### Patch Changes
+
+- version bump
+- Updated dependencies
+    - @verbb/formie-browser@1.0.2
+    - @verbb/formie-core@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

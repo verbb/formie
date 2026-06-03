@@ -22,12 +22,14 @@
     "dev:frontend": "npm run dev -w formie-frontend",
     "build": "npm run build:cp && npm run build:frontend",
     "build:docs": "npm run docs:build -w @verbb/formie-frontend-docs",
+    "build:packages": "npm run build -w @verbb/formie-core && npm run build -w @verbb/formie-browser && npm run build -w @verbb/formie-react && npm run build -w @verbb/formie-vue && npm run build -w @verbb/formie-web-components",
     "build:cp": "npm run build -w formie-cp",
     "build:frontend": "npm run build -w formie-frontend",
     "build:formie-core": "npm run build -w @verbb/formie-core",
     "build:formie-browser": "npm run build:formie-core && npm run build -w @verbb/formie-browser",
     "build:formie-react": "npm run build:formie-browser && npm run build -w @verbb/formie-react",
     "build:formie-vue": "npm run build:formie-browser && npm run build -w @verbb/formie-vue",
-    "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components"
+    "build:formie-web-components": "npm run build:formie-browser && npm run build -w @verbb/formie-web-components",
+    "release:packages": "npm run version:packages && npm run build:packages && npm run publish:packages"
   }
 }

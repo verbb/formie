@@ -1,6 +1,6 @@
 {
   "name": "@verbb/formie-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -41,8 +41,8 @@
     "react-dom": "^19.2.5"
   },
   "dependencies": {
-    "@verbb/formie-browser": "1.0.1",
-    "@verbb/formie-core": "1.0.1",
+    "@verbb/formie-browser": "1.0.2",
+    "@verbb/formie-core": "1.0.2",
     "signature_pad": "^5.1.3"
   },
   "devDependencies": {
