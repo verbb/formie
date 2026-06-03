@@ -829,7 +829,7 @@ class Notifications extends Component
             ]),
             SchemaHelper::elementSelectField([
                 'label' => Craft::t('formie', 'Attach Assets'),
-                'instructions' => Craft::t('formie', 'Select assets to be attached to this email notification.'),
+                'instructions' => Craft::t('formie', 'Select assets to be attached to this email notification. Assets over the maximum size configured in Formie Settings → Notifications cannot be saved.'),
                 'name' => 'attachAssets',
                 'selectionLabel' => Craft::t('formie', 'Add an asset'),
                 'config' => [

@@ -674,9 +674,15 @@ class Emails extends Component
                 continue;
             }
 
-            // Check if the asset it over 15mb (a reasonable threshold)
-            if (($asset->size / 1000000) > 15) {
-                Formie::info('Not attaching “' . $asset->filename . '” due to large file size: ' . $asset->size . '.');
+            // Check if the asset is over the configured threshold (0 = unlimited).
+            $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
+
+            if ($maxAttachmentSize !== null && $asset->size > $maxAttachmentSize) {
+                Formie::warning('Not attaching “{filename}” due to large file size: {size} bytes (limit: {limit} bytes).', [
+                    'filename' => $asset->filename,
+                    'size' => $asset->size,
+                    'limit' => $maxAttachmentSize,
+                ]);
 
                 continue;
             }

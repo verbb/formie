@@ -101,6 +101,7 @@ class Settings extends Model
     public bool $sendEmailAlerts = false;
     public ?array $alertEmails = null;
     public string $emptyValuePlaceholder = 'No response.';
+    public int $maxEmailAttachmentSizeMb = 15;
 
     // PDFs
     public string $pdfPaperSize = 'letter';
@@ -242,6 +243,15 @@ class Settings extends Model
         return $exportFolder;
     }
 
+    public function getMaxEmailAttachmentSizeBytes(): ?int
+    {
+        if ($this->maxEmailAttachmentSizeMb <= 0) {
+            return null;
+        }
+
+        return $this->maxEmailAttachmentSizeMb * 1024 * 1024;
+    }
+
 
     // Protected Methods
     // =========================================================================
@@ -253,6 +263,7 @@ class Settings extends Model
         $rules[] = [['pluginName', 'defaultPage', 'maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['maxIncompleteSubmissionAge', 'maxSentNotificationsAge'], 'number', 'integerOnly' => true];
+        $rules[] = [['maxEmailAttachmentSizeMb'], 'number', 'integerOnly' => true, 'min' => 0];
         $rules[] = [['submissionStateRetentionDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['saveResumeTokenTtlDays'], 'number', 'integerOnly' => true, 'min' => 1];
         $rules[] = [['maxSavedDraftsPerSession'], 'number', 'integerOnly' => true, 'min' => 0];

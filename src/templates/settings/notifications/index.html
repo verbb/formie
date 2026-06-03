@@ -22,6 +22,15 @@
             warning: macros.configWarning('emptyValuePlaceholder', 'formie'),
         }) }}
 
+        {{ forms.textField({
+            label: 'Maximum Email Attachment Size' | t('formie'),
+            instructions: 'The maximum size in megabytes for assets attached to email notifications. Set to 0 for no limit.' | t('formie'),
+            name: 'maxEmailAttachmentSizeMb',
+            value: settings.maxEmailAttachmentSizeMb,
+            size: 5,
+            warning: macros.configWarning('maxEmailAttachmentSizeMb', 'formie'),
+        }) }}
+
         {{ forms.lightswitchField({
             label: 'Send Email Alert for Failed Notification' | t('formie'),
             instructions: 'Enable this option send nominated email addresses an alert email when an email notification cannot be delivered.' | t('formie'),

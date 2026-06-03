@@ -304,6 +304,26 @@ class Notification extends Model
             },
         ];
 
+        $rules[] = [['attachAssets'], 'validateAttachAssets'];
+
         return $rules;
+    }
+
+    public function validateAttachAssets(string $attribute): void
+    {
+        $maxAttachmentSize = Formie::$plugin->getSettings()->getMaxEmailAttachmentSizeBytes();
+
+        if ($maxAttachmentSize === null) {
+            return;
+        }
+
+        foreach ($this->getAssetAttachments() as $asset) {
+            if ($asset->size > $maxAttachmentSize) {
+                $this->addError($attribute, Craft::t('formie', '“{filename}” exceeds the maximum email attachment size of {limit} MB.', [
+                    'filename' => $asset->filename,
+                    'limit' => Formie::$plugin->getSettings()->maxEmailAttachmentSizeMb,
+                ]));
+            }
+        }
     }
 }
