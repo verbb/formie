@@ -204,6 +204,27 @@ class References
         return '{field:' . $reference . '}';
     }
 
+    public static function extractFieldReferenceHandles(string $content): array
+    {
+        if (!str_contains($content, '{field:')) {
+            return [];
+        }
+
+        $handles = [];
+
+        preg_replace_callback('/\{[^{}]+\}/', function (array $matches) use (&$handles): string {
+            $expression = self::parseReferenceExpression($matches[0]);
+
+            if ($expression->isValid && $expression->target === 'field' && $expression->identifier !== '') {
+                $handles[] = $expression->identifier;
+            }
+
+            return $matches[0];
+        }, $content);
+
+        return array_values(array_unique($handles));
+    }
+
     public static function remapFieldReferenceToken(string $rawToken, array $referenceMap): string
     {
         $expression = self::parseReferenceExpression($rawToken);

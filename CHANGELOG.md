@@ -13,6 +13,7 @@
 - Fix checkbox fields saving their default option values when explicitly unchecked on submit. ([#2457](https://github.com/verbb/formie/issues/2457))
 - Fix missing page-list validation indicators in the form builder when a form has no pages. ([#2786](https://github.com/verbb/formie/issues/2786))
 - Add a default country setting for Google Places address auto-complete fields. ([#2721](https://github.com/verbb/formie/issues/2721))
+- Fix email notification preview failing when a recipient setting references a non-email field. ([#2537](https://github.com/verbb/formie/issues/2537))
 
 ## 4.0.0-beta.2 - 2026-06-03
 

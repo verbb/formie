@@ -18,6 +18,7 @@ use verbb\formie\fields\values\MultiOptionFieldValue;
 use verbb\formie\fields\values\NameFieldValue;
 use verbb\formie\fields as formiefields;
 use verbb\formie\helpers\ArrayHelper;
+use verbb\formie\helpers\References;
 use verbb\formie\helpers\StringHelper;
 use verbb\formie\helpers\Table;
 use verbb\formie\helpers\Variables;
@@ -473,10 +474,11 @@ class Submissions extends Component
         }
     }
 
-    public function populateFakeSubmission(Submission $submission): void
+    public function populateFakeSubmission(Submission $submission, ?Notification $notification = null): void
     {
         $fields = $submission->getFields();
-        $fieldContent = $this->getFakeFieldContent($fields);
+        $emailRecipientHandles = $notification ? $this->_getEmailPreviewFieldHandles($notification) : [];
+        $fieldContent = $this->getFakeFieldContent($fields, $emailRecipientHandles);
 
         $submission->setFieldValues($fieldContent);
 
@@ -522,17 +524,40 @@ class Submissions extends Component
     // Private Methods
     // =========================================================================
 
-    public function getFakeFieldContent(array $fields): array
+    public function getFakeFieldContent(array $fields, array $emailRecipientHandles = []): array
     {
         $fieldContent = [];
 
         $faker = Faker\Factory::create();
 
         foreach ($fields as $key => $field) {
+            if (in_array($field->handle, $emailRecipientHandles, true)) {
+                $fieldContent[$field->handle] = $faker->email();
+
+                continue;
+            }
+
             $fieldContent[$field->handle] = $field->getValueForEmailPreview($faker);
         }
 
         return $fieldContent;
+    }
+
+    private function _getEmailPreviewFieldHandles(Notification $notification): array
+    {
+        $handles = [];
+
+        foreach (['to', 'cc', 'bcc', 'replyTo', 'from', 'sender'] as $setting) {
+            $value = $notification->$setting;
+
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+
+            $handles = array_merge($handles, References::extractFieldReferenceHandles($value));
+        }
+
+        return array_values(array_unique($handles));
     }
 
 }

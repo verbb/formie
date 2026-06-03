@@ -139,7 +139,7 @@ class EmailController extends Controller
         $submission->setForm($form);
 
         // Populate all fields with fake content
-        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission);
+        Formie::$plugin->getSubmissions()->populateFakeSubmission($submission, $notification);
     }
 
     private function _normalizeNotificationParams(array $notificationParams): array
